@@ -1652,10 +1652,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#schema-bindings" class="md-nav__link">
+  <a href="#bindings" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Schema bindings
+        Bindings
       
     </span>
   </a>
@@ -1663,10 +1663,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#catalogs" class="md-nav__link">
+  <a href="#project-settings" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Catalogs
+        Project Settings
       
     </span>
   </a>
@@ -1678,6 +1678,56 @@
     <span class="md-ellipsis">
       
         Transformation scenarios
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Transformation scenarios">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#in-the-transform-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        In the Transform panel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#for-several-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For several files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validate-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validate Project
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#catalogs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Catalogs
       
     </span>
   </a>
@@ -2821,10 +2871,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#schema-bindings" class="md-nav__link">
+  <a href="#bindings" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Schema bindings
+        Bindings
       
     </span>
   </a>
@@ -2832,10 +2882,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#catalogs" class="md-nav__link">
+  <a href="#project-settings" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Catalogs
+        Project Settings
       
     </span>
   </a>
@@ -2847,6 +2897,56 @@
     <span class="md-ellipsis">
       
         Transformation scenarios
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Transformation scenarios">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#in-the-transform-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        In the Transform panel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#for-several-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For several files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validate-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validate Project
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#catalogs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Catalogs
       
     </span>
   </a>
@@ -2896,11 +2996,14 @@
 
 
 <h1 id="projects-and-transformation-scenarios">Projects and Transformation Scenarios<a class="headerlink" href="#projects-and-transformation-scenarios" title="Permanent link">&para;</a></h1>
-<p>A <strong>project</strong> keeps the settings that belong to a set of files in one file next to them: which
-schema validates which XML files, which XML catalogs resolve schema references, and named
-<strong>transformation scenarios</strong> (stylesheet, input, parameters, output). Commit the project file with
-your files and everyone who opens it gets the same bindings and scenarios — in the application and
-on the command line.</p>
+<p>A <strong>project</strong> keeps the settings that belong to a set of files in one file next to them:</p>
+<ul>
+<li>which schema, which Schematron and which transformation scenario belong to which files;</li>
+<li>which XML catalogs resolve schema references;</li>
+<li>named <strong>transformation scenarios</strong>: stylesheet, query or pipeline, input, parameters, output.</li>
+</ul>
+<p>Commit the project file with your files. Everyone who opens it gets the same bindings and scenarios,
+in the application and on the command line.</p>
 <h2 id="creating-and-opening-a-project">Creating and opening a project<a class="headerlink" href="#creating-and-opening-a-project" title="Permanent link">&para;</a></h2>
 <p><strong>File → Project</strong> holds every project action:</p>
 <table>
@@ -2920,12 +3023,24 @@ on the command line.</p>
 <td>Opens a project file; the project open before is closed</td>
 </tr>
 <tr>
-<td><strong>Close Project</strong></td>
-<td>Closes the project; schema bindings and catalogs no longer apply</td>
+<td><strong>Open Recent Project</strong></td>
+<td>The last eight projects; <strong>Clear List</strong> empties it</td>
 </tr>
 <tr>
-<td><strong>Bind Schema in Project…</strong></td>
-<td>Binds a schema to XML files of the project (see below)</td>
+<td><strong>Close Project</strong></td>
+<td>Closes the project; its bindings and catalogs no longer apply</td>
+</tr>
+<tr>
+<td><strong>Project Settings…</strong></td>
+<td>Edits name, folders, bindings, scenarios and catalogs (see below)</td>
+</tr>
+<tr>
+<td><strong>Validate Project</strong></td>
+<td>Validates every file of the project that has a schema or Schematron bound</td>
+</tr>
+<tr>
+<td><strong>Bind in Project…</strong></td>
+<td>Binds a schema, Schematron or scenario to files of the project</td>
 </tr>
 <tr>
 <td><strong>Add Catalog to Project…</strong></td>
@@ -2937,63 +3052,202 @@ on the command line.</p>
 </tr>
 </tbody>
 </table>
+<p>Other ways to open a project:</p>
+<ul>
+<li><strong>Welcome page:</strong> it lists the recent projects under <strong>Projects</strong>; a click opens one.</li>
+<li><strong>Explorer:</strong> it shows project files with a briefcase icon. A double click opens the project; on
+  the open project's own file, a double click opens the file in the editor.</li>
+</ul>
 <p>Only one project is open at a time. It opens again at the next start, as long as its file is still
 there.</p>
-<p>While a project is open, the <strong>Explorer</strong> shows the project's folder (the folder of the project file)
-as its workspace, titled <code>PROJECT · NAME</code>. Closing the project keeps the folder open.</p>
-<h2 id="schema-bindings">Schema bindings<a class="headerlink" href="#schema-bindings" title="Permanent link">&para;</a></h2>
-<p><strong>Bind Schema in Project…</strong> asks for two things:</p>
+<p>While a project is open, the <strong>Explorer</strong> shows the project's folders as its workspace, titled
+<code>PROJECT · NAME</code>. A project with several folders shows each one at the top level. Closing the
+project keeps the first folder open.</p>
+<p>The project follows changes to its file within a few seconds: saving it in the editor, a
+<code>git pull</code>, or another program. If the changed file is no valid project file, the project keeps its
+previous settings.</p>
+<h2 id="bindings">Bindings<a class="headerlink" href="#bindings" title="Permanent link">&para;</a></h2>
+<p>A binding assigns things to the files whose path matches a pattern:</p>
 <ul>
-<li><strong>XML files</strong> — a path or pattern relative to the project folder. <code>*</code> matches within a folder,
-  <code>**</code> across folders: <code>data/**/*.xml</code> matches <code>data/a.xml</code> and <code>data/2026/b.xml</code>. The dialog
-  starts with the active document's path.</li>
-<li><strong>Schema</strong> — the XSD, starting with the schema bound to the active document.</li>
+<li><strong>Files:</strong> a path or pattern relative to the project folder. <code>*</code> matches within a folder, <code>**</code>
+  across folders: <code>data/**/*.xml</code> matches <code>data/a.xml</code> and <code>data/2026/b.xml</code>.</li>
+<li><strong>Schema:</strong> an XSD, DTD or RELAX NG schema (<code>.rng</code>, <code>.rnc</code>). JSON files get a JSON Schema here.</li>
+<li><strong>Schematron:</strong> checked in addition to the schema.</li>
+<li><strong>Scenario:</strong> the transformation scenario of these files (see below).</li>
 </ul>
-<p>An XML file of the project is validated against the schema of the <strong>first</strong> binding whose pattern
-matches, before the schema the file declares (<code>xsi:schemaLocation</code>) is looked at. The status bar
-shows such a schema as <code>… (project)</code>. A binding for the same pattern replaces the old one.</p>
+<p>Each of the three is optional, but at least one is needed. The dialog shows how many files of the
+project the pattern matches.</p>
+<p><strong>Which binding applies.</strong> For each file, schema, Schematron and scenario are taken separately,
+each from the first binding that matches the file and names one. A broad binding at the end can
+therefore add a Schematron to every file, while narrower ones before it choose the schemas:</p>
+<table>
+<thead>
+<tr>
+<th>Files</th>
+<th>Schema</th>
+<th>Schematron</th>
+<th>Scenario</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>data/special.xml</code></td>
+<td><code>schemas/special.xsd</code></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>data/**/*.xml</code></td>
+<td><code>schemas/order.xsd</code></td>
+<td></td>
+<td><code>Report</code></td>
+</tr>
+<tr>
+<td><code>**/*.xml</code></td>
+<td></td>
+<td><code>rules/common.sch</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Here <code>data/special.xml</code> gets <code>special.xsd</code>, <code>common.sch</code> and the <code>Report</code> scenario.</p>
+<p><strong>What a binding does:</strong></p>
+<ul>
+<li><strong>Schema:</strong> it comes before the schema a file declares (<code>xsi:schemaLocation</code>). The status bar
+  shows it as <code>… (project)</code>.</li>
+<li><strong>Schematron:</strong> Validate (F8), the Validation panel and Quick Fixes use it, unless you chose
+  another Schematron for the document.</li>
+<li><strong>Scenario:</strong> the <a href="../transform-panel/">Transform panel</a> chooses it when the file becomes the
+  active document, and the Explorer offers it first under <strong>Run Scenario</strong>.</li>
+</ul>
+<p><strong>Where to bind:</strong></p>
+<ul>
+<li><strong>File → Project → Bind in Project…</strong> starts with the active document: its binding, or its path
+  and schema.</li>
+<li><strong>In the Explorer:</strong> select files, then right-click → <strong>Bind in Project…</strong>. The pattern starts as
+  the file's path; several files of one folder become <code>folder/*.xml</code>.</li>
+<li><strong>Project Settings → Bindings</strong> lists all bindings. There you can edit them, remove them and
+  change their order.</li>
+</ul>
+<p>The Explorer's tooltip on a file says what the project assigns to it.</p>
+<h2 id="project-settings">Project Settings<a class="headerlink" href="#project-settings" title="Permanent link">&para;</a></h2>
+<p><strong>File → Project → Project Settings…</strong> (also in the Explorer's context menu) edits the project
+without touching the JSON:</p>
+<table>
+<thead>
+<tr>
+<th>Tab</th>
+<th>What you can do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>General</strong></td>
+<td>The project's name and its folders. The first folder is the Explorer workspace.</td>
+</tr>
+<tr>
+<td><strong>Bindings</strong></td>
+<td>The table of bindings: add, edit (double click), remove, move up or down. Order matters, see above.</td>
+</tr>
+<tr>
+<td><strong>Scenarios</strong></td>
+<td>Every scenario with all its fields: add, edit, duplicate, remove, reorder. Renaming a scenario renames it in the bindings too. Removing one removes it from the bindings.</td>
+</tr>
+<tr>
+<td><strong>Catalogs</strong></td>
+<td>The project's XML catalogs.</td>
+</tr>
+</tbody>
+</table>
+<p>Nothing is saved until you press <strong>OK</strong>.</p>
+<h2 id="transformation-scenarios">Transformation scenarios<a class="headerlink" href="#transformation-scenarios" title="Permanent link">&para;</a></h2>
+<p>A scenario names a stylesheet (XSLT), an XQuery (<code>.xq</code>, <code>.xquery</code>, …) or an XProc pipeline
+(<code>.xpl</code>), together with:</p>
+<ul>
+<li><strong>Input:</strong> a fixed file, or <code>${file}</code>, the file the scenario is run for. An empty input of an
+  XSLT scenario means the same as <code>${file}</code>. XQuery and XProc scenarios may have no input.</li>
+<li><strong>Parameters</strong>, one <code>name=value</code> per line. <code>${file}</code> in a value is the file the scenario runs for.</li>
+<li><strong>Output method:</strong> XML, HTML, XHTML, TEXT, JSON or <strong>PDF</strong>, or Auto (from <code>xsl:output</code>). For
+  PDF, the stylesheet produces XSL-FO and FOP renders it to the output file.</li>
+<li><strong>Output file:</strong> optional, except for PDF. <code>${name}</code> is the input file's name without
+  extension, <code>${dir}</code> its folder: <code>out/${dir}/${name}.html</code>. The output must stay inside the
+  project folder.</li>
+</ul>
+<h3 id="in-the-transform-panel">In the Transform panel<a class="headerlink" href="#in-the-transform-panel" title="Permanent link">&para;</a></h3>
+<p>While a project is open, the <a href="../transform-panel/">Transform Panel</a> shows a <strong>SCENARIO</strong> section
+below OPTIONS &amp; TOOLS.</p>
+<p><strong>Choosing and running a scenario:</strong></p>
+<ul>
+<li><strong>Choose a scenario</strong> to fill the panel with its stylesheet, input file, parameters and output
+  method. Run Transform and Debug then work as usual.</li>
+<li>When the active document has a bound scenario, the panel chooses it by itself. A scenario you
+  chose yourself stays chosen.</li>
+<li><strong>Run Scenario</strong> runs the chosen scenario from the files on disk and shows the result in the
+  OUTPUT panel. A <code>${file}</code> scenario runs for the active (saved) document.</li>
+<li>When the scenario names an output file, the result is also written there (folders are created).</li>
+<li>A PDF opens in the PDF preview.</li>
+<li>Save open stylesheets first: Run Scenario does not read unsaved editor text.</li>
+</ul>
+<p><strong>Saving and removing scenarios:</strong></p>
+<ul>
+<li>The <strong>disk button</strong> saves the panel's current settings as a scenario: stylesheet, input,
+  parameters and output method, plus a name and an optional output file. Tick <strong>Runs for the file
+  it is started for</strong> to store <code>${file}</code> instead of the current input. Saving under an existing
+  name replaces that scenario.</li>
+<li>The <strong>trash button</strong> removes the chosen scenario from the project.</li>
+</ul>
+<h3 id="for-several-files">For several files<a class="headerlink" href="#for-several-files" title="Permanent link">&para;</a></h3>
+<p>Select files in the Explorer and choose <strong>Run Scenario ▸</strong> in the context menu. The scenario bound
+to the first file is listed first. The scenario runs once per file:</p>
+<ul>
+<li>One file without an output file: the result opens in a new tab.</li>
+<li>Otherwise, a summary lists what was written and what failed.</li>
+<li>A second file that would overwrite the output of the first fails. Use <code>${name}</code> in the output
+  so that each file gets its own.</li>
+</ul>
+<h2 id="validate-project">Validate Project<a class="headerlink" href="#validate-project" title="Permanent link">&para;</a></h2>
+<p><strong>File → Project → Validate Project</strong> (also in the Explorer's context menu) collects every file of
+the project's folders that a binding gives a schema or Schematron. It skips hidden folders such as
+<code>.git</code>. It then validates each file in the background with its own schema and Schematron.</p>
+<p>Files without a bound schema use the schema they declare. JSON files are checked against their
+bound JSON Schema.</p>
+<p>The result appears in the <a href="../validation-panel/">Validation panel</a>'s batch view. There is one row per
+file (the tooltip shows its path), plus a text report. At most 10,000 files are checked.</p>
 <h2 id="catalogs">Catalogs<a class="headerlink" href="#catalogs" title="Permanent link">&para;</a></h2>
 <p>The project's catalogs are used in addition to the catalogs of the
 <a href="../schema-library/">Schema Library</a>, and before them, while the project is open. They are not added
 to the Schema Library's own list.</p>
-<h2 id="transformation-scenarios">Transformation scenarios<a class="headerlink" href="#transformation-scenarios" title="Permanent link">&para;</a></h2>
-<p>While a project is open, the <a href="../transform-panel/">Transform Panel</a> shows a <strong>SCENARIO</strong> section below
-OPTIONS &amp; TOOLS:</p>
-<ul>
-<li><strong>Choose a scenario</strong> to fill the panel with its stylesheet, input file, parameters and output
-  method. Run Transform and Debug then work as usual.</li>
-<li><strong>Run Scenario</strong> runs the chosen scenario from the files on disk and shows the result in the
-  OUTPUT panel. When the scenario names an output file, the result is also written there (folders
-  are created). Save open stylesheets first: Run Scenario does not read unsaved editor text.</li>
-<li>The <strong>disk button</strong> saves the panel's current settings as a scenario: stylesheet, input (the input
-  file, or the active document when it is saved), parameters and output method, plus a name and an
-  optional output file. Saving under an existing name replaces that scenario.</li>
-<li>The <strong>trash button</strong> removes the chosen scenario from the project.</li>
-</ul>
-<p>A scenario can also name an XQuery (<code>.xq</code>, <code>.xquery</code>, …) or an XProc pipeline (<code>.xpl</code>) instead of
-a stylesheet; such scenarios run with <strong>Run Scenario</strong> (and on the command line), since the
-Transform panel itself runs XSLT. XQuery and XProc scenarios do not need an input.</p>
 <h2 id="the-project-file">The project file<a class="headerlink" href="#the-project-file" title="Permanent link">&para;</a></h2>
 <p>All paths are relative to the folder of the project file, so the project can be moved or checked
-out elsewhere. The file can be edited by hand:</p>
+out elsewhere. The file can be edited by hand; the open project picks up the change when the file
+is saved.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Orders"</span><span class="p">,</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">"folders"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"."</span><span class="p">],</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">"schemaBindings"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">"files"</span><span class="p">:</span><span class="w"> </span><span class="s2">"data/**/*.xml"</span><span class="p">,</span><span class="w"> </span><span class="nt">"schema"</span><span class="p">:</span><span class="w"> </span><span class="s2">"schemas/order.xsd"</span><span class="w"> </span><span class="p">}</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="p">],</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="nt">"catalogs"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"schemas/catalog.xml"</span><span class="p">],</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="nt">"scenarios"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">      </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Report"</span><span class="p">,</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="nt">"stylesheet"</span><span class="p">:</span><span class="w"> </span><span class="s2">"xsl/report.xsl"</span><span class="p">,</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">      </span><span class="nt">"input"</span><span class="p">:</span><span class="w"> </span><span class="s2">"data/order.xml"</span><span class="p">,</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">      </span><span class="nt">"parameters"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"year"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026"</span><span class="w"> </span><span class="p">},</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">      </span><span class="nt">"outputFormat"</span><span class="p">:</span><span class="w"> </span><span class="s2">"HTML"</span><span class="p">,</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">      </span><span class="nt">"output"</span><span class="p">:</span><span class="w"> </span><span class="s2">"out/report.html"</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">  </span><span class="p">]</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="p">}</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">"files"</span><span class="p">:</span><span class="w"> </span><span class="s2">"data/**/*.xml"</span><span class="p">,</span><span class="w"> </span><span class="nt">"schema"</span><span class="p">:</span><span class="w"> </span><span class="s2">"schemas/order.xsd"</span><span class="p">,</span><span class="w"> </span><span class="nt">"scenario"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Report"</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">"files"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**/*.xml"</span><span class="p">,</span><span class="w"> </span><span class="nt">"schematron"</span><span class="p">:</span><span class="w"> </span><span class="s2">"rules/common.sch"</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">"files"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**/*.json"</span><span class="p">,</span><span class="w"> </span><span class="nt">"schema"</span><span class="p">:</span><span class="w"> </span><span class="s2">"schemas/order.schema.json"</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="p">],</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="nt">"catalogs"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"schemas/catalog.xml"</span><span class="p">],</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="nt">"scenarios"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">      </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Report"</span><span class="p">,</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">      </span><span class="nt">"stylesheet"</span><span class="p">:</span><span class="w"> </span><span class="s2">"xsl/report.xsl"</span><span class="p">,</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">      </span><span class="nt">"input"</span><span class="p">:</span><span class="w"> </span><span class="s2">"${file}"</span><span class="p">,</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">      </span><span class="nt">"parameters"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"year"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026"</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">      </span><span class="nt">"outputFormat"</span><span class="p">:</span><span class="w"> </span><span class="s2">"HTML"</span><span class="p">,</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">      </span><span class="nt">"output"</span><span class="p">:</span><span class="w"> </span><span class="s2">"out/${name}.html"</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">      </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Invoice PDF"</span><span class="p">,</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">      </span><span class="nt">"stylesheet"</span><span class="p">:</span><span class="w"> </span><span class="s2">"xsl/invoice-fo.xsl"</span><span class="p">,</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">      </span><span class="nt">"input"</span><span class="p">:</span><span class="w"> </span><span class="s2">"${file}"</span><span class="p">,</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">      </span><span class="nt">"outputFormat"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PDF"</span><span class="p">,</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">      </span><span class="nt">"output"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pdf/${name}.pdf"</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">  </span><span class="p">]</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="p">}</span>
 </code></pre></div>
 <table>
 <thead>
@@ -3013,7 +3267,7 @@ out elsewhere. The file can be edited by hand:</p>
 </tr>
 <tr>
 <td><code>schemaBindings</code></td>
-<td><code>files</code> (pattern) → <code>schema</code>, first match wins</td>
+<td><code>files</code> (pattern) → <code>schema</code>, <code>schematron</code>, <code>scenario</code> (each optional); first match per part</td>
 </tr>
 <tr>
 <td><code>catalogs</code></td>
@@ -3021,17 +3275,18 @@ out elsewhere. The file can be edited by hand:</p>
 </tr>
 <tr>
 <td><code>scenarios</code></td>
-<td><code>name</code>, <code>stylesheet</code>, optional <code>input</code>, <code>parameters</code>, <code>outputFormat</code> (<code>XML</code>, <code>HTML</code>, <code>XHTML</code>, <code>TEXT</code>, <code>JSON</code>; default from <code>xsl:output</code>), <code>output</code></td>
+<td><code>name</code>, <code>stylesheet</code>, optional <code>input</code> (<code>${file}</code> = the file it runs for), <code>parameters</code>, <code>outputFormat</code> (<code>XML</code>, <code>HTML</code>, <code>XHTML</code>, <code>TEXT</code>, <code>JSON</code>, <code>PDF</code>; default from <code>xsl:output</code>), <code>output</code> (<code>${name}</code>, <code>${dir}</code>)</td>
 </tr>
 </tbody>
 </table>
-<p>After editing the file by hand, open the project again (<strong>File → Project → Open Project…</strong>) to use
-the changes.</p>
+<p>Project files from before these additions keep working unchanged.</p>
 <h2 id="on-the-command-line">On the command line<a class="headerlink" href="#on-the-command-line" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>fxt-cli<span class="w"> </span>scenario<span class="w"> </span>orders.fxtproj<span class="w">              </span><span class="c1"># run all scenarios</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>fxt-cli<span class="w"> </span>scenario<span class="w"> </span>orders.fxtproj<span class="w"> </span>Report<span class="w">       </span><span class="c1"># run one</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>fxt-cli<span class="w"> </span>scenario<span class="w"> </span>orders.fxtproj<span class="w"> </span>--list<span class="w">       </span><span class="c1"># list them</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>fxt-cli<span class="w"> </span>validate<span class="w"> </span>--project<span class="w"> </span>orders.fxtproj<span class="w"> </span>data/
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>fxt-cli<span class="w"> </span>scenario<span class="w"> </span>orders.fxtproj<span class="w">                      </span><span class="c1"># run all scenarios</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>fxt-cli<span class="w"> </span>scenario<span class="w"> </span>orders.fxtproj<span class="w"> </span>Report<span class="w">               </span><span class="c1"># run one</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>fxt-cli<span class="w"> </span>scenario<span class="w"> </span>orders.fxtproj<span class="w"> </span>Report<span class="w"> </span>-i<span class="w"> </span>data/<span class="w">      </span><span class="c1"># run it for every XML file in data/</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>fxt-cli<span class="w"> </span>scenario<span class="w"> </span>orders.fxtproj<span class="w"> </span>-i<span class="w"> </span>data/a.xml<span class="w">        </span><span class="c1"># run the scenario bound to the file</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>fxt-cli<span class="w"> </span>scenario<span class="w"> </span>orders.fxtproj<span class="w"> </span>--list<span class="w">               </span><span class="c1"># list them</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>fxt-cli<span class="w"> </span>validate<span class="w"> </span>--project<span class="w"> </span>orders.fxtproj<span class="w"> </span>data/<span class="w">      </span><span class="c1"># bound schema, Schematron, JSON Schema</span>
 </code></pre></div>
 <p>See <a href="../command-line/#scenario"><code>scenario</code></a> and <a href="../command-line/#validate"><code>validate --project</code></a>.</p>
 

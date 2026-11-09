@@ -3048,18 +3048,25 @@ running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
   <a href="../plugin-development/">Writing Plugins</a>.</li>
 <li><strong>Industry plugins</strong> (off by default): ISO 20022 payments / SEPA, ebInterface, FinDatEx EMT/EET/EPT,
   XBRL with Arelle. See <a href="../industry-plugins/">Industry Plugins</a>.</li>
-<li><strong>Projects and transformation scenarios:</strong> <code>.fxtproj</code> files bind schemas to files by pattern, add
-  catalogs and store named scenarios (Transform panel, <code>fxt-cli scenario</code>). See
-  <a href="../projects/">Projects</a>.</li>
-<li><strong>Accessibility:</strong> screen-reader names for every button and field, WCAG AA contrast in both
-  themes, documented keyboard alternatives. See <a href="../accessibility/">Accessibility</a>.</li>
-<li><strong>Security:</strong> no external entities in Schematron validation, HTML previews without JavaScript or
+<li><strong>Projects and transformation scenarios:</strong> <code>.fxtproj</code> files bind a schema (XSD, DTD, RELAX NG,
+  JSON Schema), a Schematron and a transformation scenario to files by pattern, add catalogs and
+  store named scenarios (XSLT, XQuery, XProc, PDF through FOP).</li>
+<li><strong>Project Settings</strong> edits all of it without touching the JSON.</li>
+<li><strong>Validate Project</strong> checks every bound file.</li>
+<li>Scenarios run for the chosen files (<code>${file}</code>, <code>${name}</code>), from the Explorer and with
+    <code>fxt-cli scenario --input</code>.</li>
+<li>Recent projects are on the menu and the Welcome page.</li>
+<li>The project reloads when its file changes.</li>
+</ul>
+<p>See <a href="../projects/">Projects</a>.
+- <strong>Accessibility:</strong> screen-reader names for every button and field, WCAG AA contrast in both
+  themes, documented keyboard alternatives. See <a href="../accessibility/">Accessibility</a>.
+- <strong>Security:</strong> no external entities in Schematron validation, HTML previews without JavaScript or
   remote content, XProc pipelines run no programs and reach no network, schemas are never fetched
   from internal addresses, Saxon's parser hardened, SBOM with every release. DTDs and RELAX NG
   schemas cannot send local files to a server (a parse never mixes local files and downloads), the
   output of project scenarios stays inside the project folder, YAML alias bombs are stopped, and
-  Jackson, jsoup and AssertJ are past their known vulnerabilities. See <a href="../threat-model/">Threat Model</a>.</li>
-</ul>
+  Jackson, jsoup and AssertJ are past their known vulnerabilities. See <a href="../threat-model/">Threat Model</a>.</p>
 <p><strong>XML work</strong></p>
 <ul>
 <li><strong>DTD and RELAX NG</strong> (XML and compact syntax): validation against the declared or a bound
