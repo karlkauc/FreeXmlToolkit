@@ -1255,8 +1255,25 @@ public class TransformPanel extends VBox {
         transform(false);
     }
 
-    /** @param live triggered by live preview / stylesheet watch (only affects usage statistics) */
+    /**
+     * Waits until the input document's text holds its deferred grid edits (written back off the FX
+     * thread for a large document), then transforms.
+     *
+     * @param live triggered by live preview / stylesheet watch (only affects usage statistics)
+     */
     private void transform(boolean live) {
+        OpenDocument input = null;
+        if (inputOverride == null) {
+            OpenDocument active = editorHost.getActiveDocument().orElse(null);
+            input = active != null && active == out.getResultDocument() ? sourceDocument : inputDocument().orElse(null);
+        }
+        editorHost.whenDocumentTextCurrent(input).thenRun(() -> transformNow(live)).exceptionally(e -> {
+            org.apache.logging.log4j.LogManager.getLogger(TransformPanel.class).error("Transform failed", e);
+            return null;
+        });
+    }
+
+    private void transformNow(boolean live) {
         if (xsltFile == null) {
             out.showError(I18n.t("TransformPanel.select-an-xslt-stylesheet-first"));
             return;

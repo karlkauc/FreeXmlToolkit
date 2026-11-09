@@ -276,6 +276,39 @@ public class EditorHost extends BorderPane {
         return tab instanceof EditorTab et ? et.view.getCodeArea().getLength() : -1;
     }
 
+    /**
+     * @return the active editor's text as shown, without writing deferred grid edits into it first
+     *         (caret-based readers: a caret offset refers to this text), or empty if no tab is open
+     */
+    public Optional<String> getActiveViewText() {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        return tab instanceof EditorTab et ? Optional.of(et.view.getText()) : Optional.empty();
+    }
+
+    /**
+     * Completes (on the FX thread) once the open document {@code queryDoc} runs against holds every
+     * deferred grid edit in its text: written back off the FX thread, at once when nothing waits
+     * or the target is a file.
+     */
+    public java.util.concurrent.CompletableFuture<Void> whenQueryTargetCurrent(OpenDocument queryDoc) {
+        OpenDocument targetDoc = getQueryTarget(queryDoc) instanceof QueryTarget.OpenDoc od
+                ? od.document() : mostRecentXmlFamilyDocument(queryDoc).orElse(null);
+        return whenDocumentTextCurrent(targetDoc);
+    }
+
+    /**
+     * Completes (on the FX thread) once the open {@code document}'s text holds every deferred grid
+     * edit (written back off the FX thread); at once when nothing waits or it is not open.
+     */
+    public java.util.concurrent.CompletableFuture<Void> whenDocumentTextCurrent(OpenDocument document) {
+        for (Tab tab : tabPane.getTabs()) {
+            if (document != null && tab instanceof EditorTab editorTab && editorTab.document == document) {
+                return editorTab.xmlTextCurrentAsync();
+            }
+        }
+        return java.util.concurrent.CompletableFuture.completedFuture(null);
+    }
+
     /** @return the text of the given (possibly non-active) open document, or empty if closed. */
     public Optional<String> getDocumentText(OpenDocument document) {
         for (Tab tab : tabPane.getTabs()) {

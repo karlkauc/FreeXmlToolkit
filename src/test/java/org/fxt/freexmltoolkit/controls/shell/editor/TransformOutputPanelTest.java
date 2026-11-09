@@ -49,6 +49,30 @@ class TransformOutputPanelTest {
     }
 
     @Test
+    void aHugeResultShowsItsStartButSavesAndReportsAllOfIt(@TempDir Path tmp) throws Exception {
+        String line = "<row>" + "x".repeat(90) + "</row>\n";
+        String huge = "<rows>\n" + line.repeat(TransformOutputPanel.SHOWN_LIMIT_CHARS / line.length() + 500) + "</rows>\n";
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            out.showTransformResult(huge, org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.XML, 5);
+            return null;
+        });
+        String shown = WaitForAsyncUtils.waitForAsyncFx(5000, out::shownText);
+        assertTrue(shown.length() < huge.length() && shown.length() <= TransformOutputPanel.SHOWN_LIMIT_CHARS + 300,
+                "only the start is shown: " + shown.length());
+        int cut = shown.indexOf("\n\n…");
+        assertTrue(cut > 0 && huge.startsWith(shown.substring(0, cut)), "cut at a line end, then the note");
+        assertTrue(shown.contains(String.valueOf(huge.length()).substring(0, 1)), shown.substring(cut));
+        assertEquals(huge, out.getOutputText());
+
+        Path saved = tmp.resolve("result.xml");
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            out.saveResultTo(saved.toFile());
+            return null;
+        });
+        assertEquals(huge, Files.readString(saved));
+    }
+
+    @Test
     void outputPanelIsHiddenUntilTheFirstRun(@TempDir Path tmp) throws Exception {
         assertFalse(out.isShowing(), "the OUTPUT panel must be hidden before any run");
         transformGreeting(tmp);

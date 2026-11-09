@@ -167,6 +167,10 @@ public final class EditorActions {
      * {@code QueryConsole}/{@code TransformPanel}. No-op for non-query documents.
      */
     public void runActiveQuery() {
+        whenTargetCurrent(this::runActiveQueryNow);
+    }
+
+    private void runActiveQueryNow() {
         EditorFileType type = activeFileType();
         if (type != EditorFileType.XQUERY && type != EditorFileType.XPATH) {
             return;
@@ -247,6 +251,10 @@ public final class EditorActions {
      * URIs are not resolved against a file-system target's directory.
      */
     public void runActiveTransform() {
+        whenTargetCurrent(this::runActiveTransformNow);
+    }
+
+    private void runActiveTransformNow() {
         if (activeFileType() != EditorFileType.XSLT) {
             return;
         }
@@ -319,6 +327,10 @@ public final class EditorActions {
      * includes resolve. No-op for non-XSLT documents.
      */
     public void debugActiveTransform() {
+        whenTargetCurrent(this::debugActiveTransformNow);
+    }
+
+    private void debugActiveTransformNow() {
         if (activeFileType() == EditorFileType.XQUERY) {
             debugActiveQuery();
             return;
@@ -370,6 +382,10 @@ public final class EditorActions {
      * query without a target runs without a context item.
      */
     public void debugActiveQuery() {
+        whenTargetCurrent(this::debugActiveQueryNow);
+    }
+
+    private void debugActiveQueryNow() {
         if (activeFileType() != EditorFileType.XQUERY) {
             return;
         }
@@ -402,6 +418,10 @@ public final class EditorActions {
      * "Profile: …" tab ({@link ProfileTabs}). The editor text runs, under the file's URI when saved.
      */
     public void profileActiveQuery() {
+        whenTargetCurrent(this::profileActiveQueryNow);
+    }
+
+    private void profileActiveQueryNow() {
         if (activeFileType() != EditorFileType.XQUERY) {
             return;
         }
@@ -458,6 +478,10 @@ public final class EditorActions {
      * the debugger runs that and shows every stop at its {@code .sch} line. Needs an XML target.
      */
     public void debugActiveSchematron() {
+        whenTargetCurrent(this::debugActiveSchematronNow);
+    }
+
+    private void debugActiveSchematronNow() {
         if (activeFileType() != EditorFileType.SCHEMATRON) {
             return;
         }
@@ -495,6 +519,10 @@ public final class EditorActions {
      * relative {@code href}s. No-op for non-XProc documents.
      */
     public void runActivePipeline() {
+        whenTargetCurrent(this::runActivePipelineNow);
+    }
+
+    private void runActivePipelineNow() {
         if (activeFileType() != EditorFileType.XPROC) {
             return;
         }
@@ -614,5 +642,22 @@ public final class EditorActions {
             case WARNING -> org.fxt.freexmltoolkit.util.DialogHelper.showWarning(title, null, message);
             default -> org.fxt.freexmltoolkit.util.DialogHelper.showInformation(title, null, message);
         }
+    }
+
+    /**
+     * Runs {@code action} once the Run target's text holds every grid edit: a large XML document
+     * writes deferred edits into its text off the FX thread first (serializing and splitting
+     * 170 MB froze the UI for seconds when a run read the text synchronously). At once otherwise.
+     */
+    private void whenTargetCurrent(Runnable action) {
+        var doc = editorHost.getActiveDocument().orElse(null);
+        if (doc == null) {
+            action.run();
+            return;
+        }
+        editorHost.whenQueryTargetCurrent(doc).thenRun(action).exceptionally(e -> {
+            org.apache.logging.log4j.LogManager.getLogger(EditorActions.class).error("Run action failed", e);
+            return null;
+        });
     }
 }

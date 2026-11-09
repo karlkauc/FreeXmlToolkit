@@ -63,6 +63,10 @@ public class TransformOutputPanel extends VBox {
     private String statsText = "";
     /** The output format of the most recent successful run (for the Editor/Save actions). */
     private OutputFormat lastResultFormat = OutputFormat.XML;
+    /** Results longer than this show only their start in the output area. */
+    static final int SHOWN_LIMIT_CHARS = 2 * 1024 * 1024;
+    /** The last result as a whole (the output area may show only its start). */
+    private String fullText = "";
     /** The (re-used) editor tab holding the latest opened result, if still open. */
     private OpenDocument resultDocument;
 
@@ -255,6 +259,14 @@ public class TransformOutputPanel extends VBox {
      */
     private void setOutputText(String text, OutputFormat format) {
         String value = text == null ? "" : text;
+        fullText = value;
+        if (value.length() > SHOWN_LIMIT_CHARS) {
+            // splitting 165 MB into paragraphs blocked the FX thread for seconds: show the start;
+            // Open in Editor (prepared off the FX thread), Save and the browser get all of it
+            output.replaceText(shownPart(value));
+            output.moveTo(0);
+            return;
+        }
         output.replaceText(value);
         output.moveTo(0);
         output.requestFollowCaret();
@@ -275,6 +287,16 @@ public class TransformOutputPanel extends VBox {
         ResultHighlighter.highlight(output, value, xml, json);
     }
 
+    /** The start of a long result, cut at a line end, and a note that the rest is not shown. */
+    static String shownPart(String value) {
+        int end = value.lastIndexOf('\n', SHOWN_LIMIT_CHARS);
+        if (end < SHOWN_LIMIT_CHARS / 2) {
+            end = SHOWN_LIMIT_CHARS;
+        }
+        return value.substring(0, end) + "\n\n"
+                + I18n.t("TransformOutputPanel.result-shown-in-part", value.length(), end);
+    }
+
     /** @return a compact "N ms · M chars" stat, or "error" for a failed run. */
     private static String statsText(String result, long elapsedMs) {
         if (result == null || result.startsWith("ERROR")) {
@@ -288,7 +310,7 @@ public class TransformOutputPanel extends VBox {
     /** Opens (or refreshes) the current result text as an untitled editor tab. */
     @FXML
     public void openResultInEditor() {
-        String result = output.getText();
+        String result = resultText();
         if (result == null || result.isBlank() || result.startsWith("ERROR")
                 || "Transforming…".equals(result) || "Running…".equals(result)) {
             setOutputText(result != null && result.startsWith("ERROR") ? result
@@ -315,7 +337,7 @@ public class TransformOutputPanel extends VBox {
     /** Opens the current result in the system browser (renders HTML output). */
     @FXML
     public void openInBrowser() {
-        String html = output.getText();
+        String html = resultText();
         // Writing the preview file and asking the OS to open it both run off the FX thread
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             try {
@@ -331,7 +353,7 @@ public class TransformOutputPanel extends VBox {
     /** Saves the current result to a file chosen by the user (extension per format). */
     @FXML
     public void saveResult() {
-        String result = output.getText();
+        String result = resultText();
         if (result == null || result.isBlank()) {
             return;
         }
@@ -350,7 +372,7 @@ public class TransformOutputPanel extends VBox {
     /** Writes the current result text to {@code file} (UTF-8); also used by tests. */
     public void saveResultTo(File file) {
         try {
-            Files.writeString(file.toPath(), output.getText() == null ? "" : output.getText(),
+            Files.writeString(file.toPath(), resultText(),
                     StandardCharsets.UTF_8);
         } catch (Exception e) {
             statusLabel.setText("save: " + e.getMessage());
@@ -462,9 +484,19 @@ public class TransformOutputPanel extends VBox {
         return resultDocument;
     }
 
-    /** @return the current output text (for tests/observers). */
+    /** @return the current output text, complete also when only its start is shown (tests/observers) */
     public String getOutputText() {
+        return resultText();
+    }
+
+    /** @return the text the output area shows (tests) */
+    String shownText() {
         return output.getText();
+    }
+
+    /** @return the whole result, also when the output area shows only its start */
+    private String resultText() {
+        return fullText;
     }
 
     /** Test seam: the distinct highlight style classes currently applied to the output. */

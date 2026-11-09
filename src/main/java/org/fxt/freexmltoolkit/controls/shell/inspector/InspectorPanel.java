@@ -2031,7 +2031,8 @@ public class InspectorPanel extends VBox {
             nameField.setText("");
             xpathValue.setText(PLACEHOLDER);
         } else {
-            String text = editorHost.getActiveText().orElse("");
+            // the caret is an offset into the text as shown: no write-back of deferred grid edits
+            String text = editorHost.getActiveViewText().orElse("");
             int caret = editorHost.activeCaretProperty().get();
             NodeXPathInfo info = NodeXPathInfo.fromCaret(xpathCalculator, text, caret);
             if (info.depth() == 0) {
@@ -2200,7 +2201,7 @@ public class InspectorPanel extends VBox {
 
     /** @return the element enclosing the editor caret (text mode), if any. */
     private java.util.Optional<XmlElementAtCaret.Result> caretElement() {
-        return XmlElementAtCaret.at(editorHost.getActiveText().orElse(""), editorHost.activeCaretProperty().get());
+        return XmlElementAtCaret.at(editorHost.getActiveViewText().orElse(""), editorHost.activeCaretProperty().get());
     }
 
     private static void copyToClipboard(String text) {

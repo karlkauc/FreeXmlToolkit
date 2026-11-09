@@ -80,6 +80,38 @@ class EditorHostXmlDeferredRoundTripTest {
     }
 
     @Test
+    void caretReadersDoNotWriteBackAndARunWaitsForTheWriteBackOffTheFxThread(@TempDir Path tmp) throws Exception {
+        EditorTab.deferredXmlRoundTripChars = 1;
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root a=\"1\"/>\n");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+        showGrid();
+        editRoot("b", "2");
+
+        // the Inspector's caret reader sees the text as shown and leaves the edit deferred
+        String shown = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveViewText().orElse(""));
+        assertFalse(shown.contains("b=\"2\""), shown);
+        EditorTab tab = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> (EditorTab) host.lookupAll(".tab-pane").stream()
+                        .map(n -> ((javafx.scene.control.TabPane) n).getSelectionModel().getSelectedItem())
+                        .filter(EditorTab.class::isInstance).findFirst().orElseThrow());
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, tab::isXmlTextBehindModel));
+
+        // a run waits for the write-back instead of serializing on the FX thread
+        var doc = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveDocument().orElseThrow());
+        var current = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.whenDocumentTextCurrent(doc));
+        current.get(5, TimeUnit.SECONDS);
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, tab::isXmlTextBehindModel));
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveViewText().orElse("")).contains("b=\"2\""));
+
+        // nothing deferred, or no document: at once
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.whenDocumentTextCurrent(doc)).isDone());
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.whenDocumentTextCurrent(null)).isDone());
+    }
+
+    @Test
     void savingFromTheGridWritesTheDeferredEditsFirst(@TempDir Path tmp) throws Exception {
         EditorTab.deferredXmlRoundTripChars = 1;
         Path xml = tmp.resolve("doc.xml");
