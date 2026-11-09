@@ -293,9 +293,22 @@ public final class FxStallWatchdog {
             durationMs = elapsedMs(measuredFrom, nanoClock.getAsLong());
             gcFrom = gcAtMeasuredFrom;
         }
-        if (stack != null && durationMs >= STALL_THRESHOLD_MS && !isNativeWait(stack)) {
+        if (stack != null && durationMs >= STALL_THRESHOLD_MS && !isNativeWait(stack) && !isWarmUp(stack)) {
             sink.stalled(durationMs, stack, memoryLoadSince(gcFrom));
         }
+    }
+
+    /**
+     * Whether the FX thread was warming up the editor off-screen ({@code EditorWarmUp}): a deliberate
+     * pause shortly after start, while nobody waits, that takes the cost off the first file opened.
+     */
+    static boolean isWarmUp(StackTraceElement[] stack) {
+        for (StackTraceElement frame : stack) {
+            if ("org.fxt.freexmltoolkit.controls.shell.editor.EditorWarmUp".equals(frame.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

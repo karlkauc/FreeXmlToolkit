@@ -55,6 +55,9 @@ public final class ShellBootstrap {
         // The open project follows changes to its file (edited as JSON, updated by a pull)
         scheduler.scheduleWithFixedDelay(ShellBootstrap::reloadChangedProject, 3, 3, TimeUnit.SECONDS);
         scheduler.schedule(this::checkForAppUpdate, 2, TimeUnit.SECONDS);
+        // The first file opened stalled slow machines for seconds (class loading of the editor):
+        // load and build the editor once while nobody waits
+        scheduler.schedule(org.fxt.freexmltoolkit.controls.shell.editor.EditorWarmUp::run, 1, TimeUnit.SECONDS);
         // The plugins' startup tasks (e.g. the FundsXML content sync); a failing one does not stop the others
         scheduler.schedule(ShellBootstrap::runPluginStartupTasks, 5, TimeUnit.SECONDS);
         scheduler.schedule(ShellBootstrap::cleanOldLogs, 10, TimeUnit.SECONDS);

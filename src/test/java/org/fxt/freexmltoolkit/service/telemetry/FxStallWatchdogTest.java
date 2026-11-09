@@ -267,6 +267,19 @@ class FxStallWatchdogTest {
     }
 
     @Test
+    void theEditorWarmUpIsNotAStall() {
+        // Telemetry 5e684feb5234b2a5 / 0986ef1efbc3dd89: class loading of the first editor; the
+        // off-screen warm-up shortly after start takes that cost while nobody waits
+        assertTrue(FxStallWatchdog.isWarmUp(new StackTraceElement[] {
+                frame("java.lang.ClassLoader", "defineClass0"),
+                frame("javafx.scene.control.skin.TextAreaSkin$ContentView", "<init>"),
+                frame("org.fxt.freexmltoolkit.controls.shell.editor.EditorWarmUp", "buildOffScreen")}));
+        assertEquals(false, FxStallWatchdog.isWarmUp(new StackTraceElement[] {
+                frame("java.lang.ClassLoader", "defineClass0"),
+                frame("org.fxt.freexmltoolkit.controls.shell.editor.EditorHost", "openFile")}));
+    }
+
+    @Test
     void applicationAndRenderStallsStayReportable() {
         assertEquals(false, FxStallWatchdog.isNativeWait(stack));
         assertEquals(false, FxStallWatchdog.isNativeWait(null));
