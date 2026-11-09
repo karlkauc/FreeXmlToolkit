@@ -40,6 +40,10 @@ import picocli.CommandLine.Spec;
                 XSpecCommand.class,
                 ScenarioCommand.class,
                 FopCommand.class,
+                SignCommand.class,
+                VerifyCommand.class,
+                EncryptCommand.class,
+                DecryptCommand.class,
                 CommandLine.HelpCommand.class
         },
         exitCodeListHeading = "%nExit codes:%n",

@@ -195,29 +195,36 @@ public final class XmlEncryptionService {
      * The keys available for decryption: private keys (RSA, EC, XDH, DH), symmetric keys by
      * name (a {@code null} or blank name matches any EncryptedData) and a password.
      */
-    public record DecryptionKeys(List<PrivateKey> privateKeys, Map<String, SecretKey> secretKeys, char[] password) {
+    public record DecryptionKeys(List<PrivateKey> privateKeys, List<NamedKey> secretKeys, char[] password) {
 
         public DecryptionKeys {
             privateKeys = privateKeys == null ? List.of() : List.copyOf(privateKeys);
-            secretKeys = secretKeys == null ? Map.of() : new LinkedHashMap<>(secretKeys);
+            secretKeys = secretKeys == null ? List.of() : List.copyOf(secretKeys);
         }
 
         public static DecryptionKeys privateKey(PrivateKey key) {
-            return new DecryptionKeys(List.of(key), Map.of(), null);
+            return new DecryptionKeys(List.of(key), List.of(), null);
         }
 
         public static DecryptionKeys secretKey(String name, SecretKey key) {
-            Map<String, SecretKey> keys = new LinkedHashMap<>();
-            keys.put(name == null ? "" : name, key);
-            return new DecryptionKeys(List.of(), keys, null);
+            return new DecryptionKeys(List.of(), List.of(new NamedKey(name, key)), null);
         }
 
         public static DecryptionKeys password(char[] password) {
-            return new DecryptionKeys(List.of(), Map.of(), password);
+            return new DecryptionKeys(List.of(), List.of(), password);
         }
 
         boolean isEmpty() {
             return privateKeys.isEmpty() && secretKeys.isEmpty() && (password == null || password.length == 0);
+        }
+    }
+
+    /**
+     * A symmetric key with the KeyName it stands for ({@code null} or blank: any).
+     */
+    public record NamedKey(String name, SecretKey key) {
+        public NamedKey {
+            name = name == null ? "" : name;
         }
     }
 
@@ -631,10 +638,10 @@ public final class XmlEncryptionService {
         if (encryptedKeys.isEmpty()) {
             // the data key itself: by KeyName, else every symmetric key of a fitting length
             String keyName = keyName(element);
-            for (Map.Entry<String, SecretKey> entry : keys.secretKeys().entrySet()) {
-                boolean nameFits = keyName == null || entry.getKey().isBlank() || entry.getKey().equals(keyName);
-                if (nameFits && entry.getValue().getEncoded().length * 8 == data.keyBits()) {
-                    return asDataKey(entry.getValue(), data);
+            for (NamedKey entry : keys.secretKeys()) {
+                boolean nameFits = keyName == null || entry.name().isBlank() || entry.name().equals(keyName);
+                if (nameFits && entry.key().getEncoded().length * 8 == data.keyBits()) {
+                    return asDataKey(entry.key(), data);
                 }
             }
             throw new XmlEncryptionException(keyName != null ? "No symmetric key named '" + keyName + "' given"
@@ -678,11 +685,11 @@ public final class XmlEncryptionService {
             }
         } else {
             String keyName = keyName(ekElement);
-            keys.secretKeys().forEach((name, key) -> {
-                if (keyName == null || name.isBlank() || name.equals(keyName)) {
-                    candidates.add(new SecretKeySpec(key.getEncoded(), algorithm.jceKeyAlgorithm()));
+            for (NamedKey entry : keys.secretKeys()) {
+                if (keyName == null || entry.name().isBlank() || entry.name().equals(keyName)) {
+                    candidates.add(new SecretKeySpec(entry.key().getEncoded(), algorithm.jceKeyAlgorithm()));
                 }
-            });
+            }
         }
         for (Key candidate : candidates) {
             try {

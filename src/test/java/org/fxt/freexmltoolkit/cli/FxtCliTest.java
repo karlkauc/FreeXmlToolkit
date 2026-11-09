@@ -900,7 +900,8 @@ class FxtCliTest {
     class Help {
 
         private static final List<String> COMMANDS = List.of(
-                "validate", "transform", "query", "xsd-doc", "convert", "compare", "merge", "xspec", "scenario", "fop");
+                "validate", "transform", "query", "xsd-doc", "convert", "compare", "merge", "xspec", "scenario", "fop",
+                "sign", "verify", "encrypt", "decrypt");
 
         @Test
         @DisplayName("every command has -h/--help with a description, options and examples")
