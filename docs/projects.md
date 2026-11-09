@@ -114,6 +114,8 @@ A scenario names a stylesheet (XSLT), an XQuery (`.xq`, `.xquery`, …) or an XP
 - **Output file:** optional, except for PDF. `${name}` is the input file's name without
   extension, `${dir}` its folder: `out/${dir}/${name}.html`. The output must stay inside the
   project folder.
+- **Expected result:** optional, for [regression checks](#regression-checks): the file the
+  result must match, e.g. `expected/${name}.xml`.
 
 ### In the Transform panel
 
@@ -139,6 +141,48 @@ below OPTIONS & TOOLS.
   it is started for** to store `${file}` instead of the current input. Saving under an existing
   name replaces that scenario.
 - The **trash button** removes the chosen scenario from the project.
+
+### Regression checks
+
+A scenario with an **expected result** can be checked: it runs as usual, and its result is
+compared with the expected file ("golden file"). XML results are compared by structure, like
+[Comparing as XML](unified-shell.md#comparing-as-xml) — formatting and attribute order do not
+count. Other results (text, JSON) are compared line by line.
+
+**Values that change from run to run** — a creation date, an ID — go into the expected file as
+XMLUnit placeholders, or are left out with an ignore XPath:
+
+```xml
+<summary created="${xmlunit.isDateTime}" run="${xmlunit.ignore}">
+  <count>${xmlunit.isNumber}</count>
+  <total>12.5</total>
+</summary>
+```
+
+| Setting (Edit Scenario dialog) | Effect |
+|---|---|
+| **Expected result** | The expected file; `${name}`, `${dir}`, `${file}` as in the output |
+| **Ignore (XPath)** | One XPath 1.0 expression per line; the selected nodes and attributes are left out on both sides |
+| **Tolerance** | Numbers that differ by at most this much count as equal |
+| **Ignore element order**, **Key attributes** | As in the Compare view's XML Options |
+
+**Checking:**
+
+- **Transform panel:** choose the scenario and press the **Check** button (next to Run Scenario).
+  The result shows in the OUTPUT panel and the section says ✓ or ✗ with the first differences.
+  After a ✗, **Differences** opens the expected result (left) next to the actual one (right) in
+  the Compare view, compared with the scenario's settings; **Accept** makes the actual result the
+  expected one.
+- **File → Project → Check Scenarios** checks every scenario with an expected result; a `${file}`
+  scenario is checked for each file [bound](#bindings) to it. A summary lists the outcome;
+  **Show Differences** opens the failed ones.
+- **Command line:** `fxt-cli scenario orders.fxtproj --check` (see below).
+
+A ready-to-run example is in the `examples/regression/` folder of the installation.
+
+**Accepting** writes the actual result to the expected file. Placeholders of the old expected file
+stay where the same element is still there, so a date stays `${xmlunit.isDateTime}`. A new expected
+file is written as it is: put placeholders into it for values that change.
 
 ### For several files
 
@@ -210,7 +254,7 @@ is saved.
 | `folders` | The project's folders; the first one is the Explorer workspace (default `.`) |
 | `schemaBindings` | `files` (pattern) → `schema`, `schematron`, `scenario` (each optional); first match per part |
 | `catalogs` | OASIS XML catalogs |
-| `scenarios` | `name`, `stylesheet`, optional `input` (`${file}` = the file it runs for), `parameters`, `outputFormat` (`XML`, `HTML`, `XHTML`, `TEXT`, `JSON`, `PDF`; default from `xsl:output`), `output` (`${name}`, `${dir}`) |
+| `scenarios` | `name`, `stylesheet`, optional `input` (`${file}` = the file it runs for), `parameters`, `outputFormat` (`XML`, `HTML`, `XHTML`, `TEXT`, `JSON`, `PDF`; default from `xsl:output`), `output` (`${name}`, `${dir}`), `expected` (like `output`), `compare` (optional: `ignore` list of XPaths, `tolerance`, `ignoreOrder`, `keys`, `placeholders`, `ignoreComments`, `exactWhitespace`) |
 
 Project files from before these additions keep working unchanged.
 
@@ -222,6 +266,8 @@ fxt-cli scenario orders.fxtproj Report               # run one
 fxt-cli scenario orders.fxtproj Report -i data/      # run it for every XML file in data/
 fxt-cli scenario orders.fxtproj -i data/a.xml        # run the scenario bound to the file
 fxt-cli scenario orders.fxtproj --list               # list them
+fxt-cli scenario orders.fxtproj --check              # regression check against the expected results
+fxt-cli scenario orders.fxtproj Report --accept      # make the current results the expected ones
 fxt-cli validate --project orders.fxtproj data/      # bound schema, Schematron, JSON Schema
 ```
 

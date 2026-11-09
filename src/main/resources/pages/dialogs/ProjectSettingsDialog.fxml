@@ -112,6 +112,7 @@
                                 <TableColumn fx:id="scenarioInputCol" text="%ProjectSettingsDialog.scenarioInputCol.text" prefWidth="140"/>
                                 <TableColumn fx:id="scenarioFormatCol" text="%ProjectSettingsDialog.scenarioFormatCol.text" prefWidth="70"/>
                                 <TableColumn fx:id="scenarioOutputCol" text="%ProjectSettingsDialog.scenarioOutputCol.text" prefWidth="170"/>
+                                <TableColumn fx:id="scenarioExpectedCol" text="%ProjectSettingsDialog.scenarioExpectedCol.text" prefWidth="150"/>
                             </columns>
                             <placeholder>
                                 <Label text="%ProjectSettingsDialog.no-scenarios-yet-add-one.text" wrapText="true"/>

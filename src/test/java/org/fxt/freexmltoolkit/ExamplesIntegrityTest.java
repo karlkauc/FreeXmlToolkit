@@ -233,4 +233,13 @@ class ExamplesIntegrityTest {
         assertNull(result.error(), () -> relativePath + " could not run: " + result.error());
         return result;
     }
+
+    @Test
+    void regressionCheckExample_passes() throws IOException {
+        var project = org.fxt.freexmltoolkit.service.project.FxtProject.load(EXAMPLES.resolve("regression/regression.fxtproj"));
+        var scenario = project.scenario("Fund summary").orElseThrow();
+        var result = org.fxt.freexmltoolkit.controls.shell.editor.ScenarioCheck.check(project, scenario, null);
+        assertEquals(org.fxt.freexmltoolkit.controls.shell.editor.ScenarioCheck.Status.PASSED, result.status(),
+                () -> result.summary() + " " + result.differences());
+    }
 }

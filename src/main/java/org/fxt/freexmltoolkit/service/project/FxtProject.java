@@ -108,7 +108,10 @@ public final class FxtProject {
      * <p>{@code stylesheet} is an XSLT ({@code .xsl}, {@code .xslt}), XQuery ({@code .xq}, …) or XProc
      * ({@code .xpl}) file; {@code input} the document (optional for XQuery and XProc); {@code output}
      * where the result is written (optional: the result is shown instead); {@code outputFormat} one
-     * of XML, HTML, XHTML, TEXT, JSON (optional: from the stylesheet's {@code xsl:output}).
+     * of XML, HTML, XHTML, TEXT, JSON (optional: from the stylesheet's {@code xsl:output});
+     * {@code expected} the result it must produce (optional; a regression check compares against it,
+     * {@code ${name}} / {@code ${dir}} / {@code ${file}} as in the output) and {@code compare} how
+     * (optional, see {@link CompareSettings}).
      */
     public static final class Scenario {
         public String name;
@@ -117,6 +120,8 @@ public final class FxtProject {
         public Map<String, String> parameters = new LinkedHashMap<>();
         public String outputFormat;
         public String output;
+        public String expected;
+        public CompareSettings compare;
 
         public Scenario() {
         }
@@ -133,7 +138,15 @@ public final class FxtProject {
 
         /** @return a copy (the dialogs edit copies) */
         public Scenario copy() {
-            return new Scenario(name, stylesheet, input, parameters, outputFormat, output);
+            Scenario copy = new Scenario(name, stylesheet, input, parameters, outputFormat, output);
+            copy.expected = expected;
+            copy.compare = compare == null ? null : compare.copy();
+            return copy;
+        }
+
+        /** @return whether a regression check can run: an expected result is named */
+        public boolean hasExpected() {
+            return expected != null && !expected.isBlank();
         }
 
         /**
@@ -147,6 +160,55 @@ public final class FxtProject {
         /** @return whether the result is a PDF (the stylesheet produces XSL-FO, FOP renders it) */
         public boolean isPdf() {
             return outputFormat != null && outputFormat.strip().equalsIgnoreCase("PDF");
+        }
+    }
+
+    /**
+     * How a scenario's result is compared with its expected result (all optional). XML results are
+     * compared by structure ({@code XmlStructuralDiff}): {@code ignore} XPath 1.0 expressions,
+     * a numeric {@code tolerance}, {@code ignoreOrder}, {@code keys} that pair elements,
+     * {@code placeholders} ({@code ${xmlunit.…}} in the expected file, on unless false),
+     * {@code ignoreComments}, {@code exactWhitespace}.
+     */
+    public static final class CompareSettings {
+        public List<String> ignore = new ArrayList<>();
+        public Double tolerance;
+        public Boolean ignoreOrder;
+        public List<String> keys = new ArrayList<>();
+        public Boolean placeholders;
+        public Boolean ignoreComments;
+        public Boolean exactWhitespace;
+
+        public CompareSettings copy() {
+            CompareSettings copy = new CompareSettings();
+            copy.ignore = ignore == null ? new ArrayList<>() : new ArrayList<>(ignore);
+            copy.tolerance = tolerance;
+            copy.ignoreOrder = ignoreOrder;
+            copy.keys = keys == null ? new ArrayList<>() : new ArrayList<>(keys);
+            copy.placeholders = placeholders;
+            copy.ignoreComments = ignoreComments;
+            copy.exactWhitespace = exactWhitespace;
+            return copy;
+        }
+
+        /** @return whether nothing differs from the defaults (then it is not written) */
+        public boolean isDefault() {
+            return (ignore == null || ignore.isEmpty()) && (tolerance == null || tolerance == 0)
+                    && !Boolean.TRUE.equals(ignoreOrder) && (keys == null || keys.isEmpty())
+                    && !Boolean.FALSE.equals(placeholders) && !Boolean.TRUE.equals(ignoreComments)
+                    && !Boolean.TRUE.equals(exactWhitespace);
+        }
+
+        /** @return the structural comparison options these settings describe ({@code null} = defaults) */
+        public static org.fxt.freexmltoolkit.service.XmlStructuralDiff.Options toOptions(CompareSettings settings) {
+            if (settings == null) {
+                return org.fxt.freexmltoolkit.service.XmlStructuralDiff.Options.DEFAULTS;
+            }
+            return new org.fxt.freexmltoolkit.service.XmlStructuralDiff.Options(
+                    !Boolean.TRUE.equals(settings.exactWhitespace), Boolean.TRUE.equals(settings.ignoreComments),
+                    false, Boolean.TRUE.equals(settings.ignoreOrder), settings.keys, settings.ignore,
+                    !Boolean.FALSE.equals(settings.placeholders),
+                    settings.tolerance == null ? 0 : settings.tolerance);
         }
     }
 
@@ -205,6 +267,14 @@ public final class FxtProject {
         Path parent = file.getParent();
         if (parent != null) {
             Files.createDirectories(parent);
+        }
+        for (Scenario scenario : data.scenarios) {
+            if (scenario.compare != null && scenario.compare.isDefault()) {
+                scenario.compare = null;   // only settings that differ from the defaults are written
+            }
+            if (scenario.expected != null && scenario.expected.isBlank()) {
+                scenario.expected = null;
+            }
         }
         Files.writeString(file, GSON.toJson(data) + "\n", StandardCharsets.UTF_8);
     }
@@ -432,6 +502,11 @@ public final class FxtProject {
      * @param files a pattern as in a binding
      * @param limit stop after this many files
      */
+    /** @return the project's files whose binding names {@code scenario} (at most {@code limit}) */
+    public List<Path> filesForScenario(String scenario, int limit) {
+        return walkFiles(path -> scenario != null && scenario.equals(assignmentFor(path).scenario()), limit);
+    }
+
     public List<Path> filesMatching(String files, int limit) {
         return walkFiles(path -> matchesFile(files, root().relativize(path)), limit);
     }
@@ -507,6 +582,9 @@ public final class FxtProject {
         copy.parameters.replaceAll((k, v) -> v == null ? null : v.replace(VAR_FILE, relative));
         if (copy.output != null) {
             copy.output = copy.output.replace(VAR_NAME, name).replace(VAR_DIR, dir).replace(VAR_FILE, relative);
+        }
+        if (copy.expected != null) {
+            copy.expected = copy.expected.replace(VAR_NAME, name).replace(VAR_DIR, dir).replace(VAR_FILE, relative);
         }
         return copy;
     }

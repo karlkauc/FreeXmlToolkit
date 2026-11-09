@@ -293,6 +293,89 @@ public final class ProjectActions {
                 summary(project, results));
     }
 
+    // ---- regression checks ---------------------------------------------------------------------
+
+    /** One check of {@link #checkScenarios}. */
+    record Check(FxtProject.Scenario scenario, Path file, ScenarioCheck.Result result) {
+    }
+
+    /** At most this many difference tabs open at once from the summary. */
+    static final int MAX_DIFF_TABS = 5;
+
+    /**
+     * Checks every scenario of the project that names an expected result, in the background: a scenario
+     * that runs for a file ({@code ${file}}) is checked for each file bound to it. A summary lists the
+     * outcome; Show Differences opens the expected and actual result of each failed check.
+     */
+    public static void checkScenarios(EditorHost editorHost, FxtProject project) {
+        FxtGui.executorService.submit(() -> {
+            List<Check> checks = runChecks(project);
+            Platform.runLater(() -> showChecks(editorHost, project, checks));
+        });
+    }
+
+    /** Runs the checks (on the calling thread). */
+    static List<Check> runChecks(FxtProject project) {
+        List<Check> checks = new java.util.ArrayList<>();
+        for (FxtProject.Scenario scenario : project.scenarios()) {
+            if (!scenario.hasExpected()) {
+                continue;
+            }
+            List<Path> files = scenario.takesFile() ? project.filesForScenario(scenario.name, 10_000) : List.of();
+            if (scenario.takesFile() && files.isEmpty()) {
+                checks.add(new Check(scenario, null, new ScenarioCheck.Result(ScenarioCheck.Status.ERROR, List.of(),
+                        null, null, "No file of the project is bound to this scenario.")));
+                continue;
+            }
+            for (ScenarioCheck.FileResult r : ScenarioCheck.checkAll(project, scenario, files, null, null)) {
+                checks.add(new Check(scenario, r.file(), r.result()));
+            }
+        }
+        return checks;
+    }
+
+    private static void showChecks(EditorHost editorHost, FxtProject project, List<Check> checks) {
+        if (checks.isEmpty()) {
+            DialogHelper.showInformation(I18n.t("ProjectActions.check-scenarios"),
+                    I18n.t("ProjectActions.no-expected-results"), I18n.t("ProjectActions.no-expected-results-hint"));
+            return;
+        }
+        long passed = checks.stream().filter(c -> c.result().passed()).count();
+        List<Check> failed = checks.stream()
+                .filter(c -> c.result().status() == ScenarioCheck.Status.FAILED && c.result().actual() != null).toList();
+        StringBuilder text = new StringBuilder();
+        for (Check c : checks) {
+            text.append(c.result().passed() ? "✓ " : "✗ ").append(c.scenario().name);
+            if (c.file() != null) {
+                text.append(" (").append(project.relativize(c.file())).append(')');
+            }
+            if (!c.result().passed()) {
+                text.append(": ").append(c.result().summary());
+            }
+            text.append('\n');
+        }
+        javafx.scene.control.Alert alert = DialogHelper.createAlert(passed == checks.size()
+                ? javafx.scene.control.Alert.AlertType.INFORMATION : javafx.scene.control.Alert.AlertType.WARNING);
+        alert.setTitle(I18n.t("ProjectActions.check-scenarios"));
+        alert.setHeaderText(I18n.t("ProjectActions.checks-passed", passed, checks.size()));
+        alert.setContentText(text.toString().strip());
+        javafx.scene.control.ButtonType show = new javafx.scene.control.ButtonType(
+                I18n.t("ProjectActions.show-differences"), javafx.scene.control.ButtonBar.ButtonData.OTHER);
+        if (!failed.isEmpty()) {
+            alert.getButtonTypes().setAll(show, javafx.scene.control.ButtonType.CLOSE);
+        } else {
+            alert.getButtonTypes().setAll(javafx.scene.control.ButtonType.OK);
+        }
+        alert.showAndWait().filter(show::equals).ifPresent(b -> {
+            for (Check c : failed.stream().limit(MAX_DIFF_TABS).toList()) {
+                String ext = extension(c.result().expected().getFileName().toString());
+                String name = c.scenario().name + "-actual" + (ext.isEmpty() ? ".xml" : "." + ext);
+                editorHost.openScenarioDiff(c.result().expected(), c.result().actual(), name,
+                        FxtProject.CompareSettings.toOptions(c.scenario().compare));
+            }
+        });
+    }
+
     /** @return one line per file: what was written, or why it failed */
     static String summary(FxtProject project, List<ScenarioRunner.FileResult> results) {
         StringBuilder text = new StringBuilder();

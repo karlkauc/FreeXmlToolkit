@@ -2,11 +2,13 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 
 <!--
@@ -48,10 +50,32 @@
         <Label text="%ScenarioEditDialog.output-file.text" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
         <TextField fx:id="outputField" id="scenario-edit-output" promptText="%ScenarioEditDialog.outputField.promptText"
                    GridPane.rowIndex="5" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+        <Label text="%ScenarioEditDialog.expected.text" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+        <TextField fx:id="expectedField" id="scenario-edit-expected" promptText="%ScenarioEditDialog.expectedField.promptText"
+                   GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+        <Button id="scenario-edit-browse-expected" text="%ScenarioEditDialog.scenario-edit-browse-expected.text" onAction="#onBrowseExpected"
+                GridPane.rowIndex="6" GridPane.columnIndex="2">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+            </graphic>
+        </Button>
+        <Label text="%ScenarioEditDialog.ignore.text" GridPane.rowIndex="7" GridPane.columnIndex="0" GridPane.valignment="TOP"/>
+        <TextArea fx:id="ignoreArea" id="scenario-edit-ignore" prefRowCount="2" promptText="%ScenarioEditDialog.ignoreArea.promptText"
+                  GridPane.rowIndex="7" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+        <Label text="%ScenarioEditDialog.compare.text" GridPane.rowIndex="8" GridPane.columnIndex="0"/>
+        <HBox spacing="8" alignment="CENTER_LEFT" GridPane.rowIndex="8" GridPane.columnIndex="1" GridPane.columnSpan="2">
+            <children>
+                <Label text="%ScenarioEditDialog.tolerance.text" minWidth="-Infinity"/>
+                <TextField fx:id="toleranceField" id="scenario-edit-tolerance" prefColumnCount="5" minWidth="-Infinity" promptText="0"/>
+                <CheckBox fx:id="ignoreOrderBox" id="scenario-edit-ignore-order" text="%ScenarioEditDialog.ignoreOrderBox.text" minWidth="-Infinity"/>
+                <Label text="%ScenarioEditDialog.keys.text" minWidth="-Infinity"/>
+                <TextField fx:id="keysField" id="scenario-edit-keys" prefColumnCount="8" minWidth="90" promptText="id" HBox.hgrow="ALWAYS"/>
+            </children>
+        </HBox>
         <Label fx:id="error" id="scenario-edit-error" wrapText="true" visible="false" managed="false"
-               styleClass="fxt-dialog-error" GridPane.rowIndex="6" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
+               styleClass="fxt-dialog-error" GridPane.rowIndex="9" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
         <Label text="%ScenarioEditDialog.paths-are-relative-to-the.text"
-               wrapText="true" opacity="0.7" maxWidth="560" GridPane.rowIndex="7" GridPane.columnIndex="0"
+               wrapText="true" opacity="0.7" maxWidth="560" GridPane.rowIndex="10" GridPane.columnIndex="0"
                GridPane.columnSpan="3"/>
     </children>
 </GridPane>

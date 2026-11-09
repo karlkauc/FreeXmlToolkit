@@ -365,6 +365,65 @@ class FxtCliTest {
         }
 
         @Test
+        @DisplayName("scenario --check compares with the expected result; --accept writes it; JUnit report")
+        void check() throws Exception {
+            write("sum.xsl", """
+                    <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                      <xsl:template match="/order">
+                        <summary created="{current-dateTime()}"><total><xsl:value-of select="sum(item/@price)"/></total></summary>
+                      </xsl:template>
+                    </xsl:stylesheet>
+                    """);
+            write("orders/a.xml", "<order><item price=\"1\"/><item price=\"2\"/></order>");
+            write("expected/a.xml", "<summary created=\"${xmlunit.isDateTime}\"><total>3</total></summary>");
+            var project = org.fxt.freexmltoolkit.service.project.FxtProject.create(dir.resolve("c.fxtproj"), "C");
+            var scenario = new org.fxt.freexmltoolkit.service.project.FxtProject.Scenario("sum", "sum.xsl",
+                    "${file}", java.util.Map.of(), null, null);
+            scenario.expected = "expected/${name}.xml";
+            project.putScenario(scenario);
+            project.bind(new org.fxt.freexmltoolkit.service.project.FxtProject.SchemaBinding("orders/*.xml", null, null, "sum"));
+            project.save();
+            Path file = dir.resolve("c.fxtproj");
+
+            assertEquals(ExitCodes.OK, run("scenario", file, "--check"), err + out);
+            assertTrue(out.contains("passed   sum") && out.contains("1 passed, 0 failed"), out);
+            assertEquals(ExitCodes.OK, run("scenario", file, "--list"), err);
+            assertTrue(out.contains("= expected/${name}.xml"), out);
+
+            write("orders/a.xml", "<order><item price=\"1\"/><item price=\"5\"/></order>");
+            Path report = dir.resolve("reports/junit.xml");
+            assertEquals(ExitCodes.FAILED, run("scenario", file, "--check", "-f", "junit", "-r", report), err + out);
+            assertTrue(out.contains("FAILED   sum") && out.contains("Text changed: \"3\" → \"6\""), out);
+            String junit = Files.readString(report);
+            assertTrue(junit.contains("failures=\"1\"") && junit.contains("<failure message=\"1 difference\""), junit);
+
+            write("orders/b.xml", "<order><item price=\"4\"/></order>");
+            assertEquals(ExitCodes.FAILED, run("scenario", file, "--check", "-f", "json"), err + out);
+            assertTrue(out.contains("\"status\": \"no_expected\"") && out.contains("\"status\": \"failed\""), out);
+
+            assertEquals(ExitCodes.OK, run("scenario", file, "--accept"), err + out);
+            assertTrue(out.contains("accepted sum"), out);
+            assertTrue(Files.readString(dir.resolve("expected/a.xml")).contains("${xmlunit.isDateTime}"),
+                    "accepting keeps the placeholder");
+            // a new expected file has no placeholder yet: the timestamp is fixed until one is put in
+            assertEquals(ExitCodes.FAILED, run("scenario", file, "--check"), err + out);
+            assertTrue(out.contains("Attribute 'created' changed"), out);
+            Path b = dir.resolve("expected/b.xml");
+            Files.writeString(b, Files.readString(b).replaceAll("created=\"[^\"]*\"", "created=\"\\${xmlunit.isDateTime}\""));
+            assertEquals(ExitCodes.OK, run("scenario", file, "--check"), err + out);
+            assertTrue(out.contains("2 passed, 0 failed"), out);
+
+            Path withoutExpected = dir.resolve("e.fxtproj");
+            var empty = org.fxt.freexmltoolkit.service.project.FxtProject.create(withoutExpected, "E");
+            empty.putScenario(new org.fxt.freexmltoolkit.service.project.FxtProject.Scenario("x", "sum.xsl",
+                    "orders/a.xml", java.util.Map.of(), null, null));
+            empty.save();
+            assertEquals(ExitCodes.USAGE, run("scenario", withoutExpected, "--check"));
+            assertEquals(ExitCodes.NOT_RUN, run("scenario", withoutExpected, "x", "--check"), out);
+            assertEquals(ExitCodes.USAGE, run("scenario", withoutExpected, "-r", dir.resolve("r.xml")));
+        }
+
+        @Test
         @DisplayName("scenario --input runs once per file (named or bound scenario); validate --project uses bound Schematron and JSON Schema")
         void bindings() throws Exception {
             write("x/count.xsl", """

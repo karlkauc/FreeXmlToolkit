@@ -257,6 +257,10 @@ fxt-cli scenario [options] PROJECT [NAME...]
 | `-l`, `--list` | List the scenarios (name, stylesheet, input, output) instead of running them |
 | `-i`, `--input FILE...` | Run for these files or folders: the scenario runs once per file |
 | `--include GLOB,...` | File names to use inside `--input` folders; default `*.xml` |
+| `--check` | Compare each result with the scenario's [expected result](projects.md#regression-checks) instead of only running it |
+| `--accept` | Like `--check`, then write each differing or missing expected file from the result (placeholders of the old file are kept) |
+| `-f`, `--report-format FORMAT` | Check report: `text` (default), `junit` (JUnit XML) or `json` |
+| `-r`, `--report FILE` | Write the check report to `FILE`; the summary still goes to standard output |
 
 Without names, all scenarios run in the order of the project file. A scenario with an output file
 writes its result there; the others print it to standard output. The exit code is 1 when a scenario
@@ -273,6 +277,19 @@ fxt-cli scenario orders.fxtproj -i data/a.xml data/b.xml  # each file's bound sc
 
 A file without a bound scenario, or one whose output an earlier file already wrote (no `${name}`
 in the output), counts as failed.
+
+**Regression checks.** `--check` runs the scenarios that name an expected result (or the named
+ones) and compares each result with it: XML by structure with the scenario's compare settings
+(ignore XPaths, placeholders, tolerance), text line by line. A `${file}` scenario without
+`--input` is checked for each file the project binds to it. One line per check (`passed`,
+`FAILED` with the differences, `MISSING` when the expected file does not exist yet, `ERROR`), then
+a summary. Exit code 0 when all match, 1 when one differs or fails, 3 when an expected file is
+missing.
+
+```bash
+fxt-cli scenario orders.fxtproj --check -f junit -r build/scenarios.xml   # for CI
+fxt-cli scenario orders.fxtproj Report --accept                            # new results are right
+```
 
 ## compare
 

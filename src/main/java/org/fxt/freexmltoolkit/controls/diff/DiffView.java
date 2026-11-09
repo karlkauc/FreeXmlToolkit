@@ -473,6 +473,19 @@ public final class DiffView extends Tab {
         currentChunkIndex = -1;
     }
 
+    /**
+     * Compares as XML with the given options, e.g. those of a scenario's regression check. The
+     * options are not remembered as the user's choice; nothing happens when a side is not XML.
+     */
+    public void compareAsXml(XmlStructuralDiff.Options options) {
+        if (xmlModeButton.isDisable()) {
+            return;
+        }
+        xmlOptions = options;
+        applyMode(Mode.XML);
+        recomputeInBackground();
+    }
+
     /** @return the XML comparison options last chosen in a Compare view (also used by Compare Folders) */
     public static XmlStructuralDiff.Options savedXmlOptions() {
         return loadXmlOptions();

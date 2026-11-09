@@ -58,6 +58,7 @@ public class ProjectSettingsDialog extends Dialog<ButtonType> {
     @FXML private TableColumn<FxtProject.Scenario, String> scenarioInputCol;
     @FXML private TableColumn<FxtProject.Scenario, String> scenarioFormatCol;
     @FXML private TableColumn<FxtProject.Scenario, String> scenarioOutputCol;
+    @FXML private TableColumn<FxtProject.Scenario, String> scenarioExpectedCol;
     @FXML private Button scenarioEdit;
     @FXML private Button scenarioDuplicate;
     @FXML private Button scenarioRemove;
@@ -106,6 +107,7 @@ public class ProjectSettingsDialog extends Dialog<ButtonType> {
         FxmlColumns.text(scenarioInputCol, s -> s.input);
         FxmlColumns.text(scenarioFormatCol, s -> s.outputFormat);
         FxmlColumns.text(scenarioOutputCol, s -> s.output);
+        FxmlColumns.text(scenarioExpectedCol, s -> s.expected == null ? "" : s.expected);
 
         bindingEditor = binding -> {
             BindSchemaDialog dialog = new BindSchemaDialog(project, binding, scenarioNames());

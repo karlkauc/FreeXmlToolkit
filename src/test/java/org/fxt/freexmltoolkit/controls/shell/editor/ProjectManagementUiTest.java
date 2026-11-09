@@ -185,6 +185,31 @@ class ProjectManagementUiTest {
         assertEquals(Map.of("a", "1", "b", "x=y"), scenario.parameters);
         assertEquals("PDF", scenario.outputFormat);
         assertEquals("out/${name}.pdf", scenario.output);
+        assertNull(scenario.expected, "no expected result, no compare settings");
+        assertNull(scenario.compare);
+
+        // Regression check fields: expected result and compare settings
+        fx(() -> {
+            edit.fillForTesting("Check", "xsl/count.xsl", "${file}", "", "XML", "");
+            edit.fillCheckForTesting("expected/${name}.xml", "//[", "", false, "");
+            return null;
+        });
+        assertTrue(fx(edit::validationForTesting).startsWith("Not an XPath"), fx(edit::validationForTesting));
+        fx(() -> {
+            edit.fillCheckForTesting("expected/${name}.xml", "//@created", "x", false, "");
+            return null;
+        });
+        assertTrue(fx(edit::validationForTesting).contains("tolerance"), fx(edit::validationForTesting));
+        fx(() -> {
+            edit.fillCheckForTesting("expected/${name}.xml", "//@created\n//stamp", "0,01", true, "id, key");
+            return null;
+        });
+        FxtProject.Scenario checked = fx(edit::scenarioForTesting);
+        assertEquals("expected/${name}.xml", checked.expected);
+        assertEquals(List.of("//@created", "//stamp"), checked.compare.ignore);
+        assertEquals(0.01, checked.compare.tolerance);
+        assertEquals(Boolean.TRUE, checked.compare.ignoreOrder);
+        assertEquals(List.of("id", "key"), checked.compare.keys);
     }
 
     @Test

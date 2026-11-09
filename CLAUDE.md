@@ -83,7 +83,12 @@ polled every 3 s by `ShellBootstrap` and after an editor save of a `.fxtproj`, c
 `EditorSchemaBinding.detectSchemaFor` / `detectJsonSchemaFor` (`SchemaSource.PROJECT`); the bound Schematron
 is `EditorHost.getActiveSchematron`'s fallback. Scenarios run with `controls/shell/editor/ScenarioRunner`
 (XSLT/XQuery/XProc by extension, PDF = XSL-FO through `FopRunner.renderFo`; `run(…, file)`, `runAll`,
-`runOnce` refuses a second write of one output). UI: File → Project (`ProjectActions`: recent, settings,
+`runOnce` refuses a second write of one output). Regression checks: `Scenario.expected` + optional
+`CompareSettings` (→ `XmlStructuralDiff.Options`), `controls/shell/editor/ScenarioCheck` (check / checkAll /
+accept, which keeps the old expected file's `${xmlunit.…}` placeholders), Transform panel Check / Differences
+(`EditorHost.openScenarioDiff`, `DiffView.compareAsXml`) / Accept, File → Project → Check Scenarios
+(`ProjectActions.checkScenarios`, `FxtProject.filesForScenario`), CLI `scenario --check / --accept / -r -f junit|json`
+(`cli/JUnitReport`). UI: File → Project (`ProjectActions`: recent, settings,
 validate, bind), `ProjectSettingsDialog` (+ `ScenarioEditDialog`, `BindSchemaDialog`; works on copies,
 `applyTo`), Transform panel SCENARIO section (`ScenarioDialog`, bound scenario chosen by
 `chooseBoundScenario`), Explorer (project folders as roots, `.fxtproj` opens the project, file tooltips

@@ -129,4 +129,60 @@ class TransformPanelScenarioTest {
         });
         assertFalse(fx(() -> panel.scenarioSectionForTesting().isVisible()), "closing the project hides it");
     }
+
+    @Test
+    void checkComparesWithTheExpectedResultAndAcceptUpdatesIt() throws Exception {
+        Files.createDirectories(dir.resolve("xsl"));
+        Files.writeString(dir.resolve("xsl/count.xsl"), XSLT);
+        Files.writeString(dir.resolve("a.xml"), "<r><i/><i/><i/></r>");
+        Files.createDirectories(dir.resolve("expected"));
+        Files.writeString(dir.resolve("expected/count.txt"), "items=2");
+        FxtProject project = FxtProject.create(dir.resolve("p.fxtproj"), "Orders");
+        FxtProject.Scenario count = new FxtProject.Scenario("Count", "xsl/count.xsl", "a.xml", Map.of("label", "items"),
+                "TEXT", null);
+        count.expected = "expected/count.txt";
+        project.putScenario(count);
+        project.putScenario(new FxtProject.Scenario("Plain", "xsl/count.xsl", "a.xml", Map.of(), "TEXT", null));
+        project.save();
+        fx(() -> ProjectService.getInstance().open(project.file()));
+
+        javafx.scene.control.Button check = fx(() -> (javafx.scene.control.Button) panel.lookup("#transform-scenario-check"));
+        fx(() -> {
+            panel.scenarioChoiceForTesting().setValue("Plain");
+            panel.onScenarioChosen();
+            return null;
+        });
+        assertTrue(fx(check::isDisable), "no expected result, no Check");
+        fx(() -> {
+            panel.scenarioChoiceForTesting().setValue("Count");
+            panel.onScenarioChosen();
+            return null;
+        });
+        assertFalse(fx(check::isDisable));
+
+        fx(() -> {
+            panel.onCheckScenario();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS, () -> fx(panel::lastCheckForTesting) != null);
+        assertEquals(ScenarioCheck.Status.FAILED, fx(panel::lastCheckForTesting).result().status());
+        assertTrue(fx(panel::scenarioInfoForTesting).startsWith("✗ 1 difference"), fx(panel::scenarioInfoForTesting));
+        assertTrue(fx(() -> panel.lookup("#transform-check-actions").isVisible()), "Differences / Accept offered");
+
+        fx(() -> {
+            panel.onAcceptCheck();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                () -> "items=3".equals(Files.readString(dir.resolve("expected/count.txt"))));
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> fx(panel::scenarioInfoForTesting).startsWith("Accepted"));
+        assertFalse(fx(() -> panel.lookup("#transform-check-actions").isVisible()));
+
+        fx(() -> {
+            panel.onCheckScenario();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS, () -> fx(panel::scenarioInfoForTesting).startsWith("✓"));
+        assertEquals(ScenarioCheck.Status.PASSED, fx(panel::lastCheckForTesting).result().status());
+    }
 }

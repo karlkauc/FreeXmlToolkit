@@ -94,6 +94,15 @@ public class TransformPanel extends VBox {
     @FXML private Label scenarioInfo;
     @FXML private Button runScenarioButton;
     @FXML private Button deleteScenarioButton;
+    @FXML private Button checkScenarioButton;
+    @FXML private HBox checkActions;
+    /** The last regression check (for Show Differences / Accept), or {@code null}. */
+    private LastCheck lastCheck;
+
+    /** A check's outcome with what it ran for. */
+    record LastCheck(FxtProject project, FxtProject.Scenario scenario, java.nio.file.Path file,
+                     ScenarioCheck.Result result) {
+    }
     /** Guards {@link #onScenarioChosen()} while the choice box is refilled. */
     private boolean fillingScenarios;
     private final java.util.function.Consumer<org.fxt.freexmltoolkit.service.project.FxtProject> projectListener =
@@ -297,6 +306,8 @@ public class TransformPanel extends VBox {
         boolean none = scenarioChoice.getValue() == null;
         runScenarioButton.setDisable(none);
         deleteScenarioButton.setDisable(none);
+        checkScenarioButton.setDisable(none || chosenScenario().map(s -> !s.hasExpected()).orElse(true));
+        showCheckActions(false);
         if (none) {
             showScenarioInfo(scenarioChoice.getItems().isEmpty()
                     ? "No scenarios yet — set up a transformation and save it with the disk button." : null);
@@ -488,6 +499,129 @@ public class TransformPanel extends VBox {
             out.showTransformResult(result.text(), result.format() != null ? result.format() : OutputFormat.XML, ms);
         }
         showScenarioInfo(result.written() != null ? "Written to " + project.relativize(result.written()) : "Done.");
+    }
+
+    /**
+     * Regression check: runs the chosen scenario like Run and compares its result with the scenario's
+     * expected file ({@link ScenarioCheck}); a difference offers Show Differences and Accept.
+     */
+    @FXML
+    public void onCheckScenario() {
+        Optional<FxtProject> project = ProjectService.getInstance().current();
+        Optional<FxtProject.Scenario> chosen = chosenScenario();
+        if (project.isEmpty() || chosen.isEmpty()) {
+            return;
+        }
+        FxtProject.Scenario scenario = chosen.get();
+        java.nio.file.Path forFile = null;
+        if (needsFile(scenario)) {
+            forFile = editorHost.getActiveDocument().map(OpenDocument::getPath).orElse(null);
+            if (forFile == null) {
+                out.showFailure(I18n.t("TransformPanel.scenario-failed", scenario.name,
+                        "The scenario runs for a file: open and save the document to check it for."));
+                return;
+            }
+        }
+        showCheckActions(false);
+        out.showPending(I18n.t("TransformPanel.checking-scenario", scenario.name));
+        checkScenarioButton.setDisable(true);
+        long t0 = System.nanoTime();
+        java.nio.file.Path file = forFile;
+        FxtGui.executorService.submit(() -> {
+            ScenarioCheck.Result result = ScenarioCheck.check(project.get(), scenario, file);
+            long ms = (System.nanoTime() - t0) / 1_000_000;
+            Platform.runLater(() -> showCheckResult(new LastCheck(project.get(), scenario, file, result), ms));
+        });
+    }
+
+    void showCheckResult(LastCheck check, long ms) {
+        lastCheck = check;
+        checkScenarioButton.setDisable(false);
+        ScenarioCheck.Result result = check.result();
+        String expected = result.expected() == null ? "" : check.project().relativize(result.expected());
+        switch (result.status()) {
+            case PASSED -> {
+                out.showTransformResult(result.actual(), OutputFormat.XML, ms);
+                showScenarioInfo(I18n.t("TransformPanel.check-passed", expected));
+            }
+            case FAILED -> {
+                out.showTransformResult(result.actual(), OutputFormat.XML, ms);
+                StringBuilder text = new StringBuilder(I18n.t("TransformPanel.check-failed", result.summary(), expected));
+                result.differences().stream().limit(3).forEach(d -> text.append("\n• ").append(d.describe()));
+                if (result.differences().size() > 3) {
+                    text.append("\n…");
+                }
+                showScenarioInfo(text.toString());
+            }
+            case NO_EXPECTED -> {
+                if (result.actual() != null) {
+                    out.showTransformResult(result.actual(), OutputFormat.XML, ms);
+                }
+                showScenarioInfo(result.message());
+            }
+            case ERROR -> {
+                out.showFailure(I18n.t("TransformPanel.scenario-failed", check.scenario().name, result.message()));
+                showScenarioInfo("Failed: " + result.message());
+            }
+        }
+        showCheckActions(result.actual() != null
+                && (result.status() == ScenarioCheck.Status.FAILED || result.status() == ScenarioCheck.Status.NO_EXPECTED));
+        lookupCheckDifferences().ifPresent(b -> b.setDisable(result.status() != ScenarioCheck.Status.FAILED));
+    }
+
+    private Optional<javafx.scene.Node> lookupCheckDifferences() {
+        return checkActions.getChildren().stream().filter(n -> "transform-check-differences".equals(n.getId())).findFirst();
+    }
+
+    private void showCheckActions(boolean show) {
+        if (checkActions != null) {
+            checkActions.setVisible(show);
+            checkActions.setManaged(show);
+        }
+    }
+
+    /** Opens the expected result next to the actual one, compared as the scenario says. */
+    @FXML
+    public void onShowCheckDifferences() {
+        LastCheck check = lastCheck;
+        if (check == null || check.result().expected() == null || check.result().actual() == null) {
+            return;
+        }
+        editorHost.openScenarioDiff(check.result().expected(), check.result().actual(),
+                check.scenario().name + "-actual" + extensionOf(check.result().expected()),
+                FxtProject.CompareSettings.toOptions(check.scenario().compare));
+    }
+
+    private static String extensionOf(java.nio.file.Path path) {
+        String name = path.getFileName().toString();
+        int dot = name.lastIndexOf('.');
+        return dot > 0 ? name.substring(dot) : ".xml";
+    }
+
+    /** Makes the actual result the expected one (placeholders of the old expected file are kept). */
+    @FXML
+    public void onAcceptCheck() {
+        LastCheck check = lastCheck;
+        if (check == null || check.result().actual() == null) {
+            return;
+        }
+        FxtGui.executorService.submit(() -> {
+            try {
+                java.nio.file.Path written = ScenarioCheck.accept(check.project(), check.scenario(), check.file(),
+                        check.result().actual());
+                Platform.runLater(() -> {
+                    showCheckActions(false);
+                    showScenarioInfo(I18n.t("TransformPanel.check-accepted", check.project().relativize(written)));
+                });
+            } catch (java.io.IOException e) {
+                Platform.runLater(() -> out.showFailure(e.getMessage()));
+            }
+        });
+    }
+
+    /** @return the last check (tests) */
+    LastCheck lastCheckForTesting() {
+        return lastCheck;
     }
 
     /** @return whether a scenario runs for a file: {@code ${file}} in its input, or a stylesheet without input */

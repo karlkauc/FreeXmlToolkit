@@ -18,6 +18,7 @@ import javafx.stage.FileChooser;
 
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.service.XmlStructuralDiff;
 import org.fxt.freexmltoolkit.service.project.FxtProject;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.fxt.freexmltoolkit.util.FileChooserHelper;
@@ -38,10 +39,17 @@ public class ScenarioEditDialog extends Dialog<FxtProject.Scenario> {
     @FXML private TextArea parametersArea;
     @FXML private ComboBox<String> formatChoice;
     @FXML private TextField outputField;
+    @FXML private TextField expectedField;
+    @FXML private TextArea ignoreArea;
+    @FXML private TextField toleranceField;
+    @FXML private javafx.scene.control.CheckBox ignoreOrderBox;
+    @FXML private TextField keysField;
     @FXML private Label error;
 
     private final FxtProject project;
     private final Set<String> otherNames;
+    /** Compare settings the dialog does not edit (placeholders, comments, whitespace) are kept. */
+    private FxtProject.CompareSettings originalCompare;
 
     /**
      * @param scenario   the scenario to start with (a new one has no name)
@@ -74,19 +82,53 @@ public class ScenarioEditDialog extends Dialog<FxtProject.Scenario> {
         String format = scenario.outputFormat == null ? "" : scenario.outputFormat.strip().toUpperCase(Locale.ROOT);
         formatChoice.setValue(FORMATS.contains(format) ? format : "");
         outputField.setText(nullToEmpty(scenario.output));
-        for (var field : List.of(nameField, stylesheetField, inputField, outputField)) {
+        expectedField.setText(nullToEmpty(scenario.expected));
+        FxtProject.CompareSettings compare = scenario.compare;
+        if (compare != null) {
+            ignoreArea.setText(compare.ignore == null ? "" : String.join("\n", compare.ignore));
+            toleranceField.setText(compare.tolerance == null || compare.tolerance == 0 ? ""
+                    : java.math.BigDecimal.valueOf(compare.tolerance).stripTrailingZeros().toPlainString());
+            ignoreOrderBox.setSelected(Boolean.TRUE.equals(compare.ignoreOrder));
+            keysField.setText(compare.keys == null ? "" : String.join(", ", compare.keys));
+        }
+        this.originalCompare = compare;
+        for (var field : List.of(nameField, stylesheetField, inputField, outputField, expectedField, toleranceField)) {
             field.textProperty().addListener((obs, o, n) -> validate());
         }
         parametersArea.textProperty().addListener((obs, o, n) -> validate());
+        ignoreArea.textProperty().addListener((obs, o, n) -> validate());
         formatChoice.valueProperty().addListener((obs, o, n) -> validate());
         validate();
         setResultConverter(button -> button == ButtonType.OK && validate() == null ? scenario() : null);
     }
 
     private FxtProject.Scenario scenario() {
-        return new FxtProject.Scenario(nameField.getText().strip(), stylesheetField.getText().strip(),
+        FxtProject.Scenario scenario = new FxtProject.Scenario(nameField.getText().strip(), stylesheetField.getText().strip(),
                 blankToNull(inputField.getText()), parseParameters(parametersArea.getText()),
                 blankToNull(formatChoice.getValue()), blankToNull(outputField.getText()));
+        scenario.expected = blankToNull(expectedField.getText());
+        FxtProject.CompareSettings compare = originalCompare == null ? new FxtProject.CompareSettings()
+                : originalCompare.copy();
+        compare.ignore = new java.util.ArrayList<>(XmlStructuralDiff.Options.parseXPaths(ignoreArea.getText()));
+        compare.tolerance = tolerance() == 0 ? null : tolerance();
+        compare.ignoreOrder = ignoreOrderBox.isSelected() ? Boolean.TRUE : null;
+        compare.keys = new java.util.ArrayList<>(XmlStructuralDiff.Options.parseKeys(keysField.getText()));
+        scenario.compare = compare.isDefault() ? null : compare;
+        return scenario;
+    }
+
+    /** @return the tolerance entered (0 when empty), or -1 when it is not a number */
+    private double tolerance() {
+        String text = toleranceField.getText() == null ? "" : toleranceField.getText().strip().replace(',', '.');
+        if (text.isEmpty()) {
+            return 0;
+        }
+        try {
+            double value = Double.parseDouble(text);
+            return value >= 0 && Double.isFinite(value) ? value : -1;
+        } catch (NumberFormatException e) {
+            return -1;
+        }
     }
 
     /** @return the problem with the input, or {@code null} */
@@ -103,6 +145,12 @@ public class ScenarioEditDialog extends Dialog<FxtProject.Scenario> {
             problem = "A PDF scenario needs an output file.";
         } else if (!parametersArea.getText().isBlank() && invalidParameterLine(parametersArea.getText()) != null) {
             problem = "Not a parameter (name=value): " + invalidParameterLine(parametersArea.getText());
+        } else if (tolerance() < 0) {
+            problem = "The tolerance must be a number of 0 or more.";
+        } else if (XmlStructuralDiff.Options.DEFAULTS.withIgnoreXPaths(
+                XmlStructuralDiff.Options.parseXPaths(ignoreArea.getText())).invalidIgnoreXPath() != null) {
+            problem = "Not an XPath: " + XmlStructuralDiff.Options.DEFAULTS.withIgnoreXPaths(
+                    XmlStructuralDiff.Options.parseXPaths(ignoreArea.getText())).invalidIgnoreXPath();
         }
         boolean show = problem != null && !name.isEmpty();
         error.setText(problem == null ? "" : problem);
@@ -152,6 +200,11 @@ public class ScenarioEditDialog extends Dialog<FxtProject.Scenario> {
         browse(inputField, new FileChooser.ExtensionFilter("XML", "*.xml", "*.*"));
     }
 
+    @FXML
+    public void onBrowseExpected() {
+        browse(expectedField, new FileChooser.ExtensionFilter("All files", "*.*"));
+    }
+
     private void browse(TextField field, FileChooser.ExtensionFilter filter) {
         FileChooser chooser = new FileChooser();
         chooser.setInitialDirectory(project.root().toFile());
@@ -178,6 +231,18 @@ public class ScenarioEditDialog extends Dialog<FxtProject.Scenario> {
         parametersArea.setText(parameters);
         formatChoice.setValue(format);
         outputField.setText(output);
+    }
+
+    void fillCheckForTesting(String expected, String ignore, String tolerance, boolean ignoreOrder, String keys) {
+        expectedField.setText(expected);
+        ignoreArea.setText(ignore);
+        toleranceField.setText(tolerance);
+        ignoreOrderBox.setSelected(ignoreOrder);
+        keysField.setText(keys);
+    }
+
+    String validationForTesting() {
+        return validate();
     }
 
     FxtProject.Scenario scenarioForTesting() {

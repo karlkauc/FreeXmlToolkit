@@ -107,6 +107,15 @@
                                                         <Tooltip text="%TransformPanel.runs-the-saved-scenario-from.text"/>
                                                     </tooltip>
                                                 </Button>
+                                                <Button fx:id="checkScenarioButton" id="transform-scenario-check"
+                                                        styleClass="fxt-secondary-button" onAction="#onCheckScenario">
+                                                    <graphic>
+                                                        <IconifyIcon iconLiteral="bi-clipboard-check" iconSize="14"/>
+                                                    </graphic>
+                                                    <tooltip>
+                                                        <Tooltip text="%TransformPanel.check-scenario.tooltip"/>
+                                                    </tooltip>
+                                                </Button>
                                                 <Button id="transform-scenario-save" styleClass="fxt-secondary-button"
                                                         onAction="#onSaveScenario">
                                                     <graphic>
@@ -123,6 +132,28 @@
                                                     </graphic>
                                                     <tooltip>
                                                         <Tooltip text="%TransformPanel.remove-the-chosen-scenario-from.text"/>
+                                                    </tooltip>
+                                                </Button>
+                                            </children>
+                                        </HBox>
+                                        <HBox fx:id="checkActions" id="transform-check-actions" spacing="6"
+                                              visible="false" managed="false">
+                                            <children>
+                                                <Button id="transform-check-differences" text="%TransformPanel.check-differences.text"
+                                                        styleClass="fxt-secondary-button" HBox.hgrow="ALWAYS" maxWidth="Infinity"
+                                                        onAction="#onShowCheckDifferences">
+                                                    <graphic>
+                                                        <IconifyIcon iconLiteral="bi-layout-split" iconSize="14"/>
+                                                    </graphic>
+                                                </Button>
+                                                <Button id="transform-check-accept" text="%TransformPanel.check-accept.text"
+                                                        styleClass="fxt-secondary-button" HBox.hgrow="ALWAYS" maxWidth="Infinity"
+                                                        onAction="#onAcceptCheck">
+                                                    <graphic>
+                                                        <IconifyIcon iconLiteral="bi-check2-square" iconSize="14"/>
+                                                    </graphic>
+                                                    <tooltip>
+                                                        <Tooltip text="%TransformPanel.check-accept.tooltip"/>
                                                     </tooltip>
                                                 </Button>
                                             </children>

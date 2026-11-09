@@ -89,6 +89,7 @@ public final class ShellMenuBar extends MenuBar {
     @FXML private ShellMenuItem closeProjectItem;
     @FXML private Menu recentProjectsMenu;
     @FXML private ShellMenuItem projectSettingsItem;
+    @FXML private ShellMenuItem checkScenariosItem;
     @FXML private ShellMenuItem validateProjectItem;
     @FXML private ShellMenuItem bindSchemaItem;
     @FXML private ShellMenuItem addCatalogItem;
@@ -460,13 +461,17 @@ public final class ShellMenuBar extends MenuBar {
 
     @FXML public void onProjectSettings() { run("project_settings", () -> ProjectActions.openSettings(editorHost, window())); }
     @FXML public void onValidateProject() { run("project_validate", shell::validateProject); }
+    @FXML public void onCheckScenarios() {
+        run("project_check_scenarios", () -> org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().current()
+                .ifPresent(project -> ProjectActions.checkScenarios(editorHost, project)));
+    }
 
     /** Project items that need an open project are disabled without one; the recent list is refilled. */
     void updateProjectItems() {
         recentProjectsMenu.getItems().setAll(ProjectActions.recentProjectItems());
         boolean none = org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().current().isEmpty();
         for (ShellMenuItem item : new ShellMenuItem[] {closeProjectItem, projectSettingsItem, validateProjectItem,
-                bindSchemaItem, addCatalogItem, editProjectItem}) {
+                checkScenariosItem, bindSchemaItem, addCatalogItem, editProjectItem}) {
             item.setDisable(none);
         }
     }

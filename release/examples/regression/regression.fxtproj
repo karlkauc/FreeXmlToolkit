@@ -1,0 +1,16 @@
+{
+  "name": "Regression check example",
+  "scenarios": [
+    {
+      "name": "Fund summary",
+      "stylesheet": "fund-summary.xsl",
+      "input": "../xml/FundsXML4_Equity_Fund.xml",
+      "parameters": {},
+      "expected": "expected/equity-summary.xml",
+      "compare": {
+        "tolerance": 0.001,
+        "ignoreComments": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The expected result of the "Fund summary" scenario. Values that change from run to run are
+  XMLUnit placeholders; the sum of the weights is 100 within the scenario's tolerance (0.001).
+-->
+<fund-summary created="${xmlunit.isDateTime}" run="${xmlunit.matchesRegex(^d\w+-\d+$)}">
+   <fund isin="HU0000704200" currency="HUF">
+      <name>Erste Stock Hungary Indexkövető Befektetési Alap</name>
+      <nav>29411334597</nav>
+      <positions count="27">
+         <weights-total>100</weights-total>
+         <core isin="HU0000061726" weight="44.5876"/>
+         <core isin="HU0000123096" weight="20.4921"/>
+         <core isin="HU0000153937" weight="14.1231"/>
+      </positions>
+   </fund>
+</fund-summary>

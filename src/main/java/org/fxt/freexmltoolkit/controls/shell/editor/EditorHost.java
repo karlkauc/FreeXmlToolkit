@@ -1299,6 +1299,50 @@ public class EditorHost extends BorderPane {
                 });
     }
 
+    /**
+     * Opens a scenario check's expected result (left; saving it updates the expected file) next to the
+     * actual result (right, a temporary file), compared as XML with the scenario's options.
+     *
+     * @return completes on the FX thread with the diff tab, or with {@code null} when refused
+     */
+    public CompletableFuture<org.fxt.freexmltoolkit.controls.diff.DiffView> openScenarioDiff(
+            Path expected, String actual, String actualName,
+            org.fxt.freexmltoolkit.service.XmlStructuralDiff.Options options) {
+        String expectedText;
+        File actualFile;
+        try {
+            expectedText = java.nio.file.Files.readString(expected, java.nio.charset.StandardCharsets.UTF_8);
+            String suffix = actualName.contains(".") ? actualName.substring(actualName.lastIndexOf('.')) : ".xml";
+            actualFile = java.nio.file.Files.createTempFile("fxt-actual-", suffix).toFile();
+            actualFile.deleteOnExit();
+            java.nio.file.Files.writeString(actualFile.toPath(), actual == null ? "" : actual,
+                    java.nio.charset.StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("EditorHost.compare"),
+                    "The expected and the actual result could not be opened.",
+                    org.fxt.freexmltoolkit.util.DialogHelper.Remedies.FILE_UNREADABLE, e);
+            return CompletableFuture.completedFuture(null);
+        }
+        if (refuseTooLargeToCompare(expectedText.length(), actualFile.length())) {
+            return CompletableFuture.completedFuture(null);
+        }
+        java.util.function.Consumer<String> saveExpected = text -> {
+            try {
+                java.nio.file.Files.writeString(expected, text, java.nio.charset.StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                throw new java.io.UncheckedIOException(e);
+            }
+        };
+        return org.fxt.freexmltoolkit.controls.diff.DiffView.open(expected.getFileName().toString(), expectedText,
+                        saveExpected, actualFile)
+                .thenApply(diff -> {
+                    tabPane.getTabs().add(diff);
+                    tabPane.getSelectionModel().select(diff);
+                    diff.compareAsXml(options);
+                    return diff;
+                });
+    }
+
     /** Shows why two documents are not compared when they are too large; @return whether refused */
     private static boolean refuseTooLargeToCompare(long leftChars, long rightChars) {
         if (!org.fxt.freexmltoolkit.controls.diff.DiffView.tooLargeToCompare(leftChars, rightChars)) {
