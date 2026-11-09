@@ -12,7 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Flipped table display (XMLSpy "Flip Rows/Columns"): the drawn grid is transposed — one
+ * Flipped table display ("Flip Rows/Columns"): the drawn grid is transposed — one
  * drawn column per record (numbered in the header row), one drawn row per logical column
  * (named in the first column) — while every data cell still maps to its logical row/column.
  */

@@ -14,7 +14,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
 
 /**
- * Builds the commands behind XMLSpy's whole-row and whole-column table operations on a
+ * Builds the commands behind the whole-row and whole-column table operations on a
  * repeating group of XML elements: insert / append a row (a new member with every column
  * present but empty), insert a column (a new attribute or child element in every member) and
  * rename a column (in every member). Pure model code, no UI: the context menu asks the user
@@ -130,7 +130,7 @@ public final class TableEditOps {
 
     /**
      * The commands that write a pasted block of cell values into the table starting at the
-     * given cell (XMLSpy: pasting a spreadsheet range): existing cells are overwritten, rows
+     * given cell (pasting a spreadsheet range): existing cells are overwritten, rows
      * beyond the last member are appended as new members (every column present), values
      * beyond the last column are ignored. Attribute cells become attribute values, element
      * cells the child's text (the child is created when the member lacks it), a text-content

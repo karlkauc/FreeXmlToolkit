@@ -1,6 +1,6 @@
 {
-  "name": "XMLSpy Style Configuration",
-  "description": "XMLSpy-inspired color palette and styling configuration for XML editors and viewers",
+  "name": "Style Configuration",
+  "description": "Color palette and styling configuration for XML editors and viewers",
   "version": "1.0",
   "colors": {
     "backgrounds": {

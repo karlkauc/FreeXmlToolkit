@@ -60,7 +60,7 @@ public class RepeatingElementsTable {
      */
     public static final double MIN_COLUMN_WIDTH = 80;
 
-    /** The narrowest row-number column (XMLSpy's numbered first column). */
+    /** The narrowest row-number column (numbered first column). */
     public static final double MIN_ROW_NUMBER_WIDTH = 22;
 
     /** Width reserved for the type icon ({@code =} / {@code <>}) in a column header. */
@@ -206,7 +206,7 @@ public class RepeatingElementsTable {
     private double[] rowTops = new double[]{0};
     /** Width of the row-number column (drawn column 0), measured in the layout pass. */
     private double rowNumberWidth = MIN_ROW_NUMBER_WIDTH;
-    /** Whether rows and columns are shown flipped (XMLSpy "Flip Rows/Columns"). */
+    /** Whether rows and columns are shown flipped ("Flip Rows/Columns"). */
     private boolean flipped = false;
     /** Drawn-grid geometry (relative to the table origin), filled by the layout pass. */
     private double[] drawnColX = {0};
@@ -1382,7 +1382,7 @@ public class RepeatingElementsTable {
     }
 
     /**
-     * Flipped orientation (XMLSpy "Flip Rows/Columns"): drawn column 0 holds the column
+     * Flipped orientation ("Flip Rows/Columns"): drawn column 0 holds the column
      * headers, drawn columns 1..n the records (one per logical row, numbered in drawn row 0);
      * drawn rows 1..m are the logical columns. Each record gets its own width (its widest
      * cell, capped at the wrap width); each logical column's drawn row is as tall as its
@@ -1752,7 +1752,7 @@ public class RepeatingElementsTable {
     // The canvas renders and hit-tests the table only through the "drawn grid". Standard
     // orientation: drawn row 0 is the column-header row, drawn rows 1..n the data rows; drawn
     // column 0 numbers the rows (corner cell in the header row), drawn columns 1..m are the
-    // logical columns. Flipped (XMLSpy "Flip Rows/Columns"): drawn column 0 holds the column
+    // logical columns. Flipped ("Flip Rows/Columns"): drawn column 0 holds the column
     // headers, drawn columns 1..n the numbered records, drawn rows 1..m the logical columns.
     // Only this mapping and the geometry arrays differ between the orientations.
 

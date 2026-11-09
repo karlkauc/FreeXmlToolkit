@@ -10,7 +10,7 @@
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 
 <!--
-  Entry helpers of the XML grid (XMLSpy: Siblings / Children / Values): what the bound schema
+  Entry helpers of the XML grid (Siblings / Children / Values): what the bound schema
   allows next to and below the selected node. Loaded by GridEntryHelpersPanel via the fx:root
   pattern; the lists, their cells and the enabled state of the buttons are filled in code.
 -->

@@ -28,7 +28,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
 import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
- * The entry helpers beside the XML grid (XMLSpy: Siblings / Children / Values): the
+ * The entry helpers beside the XML grid (Siblings / Children / Values): the
  * attributes and elements the bound schema allows next to the selected node and in the
  * selected element, and the enumeration values of the selected element or attribute. Entries
  * that cannot be added there any more are greyed out, required ones carry a "!". A

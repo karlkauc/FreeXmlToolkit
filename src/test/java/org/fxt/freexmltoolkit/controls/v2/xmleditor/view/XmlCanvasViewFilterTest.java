@@ -17,7 +17,7 @@ import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
-/** XMLSpy-style XQuery filters: only matching nodes stay, tables shrink, the filter line toggles, focus. */
+/** XQuery filters: only matching nodes stay, tables shrink, the filter line toggles, focus. */
 @ExtendWith(ApplicationExtension.class)
 class XmlCanvasViewFilterTest {
 

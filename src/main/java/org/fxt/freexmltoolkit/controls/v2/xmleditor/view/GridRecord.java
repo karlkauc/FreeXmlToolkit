@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * Model-agnostic data source for one row of a {@link RepeatingElementsTable}.
  *
- * <p>The XMLSpy-style grid renders repeating siblings (XML elements with the same tag name,
+ * <p>The grid renders repeating siblings (XML elements with the same tag name,
  * JSON arrays of objects) as an embedded table. The table itself only needs, per record, the
  * ordered column keys, the cell texts, and which cells hide a nested structure that can be
  * expanded inline. Implementations: {@link XmlGridRecord} (one {@code XmlElement}) and the

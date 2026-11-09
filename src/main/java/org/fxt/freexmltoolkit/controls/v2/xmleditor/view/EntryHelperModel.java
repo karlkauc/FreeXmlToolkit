@@ -15,7 +15,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.TableEditOps.Placement;
 
 /**
- * The grid's entry helpers (XMLSpy: the Siblings / Children / Values windows): what the bound
+ * The grid's entry helpers (the Siblings / Children / Values windows): what the bound
  * schema allows next to and below the selected node, and the commands that insert it. Pure
  * model code; the panel shows the lists and executes the commands through the editor context.
  *
@@ -118,7 +118,7 @@ public final class EntryHelperModel {
         return schema != null && schema.hasSchema();
     }
 
-    /** Attributes first (as XMLSpy lists them), then the elements in schema order. */
+    /** Attributes first, then the elements in schema order. */
     private static List<Entry> contentOf(XmlSchemaProvider schema, XmlElement element) {
         if (!hasSchema(schema)) {
             return List.of();

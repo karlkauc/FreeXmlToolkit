@@ -162,7 +162,7 @@ final class GridDragSupport<N> {
     FlatRow dropTargetRow = null;
     DropPosition dropPosition = null;
 
-    /** A column-header drag that moves a table column (XMLSpy: drag a header onto another). */
+    /** A column-header drag that moves a table column (drag a header onto another). */
     static final class HeaderDrag {
         final RepeatingElementsTable table;
         final int column;

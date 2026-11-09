@@ -14,7 +14,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/** Whole-row and whole-column operations on a repeating group (XMLSpy table display). */
+/** Whole-row and whole-column operations on a repeating group (table display). */
 class TableEditOpsTest {
 
     private static final String XML = """

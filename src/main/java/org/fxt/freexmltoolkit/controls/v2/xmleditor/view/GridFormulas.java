@@ -17,7 +17,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstructi
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
 
 /**
- * Grid formulas (XMLSpy: the Formula node type): an XQuery 3.1 expression evaluated with its
+ * Grid formulas (the Formula node type): an XQuery 3.1 expression evaluated with its
  * parent element as context, shown with its live result. A formula is persisted in the document
  * as a processing instruction {@code <?fxt-formula name="…" store="true|false" expression="…"?>},
  * so it is saved with the file and takes part in undo/redo. With {@code store="true"} the result

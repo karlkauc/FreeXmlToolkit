@@ -699,7 +699,7 @@ public interface PropertiesService {
         set(GRID_ENTRY_HELPERS, String.valueOf(shown));
     }
 
-    /** Property key: maximum lines per grid cell (0 = unlimited; XMLSpy "Limit cell height"). */
+    /** Property key: maximum lines per grid cell (0 = unlimited; "Limit cell height"). */
     String GRID_MAX_CELL_LINES = "grid.maxCellLines";
     /** Largest persisted cell-line limit. */
     int GRID_MAX_CELL_LINES_MAX = 999;

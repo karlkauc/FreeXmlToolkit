@@ -21,7 +21,7 @@ A column like "Bond" that contains `<Bond><Issuer>ABC</Issuer><Coupon>5.0</Coupo
 
 ### Expanded Cell Content
 
-When expanded, the cell grows vertically and shows the child nodes as flat rows using the same XMLSpy-style rendering:
+When expanded, the cell grows vertically and shows the child nodes as flat rows using the same rendering:
 - `<>` icon + name + value for child elements
 - `=` icon + name + value for attributes of the complex element
 - `T` icon for text nodes

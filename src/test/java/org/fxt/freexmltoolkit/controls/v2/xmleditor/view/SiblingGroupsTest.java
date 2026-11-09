@@ -12,7 +12,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
 import org.junit.jupiter.api.Test;
 
 /**
- * XMLSpy-style sibling groups: a container with more child rows than the group size gets them
+ * Sibling groups: a container with more child rows than the group size gets them
  * split into collapsed group rows; attributes stay with their element; groups open exclusively;
  * a group row is no node for the adapter.
  */

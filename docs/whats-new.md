@@ -61,7 +61,7 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## 2.10.0 (2026-11-05)
 
-- **XSD Overview view (XMLSpy style):** a new view mode for schemas lists all top-level
+- **XSD Overview view:** a new view mode for schemas lists all top-level
   components - imports, includes, annotations, elements, types, groups, attribute groups,
   attributes, notations - in one table. Insert, append, move (also by drag and drop), sort by
   type or name, rename with the references, edit annotations in place, add imports and includes.
@@ -71,7 +71,7 @@ running is shown under **Help → About FreeXmlToolkit**.
 - **XSD saving keeps your order:** the top-level components are no longer re-sorted on every
   save; schema-level `xs:annotation`, `xs:notation` and `xs:defaultOpenContent` are no longer
   lost when the schema is edited.
-- **Named types in frames (Graphic view, XMLSpy style):** the content an element gets from a
+- **Named types in frames (Graphic view):** the content an element gets from a
   named complex type is drawn in a light-yellow, dashed frame titled with the type's name; the
   base of an `xs:extension` gets a nested frame. The content is read-only there - double-click
   the frame title or choose **Edit Type '…'** to open the type in its Type Editor. A type used
@@ -182,7 +182,7 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## 2.7.0 (2026-10-29)
 
-- **XMLSpy-style grid** for XML: block layout with docked tables and inline previews, table cell
+- **Editable grid** for XML: block layout with docked tables and inline previews, table cell
   ranges and TSV copy/paste with spreadsheets, flip rows/columns, sortable and movable columns,
   multi-selection, split view, sticky scroll header, sibling groups for huge containers,
   validation markers, XQuery **filters** (Filter to Focus) and **formulas**, drag & drop,

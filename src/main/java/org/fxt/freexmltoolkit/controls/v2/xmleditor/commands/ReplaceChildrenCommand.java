@@ -7,7 +7,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 
 /**
- * Replaces all children of an element with new nodes (XMLSpy "Edit as Raw Text": the element's
+ * Replaces all children of an element with new nodes ("Edit as Raw Text": the element's
  * content edited as markup and parsed back). Undo restores the original child nodes.
  */
 public final class ReplaceChildrenCommand implements XmlCommand {

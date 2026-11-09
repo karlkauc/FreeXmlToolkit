@@ -5,7 +5,7 @@
 
 ## Summary
 
-The Unified Shell's Graphic view shows an XMLSpy-style grid for XML documents
+The Unified Shell's Graphic view shows a grid for XML documents
 (`XmlGridView` → `XmlCanvasView`): expand/collapse, inline editing, a context menu,
 repeating siblings rendered as embedded tables, undo/redo, Ctrl+F search and a round-trip
 into the text editor. JSON documents (`.json`, `.jsonc`, `.json5`) only had Text and a

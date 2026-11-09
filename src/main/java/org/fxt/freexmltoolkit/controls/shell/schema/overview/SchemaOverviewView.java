@@ -32,7 +32,7 @@ import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
 /**
- * The XSD "Overview" view mode, after XMLSpy's schema overview: every top-level component of
+ * The XSD "Overview" view mode, a schema overview: every top-level component of
  * the schema in one table (imports, includes, annotations, elements, types, groups, attribute
  * groups, attributes, notations) that can be reordered, sorted, renamed, annotated, extended
  * and deleted; below it tabs for the selected component (details, attributes, identity

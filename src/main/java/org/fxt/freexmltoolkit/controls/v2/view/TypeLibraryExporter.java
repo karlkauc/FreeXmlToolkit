@@ -30,7 +30,7 @@ import org.fxt.freexmltoolkit.service.ExportMetadataService;
  * Supported formats:
  * - CSV (Comma-Separated Values)
  * - Excel (XLSX)
- * - HTML (styled with XMLSpy look &amp; feel)
+ * - HTML (styled)
  * - JSON
  * - XML
  * - Markdown
@@ -150,7 +150,7 @@ public class TypeLibraryExporter {
     }
 
     /**
-     * Export to HTML format with XMLSpy styling.
+     * Export to HTML format with styling.
      *
      * @param types      The list of types to export
      * @param file       The file to export to
@@ -168,7 +168,7 @@ public class TypeLibraryExporter {
         html.append(metadataService.generateHtmlMetaTags());
         html.append("<title>Type Library - ").append(escapeHtml(schemaName)).append("</title>\n");
         html.append("<style>\n");
-        html.append(getXmlSpyCSS());
+        html.append(getHtmlExportCss());
         html.append("</style>\n");
         html.append("</head>\n<body>\n");
 
@@ -531,7 +531,7 @@ public class TypeLibraryExporter {
         return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 
-    private static String getXmlSpyCSS() {
+    private static String getHtmlExportCss() {
         return """
             body {
                 font-family: 'Segoe UI', Arial, sans-serif;

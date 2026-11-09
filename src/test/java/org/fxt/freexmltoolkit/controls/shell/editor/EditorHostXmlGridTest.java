@@ -21,7 +21,7 @@ import org.testfx.util.WaitForAsyncUtils;
 
 /**
  * Verifies the XML instance Grid view: XML-family documents offer a Grid mode
- * backed by the Canvas-based {@link XmlCanvasView} (XMLSpy grid style), while XSD
+ * backed by the Canvas-based {@link XmlCanvasView} (grid), while XSD
  * and JSON do not.
  */
 @ExtendWith(ApplicationExtension.class)

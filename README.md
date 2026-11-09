@@ -22,7 +22,7 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
     <td width="50%"><a href="https://karlkauc.github.io/FreeXmlToolkit/xsd-tools/"><img src="docs/img/unified-shell-schema-graphic.png" alt="Visual XSD editor" width="420"></a></td>
   </tr>
   <tr>
-    <td width="50%"><b>Schema-aware XML editor</b><br>IntelliSense that offers only what the schema allows at the caret, live validation while you type, and three views of one document: Text, Tree and an XMLSpy-style <b>Grid</b> that shows repeating elements as editable tables.</td>
+    <td width="50%"><b>Schema-aware XML editor</b><br>IntelliSense that offers only what the schema allows at the caret, live validation while you type, and three views of one document: Text, Tree and a <b>Grid</b> that shows repeating elements as editable tables.</td>
     <td width="50%"><a href="https://karlkauc.github.io/FreeXmlToolkit/grid/"><img src="docs/img/unified-shell-xml-grid.png" alt="Schema-aware XML editor" width="420"></a></td>
   </tr>
   <tr>

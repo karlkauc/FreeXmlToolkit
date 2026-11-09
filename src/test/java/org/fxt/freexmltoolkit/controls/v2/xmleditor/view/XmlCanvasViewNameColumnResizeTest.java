@@ -21,7 +21,7 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
 /**
- * TestFX verification of the XMLSpy-style column handling in the tree: dragging the hairline
+ * TestFX verification of the column handling in the tree: dragging the hairline
  * between a block's name column and its value column resizes that block only, a double-click
  * returns it to automatic width, Optimal widths resets every block and every table column,
  * word wrap can be switched off (one line per value), and the cell-height limit cuts values.

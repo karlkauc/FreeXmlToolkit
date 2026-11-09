@@ -5,7 +5,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 /**
  * A run of a card's children that comes from a named complex type: the content of an element with
  * {@code type="T"}, or the base type's content inside an {@code xs:extension}. The graphic view
- * draws it as a titled, dashed box (XMLSpy style) and keeps the nodes inside it read-only: they
+ * draws it as a titled, dashed box and keeps the nodes inside it read-only: they
  * belong to the type, so they are changed by editing the type.
  *
  * <p>The range is {@code [from, to)} of the owning card's children; frames on one card nest (an

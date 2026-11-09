@@ -51,7 +51,7 @@
 
     // Type frames of the graphic XSD view (XsdNodeRenderer.renderTypeFrame): the content of a named
     // complex type, read-only in place, drawn as a tinted box with a dashed border and the type's
-    // name top left (XMLSpy style). Tokens -fxt-type-frame-{bg,border,fg} (DesignTokens.ColorToken.TYPE_FRAME_*).
+    // name top left. Tokens -fxt-type-frame-{bg,border,fg} (DesignTokens.ColorToken.TYPE_FRAME_*).
     "typeFrame": {
       "bgLight": "#fffbe0",     "bgDark": "#2a2614",
       "borderLight": "#d4b84a", "borderDark": "#7a6a2e",   // dashed 5/4, 1.2px, radius 6

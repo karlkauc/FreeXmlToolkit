@@ -25,7 +25,7 @@ FreeXmlToolkit includes a full-featured JSON Editor that supports:
 ***The Tree view of a JSON document in the Unified Shell***
 
 ![JSON in the grid view](img/unified-shell-json-grid.png)
-***The same document in the Graphic (grid) view - the XMLSpy-style grid the shell also uses for XML***
+***The same document in the Graphic (grid) view - the grid the shell also uses for XML***
 
 ## Features
 
@@ -57,7 +57,7 @@ edit made there shows up in the tree immediately, and Ctrl+F searches keys and v
 
 ### Grid View
 
-The **Graphic** view mode shows the document as the editable XMLSpy-style **grid** - the
+The **Graphic** view mode shows the document as the editable **grid** - the
 very same grid the shell uses for XML files, so it is instantly familiar:
 
 | Feature | Description |

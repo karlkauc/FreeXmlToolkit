@@ -6,7 +6,7 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
  * <ul>
  *   <li><b>Tree</b> — XSD schema tree / JSON tree / XML-instance DOM tree.</li>
  *   <li><b>Graphic</b> — the Canvas-based XSD schema diagram for schemas, and
- *       the XMLSpy-style editable instance grid for XML-family instances
+ *       the editable instance grid for XML-family instances
  *       (one switch position, one mental model: "the structured visual view").</li>
  *   <li><b>Preview</b> — the read-only rendered WebView for HTML documents
  *       (e.g. XSLT transform results); editing happens in Text mode.</li>
@@ -16,7 +16,7 @@ public enum ViewMode {
     TEXT("Text", "bi-type"),
     TREE("Tree", "bi-list-nested"),
     GRAPHIC("Graphic", "bi-diagram-2"),
-    /** XSD only: the XMLSpy-style table of all top-level schema components. */
+    /** XSD only: the table of all top-level schema components. */
     OVERVIEW("Overview", "bi-table"),
     PREVIEW("Preview", "bi-eye");
 

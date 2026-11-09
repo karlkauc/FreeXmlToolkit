@@ -16,7 +16,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
 /**
  * Core data class for the flat, row-based XML editor layout.
  *
- * <p>In the XMLSpy-style flat layout, every XML item (element, attribute, text node, etc.)
+ * <p>In the flat layout, every XML item (element, attribute, text node, etc.)
  * is represented as one FlatRow. This replaces the nested grid approach where elements
  * were rendered as nested containers.</p>
  *
@@ -41,7 +41,7 @@ public class FlatRow {
 
     /**
      * Enumerates the kinds of items that can appear as rows. The XML constants are the
-     * original XMLSpy-style row kinds; the {@code JSON_*} constants back the JSON grid.
+     * original row kinds; the {@code JSON_*} constants back the JSON grid.
      * Every constant carries a behavioural {@link Category} so the canvas can treat
      * "expandable container", "scalar leaf" and "inline attribute" rows uniformly
      * without knowing the underlying document model.
@@ -62,12 +62,12 @@ public class FlatRow {
         /** The XML document root. */
         DOCUMENT(Category.NOTE),
         /**
-         * A virtual sibling group (XMLSpy "sibling groups"): stands for a range of a container's
+         * A virtual sibling group ("sibling groups"): stands for a range of a container's
          * child rows in very large documents; its model node is the container's node.
          */
         GROUP(Category.CONTAINER),
         /**
-         * A virtual filter line shown as the first child of an element with a filter (XMLSpy's
+         * A virtual filter line shown as the first child of an element with a filter (the
          * funnel line): its value is the filter expression, its model node the filtered element.
          */
         FILTER(Category.NOTE),
@@ -185,7 +185,7 @@ public class FlatRow {
     private String tableGroupKey;
     /**
      * Key of the repeating group this row belongs to while the group is shown as individual
-     * rows (XMLSpy "standard" display) instead of a table; {@code null} otherwise.
+     * rows ("standard" display) instead of a table; {@code null} otherwise.
      */
     private String standardGroupKey;
     /** x of the table glyph drawn after the label (transient, set while drawing; NaN = none). */
@@ -199,7 +199,7 @@ public class FlatRow {
 
     /**
      * 1-based position of this element among the same-named siblings that are shown as
-     * individual rows (XMLSpy's {@code <1>}, {@code <2>} numbering); 0 when the name is
+     * individual rows ({@code <1>}, {@code <2>} numbering); 0 when the name is
      * unique under its parent.
      */
     private int instanceIndex = 0;
@@ -801,7 +801,7 @@ public class FlatRow {
     /**
      * Flattens the document, rendering each run of 2+ same-named sibling elements either as one
      * table-owner row (when {@code groupAsTable} accepts the group's key) or as individual rows
-     * numbered {@code <1>}, {@code <2>}, … (XMLSpy's "standard" display of a repeating group).
+     * numbered {@code <1>}, {@code <2>}, … ("standard" display of a repeating group).
      *
      * @param document     the XML document to flatten
      * @param groupAsTable decides per group key ({@code parent-xpath/name}) whether the group
@@ -1183,7 +1183,7 @@ public class FlatRow {
 
     /**
      * Splits the child rows of every container that has more than {@code groupSize} of them into
-     * virtual {@link RowType#GROUP} rows of {@code groupSize} children each (XMLSpy's sibling
+     * virtual {@link RowType#GROUP} rows of {@code groupSize} children each (sibling
      * groups): the group rows are inserted before their first child and become the children's
      * parent; attribute rows stay with their element. Groups start collapsed.
      *

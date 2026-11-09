@@ -68,8 +68,8 @@ public abstract class GridViewShell extends StackPane {
     private javafx.geometry.Orientation split;
 
     /**
-     * Creates a second canvas over the same editor context for the split view (XMLSpy Split
-     * View: two independently scrolled views of one document).
+     * Creates a second canvas over the same editor context for the split view (two
+     * independently scrolled views of one document).
      *
      * @return the canvas, or {@code null} when there is no document
      */

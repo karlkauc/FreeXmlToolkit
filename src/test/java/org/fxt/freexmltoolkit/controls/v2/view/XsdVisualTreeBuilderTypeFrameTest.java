@@ -15,7 +15,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
- * Content that comes from a named complex type is marked as that type's frame (XMLSpy style) and
+ * Content that comes from a named complex type is marked as that type's frame and
  * is read-only in place; an extension's base content gets its own frame inside.
  */
 class XsdVisualTreeBuilderTypeFrameTest {

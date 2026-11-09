@@ -13,7 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * The table's drawn grid (XMLSpy table display): drawn column 0 numbers the rows and holds the
+ * The table's drawn grid (table display): drawn column 0 numbers the rows and holds the
  * corner cell, drawn row 0 is the column-header row, and every drawn cell maps back to its
  * logical row and column. No title bar, no outer padding.
  */

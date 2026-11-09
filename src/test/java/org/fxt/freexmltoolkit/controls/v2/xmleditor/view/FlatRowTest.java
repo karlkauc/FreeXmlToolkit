@@ -554,7 +554,7 @@ class FlatRowTest {
     }
 
     /**
-     * The XMLSpy-style rule: an element's attribute rows are always shown
+     * The grid rule: an element's attribute rows are always shown
      * alongside it, even while the element itself is collapsed. Before this
      * fix, the initial visibility pass hid every attribute of a collapsed
      * element, so a freshly opened document showed no attributes at all.

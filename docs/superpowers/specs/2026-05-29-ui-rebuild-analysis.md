@@ -58,7 +58,7 @@ controller/service/FXML in today's code (full per-feature mapping in §G, the Tr
 | Feature | Today: entry point | Today: controller/method | Service(s) | FXML |
 |---|---|---|---|---|
 | XSD text load/save/format/find | toolbar | `XsdController.handleToolbar*` | XmlService, XsdSerializer, MultiFileXsdSerializer, BackupUtility | `tab_xsd.fxml` |
-| **Graphical schema view** (XMLSpy-style, expand/collapse, context menu) | xsdTab | `XsdGraphView` (+`XsdGraphViewEventHandler`, `XsdContextMenuFactory`) | XsdNodeFactory, XsdEditorContext, CommandManager | embedded |
+| **Graphical schema view** (expand/collapse, context menu) | xsdTab | `XsdGraphView` (+`XsdGraphViewEventHandler`, `XsdContextMenuFactory`) | XsdNodeFactory, XsdEditorContext, CommandManager | embedded |
 | Properties panel (per node) | node select | `XsdPropertiesPanel` (+Type/Facets/Constraint helpers) | XsdEditorContext, CommandManager | embedded |
 | Graphical edit (Add/Delete/Rename/Move/Duplicate/Paste/cardinality/type/use/form/…) | context menu / panel | 35 commands via `CommandManager` | — | — |
 | Undo/Redo (100-history) | toolbar | `CommandManager` | — | — |
@@ -214,7 +214,7 @@ via `PropertyChangeSupport`.
 | **Activity Bar** control | **New** | Slim icon bar; switches side panel; IconifyIcon |
 | **Unified Inspector** (Node&XPath, Type&Facets, Cardinality&Use, Documentation&Refs) — identical in Text/Tree/Graphic | **New** | Reuses facet logic + XsdEditorContext/SelectionModel |
 | **Virtualized renderer** (Tree + Graphic with embedded grid) | **New** (D2) | Only-visible rendering, incremental updates |
-| **Embedded grid in Graphic** (XMLSpy-style, vertical nesting; repeating same-type nodes → grid) | **New** | No standalone Grid mode; see `2026-03-26-xmlspy-grid-view-design.md` |
+| **Embedded grid in Graphic** (vertical nesting; repeating same-type nodes → grid) | **New** | No standalone Grid mode; see `2026-03-26-grid-view-design.md` |
 | **Design-token system** (`design-tokens.css`, light/dark root class) | **New** (D4) | Single source of truth |
 | **Command palette / keyboard layer** | **New** | Usability requirement |
 | File-type-aware **editor host** (XML/XSD/XSLT/Schematron/JSON) | **New** | Hosts reused code editor + IntelliSense |

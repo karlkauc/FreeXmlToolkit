@@ -4,7 +4,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 
 /**
- * The XMLSpy-style grid canvas over an XML instance document: the shared
+ * The grid canvas over an XML instance document: the shared
  * {@link GridCanvasView} bound to an {@link XmlEditorContext} through {@link XmlGridAdapter}.
  *
  * <p>Rendering, scrolling, hit-testing, keyboard navigation, inline editing and search live

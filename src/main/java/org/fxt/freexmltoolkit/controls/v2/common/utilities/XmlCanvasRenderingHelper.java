@@ -51,14 +51,14 @@ public class XmlCanvasRenderingHelper {
     public static final double ATTR_NAME_WIDTH = 120;
     public static final double SCROLLBAR_WIDTH = 14;
 
-    // ==================== XMLSpy-Style Layout Constants ====================
+    // ==================== Layout Constants ====================
 
     public static final double EXPAND_BAR_WIDTH = 12;
     public static final double EXPAND_BAR_ARROW_SIZE = 4;
     public static final double TREE_LINE_OFFSET = 6;
     public static final double ROW_NUMBER_COLUMN_WIDTH = 36;
 
-    // ==================== XMLSpy-Style Color Constants ====================
+    // ==================== Color Constants ====================
 
     public static final Color COLOR_EXPAND_BAR = Color.web("#d0d0d0");
     public static final Color COLOR_EXPAND_BAR_HOVER = Color.web("#a0a0a0");

@@ -17,7 +17,7 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
 /**
- * TestFX verification of the XMLSpy-style block layout: a container's child rows form a block
+ * TestFX verification of the block layout: a container's child rows form a block
  * docked at the container's value column, every block has its own name-column width, an
  * expanded container's name cell spans its child block (own height 0), a collapsed container
  * shows a one-line preview, and an embedded table sits beside its owner's name cell.

@@ -68,7 +68,7 @@ public interface GridModelAdapter<N> {
     }
 
     /**
-     * One-line preview of a collapsed container row (XMLSpy's inline preview): a compact
+     * One-line preview of a collapsed container row (inline preview): a compact
      * serialization of the node, cut off after about {@code maxChars} characters. The canvas
      * caches the result on the row, so an implementation may serialize eagerly but must stop
      * early at the limit (the root of a large document is collapsed on every load).
@@ -96,7 +96,7 @@ public interface GridModelAdapter<N> {
 
     /**
      * @param row a row
-     * @return the labels of the node types the row can be converted to (XMLSpy: click the
+     * @return the labels of the node types the row can be converted to (click the
      *         type icon), in menu order; empty when the row's type cannot change
      */
     default List<String> typeTargets(FlatRow row) {
@@ -132,7 +132,7 @@ public interface GridModelAdapter<N> {
     }
 
     /**
-     * A formula row as the grid shows it (XMLSpy: the Formula node type).
+     * A formula row as the grid shows it (the Formula node type).
      *
      * @param name       the formula's name
      * @param expression the expression
@@ -163,7 +163,7 @@ public interface GridModelAdapter<N> {
     }
 
     /**
-     * @return whether the model supports filters (XMLSpy: a funnel on an element whose
+     * @return whether the model supports filters (a funnel on an element whose
      *         expression decides which nodes below it stay visible)
      */
     default boolean supportsFilters() {
@@ -230,7 +230,7 @@ public interface GridModelAdapter<N> {
      * @param root   the root row
      * @param target the model node to focus (a row's node or a member of an embedded table)
      * @return the filter expression that, set on {@code root}, shows only {@code target} and its
-     *         subtree (XMLSpy "Filter to Focus"), or {@code null} when not supported
+     *         subtree ("Filter to Focus"), or {@code null} when not supported
      */
     default String focusFilterExpression(FlatRow root, Object target) {
         return null;
@@ -357,7 +357,7 @@ public interface GridModelAdapter<N> {
 
     /**
      * Moves a table column before/after another column in every member of the group
-     * (XMLSpy: drag a column header onto another one).
+     * (drag a column header onto another one).
      *
      * @return whether the model changed
      */

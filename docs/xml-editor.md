@@ -96,10 +96,10 @@ The text editor provides:
 
 ### Graphic View (Grid)
 
-> For XML documents (and XSLT / Schematron), the **Graphic** view shows the editable XMLSpy-style grid.
+> For XML documents (and XSLT / Schematron), the **Graphic** view shows the editable grid.
 
 ![XML Grid view in the Unified Shell](img/unified-shell-xml-grid.png)
-*An XML document in the Graphic view (XMLSpy-style grid editing)*
+*An XML document in the Graphic view (grid editing)*
 
 1. Open an XML file and switch to the **Graphic** view with the view switch
 2. Click cells to edit values directly; move with the arrow keys

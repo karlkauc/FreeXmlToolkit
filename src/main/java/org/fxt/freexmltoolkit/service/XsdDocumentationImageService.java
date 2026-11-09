@@ -528,7 +528,7 @@ public class XsdDocumentationImageService {
         var svgRoot = document.getDocumentElement();
         final double[] maxRightEdge = {0d};
 
-        // XMLSpy-inspired defs section with gradients and effects
+        // defs section with gradients and effects
         Element defs = document.createElementNS(svgNS, "defs");
 
         // Gradient definitions for different element types
@@ -550,7 +550,7 @@ public class XsdDocumentationImageService {
         styleElement.appendChild(document.createTextNode(css));
         defs.appendChild(styleElement);
 
-        // Enhanced drop shadow filter for XMLSpy look
+        // Enhanced drop shadow filter
         Element filter = document.createElementNS(svgNS, "filter");
         filter.setAttribute("id", "dropShadow");
         filter.setAttribute("x", "-50%");
@@ -1136,7 +1136,7 @@ public class XsdDocumentationImageService {
 
     /**
      * Formats minOccurs and maxOccurs into a human-readable cardinality string.
-     * Uses XMLSpy-style formatting with infinity symbol and smart defaults.
+     * Uses the infinity symbol and smart defaults.
      *
      * @param minOccurs The minOccurs value from the XSD.
      * @param maxOccurs The maxOccurs value from the XSD.
@@ -1532,7 +1532,7 @@ public class XsdDocumentationImageService {
     }
 
     /**
-     * Adds gradient definitions for XMLSpy-like appearance
+     * Adds gradient definitions
      */
     private void addGradientDefinitions(Document document, Element defs) {
         // Element gradient (light blue)
@@ -1814,8 +1814,8 @@ public class XsdDocumentationImageService {
         sequenceIcon.appendChild(sequencePath);
         defs.appendChild(sequenceIcon);
 
-        // Choice structural icon: a switch that connects the input to one of three outputs
-        // (as in XMLSpy). Stroke and fill sit on the group, so nothing in it reads as a connector.
+        // Choice structural icon: a switch that connects the input to one of three outputs.
+        // Stroke and fill sit on the group, so nothing in it reads as a connector.
         Element choiceIcon = document.createElementNS(svgNS, "g");
         choiceIcon.setAttribute("id", "choice-icon");
         choiceIcon.setAttribute("stroke", COLOR_STROKE_CHOICE);
@@ -2102,7 +2102,7 @@ public class XsdDocumentationImageService {
                     svgRoot.appendChild(dashedOverlay);
                 }
 
-                // Text group - XMLSpy style with vertical layout
+                // Text group with vertical layout
                 Element textGroup = document.createElementNS(svgNS, "g");
                 // Rows: name, then (after an 8px gap holding the separator) type, then attributes.
                 // Each text is centred in its row; the badges follow the text they belong to.
@@ -2135,7 +2135,7 @@ public class XsdDocumentationImageService {
                             COLOR_TEXT_SECONDARY, font.getSize() - 1);
                     textGroup.appendChild(typeTextNode);
 
-                    // Cardinality badge - XMLSpy style: [1], [0..1], [1..*] - right-aligned
+                    // Cardinality badge: [1], [0..1], [1..*] - right-aligned
                     String cardinality = getCardinalityString(minOccurs, maxOccursVal);
                     double cardinalityBadgeWidth = font.getStringBounds(cardinality, frc).getBounds2D().getWidth() + 8;
                     double cardinalityX = startX + boxPadding + maxWidth - cardinalityBadgeWidth;
@@ -2739,7 +2739,7 @@ public class XsdDocumentationImageService {
     }
 
     /**
-     * Creates a cardinality string in XMLSpy format.
+     * Creates a cardinality string ([1], [0..1], [1..*]).
      * Examples: [1], [0..1], [1..*], [0..*]
      */
     private String getCardinalityString(String minOccurs, String maxOccurs) {
@@ -2758,7 +2758,7 @@ public class XsdDocumentationImageService {
     }
 
     /**
-     * Creates an XMLSpy-style cardinality badge SVG element.
+     * Creates a cardinality badge SVG element.
      * Example: [1], [0..1], [1..*]
      */
     private Element createCardinalityBadge(Document document, String cardinality, String x, String y) {

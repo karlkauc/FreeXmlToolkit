@@ -18,7 +18,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/** Node-type changes in place (XMLSpy type icon) and Wrap in Element, both undoable. */
+/** Node-type changes in place (node-type icon) and Wrap in Element, both undoable. */
 class ConvertNodeTypeCommandTest {
 
     private XmlElement root;

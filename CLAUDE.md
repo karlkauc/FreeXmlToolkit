@@ -155,7 +155,7 @@ The style guide covers: color palette, typography, icons, components, CSS classe
 
 ### Core Principles
 
-- Use `xmlspy-style-config.json` for general styling
+- Use `style-config.json` for general styling
 - Modern and colorful styled UI (custom `-fxt-*` design-token theme)
 - Menus and context menus should always have icons and text
 - User-friendly error dialogs and alerts

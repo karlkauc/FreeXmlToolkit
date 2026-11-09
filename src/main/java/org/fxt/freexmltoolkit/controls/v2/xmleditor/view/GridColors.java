@@ -10,7 +10,7 @@ import javafx.scene.paint.Color;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 
 /**
- * The user-configurable cell colours of the grid's embedded tables (XMLSpy: Fonts and Colors →
+ * The user-configurable cell colours of the grid's embedded tables (Fonts and Colors →
  * Grid View → Cell Colors), per theme. Without an override a slot uses its design-token
  * default, so both themes look right out of the box. Canvases register a (weakly held)
  * listener and repaint when an override changes.

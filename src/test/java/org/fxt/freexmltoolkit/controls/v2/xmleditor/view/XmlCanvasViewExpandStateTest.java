@@ -22,7 +22,7 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
 /**
- * TestFX verification of the expand/collapse state across rebuilds and of the XMLSpy view
+ * TestFX verification of the expand/collapse state across rebuilds and of the grid's view
  * actions: the state is keyed by the node's positional XPath (so same-named elements under
  * different parents are told apart and a rename elsewhere does not reset it), the selection
  * survives an edit, and Expand Fully / Collapse Unselected / Spacebar act on the selection.

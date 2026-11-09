@@ -339,7 +339,7 @@ final class EditorTab extends Tab {
             }
             return;
         }
-        // For XML-family instances, Graphic is the editable XMLSpy-style grid
+        // For XML-family instances, Graphic is the editable grid
         // over the shared context (the XSD diagram below covers schemas).
         if (target == ViewMode.GRAPHIC && document.getFileType() != EditorFileType.XSD) {
             ensureXmlGrid();
@@ -2008,7 +2008,7 @@ final class EditorTab extends Tab {
         }
     }
 
-    /** The XSD Overview view (XMLSpy-style component table), built on first use. */
+    /** The XSD Overview view (component table), built on first use. */
     org.fxt.freexmltoolkit.controls.shell.schema.overview.SchemaOverviewView schemaOverview;
     /** Host callback: switch to the Graphic view and select the node there. */
     java.util.function.Consumer<XsdNode> showInGraphicCallback = node -> { };

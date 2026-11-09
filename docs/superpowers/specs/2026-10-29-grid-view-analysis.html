@@ -1,9 +1,9 @@
-<title>XMLSpy Grid Analyse</title>
+<title>XML-Grid Analyse</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: one reading column (72ch) with a sticky mini-TOC above; grid mockups reproduce the
-   XMLSpy look (red type icons, yellow table headers, hairline grid) inside bordered "screen" frames. */
+   Reference look (red type icons, yellow table headers, hairline grid) inside bordered "screen" frames. */
 :root {
   --bg: #fbfbfd;
   --fg: #1b2230;
@@ -16,7 +16,7 @@
   --ok: #1f7a3a; --ok-bg: #e2f3e6;
   --part: #9a6200; --part-bg: #fff1d6;
   --miss: #b3261e; --miss-bg: #fbe4e2;
-  /* XMLSpy grid palette (deliberately light-only inside the frame, with a dark frame variant below) */
+  /* Reference grid palette (deliberately light-only inside the frame, with a dark frame variant below) */
   --xg-bg: #ffffff; --xg-line: #c9ced8; --xg-name: #111; --xg-val: #222; --xg-muted: #8a8f99;
   --xg-icon: #c0392b; --xg-head: #fff6bf; --xg-head-sel: #c7d9f5; --xg-focus: #cfe0fb;
   --xg-formula: #e8eef9; --xg-err: #d21f1f; --xg-filter: #d9a300;
@@ -76,7 +76,7 @@ figcaption { font-size: .8rem; color: var(--muted); margin-top: .4rem; }
 .screen { border: 1px solid var(--line); border-radius: 6px; background: var(--xg-bg); color: var(--xg-val); overflow-x: auto; padding: 6px; font-family: var(--font-body); font-size: 13px; }
 .screen .ttl { font-size: 11px; color: #666; background: #ececf0; margin: -6px -6px 6px; padding: 2px 8px; border-bottom: 1px solid var(--xg-line); font-family: var(--font-body); }
 
-/* --- XMLSpy grid mockup --- */
+/* --- Grid mockup --- */
 .xg { display: flex; flex-direction: column; min-width: 420px; border: 1px solid var(--xg-line); background: var(--xg-bg); }
 .xg .r { display: flex; align-items: stretch; border-bottom: 1px solid var(--xg-line); }
 .xg .r:last-child { border-bottom: 0; }
@@ -135,8 +135,8 @@ table.xt .flip { color: #555; font-size: 12px; }
 </style>
 
 <header class="top">
-  <div class="eyebrow">Wettbewerbsanalyse · Altova XMLSpy 2026/2027 Enterprise</div>
-  <h1>Das XML-Grid von XMLSpy: Features und Optik</h1>
+  <div class="eyebrow">Wettbewerbsanalyse · Grid-Ansicht</div>
+  <h1>Das XML-Grid des Referenz-Editors: Features und Optik</h1>
   <p class="lead">Was die Grid-Ansicht (Grid View) kann, wie sie aussieht und welche Teile im FreeXmlToolkit-Grid schon vorhanden sind. Grundlage sind das Altova-Handbuch (DE/EN), die Produktseite und der Blog zur Neuentwicklung des Grids in Version 2021r2.</p>
   <div class="meta"><span>Stand: 29. Oktober 2026</span><span>Autor: Claude (Recherche) für Karl Kauc</span><span>Screenshots: nur verlinkt, Mockups eigene Nachbildungen</span></div>
 </header>
@@ -150,7 +150,6 @@ table.xt .flip { color: #555; font-size: 12px; }
 <main>
 
 <h2 id="aufbau">1. Überblick und Grundaufbau</h2>
-<p class="src">Quelle: <a href="https://www.altova.com/manual/de/XMLSpy/SpyEnterprise/xseditingviews_gridview.html">Grid-Ansicht (DE)</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_docdisplay.html">Document Display (EN)</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsxmlgridview01_zoom80.png">Screenshot Gesamtansicht</a></p>
 <p>Die Grid-Ansicht zeigt ein XML-Dokument als Hierarchie <strong>verschachtelter Container</strong>. Jede Zeile ist ein Knoten. Links steht die Namenszelle mit Typ-Icon und fettem Knotennamen, rechts entweder die Wertzelle oder der eingerückte Container mit den Kindern. Die Ansicht gibt es für XML, JSON, YAML und DTD; Altova hat sie mit Version 2021r2 (März 2021) komplett neu geschrieben.</p>
 
 <figure>
@@ -210,7 +209,6 @@ table.xt .flip { color: #555; font-size: 12px; }
 </ul>
 
 <h2 id="knoten">2. Knotentypen und Darstellung von Werten und Attributen</h2>
-<p class="src">Quelle: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_doccontent.html">Document Content</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsxmlgridviewnodetypes.png">Screenshot Typ-Dropdown</a></p>
 <p>Jede Grid-Zeile ist genau ein Knoten. Das Typ-Icon oben links in der Zelle ist zugleich ein <strong>Dropdown zum Typwechsel</strong>: ein Klick öffnet die Liste aller Typen, der Knoten wird konvertiert und behält, soweit möglich, Name und Wert.</p>
 
 <div class="cols2">
@@ -226,7 +224,7 @@ table.xt .flip { color: #555; font-size: 12px; }
 <tr><td>Processing Instruction</td><td><span class="ic">&lt;?</span></td><td>Name + Wert</td><td><kbd>?</kbd></td></tr>
 <tr><td>DOCTYPE</td><td><span class="ic x">Doc</span></td><td>Definition</td><td><kbd>!</kbd></td></tr>
 <tr><td>Entity/Zeichenreferenz</td><td><span class="ic">Ent</span></td><td>nur Wert</td><td><kbd>&amp;</kbd></td></tr>
-<tr><td>Formel (XMLSpy-spezifisch)</td><td><span class="ic f">f(x)</span></td><td>Name + Ausdruck + Ergebnis</td><td><kbd>,</kbd></td></tr>
+<tr><td>Formel (produktspezifisch)</td><td><span class="ic f">f(x)</span></td><td>Name + Ausdruck + Ergebnis</td><td><kbd>,</kbd></td></tr>
 </table>
 </div>
 <figure>
@@ -260,7 +258,6 @@ table.xt .flip { color: #555; font-size: 12px; }
 </ul>
 
 <h2 id="klappen">3. Ein- und Ausklappen</h2>
-<p class="src">Quelle: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_docdisplay.html">Document Display</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_settings.html">Grid View Settings</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/gridviewnormal02_zoom58.png">Screenshot zugeklappte Vorschau</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/gridviewsettingssiblinggroup.png">Screenshot Sibling-Gruppen</a></p>
 
 <figure>
 <div class="screen"><div class="ttl">Mockup: Person &lt;1&gt; offen, &lt;2&gt; und &lt;3&gt; zugeklappt mit Inline-Vorschau</div>
@@ -292,7 +289,6 @@ table.xt .flip { color: #555; font-size: 12px; }
 </table>
 
 <h2 id="breite">4. Spaltenbreite, Zellhöhe, Zoom, Zeilenumbruch</h2>
-<p class="src">Quelle: <a href="https://www.altova.com/manual/de/XMLSpy/SpyEnterprise/xseditingviews_gridview.html">Grid-Ansicht (DE)</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsmenuview_optimalwidths.html">Optimal Widths</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsgridviewsettings.png">Screenshot Einstellungsdialog</a></p>
 <table class="t">
 <tr><th>Aktion</th><th>Wie</th></tr>
 <tr><td>Spalte manuell ändern</td><td>Spaltenrand (Rasterlinie rechts der Spalte) mit der Maus ziehen. Gilt für Namens- und Wertspalten jeder Ebene sowie für Tabellenspalten.</td></tr>
@@ -306,7 +302,6 @@ table.xt .flip { color: #555; font-size: 12px; }
 </table>
 
 <h2 id="tabelle">5. Tabellenansicht (Table Display) für wiederholte Elemente</h2>
-<p class="src">Quelle: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_tabledisplayxml.html">Table Display (XML)</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsmenuxml_displayastable.html">Display as Table</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsmenuxml_fliprowscolumns.html">Flip Rows/Columns</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsmenuxml_ascendingdescendingsort.html">Sort</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xstutxml_dbtableview.html">Tutorial „Editing in Table Display“</a>, Screenshots <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/gridviewnormal.png">Standard</a> / <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/gridviewtable.png">Tabelle</a> / <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/tutxmltablesorted.png">sortiert mit Fehler</a></p>
 
 <h3>Aktivieren</h3>
 <ul>
@@ -406,7 +401,6 @@ table.xt .flip { color: #555; font-size: 12px; }
 <p>Objekte und Arrays, die mindestens ein Objekt oder Array enthalten, lassen sich einzeln als <em>Liste</em> oder <em>Tabelle</em> anzeigen (Icon unter dem Objekt/Array-Icon). Array-Elemente werden Zeilen, die Property-Namen Spalten; Datentypen werden automatisch erkannt und per Kürzel (<kbd>*</kbd> Auto, <kbd>"</kbd> String, <kbd>[</kbd> Array, <kbd>{</kbd> Objekt, <kbd>//</kbd> Kommentar, <kbd>=</kbd> Formel) überschrieben.</p>
 
 <h2 id="edit">6. Bearbeiten von Struktur und Inhalt</h2>
-<p class="src">Quelle: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_docstructure.html">Document Structure</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_doccontent.html">Document Content</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_entryhelpers.html">Entry Helpers</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsxmlgridviewentryhelperssibchild.png">Screenshot Eingabehilfen</a></p>
 
 <h3>Inhalt</h3>
 <ul>
@@ -460,8 +454,7 @@ table.xt .flip { color: #555; font-size: 12px; }
 <p>Neue Knoten entstehen immer <strong>leer als Element</strong> und werden danach umgetypt oder benannt. Die Eingabehilfen (Siblings, Children, Values) reagieren auf die markierte Zelle: sie zeigen nur, was das Schema an dieser Stelle zulässt, und <em>Values</em> listet Enumerationswerte zum Doppelklick.</p>
 
 <h2 id="dnd">7. Drag &amp; Drop</h2>
-<p class="src">Quelle: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_dragndropxml.html">Drag-and-Drop (XML)</a>, Screenshots <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsxmlgridviewdndval2val.png">Wert → Wert</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsxmlgridviewdndtable01.png">Matrix in Tabelle</a></p>
-<p>Das Grid blendet beim Ziehen ein <strong>Overlay</strong> ein, das zeigt, <em>was</em> gezogen wird und <em>wie</em> es beim Loslassen angelegt würde. Quellen sind andere XMLSpy-Dokumente, externe Programme (Excel, Texteditor, IDE) und Webseiten.</p>
+<p>Das Grid blendet beim Ziehen ein <strong>Overlay</strong> ein, das zeigt, <em>was</em> gezogen wird und <em>wie</em> es beim Loslassen angelegt würde. Quellen sind andere Dokumente, externe Programme (Excel, Texteditor, IDE) und Webseiten.</p>
 <table class="t">
 <tr><th>Ziel</th><th>Overlay</th><th>Ergebnis</th></tr>
 <tr><td>Wertzelle</td><td>Zelle wird umrahmt, Tag <code>Abc</code></td><td>Wert wird ersetzt</td></tr>
@@ -475,7 +468,6 @@ table.xt .flip { color: #555; font-size: 12px; }
 <p>Jede Verschiebung ist mit <kbd>Ctrl</kbd>+<kbd>Z</kbd> rückgängig zu machen. Knoten innerhalb des Grids werden ebenfalls per Drag verschoben (Handbuch: „Modifying structure with Windows mechanisms“).</p>
 
 <h2 id="filter">8. Filter, Formeln, Bilder, Diagramme</h2>
-<p class="src">Quelle: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_filters.html">Filters</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_formulasxml.html">Formulas (XML)</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_images.html">Images</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_charts.html">Charts</a>, Screenshots <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsxmlgridviewfilters.png">Filter</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsxmlgridviewformulas.png">Formel</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsxmlgridviewformulastable.png">Formelspalte</a></p>
 
 <figure>
 <div class="screen"><div class="ttl">Mockup: aktiver Filter auf Temperatures, darunter eine Formel mit Ergebnis</div>
@@ -502,14 +494,13 @@ table.xt .flip { color: #555; font-size: 12px; }
 
 <table class="t">
 <tr><th>Feature</th><th>Details</th></tr>
-<tr><td>Filter</td><td>XQuery-3.1-Ausdruck auf einem <strong>Elementknoten</strong> (Kontext = dieser Knoten), zeigt nur die passenden Nachfahren. Rechtsklick › Filter, Ausdruck eingeben, Trichter-Icon schaltet an/aus, Doppelklick editiert. Filter sind nestbar (innerer Filter arbeitet auf dem Ergebnis des äußeren), ändern nur die Anzeige und werden in einer Metadatei (<code>json-metadata.json</code> unter Altova\XMLSpyCommon) gespeichert, nicht im Dokument. <em>Filter to Focus</em> erzeugt einen Filter auf der Wurzel, der nur den markierten Knoten mit Nachfahren zeigt.</td></tr>
+<tr><td>Filter</td><td>XQuery-3.1-Ausdruck auf einem <strong>Elementknoten</strong> (Kontext = dieser Knoten), zeigt nur die passenden Nachfahren. Rechtsklick › Filter, Ausdruck eingeben, Trichter-Icon schaltet an/aus, Doppelklick editiert. Filter sind nestbar (innerer Filter arbeitet auf dem Ergebnis des äußeren), ändern nur die Anzeige und werden in einer Metadatei (<code>json-metadata.json</code>) gespeichert, nicht im Dokument. <em>Filter to Focus</em> erzeugt einen Filter auf der Wurzel, der nur den markierten Knoten mit Nachfahren zeigt.</td></tr>
 <tr><td>Formeln</td><td>Knotentyp <em>Formula</em>: Name, XQuery-3.1-Ausdruck (Kontext = Elternknoten), Ergebnis darunter. Diskettensymbol speichert das Ergebnis als Elementinhalt im Dokument; Einstellung <em>Persistence</em> (Default an) legt den Ausdruck zusätzlich als Processing Instruction ab. Ergebnisse werden immer in der Metadatei gehalten. In Tabellen erscheint eine spaltenweit gleiche Formel im Kopf; einzelne Zellen können abweichen, wenn man die Tabellendarstellung kurz abschaltet.</td></tr>
 <tr><td>Bilder</td><td>Base64-Inhalt wird als Grafik gerendert (PNG, JPEG, BMP, GIF, SVG). Einfügen über <em>Edit › Insert › Encoded External File</em> (Pfad, Base64, als neues Kindelement möglich) oder per Formel <code>unparsed-text("url", "x-binarytobase64")</code>. <em>Save as Image</em> schreibt die Grafik zurück in eine Datei; die Endung wird aus den Daten erkannt. Bilder aus Bildeditoren lassen sich direkt einfügen.</td></tr>
 <tr><td>Diagramme</td><td>Formel mit der Altova-Erweiterung <code>altovaext:chart(config, series)</code>: Konfiguration (title, kind, width, height), Serien als Arrays (Name, X-Werte, Y-Werte). Das Diagramm erscheint als Bild unter der Formel und kann als Bild oder XML kopiert werden.</td></tr>
 </table>
 
 <h2 id="nav">9. Navigation und Fenster</h2>
-<p class="src">Quelle: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_splitview.html">Split View</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsgridviewscrollheader.png">Screenshot Scroll-Header</a></p>
 <figure>
 <div class="screen"><div class="ttl">Mockup: Scroll-Header (Breadcrumb) beim Scrollen</div>
 <div class="sh"><span><span class="ic">&lt;&gt;</span>Company</span><span><span class="ic">&lt;&gt;</span>Person <span class="idx" style="color:#888;font-weight:400">&lt;1&gt;</span></span></div>
@@ -528,7 +519,6 @@ table.xt .flip { color: #555; font-size: 12px; }
 </ul>
 
 <h2 id="menu">10. Toolbar und Kontextmenü</h2>
-<p class="src">Quelle: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_contextmenu.html">Context Menu</a>, Screenshots <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsxmlgridviewtoolbar.png">Toolbar</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsxmlgridviewcontextmenu_zoom94.png">Kontextmenü</a></p>
 <div class="cols2">
 <div>
 <h3>Toolbar „XML Grid“ (von links)</h3>
@@ -580,7 +570,6 @@ table.xt .flip { color: #555; font-size: 12px; }
 </div>
 
 <h2 id="settings">11. Einstellungsdialog (Grid View Settings)</h2>
-<p class="src">Quelle: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_settings.html">Grid View Settings</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsgridviewsettings.png">Screenshot Dialog</a>. Defaults aus dem Screenshot übernommen.</p>
 <div class="wrap">
 <table class="t">
 <tr><th>Gruppe</th><th>Option</th><th>Default</th><th>Bedeutung</th></tr>
@@ -621,7 +610,7 @@ table.xt .flip { color: #555; font-size: 12px; }
 
 <h3>Ein-/Ausklappen</h3>
 <div class="wrap"><table class="t">
-<tr><th>Feature (XMLSpy)</th><th class="c">FXT</th><th>Befund</th><th class="c">Prio</th></tr>
+<tr><th>Feature</th><th class="c">FXT</th><th>Befund</th><th class="c">Prio</th></tr>
 <tr><td>Klappen pro Knoten</td><td class="c"><span class="badge ok">✓</span></td><td>Balken/Icon-Klick, <code>FlatRow.toggleExpand</code>; GridCanvasView ≈2046, 2081</td><td class="c">–</td></tr>
 <tr><td>Expand All / Collapse All</td><td class="c"><span class="badge part">◐</span></td><td>Header-Buttons funktionieren (GridViewHeader 46–54); Kontextmenü-Einträge sind Stubs (XmlGridContextMenu ≈1219)</td><td class="c p2">P2</td></tr>
 <tr><td>Expand Fully / Collapse Unselected</td><td class="c"><span class="badge miss">✗</span></td><td>Nur ganzes Dokument, kein Subtree-/Fokus-Befehl</td><td class="c p1">P1</td></tr>
@@ -635,7 +624,7 @@ table.xt .flip { color: #555; font-size: 12px; }
 
 <h3>Spaltenbreite und Darstellung</h3>
 <div class="wrap"><table class="t">
-<tr><th>Feature (XMLSpy)</th><th class="c">FXT</th><th>Befund</th><th class="c">Prio</th></tr>
+<tr><th>Feature</th><th class="c">FXT</th><th>Befund</th><th class="c">Prio</th></tr>
 <tr><td>Spaltenrand ziehen (Baum)</td><td class="c"><span class="badge miss">✗</span></td><td>Namensspalte automatisch ≥120 px (630–639), nicht ziehbar</td><td class="c p1">P1</td></tr>
 <tr><td>Spaltenrand ziehen (Tabelle)</td><td class="c"><span class="badge ok">✓</span></td><td><code>ColumnDrag</code> (170, 1925–1962), Doppelklick = auto (1610–1616)</td><td class="c">–</td></tr>
 <tr><td>Optimal Widths (Befehl)</td><td class="c"><span class="badge miss">✗</span></td><td>Kein Befehl, keine Breitenlimits</td><td class="c p2">P2</td></tr>
@@ -655,7 +644,7 @@ table.xt .flip { color: #555; font-size: 12px; }
 
 <h3>Tabellenansicht</h3>
 <div class="wrap"><table class="t">
-<tr><th>Feature (XMLSpy)</th><th class="c">FXT</th><th>Befund</th><th class="c">Prio</th></tr>
+<tr><th>Feature</th><th class="c">FXT</th><th>Befund</th><th class="c">Prio</th></tr>
 <tr><td>Automatische Tabelle bei Wiederholung</td><td class="c"><span class="badge ok">✓</span></td><td>Ab 2 gleichnamigen Geschwistern (FlatRow 565–607, <code>XmlGridAdapter.attachTables</code>)</td><td class="c">–</td></tr>
 <tr><td>Toggle Tabelle/Standard pro Element</td><td class="c"><span class="badge miss">✗</span></td><td>Die 2+-Regel gilt immer, kein Umschalten</td><td class="c p1">P1</td></tr>
 <tr><td>Spalten = Attribute + Kinder + Text, Typ-Icon im Kopf</td><td class="c"><span class="badge ok">✓</span></td><td><code>ColumnType</code> ATTRIBUTE / CHILD_ELEMENT / TEXT_CONTENT (RepeatingElementsTable ≈295)</td><td class="c">–</td></tr>
@@ -675,7 +664,7 @@ table.xt .flip { color: #555; font-size: 12px; }
 
 <h3>Bearbeiten, Drag &amp; Drop, Sonstiges</h3>
 <div class="wrap"><table class="t">
-<tr><th>Feature (XMLSpy)</th><th class="c">FXT</th><th>Befund</th><th class="c">Prio</th></tr>
+<tr><th>Feature</th><th class="c">FXT</th><th>Befund</th><th class="c">Prio</th></tr>
 <tr><td>In-Place-Edit (Doppelklick, Enter/Esc)</td><td class="c"><span class="badge ok">✓</span></td><td>2056–2077, 2525–2716; schemabasierte Widgets (Date-Picker, Enum-Combo)</td><td class="c">–</td></tr>
 <tr><td>Kommentar/PI/CDATA-Werte editieren</td><td class="c"><span class="badge part">◐</span></td><td><code>canEditValue</code> true, aber <code>commitRowEdit</code> behandelt nur Attribut/Element/Text (XmlGridAdapter 155, 232–278); Commands existieren</td><td class="c p1">P1</td></tr>
 <tr><td>Insert Before/After/Append/Add Child/Attribute</td><td class="c"><span class="badge ok">✓</span></td><td>Kontextmenü mit Schema-Vorschlägen (XmlGridContextMenu 107–246, 383–845)</td><td class="c">–</td></tr>
@@ -711,12 +700,7 @@ table.xt .flip { color: #555; font-size: 12px; }
 
 <h2 id="quellen">13. Quellen</h2>
 <ul>
-  <li>Altova XMLSpy Enterprise Handbuch (EN): <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview.html">Grid View</a> mit Unterseiten Document Display, Document Structure, Document Content, Split View, Entry Helpers, Table Display (XML / JSON-YAML), Drag-and-Drop, Formulas, Filters, Images, Charts, Context Menu, Grid View Settings.</li>
-  <li>Deutsche Ausgabe: <a href="https://www.altova.com/manual/de/XMLSpy/SpyEnterprise/xseditingviews_gridview.html">Grid-Ansicht</a>.</li>
-  <li>Menübefehle: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsmenuview_optimalwidths.html">Optimal Widths</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsmenuxml_displayastable.html">Display as Table</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsmenuxml_fliprowscolumns.html">Flip Rows/Columns</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsmenuxml_ascendingdescendingsort.html">Ascending/Descending Sort</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsmenuxml_moveupdownleftright.html">Move</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsmenutools_options_fontscolors_gridview.html">Fonts and Colors: Grid View</a>.</li>
-  <li>Tutorial: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xstutxml_dbtableview.html">Editing in Table Display</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsxml_gridview.html">XML in Grid View</a>.</li>
-  <li>Produktseite: <a href="https://www.altova.com/xmlspy-xml-editor">XMLSpy XML Editor</a>. Blog: <a href="https://www.altova.com/blog/xml-grid-gets-a-makeover">XML Grid Gets a Makeover</a> (2021r2).</li>
-  <li>FreeXmlToolkit: eigene Specs <code>docs/superpowers/specs/2026-03-26-xmlspy-grid-view-design.md</code> und <code>2026-03-26-grid-cell-expansion-design.md</code>.</li>
+  <li>FreeXmlToolkit: eigene Specs <code>docs/superpowers/specs/2026-03-26-grid-view-design.md</code> und <code>2026-03-26-grid-cell-expansion-design.md</code>.</li>
 </ul>
 <p class="src">Alle Screenshot-Links zeigen auf Bilder des Altova-Handbuchs (© Altova GmbH). Die Mockups in diesem Dokument sind eigene Nachbildungen und geben die Optik nur schematisch wieder.</p>
 

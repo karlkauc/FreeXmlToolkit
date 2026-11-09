@@ -8,7 +8,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.RepeatingElementsTable;
 
 /**
- * Moves a column of a repeating-group table next to another column (XMLSpy: drag a column
+ * Moves a column of a repeating-group table next to another column (drag a column
  * header onto another one): in every member the column's child element moves before/after the
  * target column's element, or the attribute moves within the attribute list. The table's
  * cached column order follows, so the rebuilt table shows the new order; undo restores both.

@@ -34,7 +34,7 @@ Kern-Prinzipien des Ziel-Designs:
  - EIN Unified Editor; alle Funktionen über die Activity-Bar gebündelt.
  - Ansichtsmodi NUR Text · Tree · Graphic. KEIN eigener Grid-Modus – das
    Grid ist Teil von Graphic: aufeinanderfolgende gleichartige Knoten werden
-   als eingebettetes, aufklappbares Grid (XMLSpy-Stil, vertikal verschachtelt)
+   als eingebettetes, aufklappbares Grid (Tabellen-Stil, vertikal verschachtelt)
    dargestellt.
  - Properties/Inspector in ALLEN Ansichten identisch (Node&XPath, Type&Facets,
    Cardinality&Use, Documentation&Refs).

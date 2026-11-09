@@ -489,7 +489,7 @@ final class GridPainter<N> {
 
     /**
      * Draws a node name in the current fill; a namespace prefix ({@code xsi:} in
-     * {@code xsi:type}) is drawn in the prefix colour, as XMLSpy sets prefixes apart.
+     * {@code xsi:type}) is drawn in the prefix colour to set prefixes apart.
      */
     private void fillName(String name, double x, double y, GridFont font) {
         String prefix = namespacePrefix(name);
@@ -538,7 +538,7 @@ final class GridPainter<N> {
     }
 
     /**
-     * Draws the type-specific icon for a row (XMLSpy's node-type icons): {@code <>} element,
+     * Draws the type-specific icon for a row (node-type icons): {@code <>} element,
      * {@code =} attribute, {@code Abc} text, {@code [..]} CDATA, {@code <!} comment,
      * {@code <?} processing instruction, {@code XML} document.
      */

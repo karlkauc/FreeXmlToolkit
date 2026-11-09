@@ -1,4 +1,4 @@
-# XMLSpy-Style Grid View for Graphical XML Editor
+# Grid View for Graphical XML Editor
 
 **Date:** 2026-03-26
 **Status:** Approved
@@ -6,11 +6,9 @@
 
 ## Summary
 
-Redesign the graphical XML view (`XmlCanvasView`) from a nested-grids layout to a flat, row-based layout inspired by Altova XMLSpy's Grid View. The view retains the modern application styling (subtle colors, light rounding) while adopting XMLSpy's structural features: distinctive node icons, tall vertical expand/collapse buttons with tree lines, a flat attribute/element list, and automatic grid/table view for repeating elements.
+Redesign the graphical XML view (`XmlCanvasView`) from a nested-grids layout to a flat, row-based layout. The view retains the modern application styling (subtle colors, light rounding) while adopting these structural features: distinctive node icons, tall vertical expand/collapse buttons with tree lines, a flat attribute/element list, and automatic grid/table view for repeating elements.
 
 ## Reference
-
-XMLSpy Grid View screenshot: `https://www.altova.com/manual/de/xmlspy/spyprofessional/images/xsxmlgridview01.png`
 
 Key characteristics observed:
 - `<>` diamond icons for elements, `=` icons for attributes
@@ -132,7 +130,7 @@ arrow-up
 - **Vertical lines:** Solid, from each expand bar downward through all children
 - **Horizontal branches:** At each child row, a horizontal line extends from the vertical line to the child's icon
 - **Color:** Light gray (`#d0d0d0`), line width 1px
-- **Style:** Solid lines (matching XMLSpy)
+- **Style:** Solid lines
 
 ## Grid View for Repeating Elements
 

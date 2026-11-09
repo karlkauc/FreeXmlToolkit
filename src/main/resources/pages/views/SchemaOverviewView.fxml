@@ -19,7 +19,7 @@
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 
 <!--
-  The XSD "Overview" view mode (XMLSpy-style schema overview): schema header (target namespace,
+  The XSD "Overview" view mode (schema overview): schema header (target namespace,
   form defaults), the toolbar and table of all top-level components, and below the tabs for the
   selected component. Loaded by SchemaOverviewView via the fx:root pattern (FxmlViews.load);
   SchemaOverviewView is root and controller. Built in code: the Insert/Append menus, the cell

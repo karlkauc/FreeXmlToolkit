@@ -1,11 +1,11 @@
 # Grid View
 
-The **Graphic** view of an XML or JSON document is an editable, XMLSpy-style grid: nested blocks for containers, repeating elements as tables, inline editing, drag & drop and search. Switch to it with the **Graphic** button of the view switch in the editor toolbar.
+The **Graphic** view of an XML or JSON document is an editable grid: nested blocks for containers, repeating elements as tables, inline editing, drag & drop and search. Switch to it with the **Graphic** button of the view switch in the editor toolbar.
 
 ## The Grid (Graphic view for XML)
 
 When an XML-instance document (XML, XSLT, or Schematron) is in the **Graphic** view, the editor
-shows the editable grid, laid out like XMLSpy's Grid View:
+shows the editable grid, laid out as follows:
 
 ![An XML document in the Graphic (grid) view, everything expanded](img/unified-shell-xml-grid.png)
 
@@ -21,7 +21,7 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   child block is docked at the parent's value column, so the structure reads as nested boxes;
   an expanded container's name cell spans its whole child block. Each block has its own
   name-column width (the widest name in it).
-- **Type icons** follow XMLSpy: `<>` element, `=` attribute, `Abc` text, `[ ]` CDATA, `<!`
+- **Type icons**: `<>` element, `=` attribute, `Abc` text, `[ ]` CDATA, `<!`
   comment, `<?` processing instruction. Colours come from the application theme (light/dark).
 - **Attributes always show** as `=` rows directly beneath their element - also while the
   element itself is collapsed.
@@ -66,7 +66,7 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   Selected Cells**). Without a table selection, **+** / **−** open and close the selected
   grid rows one level. Open cells stay open after edits.
 - **Table or rows.** The small table glyph after the group's name (or the context menu's
-  **Display as Table**) switches the group between the table and XMLSpy's standard display,
+  **Display as Table**) switches the group between the table and the standard display,
   where every member is its own row numbered `<1>`, `<2>`, … The choice is kept per group
   while the document is open.
 - **Flip Rows/Columns.** The corner cell of a table (or the context menu entry) transposes
@@ -137,7 +137,7 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   two views of the same document; each scrolls, expands and selects on its own, and an edit in
   one appears in the other at once. *Single view* closes the second one.
 - **Entry helpers.** The header's panel button (right of *Collapse all*) opens the entry
-  helpers beside the grid, as in XMLSpy. They need an XSD bound to the document and follow the
+  helpers beside the grid. They need an XSD bound to the document and follow the
   selected row. **Siblings** lists the attributes and elements the schema allows next to the
   selected node, **Children** lists those allowed inside the selected element, and **Values**
   lists the enumeration values of the selected element or attribute. Entries that are already

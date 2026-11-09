@@ -9,7 +9,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization.XmlParser;
 
 /**
- * The content of an element as raw markup and back (XMLSpy "Edit as Raw Text"): {@link #of}
+ * The content of an element as raw markup and back ("Edit as Raw Text"): {@link #of}
  * serializes the children (markup and entities unresolved), {@link #parse} turns edited markup
  * into new child nodes or reports why it is not well-formed.
  */

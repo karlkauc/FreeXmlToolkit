@@ -42,7 +42,7 @@ Design-Verbindlichkeiten:
    Favorites, Validation, Transform, Schema, PDF/FOP, Signature, Help, Settings).
  - Ansichtsmodi NUR Text · Tree · Graphic. Grid ist Teil von Graphic
    (eingebettetes, aufklappbares Grid für wiederholende gleichartige Knoten,
-   XMLSpy-Stil, vertikal verschachtelt).
+   Tabellen-Stil, vertikal verschachtelt).
  - Properties/Inspector in ALLEN Ansichten identisch (Node&XPath, Type&Facets,
    Cardinality&Use, Documentation&Refs).
  - Design-Tokens als Single Source of Truth: Farben Light/Dark (Primär Indigo

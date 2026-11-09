@@ -524,7 +524,7 @@ class ShellDocScreenshotGenerator {
         onFx(host::closeActiveTab);
         settle();
 
-        // --- XML document in the Grid (XMLSpy-style) view ---
+        // --- XML document in the Grid view ---
         if (xml.exists()) {
             onFx(() -> shell.getSelectionModel().select(Activity.EXPLORER));
             onFx(() -> host.openFile(xml.toPath())); // re-selects the already-open XML tab

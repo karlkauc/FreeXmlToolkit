@@ -8,7 +8,7 @@ import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode;
 import org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget;
 
 /**
- * The JSON Grid view for the unified shell: the same XMLSpy-style editable grid as the
+ * The JSON Grid view for the unified shell: the same editable grid as the
  * XML one ({@link XmlGridView}), backed by the Canvas-based {@link JsonCanvasView} over
  * the shell's shared {@link JsonEditorContext}.
  *

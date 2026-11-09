@@ -8,7 +8,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
 
 /**
- * The XML instance Grid view for the unified shell: an XMLSpy-style editable grid
+ * The XML instance Grid view for the unified shell: an editable grid
  * over an XML document, backed by the Canvas-based {@link XmlCanvasView}.
  *
  * <p>Acts as the toast container for the canvas and round-trips edits back to the

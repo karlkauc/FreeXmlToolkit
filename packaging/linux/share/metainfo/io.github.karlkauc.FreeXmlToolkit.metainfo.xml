@@ -17,7 +17,7 @@
       Open a file and switch between a text editor, a tree view and a graphical view.
     </p>
     <ul>
-      <li>XML editor with schema-aware IntelliSense, formatting and an XMLSpy-style grid</li>
+      <li>XML editor with schema-aware IntelliSense, formatting and an editable grid</li>
       <li>Visual XSD editor with type library, statistics and documentation generation</li>
       <li>Validation against XSD 1.0/1.1 and Schematron, including Schematron Quick Fixes</li>
       <li>XSLT 3.0, XQuery 3.1, XPath 3.1 and XProc 3.0 with Saxon and XML Calabash</li>

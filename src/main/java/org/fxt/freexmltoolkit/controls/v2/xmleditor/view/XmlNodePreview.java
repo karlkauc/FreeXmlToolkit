@@ -10,8 +10,8 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstructi
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
 
 /**
- * Builds the one-line inline preview the grid shows for a collapsed element (XMLSpy's
- * "Show inline previews"): the element serialized without indentation, whitespace runs
+ * Builds the one-line inline preview the grid shows for a collapsed element
+ * ("Show inline previews"): the element serialized without indentation, whitespace runs
  * collapsed, cut off with an ellipsis once the soft length limit is reached. The walk
  * stops at the limit, so previewing the collapsed root of a large document stays cheap.
  */

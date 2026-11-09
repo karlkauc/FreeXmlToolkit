@@ -3,7 +3,7 @@ package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 import java.util.List;
 
 /**
- * The shared layout metrics of the XMLSpy-style grid: the geometry constants used by both
+ * The shared layout metrics of the grid: the geometry constants used by both
  * {@link GridCanvasView} and {@link RepeatingElementsTable}, plus the {@link TextMeasurer}
  * and wrap width that turn text into {@link TextBlock}s.
  *
@@ -12,8 +12,8 @@ import java.util.List;
  * @param measurer  measures text widths
  * @param wrapWidth the width at which cell/value text starts wrapping onto further lines
  *                  ({@link #NO_WRAP} = word wrap off)
- * @param maxLines  the maximum number of lines per cell/value, 0 = unlimited (XMLSpy's
- *                  "Limit cell height"); longer text is cut off with an ellipsis
+ * @param maxLines  the maximum number of lines per cell/value, 0 = unlimited
+ *                  ("Limit cell height"); longer text is cut off with an ellipsis
  */
 public record GridMetrics(TextMeasurer measurer, double wrapWidth, int maxLines) {
 

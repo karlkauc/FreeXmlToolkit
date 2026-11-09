@@ -1180,7 +1180,7 @@
 }
 
 /* =================================================================
-   Modern XMLSpy-inspired Status Line Styles
+   Modern Status Line Styles
    ================================================================= */
 .status-line {
   -fx-background-color: linear-gradient(to bottom, #f5f5f5 0%, #e8e8e8 100%);

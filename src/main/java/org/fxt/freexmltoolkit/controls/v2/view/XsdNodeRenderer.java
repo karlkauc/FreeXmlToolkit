@@ -551,7 +551,7 @@ public class XsdNodeRenderer {
     }
 
     /**
-     * Draws a type frame (XMLSpy style): a light tint with a dashed outline and the type's name
+     * Draws a type frame: a light tint with a dashed outline and the type's name
      * top left. It lies behind the content of the type, which is read-only in place.
      */
     public void renderTypeFrame(GraphicsContext gc, TypeFrame frame) {

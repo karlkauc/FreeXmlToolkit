@@ -30,10 +30,9 @@ import org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget;
 import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
- * Flat row-based XML View (XMLSpy-style).
+ * Flat row-based XML View.
  *
- * <p>Renders XML as a flat list of rows laid out as nested containers, the way XMLSpy's
- * Grid View does:</p>
+ * <p>Renders XML as a flat list of rows laid out as nested containers:</p>
  * <ul>
  *   <li>One row per element, attribute, text node, comment, etc.</li>
  *   <li>Each container's children form a <em>block</em> docked at the container's value
@@ -182,7 +181,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     /**
      * All selected rows (Ctrl+click adds/removes, Shift+click selects a sibling range); the
      * primary selection {@link #selectedRow} is always part of it. Shift+click on the expand
-     * arrow of a selected row expands/collapses every selected row (XMLSpy).
+     * arrow of a selected row expands/collapses every selected row.
      */
     private final List<FlatRow> multiSelection = new ArrayList<>();
     private FlatRow hoveredRow = null;
@@ -613,7 +612,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /**
      * Filters allRows by visibility, caches the result in visibleRows and lays the rows out
-     * as nested blocks (XMLSpy-style), in three passes:
+     * as nested blocks, in three passes:
      * <ol>
      *   <li><b>block widths</b> — per container (the rows' {@code parentRow}), the widest name
      *       cell of its visible child rows, floored at {@link #MIN_NAME_COL_WIDTH}; a user-dragged
@@ -689,7 +688,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         return adapter.stableKey(row);
     }
 
-    /** The sibling-group size (XMLSpy "maximum nodes per sibling group"), 0 = no grouping. */
+    /** The sibling-group size ("maximum nodes per sibling group"), 0 = no grouping. */
     private int siblingGroupSize = 0;
 
     /** @return the sibling-group size, 0 = unlimited */
@@ -1271,7 +1270,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         dialog.showAndWait().ifPresent(expression -> setFilter(row, expression));
     }
 
-    /** Filters the root so that only the selected row and its subtree remain (XMLSpy "Filter to Focus"). */
+    /** Filters the root so that only the selected row and its subtree remain ("Filter to Focus"). */
     public void filterToFocus() {
         // The selected row, or the selected member of an embedded table
         Object target = selectedRow != null ? adapter.nodeOf(selectedRow) : selectedTableMember();
@@ -1494,7 +1493,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     /** The popup listing the node types a row can be converted to. */
     private javafx.scene.control.ContextMenu typeMenu;
 
-    /** Shows the type menu (XMLSpy's node-type dropdown) for the row at the screen position. */
+    /** Shows the type menu (node-type dropdown) for the row at the screen position. */
     private void showTypeMenu(FlatRow row, double screenX, double screenY) {
         if (typeMenu != null) {
             typeMenu.hide();
@@ -1536,7 +1535,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /**
      * Shows the repeating group of the given row as individual numbered rows instead of a
-     * table, or back (XMLSpy "Display as Table"). The row is either the table owner or a
+     * table, or back ("Display as Table"). The row is either the table owner or a
      * member row of a group shown as standard rows.
      *
      * @param row the row; ignored when it belongs to no repeating group
@@ -1566,7 +1565,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /**
      * Flips the rows and columns of the given table owner's table, or back
-     * (XMLSpy "Flip Rows/Columns").
+     * ("Flip Rows/Columns").
      *
      * @param owner the table owner row; ignored otherwise
      */
@@ -1839,7 +1838,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         FlatRow expandBarRow = findExpandBarAt(mx, my);
         if (expandBarRow != null && event.isShiftDown() && multiSelection.size() > 1
                 && multiSelection.contains(expandBarRow)) {
-            // Shift+click on a selected row's arrow: all selected rows follow (XMLSpy)
+            // Shift+click on a selected row's arrow: all selected rows follow
             setExpandedAll(multiSelection, !expandBarRow.isExpanded());
             return;
         }
@@ -2334,7 +2333,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             }
         }
 
-        // Ctrl+Alt+T: the type menu of the selected row (XMLSpy: Type, Ctrl+Menu)
+        // Ctrl+Alt+T: the type menu of the selected row (Type, Ctrl+Menu)
         if (event.isShortcutDown() && event.isAltDown() && event.getCode() == KeyCode.T && selectedRow != null) {
             int idx = visibleRows.indexOf(selectedRow);
             if (idx >= 0 && !adapter.typeTargets(selectedRow).isEmpty()) {
@@ -2411,7 +2410,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 event.consume();
             }
             case SPACE -> {
-                // Spacebar toggles the selected container (XMLSpy "Expand/Collapse on spacebar")
+                // Spacebar toggles the selected container ("Expand/Collapse on spacebar")
                 if (selectedRow != null && selectedRow.isExpandable()) {
                     toggleRow(selectedRow);
                 }
@@ -2876,7 +2875,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     /**
-     * Expands the given container and every container below it (XMLSpy "Expand Fully").
+     * Expands the given container and every container below it ("Expand Fully").
      *
      * @param row the container row; ignored when {@code null} or not expandable
      */
@@ -3259,7 +3258,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     /**
-     * Collapses every container except the selected row's ancestors (XMLSpy "Collapse
+     * Collapses every container except the selected row's ancestors ("Collapse
      * Unselected"); the selected row itself keeps its state. Without a selection this is
      * {@link #collapseAll()}.
      */
@@ -3312,7 +3311,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     /**
-     * Limits the height of every cell/value to the given number of lines (XMLSpy "Limit cell
+     * Limits the height of every cell/value to the given number of lines ("Limit cell
      * height"); longer text is cut off with an ellipsis.
      *
      * @param lines the limit, 0 = unlimited
@@ -3343,7 +3342,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /**
      * Returns every block's name column and every table column to automatic (content) width
-     * (XMLSpy "Optimal widths").
+     * ("Optimal widths").
      */
     public void optimalWidths() {
         viewState.clearNameColumnWidths();

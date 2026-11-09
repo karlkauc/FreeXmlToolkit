@@ -53,7 +53,7 @@ import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Graphical XSD visualization with rectangular nodes and expand/collapse functionality.
- * Renders schema structure similar to XMLSpy with boxes and connection lines.
+ * Renders schema structure with boxes and connection lines.
  *
  * @since 2.0
  */

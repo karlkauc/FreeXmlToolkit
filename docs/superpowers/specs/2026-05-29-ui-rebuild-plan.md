@@ -81,7 +81,7 @@ in a ~760 px viewport at 24 px rows:
 | A virtualized row hosts an embedded grid (TableView) for repeating same-type siblings | rendered without breaking virtualization | — | ✅ |
 
 **Conclusion:** JavaFX `VirtualFlow` (as used by `TreeView`/`TableView`) virtualizes
-effectively and supports composite cells, so the embedded XMLSpy-style grid fits inside a
+effectively and supports composite cells, so the embedded grid fits inside a
 virtualized row. **Recommendation for Phase 4:** build the production Tree/Graphic+Grid
 renderer on a `VirtualFlow`/scene-graph foundation with custom cells (a cell becomes an
 embedded grid when a node has repeating same-type siblings), driven by the V2 `XsdNode`
@@ -113,7 +113,7 @@ budgets met; TestFX smoke for open→edit→save. **Remove** `XmlEditorSidebar*`
 **Goal:** the critical path — XSD editing in the new virtualized renderer at parity.
 
 - Build the production **virtualized renderer**: Tree mode + Graphic mode with the embedded,
-  collapsible XMLSpy-style grid (vertical nesting; repeating same-type nodes → grid). View-state
+  collapsible grid (vertical nesting; repeating same-type nodes → grid). View-state
   (expand/collapse) preserved across edits (matrix #50).
 - Wire all **35 commands** + `CommandManager` (undo/redo) through the new renderer; SelectionModel →
   **Unified Inspector** (Node&XPath, Type&Facets [reuse facet logic], Cardinality&Use, Docs&Refs) —

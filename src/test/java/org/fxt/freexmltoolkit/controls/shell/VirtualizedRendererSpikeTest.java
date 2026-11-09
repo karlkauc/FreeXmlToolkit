@@ -29,7 +29,7 @@ import org.testfx.util.WaitForAsyncUtils;
  *       under the budget (≤100&nbsp;ms), because only visible rows re-layout.</li>
  *   <li><b>Embedded grid cells</b> — a single virtualized row can host a
  *       composite control (an embedded {@link TableView}) for repeating
- *       same-type siblings (the XMLSpy-style grid), without breaking
+ *       same-type siblings (the grid), without breaking
  *       virtualization.</li>
  * </ol>
  * Conclusions are recorded in {@code 2026-05-29-ui-rebuild-plan.md}.

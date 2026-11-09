@@ -4,7 +4,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 /**
- * The fonts used by the XMLSpy-style grid, as a toolkit-free handle.
+ * The fonts used by the grid, as a toolkit-free handle.
  *
  * <p>Layout code (and its pure-Java unit tests) refers to fonts through this enum so
  * that {@link TextMeasurer} implementations can work without a JavaFX toolkit. The

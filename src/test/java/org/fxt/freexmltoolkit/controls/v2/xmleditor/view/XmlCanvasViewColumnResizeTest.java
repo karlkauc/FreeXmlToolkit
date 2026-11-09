@@ -23,7 +23,7 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
 /**
- * TestFX verification of XMLSpy-style column resizing in embedded tables: dragging a
+ * TestFX verification of column resizing in embedded tables: dragging a
  * column separator in the column-header row sets a user width (text re-wraps, the row
  * grows), the cursor shows the resize handle, a resize never sorts the column, the
  * handle honours the zoom, and double-clicking it returns to automatic sizing.

@@ -39,7 +39,7 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
 /**
- * The content of a named complex type is drawn in a titled frame (XMLSpy style), is read-only in
+ * The content of a named complex type is drawn in a titled frame, is read-only in
  * place and leads to the type's editor.
  */
 @ExtendWith(ApplicationExtension.class)

@@ -5,7 +5,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 
 /**
- * Wraps a node in a new element (XMLSpy "Wrap in Element", Ctrl+Alt+W): the new element takes
+ * Wraps a node in a new element ("Wrap in Element", Ctrl+Alt+W): the new element takes
  * the node's place under its parent and the node becomes its only child. Undo puts the node
  * back at its old position.
  */

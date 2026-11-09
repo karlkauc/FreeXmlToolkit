@@ -13,7 +13,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstructi
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
 
 /**
- * Changes the type of a node in place (XMLSpy: click the node-type icon / Type submenu):
+ * Changes the type of a node in place (click the node-type icon / Type submenu):
  * element ↔ attribute ↔ text ↔ CDATA ↔ comment ↔ processing instruction. Name and value are
  * kept where the target has them (a value-only node that becomes an element/attribute/PI
  * gets a default name). Attributes always come first, so a node that becomes an attribute

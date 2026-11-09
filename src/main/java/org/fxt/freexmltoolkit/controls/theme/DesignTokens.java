@@ -85,7 +85,7 @@ public final class DesignTokens {
         INDIGO("-fxt-indigo", "#4c5fd5", "#9775fa"),
 
         // Type frames of the graphic XSD view: the content of a named complex type, drawn as a
-        // titled, dashed box (XMLSpy style) and read-only in place.
+        // titled, dashed box and read-only in place.
         TYPE_FRAME_BG("-fxt-type-frame-bg", "#fffbe0", "#2a2614"),
         TYPE_FRAME_BORDER("-fxt-type-frame-border", "#d4b84a", "#7a6a2e"),
         TYPE_FRAME_FG("-fxt-type-frame-fg", "#7d6c2c", "#d9c27a"),

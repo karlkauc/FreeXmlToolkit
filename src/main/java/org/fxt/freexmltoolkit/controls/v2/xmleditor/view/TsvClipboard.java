@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * Tab-separated text for the exchange between an embedded table and spreadsheet applications
- * (XMLSpy "Copy as Tab-separated Text" / pasting a spreadsheet range): formats a rectangular
+ * ("Copy as Tab-separated Text" / pasting a spreadsheet range): formats a rectangular
  * cell selection (optionally with the header row) as TSV and as an HTML table, and parses pasted
  * text back into a grid of cell values. Values travel unchanged: tabs, line breaks and quotes
  * inside a value are quoted the way spreadsheets read and write them.

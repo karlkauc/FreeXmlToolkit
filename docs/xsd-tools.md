@@ -21,7 +21,7 @@ When you open an `.xsd` file in the [Unified Shell](unified-shell.md), the edito
 | Capability                | Description                                             |
 |---------------------------|---------------------------------------------------------|
 | **Graphic View**          | Visual schema editor with interactive tree              |
-| **Overview View**         | All top-level components in one table (XMLSpy style): reorder, sort, add, rename, attributes, identity constraints, assertions, namespaces |
+| **Overview View**         | All top-level components in one table: reorder, sort, add, rename, attributes, identity constraints, assertions, namespaces |
 | **Type Library**          | Browse and analyze all types in your schema             |
 | **Type Editor**           | Edit ComplexTypes and SimpleTypes graphically           |
 | **Text View**             | Raw XSD source code editor                              |
@@ -131,7 +131,7 @@ diagrams at once and are remembered.
 
 When an element uses a named complex type (`<xs:element name="Address_EU" type="EU-Address"/>`),
 the content it gets from that type is drawn inside a **light-yellow frame with a dashed border**.
-The type's name is the frame's title, top left (as in XMLSpy's schema view). Everything inside the
+The type's name is the frame's title, top left. Everything inside the
 frame belongs to the type, not to the element: the same content appears wherever the type is used.
 
 - **The frame is read-only.** Renaming, deleting, moving, cutting or pasting a node inside it, and
@@ -367,8 +367,7 @@ A few things to know:
 ## Overview View {#overview-view}
 
 The **Overview** view mode (the table icon in the view switch, or **View → Overview View**)
-lists every top-level component of the schema in one table, the way XMLSpy's schema overview
-does: imports, includes, redefines and overrides, schema-level annotations, global elements,
+lists every top-level component of the schema in one table: imports, includes, redefines and overrides, schema-level annotations, global elements,
 complex and simple types, groups, attribute groups, global attributes and notations - in the
 order they have in the file. It is offered for XSD documents only.
 
