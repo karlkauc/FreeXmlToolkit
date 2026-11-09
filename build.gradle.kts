@@ -42,7 +42,7 @@ plugins {
     id("org.cyclonedx.bom") version "3.5.1"
 }
 
-version = "2.10.0"
+version = "3.0.0"
 
 // SBOM: only what ships (runtime classpath), not test or code-analysis tools. The release
 // workflow attaches build/reports/cyclonedx-direct/bom.{json,xml} to every GitHub release.
