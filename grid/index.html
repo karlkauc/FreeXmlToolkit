@@ -2808,10 +2808,10 @@
 
 
 <h1 id="grid-view">Grid View<a class="headerlink" href="#grid-view" title="Permanent link">&para;</a></h1>
-<p>The <strong>Graphic</strong> view of an XML or JSON document is an editable, XMLSpy-style grid: nested blocks for containers, repeating elements as tables, inline editing, drag &amp; drop and search. Switch to it with the <strong>Graphic</strong> button of the view switch in the editor toolbar.</p>
+<p>The <strong>Graphic</strong> view of an XML or JSON document is an editable grid: nested blocks for containers, repeating elements as tables, inline editing, drag &amp; drop and search. Switch to it with the <strong>Graphic</strong> button of the view switch in the editor toolbar.</p>
 <h2 id="the-grid-graphic-view-for-xml">The Grid (Graphic view for XML)<a class="headerlink" href="#the-grid-graphic-view-for-xml" title="Permanent link">&para;</a></h2>
 <p>When an XML-instance document (XML, XSLT, or Schematron) is in the <strong>Graphic</strong> view, the editor
-shows the editable grid, laid out like XMLSpy's Grid View:</p>
+shows the editable grid, laid out as follows:</p>
 <p><img alt="An XML document in the Graphic (grid) view, everything expanded" src="../img/unified-shell-xml-grid.png" /></p>
 <ul>
 <li>A <strong>header strip</strong> at the top reads <em>"Grid view · nested · repeating elements as embedded
@@ -2826,7 +2826,7 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
   child block is docked at the parent's value column, so the structure reads as nested boxes;
   an expanded container's name cell spans its whole child block. Each block has its own
   name-column width (the widest name in it).</li>
-<li><strong>Type icons</strong> follow XMLSpy: <code>&lt;&gt;</code> element, <code>=</code> attribute, <code>Abc</code> text, <code>[ ]</code> CDATA, <code>&lt;!</code>
+<li><strong>Type icons</strong>: <code>&lt;&gt;</code> element, <code>=</code> attribute, <code>Abc</code> text, <code>[ ]</code> CDATA, <code>&lt;!</code>
   comment, <code>&lt;?</code> processing instruction. Colours come from the application theme (light/dark).</li>
 <li><strong>Attributes always show</strong> as <code>=</code> rows directly beneath their element - also while the
   element itself is collapsed.</li>
@@ -2871,7 +2871,7 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
   Selected Cells</strong>). Without a table selection, <strong>+</strong> / <strong>−</strong> open and close the selected
   grid rows one level. Open cells stay open after edits.</li>
 <li><strong>Table or rows.</strong> The small table glyph after the group's name (or the context menu's
-  <strong>Display as Table</strong>) switches the group between the table and XMLSpy's standard display,
+  <strong>Display as Table</strong>) switches the group between the table and the standard display,
   where every member is its own row numbered <code>&lt;1&gt;</code>, <code>&lt;2&gt;</code>, … The choice is kept per group
   while the document is open.</li>
 <li><strong>Flip Rows/Columns.</strong> The corner cell of a table (or the context menu entry) transposes
@@ -2942,7 +2942,7 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
   two views of the same document; each scrolls, expands and selects on its own, and an edit in
   one appears in the other at once. <em>Single view</em> closes the second one.</li>
 <li><strong>Entry helpers.</strong> The header's panel button (right of <em>Collapse all</em>) opens the entry
-  helpers beside the grid, as in XMLSpy. They need an XSD bound to the document and follow the
+  helpers beside the grid. They need an XSD bound to the document and follow the
   selected row. <strong>Siblings</strong> lists the attributes and elements the schema allows next to the
   selected node, <strong>Children</strong> lists those allowed inside the selected element, and <strong>Values</strong>
   lists the enumeration values of the selected element or attribute. Entries that are already
