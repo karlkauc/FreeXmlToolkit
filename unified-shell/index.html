@@ -5901,8 +5901,51 @@ error.</p>
 <td><strong>Key Attributes…</strong></td>
 <td>Attributes that identify an element among siblings of the same name, e.g. <code>id</code>: <code>&lt;item id="2"&gt;</code> is compared with <code>&lt;item id="2"&gt;</code> on the other side wherever it is</td>
 </tr>
+<tr>
+<td><strong>Ignore XPaths…</strong></td>
+<td>One XPath 1.0 expression per line; the nodes and attributes it selects are left out on both sides, with their content, e.g. <code>//@timestamp</code> or <code>//p:generated</code> (a prefix declared on a root element)</td>
+</tr>
+<tr>
+<td><strong>Numeric Tolerance…</strong></td>
+<td>Numbers in text or attribute values that differ by at most this much count as equal (0 = exact)</td>
+</tr>
+<tr>
+<td><strong>Evaluate placeholders</strong> (on)</td>
+<td>The left document is the expected one and may hold XMLUnit placeholders instead of values that change from run to run (see below)</td>
+</tr>
 </tbody>
 </table>
+<p><strong>Placeholders</strong> in the left document, as element text or attribute value:</p>
+<table>
+<thead>
+<tr>
+<th>Placeholder</th>
+<th>Matches</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>${xmlunit.ignore}</code></td>
+<td>anything (also a missing attribute)</td>
+</tr>
+<tr>
+<td><code>${xmlunit.isNumber}</code></td>
+<td>a number</td>
+</tr>
+<tr>
+<td><code>${xmlunit.isDateTime}</code></td>
+<td>a date or date-time (ISO 8601 and common formats)</td>
+</tr>
+<tr>
+<td><code>${xmlunit.matchesRegex(^[A-Z]{3}-\d+$)}</code></td>
+<td>text the regular expression matches (whitespace is collapsed first unless <em>Ignore whitespace differences</em> is off)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Similar differences</strong> — a moved element, CDATA instead of text, another schema location — still
+count, but XMLUnit rates them <em>similar</em>: the documents mean the same. They are shown in a muted
+colour, the summary counts them ("3 differences (2 similar)"), and <strong>Hide similar</strong> leaves them out
+of the list.</p>
 <p>The XML mode only compares. To take changes over, switch back to <strong>Text</strong> and use the arrows, or
 <strong>All →</strong> / <strong>All ←</strong>. The view opens in the mode you used last.</p>
 <h3 id="comparing-folders">Comparing folders<a class="headerlink" href="#comparing-folders" title="Permanent link">&para;</a></h3>

@@ -3638,6 +3638,22 @@ Transform panel.</p>
 <td><code>--include GLOB,...</code></td>
 <td>File names to use inside <code>--input</code> folders; default <code>*.xml</code></td>
 </tr>
+<tr>
+<td><code>--check</code></td>
+<td>Compare each result with the scenario's <a href="../projects/#regression-checks">expected result</a> instead of only running it</td>
+</tr>
+<tr>
+<td><code>--accept</code></td>
+<td>Like <code>--check</code>, then write each differing or missing expected file from the result (placeholders of the old file are kept)</td>
+</tr>
+<tr>
+<td><code>-f</code>, <code>--report-format FORMAT</code></td>
+<td>Check report: <code>text</code> (default), <code>junit</code> (JUnit XML) or <code>json</code></td>
+</tr>
+<tr>
+<td><code>-r</code>, <code>--report FILE</code></td>
+<td>Write the check report to <code>FILE</code>; the summary still goes to standard output</td>
+</tr>
 </tbody>
 </table>
 <p>Without names, all scenarios run in the order of the project file. A scenario with an output file
@@ -3651,12 +3667,22 @@ scenario the project <a href="../projects/#bindings">binds to it</a>:</p>
 </code></pre></div>
 <p>A file without a bound scenario, or one whose output an earlier file already wrote (no <code>${name}</code>
 in the output), counts as failed.</p>
+<p><strong>Regression checks.</strong> <code>--check</code> runs the scenarios that name an expected result (or the named
+ones) and compares each result with it: XML by structure with the scenario's compare settings
+(ignore XPaths, placeholders, tolerance), text line by line. A <code>${file}</code> scenario without
+<code>--input</code> is checked for each file the project binds to it. One line per check (<code>passed</code>,
+<code>FAILED</code> with the differences, <code>MISSING</code> when the expected file does not exist yet, <code>ERROR</code>), then
+a summary. Exit code 0 when all match, 1 when one differs or fails, 3 when an expected file is
+missing.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>fxt-cli<span class="w"> </span>scenario<span class="w"> </span>orders.fxtproj<span class="w"> </span>--check<span class="w"> </span>-f<span class="w"> </span>junit<span class="w"> </span>-r<span class="w"> </span>build/scenarios.xml<span class="w">   </span><span class="c1"># for CI</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>fxt-cli<span class="w"> </span>scenario<span class="w"> </span>orders.fxtproj<span class="w"> </span>Report<span class="w"> </span>--accept<span class="w">                            </span><span class="c1"># new results are right</span>
+</code></pre></div>
 <h2 id="compare">compare<a class="headerlink" href="#compare" title="Permanent link">&para;</a></h2>
 <p>Compares two XML files by structure, or two folders file by file, like <strong>Compare with File…</strong> in
 XML mode and <strong>Compare Folders…</strong> in the application (see
 <a href="../unified-shell/#comparing-as-xml">Compare &amp; Merge</a>). Formatting, attribute order and namespace
 prefixes do not count.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>fxt-cli<span class="w"> </span>compare<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span>LEFT<span class="w"> </span>RIGHT
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>fxt-cli<span class="w"> </span>compare<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span>LEFT<span class="w"> </span>RIGHT
 </code></pre></div>
 <table>
 <thead>
@@ -3687,6 +3713,18 @@ prefixes do not count.</p>
 <td>Attributes that identify an element among same-named siblings, e.g. <code>-k id</code></td>
 </tr>
 <tr>
+<td><code>--ignore XPATH</code></td>
+<td>Leave out the nodes or attributes this XPath 1.0 selects, on both sides, e.g. <code>--ignore '//@created'</code>; repeatable</td>
+</tr>
+<tr>
+<td><code>--tolerance N</code></td>
+<td>Numbers in text or attribute values that differ by at most <code>N</code> are equal (default: exact)</td>
+</tr>
+<tr>
+<td><code>--[no-]placeholders</code></td>
+<td>Evaluate XMLUnit placeholders in LEFT: <code>${xmlunit.ignore}</code>, <code>${xmlunit.isNumber}</code>, <code>${xmlunit.isDateTime}</code>, <code>${xmlunit.matchesRegex(REGEX)}</code> (default: on)</td>
+</tr>
+<tr>
 <td><code>--bytes</code></td>
 <td>Folders: compare XML files by their bytes only</td>
 </tr>
@@ -3696,8 +3734,12 @@ prefixes do not count.</p>
 </tr>
 </tbody>
 </table>
+<p>LEFT is the expected document. With placeholders it can describe a result whose values change from
+run to run (an ID, a date): see <a href="../unified-shell/#comparing-as-xml">Comparing as XML</a>.</p>
 <p>For two files, the text report has one line per difference in the form
-<code>left.xml:LINE: Attribute 'qty' changed: "1" → "2" (/order[1]/item[1]/@qty)</code> and a summary. For
+<code>left.xml:LINE: Attribute 'qty' changed: "1" → "2" (/order[1]/item[1]/@qty)</code> and a summary;
+differences XMLUnit rates <em>similar</em> (a moved element, CDATA instead of text) are marked <code>[similar]</code>
+(JSON: <code>"similar": true</code>) and still count. For
 two folders it lists every file that differs or exists on one side only, then the counts. The exit
 code is 0 when the files are equivalent or the folders match, 1 when they differ, 3 when a file is
 not well-formed XML.</p>
@@ -3705,7 +3747,7 @@ not well-formed XML.</p>
 <p>Three-way merge of a base and two changed versions, like <strong>Tools → Merge Files…</strong> (see
 <a href="../unified-shell/#merging-three-files">Merging three files</a>). Conflicts are written with Git's
 markers.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>fxt-cli<span class="w"> </span>merge<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span>BASE<span class="w"> </span>LEFT<span class="w"> </span>RIGHT
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>fxt-cli<span class="w"> </span>merge<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span>BASE<span class="w"> </span>LEFT<span class="w"> </span>RIGHT
 </code></pre></div>
 <table>
 <thead>
@@ -3736,16 +3778,16 @@ markers.</p>
 <p>The exit code is 0 without conflicts and 1 with conflicts (the result then contains the markers).
 A merge without conflicts whose XML is not well-formed gives a warning on standard error.</p>
 <p>As a Git merge driver for XML files, in <code>.git/config</code> or <code>~/.gitconfig</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">[merge "fxt"]</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span><span class="na">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">FreeXmlToolkit XML merge</span>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="na">driver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">fxt-cli merge -q -L ours -L base -L theirs %O %A %B -o %A</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">[merge "fxt"]</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">    </span><span class="na">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">FreeXmlToolkit XML merge</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="na">driver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">fxt-cli merge -q -L ours -L base -L theirs %O %A %B -o %A</span>
 </code></pre></div>
 <p>and in <code>.gitattributes</code>: <code>*.xml merge=fxt</code>.</p>
 <h2 id="convert">convert<a class="headerlink" href="#convert" title="Permanent link">&para;</a></h2>
 <p>Converts between XML, JSON and YAML, like <strong>Tools → Convert to JSON… / XML… / YAML…</strong> in the
 application. The mappings are described in the
 <a href="../json-editor/#converting-between-xml-json-and-yaml">JSON Editor</a> chapter.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>fxt-cli<span class="w"> </span>convert<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span>INPUT...
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>fxt-cli<span class="w"> </span>convert<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span>INPUT...
 </code></pre></div>
 <table>
 <thead>
@@ -3794,8 +3836,8 @@ application. The mappings are described in the
 standard error and gives exit code 1; the other files are still converted.</p>
 <h2 id="fop">fop<a class="headerlink" href="#fop" title="Permanent link">&para;</a></h2>
 <p>Renders a PDF with Apache FOP, like the <a href="../pdf-generator/">PDF Generator</a>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>fxt-cli<span class="w"> </span>fop<span class="w"> </span>-i<span class="w"> </span>XML<span class="w"> </span>-s<span class="w"> </span>XSL<span class="w"> </span>-o<span class="w"> </span>OUT.pdf<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>fxt-cli<span class="w"> </span>fop<span class="w"> </span>--fo<span class="w"> </span>DOCUMENT.fo<span class="w"> </span>-o<span class="w"> </span>OUT.pdf<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>fxt-cli<span class="w"> </span>fop<span class="w"> </span>-i<span class="w"> </span>XML<span class="w"> </span>-s<span class="w"> </span>XSL<span class="w"> </span>-o<span class="w"> </span>OUT.pdf<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>fxt-cli<span class="w"> </span>fop<span class="w"> </span>--fo<span class="w"> </span>DOCUMENT.fo<span class="w"> </span>-o<span class="w"> </span>OUT.pdf<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
 </code></pre></div>
 <table>
 <thead>
@@ -3874,21 +3916,21 @@ standard error and gives exit code 1; the other files are still converted.</p>
 </ul>
 <h2 id="in-a-ci-pipeline">In a CI pipeline<a class="headerlink" href="#in-a-ci-pipeline" title="Permanent link">&para;</a></h2>
 <p>GitHub Actions, uploading the SARIF report to code scanning:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Validate XML</span>
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/freexmltoolkit/bin/fxt-cli validate --xsd schema/order.xsd -f sarif -r fxt.sarif data/</span>
-<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">github/codeql-action/upload-sarif@v3</span>
-<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">  </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">always()</span>
-<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
-<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">    </span><span class="nt">sarif_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt.sarif</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Validate XML</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/freexmltoolkit/bin/fxt-cli validate --xsd schema/order.xsd -f sarif -r fxt.sarif data/</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">github/codeql-action/upload-sarif@v3</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">  </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">always()</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">    </span><span class="nt">sarif_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt.sarif</span>
 </code></pre></div>
 <p>GitLab CI with a JUnit report:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nt">validate</span><span class="p">:</span>
-<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span><span class="nt">script</span><span class="p">:</span>
-<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt-cli validate --xsd schema/order.xsd -f junit -r fxt-junit.xml data/</span>
-<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">  </span><span class="nt">artifacts</span><span class="p">:</span>
-<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">    </span><span class="nt">when</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">always</span>
-<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">    </span><span class="nt">reports</span><span class="p">:</span>
-<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="w">      </span><span class="nt">junit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt-junit.xml</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nt">validate</span><span class="p">:</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">  </span><span class="nt">script</span><span class="p">:</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt-cli validate --xsd schema/order.xsd -f junit -r fxt-junit.xml data/</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">  </span><span class="nt">artifacts</span><span class="p">:</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">    </span><span class="nt">when</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">always</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="w">    </span><span class="nt">reports</span><span class="p">:</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="w">      </span><span class="nt">junit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt-junit.xml</span>
 </code></pre></div>
 
 
