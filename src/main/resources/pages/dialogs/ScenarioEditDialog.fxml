@@ -69,7 +69,7 @@
                 <TextField fx:id="toleranceField" id="scenario-edit-tolerance" prefColumnCount="5" minWidth="-Infinity" promptText="0"/>
                 <CheckBox fx:id="ignoreOrderBox" id="scenario-edit-ignore-order" text="%ScenarioEditDialog.ignoreOrderBox.text" minWidth="-Infinity"/>
                 <Label text="%ScenarioEditDialog.keys.text" minWidth="-Infinity"/>
-                <TextField fx:id="keysField" id="scenario-edit-keys" prefColumnCount="8" minWidth="90" promptText="id" HBox.hgrow="ALWAYS"/>
+                <TextField fx:id="keysField" id="scenario-edit-keys" prefColumnCount="8" minWidth="90" promptText="%ScenarioEditDialog.keysField.promptText" HBox.hgrow="ALWAYS"/>
             </children>
         </HBox>
         <Label fx:id="error" id="scenario-edit-error" wrapText="true" visible="false" managed="false"
