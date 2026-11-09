@@ -12,7 +12,7 @@
         <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/telemetry/">
       
       
-        <link rel="prev" href="../digital-signatures/">
+        <link rel="prev" href="../xml-encryption/">
       
       
         <link rel="next" href="../code-signing-policy/">
@@ -2188,6 +2188,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../xml-encryption/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XML Encryption
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -3174,7 +3202,7 @@ support); only other <code>runtime</code> failures have status <code>error</code
 exception class in <code>error_code</code>, a stack signature (<code>error_detail</code>, <code>error_hash</code>) for an app failure,
 and status <code>invalid_input</code> when the user's document, stylesheet, schema or environment was the cause
 (not well-formed input, a missing or unreadable file, an unreachable host). This applies to
-<code>xslt_transform</code>, <code>sign</code>, <code>verify_signature</code>, <code>create_certificate</code>, <code>schema_analysis</code>, <code>xsd_generate</code>,
+<code>xslt_transform</code>, <code>sign</code>, <code>verify_signature</code>, <code>create_certificate</code>, <code>encrypt</code> (target kind, data algorithm family, key methods, number of recipients, whether a legacy algorithm was used - never keys, passwords or content), <code>decrypt</code> (key source, number of decrypted elements), <code>inspect_encryption</code>, <code>schema_analysis</code>, <code>xsd_generate</code>,
 <code>sample_generate</code>, <code>spreadsheet_convert</code>, <code>format</code> (<code>meta.mode</code> = <code>format</code> or <code>minify</code>),
 <code>schematron_check</code>, <code>quick_fix</code> (a fix that does not apply to the document is <code>invalid_input</code>, a
 skipped one <code>cancelled</code> with <code>meta.reason</code>), <code>replace</code> (<code>meta.kind</code> = <code>xpath</code>/<code>text</code>, <code>meta.scope</code> =
@@ -3370,7 +3398,7 @@ retried later with increasing pauses (up to six hours); the application is never
       <nav class="md-footer__inner md-grid" aria-label="Footer">
         
           
-          <a href="../digital-signatures/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Digital Signatures">
+          <a href="../xml-encryption/" class="md-footer__link md-footer__link--prev" aria-label="Previous: XML Encryption">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
@@ -3380,7 +3408,7 @@ retried later with increasing pauses (up to six hours); the application is never
                 Previous
               </span>
               <div class="md-ellipsis">
-                Digital Signatures
+                XML Encryption
               </div>
             </div>
           </a>

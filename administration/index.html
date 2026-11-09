@@ -2191,6 +2191,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../xml-encryption/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XML Encryption
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../telemetry/" class="md-nav__link">
         
   
@@ -3080,6 +3108,16 @@ forward slashes (<code>C:/Schemas</code>). Characters outside Latin-1 have to be
 <td><code>plugins.external.allowed</code></td>
 <td><code>false</code></td>
 <td><strong>Policy only.</strong> Load no <a href="../plugins/">plugins</a> from the plugins folder (built-in ones still load)</td>
+</tr>
+<tr>
+<td><code>xmlenc.allowed</code></td>
+<td><code>false</code></td>
+<td><strong>Policy only.</strong> No <a href="../xml-encryption/">XML encryption</a> or decryption (page, editor menu and <code>fxt-cli</code>)</td>
+</tr>
+<tr>
+<td><code>xmlenc.legacyAlgorithms.allowed</code></td>
+<td><code>false</code></td>
+<td><strong>Policy only.</strong> Block the legacy XML encryption algorithms (RSA-1_5, TripleDES, CBC modes, finite-field DH) for encryption and decryption</td>
 </tr>
 <tr>
 <td><code>plugin.&lt;id&gt;.enabled</code></td>

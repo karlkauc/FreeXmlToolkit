@@ -1191,6 +1191,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#showing-results-in-the-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Showing Results in the Document
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#saving-and-loading-snippets" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2366,6 +2377,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../xml-encryption/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XML Encryption
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../telemetry/" class="md-nav__link">
         
   
@@ -2941,6 +2980,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#showing-results-in-the-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Showing Results in the Document
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#saving-and-loading-snippets" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3127,6 +3177,24 @@ evaluated as a <strong>JSONPath</strong> expression. When no document is open, <
 activity. For XSLT transformations, parameters, recent-stylesheet history, watch-and-rerun, and
 the OUTPUT panel's result table and HTML preview, use the <a href="../transform-panel/#transform-panel">Transform Panel</a>.</p>
 </div>
+<h3 id="showing-results-in-the-document">Showing Results in the Document<a class="headerlink" href="#showing-results-in-the-document" title="Permanent link">¶</a></h3>
+<p>When a result contains nodes of the document - elements, attributes or text, as in
+<code>//Position[TotalPercentage &gt; 30]</code> - the RESULTS header shows a <strong>Text | Hits</strong> switch and a
+counter such as <strong>1 of 2</strong>. <em>Hits</em> lists every result item; a click on a node (or <strong>Enter</strong>, or
+the arrows next to the counter, <strong>F3</strong> / <strong>Shift+F3</strong> while the console has the focus) shows it
+<strong>in the view you are in</strong>, without switching it:</p>
+<ul>
+<li><strong>Text</strong> - every hit is highlighted, the current one is selected.</li>
+<li><strong>Tree</strong> - the node is selected and scrolled into view.</li>
+<li><strong>Graphic</strong> - every hit is highlighted in the grid: a whole table row when the hit is a member of
+  repeating elements, only the cell when it is a node inside one, the row otherwise. The current hit
+  is opened, selected and briefly flashed.</li>
+</ul>
+<p>Values that are not nodes of the document - <code>sum(...)</code>, strings, numbers, elements an XQuery
+builds - appear in the list without a link and are not highlighted; a result with no nodes shows
+no switch at all. After the document changes the hits are stale ("Document changed - run the query
+again"); running the query again finds the new places. Hits are shown for XPath and XQuery against
+XML documents (not JSONPath).</p>
 <h3 id="saving-and-loading-snippets">Saving and Loading Snippets<a class="headerlink" href="#saving-and-loading-snippets" title="Permanent link">¶</a></h3>
 <p>Reusable XPath <strong>and</strong> XQuery expressions are saved as <strong>snippets</strong>:</p>
 <ul>

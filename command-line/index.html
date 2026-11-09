@@ -1094,6 +1094,50 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#sign" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sign
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verify" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        verify
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#encrypt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        encrypt
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decrypt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        decrypt
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#exit-codes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2409,6 +2453,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../xml-encryption/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XML Encryption
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../telemetry/" class="md-nav__link">
         
   
@@ -3088,6 +3160,50 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#sign" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sign
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verify" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        verify
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#encrypt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        encrypt
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decrypt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        decrypt
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#exit-codes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3142,7 +3258,7 @@
 
 <h1 id="command-line-fxt-cli">Command Line (fxt-cli)<a class="headerlink" href="#command-line-fxt-cli" title="Permanent link">¶</a></h1>
 <p><code>fxt-cli</code> runs FreeXmlToolkit's validators, transformation engines, XPath/XQuery/JSONPath queries, XML
-comparison and merge, schema documentation, XML/JSON/YAML conversion and PDF output without the user interface: in build pipelines, scripts and scheduled jobs. It uses the
+comparison and merge, schema documentation, XML/JSON/YAML conversion, PDF output, XML signatures and XML encryption without the user interface: in build pipelines, scripts and scheduled jobs. It uses the
 same engines and the same security defaults as the application, and it is installed with it.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>fxt-cli<span class="w"> </span>validate<span class="w"> </span>--xsd<span class="w"> </span>schema/order.xsd<span class="w"> </span>data/
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>fxt-cli<span class="w"> </span>transform<span class="w"> </span>-s<span class="w"> </span>report.xsl<span class="w"> </span>-p<span class="w"> </span><span class="nv">year</span><span class="o">=</span><span class="m">2026</span><span class="w"> </span>data/order.xml<span class="w"> </span>-o<span class="w"> </span>report.html
@@ -3154,6 +3270,8 @@ same engines and the same security defaults as the application, and it is instal
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>fxt-cli<span class="w"> </span>merge<span class="w"> </span>base.xml<span class="w"> </span>mine.xml<span class="w"> </span>theirs.xml<span class="w"> </span>-o<span class="w"> </span>merged.xml
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>fxt-cli<span class="w"> </span>convert<span class="w"> </span>data/order.xml<span class="w"> </span>-o<span class="w"> </span>order.json
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>fxt-cli<span class="w"> </span>convert<span class="w"> </span>-t<span class="w"> </span>yaml<span class="w"> </span>data/config.json
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>fxt-cli<span class="w"> </span>sign<span class="w"> </span>order.xml<span class="w"> </span>--keystore<span class="w"> </span>me.p12<span class="w"> </span>--storepass-env<span class="w"> </span>KS_PW
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>fxt-cli<span class="w"> </span>encrypt<span class="w"> </span>order.xml<span class="w"> </span>-x<span class="w"> </span>//payment<span class="w"> </span>--cert<span class="w"> </span>partner.pem
 </code></pre></div>
 <h2 id="where-it-is">Where it is<a class="headerlink" href="#where-it-is" title="Permanent link">¶</a></h2>
 <table>
@@ -3994,6 +4112,195 @@ standard error and gives exit code 1; the other files are still converted.</p>
 </tr>
 </tbody>
 </table>
+<h2 id="sign">sign<a class="headerlink" href="#sign" title="Permanent link">¶</a></h2>
+<p>Signs an XML document (XML digital signature), like <a href="../digital-signatures/">Sign &amp; Encrypt → Sign</a>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>fxt-cli<span class="w"> </span>sign<span class="w"> </span>INPUT<span class="w"> </span>--keystore<span class="w"> </span>FILE<span class="w"> </span><span class="o">[</span>--alias<span class="w"> </span>ALIAS<span class="o">]</span><span class="w"> </span><span class="o">(</span>--storepass<span class="o">[=</span>PW<span class="o">]</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>--storepass-env<span class="w"> </span>VAR<span class="o">)</span><span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--keystore FILE</code></td>
+<td>JKS or PKCS#12 keystore with the signing key</td>
+</tr>
+<tr>
+<td><code>--alias ALIAS</code></td>
+<td>The key's alias (default: the keystore's only key)</td>
+</tr>
+<tr>
+<td><code>--storepass</code>, <code>--storepass-env VAR</code></td>
+<td>The keystore password: prompted when <code>--storepass</code> has no value, or read from an environment variable (preferred in scripts)</td>
+</tr>
+<tr>
+<td><code>--keypass</code>, <code>--keypass-env VAR</code></td>
+<td>The key entry's password (default: the keystore password)</td>
+</tr>
+<tr>
+<td><code>--type TYPE</code></td>
+<td><code>enveloped</code> (default), <code>enveloping</code> or <code>detached</code></td>
+</tr>
+<tr>
+<td><code>--signature-alg ALG</code></td>
+<td><code>rsa-sha256</code> (default for RSA keys), <code>rsa-sha384</code>, <code>rsa-sha512</code>, <code>rsa-pss-sha256/384/512</code>, <code>ecdsa-sha256</code> (default for EC keys), <code>ecdsa-sha384</code>, <code>ecdsa-sha512</code></td>
+</tr>
+<tr>
+<td><code>--digest-alg ALG</code></td>
+<td><code>sha256</code> (default), <code>sha384</code>, <code>sha512</code></td>
+</tr>
+<tr>
+<td><code>--c14n METHOD</code></td>
+<td><code>exclusive</code> (default), <code>exclusive-comments</code>, <code>inclusive</code>, <code>inclusive-comments</code>, <code>inclusive-11</code></td>
+</tr>
+<tr>
+<td><code>-o FILE</code></td>
+<td>Output (default: <code>INPUT.signed.xml</code>, detached: <code>INPUT.sig.xml</code>)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="verify">verify<a class="headerlink" href="#verify" title="Permanent link">¶</a></h2>
+<p>Checks XML signatures; with a trust store also the signer's certificate chain (PKIX).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>fxt-cli<span class="w"> </span>verify<span class="w"> </span>INPUT...<span class="w"> </span><span class="o">[</span>--trust-store<span class="w"> </span>FILE<span class="w"> </span><span class="o">(</span>--storepass…<span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>--trust-cacerts<span class="o">]</span><span class="w"> </span><span class="o">[</span>--revocation<span class="o">]</span><span class="w"> </span><span class="o">[</span>-f<span class="w"> </span>text<span class="p">|</span>json<span class="o">]</span>
+</code></pre></div>
+<p>Exit code <code>0</code> when every file is valid (and trusted), <code>1</code> when one is not, <code>3</code> on errors.</p>
+<h2 id="encrypt">encrypt<a class="headerlink" href="#encrypt" title="Permanent link">¶</a></h2>
+<p>Encrypts XML according to W3C XML Encryption 1.1, like
+<a href="../xml-encryption/">Sign &amp; Encrypt → Encrypt</a>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>fxt-cli<span class="w"> </span>encrypt<span class="w"> </span>INPUT<span class="w"> </span><span class="o">[</span>-x<span class="w"> </span>XPATH<span class="o">]</span>...<span class="w"> </span><span class="o">[</span>--content<span class="w"> </span><span class="p">|</span><span class="w"> </span>--binary<span class="o">]</span><span class="w"> </span>RECIPIENTS...<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-x</code>, <code>--xpath XPATH</code></td>
+<td>Elements to encrypt (repeatable; default: the document element)</td>
+</tr>
+<tr>
+<td><code>--ns PREFIX=URI</code></td>
+<td>Namespace prefixes for <code>--xpath</code> (the document element's are known)</td>
+</tr>
+<tr>
+<td><code>--content</code></td>
+<td>Encrypt only the content of the elements</td>
+</tr>
+<tr>
+<td><code>--binary</code>, <code>--mime-type TYPE</code></td>
+<td>Encrypt INPUT as binary data (any file)</td>
+</tr>
+<tr>
+<td><code>--data-alg ALG</code></td>
+<td>Data algorithm (default <code>aes256-gcm</code>)</td>
+</tr>
+<tr>
+<td><code>--cert FILE</code></td>
+<td>A recipient certificate, PEM or DER (repeatable)</td>
+</tr>
+<tr>
+<td><code>--public-key FILE</code></td>
+<td>A recipient public key, PEM (repeatable)</td>
+</tr>
+<tr>
+<td><code>--keystore FILE --alias ALIAS</code></td>
+<td>Recipient certificates from a keystore (<code>--alias</code> repeatable; <code>--storepass…</code>)</td>
+</tr>
+<tr>
+<td><code>--key-file FILE</code>, <code>--key-name NAME</code></td>
+<td>A shared symmetric key (hex, Base64 or raw) and its KeyName</td>
+</tr>
+<tr>
+<td><code>--key-wrap ALG</code></td>
+<td>Key wrap for key files, passwords and key agreement; <code>none</code> uses the key file as data key</td>
+</tr>
+<tr>
+<td><code>--password</code>, <code>--password-env VAR</code></td>
+<td>A password recipient (PBKDF2); <code>--iterations N</code>, <code>--prf sha256|sha384|sha512</code></td>
+</tr>
+<tr>
+<td><code>--key-transport ALG</code>, <code>--oaep-digest</code>, <code>--mgf</code></td>
+<td>RSA: <code>rsa-oaep</code> (default), <code>rsa-oaep-mgf1p</code>, <code>rsa-1_5</code>; OAEP digest and MGF</td>
+</tr>
+<tr>
+<td><code>--kdf concatkdf|hkdf</code>, <code>--kdf-digest</code></td>
+<td>Key derivation after ECDH-ES / X25519 / X448</td>
+</tr>
+<tr>
+<td><code>--x509 KIND</code></td>
+<td>How a certificate is named: <code>issuer-serial</code> (default), <code>certificate</code>, <code>ski</code>, <code>subject</code>, <code>none</code></td>
+</tr>
+<tr>
+<td><code>--recipient-name NAME</code>, <code>--property NAME=VALUE</code></td>
+<td><code>Recipient</code> attribute; EncryptionProperties (repeatable)</td>
+</tr>
+<tr>
+<td><code>--keys-outside</code></td>
+<td>EncryptedKeys next to the data with a ReferenceList</td>
+</tr>
+<tr>
+<td><code>--list-algorithms</code></td>
+<td>List all algorithms with their URIs</td>
+</tr>
+<tr>
+<td><code>-o FILE</code></td>
+<td>Output (default: <code>INPUT.encrypted.xml</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>Legacy algorithms (RSA-1_5, TripleDES, CBC modes) work but print a warning.</p>
+<h2 id="decrypt">decrypt<a class="headerlink" href="#decrypt" title="Permanent link">¶</a></h2>
+<p>Decrypts every EncryptedData the given keys open (also several layers), or describes an encrypted
+document without a key.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>fxt-cli<span class="w"> </span>decrypt<span class="w"> </span>INPUT<span class="w"> </span><span class="o">(</span>--keystore<span class="w"> </span>FILE<span class="w"> </span>…<span class="w"> </span><span class="p">|</span><span class="w"> </span>--private-key<span class="w"> </span>FILE<span class="w"> </span><span class="p">|</span><span class="w"> </span>--key-file<span class="w"> </span>FILE<span class="w"> </span><span class="p">|</span><span class="w"> </span>--password<span class="o">)</span><span class="w"> </span><span class="o">[</span>--id<span class="w"> </span>ID<span class="o">]</span>...<span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>FILE<span class="o">]</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>fxt-cli<span class="w"> </span>decrypt<span class="w"> </span>--inspect<span class="w"> </span><span class="o">[</span>-f<span class="w"> </span>text<span class="p">|</span>json<span class="o">]</span><span class="w"> </span>INPUT
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--keystore FILE</code>, <code>--alias</code>, <code>--storepass…</code>, <code>--keypass…</code></td>
+<td>Your private key from a keystore</td>
+</tr>
+<tr>
+<td><code>--private-key FILE</code></td>
+<td>Your private key as PEM (<code>--keypass</code> for an encrypted one; repeatable)</td>
+</tr>
+<tr>
+<td><code>--key-file FILE</code>, <code>--key-name NAME</code></td>
+<td>A shared symmetric key (repeatable)</td>
+</tr>
+<tr>
+<td><code>--password</code>, <code>--password-env VAR</code></td>
+<td>The document's password</td>
+</tr>
+<tr>
+<td><code>--id ID</code></td>
+<td>Only the EncryptedData with this Id (repeatable)</td>
+</tr>
+<tr>
+<td><code>--inspect</code>, <code>-f text|json</code></td>
+<td>Describe the encryption instead of decrypting</td>
+</tr>
+<tr>
+<td><code>-o FILE</code></td>
+<td>Output (default: <code>INPUT.decrypted.xml</code>; binary data <code>INPUT.decrypted.bin</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>Exit code <code>0</code> when everything selected was decrypted, <code>1</code> when no key fits or data stays encrypted,
+<code>3</code> on errors.</p>
 <h2 id="exit-codes">Exit codes<a class="headerlink" href="#exit-codes" title="Permanent link">¶</a></h2>
 <table>
 <thead>
@@ -4037,21 +4344,21 @@ standard error and gives exit code 1; the other files are still converted.</p>
 </ul>
 <h2 id="in-a-ci-pipeline">In a CI pipeline<a class="headerlink" href="#in-a-ci-pipeline" title="Permanent link">¶</a></h2>
 <p>GitHub Actions, uploading the SARIF report to code scanning:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Validate XML</span>
-<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/freexmltoolkit/bin/fxt-cli validate --xsd schema/order.xsd -f sarif -r fxt.sarif data/</span>
-<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">github/codeql-action/upload-sarif@v3</span>
-<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">  </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">always()</span>
-<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
-<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">    </span><span class="nt">sarif_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt.sarif</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Validate XML</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/freexmltoolkit/bin/fxt-cli validate --xsd schema/order.xsd -f sarif -r fxt.sarif data/</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">github/codeql-action/upload-sarif@v3</span>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="w">  </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">always()</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="w">    </span><span class="nt">sarif_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt.sarif</span>
 </code></pre></div>
 <p>GitLab CI with a JUnit report:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nt">validate</span><span class="p">:</span>
-<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">  </span><span class="nt">script</span><span class="p">:</span>
-<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt-cli validate --xsd schema/order.xsd -f junit -r fxt-junit.xml data/</span>
-<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">  </span><span class="nt">artifacts</span><span class="p">:</span>
-<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">    </span><span class="nt">when</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">always</span>
-<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="w">    </span><span class="nt">reports</span><span class="p">:</span>
-<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="w">      </span><span class="nt">junit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt-junit.xml</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="nt">validate</span><span class="p">:</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="w">  </span><span class="nt">script</span><span class="p">:</span>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt-cli validate --xsd schema/order.xsd -f junit -r fxt-junit.xml data/</span>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="w">  </span><span class="nt">artifacts</span><span class="p">:</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="w">    </span><span class="nt">when</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">always</span>
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="w">    </span><span class="nt">reports</span><span class="p">:</span>
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="w">      </span><span class="nt">junit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt-junit.xml</span>
 </code></pre></div>
 
 

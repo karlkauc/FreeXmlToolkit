@@ -1342,7 +1342,7 @@
   <a href="#signature-panel" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Signature Page
+        Sign &amp; Encrypt Page
       
     </span>
   </a>
@@ -3032,6 +3032,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../xml-encryption/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XML Encryption
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../telemetry/" class="md-nav__link">
         
   
@@ -4127,7 +4155,7 @@
   <a href="#signature-panel" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Signature Page
+        Sign &amp; Encrypt Page
       
     </span>
   </a>
@@ -4413,7 +4441,7 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 <tbody>
 <tr>
 <td><strong>Activity bar</strong> (far left)</td>
-<td>Switch tools / side panels: Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library (its label wraps onto two lines), PDF/FOP, Signature, Settings - plus a <strong>FundsXML</strong> activity when the optional <a href="../fundsxml-extensions/">FundsXML extension</a> is enabled (see <a href="#fundsxml-panel">FundsXML Panel</a>). <strong>Always visible</strong> - it cannot be collapsed. (<strong>Settings</strong>, <strong>Schema Library</strong> and <strong>Signature</strong> open as a full page in the editor area - see <a href="../settings/#settings-page">Settings Page</a>, <a href="#schema-library-page">Schema Library Page</a> and <a href="#signature-panel">Signature Page</a>. Help is not an activity - it is the <strong>Help</strong> menu, see <a href="#help-menu-about">Help Menu &amp; About</a>.)</td>
+<td>Switch tools / side panels: Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library (its label wraps onto two lines), PDF/FOP, Sign &amp; Encrypt, Settings - plus a <strong>FundsXML</strong> activity when the optional <a href="../fundsxml-extensions/">FundsXML extension</a> is enabled (see <a href="#fundsxml-panel">FundsXML Panel</a>). <strong>Always visible</strong> - it cannot be collapsed. (<strong>Settings</strong>, <strong>Schema Library</strong> and <strong>Sign &amp; Encrypt</strong> open as a full page in the editor area - see <a href="../settings/#settings-page">Settings Page</a>, <a href="#schema-library-page">Schema Library Page</a> and <a href="#signature-panel">Sign &amp; Encrypt Page</a>. Help is not an activity - it is the <strong>Help</strong> menu, see <a href="#help-menu-about">Help Menu &amp; About</a>.)</td>
 </tr>
 <tr>
 <td><strong>Menu bar</strong> (very top)</td>
@@ -4468,7 +4496,7 @@ collapsed to give the editor more room - the activity bar always stays visible.<
 <li>The collapsed/expanded state is <strong>remembered across restarts</strong> and can also be changed under
   <strong>Settings → Appearance → LAYOUT</strong> ("Show left side panel" / "Show Properties (inspector) panel").</li>
 <li><strong>The inspector only appears next to documents.</strong> When you switch to a tab that is not a
-  document - <strong>Settings</strong>, <strong>Schema Library</strong>, <strong>Signature</strong>, a report or another tool tab - the
+  document - <strong>Settings</strong>, <strong>Schema Library</strong>, <strong>Sign &amp; Encrypt</strong>, a report or another tool tab - the
   inspector hides automatically, so the page gets the full width. Its toggle button is greyed out
   on such tabs. As soon as you select a document tab again, the inspector comes back. Your own
   show/hide choice is not changed by this - if you had hidden the inspector, it stays hidden.</li>
@@ -4875,7 +4903,7 @@ under <strong>Format ▾</strong>, <strong>Run Query / Run Transform / Run Pipel
 <strong>Set XSD Schema… / Generate Documentation… / Type Editor…</strong> under <strong>Schema ▾</strong>.</p>
 </blockquote>
 <p>The toolbar shows only what you can use right now. <strong>Without a document</strong> - on the Welcome
-page, or while a page such as <strong>Settings</strong>, <strong>Signature</strong> or <strong>Schema Library</strong> is in front - it
+page, or while a page such as <strong>Settings</strong>, <strong>Sign &amp; Encrypt</strong> or <strong>Schema Library</strong> is in front - it
 shows just <strong>New</strong> and <strong>Open</strong>; the document groups (Save, Undo/Redo, Format, Query Console,
 Transform, Run, Schema, Validate) and the <strong>Text / Tree / Graphic</strong> view switch are hidden
 rather than shown greyed out. They come back as soon as a document tab is active.</p>
@@ -5428,10 +5456,11 @@ a configuration later.</p>
 of files written to a folder you choose. For a full walkthrough, see
 <a href="../profiled-xml-generation/">Profiled XML Generation</a> and the
 <a href="../xsd-tools/#7-sample-xml-generator">Sample XML Generator</a> section of the XSD Tools guide.</p>
-<h2 id="signature-panel">Signature Page<a class="headerlink" href="#signature-panel" title="Permanent link">¶</a></h2>
-<p>Clicking <strong>Signature</strong> in the activity bar opens one page, <strong>Signature</strong>, as a tab in the main
-editor area. The side panel on the left only lists the four actions in order of use - <strong>Sign XML
-File</strong>, <strong>Validate Signature</strong>, <strong>Create Certificate</strong> and <strong>Expert Mode</strong>. Click one to show it on
+<h2 id="signature-panel">Sign &amp; Encrypt Page<a class="headerlink" href="#signature-panel" title="Permanent link">¶</a></h2>
+<p>Clicking <strong>Sign &amp; Encrypt</strong> in the activity bar opens one page, <strong>Sign &amp; Encrypt</strong>, as a tab in the
+main editor area. The side panel on the left only lists the actions in order of use - <strong>Sign XML
+File</strong>, <strong>Validate Signature</strong>, <strong>Encrypt</strong>, <strong>Decrypt</strong>, <strong>Inspect Encryption</strong>, <strong>Create
+Certificate</strong> and <strong>Expert Mode</strong> (the encryption actions: <a href="../xml-encryption/">XML Encryption</a>). Click one to show it on
 the page; the current action is highlighted, and the status message of the previous action is
 cleared.</p>
 <p>The page is built the same way for every action, from top to bottom:</p>

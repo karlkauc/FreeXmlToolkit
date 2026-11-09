@@ -15,7 +15,7 @@
         <link rel="prev" href="../SECURITY/">
       
       
-        <link rel="next" href="../telemetry/">
+        <link rel="next" href="../xml-encryption/">
       
       
         
@@ -2285,6 +2285,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#key-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#certificate-details-distinguished-name" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2592,6 +2603,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../xml-encryption/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XML Encryption
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -3207,6 +3246,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#key-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#certificate-details-distinguished-name" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3534,8 +3584,10 @@
 <blockquote>
 <p><strong>Note:</strong> Signing, signature validation (including detailed and PKIX
 trust/chain/revocation/timestamp validation) and self-signed certificate creation
-live on the <strong>Signature page</strong> of the Unified Shell. Click <strong>Signature</strong> in the activity
-bar to open it as a tab in the main editor area.</p>
+live on the <strong>Sign &amp; Encrypt</strong> page of the Unified Shell. Click <strong>Sign &amp; Encrypt</strong> in the
+activity bar to open it as a tab in the main editor area. The same page encrypts and decrypts
+XML - see <a href="../xml-encryption/">XML Encryption</a>. On the command line: <code>fxt-cli sign</code> and
+<code>fxt-cli verify</code> (<a href="../command-line/#sign">Command Line</a>).</p>
 </blockquote>
 <p>This tool lets you digitally sign XML documents and verify signatures. A digital signature proves that a document is authentic and hasn't been changed.</p>
 <hr>
@@ -3544,9 +3596,9 @@ bar to open it as a tab in the main editor area.</p>
 <a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-signature-dark.png#only-dark" data-desc-position="bottom"><img alt="Signature activity in the Unified Shell" src="../img/unified-shell-signature-dark.png#only-dark"></a>
 <em>Signing, validation and certificate creation live on the Signature page (screenshot may show an older layout)</em></p>
 <h3 id="what-can-you-do">What Can You Do?<a class="headerlink" href="#what-can-you-do" title="Permanent link">¶</a></h3>
-<p>In the <a href="../unified-shell/">Unified Shell</a>, click <strong>Signature</strong> in the activity bar. The
-<strong>Signature</strong> page opens as a tab in the main editor area, and the side panel on the left lists
-the four actions in order of use. Click an action to show it on the page; the current action is
+<p>In the <a href="../unified-shell/">Unified Shell</a>, click <strong>Sign &amp; Encrypt</strong> in the activity bar. The
+page opens as a tab in the main editor area, and the side panel on the left lists the actions in
+order of use (Encrypt, Decrypt and Inspect Encryption are described in <a href="../xml-encryption/">XML Encryption</a>). Click an action to show it on the page; the current action is
 highlighted, and the status message of the previously selected action is cleared:</p>
 <table>
 <thead>
@@ -3644,6 +3696,10 @@ highlighted, and the status message of the previously selected action is cleared
 <p>Before signing documents, you need a digital certificate (like a digital ID card).</p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/signature-create-cert.png" data-desc-position="bottom"><img alt="Create Certificate" src="../img/signature-create-cert.png"></a>
 <em>Certificate creation form with DN details</em></p>
+<h3 id="key-type">Key Type<a class="headerlink" href="#key-type" title="Permanent link">¶</a></h3>
+<p><strong>RSA 2048</strong> <em>(default)</em>, <strong>RSA 3072</strong>, <strong>RSA 4096</strong>, or an elliptic curve key <strong>EC P-256</strong>,
+<strong>EC P-384</strong>, <strong>EC P-521</strong>. EC keys sign with ECDSA and receive encrypted documents with ECDH-ES
+(<a href="../xml-encryption/">XML Encryption</a>); RSA keys sign with RSA or RSA-PSS and receive with RSA-OAEP.</p>
 <h3 id="certificate-details-distinguished-name">Certificate Details (Distinguished Name)<a class="headerlink" href="#certificate-details-distinguished-name" title="Permanent link">¶</a></h3>
 <p>All fields are optional - blank ones are simply omitted from the subject.</p>
 <table>
@@ -3773,7 +3829,7 @@ highlighted, and the status message of the previously selected action is cleared
 </table>
 <h3 id="how-to-create-a-certificate">How to Create a Certificate<a class="headerlink" href="#how-to-create-a-certificate" title="Permanent link">¶</a></h3>
 <ol>
-<li>On the <strong>Signature</strong> page, choose <strong>Create Certificate</strong> in the side panel</li>
+<li>On the <strong>Sign &amp; Encrypt</strong> page, choose <strong>Create Certificate</strong> in the side panel</li>
 <li>Fill in the alias and both passwords in the <strong>KEYSTORE</strong> section</li>
 <li>Fill in the Distinguished Name fields</li>
 <li>Click <strong>"Create Certificate"</strong></li>
@@ -3814,8 +3870,8 @@ with the active document.</p>
 <td><strong>Enveloped</strong> <em>(default)</em>, <strong>Enveloping</strong> or <strong>Detached</strong> (see below). With <strong>Detached</strong> selected, a hint explains that a separate <code>&lt;name&gt;.sig.xml</code> is written - validate that file and keep both files in the same folder</td>
 </tr>
 <tr>
-<td><strong>SIGNATURE OPTIONS - Algorithm</strong></td>
-<td>Read-only: <code>RSA-SHA256 · C14N exclusive</code></td>
+<td><strong>SIGNATURE OPTIONS - Signature method, Digest, Canonicalization</strong></td>
+<td><strong>Automatic</strong> picks RSA-SHA256 for RSA keys and ECDSA-SHA256 for EC keys; also RSA-SHA384/512, RSA-PSS (SHA-256/384/512) and ECDSA-SHA384/512. Digest SHA-256 <em>(default)</em>, SHA-384 or SHA-512. Canonicalization exclusive <em>(default)</em>, inclusive or C14N 1.1, each with or without comments. SHA-1 is not offered and is rejected on verification</td>
 </tr>
 <tr>
 <td><strong>Sign Document</strong></td>
@@ -3862,7 +3918,7 @@ the signature references the file by name and cannot be verified without it.</p>
 </blockquote>
 <h3 id="how-to-sign-a-document">How to Sign a Document<a class="headerlink" href="#how-to-sign-a-document" title="Permanent link">¶</a></h3>
 <ol>
-<li>Open the <strong>Signature</strong> page and choose <strong>Sign XML File</strong> in the side panel</li>
+<li>Open the <strong>Sign &amp; Encrypt</strong> page and choose <strong>Sign XML File</strong> in the side panel</li>
 <li>Select your keystore in the <strong>KEYSTORE</strong> section - click
    <strong>Change</strong>, pick a favorited keystore from the <strong>star menu</strong> next to the keystore row (see
    <a href="#favorites-integration">Favorites Integration</a> below), or <strong>drop</strong> a keystore file
@@ -3893,7 +3949,7 @@ The highlight disappears as soon as you start typing.</p>
 <li>Right after signing, click <strong>Validate this signature</strong> below the status line - it switches to
    <strong>Validate Signature</strong> with the signed file and runs the check. Otherwise open the signed XML
    file in the editor (it becomes the active document)</li>
-<li>On the <strong>Signature</strong> page, choose <strong>Validate Signature</strong> in the side panel</li>
+<li>On the <strong>Sign &amp; Encrypt</strong> page, choose <strong>Validate Signature</strong> in the side panel</li>
 <li>Check the <strong>DOCUMENT</strong> row - it shows the active document; click <strong>Browse</strong> to check a
    different file</li>
 <li>Click the <strong>Run Validation</strong> button</li>
@@ -4007,7 +4063,7 @@ comes from a trusted source (PKIX path validation).</p>
 </table>
 <h3 id="how-to-run-trust-validation">How to Run Trust Validation<a class="headerlink" href="#how-to-run-trust-validation" title="Permanent link">¶</a></h3>
 <ol>
-<li>Open the signed XML document, then choose <strong>Expert Mode</strong> on the <strong>Signature</strong> page (the
+<li>Open the signed XML document, then choose <strong>Expert Mode</strong> on the <strong>Sign &amp; Encrypt</strong> page (the
    DOCUMENT row shows the active document; <strong>Browse</strong> picks a different file).</li>
 <li>(Optional) Click <strong>Change</strong> in the trust store row to choose the trust store to validate
    against - or pick a favorited keystore from the <strong>star menu</strong> next to the trust store row.
@@ -4182,7 +4238,8 @@ useful ones here:</p>
 <h3 id="can-i-sign-multiple-files-at-once">Can I sign multiple files at once?<a class="headerlink" href="#can-i-sign-multiple-files-at-once" title="Permanent link">¶</a></h3>
 <p>Currently, files must be signed one at a time.</p>
 <h3 id="what-signature-type-is-used">What signature type is used?<a class="headerlink" href="#what-signature-type-is-used" title="Permanent link">¶</a></h3>
-<p>The tool creates XML signatures (XMLDSig) with RSA-SHA256 and exclusive canonicalization.
+<p>The tool creates XML signatures (XMLDSig) with RSA-SHA256 (RSA keys) or ECDSA-SHA256 (EC keys)
+and exclusive canonicalization unless you choose other algorithms in the Sign form.
 You choose the structure in the Sign form: <strong>enveloped</strong> (default - the signature is embedded
 within the XML document), <strong>enveloping</strong> (the content is wrapped inside the signature document)
 or <strong>detached</strong> (a separate <code>.sig.xml</code> file referencing the original).</p>
@@ -4242,13 +4299,13 @@ or <strong>detached</strong> (a separate <code>.sig.xml</code> file referencing 
         
         
           
-          <a href="../telemetry/" class="md-footer__link md-footer__link--next" aria-label="Next: Privacy &amp; Telemetry">
+          <a href="../xml-encryption/" class="md-footer__link md-footer__link--next" aria-label="Next: XML Encryption">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Privacy &amp; Telemetry
+                XML Encryption
               </div>
             </div>
             <div class="md-footer__button md-icon">

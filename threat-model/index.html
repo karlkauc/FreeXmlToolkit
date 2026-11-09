@@ -2191,6 +2191,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../xml-encryption/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XML Encryption
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../telemetry/" class="md-nav__link">
         
   
@@ -2938,7 +2966,7 @@ release, see <a href="../licenses/#software-bill-of-materials-sbom">Licenses</a>
 <tbody>
 <tr>
 <td><strong>XXE</strong>: an XML document reads local files or URLs through external entities</td>
-<td>Parsers are created by one factory with external general and parameter entities off, external DTD loading off and JAXP secure processing on. In the editor, internal entities are not expanded. A DOCTYPE is allowed (internal subsets are common in real files). XML signature files reject any DOCTYPE. The parser Saxon reads documents with (XPath, XQuery, XSLT, grid formulas and filters) gets the same settings.</td>
+<td>Parsers are created by one factory with external general and parameter entities off, external DTD loading off and JAXP secure processing on. In the editor, internal entities are not expanded. A DOCTYPE is allowed (internal subsets are common in real files). Signature trust checks and every document read for XML encryption or decryption reject any DOCTYPE. The parser Saxon reads documents with (XPath, XQuery, XSLT, grid formulas and filters) gets the same settings.</td>
 <td>–</td>
 </tr>
 <tr>
@@ -2995,6 +3023,11 @@ release, see <a href="../licenses/#software-bill-of-materials-sbom">Licenses</a>
 <td><strong>Forged or weak XML signatures</strong></td>
 <td>Verification uses the JDK's XML DSig with its secure-validation default; SHA-1 is rejected; references resolve only to plain file names in the signature's own folder.</td>
 <td>–</td>
+</tr>
+<tr>
+<td><strong>Attacks through encrypted documents</strong> (padding / Bleichenbacher oracles, oversized or crafted structures, CipherReference to other files)</td>
+<td>Decryption runs Santuario with secure validation; RSA-1_5, TripleDES and CBC modes are marked legacy, warned about and can be blocked by policy (<code>xmlenc.legacyAlgorithms.allowed=false</code>); AES-GCM and RSA-OAEP are the defaults. At most 10,000 EncryptedData, 64 EncryptedKeys each and 10 million PBKDF2 iterations; a CipherReference only to a file next to the document (512 MB at most). Decrypted documents open unsaved.</td>
+<td>Error messages say only that no key fits, not why.</td>
 </tr>
 <tr>
 <td><strong>Man in the middle on updates</strong></td>

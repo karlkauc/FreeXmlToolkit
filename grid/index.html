@@ -2260,6 +2260,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../xml-encryption/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XML Encryption
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../telemetry/" class="md-nav__link">
         
   
@@ -2956,7 +2984,8 @@ shows the editable grid, laid out as follows:</p>
   follows the declared type: a <strong>dropdown</strong> for enumerations (elements and attributes, in tree rows,
   table columns and opened cells), date pickers, number spinners, length/pattern checks - also comments, CDATA sections
   and processing instructions; double-click the name of an attribute or a processing
-  instruction to rename it. <strong>Click the type icon</strong> of a row (or press <strong>Ctrl+Alt+T</strong>) to
+  instruction to rename it. <strong>Enter</strong> or a click anywhere else keeps the new value, <strong>Esc</strong>
+  discards it. A context menu closes as soon as you click somewhere else. <strong>Click the type icon</strong> of a row (or press <strong>Ctrl+Alt+T</strong>) to
   change the node's type - element, attribute, text, CDATA, comment or processing instruction;
   name and value are kept, attributes move into their element's attribute list. Containers
   with child elements keep their type. <strong>Wrap in Element…</strong> (<strong>Ctrl+Alt+W</strong>, context menu)
@@ -2972,7 +3001,9 @@ shows the editable grid, laid out as follows:</p>
 <li><strong>Validation markers.</strong> After a validation (Validation panel), rows whose element has a
   problem show a red <strong>!</strong> at the end of the name cell and a red value; hover the row for the
   message. Problems inside a repeating group mark the member's row number. The markers clear
-  on the next grid edit and come back with the next validation.</li>
+  on the next grid edit and come back with the next validation. Selecting a problem in the
+  PROBLEMS panel keeps the grid open and reveals it: the row or table cell is selected, opened on
+  the way and briefly highlighted.</li>
 <li><strong>Split view.</strong> The header's <strong>⋯</strong> menu splits the grid <em>top / bottom</em> or <em>side by side</em> into
   two views of the same document; each scrolls, expands and selects on its own, and an edit in
   one appears in the other at once. <em>Single view</em> closes the second one.</li>

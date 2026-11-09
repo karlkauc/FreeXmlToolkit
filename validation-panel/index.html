@@ -2293,6 +2293,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../xml-encryption/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XML Encryption
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../telemetry/" class="md-nav__link">
         
   
@@ -3023,8 +3051,16 @@ editor to copy it: <strong>Copy Message</strong> (just the message text), <stron
 source, message, file and line/column, plus rule and context for Schematron) or <strong>Copy All
 Problems</strong> (one problem per line). <strong>Ctrl+C</strong> (<strong>Cmd+C</strong> on macOS) copies the selected row
 like Copy Problem.</p>
-<p>Selecting a problem in either list jumps to its line - and, for XML and XSD errors, to the
-reported column - in the editor (Text view). This works for
+<p>Selecting a problem in either list shows it <strong>in the view you are in</strong>:</p>
+<ul>
+<li><strong>Text</strong> - the caret jumps to its line and, for XML and XSD errors, to the reported column.</li>
+<li><strong>Tree</strong> - the element of that line is selected and scrolled into view.</li>
+<li><strong>Graphic</strong> - the grid selects the element's row; inside a repeating group it opens the table,
+  selects the cell (the attribute's cell when the message names an attribute) and opens table
+  cells on the way to errors nested deeper. The row or cell flashes briefly, the red problem
+  marker stays. For an XSD the diagram selects the schema node.</li>
+</ul>
+<p>The view does not change. This works for
 <strong>Schematron problems too</strong>: the failing rule's context node is resolved back to its
 line in the XML, so a click navigates straight to the offending element.</p>
 <p>Schematron problems whose rules define <strong>quick fixes</strong> (SQF)
