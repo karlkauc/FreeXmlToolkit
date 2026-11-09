@@ -36,8 +36,8 @@ plugins {
     pmd
     checkstyle
     id("com.github.spotbugs") version "6.5.13"
-    id("com.diffplug.spotless") version "8.10.4"
-    id("io.github.ben-manes.versions") version "0.66.0"
+    id("com.diffplug.spotless") version "8.11.0"
+    id("io.github.ben-manes.versions") version "0.67.0"
     // Software bill of materials (CycloneDX) for every release: ./gradlew cyclonedxBom
     id("org.cyclonedx.bom") version "3.5.1"
 }
@@ -83,7 +83,7 @@ dependencies {
         exclude(group = "org.jline")
     }
     // XML Calabash's resolver (same version): XProcSecurity restricts its network access
-    implementation("org.xmlresolver:xmlresolver:6.1.0")
+    implementation("org.xmlresolver:xmlresolver:6.1.1")
     // RELAX NG validation (Jing) and DTD / RELAX NG to XSD conversion for IntelliSense (Trang), BSD-3-Clause.
     // Jing's old Saxon 9.6 (used only by its Schematron bridge) is excluded: Saxon 12 is on the path.
     implementation("org.relaxng:jing:20241231") {
@@ -112,21 +112,21 @@ dependencies {
     */
 
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.5")
-    implementation("com.google.code.gson:gson:2.14.0")
+    implementation("com.google.code.gson:gson:2.15.0")
     // YAML 1.2 reader for the XML/JSON/YAML conversion (DataFormatConverter); already pulled in by jackson-dataformat-yaml
-    implementation("org.snakeyaml:snakeyaml-engine:3.0.1")
+    implementation("org.snakeyaml:snakeyaml-engine:3.2")
     // XML-aware comparison (XmlStructuralDiff): structural diff with element matching
     implementation("org.xmlunit:xmlunit-core:2.14.0")
     // ${xmlunit.ignore} / isNumber / matchesRegex / isDateTime in the expected document (Compare, scenario checks)
     implementation("org.xmlunit:xmlunit-placeholders:2.14.0")
     // XSpec test framework (stylesheets for XSLT, XQuery and Schematron tests; MIT) - XSpecRunner
-    implementation("io.xspec:xspec:3.2.2") {
+    implementation("io.xspec:xspec:4.1.2") {
         isTransitive = false
     }
 
     // JSON Editor support
     implementation("de.marhali:json5-java:3.0.0")                  // JSON5 support (comments, trailing commas)
-    implementation("com.networknt:json-schema-validator:3.0.8")    // JSON Schema validation
+    implementation("com.networknt:json-schema-validator:3.0.9")    // JSON Schema validation
     implementation("com.jayway.jsonpath:json-path:3.0.0")          // JSONPath queries
     // Icons are rendered by the in-house IconifyIcon control (controls/icons) using bundled
     // Iconify SVG data under resources/icons/iconify/. Ikonli was removed in favour of it.
@@ -202,12 +202,12 @@ dependencies {
     testImplementation("org.testfx:openjfx-monocle:21.0.2")
     testImplementation("org.hamcrest:hamcrest:3.0")
 
-    implementation(platform("com.helger.schematron:ph-schematron-parent-pom:10.2.0"))
-    implementation("com.helger.schematron:ph-schematron-api:10.2.0")
+    implementation(platform("com.helger.schematron:ph-schematron-parent-pom:10.3.1"))
+    implementation("com.helger.schematron:ph-schematron-api:10.3.1")
     runtimeOnly("org.glassfish.jaxb:jaxb-runtime:4.0.9") // JAXB impl for ph-schematron's SVRL marshalling
-    implementation("com.helger.schematron:ph-schematron-xslt:10.2.0")
-    implementation("com.helger.schematron:ph-schematron-pure:10.2.0")
-    implementation("com.helger.schematron:ph-schematron-schxslt:10.2.0")
+    implementation("com.helger.schematron:ph-schematron-xslt:10.3.1")
+    implementation("com.helger.schematron:ph-schematron-pure:10.3.1")
+    implementation("com.helger.schematron:ph-schematron-schxslt:10.3.1")
 }
 
 // Java Toolchain Configuration - Use JDK with JavaFX included

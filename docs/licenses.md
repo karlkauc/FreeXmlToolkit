@@ -40,24 +40,24 @@ and `bom.xml`.
 | **Saxon-HE** (net.sf.saxon:Saxon-HE) | 12.10 | [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/) |
 | **XML Calabash** (com.xmlcalabash:xmlcalabash) | 3.0.54 | [MIT License](https://opensource.org/licenses/MIT) |
 | **Jakarta XML Bind API** (jakarta.xml.bind:jakarta.xml.bind-api) | 4.0.5 | [Eclipse Distribution License 1.0](https://www.eclipse.org/org/documents/edl-v10.php) |
-| **Gson** (com.google.code.gson:gson) | 2.14.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Gson** (com.google.code.gson:gson) | 2.15.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
 ## JSON Processing
 
 | Library | Version | License |
 |---------|---------|---------|
 | **JSONPath** (com.jayway.jsonpath:json-path) | 3.0.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **JSON Schema Validator** (com.networknt:json-schema-validator) | 3.0.8 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **JSON Schema Validator** (com.networknt:json-schema-validator) | 3.0.9 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **JSON5 Java** (de.marhali:json5-java) | 3.0.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **SnakeYAML Engine** (org.snakeyaml:snakeyaml-engine, YAML) | 3.0.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **SnakeYAML Engine** (org.snakeyaml:snakeyaml-engine, YAML) | 3.2 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **XMLUnit** (org.xmlunit:xmlunit-core + xmlunit-placeholders, XML comparison) | 2.14.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **XSpec** (io.xspec:xspec, test framework; bundles SchXslt) | 3.2.2 | [MIT License](https://opensource.org/licenses/MIT) |
+| **XSpec** (io.xspec:xspec, test framework; bundles SchXslt) | 4.1.2 | [MIT License](https://opensource.org/licenses/MIT) |
 
 ## Schematron Validation
 
 | Library | Version | License |
 |---------|---------|---------|
-| **ph-schematron** (com.helger.schematron:ph-schematron-pure / -xslt / -schxslt / -api) | 10.2.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **ph-schematron** (com.helger.schematron:ph-schematron-pure / -xslt / -schxslt / -api) | 10.3.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **JAXB Runtime** (org.glassfish.jaxb:jaxb-runtime, SVRL marshalling) | 4.0.9 | [Eclipse Distribution License 1.0](https://www.eclipse.org/org/documents/edl-v10.php) |
 | **ph-commons** (com.helger.commons:ph-commons / ph-xml / ph-io) | 12.x | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 

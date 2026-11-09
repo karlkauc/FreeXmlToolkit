@@ -107,6 +107,23 @@ public final class XSpecRunner {
 
     public XSpecRunner() {
         this.processor = SaxonResourceAccess.restrictedProcessor();
+        // XSpec's stylesheets read files next to themselves with unparsed-text() (VERSION, report
+        // styles); inside the application's jar Saxon cannot infer their encoding: read them as UTF-8
+        var config = processor.getUnderlyingConfiguration();
+        net.sf.saxon.lib.UnparsedTextURIResolver delegate = config.getUnparsedTextURIResolver();
+        config.setUnparsedTextURIResolver((absoluteURI, encoding, cfg) -> {
+            String uri = absoluteURI == null ? "" : absoluteURI.toString();
+            int entry = uri.indexOf("!/");
+            if (uri.startsWith("jar:") && entry > 0) {
+                InputStream in = XSpecRunner.class.getResourceAsStream(uri.substring(entry + 1));
+                if (in == null) {
+                    throw new net.sf.saxon.trans.XPathException("Cannot read " + uri, "FOUT1170");
+                }
+                return new java.io.InputStreamReader(in,
+                        encoding != null ? java.nio.charset.Charset.forName(encoding) : StandardCharsets.UTF_8);
+            }
+            return delegate.resolve(absoluteURI, encoding, cfg);
+        });
     }
 
     /** @return whether a document is an XSpec description ({@code x:description} root) */

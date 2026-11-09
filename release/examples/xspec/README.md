@@ -2,7 +2,7 @@
 
 [XSpec](https://github.com/xspec/xspec) is a unit-test framework for XSLT, XQuery and
 Schematron: a `.xspec` file describes scenarios — an input, a call or a context — and what
-the code under test must return. FreeXmlToolkit bundles XSpec 3 and runs the tests with its
+the code under test must return. FreeXmlToolkit bundles XSpec 4 and runs the tests with its
 Saxon-HE engine; nothing else needs to be installed.
 
 **The `.xsl`, `.xqm` and `.sch` files are the code under test, the `.xspec` files the tests.**

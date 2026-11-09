@@ -837,7 +837,7 @@ public class TemplateRepository {
 
     private void addXSpecTemplate(XmlTemplate template) {
         template.setFileExtensions(java.util.Set.of("xspec"));
-        template.addRelatedStandard("XSpec 3");
+        template.addRelatedStandard("XSpec 4");
         template.setTags(java.util.List.of("xspec", "test", "unit test"));
         template.setComplexity(XmlTemplate.TemplateComplexity.SIMPLE);
         template.setBuiltIn(true);

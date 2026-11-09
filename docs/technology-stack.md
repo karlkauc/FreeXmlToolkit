@@ -20,14 +20,14 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 ### XML Processing
 - **Saxon HE:** 12.10 - XSLT 3.0, XPath 3.1 and XQuery processing engine
 - **XML Calabash:** 3.0.54 - XProc 3.0 pipeline engine (Run Pipeline for `.xpl`/`.xproc` files)
-- **ph-schematron:** 10.2.0 - Schematron validation (pure, XSLT and SchXslt engines)
+- **ph-schematron:** 10.3.1 - Schematron validation (pure, XSLT and SchXslt engines)
 - **Jakarta XML Bind API:** 4.0.5 - XML binding and marshalling
 - **Apache Xerces:** 2.12.2 (exist-db fork) - XSD 1.1 validation with assertions support
 
 ### JSON Processing
-- **Gson:** 2.14.0 - JSON parsing and serialization
+- **Gson:** 2.15.0 - JSON parsing and serialization
 - **JSONPath:** 3.0.0 (Jayway) - JSONPath query language support
-- **JSON Schema Validator:** 3.0.8 (NetworkNT) - JSON Schema validation (Draft-07, 2019-09, 2020-12)
+- **JSON Schema Validator:** 3.0.9 (NetworkNT) - JSON Schema validation (Draft-07, 2019-09, 2020-12)
 
 ### PDF Generation
 - **Apache FOP:** 2.12 - XSL-FO to PDF transformation

@@ -347,7 +347,7 @@ On the command line, `fxt-cli transform --profile report.json …` profiles a st
 
 ## Testing with XSpec
 
-[XSpec](https://github.com/xspec/xspec) tests are part of FreeXmlToolkit (XSpec 3, bundled): unit
+[XSpec](https://github.com/xspec/xspec) tests are part of FreeXmlToolkit (XSpec 4, bundled): unit
 tests for XSLT stylesheets, XQuery modules and Schematron, written as `.xspec` files.
 
 ```xml
