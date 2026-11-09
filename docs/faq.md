@@ -4,6 +4,13 @@ Answers to common questions and fixes for typical problems. If your problem is n
 send a report from inside the app with **Help → Report a Problem…** or open an issue on
 [GitHub](https://github.com/karlkauc/FreeXmlToolkit/issues).
 
+## General
+
+### How does FreeXmlToolkit compare to Oxygen XML Editor, XMLSpy or XMLBlueprint?
+
+See [Comparison with Other Editors](comparison.md): a feature table with sources, including the
+areas where the other editors offer more.
+
 ## Starting and Display
 
 ### Application Does Not Start (Windows)
