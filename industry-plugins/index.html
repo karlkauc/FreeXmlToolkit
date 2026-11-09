@@ -2065,10 +2065,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#findatex-templates-emt-eet-ept" class="md-nav__link">
+  <a href="#findatex-templates-emt-eet-ept-tpt" class="md-nav__link">
     <span class="md-ellipsis">
       
-        FinDatEx Templates (EMT, EET, EPT)
+        FinDatEx Templates (EMT, EET, EPT, TPT)
       
     </span>
   </a>
@@ -2810,10 +2810,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#findatex-templates-emt-eet-ept" class="md-nav__link">
+  <a href="#findatex-templates-emt-eet-ept-tpt" class="md-nav__link">
     <span class="md-ellipsis">
       
-        FinDatEx Templates (EMT, EET, EPT)
+        FinDatEx Templates (EMT, EET, EPT, TPT)
       
     </span>
   </a>
@@ -2941,16 +2941,31 @@ standard's repository on GitHub (<code>austriapro/ebinterface-standards</code>).
 </table>
 <p>Amounts may differ by one cent of rounding. <strong>Side panel:</strong> document type, number, date, biller,
 number of lines and payable amount; <strong>New ebInterface 6.1 Invoice</strong> opens a schema-valid sample.</p>
-<h2 id="findatex-templates-emt-eet-ept">FinDatEx Templates (EMT, EET, EPT)<a class="headerlink" href="#findatex-templates-emt-eet-ept" title="Permanent link">&para;</a></h2>
-<p>For the FinDatEx data templates: <strong>EMT V4.3</strong> (European MiFID Template), <strong>EET V1.1.3</strong> (European
-ESG Template) and <strong>EPT V2.1</strong> (European PRIIPs Template). FinDatEx publishes no XML Schema; the
-templates are exchanged as CSV or Excel files. The plugin carries the field definitions of the
-official specifications (code, definition, codification, mandatory flag).</p>
+<h2 id="findatex-templates-emt-eet-ept-tpt">FinDatEx Templates (EMT, EET, EPT, TPT)<a class="headerlink" href="#findatex-templates-emt-eet-ept-tpt" title="Permanent link">&para;</a></h2>
+<p>For the FinDatEx data templates:</p>
+<ul>
+<li><strong>EMT V4.3</strong> (European MiFID Template)</li>
+<li><strong>EET V1.1.3</strong> (European ESG Template)</li>
+<li><strong>EPT V2.1</strong> (European PRIIPs Template)</li>
+<li><strong>TPT V7.0 and V8.0</strong> (Solvency II Tripartite Template)</li>
+</ul>
+<p>FinDatEx publishes no XML Schema; the templates are exchanged as CSV or Excel files. The plugin
+carries the field definitions of the official specifications: code, definition, codification,
+mandatory flag and, for TPT, the CIC categories each field applies to.</p>
+<p><strong>TPT V7 and V8:</strong> TPT V7 is required for the production of December 2026, V8 becomes mandatory
+for the end-March 2027 production, and both may be used in the transition. The plugin checks a file
+against the version its <code>1000_TPT_Version</code> field names (<code>V7.0</code> or <code>V8.0</code>). A file naming another
+version is checked against V8 and the version is reported.</p>
 <p><strong>Opening a file:</strong> open the CSV file like any other file, or use <strong>Open Excel Template File…</strong> in
-the side panel: the first sheet opens as semicolon-separated text (dates as <code>YYYY-MM-DD</code>, numbers
-without formatting). Both layouts are recognised: one instrument per row under a header row of field
-codes, or one field per row with one instrument per column. The separator (<code>;</code>, <code>,</code>, <code>|</code> or tab) is
-detected. <strong>New EMT / EET / EPT File</strong> creates a file with the template's header row.</p>
+the side panel. The first sheet then opens as semicolon-separated text, with dates as <code>YYYY-MM-DD</code>
+and numbers without formatting.</p>
+<p>Both layouts are recognised:</p>
+<ul>
+<li>one instrument per row, under a header row of field codes;</li>
+<li>one field per row, with one instrument per column.</li>
+</ul>
+<p>The separator (<code>;</code>, <code>,</code>, <code>|</code> or tab) is detected. <strong>New EMT / EET / EPT / TPT V7.0 / TPT V8.0 File</strong>
+creates a file with the template's header row.</p>
 <p><strong>Check Active Document</strong> checks:</p>
 <table>
 <thead>
@@ -2965,7 +2980,7 @@ detected. <strong>New EMT / EET / EPT File</strong> creates a file with the temp
 <td>warning / error</td>
 </tr>
 <tr>
-<td>the template version (<code>00001_EMT_Version</code> …) is the one the checks follow</td>
+<td>the template version (<code>00001_EMT_Version</code>, <code>1000_TPT_Version</code> …) is the one the checks follow</td>
 <td>warning</td>
 </tr>
 <tr>
@@ -2973,26 +2988,33 @@ detected. <strong>New EMT / EET / EPT File</strong> creates a file with the temp
 <td>error</td>
 </tr>
 <tr>
-<td>closed code lists (<code>Y / N</code>, <code>Y / N / Neutral</code>, <code>R / P / B / N</code> …)</td>
+<td>closed code lists (<code>Y / N</code>, <code>Y / N / Neutral</code>, <code>R / P / B / N</code>, TPT lists such as <code>"Fixed"</code> / <code>"Floating"</code> …)</td>
 <td>error</td>
 </tr>
 <tr>
-<td>currencies (ISO 4217), LEIs (check digits), text lengths</td>
+<td>currencies (ISO 4217), countries (ISO 3166), LEIs (check digits), text lengths</td>
 <td>error</td>
 </tr>
 <tr>
-<td>the instrument identifier is a valid ISIN when its identification type is <code>1</code></td>
+<td>CIC codes (TPT: country or <code>XL</code>/<code>XT</code>, category <code>0</code>–<code>9</code> / <code>A</code>–<code>F</code>, subcategory)</td>
 <td>error</td>
 </tr>
 <tr>
-<td>mandatory fields of the general sections (data set information, instrument or manufacturer information) are present and filled</td>
+<td>the instrument identifier is a valid ISIN when its identification type is <code>1</code>; in TPT also the issuer and group identifiers, which must then be a valid LEI</td>
+<td>error</td>
+</tr>
+<tr>
+<td>mandatory fields are present and filled: in EMT/EET/EPT those of the general sections (data set information, instrument or manufacturer information); in TPT those flagged M for the instrument's CIC category</td>
 <td>warning</td>
 </tr>
 </tbody>
 </table>
-<p>Mandatory and conditional fields of the other sections depend on the reporting flags and on the
-product; they are not checked. At most 500 value problems are listed per file. Problems name the row
-(or instrument column), the instrument's identifier and the field, and jump to the line.</p>
+<p>In EMT, EET and EPT, the mandatory and conditional fields of the other sections depend on the
+reporting flags and on the product, so they are not checked. TPT conditional fields (C) are not
+checked either.</p>
+<p>At most 500 value problems are listed per file. Problems name the row (or instrument column), the
+instrument's identifier and the field, and jump to the line. In TPT the identifier is
+<code>14_Identification_code_of_the_instrument</code>.</p>
 <h2 id="xbrl-with-arelle">XBRL (with Arelle)<a class="headerlink" href="#xbrl-with-arelle" title="Permanent link">&para;</a></h2>
 <p>For XBRL instances (root <code>xbrli:xbrl</code>) and inline XBRL reports (XHTML with <code>ix:</code> facts). XBRL
 validation needs the taxonomy — XBRL 2.1, dimensions, calculations and formulas — which is what
