@@ -109,7 +109,21 @@ public final class XmlEncryptionService {
     }
 
     /** Which X509 information the EncryptedKey names for a certificate recipient. */
-    public enum X509Reference { CERTIFICATE, ISSUER_SERIAL, SKI, SUBJECT_NAME, NONE }
+    public enum X509Reference {
+        CERTIFICATE("Whole certificate"), ISSUER_SERIAL("Issuer and serial number"), SKI("Subject key identifier"),
+        SUBJECT_NAME("Subject name"), NONE("None");
+
+        private final String label;
+
+        X509Reference(String label) {
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
 
     /** One recipient of the data key. */
     public sealed interface Recipient permits PublicKeyRecipient, SymmetricRecipient, PasswordRecipient {

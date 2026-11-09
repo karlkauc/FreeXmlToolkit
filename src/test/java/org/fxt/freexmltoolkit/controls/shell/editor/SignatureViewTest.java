@@ -99,7 +99,7 @@ class SignatureViewTest {
 
         assertEquals(java.util.List.of("sign", "validate", "create", "expert"), shown,
                 "the side panel learns the current action, then every switch");
-        assertEquals(java.util.List.of("sign", "validate", "create", "expert"),
+        assertEquals(java.util.List.of("sign", "validate", "encrypt", "decrypt", "inspect", "create", "expert"),
                 SignatureView.SECTIONS.stream().map(PageNavigator.Entry::key).toList(), "order of use");
     }
 

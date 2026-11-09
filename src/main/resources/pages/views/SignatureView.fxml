@@ -2,10 +2,13 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.control.Tooltip?>
@@ -28,6 +31,8 @@
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <fx:define>
         <ToggleGroup fx:id="typeGroup"/>
+        <ToggleGroup fx:id="encTargetGroup"/>
+        <ToggleGroup fx:id="decKeyGroup"/>
     </fx:define>
     <content>
         <StackPane styleClass="fxt-sign-view-wrap">
@@ -148,11 +153,26 @@
                                 <Label fx:id="detachedHint" id="sign-detached-hint" wrapText="true" visible="false"
                                        managed="false" styleClass="fxt-placeholder-text"
                                        text="%SignatureView.detachedHint.text"/>
-                                <HBox alignment="CENTER_LEFT">
+                                <HBox spacing="16">
                                     <children>
-                                        <Label text="%SignatureView.algorithm.text" styleClass="fxt-sig-field-label"/>
-                                        <Region HBox.hgrow="ALWAYS"/>
-                                        <Label text="%SignatureView.rsa-sha256-c14n-exclusive.text" styleClass="fxt-sign-algo"/>
+                                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                            <children>
+                                                <Label text="%SignatureView.signature-method.text" styleClass="fxt-sig-field-label"/>
+                                                <ComboBox fx:id="signMethod" id="sign-method" maxWidth="Infinity"/>
+                                            </children>
+                                        </VBox>
+                                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                            <children>
+                                                <Label text="%SignatureView.digest.text" styleClass="fxt-sig-field-label"/>
+                                                <ComboBox fx:id="signDigest" id="sign-digest" maxWidth="Infinity"/>
+                                            </children>
+                                        </VBox>
+                                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                            <children>
+                                                <Label text="%SignatureView.canonicalization.text" styleClass="fxt-sig-field-label"/>
+                                                <ComboBox fx:id="signC14n" id="sign-c14n" maxWidth="Infinity"/>
+                                            </children>
+                                        </VBox>
                                     </children>
                                 </HBox>
                                 <Button id="sign-card-run" text="%SignatureView.sign-card-run.text" maxWidth="Infinity"
@@ -220,10 +240,249 @@
                                         <TextField fx:id="countryField" promptText="%SignatureView.countryField.promptText" HBox.hgrow="ALWAYS"/>
                                     </children>
                                 </HBox>
+                                <HBox spacing="12" alignment="CENTER_LEFT">
+                                    <children>
+                                        <Label text="%SignatureView.key-type.text" styleClass="fxt-sig-field-label"/>
+                                        <ComboBox fx:id="keyTypeChoice" id="sig-create-key-type"/>
+                                        <Label text="%SignatureView.ec-keys-sign-with-ecdsa.text"
+                                               wrapText="true" styleClass="fxt-placeholder-text" HBox.hgrow="ALWAYS"/>
+                                    </children>
+                                </HBox>
                                 <Button id="sig-create-run" text="%SignatureView.sig-create-run.text" maxWidth="Infinity"
                                         styleClass="fxt-primary-button" onAction="#createCertificate">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-patch-plus" iconSize="15"/>
+                                    </graphic>
+                                </Button>
+                            </children>
+                        </VBox>
+
+                        <!-- ENCRYPT (XML Encryption 1.1): target, data algorithm, recipients, options -->
+                        <VBox fx:id="encryptSection" id="sig-section-encrypt" spacing="12">
+                            <children>
+                                <Label text="%SignatureView.what-to-encrypt.text" styleClass="fxt-sign-section-label"/>
+                                <HBox spacing="2" styleClass="fxt-seg-group">
+                                    <children>
+                                        <ToggleButton fx:id="encTargetDocument" id="enc-target-document" text="%SignatureView.encTargetDocument.text"
+                                                      toggleGroup="$encTargetGroup" selected="true" maxWidth="Infinity"
+                                                      HBox.hgrow="ALWAYS" styleClass="fxt-seg"/>
+                                        <ToggleButton fx:id="encTargetCaret" id="enc-target-caret" text="%SignatureView.encTargetCaret.text"
+                                                      toggleGroup="$encTargetGroup" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                                                      styleClass="fxt-seg"/>
+                                        <ToggleButton fx:id="encTargetXPath" id="enc-target-xpath" text="%SignatureView.encTargetXPath.text"
+                                                      toggleGroup="$encTargetGroup" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                                                      styleClass="fxt-seg"/>
+                                    </children>
+                                </HBox>
+                                <TextField fx:id="encXPath" id="enc-xpath" visible="false" managed="false"
+                                           promptText="%SignatureView.encXPath.promptText"/>
+                                <CheckBox fx:id="encContentOnly" id="enc-content-only"
+                                          text="%SignatureView.encContentOnly.text"/>
+                                <HBox spacing="12" alignment="CENTER_LEFT">
+                                    <children>
+                                        <Label text="%SignatureView.data-algorithm.text" styleClass="fxt-sig-field-label"/>
+                                        <Region HBox.hgrow="ALWAYS"/>
+                                        <ComboBox fx:id="encDataAlgorithm" id="enc-data-alg"/>
+                                    </children>
+                                </HBox>
+                                <Label text="%SignatureView.recipients.text" styleClass="fxt-sign-section-label"/>
+                                <VBox fx:id="recipientList" id="enc-recipients" spacing="6"/>
+                                <Label fx:id="recipientsEmpty" id="enc-recipients-empty" wrapText="true"
+                                       styleClass="fxt-placeholder-text"
+                                       text="%SignatureView.recipientsEmpty.text"/>
+                                <HBox spacing="8">
+                                    <children>
+                                        <Button id="enc-add-certificate" text="%SignatureView.enc-add-certificate.text" styleClass="fxt-tool-button"
+                                                onAction="#onAddCertificate">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-person-badge" iconSize="15"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="%SignatureView.a-recipient-s-certificate-or.text"/>
+                                            </tooltip>
+                                        </Button>
+                                        <Button id="enc-add-keystore" text="%SignatureView.enc-add-keystore.text" styleClass="fxt-tool-button"
+                                                onAction="#onAddKeystoreRecipient">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-file-earmark-lock" iconSize="15"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="%SignatureView.the-certificate-of-the-alias.text"/>
+                                            </tooltip>
+                                        </Button>
+                                        <Button id="enc-add-key-file" text="%SignatureView.enc-add-key-file.text" styleClass="fxt-tool-button"
+                                                onAction="#onAddKeyFile">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-key" iconSize="15"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="%SignatureView.a-shared-symmetric-key-16.text"/>
+                                            </tooltip>
+                                        </Button>
+                                        <Button id="enc-add-password" text="%SignatureView.enc-add-password.text" styleClass="fxt-tool-button"
+                                                onAction="#onAddPassword">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-asterisk" iconSize="15"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="%SignatureView.a-password-pbkdf2-derives-the.text"/>
+                                            </tooltip>
+                                        </Button>
+                                    </children>
+                                </HBox>
+                                <TitledPane fx:id="encAdvanced" id="enc-advanced" text="%SignatureView.encAdvanced.text" expanded="false"
+                                            animated="false">
+                                    <content>
+                                        <VBox spacing="8">
+                                            <children>
+                                                <HBox spacing="16">
+                                                    <children>
+                                                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                                            <children>
+                                                                <Label text="%SignatureView.rsa-key-transport.text" styleClass="fxt-sig-field-label"/>
+                                                                <ComboBox fx:id="encKeyTransport" id="enc-key-transport" maxWidth="Infinity"/>
+                                                            </children>
+                                                        </VBox>
+                                                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                                            <children>
+                                                                <Label text="%SignatureView.oaep-digest.text" styleClass="fxt-sig-field-label"/>
+                                                                <ComboBox fx:id="encOaepDigest" id="enc-oaep-digest" maxWidth="Infinity"/>
+                                                            </children>
+                                                        </VBox>
+                                                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                                            <children>
+                                                                <Label text="%SignatureView.oaep-mask-mgf.text" styleClass="fxt-sig-field-label"/>
+                                                                <ComboBox fx:id="encMgf" id="enc-mgf" maxWidth="Infinity"/>
+                                                            </children>
+                                                        </VBox>
+                                                    </children>
+                                                </HBox>
+                                                <HBox spacing="16">
+                                                    <children>
+                                                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                                            <children>
+                                                                <Label text="%SignatureView.key-derivation-ec-keys.text" styleClass="fxt-sig-field-label"/>
+                                                                <ComboBox fx:id="encKdf" id="enc-kdf" maxWidth="Infinity"/>
+                                                            </children>
+                                                        </VBox>
+                                                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                                            <children>
+                                                                <Label text="%SignatureView.kdf-digest.text" styleClass="fxt-sig-field-label"/>
+                                                                <ComboBox fx:id="encKdfDigest" id="enc-kdf-digest" maxWidth="Infinity"/>
+                                                            </children>
+                                                        </VBox>
+                                                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                                            <children>
+                                                                <Label text="%SignatureView.key-wrap.text" styleClass="fxt-sig-field-label"/>
+                                                                <ComboBox fx:id="encKeyWrap" id="enc-key-wrap" maxWidth="Infinity"/>
+                                                            </children>
+                                                        </VBox>
+                                                    </children>
+                                                </HBox>
+                                                <HBox spacing="16">
+                                                    <children>
+                                                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                                            <children>
+                                                                <Label text="%SignatureView.certificate-reference.text" styleClass="fxt-sig-field-label"/>
+                                                                <ComboBox fx:id="encX509" id="enc-x509" maxWidth="Infinity"/>
+                                                            </children>
+                                                        </VBox>
+                                                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                                            <children>
+                                                                <Label text="%SignatureView.recipient-attribute.text" styleClass="fxt-sig-field-label"/>
+                                                                <TextField fx:id="encRecipientName" id="enc-recipient-name"
+                                                                           promptText="%SignatureView.encRecipientName.promptText"/>
+                                                            </children>
+                                                        </VBox>
+                                                    </children>
+                                                </HBox>
+                                                <CheckBox fx:id="encKeysOutside" id="enc-keys-outside"
+                                                          text="%SignatureView.encKeysOutside.text"/>
+                                                <Label text="%SignatureView.encryption-properties-one-name-value.text"
+                                                       styleClass="fxt-sig-field-label"/>
+                                                <TextArea fx:id="encProperties" id="enc-properties" prefRowCount="3"
+                                                          promptText="%SignatureView.encProperties.promptText"/>
+                                            </children>
+                                        </VBox>
+                                    </content>
+                                </TitledPane>
+                                <Label fx:id="encLegacyWarning" id="enc-legacy-warning" wrapText="true" visible="false"
+                                       managed="false" styleClass="fxt-sign-legacy-warning"/>
+                                <Button id="enc-run" text="%SignatureView.enc-run.text" maxWidth="Infinity" styleClass="fxt-primary-button"
+                                        onAction="#onEncrypt">
+                                    <graphic>
+                                        <IconifyIcon iconLiteral="bi-lock" iconSize="15"/>
+                                    </graphic>
+                                </Button>
+                            </children>
+                        </VBox>
+
+                        <!-- DECRYPT: the key (keystore above, PEM key, key file or password) -->
+                        <VBox fx:id="decryptSection" id="sig-section-decrypt" spacing="12">
+                            <children>
+                                <Label text="%SignatureView.key.text" styleClass="fxt-sign-section-label"/>
+                                <HBox spacing="2" styleClass="fxt-seg-group">
+                                    <children>
+                                        <ToggleButton fx:id="decKeyKeystore" id="dec-key-keystore" text="%SignatureView.decKeyKeystore.text"
+                                                      toggleGroup="$decKeyGroup" selected="true" maxWidth="Infinity"
+                                                      HBox.hgrow="ALWAYS" styleClass="fxt-seg"/>
+                                        <ToggleButton fx:id="decKeyPem" id="dec-key-pem" text="%SignatureView.decKeyPem.text"
+                                                      toggleGroup="$decKeyGroup" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                                                      styleClass="fxt-seg"/>
+                                        <ToggleButton fx:id="decKeyFile" id="dec-key-file" text="%SignatureView.decKeyFile.text"
+                                                      toggleGroup="$decKeyGroup" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                                                      styleClass="fxt-seg"/>
+                                        <ToggleButton fx:id="decKeyPassword" id="dec-key-password" text="%SignatureView.decKeyPassword.text"
+                                                      toggleGroup="$decKeyGroup" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                                                      styleClass="fxt-seg"/>
+                                    </children>
+                                </HBox>
+                                <VBox fx:id="decPemBox" spacing="8" visible="false" managed="false">
+                                    <children>
+                                        <SourceRow fx:id="decPemRow" id="dec-pem-row" iconLiteral="bi-key"
+                                                   emptyText="%SignatureView.decPemRow.emptyText" onChange="#onChooseDecryptionKey">
+                                            <name>
+                                                <Label fx:id="decPemName" id="dec-pem-name" text="%SignatureView.decPemName.text"
+                                                       styleClass="fxt-vp-source-name, fxt-vp-source-none"/>
+                                            </name>
+                                        </SourceRow>
+                                        <PasswordField fx:id="decPemPassword" id="dec-pem-password"
+                                                       promptText="%SignatureView.decPemPassword.promptText"/>
+                                    </children>
+                                </VBox>
+                                <VBox fx:id="decKeyFileBox" spacing="8" visible="false" managed="false">
+                                    <children>
+                                        <SourceRow fx:id="decKeyFileRow" id="dec-keyfile-row" iconLiteral="bi-key"
+                                                   emptyText="%SignatureView.decKeyFileRow.emptyText" onChange="#onChooseDecryptionKeyFile">
+                                            <name>
+                                                <Label fx:id="decKeyFileName" id="dec-keyfile-name" text="%SignatureView.decKeyFileName.text"
+                                                       styleClass="fxt-vp-source-name, fxt-vp-source-none"/>
+                                            </name>
+                                        </SourceRow>
+                                        <TextField fx:id="decKeyName" id="dec-key-name"
+                                                   promptText="%SignatureView.decKeyName.promptText"/>
+                                    </children>
+                                </VBox>
+                                <PasswordField fx:id="decPassword" id="dec-password" visible="false" managed="false"
+                                               promptText="%SignatureView.decPassword.promptText"/>
+                                <Button id="dec-run" text="%SignatureView.dec-run.text" maxWidth="Infinity" styleClass="fxt-primary-button"
+                                        onAction="#onDecrypt">
+                                    <graphic>
+                                        <IconifyIcon iconLiteral="bi-unlock" iconSize="15"/>
+                                    </graphic>
+                                </Button>
+                            </children>
+                        </VBox>
+
+                        <!-- INSPECT: the structure of an encrypted document, no key -->
+                        <VBox fx:id="inspectSection" id="sig-section-inspect" spacing="8">
+                            <children>
+                                <Label wrapText="true" styleClass="fxt-placeholder-text"
+                                       text="%SignatureView.shows-what-is-encrypted-for.text"/>
+                                <Button id="inspect-run" text="%SignatureView.inspect-run.text" maxWidth="Infinity"
+                                        styleClass="fxt-primary-button" onAction="#onInspect">
+                                    <graphic>
+                                        <IconifyIcon iconLiteral="bi-search" iconSize="15"/>
                                     </graphic>
                                 </Button>
                             </children>

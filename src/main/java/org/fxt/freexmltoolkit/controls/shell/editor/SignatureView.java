@@ -27,6 +27,9 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.SignatureService;
+import org.fxt.freexmltoolkit.service.crypto.KeyMaterial;
+import org.fxt.freexmltoolkit.service.crypto.XmlEncryptionAlgorithms;
+import org.fxt.freexmltoolkit.service.crypto.XmlEncryptionService;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 
 /**
@@ -47,6 +50,12 @@ public class SignatureView extends ScrollPane {
         SIGN("sign", "Sign XML File", "bi-pencil", "Sign XML Document", "XML Digital Signature · XML-DSig"),
         VALIDATE("validate", "Validate Signature", "bi-check2-circle", "Validate Signature",
                 "Checks the document against the certificate embedded in its signature"),
+        ENCRYPT("encrypt", "Encrypt", "bi-lock", "Encrypt XML",
+                "W3C XML Encryption 1.1 · for certificates, keys or a password"),
+        DECRYPT("decrypt", "Decrypt", "bi-unlock", "Decrypt XML",
+                "With your private key, a shared key or the password"),
+        INSPECT("inspect", "Inspect Encryption", "bi-search", "Inspect Encryption",
+                "What is encrypted, for whom and with which algorithms - no key needed"),
         CREATE("create", "Create Certificate", "bi-patch-plus", "Create Certificate",
                 "A self-signed certificate in a new keystore, with the alias and passwords above"),
         EXPERT("expert", "Expert Mode", "bi-gear", "Validate Trust",
@@ -136,6 +145,48 @@ public class SignatureView extends ScrollPane {
     @FXML private Label trustStoreName;
     @FXML private PasswordField trustStorePassword;
     @FXML private CheckBox checkRevocation;
+    @FXML private javafx.scene.control.ComboBox<String> signMethod;
+    @FXML private javafx.scene.control.ComboBox<String> signDigest;
+    @FXML private javafx.scene.control.ComboBox<String> signC14n;
+    @FXML private javafx.scene.control.ComboBox<SignatureService.KeyType> keyTypeChoice;
+    @FXML private VBox encryptSection;
+    @FXML private VBox decryptSection;
+    @FXML private VBox inspectSection;
+    @FXML private ToggleGroup encTargetGroup;
+    @FXML private ToggleButton encTargetDocument;
+    @FXML private ToggleButton encTargetCaret;
+    @FXML private ToggleButton encTargetXPath;
+    @FXML private TextField encXPath;
+    @FXML private CheckBox encContentOnly;
+    @FXML private javafx.scene.control.ComboBox<XmlEncryptionAlgorithms.Algorithm> encDataAlgorithm;
+    @FXML private VBox recipientList;
+    @FXML private Label recipientsEmpty;
+    @FXML private javafx.scene.control.TitledPane encAdvanced;
+    @FXML private javafx.scene.control.ComboBox<XmlEncryptionAlgorithms.Algorithm> encKeyTransport;
+    @FXML private javafx.scene.control.ComboBox<XmlEncryptionAlgorithms.Algorithm> encOaepDigest;
+    @FXML private javafx.scene.control.ComboBox<XmlEncryptionAlgorithms.Algorithm> encMgf;
+    @FXML private javafx.scene.control.ComboBox<XmlEncryptionAlgorithms.Algorithm> encKdf;
+    @FXML private javafx.scene.control.ComboBox<XmlEncryptionAlgorithms.Algorithm> encKdfDigest;
+    @FXML private javafx.scene.control.ComboBox<String> encKeyWrap;
+    @FXML private javafx.scene.control.ComboBox<XmlEncryptionService.X509Reference> encX509;
+    @FXML private TextField encRecipientName;
+    @FXML private CheckBox encKeysOutside;
+    @FXML private javafx.scene.control.TextArea encProperties;
+    @FXML private Label encLegacyWarning;
+    @FXML private ToggleGroup decKeyGroup;
+    @FXML private ToggleButton decKeyKeystore;
+    @FXML private ToggleButton decKeyPem;
+    @FXML private ToggleButton decKeyFile;
+    @FXML private ToggleButton decKeyPassword;
+    @FXML private VBox decPemBox;
+    @FXML private SourceRow decPemRow;
+    @FXML private Label decPemName;
+    @FXML private PasswordField decPemPassword;
+    @FXML private VBox decKeyFileBox;
+    @FXML private SourceRow decKeyFileRow;
+    @FXML private Label decKeyFileName;
+    @FXML private TextField decKeyName;
+    @FXML private PasswordField decPassword;
     @FXML private Label status;
     @FXML private javafx.scene.control.Hyperlink validateSignedLink;
 
@@ -149,6 +200,11 @@ public class SignatureView extends ScrollPane {
     /** The file the last successful signing wrote ("Validate this signature" checks it). */
     private File signedFile;
     private File trustStoreFile;
+    private final List<EncryptionRecipients.Entry> recipients = new java.util.ArrayList<>();
+    private File decryptionKeyFile;
+    private File decryptionSymmetricKeyFile;
+    /** The caret offset of the active editor when the page was last shown (Element at the caret). */
+    private String caretElementXPath;
 
     /** Loads the layout from {@code /pages/views/SignatureView.fxml}; starts on {@link Action#SIGN}. */
     public SignatureView(EditorHost editorHost) {
@@ -158,6 +214,10 @@ public class SignatureView extends ScrollPane {
         sections.put(Action.SIGN, signSection);
         sections.put(Action.VALIDATE, validateSection);
         sections.put(Action.CREATE, createSection);
+        sections.put(Action.ENCRYPT, encryptSection);
+        sections.put(Action.DECRYPT, decryptSection);
+        sections.put(Action.INSPECT, inspectSection);
+        initAlgorithmChoices();
         sections.put(Action.EXPERT, expertSection);
 
         typeGroup.selectedToggleProperty().addListener((obs, oldV, newV) -> {
@@ -203,7 +263,11 @@ public class SignatureView extends ScrollPane {
         actionTitle.setText(action.title());
         actionSubtitle.setText(action.subtitle());
         show(documentSection, action != Action.CREATE);
-        show(keystoreSection, action == Action.SIGN || action == Action.CREATE);
+        show(keystoreSection, action == Action.SIGN || action == Action.CREATE || action == Action.ENCRYPT
+                || action == Action.DECRYPT && decKeyKeystore.isSelected());
+        if (action == Action.ENCRYPT) {
+            rememberCaretElement();
+        }
         sections.forEach((a, box) -> show(box, a == action));
         onActionShown.accept(action.key);
     }
@@ -354,6 +418,7 @@ public class SignatureView extends ScrollPane {
         String aliasName = alias.getText();
         String ksPw = keystorePassword.getText();
         String aliasPw = aliasPassword.getText();
+        SignatureService.SigningOptions options = signingOptions();
         File output = type == SignatureService.SignatureType.DETACHED
                 ? siblingFile(xml, ".sig.xml") : siblingFile(xml, ".signed.xml");
         PanelStatus.info(status, I18n.t("SignatureView.signing"));
@@ -364,7 +429,7 @@ public class SignatureView extends ScrollPane {
             org.fxt.freexmltoolkit.service.telemetry.QueryFailure failure = null;
             try {
                 File signed = new SignatureService()
-                        .signDocument(xml, keystore, ksPw, aliasName, aliasPw, output.getAbsolutePath(), type);
+                        .signDocument(xml, keystore, ksPw, aliasName, aliasPw, output.getAbsolutePath(), type, options);
                 result = "Signed: " + signed.getName();
                 ok = true;
             } catch (Exception e) {
@@ -619,13 +684,14 @@ public class SignatureView extends ScrollPane {
         String aliasName = alias.getText();
         String ksPw = keystorePassword.getText();
         String aliasPw = aliasPassword.getText();
+        SignatureService.KeyType keyType = keyTypeChoice.getValue();
         PanelStatus.info(status, I18n.t("SignatureView.creating-certificate"));
         FxtGui.executorService.submit(() -> {
             String result;
             File created = null;
             org.fxt.freexmltoolkit.service.telemetry.QueryFailure failure = null;
             try {
-                created = SignatureActionRunner.createKeystore(info, aliasName, ksPw, aliasPw);
+                created = SignatureActionRunner.createKeystore(info, aliasName, ksPw, aliasPw, keyType);
                 result = "Created keystore: " + created.getAbsolutePath();
             } catch (Exception e) {
                 result = "ERROR: " + e.getMessage();
@@ -749,6 +815,546 @@ public class SignatureView extends ScrollPane {
     /** @return the keystore password field (for tests). */
     PasswordField keystorePasswordField() {
         return keystorePassword;
+    }
+
+    // ----- algorithm choices -----------------------------------------------------------
+
+    private static final String AUTO = "Automatic";
+
+    private void initAlgorithmChoices() {
+        signMethod.getItems().add(AUTO);
+        signMethod.getItems().addAll(new java.util.TreeSet<>(SignatureService.SIGNATURE_METHODS.keySet()));
+        signMethod.setValue(AUTO);
+        signDigest.getItems().addAll(new java.util.TreeSet<>(SignatureService.DIGEST_METHODS.keySet()));
+        signDigest.setValue("sha256");
+        signC14n.getItems().addAll("exclusive", "exclusive-comments", "inclusive", "inclusive-comments", "inclusive-11");
+        signC14n.setValue("exclusive");
+        keyTypeChoice.getItems().addAll(SignatureService.KeyType.values());
+        keyTypeChoice.setValue(SignatureService.KeyType.RSA_2048);
+
+        encDataAlgorithm.getItems().addAll(XmlEncryptionAlgorithms.of(XmlEncryptionAlgorithms.Kind.DATA));
+        encDataAlgorithm.setValue(XmlEncryptionAlgorithms.DEFAULT_DATA);
+        encKeyTransport.getItems().addAll(XmlEncryptionAlgorithms.of(XmlEncryptionAlgorithms.Kind.KEY_TRANSPORT));
+        encKeyTransport.setValue(XmlEncryptionAlgorithms.DEFAULT_KEY_TRANSPORT);
+        encOaepDigest.getItems().addAll(XmlEncryptionAlgorithms.of(XmlEncryptionAlgorithms.Kind.DIGEST));
+        encOaepDigest.setValue(XmlEncryptionAlgorithms.Algorithm.SHA256);
+        encMgf.getItems().addAll(XmlEncryptionAlgorithms.of(XmlEncryptionAlgorithms.Kind.MGF));
+        encMgf.setValue(XmlEncryptionAlgorithms.Algorithm.MGF1_SHA256);
+        encKdf.getItems().addAll(XmlEncryptionAlgorithms.Algorithm.CONCAT_KDF, XmlEncryptionAlgorithms.Algorithm.HKDF);
+        encKdf.setValue(XmlEncryptionAlgorithms.Algorithm.CONCAT_KDF);
+        encKdfDigest.getItems().addAll(XmlEncryptionAlgorithms.Algorithm.SHA256, XmlEncryptionAlgorithms.Algorithm.SHA384,
+                XmlEncryptionAlgorithms.Algorithm.SHA512);
+        encKdfDigest.setValue(XmlEncryptionAlgorithms.Algorithm.SHA256);
+        encKeyWrap.getItems().add(AUTO);
+        XmlEncryptionAlgorithms.of(XmlEncryptionAlgorithms.Kind.KEY_WRAP).forEach(a -> encKeyWrap.getItems().add(a.id()));
+        encKeyWrap.getItems().add("none (key file is the data key)");
+        encKeyWrap.setValue(AUTO);
+        encX509.getItems().addAll(XmlEncryptionService.X509Reference.values());
+        encX509.setValue(XmlEncryptionService.X509Reference.ISSUER_SERIAL);
+        javafx.beans.InvalidationListener legacy = o -> updateLegacyWarning();
+        encDataAlgorithm.valueProperty().addListener(legacy);
+        encKeyTransport.valueProperty().addListener(legacy);
+        encKeyWrap.valueProperty().addListener(legacy);
+
+        encTargetGroup.selectedToggleProperty().addListener((obs, oldV, newV) -> {
+            if (newV == null) {
+                encTargetGroup.selectToggle(oldV);
+            }
+            boolean xpath = encTargetGroup.getSelectedToggle() == encTargetXPath;
+            encXPath.setVisible(xpath);
+            encXPath.setManaged(xpath);
+        });
+        decKeyGroup.selectedToggleProperty().addListener((obs, oldV, newV) -> {
+            if (newV == null) {
+                decKeyGroup.selectToggle(oldV);
+            }
+            show(decPemBox, decKeyPem.isSelected());
+            show(decKeyFileBox, decKeyFile.isSelected());
+            decPassword.setVisible(decKeyPassword.isSelected());
+            decPassword.setManaged(decKeyPassword.isSelected());
+            if (currentAction == Action.DECRYPT) {
+                show(keystoreSection, decKeyKeystore.isSelected());
+            }
+        });
+        org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(decPemRow, KEY_EXTENSIONS, this::setDecryptionKey);
+        org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(decKeyFileRow, KEY_EXTENSIONS,
+                this::setDecryptionKeyFile);
+        refreshRecipients();
+    }
+
+    /** Extensions of certificate and key files (drops, choosers). */
+    static final List<String> KEY_EXTENSIONS = List.of(".pem", ".crt", ".cer", ".der", ".key", ".bin");
+
+    SignatureService.SigningOptions signingOptions() {
+        String method = AUTO.equals(signMethod.getValue()) ? null : SignatureService.SIGNATURE_METHODS.get(signMethod.getValue());
+        return new SignatureService.SigningOptions(method, SignatureService.DIGEST_METHODS.get(signDigest.getValue()),
+                SignatureService.C14N_METHODS.get(signC14n.getValue()));
+    }
+
+    private void updateLegacyWarning() {
+        java.util.List<String> warnings = new java.util.ArrayList<>();
+        java.util.stream.Stream.of(encDataAlgorithm.getValue(), encKeyTransport.getValue(), keyWrapChoice())
+                .filter(a -> a != null && a.legacy())
+                .forEach(a -> warnings.add(XmlEncryptionService.legacyWarning(a)));
+        encLegacyWarning.setText(String.join("\n", warnings));
+        encLegacyWarning.setVisible(!warnings.isEmpty());
+        encLegacyWarning.setManaged(!warnings.isEmpty());
+    }
+
+    private XmlEncryptionAlgorithms.Algorithm keyWrapChoice() {
+        String value = encKeyWrap.getValue();
+        return value == null ? null
+                : XmlEncryptionAlgorithms.parse(XmlEncryptionAlgorithms.Kind.KEY_WRAP, value).orElse(null);
+    }
+
+    // ----- encrypt ------------------------------------------------------------------------
+
+    /** Remembers the element at the active editor's caret (the target "Element at the caret"). */
+    private void rememberCaretElement() {
+        var doc = editorHost.getActiveDocument();
+        if (doc.isEmpty()) {
+            return;
+        }
+        String text = editorHost.getActiveViewText().orElse("");
+        int caret = editorHost.activeCaretProperty().get();
+        org.fxt.freexmltoolkit.controls.shared.utilities.XmlElementAtCaret.at(text, caret)
+                .ifPresent(r -> caretElementXPath = EncryptionRecipients.localNameXPath(r.xpath()));
+    }
+
+    @FXML
+    public void onAddCertificate() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle(I18n.t("SignatureView.select-recipient-certificate"));
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(
+                I18n.t("SignatureView.certificates-and-public-keys"), "*.pem", "*.crt", "*.cer", "*.der"));
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, window());
+        if (file != null) {
+            addCertificateRecipient(file);
+        }
+    }
+
+    /** Adds the certificates (or the public key) of a PEM/DER file as recipients. */
+    void addCertificateRecipient(File file) {
+        try {
+            java.util.List<java.security.cert.X509Certificate> certificates;
+            try {
+                certificates = KeyMaterial.certificates(file.toPath());
+            } catch (Exception notACertificate) {
+                java.security.PublicKey key = KeyMaterial.publicKey(file.toPath());
+                recipients.add(new EncryptionRecipients.CertificateEntry(key, null, file.getName()));
+                refreshRecipients();
+                return;
+            }
+            for (var certificate : certificates) {
+                recipients.add(new EncryptionRecipients.CertificateEntry(certificate.getPublicKey(), certificate,
+                        commonName(certificate)));
+            }
+            refreshRecipients();
+        } catch (Exception e) {
+            PanelStatus.failure(status, I18n.t("SignatureView.cannot-read-certificate"), e.getMessage(), false);
+        }
+    }
+
+    @FXML
+    public void onAddKeystoreRecipient() {
+        if (keystoreFile == null) {
+            FieldMarker.mark(keystoreName);
+            PanelStatus.precondition(status, I18n.t("SignatureView.select-a-keystore-and-alias"));
+            return;
+        }
+        if (FieldMarker.markIf(alias, alias.getText() == null || alias.getText().isBlank())) {
+            PanelStatus.precondition(status, I18n.t("SignatureView.select-a-keystore-and-alias"));
+            return;
+        }
+        try {
+            var certificate = KeyMaterial.certificate(keystoreFile.toPath(), keystorePassword.getText().toCharArray(),
+                    alias.getText().trim());
+            recipients.add(new EncryptionRecipients.CertificateEntry(certificate.getPublicKey(), certificate,
+                    commonName(certificate)));
+            refreshRecipients();
+        } catch (Exception e) {
+            PanelStatus.failure(status, I18n.t("SignatureView.cannot-read-certificate"), e.getMessage(), false);
+        }
+    }
+
+    @FXML
+    public void onAddKeyFile() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle(I18n.t("SignatureView.select-key-file"));
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, window());
+        if (file == null) {
+            return;
+        }
+        java.util.Optional<String> name = org.fxt.freexmltoolkit.util.DialogHelper.promptText(
+                I18n.t("SignatureView.key-name"), I18n.t("SignatureView.key-name-header"),
+                I18n.t("SignatureView.key-name-label"), "");
+        addKeyFileRecipient(file, name.orElse(null));
+    }
+
+    /** Adds a shared symmetric key file as recipient (with an optional KeyName). */
+    void addKeyFileRecipient(File file, String keyName) {
+        try {
+            javax.crypto.SecretKey key = KeyMaterial.symmetricKey(file.toPath(), "AES");
+            recipients.add(new EncryptionRecipients.KeyFileEntry(key, keyName, file.getName()));
+            refreshRecipients();
+        } catch (Exception e) {
+            PanelStatus.failure(status, I18n.t("SignatureView.cannot-read-key-file"), e.getMessage(), false);
+        }
+    }
+
+    @FXML
+    public void onAddPassword() {
+        javafx.scene.control.Dialog<char[]> dialog = org.fxt.freexmltoolkit.util.DialogHelper.createDialog(
+                I18n.t("SignatureView.password-recipient"), I18n.t("SignatureView.password-recipient-header"),
+                "bi-asterisk");
+        PasswordField first = new PasswordField();
+        first.setId("enc-password-1");
+        first.setPromptText(I18n.t("SignatureView.password"));
+        PasswordField second = new PasswordField();
+        second.setId("enc-password-2");
+        second.setPromptText(I18n.t("SignatureView.repeat-password"));
+        Label hint = new Label(I18n.t("SignatureView.password-hint"));
+        hint.setWrapText(true);
+        hint.getStyleClass().add("fxt-placeholder-text");
+        VBox content = new VBox(8, first, second, hint);
+        content.setPrefWidth(380);
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().setAll(javafx.scene.control.ButtonType.OK,
+                javafx.scene.control.ButtonType.CANCEL);
+        javafx.scene.Node ok = dialog.getDialogPane().lookupButton(javafx.scene.control.ButtonType.OK);
+        ok.disableProperty().bind(first.textProperty().isEmpty()
+                .or(first.textProperty().isNotEqualTo(second.textProperty())));
+        dialog.setResultConverter(b -> b == javafx.scene.control.ButtonType.OK ? first.getText().toCharArray() : null);
+        Platform.runLater(first::requestFocus);
+        dialog.showAndWait().ifPresent(this::addPasswordRecipient);
+    }
+
+    /** Adds a password recipient. */
+    void addPasswordRecipient(char[] password) {
+        if (password != null && password.length > 0) {
+            recipients.add(new EncryptionRecipients.PasswordEntry(password));
+            refreshRecipients();
+        }
+    }
+
+    private void refreshRecipients() {
+        recipientList.getChildren().clear();
+        for (EncryptionRecipients.Entry entry : recipients) {
+            Label title = new Label(entry.title());
+            title.getStyleClass().add("fxt-sign-doc-name");
+            Label detail = new Label(entry.detail());
+            detail.getStyleClass().add("fxt-sign-doc-info");
+            VBox text = new VBox(2, title, detail);
+            Button remove = new Button(null, icon("bi-x-lg", 13));
+            remove.getStyleClass().add("fxt-tool-button");
+            remove.setTooltip(new Tooltip(I18n.t("SignatureView.remove-recipient")));
+            remove.setAccessibleText(I18n.t("SignatureView.remove-recipient"));
+            remove.setOnAction(e -> {
+                recipients.remove(entry);
+                refreshRecipients();
+            });
+            javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
+            HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+            HBox row = new HBox(12, icon(entry.icon(), 18), text, spacer, remove);
+            row.setAlignment(Pos.CENTER_LEFT);
+            row.getStyleClass().add("fxt-sign-doc-row");
+            recipientList.getChildren().add(row);
+        }
+        show(recipientList, !recipients.isEmpty());
+        recipientsEmpty.setVisible(recipients.isEmpty());
+        recipientsEmpty.setManaged(recipients.isEmpty());
+    }
+
+    /** @return the recipients listed (for tests) */
+    List<EncryptionRecipients.Entry> recipientsForTests() {
+        return List.copyOf(recipients);
+    }
+
+    private static String commonName(java.security.cert.X509Certificate certificate) {
+        String dn = certificate.getSubjectX500Principal().getName();
+        for (String part : dn.split(",")) {
+            if (part.trim().startsWith("CN=")) {
+                return part.trim().substring(3);
+            }
+        }
+        return dn;
+    }
+
+    /** Encrypts the document as the form says; the result is written next to it and opened. */
+    @FXML
+    public void onEncrypt() {
+        File xml = xmlFile;
+        if (xml == null) {
+            PanelStatus.precondition(status, I18n.t("SignatureView.no-document-open"));
+            return;
+        }
+        if (recipients.isEmpty()) {
+            PanelStatus.precondition(status, I18n.t("SignatureView.add-a-recipient"));
+            return;
+        }
+        java.util.List<String> xpaths = new java.util.ArrayList<>();
+        String targetKind = "document";
+        if (encTargetGroup.getSelectedToggle() == encTargetXPath) {
+            if (FieldMarker.markIf(encXPath, encXPath.getText() == null || encXPath.getText().isBlank())) {
+                PanelStatus.precondition(status, I18n.t("SignatureView.enter-an-xpath"));
+                return;
+            }
+            xpaths.add(encXPath.getText().trim());
+            targetKind = "xpath";
+        } else if (encTargetGroup.getSelectedToggle() == encTargetCaret) {
+            rememberCaretElement();
+            if (caretElementXPath == null) {
+                PanelStatus.precondition(status, I18n.t("SignatureView.place-the-caret-on-an-element"));
+                return;
+            }
+            xpaths.add(caretElementXPath);
+            targetKind = "element";
+        }
+        if (encContentOnly.isSelected()) {
+            targetKind = "content";
+        }
+        if (!editorHost.ensureSavedBeforeTool(xml.toPath(), "Encryption")) {
+            PanelStatus.info(status, I18n.t("SignatureView.encryption-cancelled"));
+            return;
+        }
+        String wrapValue = encKeyWrap.getValue();
+        boolean direct = wrapValue != null && wrapValue.startsWith("none");
+        var options = new EncryptionRecipients.Options(encKeyTransport.getValue(), encOaepDigest.getValue(),
+                encMgf.getValue(), encKdf.getValue(), encKdfDigest.getValue(), keyWrapChoice(), direct,
+                encX509.getValue(), encRecipientName.getText());
+        java.util.List<XmlEncryptionService.Recipient> serviceRecipients;
+        try {
+            serviceRecipients = EncryptionRecipients.toRecipients(recipients, options);
+        } catch (RuntimeException e) {
+            PanelStatus.failure(status, I18n.t("SignatureView.encryption-failed"), e.getMessage(), false);
+            return;
+        }
+        var request = new XmlEncryptionService.EncryptionRequest(xpaths, java.util.Map.of(),
+                encContentOnly.isSelected() ? XmlEncryptionService.TargetType.CONTENT : XmlEncryptionService.TargetType.ELEMENT,
+                encDataAlgorithm.getValue(), serviceRecipients, EncryptionRecipients.properties(encProperties.getText()),
+                encKeysOutside.isSelected());
+        File output = siblingFile(xml, ".encrypted.xml");
+        String target = targetKind;
+        PanelStatus.info(status, I18n.t("SignatureView.encrypting"));
+        FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
+            EncryptionActionRunner.Result result = EncryptionActionRunner.encryptFile(xml.toPath(), output.toPath(), request);
+            boolean legacy = !result.warnings().isEmpty();
+            UsageEvents.encrypted(target, family(request.data()), String.join(",", serviceRecipients.stream()
+                            .map(EncryptionRecipients::keyMethodName).distinct().toList()), serviceRecipients.size(),
+                    legacy, t0, result.failure());
+            Platform.runLater(() -> {
+                if (result.ok()) {
+                    PanelStatus.success(status, result.message() + " · " + output.getName()
+                            + (legacy ? " · " + String.join(" ", result.warnings()) : ""));
+                    editorHost.openFile(output.toPath());
+                    editorHost.selectTabShowing(this);
+                } else {
+                    PanelStatus.failure(status, I18n.t("SignatureView.encryption-failed"), result.message(), false);
+                }
+            });
+        });
+    }
+
+    /** @return the data algorithm family for telemetry ("aes-gcm", "aes-cbc", "tripledes-cbc", …) */
+    private static String family(XmlEncryptionAlgorithms.Algorithm data) {
+        return data.id().replaceAll("\\d+", "");
+    }
+
+    // ----- decrypt ------------------------------------------------------------------------
+
+    @FXML
+    public void onChooseDecryptionKey() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle(I18n.t("SignatureView.select-private-key"));
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PEM", "*.pem", "*.key"));
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, window());
+        if (file != null) {
+            setDecryptionKey(file);
+        }
+    }
+
+    /** Sets the PEM private key used to decrypt. */
+    public void setDecryptionKey(File file) {
+        decryptionKeyFile = file;
+        decPemRow.showFile(file);
+    }
+
+    @FXML
+    public void onChooseDecryptionKeyFile() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle(I18n.t("SignatureView.select-key-file"));
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, window());
+        if (file != null) {
+            setDecryptionKeyFile(file);
+        }
+    }
+
+    /** Sets the shared key file used to decrypt. */
+    public void setDecryptionKeyFile(File file) {
+        decryptionSymmetricKeyFile = file;
+        decKeyFileRow.showFile(file);
+    }
+
+    /** Selects the key source of Decrypt (for tests): keystore, pem, file or password. */
+    void selectDecryptionSource(String source) {
+        decKeyGroup.selectToggle(switch (source) {
+            case "pem" -> decKeyPem;
+            case "file" -> decKeyFile;
+            case "password" -> decKeyPassword;
+            default -> decKeyKeystore;
+        });
+    }
+
+    /** Sets the decryption password (for tests). */
+    void setDecryptionPassword(String password) {
+        decPassword.setText(password);
+    }
+
+    /** Decrypts the document with the chosen key; the result opens as a new, unsaved tab. */
+    @FXML
+    public void onDecrypt() {
+        File xml = xmlFile;
+        if (xml == null) {
+            PanelStatus.precondition(status, I18n.t("SignatureView.no-document-open"));
+            return;
+        }
+        String source;
+        java.util.concurrent.Callable<XmlEncryptionService.DecryptionKeys> keys;
+        if (decKeyPem.isSelected()) {
+            if (decryptionKeyFile == null) {
+                FieldMarker.mark(decPemName);
+                PanelStatus.precondition(status, I18n.t("SignatureView.select-a-private-key"));
+                return;
+            }
+            File key = decryptionKeyFile;
+            char[] pass = decPemPassword.getText().toCharArray();
+            source = "private_key";
+            keys = () -> XmlEncryptionService.DecryptionKeys.privateKey(KeyMaterial.privateKey(key.toPath(), pass));
+        } else if (decKeyFile.isSelected()) {
+            if (decryptionSymmetricKeyFile == null) {
+                FieldMarker.mark(decKeyFileName);
+                PanelStatus.precondition(status, I18n.t("SignatureView.select-a-key-file"));
+                return;
+            }
+            File key = decryptionSymmetricKeyFile;
+            String name = decKeyName.getText();
+            source = "key_file";
+            keys = () -> XmlEncryptionService.DecryptionKeys.secretKey(name, KeyMaterial.symmetricKey(key.toPath(), "AES"));
+        } else if (decKeyPassword.isSelected()) {
+            if (FieldMarker.markIf(decPassword, decPassword.getText().isEmpty())) {
+                PanelStatus.precondition(status, I18n.t("SignatureView.enter-the-password"));
+                return;
+            }
+            char[] pass = decPassword.getText().toCharArray();
+            source = "password";
+            keys = () -> XmlEncryptionService.DecryptionKeys.password(pass);
+        } else {
+            if (keystoreFile == null) {
+                FieldMarker.mark(keystoreName);
+                PanelStatus.precondition(status, I18n.t("SignatureView.select-a-keystore-first-the"));
+                return;
+            }
+            File keystore = keystoreFile;
+            String aliasName = alias.getText();
+            char[] storePass = keystorePassword.getText().toCharArray();
+            char[] keyPass = aliasPassword.getText().isEmpty() ? null : aliasPassword.getText().toCharArray();
+            source = "keystore";
+            keys = () -> XmlEncryptionService.DecryptionKeys.privateKey(
+                    KeyMaterial.privateKey(keystore.toPath(), storePass, aliasName, keyPass).privateKey());
+        }
+        if (!editorHost.ensureSavedBeforeTool(xml.toPath(), "Decryption")) {
+            PanelStatus.info(status, I18n.t("SignatureView.decryption-cancelled"));
+            return;
+        }
+        PanelStatus.info(status, I18n.t("SignatureView.decrypting"));
+        FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
+            EncryptionActionRunner.DecryptedText result;
+            try {
+                String text = java.nio.file.Files.readString(xml.toPath(), java.nio.charset.StandardCharsets.UTF_8);
+                result = EncryptionActionRunner.decryptText(text, xml.toPath(), keys.call(), java.util.Set.of());
+            } catch (Exception e) {
+                result = new EncryptionActionRunner.DecryptedText(null, null, e.getMessage(), java.util.List.of(),
+                        org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("key_unreadable"));
+            }
+            EncryptionActionRunner.DecryptedText done = result;
+            UsageEvents.decrypted(source, done.ok() ? Math.max(1, countIn(done.message())) : 0, t0, done.failure());
+            Platform.runLater(() -> showDecrypted(xml, done));
+        });
+    }
+
+    private static int countIn(String message) {
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("Decrypted (\\d+)").matcher(message);
+        return m.find() ? Integer.parseInt(m.group(1)) : 0;
+    }
+
+    private void showDecrypted(File source, EncryptionActionRunner.DecryptedText result) {
+        if (!result.ok()) {
+            PanelStatus.failure(status, I18n.t("SignatureView.decryption-failed"), result.message(), false);
+            return;
+        }
+        String warnings = result.warnings().isEmpty() ? "" : " · " + String.join(" ", result.warnings());
+        if (result.binary() != null) {
+            FileChooser chooser = new FileChooser();
+            chooser.setTitle(I18n.t("SignatureView.save-decrypted-data"));
+            chooser.setInitialFileName(source.getName().replaceFirst("\\.xml$", "") + ".bin");
+            File target = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, window());
+            if (target != null) {
+                try {
+                    java.nio.file.Files.write(target.toPath(), result.binary());
+                    PanelStatus.success(status, result.message() + " · " + target.getName() + warnings);
+                } catch (java.io.IOException e) {
+                    PanelStatus.failure(status, I18n.t("SignatureView.decryption-failed"), e.getMessage(), false);
+                }
+            }
+            return;
+        }
+        // not written anywhere: the user saves the decrypted document only if wanted
+        editorHost.openGeneratedDocument(result.xml(), EditorFileType.XML,
+                source.getName().replaceFirst("\\.xml$", "") + ".decrypted.xml");
+        editorHost.selectTabShowing(this);
+        PanelStatus.success(status, result.message() + warnings);
+    }
+
+    // ----- inspect ------------------------------------------------------------------------
+
+    /** Opens the report of what the document encrypts (no key). */
+    @FXML
+    public void onInspect() {
+        File xml = xmlFile;
+        if (xml == null) {
+            PanelStatus.precondition(status, I18n.t("SignatureView.no-document-open"));
+            return;
+        }
+        PanelStatus.info(status, I18n.t("SignatureView.inspecting"));
+        FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
+            String text;
+            int count = 0;
+            org.fxt.freexmltoolkit.service.telemetry.QueryFailure failure = null;
+            try {
+                var report = EncryptionActionRunner.inspectFile(xml.toPath());
+                count = report.data().size();
+                text = report.toText();
+            } catch (Exception e) {
+                text = null;
+                failure = org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("not_xml");
+                String message = e.getMessage();
+                Platform.runLater(() -> PanelStatus.failure(status, I18n.t("SignatureView.inspection-failed"),
+                        message, false));
+            }
+            UsageEvents.encryptionInspected(count, t0, failure);
+            String report = text;
+            int found = count;
+            if (report != null) {
+                Platform.runLater(() -> {
+                    editorHost.openGeneratedDocument(report, EditorFileType.OTHER, "Encryption-Report.txt");
+                    editorHost.selectTabShowing(this);
+                    PanelStatus.success(status, I18n.t("SignatureView.encrypted-data-found", found));
+                });
+            }
+        });
     }
 
     // ----- helpers ------------------------------------------------------------------------

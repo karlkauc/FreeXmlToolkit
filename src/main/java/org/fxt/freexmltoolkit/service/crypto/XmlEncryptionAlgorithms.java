@@ -36,8 +36,8 @@ public final class XmlEncryptionAlgorithms {
         SEED_128_CBC(Kind.DATA, "seed128-cbc", "SEED-128-CBC", "http://www.w3.org/2007/05/xmldsig-more#seed128-cbc", 128, true),
 
         // key transport
-        RSA_OAEP_11(Kind.KEY_TRANSPORT, "rsa-oaep", "RSA-OAEP (1.1, choosable digest and MGF)", "http://www.w3.org/2009/xmlenc11#rsa-oaep", 0, false),
-        RSA_OAEP_MGF1P(Kind.KEY_TRANSPORT, "rsa-oaep-mgf1p", "RSA-OAEP (MGF1 with SHA-1)", "http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p", 0, false),
+        RSA_OAEP_11(Kind.KEY_TRANSPORT, "rsa-oaep", "RSA-OAEP 1.1", "http://www.w3.org/2009/xmlenc11#rsa-oaep", 0, false),
+        RSA_OAEP_MGF1P(Kind.KEY_TRANSPORT, "rsa-oaep-mgf1p", "RSA-OAEP MGF1P", "http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p", 0, false),
         RSA_1_5(Kind.KEY_TRANSPORT, "rsa-1_5", "RSA PKCS#1 v1.5", "http://www.w3.org/2001/04/xmlenc#rsa-1_5", 0, true),
 
         // symmetric key wrap
@@ -51,15 +51,15 @@ public final class XmlEncryptionAlgorithms {
         KW_SEED_128(Kind.KEY_WRAP, "kw-seed128", "SEED-128 Key Wrap", "http://www.w3.org/2007/05/xmldsig-more#kw-seed128", 128, true),
 
         // key agreement
-        ECDH_ES(Kind.KEY_AGREEMENT, "ecdh-es", "ECDH-ES (elliptic curves)", "http://www.w3.org/2009/xmlenc11#ECDH-ES", 0, false),
+        ECDH_ES(Kind.KEY_AGREEMENT, "ecdh-es", "ECDH-ES", "http://www.w3.org/2009/xmlenc11#ECDH-ES", 0, false),
         X25519(Kind.KEY_AGREEMENT, "x25519", "X25519", "http://www.w3.org/2021/04/xmldsig-more#x25519", 0, false),
         X448(Kind.KEY_AGREEMENT, "x448", "X448", "http://www.w3.org/2021/04/xmldsig-more#x448", 0, false),
-        DH(Kind.KEY_AGREEMENT, "dh", "Diffie-Hellman (finite field)", "http://www.w3.org/2001/04/xmlenc#dh", 0, true),
+        DH(Kind.KEY_AGREEMENT, "dh", "Diffie-Hellman", "http://www.w3.org/2001/04/xmlenc#dh", 0, true),
 
         // key derivation
         CONCAT_KDF(Kind.KEY_DERIVATION, "concatkdf", "ConcatKDF", "http://www.w3.org/2009/xmlenc11#ConcatKDF", 0, false),
         HKDF(Kind.KEY_DERIVATION, "hkdf", "HKDF", "http://www.w3.org/2021/04/xmldsig-more#hkdf", 0, false),
-        PBKDF2(Kind.KEY_DERIVATION, "pbkdf2", "PBKDF2 (password)", "http://www.w3.org/2009/xmlenc11#pbkdf2", 0, false),
+        PBKDF2(Kind.KEY_DERIVATION, "pbkdf2", "PBKDF2", "http://www.w3.org/2009/xmlenc11#pbkdf2", 0, false),
 
         // digests (OAEP, ConcatKDF) and MGFs (OAEP 1.1)
         SHA1(Kind.DIGEST, "sha1", "SHA-1", "http://www.w3.org/2000/09/xmldsig#sha1", 0, true),
@@ -67,11 +67,11 @@ public final class XmlEncryptionAlgorithms {
         SHA256(Kind.DIGEST, "sha256", "SHA-256", "http://www.w3.org/2001/04/xmlenc#sha256", 0, false),
         SHA384(Kind.DIGEST, "sha384", "SHA-384", "http://www.w3.org/2001/04/xmldsig-more#sha384", 0, false),
         SHA512(Kind.DIGEST, "sha512", "SHA-512", "http://www.w3.org/2001/04/xmlenc#sha512", 0, false),
-        MGF1_SHA1(Kind.MGF, "mgf1sha1", "MGF1 with SHA-1", "http://www.w3.org/2009/xmlenc11#mgf1sha1", 0, false),
-        MGF1_SHA224(Kind.MGF, "mgf1sha224", "MGF1 with SHA-224", "http://www.w3.org/2009/xmlenc11#mgf1sha224", 0, false),
-        MGF1_SHA256(Kind.MGF, "mgf1sha256", "MGF1 with SHA-256", "http://www.w3.org/2009/xmlenc11#mgf1sha256", 0, false),
-        MGF1_SHA384(Kind.MGF, "mgf1sha384", "MGF1 with SHA-384", "http://www.w3.org/2009/xmlenc11#mgf1sha384", 0, false),
-        MGF1_SHA512(Kind.MGF, "mgf1sha512", "MGF1 with SHA-512", "http://www.w3.org/2009/xmlenc11#mgf1sha512", 0, false);
+        MGF1_SHA1(Kind.MGF, "mgf1sha1", "MGF1-SHA1", "http://www.w3.org/2009/xmlenc11#mgf1sha1", 0, false),
+        MGF1_SHA224(Kind.MGF, "mgf1sha224", "MGF1-SHA224", "http://www.w3.org/2009/xmlenc11#mgf1sha224", 0, false),
+        MGF1_SHA256(Kind.MGF, "mgf1sha256", "MGF1-SHA256", "http://www.w3.org/2009/xmlenc11#mgf1sha256", 0, false),
+        MGF1_SHA384(Kind.MGF, "mgf1sha384", "MGF1-SHA384", "http://www.w3.org/2009/xmlenc11#mgf1sha384", 0, false),
+        MGF1_SHA512(Kind.MGF, "mgf1sha512", "MGF1-SHA512", "http://www.w3.org/2009/xmlenc11#mgf1sha512", 0, false);
 
         private final Kind kind;
         private final String id;

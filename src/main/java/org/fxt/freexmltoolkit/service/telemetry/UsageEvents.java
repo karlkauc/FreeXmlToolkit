@@ -741,6 +741,56 @@ public final class UsageEvents {
     }
 
     /**
+     * A document was encrypted (XML Encryption).
+     *
+     * @param target     {@code document | element | xpath | content | binary}
+     * @param data       data algorithm family ({@code aes-gcm}, {@code aes-cbc}, {@code tripledes}, …)
+     * @param keyMethods key methods used ({@code rsa-oaep}, {@code ecdh-es}, {@code kw-aes}, {@code password}, …)
+     * @param recipients number of recipients
+     * @param legacy     whether a legacy algorithm was used
+     * @param failure    why it failed, or {@code null}
+     */
+    public static void encrypted(String target, String data, String keyMethods, int recipients, boolean legacy,
+                                 long startNanos, QueryFailure failure) {
+        action("encrypt", b -> {
+            b.docKind(DocKind.XML).meta("target", target).meta("data_alg", data).meta("key_methods", keyMethods)
+                    .meta("recipients", String.valueOf(recipients)).meta("legacy", String.valueOf(legacy));
+            outcome(b, failure);
+            duration(b, startNanos);
+        });
+        if (failure == null) {
+            local(s -> s.trackFeatureUsed("xml_encryption"));
+        }
+    }
+
+    /**
+     * A document was decrypted.
+     *
+     * @param keySource {@code keystore | private_key | key_file | password}
+     * @param decrypted EncryptedData elements decrypted
+     * @param failure   why it failed ({@code invalid_input} for a wrong key), or {@code null}
+     */
+    public static void decrypted(String keySource, int decrypted, long startNanos, QueryFailure failure) {
+        action("decrypt", b -> {
+            b.docKind(DocKind.XML).meta("key_source", keySource).meta("decrypted", String.valueOf(decrypted));
+            outcome(b, failure);
+            duration(b, startNanos);
+        });
+        if (failure == null) {
+            local(s -> s.trackFeatureUsed("xml_encryption"));
+        }
+    }
+
+    /** An encrypted document was described (no key). */
+    public static void encryptionInspected(int encryptedData, long startNanos, QueryFailure failure) {
+        action("inspect_encryption", b -> {
+            b.docKind(DocKind.XML).meta("encrypted_data", String.valueOf(encryptedData));
+            outcome(b, failure);
+            duration(b, startNanos);
+        });
+    }
+
+    /**
      * Schema documentation was generated.
      *
      * @param format  {@code html|pdf|word} (normalized to lower case)

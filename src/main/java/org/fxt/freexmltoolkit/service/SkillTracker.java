@@ -134,6 +134,11 @@ public class SkillTracker {
         ));
 
         // Security Features
+        FEATURES.put("xml_encryption", new FeatureDefinition(
+            "xml_encryption", "XML Encryption", "Security",
+            "Encrypt and decrypt XML documents",
+            "bi-lock", "unifiedShell", 10
+        ));
         FEATURES.put("digital_signature", new FeatureDefinition(
             "digital_signature", "XML Digital Signatures", "Security",
             "Sign and verify XML documents",

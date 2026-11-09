@@ -119,6 +119,7 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
         // Specialized Features
         addFeatureIfMissing("schema_generation", "Schema Generation", "Tools");
         addFeatureIfMissing("digital_signature", "XML Digital Signatures", "Security");
+        addFeatureIfMissing("xml_encryption", "XML Encryption", "Security");
         addFeatureIfMissing("pdf_generation", "PDF Generation (FOP)", "Export");
         addFeatureIfMissing("batch_validation", "Batch Validation", "Validation");
 
@@ -469,6 +470,13 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
                 "unifiedShell",
                 7,
                 "bi-diagram-3"
+            );
+            case "xml_encryption" -> new FeatureTip(
+                feature.getFeatureId(),
+                "Encrypt elements or whole documents for certificates, keys or a password.",
+                "unifiedShell",
+                6,
+                "bi-lock"
             );
             case "digital_signature" -> new FeatureTip(
                 feature.getFeatureId(),
