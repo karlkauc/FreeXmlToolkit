@@ -20,6 +20,15 @@ import picocli.CommandLine.Spec;
  * interface: {@code fxt-cli merge %O %A %B -o %A}.
  */
 @Command(name = "merge",
+        mixinStandardHelpOptions = true,
+        header = "Three-way merge of XML or text files with Git conflict markers.",
+        footer = {
+                "  # Merge into a file; conflicts get <<<<<<< ======= >>>>>>> markers",
+                "  fxt-cli merge base.xml mine.xml theirs.xml -o merged.xml",
+                "",
+                "  # Result to standard output, named markers",
+                "  fxt-cli merge base.xml mine.xml theirs.xml -L mine -L base -L theirs"
+        },
         description = "Three-way merge of BASE, LEFT and RIGHT; conflicts get Git's markers.",
         sortOptions = false)
 final class MergeCommand implements Callable<Integer> {

@@ -26,6 +26,18 @@ import picocli.CommandLine.Spec;
  * folders file by file ({@link FolderComparison}). Exit 0 when they match, 1 when they differ.
  */
 @Command(name = "compare",
+        mixinStandardHelpOptions = true,
+        header = "Compare two XML files by structure, or two folders file by file.",
+        footer = {
+                "  # Structural comparison, elements matched by their id attribute",
+                "  fxt-cli compare old.xml new.xml -k id",
+                "",
+                "  # Order of children does not matter; JSON result",
+                "  fxt-cli compare a.xml b.xml --ignore-order -f json",
+                "",
+                "  # Two folders file by file",
+                "  fxt-cli compare release-1/ release-2/"
+        },
         description = "Compare two XML files by structure, or two folders file by file.",
         sortOptions = false)
 final class CompareCommand implements Callable<Integer> {

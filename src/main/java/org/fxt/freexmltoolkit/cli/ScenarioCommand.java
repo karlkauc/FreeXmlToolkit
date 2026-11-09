@@ -23,6 +23,16 @@ import picocli.CommandLine.Spec;
  * runs the scenario the project binds to it.
  */
 @Command(name = "scenario",
+        mixinStandardHelpOptions = true,
+        header = "Run the transformation scenarios of a project file (.fxtproj).",
+        footer = {
+                "  # List the scenarios, then run all of them",
+                "  fxt-cli scenario shop.fxtproj --list",
+                "  fxt-cli scenario shop.fxtproj",
+                "",
+                "  # One scenario for the given files",
+                "  fxt-cli scenario shop.fxtproj \"Invoice HTML\" -i orders/"
+        },
         description = "Run the transformation scenarios of a project file (.fxtproj).",
         sortOptions = false)
 final class ScenarioCommand implements Callable<Integer> {

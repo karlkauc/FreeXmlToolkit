@@ -40,10 +40,7 @@ import org.fxt.freexmltoolkit.domain.PdfDocumentationConfig;
 import org.fxt.freexmltoolkit.domain.WordDocumentationConfig;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.TaskProgressListener;
-import org.fxt.freexmltoolkit.service.XsdDocumentationImageService;
-import org.fxt.freexmltoolkit.service.XsdDocumentationPdfService;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
-import org.fxt.freexmltoolkit.service.XsdDocumentationWordService;
 
 /**
  * The XSD documentation generator as a main-area tool tab ("the big editing
@@ -447,147 +444,72 @@ public class DocumentationView extends BorderPane {
         });
     }
 
-    /** The pipeline (mirrors the legacy Documentation tab's generation task). */
+    /** Runs the shared pipeline ({@link DocumentationRunner#generate}) with the form's options. */
     private void runGeneration(DocOptions options) throws Exception {
-        XsdDocumentationService service = new XsdDocumentationService();
-        service.setXsdFilePath(options.xsd().getAbsolutePath());
-        service.setMarkdownMode(options.markdown());
-        service.setIncludeTypeDefinitionsInSourceCode(options.includeTypeDefs());
-        service.setShowDocumentationInSvg(options.showDocInSvg());
-        service.setShowConstraintsInSvg(options.showConstraintsInSvg());
-        service.setShowRootConstraintsInSvg(options.showRootConstraintsInSvg());
-        service.setShowConstraintTargets(options.showConstraintTargets());
-        service.setGenerateSvgOverviewPage(options.svgOverview());
-        service.setAddMetadataInOutput(options.addMetadata());
-        service.setDeduplicateDataDictionaryByType(options.deduplicateDataDictionaryByType());
-        if (options.languages() != null && !options.languages().isEmpty()) {
-            service.setIncludedLanguages(options.languages());
-        }
-        if (options.fallbackLanguage() != null && !options.fallbackLanguage().isBlank()) {
-            service.setFallbackLanguage(options.fallbackLanguage());
-        }
-        if (options.favicon() != null && options.favicon().isFile()) {
-            service.setFaviconPath(options.favicon().getAbsolutePath());
-        }
-        service.setMethod(switch (options.imageFormat() != null ? options.imageFormat() : "SVG") {
-            case "PNG" -> XsdDocumentationService.ImageOutputMethod.PNG;
-            case "JPG" -> XsdDocumentationService.ImageOutputMethod.JPG;
-            default -> XsdDocumentationService.ImageOutputMethod.SVG;
-        });
         TaskProgressListener listener = update -> Platform.runLater(() -> recordProgress(update));
-        service.setProgressListener(listener);
-
-        switch (options.format()) {
-            case "PDF" -> {
-                service.processXsd(options.markdown());
-                XsdDocumentationPdfService pdfService = new XsdDocumentationPdfService();
-                pdfService.setProgressListener(listener);
-                if (options.languages() != null && !options.languages().isEmpty()) {
-                    pdfService.setIncludedLanguages(options.languages());
-                }
-                PdfDocumentationConfig pdfConfig = pdfConfig(options.formatOptions());
-                // The diagram format chosen for HTML: SVG stays vector graphics in the PDF too
-                pdfConfig.setVectorDiagrams(!"PNG".equals(options.imageFormat()) && !"JPG".equals(options.imageFormat()));
-                pdfService.setConfig(pdfConfig);
-                pdfService.setDeduplicateDataDictionaryByType(options.deduplicateDataDictionaryByType());
-                XsdDocumentationImageService imageService = new XsdDocumentationImageService(
-                        service.xsdDocumentationData.getExtendedXsdElementMap());
-                imageService.setShowDocumentation(options.showDocInSvg());
-                imageService.setShowConstraints(options.showConstraintsInSvg());
-                imageService.setShowRootConstraints(options.showRootConstraintsInSvg());
-                imageService.setShowConstraintTargets(options.showConstraintTargets());
-                pdfService.setImageService(imageService);
-                pdfService.generatePdfDocumentation(options.output(), service.xsdDocumentationData);
-            }
-            case "Word" -> {
-                service.processXsd(options.markdown());
-                XsdDocumentationWordService wordService = new XsdDocumentationWordService();
-                wordService.setProgressListener(listener);
-                if (options.languages() != null && !options.languages().isEmpty()) {
-                    wordService.setIncludedLanguages(options.languages());
-                }
-                wordService.setConfig(wordConfig(options.formatOptions()));
-                wordService.setDeduplicateDataDictionaryByType(options.deduplicateDataDictionaryByType());
-                XsdDocumentationImageService imageService = new XsdDocumentationImageService(
-                        service.xsdDocumentationData.getExtendedXsdElementMap());
-                imageService.setShowDocumentation(options.showDocInSvg());
-                imageService.setShowConstraints(options.showConstraintsInSvg());
-                imageService.setShowRootConstraints(options.showRootConstraintsInSvg());
-                imageService.setShowConstraintTargets(options.showConstraintTargets());
-                wordService.setImageService(imageService);
-                wordService.generateWordDocumentation(options.output(), service.xsdDocumentationData);
-            }
-            default -> service.generateXsdDocumentation(options.output());
-        }
+        DocumentationRunner.generate(options.xsd(), options.output(), toRunnerOptions(options), listener);
     }
 
-    /** Builds the PDF config from the captured options ({@code null} = defaults). */
-    private static PdfDocumentationConfig pdfConfig(FormatOptions options) {
-        PdfDocumentationConfig config = new PdfDocumentationConfig();
-        if (options == null) {
-            return config;
+    /** Translates the form's options (display names) into the generator options. */
+    static DocumentationOptions toRunnerOptions(DocOptions options) {
+        DocumentationOptions result = new DocumentationOptions()
+                .format(switch (options.format()) {
+                    case "PDF" -> DocumentationOptions.Format.PDF;
+                    case "Word" -> DocumentationOptions.Format.DOCX;
+                    default -> DocumentationOptions.Format.HTML;
+                })
+                .markdown(options.markdown())
+                .typeDefinitionsInSource(options.includeTypeDefs())
+                .diagramDocumentation(options.showDocInSvg())
+                .diagramConstraints(options.showConstraintsInSvg())
+                .rootConstraints(options.showRootConstraintsInSvg())
+                .constraintTargets(options.showConstraintTargets())
+                .svgOverview(options.svgOverview())
+                .metadata(options.addMetadata())
+                .deduplicateDataDictionary(options.deduplicateDataDictionaryByType())
+                .languages(options.languages())
+                .fallbackLanguage(options.fallbackLanguage())
+                .favicon(options.favicon() != null && options.favicon().isFile() ? options.favicon() : null)
+                .imageFormat(switch (options.imageFormat() != null ? options.imageFormat() : "SVG") {
+                    case "PNG" -> XsdDocumentationService.ImageOutputMethod.PNG;
+                    case "JPG" -> XsdDocumentationService.ImageOutputMethod.JPG;
+                    default -> XsdDocumentationService.ImageOutputMethod.SVG;
+                });
+        FormatOptions format = options.formatOptions();
+        if (format == null) {
+            return result;
         }
-        config.setPageSize(switch (options.pageSize() != null ? options.pageSize() : "A4") {
-            case "Letter" -> PdfDocumentationConfig.PageSize.LETTER;
-            case "Legal" -> PdfDocumentationConfig.PageSize.LEGAL;
-            case "A3" -> PdfDocumentationConfig.PageSize.A3;
-            default -> PdfDocumentationConfig.PageSize.A4;
-        });
-        config.setOrientation(options.landscape()
-                ? PdfDocumentationConfig.Orientation.LANDSCAPE
-                : PdfDocumentationConfig.Orientation.PORTRAIT);
-        config.setIncludeCoverPage(options.coverPage());
-        config.setIncludeToc(options.toc());
-        config.setIncludeDataDictionary(options.dataDictionary());
-        config.setIncludeSchemaDiagram(options.schemaDiagram());
-        config.setIncludeElementDiagrams(options.elementDiagrams());
+        result.pageSize(switch (format.pageSize() != null ? format.pageSize() : "A4") {
+                    case "Letter" -> PdfDocumentationConfig.PageSize.LETTER;
+                    case "Legal" -> PdfDocumentationConfig.PageSize.LEGAL;
+                    case "A3" -> PdfDocumentationConfig.PageSize.A3;
+                    default -> PdfDocumentationConfig.PageSize.A4;
+                })
+                .landscape(format.landscape())
+                .coverPage(format.coverPage())
+                .toc(format.toc())
+                .dataDictionary(format.dataDictionary())
+                .schemaDiagram(format.schemaDiagram())
+                .elementDiagrams(format.elementDiagrams())
+                .sourceCode(format.sourceCode());
+        for (PdfDocumentationConfig.ElementReference scope : PdfDocumentationConfig.ElementReference.values()) {
+            if (scope.getDisplayName().equals(format.elementReference())) {
+                result.elementReference(scope);
+            }
+        }
         for (PdfDocumentationConfig.ColorScheme scheme : PdfDocumentationConfig.ColorScheme.values()) {
-            if (scheme.getDisplayName().equals(options.colorScheme())) {
-                config.setColorScheme(scheme);
+            if (scheme.getDisplayName().equals(format.colorScheme())) {
+                result.pdf().setColorScheme(scheme);
             }
         }
         for (PdfDocumentationConfig.Watermark mark : PdfDocumentationConfig.Watermark.values()) {
-            if (mark.getDisplayName().equals(options.watermark())) {
-                config.setWatermark(mark);
+            if (mark.getDisplayName().equals(format.watermark())) {
+                result.pdf().setWatermark(mark);
             }
         }
-        config.setIncludePageNumbers(options.pageNumbers());
-        config.setGenerateBookmarks(options.bookmarks());
-        for (PdfDocumentationConfig.ElementReference scope : PdfDocumentationConfig.ElementReference.values()) {
-            if (scope.getDisplayName().equals(options.elementReference())) {
-                config.setElementReference(scope);
-            }
-        }
-        config.setIncludeSourceCode(options.sourceCode());
-        return config;
-    }
-
-    /** Builds the Word config from the captured options ({@code null} = defaults). */
-    private static WordDocumentationConfig wordConfig(FormatOptions options) {
-        WordDocumentationConfig config = new WordDocumentationConfig();
-        if (options == null) {
-            return config;
-        }
-        config.setPageSize(switch (options.pageSize() != null ? options.pageSize() : "A4") {
-            case "Letter" -> WordDocumentationConfig.PageSize.LETTER;
-            case "Legal" -> WordDocumentationConfig.PageSize.LEGAL;
-            default -> WordDocumentationConfig.PageSize.A4;
-        });
-        config.setOrientation(options.landscape()
-                ? WordDocumentationConfig.Orientation.LANDSCAPE
-                : WordDocumentationConfig.Orientation.PORTRAIT);
-        config.setIncludeCoverPage(options.coverPage());
-        config.setIncludeToc(options.toc());
-        config.setIncludeDataDictionary(options.dataDictionary());
-        config.setIncludeSchemaDiagram(options.schemaDiagram());
-        config.setIncludeElementDiagrams(options.elementDiagrams());
-        for (PdfDocumentationConfig.ElementReference scope : PdfDocumentationConfig.ElementReference.values()) {
-            if (scope.getDisplayName().equals(options.elementReference())) {
-                config.setElementReference(scope);
-            }
-        }
-        config.setIncludeSourceCode(options.sourceCode());
-        return config;
+        result.pdf().setIncludePageNumbers(format.pageNumbers());
+        result.pdf().setGenerateBookmarks(format.bookmarks());
+        return result;
     }
 
     /** Selects a format programmatically (also used by tests). */
@@ -631,10 +553,7 @@ public class DocumentationView extends BorderPane {
         FxtGui.executorService.submit(() -> {
             Set<String> found;
             try {
-                XsdDocumentationService scanService = new XsdDocumentationService();
-                scanService.setXsdFilePath(xsd.getAbsolutePath());
-                scanService.processXsd(false);
-                found = new LinkedHashSet<>(scanService.getDiscoveredLanguages());
+                found = DocumentationRunner.discoverLanguages(xsd);
             } catch (Exception e) {
                 found = Set.of();
             }

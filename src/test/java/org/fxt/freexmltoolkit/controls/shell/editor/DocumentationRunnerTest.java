@@ -52,6 +52,49 @@ class DocumentationRunnerTest {
     }
 
     @Test
+    void defaultsMatchTheDocumentationPage() {
+        DocumentationOptions options = new DocumentationOptions();
+        assertEquals(DocumentationOptions.Format.HTML, options.format());
+        assertEquals(org.fxt.freexmltoolkit.service.XsdDocumentationService.MarkdownMode.ALL, options.markdown());
+        assertTrue(options.typeDefinitionsInSource());
+        assertTrue(options.metadata());
+        assertTrue(options.svgOverview());
+        assertFalse(options.diagramDocumentation());
+        assertTrue(options.diagramConstraints());
+        assertFalse(options.pdf().isIncludeCoverPage(), "the page starts without a cover page");
+        assertFalse(options.word().isIncludeCoverPage());
+        assertTrue(options.pdf().isIncludeSchemaDiagram());
+        assertNull(options.languages(), "all languages");
+    }
+
+    @Test
+    void generatesWithOptions(@TempDir Path tmp) throws Exception {
+        File out = tmp.resolve("doc.pdf").toFile();
+        DocumentationOptions options = new DocumentationOptions()
+                .format(DocumentationOptions.Format.PDF)
+                .landscape(true)
+                .schemaDiagram(false)
+                .elementDiagrams(false);
+        options.pdf().setTitle("Purchase orders");
+        java.util.List<String> steps = new java.util.ArrayList<>();
+        DocumentationRunner.generate(XSD, out, options, update -> steps.add(update.taskName()));
+        assertTrue(out.length() > 0, "PDF written");
+        assertFalse(steps.isEmpty(), "progress reported");
+    }
+
+    @Test
+    void schemaDiagramStrokesHoldOneColour(@TempDir Path tmp) throws Exception {
+        // Repeatable elements once got stroke="#4a90e2,#87ceeb", which FOP rejects in PDF diagrams
+        File site = tmp.resolve("site").toFile();
+        DocumentationRunner.generate(new File("src/test/resources/testSchema.xsd"), site,
+                new DocumentationOptions(), null);
+        String svgPage = Files.readString(site.toPath().resolve("schema-svg.html"));
+        assertFalse(java.util.regex.Pattern.compile("stroke=\"#[0-9a-fA-F]{6},").matcher(svgPage).find(),
+                "a stroke takes one colour");
+        assertTrue(svgPage.contains("#87ceeb"), "repeatable elements keep their inner border");
+    }
+
+    @Test
     void missingFileReturnsError(@TempDir Path tmp) {
         String result = DocumentationRunner.exportHtml(new File("/no/such.xsd"), tmp.toFile());
         assertTrue(result.startsWith("ERROR:"), result);

@@ -18,6 +18,15 @@ import picocli.CommandLine.Spec;
  * or from a finished XSL-FO document.
  */
 @Command(name = "fop",
+        mixinStandardHelpOptions = true,
+        header = "Render a PDF with Apache FOP from XML + XSL-FO stylesheet or an XSL-FO file.",
+        footer = {
+                "  # XML + stylesheet producing XSL-FO",
+                "  fxt-cli fop -i order.xml -s order-fo.xsl -o order.pdf",
+                "",
+                "  # A finished XSL-FO document as PDF/A",
+                "  fxt-cli fop --fo order.fo -o order.pdf --pdfa"
+        },
         description = "Render a PDF with Apache FOP from XML + XSL-FO stylesheet, or from an XSL-FO document.",
         sortOptions = false)
 final class FopCommand implements Callable<Integer> {

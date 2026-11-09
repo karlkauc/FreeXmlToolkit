@@ -20,7 +20,15 @@ import picocli.CommandLine.Spec;
 @Command(name = "fxt-cli",
         mixinStandardHelpOptions = true,
         versionProvider = FxtCli.Version.class,
-        description = "FreeXmlToolkit on the command line: validate, transform, test (XSpec), compare, merge, document schemas, convert, render PDF.",
+        header = "FreeXmlToolkit on the command line.",
+        description = "Validate, transform, test (XSpec), compare, merge, document schemas, convert and render "
+                + "PDF without the user interface. Logs go to standard error, results to standard output.",
+        footerHeading = "%nMore help:%n",
+        footer = {
+                "  fxt-cli <command> --help    options and examples of a command",
+                "  fxt-cli help <command>      the same",
+                "  Documentation: https://karlkauc.github.io/FreeXmlToolkit/command-line/"
+        },
         subcommands = {
                 ValidateCommand.class,
                 TransformCommand.class,
@@ -49,9 +57,13 @@ public final class FxtCli implements Runnable {
             description = "Print nothing but errors and requested reports.")
     boolean quiet;
 
+    /** {@code --verbose} was given: commands may print progress to standard error. */
+    boolean verbose;
+
     @Option(names = "--verbose", scope = CommandLine.ScopeType.INHERIT,
             description = "Log details of the processing to standard error.")
     void setVerbose(boolean verbose) {
+        this.verbose = verbose;
         if (verbose) {
             Logging.verbose();
         }
@@ -88,6 +100,7 @@ public final class FxtCli implements Runnable {
         commandLine.setOut(out);
         commandLine.setErr(err);
         commandLine.setCaseInsensitiveEnumValuesAllowed(true);
+        CliHelp.configure(commandLine);
         // A usage error prints its message and a hint, not the whole help text.
         commandLine.setParameterExceptionHandler((exception, arguments) -> {
             CommandLine cmd = exception.getCommandLine();

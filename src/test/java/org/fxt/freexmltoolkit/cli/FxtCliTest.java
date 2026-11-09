@@ -47,6 +47,17 @@ class FxtCliTest {
             </schema>
             """;
 
+    private static final String LANG_XSD = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <xs:element name="root" type="xs:string">
+                <xs:annotation>
+                  <xs:documentation xml:lang="de">Wurzel</xs:documentation>
+                  <xs:documentation xml:lang="en">Root</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+            </xs:schema>
+            """;
+
     @TempDir
     Path dir;
 
@@ -620,6 +631,77 @@ class FxtCliTest {
         }
 
         @Test
+        @DisplayName("Word documentation, diagrams can be left out")
+        void word() throws Exception {
+            Path docx = dir.resolve("doc.docx");
+            assertEquals(ExitCodes.OK, run("xsd-doc", xsd, "-o", docx), err);
+            assertTrue(mediaCount(docx) > 0, "diagrams as images");
+            Path plain = dir.resolve("plain.docx");
+            assertEquals(ExitCodes.OK, run("xsd-doc", xsd, "-o", plain, "-f", "docx",
+                    "--no-schema-diagram", "--no-element-diagrams"), err);
+            assertEquals(0, mediaCount(plain));
+        }
+
+        private long mediaCount(Path docx) throws Exception {
+            try (var zip = new java.util.zip.ZipFile(docx.toFile())) {
+                return zip.stream().filter(e -> e.getName().startsWith("word/media/")).count();
+            }
+        }
+
+        @Test
+        @DisplayName("--list-languages prints the xml:lang values; --language filters the site")
+        void languages() throws Exception {
+            Path schema = write("lang.xsd", LANG_XSD);
+            assertEquals(ExitCodes.OK, run("xsd-doc", schema, "--list-languages"), err);
+            assertEquals(List.of("de", "en"), out.lines().filter(l -> !l.equals("default")).toList());
+
+            Path site = dir.resolve("de-site");
+            assertEquals(ExitCodes.OK, run("xsd-doc", schema, "-o", site, "--language", "de"), err);
+            String languages = Files.readString(site.resolve("languages.json"));
+            assertTrue(languages.contains("\"de\""), languages);
+            assertFalse(languages.contains("\"en\""), languages);
+        }
+
+        @Test
+        @DisplayName("options of another format are ignored with a warning; bad values are usage errors")
+        void optionChecks() {
+            Path site = dir.resolve("site");
+            assertEquals(ExitCodes.OK, run("xsd-doc", xsd, "-o", site, "--watermark", "draft"), err);
+            assertTrue(err.contains("--watermark does not apply to html output"), err);
+            assertEquals(ExitCodes.USAGE, run("xsd-doc", xsd, "-o", dir.resolve("a.pdf"), "--font-size", "20"));
+            assertTrue(err.contains("--font-size must be between 9 and 12"), err);
+            assertEquals(ExitCodes.USAGE, run("xsd-doc", xsd));
+            assertTrue(err.contains("--output"), err);
+        }
+
+        @Test
+        @DisplayName("the command line maps onto the generator options")
+        void optionMapping() {
+            var commandLine = FxtCli.newCommandLine(new PrintWriter(new StringWriter()), new PrintWriter(new StringWriter()));
+            var parsed = commandLine.parseArgs("xsd-doc", xsd.toString(), "-o", "x.pdf", "--landscape",
+                    "--watermark", "confidential", "--color-scheme", "green", "--font-size", "9", "--no-toc",
+                    "--markdown", "marked", "--image-format", "png", "--element-reference", "all",
+                    "--word-header-style", "colorful", "--language", "de,en");
+            XsdDocCommand command = parsed.subcommand().commandSpec().commandLine().getCommand();
+            var options = command.toOptions(XsdDocCommand.DocFormat.PDF);
+            var pdf = options.pdf();
+            assertEquals(org.fxt.freexmltoolkit.domain.PdfDocumentationConfig.Orientation.LANDSCAPE, pdf.getOrientation());
+            assertEquals(org.fxt.freexmltoolkit.domain.PdfDocumentationConfig.Watermark.CONFIDENTIAL, pdf.getWatermark());
+            assertEquals(org.fxt.freexmltoolkit.domain.PdfDocumentationConfig.ColorScheme.GREEN, pdf.getColorScheme());
+            assertEquals(org.fxt.freexmltoolkit.domain.PdfDocumentationConfig.FontSize.PT_9, pdf.getFontSize());
+            assertFalse(pdf.isIncludeToc());
+            assertFalse(options.word().isIncludeToc());
+            assertTrue(pdf.isIncludeSchemaDiagram(), "on unless --no-schema-diagram");
+            assertFalse(pdf.isVectorDiagrams(), "png diagrams");
+            assertEquals(org.fxt.freexmltoolkit.domain.PdfDocumentationConfig.ElementReference.ALL_OCCURRENCES,
+                    pdf.getElementReference());
+            assertEquals(org.fxt.freexmltoolkit.domain.WordDocumentationConfig.HeaderStyle.COLORFUL,
+                    options.word().getHeaderStyle());
+            assertEquals(org.fxt.freexmltoolkit.service.XsdDocumentationService.MarkdownMode.PER_NODE, options.markdown());
+            assertEquals(java.util.Set.of("de", "en"), options.languages());
+        }
+
+        @Test
         @DisplayName("PDF from an XSL-FO document; -i/-s and --fo exclude each other")
         void fop() throws Exception {
             Path fo = write("doc.fo", """
@@ -638,6 +720,61 @@ class FxtCliTest {
             assertEquals(ExitCodes.OK, run("fop", "--fo", fo, "-o", pdf), err);
             assertTrue(Files.size(pdf) > 100);
             assertEquals(ExitCodes.USAGE, run("fop", "--fo", fo, "-i", valid, "-o", pdf));
+        }
+    }
+
+    @Nested
+    @DisplayName("help")
+    class Help {
+
+        private static final List<String> COMMANDS = List.of(
+                "validate", "transform", "xsd-doc", "convert", "compare", "merge", "xspec", "scenario", "fop");
+
+        @Test
+        @DisplayName("every command has -h/--help with a description, options and examples")
+        void everyCommand() {
+            for (String command : COMMANDS) {
+                for (String flag : List.of("--help", "-h")) {
+                    assertEquals(ExitCodes.OK, run(command, flag), command + " " + flag + ": " + err);
+                    assertTrue(out.contains("Usage: fxt-cli " + command), command + ":\n" + out);
+                    assertTrue(out.contains("Options:"), command + ":\n" + out);
+                    assertTrue(out.contains("Examples:"), command + ":\n" + out);
+                    assertTrue(out.contains("fxt-cli " + command + " "), "an example of " + command);
+                }
+                String viaFlag = out;
+                assertEquals(ExitCodes.OK, run("help", command));
+                assertEquals(viaFlag, out, "help " + command);
+            }
+        }
+
+        @Test
+        @DisplayName("the usage-error hint names a working --help")
+        void hintWorks() {
+            assertEquals(ExitCodes.USAGE, run("xsd-doc", xsd, "--no-such-option"));
+            assertTrue(err.contains("Try 'fxt-cli xsd-doc --help'"), err);
+            assertEquals(ExitCodes.OK, run("xsd-doc", "--help"));
+        }
+
+        @Test
+        @DisplayName("the overview lists the commands and how to get more help")
+        void overview() {
+            assertEquals(ExitCodes.OK, run("--help"));
+            for (String command : COMMANDS) {
+                assertTrue(out.contains("  " + command + " "), command + " in\n" + out);
+            }
+            assertTrue(out.contains("fxt-cli <command> --help"), out);
+            assertTrue(out.contains("Exit codes:"), out);
+        }
+
+        @Test
+        @DisplayName("xsd-doc groups its options and shows defaults")
+        void xsdDocGroups() {
+            assertEquals(ExitCodes.OK, run("xsd-doc", "--help"));
+            for (String heading : List.of("Content:", "Diagrams:", "HTML site:", "PDF and Word:", "PDF only:", "Word only:")) {
+                assertTrue(out.contains(heading), heading + " in\n" + out);
+            }
+            assertTrue(out.contains("--[no-]toc"), out);
+            assertTrue(out.contains("Default: blue"), out);
         }
     }
 

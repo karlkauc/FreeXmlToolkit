@@ -108,6 +108,8 @@ public class XsdDocumentationSvgService {
     // Colors matching XsdDiagramView styles
     private static final String COLOR_ROOT = "#4A90E2";
     private static final String COLOR_ELEMENT = "#4a90e2"; // NODE_LABEL_STYLE
+    /** Inner border of repeatable elements (maxOccurs &gt; 1). */
+    private static final String COLOR_REPEATABLE_INNER = "#87ceeb";
     private static final String COLOR_ATTRIBUTE = "#d4a147"; // ATTRIBUTE_LABEL_STYLE
     private static final String COLOR_SEQUENCE = "#6c757d"; // SEQUENCE_NODE_STYLE
     private static final String COLOR_CHOICE = "#ff8c00"; // CHOICE_NODE_STYLE
@@ -417,6 +419,14 @@ public class XsdDocumentationSvgService {
                 x - NODE_WIDTH / 2, y - NODE_HEIGHT / 2, NODE_WIDTH, NODE_HEIGHT,
                 visualInfo.fillColor, visualInfo.borderColor, visualInfo.borderWidth, visualInfo.dashArray
         ));
+        if (visualInfo.innerBorderColor != null) {
+            // Repeatable: a second border inside the first (a stroke takes one colour only)
+            svgBuilder.append(String.format(
+                    "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"3\" ry=\"3\" fill=\"none\" stroke=\"%s\" stroke-width=\"1\" stroke-dasharray=\"%s\"/>",
+                    x - NODE_WIDTH / 2 + 3, y - NODE_HEIGHT / 2 + 3, NODE_WIDTH - 6, NODE_HEIGHT - 6,
+                    visualInfo.innerBorderColor, visualInfo.dashArray
+            ));
+        }
 
         // Draw element name (centered, without icon)
         String elementName = element.getElementName();
@@ -858,6 +868,8 @@ public class XsdDocumentationSvgService {
         String textColor;
         String iconPath;
         String iconColor;
+        /** Colour of a second, inner border (repeatable elements), {@code null} for none. */
+        String innerBorderColor;
 
         ElementVisualInfo(String fillColor, String borderColor, String borderWidth, String dashArray,
                           String textColor, String iconPath, String iconColor) {
@@ -886,6 +898,7 @@ public class XsdDocumentationSvgService {
         String textColor;
         String iconPath;
         String iconColor;
+        String innerBorderColor = null;
 
         // Determine element type and get appropriate icon/color
         IconInfo iconInfo = getTypeSpecificIconInfo(element.getElementType());
@@ -951,12 +964,12 @@ public class XsdDocumentationSvgService {
             // Apply cardinality-based styling
             if (isOptional && isRepeatable) {
                 dashArray = "5,2";
-                borderColor = COLOR_ELEMENT + "," + "#87ceeb";
+                innerBorderColor = COLOR_REPEATABLE_INNER;
                 borderWidth = "2";
             } else if (isOptional) {
                 dashArray = "5,2";
             } else if (isRepeatable) {
-                borderColor = COLOR_ELEMENT + "," + "#87ceeb";
+                innerBorderColor = COLOR_REPEATABLE_INNER;
                 borderWidth = "2";
             }
         }
@@ -968,7 +981,10 @@ public class XsdDocumentationSvgService {
             borderWidth = "2";
         }
 
-        return new ElementVisualInfo(fillColor, borderColor, borderWidth, dashArray, textColor, iconPath, iconColor);
+        ElementVisualInfo info = new ElementVisualInfo(fillColor, borderColor, borderWidth, dashArray, textColor,
+                iconPath, iconColor);
+        info.innerBorderColor = innerBorderColor;
+        return info;
     }
 
     /**

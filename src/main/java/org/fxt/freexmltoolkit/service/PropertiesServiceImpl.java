@@ -153,7 +153,8 @@ public class PropertiesServiceImpl implements PropertiesService {
                     properties.load(fis);
                     decryptPasswords();
                     rememberFileStamp();
-                    logger.debug("Loaded Properties '{}': {}", propertiesFile.getAbsolutePath(), properties);
+                    // Never the values: they hold decrypted passwords (proxy) and private paths
+                    logger.debug("Loaded {} properties from '{}'", properties.size(), propertiesFile.getAbsolutePath());
                 } catch (IOException e) {
                     logger.warn("No properties found!");
                 }

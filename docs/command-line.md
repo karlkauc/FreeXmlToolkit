@@ -31,8 +31,10 @@ Java runtime; nothing else needs to be installed.
 
 From a source checkout: `./gradlew runCli --args="validate src/test/resources"`.
 
-`fxt-cli --help` lists the commands, `fxt-cli <command> --help` the options of one command, and
-`fxt-cli --version` prints the version.
+`fxt-cli --help` lists the commands with a one-line summary each, and `fxt-cli --version` prints
+the version. `fxt-cli <command> --help` (or `-h`, or `fxt-cli help <command>`) shows one command:
+what it does, its parameters, its options grouped by topic with their allowed values and defaults,
+and a few examples to copy. `-q` / `--quiet` and `--verbose` work with every command.
 
 ## validate
 
@@ -125,14 +127,104 @@ the settings (see [Threat Model](threat-model.md)).
 ## xsd-doc
 
 Generates the documentation of an XML Schema, like **Generate Documentation** in the
-application.
+application, with the same options (and a few more for PDF).
 
 ```bash
-fxt-cli xsd-doc SCHEMA -o OUTPUT [-f html|pdf|docx]
+fxt-cli xsd-doc SCHEMA -o OUTPUT [options]
+fxt-cli xsd-doc SCHEMA --list-languages
 ```
 
 `-o` is a folder for the HTML site and a file for PDF and Word. Without `-f` the format follows
-the extension of `-o` (`.pdf`, `.docx`, otherwise HTML).
+the extension of `-o` (`.pdf`, `.docx`, otherwise HTML). Options that are on by default are
+switched off with their `--no-` form (`--no-toc`). An option of another format than the chosen
+one (`--watermark` for an HTML site) is ignored with a warning, so one script can share its
+options between formats. `--verbose` prints the generation steps.
+
+| Option | Meaning | Default |
+|---|---|---|
+| `-o`, `--output PATH` | Output folder (HTML) or file (PDF, Word) | — |
+| `-f`, `--format FORMAT` | `html`, `pdf` or `docx` | from the extension |
+| `--list-languages` | Print the documentation languages (`xml:lang`) of the schema and exit; `default` stands for documentation without a language | |
+
+**Content**
+
+| Option | Meaning | Default |
+|---|---|---|
+| `--language LANG,…` | Only documentation in these languages; documentation without a language is always kept | all |
+| `--fallback-language LANG` | Language the HTML site shows when the reader's language is missing | |
+| `--markdown MODE` | Render documentation as Markdown: `all`, `marked` (only where `xs:appinfo` sets `markdown="true"`) or `off` | `all` |
+| `--[no-]type-definitions` | Type definitions in the source-code views | on |
+| `--dedupe-data-dictionary` | One data-dictionary row per type instead of per usage | off |
+| `--[no-]parallel` | Process the schema on several threads | on |
+
+**Diagrams**
+
+| Option | Meaning | Default |
+|---|---|---|
+| `--image-format FORMAT` | `svg`, `png` or `jpg`; in a PDF, `svg` keeps vector diagrams | `svg` |
+| `--diagram-docs` | Documentation texts inside the diagrams | off |
+| `--[no-]diagram-constraints` | Identity constraints and assertions on diagram cards | on |
+| `--root-constraints` | Also the constraints of the root card | off |
+| `--constraint-targets` | Mark the fields identity constraints point at | off |
+
+**HTML site**
+
+| Option | Meaning | Default |
+|---|---|---|
+| `--[no-]svg-overview` | Page with the diagram of the whole schema | on |
+| `--[no-]metadata` | Generator, date and schema metadata | on |
+| `--favicon FILE` | Favicon of the site (`.ico`, `.png`, `.svg`) | |
+
+**PDF and Word**
+
+| Option | Meaning | Default |
+|---|---|---|
+| `--page-size SIZE` | `a4`, `letter`, `legal`, `a3` (A3: PDF only, Word uses A4) | `a4` |
+| `--landscape` | Landscape pages | portrait |
+| `--cover-page` | Cover page | off |
+| `--[no-]toc` | Table of contents | on |
+| `--[no-]data-dictionary` | Data dictionary of all elements and attributes | on |
+| `--[no-]schema-diagram` | Diagram of the whole schema | on |
+| `--[no-]element-diagrams` | A diagram per element | on |
+| `--element-reference SCOPE` | Element sections: `declarations`, `all` (every occurrence) or `off` | `declarations` |
+| `--source-code` | XSD source of each component | off |
+
+**PDF only**
+
+| Option | Values | Default |
+|---|---|---|
+| `--color-scheme` | `blue`, `green`, `purple`, `grayscale`, `professional` | `blue` |
+| `--watermark` | `none`, `draft`, `confidential`, `internal` | `none` |
+| `--[no-]page-numbers`, `--page-number-position` | `left`, `center`, `right` | on, `center` |
+| `--[no-]bookmarks` | PDF outline | on |
+| `--margins` | `narrow` (15 mm), `normal` (20 mm), `wide` (30 mm) | `normal` |
+| `--font`, `--font-size` | `helvetica`, `times`, `courier`; 9 to 12 points | `helvetica`, 11 |
+| `--heading-style` | `blue`, `black`, `underlined` | `blue` |
+| `--line-spacing` | `compact`, `normal`, `relaxed` | `normal` |
+| `--header-style`, `--footer-style` | `standard`, `minimal`, `none` | `standard` |
+| `--table-style` | `bordered`, `zebra`, `minimal`, `grid` | `bordered` |
+| `--[no-]schema-overview`, `--[no-]complex-types`, `--[no-]simple-types` | Chapters | on |
+| `--raster-scale` | Scale of `png`/`jpg` diagrams, 0.5 to 4 | 1 |
+| `--title`, `--author`, `--subject`, `--keywords` | Document properties | schema name, user name |
+
+**Word only**
+
+| Option | Values | Default |
+|---|---|---|
+| `--word-header-style` | `professional`, `minimal`, `colorful` | `professional` |
+
+Examples:
+
+```bash
+# HTML site with the German and English documentation, German as fallback
+fxt-cli xsd-doc order.xsd -o site --language de,en --fallback-language de
+
+# PDF in landscape with a draft watermark and the green colour scheme
+fxt-cli xsd-doc order.xsd -o order.pdf --landscape --watermark draft --color-scheme green
+
+# Word document without diagrams, with a cover page
+fxt-cli xsd-doc order.xsd -o order.docx --cover-page --no-schema-diagram --no-element-diagrams
+```
 
 ## xspec
 

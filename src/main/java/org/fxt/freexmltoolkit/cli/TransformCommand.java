@@ -28,6 +28,19 @@ import picocli.CommandLine.Spec;
  * calls, and {@code doc()} / {@code unparsed-text()} refuse remote URLs.
  */
 @Command(name = "transform",
+        mixinStandardHelpOptions = true,
+        header = "Run an XSLT stylesheet, an XQuery or an XProc pipeline.",
+        footer = {
+                "  # XSLT with a parameter, result to a file",
+                "  fxt-cli transform order.xml -s invoice.xsl -p currency=EUR -o invoice.html",
+                "",
+                "  # Many inputs into a folder",
+                "  fxt-cli transform orders/*.xml -s normalize.xsl -d out/",
+                "",
+                "  # XQuery to standard output; profile an XSLT run",
+                "  fxt-cli transform catalog.xml -s report.xq",
+                "  fxt-cli transform big.xml -s slow.xsl -o out.xml --profile profile.json"
+        },
         description = {
                 "Run an XSLT stylesheet, an XQuery or an XProc pipeline.",
                 "The language follows the extension of --stylesheet (.xsl/.xslt, .xq/.xquery/.xqy/.xql, .xpl) "
@@ -66,11 +79,11 @@ final class TransformCommand implements Callable<Integer> {
     Map<String, String> parameters = new LinkedHashMap<>();
 
     @Option(names = {"-m", "--method"}, paramLabel = "METHOD",
-            description = "Output method: ${COMPLETION-CANDIDATES}. Default: the stylesheet's xsl:output, else xml.")
+            description = "Output method: xml, html, xhtml, text or json. Default: the stylesheet's xsl:output, else xml.")
     OutputFormat method;
 
     @Option(names = {"-l", "--language"}, paramLabel = "LANG",
-            description = "Language: ${COMPLETION-CANDIDATES} (default: from the file extension).")
+            description = "Language: xslt, xquery or xproc (default: from the file extension).")
     Language language;
 
     @Option(names = "--profile", paramLabel = "REPORT",

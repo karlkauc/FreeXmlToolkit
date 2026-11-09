@@ -18,7 +18,18 @@ import picocli.CommandLine.Spec;
  * {@code fxt-cli xspec}: runs XSpec tests for XSLT, XQuery and Schematron ({@link XSpecRunner}).
  * Exit 0 when all pass, 1 when a test fails, 3 when the tests cannot run.
  */
-@Command(name = "xspec", description = "Run XSpec tests (XSLT, XQuery, Schematron).", sortOptions = false)
+@Command(name = "xspec",
+        mixinStandardHelpOptions = true,
+        header = "Run XSpec tests for XSLT, XQuery and Schematron.",
+        footer = {
+                "  # Run all tests of a file",
+                "  fxt-cli xspec tests/invoice.xspec",
+                "",
+                "  # JUnit report for CI; XSpec HTML report",
+                "  fxt-cli xspec tests/invoice.xspec -r junit.xml",
+                "  fxt-cli xspec tests/invoice.xspec -f html -r report.html"
+        },
+        description = "Run XSpec tests (XSLT, XQuery, Schematron).", sortOptions = false)
 final class XSpecCommand implements Callable<Integer> {
 
     /** Report formats written with {@code --report}. */

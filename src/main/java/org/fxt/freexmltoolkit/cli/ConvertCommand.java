@@ -23,6 +23,19 @@ import picocli.CommandLine.Spec;
  * the converter behind Tools → Convert to JSON / XML / YAML.
  */
 @Command(name = "convert",
+        mixinStandardHelpOptions = true,
+        header = "Convert between XML, JSON and YAML.",
+        footer = {
+                "  # XML to JSON (target format from the input)",
+                "  fxt-cli convert order.xml -o order.json",
+                "",
+                "  # JSON to XML with a root element; YAML to JSON",
+                "  fxt-cli convert order.json -t xml --root order -o order.xml",
+                "  fxt-cli convert config.yaml -t json",
+                "",
+                "  # Lossless W3C mapping (fn:json-to-xml vocabulary)",
+                "  fxt-cli convert data.json -t xml -m w3c"
+        },
         description = "Convert between XML, JSON and YAML.",
         sortOptions = false)
 final class ConvertCommand implements Callable<Integer> {
@@ -46,11 +59,11 @@ final class ConvertCommand implements Callable<Integer> {
     List<Path> inputs;
 
     @Option(names = {"-t", "--to"}, paramLabel = "FORMAT",
-            description = "${COMPLETION-CANDIDATES}; default: json for XML input, xml for JSON and YAML input.")
+            description = "json, xml or yaml; default: json for XML input, xml for JSON and YAML input.")
     To to;
 
     @Option(names = "--from", paramLabel = "FORMAT",
-            description = "${COMPLETION-CANDIDATES}; default: by extension (.json/.jsonc/.json5, .yaml/.yml, else XML).")
+            description = "xml, json or yaml; default: by extension (.json/.jsonc/.json5, .yaml/.yml, else xml).")
     From from;
 
     @Option(names = {"-m", "--mapping"}, paramLabel = "MAPPING", defaultValue = "structured",

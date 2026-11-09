@@ -27,6 +27,22 @@ import picocli.CommandLine.Spec;
  * ({@code xsi:schemaLocation}, Schema Library, catalogs), else for well-formedness.
  */
 @Command(name = "validate",
+        mixinStandardHelpOptions = true,
+        header = "Validate XML, JSON and project files against schemas and Schematron.",
+        footer = {
+                "  # Every XML file below src/ against the schema it declares",
+                "  fxt-cli validate src/",
+                "",
+                "  # Against a given schema and Schematron, JUnit report for CI",
+                "  fxt-cli validate orders/ --xsd order.xsd --schematron rules.sch \\",
+                "      -f junit -r report.xml",
+                "",
+                "  # JSON files against a JSON Schema",
+                "  fxt-cli validate data/ --json-schema order.schema.json --include \"*.json\"",
+                "",
+                "  # Files of a project, with its schema bindings",
+                "  fxt-cli validate data/ --project shop.fxtproj"
+        },
         description = {
                 "Validate XML against XML Schema and/or Schematron, JSON against JSON Schema.",
                 "Without --xsd, every XML file is checked against the schema it declares "
@@ -66,7 +82,7 @@ final class ValidateCommand implements Callable<Integer> {
     List<String> include;
 
     @Option(names = {"-f", "--report-format"}, paramLabel = "FORMAT", defaultValue = "text",
-            description = "Report format: ${COMPLETION-CANDIDATES} (default: ${DEFAULT-VALUE}).")
+            description = "Report format: text, json, junit (JUnit XML) or sarif (default: ${DEFAULT-VALUE}).")
     Format format;
 
     @Option(names = {"-r", "--report"}, paramLabel = "FILE",

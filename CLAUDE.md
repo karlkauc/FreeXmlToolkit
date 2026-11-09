@@ -40,7 +40,11 @@ subcommands only parse options and call the UI-free runners in `controls/shell/e
 new logic there so the shell and the CLI share it. Logs go to stderr (`log4j2-cli.xml`), stdout is
 for results; no telemetry. Exit codes in `cli/ExitCodes`. Packaged as a second jpackage launcher
 (`--add-launcher fxt-cli=…`, properties written in `createJPackageTask`). User docs:
-`docs/command-line.md`; tests: `FxtCliTest`.
+`docs/command-line.md`; tests: `FxtCliTest`. Every subcommand has `mixinStandardHelpOptions`, a one-line
+`header` and examples as `footer`; `cli/CliHelp` sets the shared help layout. `xsd-doc` maps its options onto
+`DocumentationOptions` and runs `DocumentationRunner.generate` — the same path as the Documentation page
+(`DocumentationView.toRunnerOptions`). Options on by default are declared as `--no-NAME`, `negatable`
+(picocli inverts the positive form of a default-true option).
 
 ## Compare, Merge, Conversion
 
