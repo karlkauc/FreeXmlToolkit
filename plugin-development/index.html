@@ -2325,6 +2325,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Updates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#compatibility" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3207,6 +3218,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Updates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#compatibility" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3606,6 +3628,16 @@ plugin activity, menu item and editor bar inside the real shell.</p>
 <p>Administrators control plugins with <code>plugins.external.allowed=false</code> (no jars from the plugins folder)
 and <code>plugin.&lt;id&gt;.enabled=false</code> (a single plugin), and can move the plugins folder with
 <code>fxt.plugins.dir</code>; see <a href="../plugins/#administration">Plugins → Administration</a>.</p>
+<h2 id="updates">Updates<a class="headerlink" href="#updates" title="Permanent link">&para;</a></h2>
+<p>FreeXmlToolkit has no update channel for plugins: users replace the jar in the plugins folder and
+restart. <strong>Settings → Extensions → PLUGINS</strong> shows <code>version()</code>, so raise it with every release.</p>
+<p>Data that changes more often than your plugin can be fetched at run time, as the FundsXML plugin does:</p>
+<ul>
+<li>Use a startup task (<code>addStartupTask</code>) and <code>ConnectionService</code>; the latter applies the proxy and
+  certificate settings.</li>
+<li>Cache the data under the user's folder.</li>
+<li>Offer a setting to turn the check off.</li>
+</ul>
 <h2 id="compatibility">Compatibility<a class="headerlink" href="#compatibility" title="Permanent link">&para;</a></h2>
 <p>The API in <code>org.fxt.freexmltoolkit.plugin</code> is kept compatible within a major version; new
 contribution types are added as new methods. Build against the oldest FreeXmlToolkit version you want to

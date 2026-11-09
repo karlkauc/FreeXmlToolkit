@@ -2115,6 +2115,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#updating-plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Updating plugins
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#the-fundsxml-plugin" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2854,6 +2865,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#updating-plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Updating plugins
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#the-fundsxml-plugin" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3003,6 +3025,38 @@ loaded, every contribution type, threads, translations, building, testing and de
 </table>
 <p>A plugin can say it is off until the user switches it on (<code>enabledByDefault()</code>), and it can add
 XML Schemas to the Schema Library (<code>context.addSchema(new PluginSchema(namespace, url, description, null))</code>).</p>
+<h2 id="updating-plugins">Updating plugins<a class="headerlink" href="#updating-plugins" title="Permanent link">&para;</a></h2>
+<p>Plugins have no update channel of their own. What keeps each part current:</p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>How it stays current</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Built-in plugins (FundsXML, ISO 20022, ebInterface, FinDatEx, XBRL) and their data (FinDatEx field definitions, ISO 20022 schemas)</td>
+<td>With the application: <strong>Help → Check for Updates…</strong> or the automatic update check, see <a href="../installation/#updates">Installation</a></td>
+</tr>
+<tr>
+<td>FundsXML schemas, samples, Schematron rules and snippets</td>
+<td>In addition, the FundsXML plugin checks GitHub once a day and installs a new release in the background, see <a href="../fundsxml-extensions/#automatic-update-checks">FundsXML Extensions</a> (<code>fundsxml.update.check.enabled=false</code> turns it off)</td>
+</tr>
+<tr>
+<td>Plugins from the plugins folder (<code>.jar</code>)</td>
+<td>By hand: put the new jar into the folder, remove the old one, restart. <strong>Settings → Extensions → PLUGINS</strong> shows the version that is loaded.</td>
+</tr>
+<tr>
+<td>Arelle (used by the XBRL plugin)</td>
+<td>It is a separate program: <code>pip install -U arelle-release</code></td>
+</tr>
+</tbody>
+</table>
+<p>With the policy <code>update.allowed=false</code>, application updates, and with them the built-in plugins and
+their data, arrive only through your software distribution. The FundsXML content check is not
+affected by this policy; switch it off with <code>fundsxml.update.check.enabled=false</code>, or switch the
+plugin off with <code>plugin.fundsxml.enabled=false</code>.</p>
 <h2 id="the-fundsxml-plugin">The FundsXML plugin<a class="headerlink" href="#the-fundsxml-plugin" title="Permanent link">&para;</a></h2>
 <p><code>FundsXmlPlugin</code> (built in, in <code>controls/shell/editor/</code>) is the reference: it contributes the
 FundsXML activity (visible while the extension is enabled), the <strong>FundsXML Website</strong> and
