@@ -963,7 +963,9 @@ public class XmlServiceImpl implements XmlService {
                 }
             }
         } catch (SaxonApiException e) {
-            logger.error("Error evaluating XPath: {}", e.getMessage(), e);
+            // A Saxon error is the expression's or the data's (its code reaches the action event through
+            // the result); logged without the throwable so the log bridge does not count it again.
+            logger.warn("Error evaluating XPath: {}", e.getMessage());
         }
         return null;
     }

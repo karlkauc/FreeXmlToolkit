@@ -494,6 +494,7 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
     }
 
     private void afterSetText(String text) {
+        rememberLoadedText(text);
         // Move cursor to the beginning and scroll to top
         codeArea.moveTo(0);
         codeArea.requestFollowCaret();
@@ -576,13 +577,36 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
         return textRevision;
     }
 
+    /** The document as a String, valid while {@link #textRevision} equals {@link #cachedTextRevision}. */
+    private String cachedText;
+    private long cachedTextRevision = -1;
+
     /**
-     * Gets the current text content.
+     * Gets the current text content. The String is built once per text revision: readers outside
+     * the editor (Inspector on every caret move, status bar, schema binding) asked for it again and
+     * again, and building it from the paragraphs took 2.5 s for a 3.7-million-line document
+     * (telemetry {@code 8317acc70b9aa03c}).
      *
      * @return the text
      */
     public String getText() {
-        return codeArea.getText();
+        if (cachedText == null || cachedTextRevision != textRevision) {
+            cachedText = codeArea.getText();
+            cachedTextRevision = textRevision;
+        }
+        return cachedText;
+    }
+
+    /**
+     * After a whole-document load, the loaded String is the document's text: keep it instead of
+     * building it again on the first read. Only when the lengths agree — the area keeps the text
+     * as given, any normalisation would change the length.
+     */
+    private void rememberLoadedText(String text) {
+        if (text != null && codeArea.getLength() == text.length()) {
+            cachedText = text;
+            cachedTextRevision = textRevision;
+        }
     }
 
     /**

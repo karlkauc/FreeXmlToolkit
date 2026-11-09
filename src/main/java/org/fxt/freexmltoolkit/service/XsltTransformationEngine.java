@@ -1014,7 +1014,9 @@ public class XsltTransformationEngine {
             return result;
 
         } catch (SaxonApiException e) {
-            logger.error("XQuery transformation failed: {}", e.getMessage(), e);
+            // A Saxon error is the query's or the data's (its code reaches the action event through
+            // the result); logged without the throwable so the log bridge does not count it again.
+            logger.warn("XQuery transformation failed: {}", e.getMessage());
             return XsltTransformationResult.error("XQuery execution failed: " + e.getMessage(),
                     localCode(e.getErrorCode()), null);
 
@@ -1188,7 +1190,9 @@ public class XsltTransformationEngine {
             logger.info("Batch XQuery transformation completed: {} files processed", xmlFiles.size());
 
         } catch (SaxonApiException e) {
-            logger.error("Batch XQuery transformation failed: {}", e.getMessage(), e);
+            // A Saxon error is the query's or the data's (its code reaches the action event through
+            // the result); logged without the throwable so the log bridge does not count it again.
+            logger.warn("Batch XQuery transformation failed: {}", e.getMessage());
             result.setSuccess(false);
             result.setErrorMessage("XQuery execution failed: " + e.getMessage());
 
