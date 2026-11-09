@@ -80,7 +80,7 @@ jobs:
     steps:
       # Schritt 1: Code auschecken
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       # Schritt 1.5: Datei-Zeitstempel auf aktuelle Build-Zeit setzen
       # GitHub Actions checkout setzt alle Zeitstempel auf 1980-01-01 (DOS-Epoch)
@@ -94,7 +94,7 @@ jobs:
       # Schritt 2: Java Development Kit (JDK) einrichten
       # Stelle sicher, dass du eine JDK-Version wählst, die jpackage enthält (JDK 14+)
       - name: Set up JDK
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-package: 'jdk+fx'
           java-version: '25'
@@ -191,7 +191,7 @@ jobs:
       # Manueller Lauf: Pakete als Workflow-Artefakt ablegen
       - name: Upload workflow artifacts (manual run)
         if: github.event_name == 'workflow_dispatch'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.gradle-tasks }}
           if-no-files-found: error
@@ -291,9 +291,9 @@ jobs:
       TAG: ${{ github.event.release.tag_name }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
       - name: Set up JDK
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-package: 'jdk+fx'
           java-version: '25'
@@ -350,7 +350,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       TAG: ${{ github.event.release.tag_name }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Render manifest
         run: |
           gh release download "$TAG" -p SHA256SUMS.txt
@@ -376,7 +376,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       TAG: ${{ github.event.release.tag_name }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Render cask
         run: |
           gh release download "$TAG" -p SHA256SUMS.txt
