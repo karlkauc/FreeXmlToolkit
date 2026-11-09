@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -131,6 +132,66 @@ class XmlStructuralDiffTest {
                 && d.kind() == NodeKind.TEXT), "external entity must not be read: " + xxe);
         assertTrue(XmlStructuralDiff.looksLikeXml("﻿  <a/>"));
         assertFalse(XmlStructuralDiff.looksLikeXml("{\"a\": 1}"));
+    }
+
+    @Test
+    @DisplayName("ignore XPaths leave nodes and attributes out on both sides, also with prefixes")
+    void ignoreXPaths() {
+        String left = "<d:doc xmlns:d=\"urn:d\" stamp=\"1\"><d:generated>2026-01-01</d:generated><d:v>1</d:v></d:doc>";
+        String right = "<d:doc xmlns:d=\"urn:d\" stamp=\"2\"><d:generated>2026-11-09</d:generated><d:v>1</d:v></d:doc>";
+        assertEquals(2, diff(left, right, DEFAULTS).size());
+        Options ignore = DEFAULTS.withIgnoreXPaths(List.of("//@stamp", "//d:generated"));
+        assertNull(ignore.invalidIgnoreXPath());
+        assertTrue(XmlStructuralDiff.compare(left, right, ignore).equivalent());
+        // an element ignored on one side only is not reported as removed
+        String shorter = "<d:doc xmlns:d=\"urn:d\" stamp=\"1\"><d:v>1</d:v></d:doc>";
+        assertTrue(XmlStructuralDiff.compare(left, shorter, ignore).equivalent());
+        assertNotNull(DEFAULTS.withIgnoreXPaths(List.of("//[")).invalidIgnoreXPath());
+        assertEquals(List.of("//a", "//@b"), Options.parseXPaths("//a\n\n  //@b \n"));
+    }
+
+    @Test
+    @DisplayName("placeholders in the left document; off when the option is off")
+    void placeholders() {
+        String expected = """
+                <report created="${xmlunit.isDateTime}">
+                  <id>${xmlunit.ignore}</id>
+                  <count>${xmlunit.isNumber}</count>
+                  <code>${xmlunit.matchesRegex(^[A-Z]{3}-\\d+$)}</code>
+                </report>""";
+        String actual = """
+                <report created="2026-11-09T12:00:00">
+                  <id>8f3c-11</id>
+                  <count>42</count>
+                  <code>ABC-17</code>
+                </report>""";
+        assertTrue(XmlStructuralDiff.compare(expected, actual, DEFAULTS).equivalent(),
+                () -> XmlStructuralDiff.compare(expected, actual, DEFAULTS).differences().toString());
+        String wrong = actual.replace("42", "many").replace("ABC-17", "abc");
+        List<Difference> failed = diff(expected, wrong, DEFAULTS);
+        assertEquals(2, failed.size(), failed.toString());
+        assertFalse(XmlStructuralDiff.compare(expected, actual, DEFAULTS.withPlaceholders(false)).equivalent());
+    }
+
+    @Test
+    @DisplayName("numeric tolerance for text and attribute values")
+    void tolerance() {
+        String left = "<p price=\"10.00\"><w>33.333</w><n>abc</n></p>";
+        String right = "<p price=\"10.004\"><w>33.3334</w><n>abc</n></p>";
+        assertEquals(2, diff(left, right, DEFAULTS).size());
+        assertTrue(XmlStructuralDiff.compare(left, right, DEFAULTS.withNumericTolerance(0.01)).equivalent());
+        assertEquals(1, diff(left, right, DEFAULTS.withNumericTolerance(0.001)).size(), "only the price is off");
+    }
+
+    @Test
+    @DisplayName("moves and CDATA are similar, value changes are not")
+    void similar() {
+        Result moved = XmlStructuralDiff.compare("<r><a/><b/></r>", "<r><b/><a/></r>", DEFAULTS);
+        assertFalse(moved.equivalent(), "a move still counts as a difference");
+        assertTrue(moved.differences().stream().allMatch(Difference::similar), moved.differences().toString());
+        assertEquals(moved.differences().size(), moved.similarCount());
+        Result changed = XmlStructuralDiff.compare("<r>1</r>", "<r>2</r>", DEFAULTS);
+        assertEquals(0, changed.similarCount());
     }
 
     private static Difference find(List<Difference> differences, Change change, NodeKind kind, String name) {

@@ -5165,3 +5165,8 @@
     -fx-font-family: "JetBrains Mono", monospace;
     -fx-font-size: 12px;
 }
+
+/* Compare view, XML mode: differences XMLUnit rates "similar" (moves, CDATA vs. text) are muted */
+.diff-xml-panel .table-row-cell.diff-xml-similar .table-cell {
+    -fx-text-fill: -fxt-text-muted;
+}

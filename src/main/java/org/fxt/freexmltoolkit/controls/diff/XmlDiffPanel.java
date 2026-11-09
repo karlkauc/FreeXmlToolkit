@@ -4,11 +4,15 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.geometry.Pos;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
@@ -25,6 +29,9 @@ final class XmlDiffPanel extends VBox {
 
     private final Label summary = new Label();
     private final TableView<Difference> table = new TableView<>();
+    /** Leaves out what XMLUnit rates "similar" (moves, CDATA vs. text, schema locations). */
+    private final CheckBox hideSimilar = new CheckBox(I18n.t("XmlDiffPanel.hide-similar"));
+    private List<Difference> all = List.of();
 
     XmlDiffPanel(Consumer<Difference> onSelect) {
         getStyleClass().add("diff-xml-panel");
@@ -32,10 +39,24 @@ final class XmlDiffPanel extends VBox {
         summary.getStyleClass().add("diff-xml-summary");
         summary.setId("diff-xml-summary");
         summary.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(summary, Priority.ALWAYS);
+        hideSimilar.setId("diff-xml-hide-similar");
+        hideSimilar.setTooltip(new Tooltip(I18n.t("XmlDiffPanel.hide-similar-tooltip")));
+        hideSimilar.setOnAction(e -> showRows());
         table.setId("diff-xml-table");
         table.setPlaceholder(new Label(I18n.t("XmlDiffPanel.no-differences")));
         table.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        table.setRowFactory(t -> new TableRow<>() {
+            @Override
+            protected void updateItem(Difference item, boolean empty) {
+                super.updateItem(item, empty);
+                getStyleClass().remove("diff-xml-similar");
+                if (!empty && item != null && item.similar()) {
+                    getStyleClass().add("diff-xml-similar");
+                }
+            }
+        });
         table.getColumns().add(column("Change", 80, d -> XmlStructuralDiff.label(d.change())));
         table.getColumns().add(column("Node", 150, XmlDiffPanel::nodeText));
         table.getColumns().add(column("Left", 220, Difference::leftValue));
@@ -47,7 +68,10 @@ final class XmlDiffPanel extends VBox {
             }
         });
         VBox.setVgrow(table, Priority.ALWAYS);
-        getChildren().addAll(summary, table);
+        HBox header = new HBox(12, summary, hideSimilar);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setPadding(new javafx.geometry.Insets(0, 10, 0, 0));
+        getChildren().addAll(header, table);
     }
 
     private static TableColumn<Difference, String> column(String title, double width,
@@ -91,14 +115,29 @@ final class XmlDiffPanel extends VBox {
                 text.append("Right: ").append(result.rightError());
             }
             summary.setText(text.toString().strip());
+            all = List.of();
             table.getItems().clear();
             return;
         }
         List<Difference> differences = result.differences();
-        summary.setText(differences.isEmpty() ? "The documents are equivalent as XML."
-                : differences.size() == 1 ? "1 difference" : differences.size() + " differences");
+        long similar = result.similarCount();
+        summary.setText((differences.isEmpty() ? "The documents are equivalent as XML."
+                : differences.size() == 1 ? "1 difference" : differences.size() + " differences")
+                + (similar > 0 ? " (" + similar + " similar)" : ""));
+        all = differences;
+        showRows();
+    }
+
+    private void showRows() {
         table.getSelectionModel().clearSelection();
-        table.getItems().setAll(differences);
+        table.getItems().setAll(hideSimilar.isSelected()
+                ? all.stream().filter(d -> !d.similar()).toList() : all);
+    }
+
+    /** Hides or shows the "similar" differences (tests). */
+    void setHideSimilar(boolean hide) {
+        hideSimilar.setSelected(hide);
+        showRows();
     }
 
     /** Shows that a comparison is running. */

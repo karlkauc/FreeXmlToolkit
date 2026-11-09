@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.service;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.io.StringReader;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -11,11 +12,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 import org.w3c.dom.Attr;
@@ -33,8 +39,12 @@ import org.xmlunit.diff.Comparison;
 import org.xmlunit.diff.ComparisonResult;
 import org.xmlunit.diff.ComparisonType;
 import org.xmlunit.diff.DefaultNodeMatcher;
+import org.xmlunit.diff.DifferenceEvaluator;
+import org.xmlunit.diff.DifferenceEvaluators;
+import org.xmlunit.diff.NodeFilters;
 import org.xmlunit.diff.ElementSelector;
 import org.xmlunit.diff.ElementSelectors;
+import org.xmlunit.placeholder.PlaceholderDifferenceEvaluator;
 
 /**
  * Compares two XML documents by structure rather than by lines (XMLUnit 2): attribute order,
@@ -59,16 +69,79 @@ public final class XmlStructuralDiff {
      * @param reportPrefixChanges   report a changed namespace prefix (same namespace URI)
      * @param ignoreElementOrder    elements are matched regardless of their position; moves are not reported
      * @param keyAttributes         attributes that identify an element among same-named siblings (e.g. {@code id})
+     * @param ignoreXPaths          XPath 1.0 expressions whose nodes (with their content) and attributes are left
+     *                              out on both sides, e.g. {@code //@timestamp}; prefixes are those declared on
+     *                              either root element
+     * @param placeholders          evaluate XMLUnit placeholders in the LEFT (expected) document:
+     *                              {@code ${xmlunit.ignore}}, {@code ${xmlunit.isNumber}},
+     *                              {@code ${xmlunit.matchesRegex(…)}}, {@code ${xmlunit.isDateTime}}
+     * @param numericTolerance      text and attribute values that are both numbers count as equal when they differ
+     *                              by at most this much (0: exact)
      */
     public record Options(boolean normalizeWhitespace, boolean ignoreComments, boolean reportPrefixChanges,
-                          boolean ignoreElementOrder, List<String> keyAttributes) {
+                          boolean ignoreElementOrder, List<String> keyAttributes, List<String> ignoreXPaths,
+                          boolean placeholders, double numericTolerance) {
 
-        /** Whitespace normalized, comments compared, prefixes ignored, order matters, no keys. */
+        /** Whitespace normalized, comments compared, prefixes ignored, order matters, no keys, placeholders on. */
         public static final Options DEFAULTS = new Options(true, false, false, false, List.of());
 
         public Options {
             keyAttributes = keyAttributes == null ? List.of()
                     : keyAttributes.stream().map(String::strip).filter(k -> !k.isEmpty()).distinct().toList();
+            ignoreXPaths = ignoreXPaths == null ? List.of()
+                    : ignoreXPaths.stream().map(String::strip).filter(k -> !k.isEmpty()).distinct().toList();
+            numericTolerance = Double.isFinite(numericTolerance) ? Math.max(0, numericTolerance) : 0;
+        }
+
+        /** The original five options; no ignored XPaths, placeholders on, exact numbers. */
+        public Options(boolean normalizeWhitespace, boolean ignoreComments, boolean reportPrefixChanges,
+                       boolean ignoreElementOrder, List<String> keyAttributes) {
+            this(normalizeWhitespace, ignoreComments, reportPrefixChanges, ignoreElementOrder, keyAttributes,
+                    List.of(), true, 0);
+        }
+
+        public Options withIgnoreXPaths(List<String> xpaths) {
+            return new Options(normalizeWhitespace, ignoreComments, reportPrefixChanges, ignoreElementOrder,
+                    keyAttributes, xpaths, placeholders, numericTolerance);
+        }
+
+        public Options withPlaceholders(boolean on) {
+            return new Options(normalizeWhitespace, ignoreComments, reportPrefixChanges, ignoreElementOrder,
+                    keyAttributes, ignoreXPaths, on, numericTolerance);
+        }
+
+        public Options withNumericTolerance(double tolerance) {
+            return new Options(normalizeWhitespace, ignoreComments, reportPrefixChanges, ignoreElementOrder,
+                    keyAttributes, ignoreXPaths, placeholders, tolerance);
+        }
+
+        /** @return the same options with the five basic switches replaced (the rest kept) */
+        public Options withBasics(boolean normalize, boolean comments, boolean prefixes, boolean order,
+                                  List<String> keys) {
+            return new Options(normalize, comments, prefixes, order, keys, ignoreXPaths, placeholders,
+                    numericTolerance);
+        }
+
+        /**
+         * @return why an ignore expression does not compile ({@code expression: reason}), or {@code null};
+         *         prefixes are not checked here, they come from the documents
+         */
+        public String invalidIgnoreXPath() {
+            for (String expression : ignoreXPaths) {
+                try {
+                    XPATHS.newXPath().compile(expression.replaceAll("\\b[\\w.-]+:(?=[\\w*])", ""));
+                } catch (XPathExpressionException e) {
+                    return expression + ": " + (e.getCause() != null && e.getCause().getMessage() != null
+                            ? e.getCause().getMessage() : String.valueOf(e.getMessage()));
+                }
+            }
+            return null;
+        }
+
+        /** @return expressions from text, one per line (blank lines skipped) */
+        public static List<String> parseXPaths(String text) {
+            return text == null || text.isBlank() ? List.of()
+                    : Arrays.stream(text.split("\\R")).map(String::strip).filter(l -> !l.isEmpty()).toList();
         }
 
         /** @return the key attributes from a comma- or space-separated list */
@@ -89,9 +162,23 @@ public final class XmlStructuralDiff {
      * @param rightValue  the value on the right (empty when missing)
      * @param leftLine    1-based line on the left (of the node, or of its parent when missing), 0 when unknown
      * @param rightLine   likewise on the right
+     * @param similar     XMLUnit rates it "similar", not "different": a moved element, CDATA instead of text,
+     *                    another schema location — the documents still mean the same
      */
     public record Difference(Change change, NodeKind kind, String name, String leftXPath, String rightXPath,
-                             String leftValue, String rightValue, int leftLine, int rightLine) {
+                             String leftValue, String rightValue, int leftLine, int rightLine, boolean similar) {
+
+        /** A difference that is not merely similar. */
+        public Difference(Change change, NodeKind kind, String name, String leftXPath, String rightXPath,
+                          String leftValue, String rightValue, int leftLine, int rightLine) {
+            this(change, kind, name, leftXPath, rightXPath, leftValue, rightValue, leftLine, rightLine, false);
+        }
+
+        /** @return the same difference marked as similar (XMLUnit: the documents still mean the same) */
+        Difference asSimilar() {
+            return new Difference(change, kind, name, leftXPath, rightXPath, leftValue, rightValue, leftLine,
+                    rightLine, true);
+        }
 
         /** @return a one-line description, e.g. {@code Attribute 'sku' changed: "A" → "B"} */
         public String describe() {
@@ -135,7 +222,14 @@ public final class XmlStructuralDiff {
         public boolean equivalent() {
             return compared() && differences.isEmpty();
         }
+
+        /** @return the number of differences XMLUnit rates "similar" */
+        public long similarCount() {
+            return differences.stream().filter(Difference::similar).count();
+        }
     }
+
+    private static final XPathFactory XPATHS = XPathFactory.newInstance();
 
     /** Line of a node, stored as DOM user data while parsing. */
     static final String LINE = "fxt.line";
@@ -186,9 +280,19 @@ public final class XmlStructuralDiff {
 
         Map<Node, Node> pairs = new IdentityHashMap<>();   // matched left node → right node
         List<Comparison> found = new ArrayList<>();
-        DiffBuilder.compare(left).withTest(right)
+        Set<Comparison> similar = java.util.Collections.newSetFromMap(new IdentityHashMap<>());
+        Set<Node> ignored = ignoredNodes(left, right, options.ignoreXPaths());
+        List<DifferenceEvaluator> evaluators = new ArrayList<>(List.of(DifferenceEvaluators.Default));
+        if (options.placeholders()) {
+            evaluators.add(new PlaceholderDifferenceEvaluator());
+        }
+        if (options.numericTolerance() > 0) {
+            evaluators.add(numericTolerance(options.numericTolerance()));
+        }
+        DiffBuilder builder = DiffBuilder.compare(left).withTest(right)
                 .withNodeMatcher(matcher)
                 .checkForSimilar()
+                .withDifferenceEvaluator(DifferenceEvaluators.chain(evaluators.toArray(DifferenceEvaluator[]::new)))
                 .withComparisonListeners((comparison, outcome) -> {
                     Node l = comparison.getControlDetails().getTarget();
                     Node r = comparison.getTestDetails().getTarget();
@@ -197,9 +301,16 @@ public final class XmlStructuralDiff {
                     }
                     if (outcome != ComparisonResult.EQUAL && reported(comparison, outcome, options)) {
                         found.add(comparison);
+                        if (outcome == ComparisonResult.SIMILAR) {
+                            similar.add(comparison);
+                        }
                     }
-                })
-                .build();
+                });
+        if (!ignored.isEmpty()) {
+            builder.withNodeFilter(n -> NodeFilters.Default.test(n) && !ignored.contains(n))
+                    .withAttributeFilter(a -> !ignored.contains(a));
+        }
+        builder.build();
         pairs.put(left, right);
 
         Map<Node, Node> reverse = new IdentityHashMap<>();
@@ -207,6 +318,9 @@ public final class XmlStructuralDiff {
         List<Difference> result = new ArrayList<>(found.size());
         for (Comparison comparison : found) {
             Difference difference = toDifference(comparison, pairs, reverse);
+            if (difference != null && similar.contains(comparison)) {
+                difference = difference.asSimilar();
+            }
             if (difference != null && !result.contains(difference)) {
                 result.add(difference);
             }
@@ -214,6 +328,92 @@ public final class XmlStructuralDiff {
         result.sort((a, b) -> a.leftLine() != b.leftLine() ? Integer.compare(order(a.leftLine()), order(b.leftLine()))
                 : Integer.compare(order(a.rightLine()), order(b.rightLine())));
         return result;
+    }
+
+    /**
+     * The nodes the ignore expressions select on either document, compared by identity. Prefixes are
+     * those declared on the root elements (left first); an expression that fails on one side selects
+     * nothing there.
+     */
+    private static Set<Node> ignoredNodes(Document left, Document right, List<String> expressions) {
+        Set<Node> nodes = java.util.Collections.newSetFromMap(new IdentityHashMap<>());
+        if (expressions.isEmpty()) {
+            return nodes;
+        }
+        Map<String, String> namespaces = new java.util.LinkedHashMap<>();
+        for (Document document : List.of(left, right)) {
+            Element root = document.getDocumentElement();
+            if (root == null) {
+                continue;
+            }
+            var attributes = root.getAttributes();
+            for (int i = 0; i < attributes.getLength(); i++) {
+                Node attribute = attributes.item(i);
+                if (XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(attribute.getNamespaceURI())
+                        && attribute.getPrefix() != null) {
+                    namespaces.putIfAbsent(attribute.getLocalName(), attribute.getNodeValue());
+                }
+            }
+        }
+        XPath xpath = XPATHS.newXPath();
+        xpath.setNamespaceContext(new javax.xml.namespace.NamespaceContext() {
+            @Override
+            public String getNamespaceURI(String prefix) {
+                return namespaces.getOrDefault(prefix, XMLConstants.NULL_NS_URI);
+            }
+
+            @Override
+            public String getPrefix(String uri) {
+                return null;
+            }
+
+            @Override
+            public java.util.Iterator<String> getPrefixes(String uri) {
+                return java.util.Collections.emptyIterator();
+            }
+        });
+        for (String expression : expressions) {
+            for (Document document : List.of(left, right)) {
+                try {
+                    org.w3c.dom.NodeList list = (org.w3c.dom.NodeList) xpath.evaluate(expression, document,
+                            XPathConstants.NODESET);
+                    for (int i = 0; i < list.getLength(); i++) {
+                        nodes.add(list.item(i));
+                    }
+                } catch (XPathExpressionException e) {
+                    // checked up front by Options.invalidIgnoreXPath; a prefix unknown here selects nothing
+                }
+            }
+        }
+        return nodes;
+    }
+
+    /** Text and attribute values that are both numbers and differ by at most {@code tolerance} are equal. */
+    private static DifferenceEvaluator numericTolerance(double tolerance) {
+        BigDecimal limit = BigDecimal.valueOf(tolerance);
+        return (comparison, outcome) -> {
+            if (outcome == ComparisonResult.EQUAL) {
+                return outcome;
+            }
+            ComparisonType type = comparison.getType();
+            if (type != ComparisonType.TEXT_VALUE && type != ComparisonType.ATTR_VALUE) {
+                return outcome;
+            }
+            BigDecimal a = number(comparison.getControlDetails().getValue());
+            BigDecimal b = number(comparison.getTestDetails().getValue());
+            return a != null && b != null && a.subtract(b).abs().compareTo(limit) <= 0 ? ComparisonResult.EQUAL : outcome;
+        };
+    }
+
+    private static BigDecimal number(Object value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return new BigDecimal(String.valueOf(value).strip());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private static int order(int line) {

@@ -35,10 +35,19 @@ import picocli.CommandLine.Spec;
                 "  # Order of children does not matter; JSON result",
                 "  fxt-cli compare a.xml b.xml --ignore-order -f json",
                 "",
+                "  # Expected result with ${xmlunit.…} placeholders; ignore a timestamp, round amounts",
+                "  fxt-cli compare expected.xml actual.xml --ignore '//@created' --tolerance 0.005",
+                "",
                 "  # Two folders file by file",
                 "  fxt-cli compare release-1/ release-2/"
         },
-        description = "Compare two XML files by structure, or two folders file by file.",
+        description = {
+                "Compare two XML files by structure, or two folders file by file. Attribute order, prefixes "
+                        + "and (by default) indentation do not count.",
+                "LEFT is the expected document: it may hold XMLUnit placeholders instead of values that change "
+                        + "from run to run: ${xmlunit.ignore}, ${xmlunit.isNumber}, ${xmlunit.isDateTime}, "
+                        + "${xmlunit.matchesRegex(REGEX)} (as element text or attribute value)."
+        },
         sortOptions = false)
 final class CompareCommand implements Callable<Integer> {
 
@@ -70,6 +79,19 @@ final class CompareCommand implements Callable<Integer> {
             description = "Attributes that identify an element among same-named siblings (e.g. id); repeatable.")
     List<String> keys;
 
+    @Option(names = "--ignore", paramLabel = "XPATH",
+            description = "Leave out the nodes or attributes this XPath 1.0 selects, on both sides "
+                    + "(e.g. //@timestamp or //p:generated with a prefix declared on a root element); repeatable.")
+    List<String> ignore;
+
+    @Option(names = "--no-placeholders", negatable = true, defaultValue = "true",
+            description = "Evaluate ${xmlunit.…} placeholders in LEFT. Default: ${DEFAULT-VALUE}.")
+    boolean placeholders;
+
+    @Option(names = "--tolerance", paramLabel = "N", defaultValue = "0",
+            description = "Numbers in text or attribute values that differ by at most N are equal. Default: exact.")
+    double tolerance;
+
     @Option(names = "--bytes", description = "Folders: compare XML files by their bytes only.")
     boolean bytesOnly;
 
@@ -88,8 +110,15 @@ final class CompareCommand implements Callable<Integer> {
             CliSupport.requireFile(commandLine, left, "Left file");
             CliSupport.requireFile(commandLine, right, "Right file");
         }
+        if (tolerance < 0 || !Double.isFinite(tolerance)) {
+            throw new CommandLine.ParameterException(commandLine, "--tolerance must be 0 or more, not " + tolerance);
+        }
         XmlStructuralDiff.Options xml = new XmlStructuralDiff.Options(!exactWhitespace, ignoreComments, prefixes,
-                ignoreOrder, keys);
+                ignoreOrder, keys, ignore, placeholders, tolerance);
+        String badXPath = xml.invalidIgnoreXPath();
+        if (badXPath != null) {
+            throw new CommandLine.ParameterException(commandLine, "--ignore: " + badXPath);
+        }
         PrintWriter out = commandLine.getOut();
         return folders ? compareFolders(out, xml) : compareFiles(commandLine, out, xml);
     }
@@ -120,11 +149,13 @@ final class CompareCommand implements Callable<Integer> {
         } else {
             for (XmlStructuralDiff.Difference d : result.differences()) {
                 int line = d.leftLine() > 0 ? d.leftLine() : d.rightLine();
-                out.println(left + ":" + line + ": " + d.describe() + " ("
+                out.println(left + ":" + line + ": " + d.describe() + (d.similar() ? " [similar]" : "") + " ("
                         + (d.leftXPath().isEmpty() ? d.rightXPath() : d.leftXPath()) + ")");
             }
+            long similar = result.similarCount();
             out.println(result.equivalent() ? "The files are equivalent as XML."
-                    : result.differences().size() + (result.differences().size() == 1 ? " difference" : " differences"));
+                    : result.differences().size() + (result.differences().size() == 1 ? " difference" : " differences")
+                    + (similar > 0 ? " (" + similar + " similar)" : ""));
         }
         out.flush();
         return result.equivalent() ? ExitCodes.OK : ExitCodes.FAILED;
@@ -141,6 +172,7 @@ final class CompareCommand implements Callable<Integer> {
         o.addProperty("rightLine", d.rightLine());
         o.addProperty("leftXPath", d.leftXPath());
         o.addProperty("rightXPath", d.rightXPath());
+        o.addProperty("similar", d.similar());
         return o;
     }
 

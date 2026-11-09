@@ -50,7 +50,10 @@ for results; no telemetry. Exit codes in `cli/ExitCodes`. Packaged as a second j
 
 UI-free services in `service/`: `XmlStructuralDiff` (XMLUnit 2; DOM built from SAX with line numbers
 as user data), `FolderComparison`, `ThreeWayMerge` (diff3 on java-diff-utils, Git markers),
-`DataFormatConverter` (XML ↔ JSON ↔ YAML). XSLT profiler: `XsltProfilingTraceListener` → `XsltProfile`
+`DataFormatConverter` (XML ↔ JSON ↔ YAML). `XmlStructuralDiff.Options` also takes ignore XPaths (node/attribute
+filters on both DOMs), XMLUnit placeholders in the LEFT/expected document (`xmlunit-placeholders`) and a
+numeric tolerance (own `DifferenceEvaluator`); `Difference.similar` marks XMLUnit's SIMILAR outcomes
+(moves, CDATA) — they still count for `equivalent()`. XSLT profiler: `XsltProfilingTraceListener` → `XsltProfile`
 (components with total/self, call tree, lines) via `XsltTransformationEngine.profileTransformation`
 (compiled with tracing on the debug processor, warm-up runs); UI `controls/shell/editor/debug/ProfileView`
 + `FlameGraph` (Transform panel → Profile run), CLI `transform --profile`. UI: `controls/diff/DiffView` (Text | XML mode,

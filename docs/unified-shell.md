@@ -1161,6 +1161,23 @@ error.
 | **Report namespace prefix changes** | Also list elements whose prefix changed while the namespace stayed the same |
 | **Ignore element order** | Elements are paired regardless of their position (by name and attributes, then by text); moves are not listed |
 | **Key Attributes…** | Attributes that identify an element among siblings of the same name, e.g. `id`: `<item id="2">` is compared with `<item id="2">` on the other side wherever it is |
+| **Ignore XPaths…** | One XPath 1.0 expression per line; the nodes and attributes it selects are left out on both sides, with their content, e.g. `//@timestamp` or `//p:generated` (a prefix declared on a root element) |
+| **Numeric Tolerance…** | Numbers in text or attribute values that differ by at most this much count as equal (0 = exact) |
+| **Evaluate placeholders** (on) | The left document is the expected one and may hold XMLUnit placeholders instead of values that change from run to run (see below) |
+
+**Placeholders** in the left document, as element text or attribute value:
+
+| Placeholder | Matches |
+|---|---|
+| `${xmlunit.ignore}` | anything (also a missing attribute) |
+| `${xmlunit.isNumber}` | a number |
+| `${xmlunit.isDateTime}` | a date or date-time (ISO 8601 and common formats) |
+| `${xmlunit.matchesRegex(^[A-Z]{3}-\d+$)}` | text the regular expression matches (whitespace is collapsed first unless *Ignore whitespace differences* is off) |
+
+**Similar differences** — a moved element, CDATA instead of text, another schema location — still
+count, but XMLUnit rates them *similar*: the documents mean the same. They are shown in a muted
+colour, the summary counts them ("3 differences (2 similar)"), and **Hide similar** leaves them out
+of the list.
 
 The XML mode only compares. To take changes over, switch back to **Text** and use the arrows, or
 **All →** / **All ←**. The view opens in the mode you used last.

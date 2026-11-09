@@ -50,7 +50,7 @@ and `bom.xml`.
 | **JSON Schema Validator** (com.networknt:json-schema-validator) | 3.0.8 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **JSON5 Java** (de.marhali:json5-java) | 3.0.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **SnakeYAML Engine** (org.snakeyaml:snakeyaml-engine, YAML) | 3.0.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **XMLUnit** (org.xmlunit:xmlunit-core, XML comparison) | 2.14.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **XMLUnit** (org.xmlunit:xmlunit-core + xmlunit-placeholders, XML comparison) | 2.14.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **XSpec** (io.xspec:xspec, test framework; bundles SchXslt) | 3.2.2 | [MIT License](https://opensource.org/licenses/MIT) |
 
 ## Schematron Validation

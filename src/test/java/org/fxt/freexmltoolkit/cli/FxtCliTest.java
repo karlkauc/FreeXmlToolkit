@@ -455,6 +455,34 @@ class FxtCliTest {
         }
 
         @Test
+        @DisplayName("placeholders in LEFT, --ignore, --tolerance; similar differences are marked")
+        void xmlunitOptions() throws Exception {
+            Path expected = write("expected.xml", """
+                    <report created="${xmlunit.isDateTime}" run="${xmlunit.ignore}">
+                      <total>${xmlunit.isNumber}</total><avg>3.33</avg><stamp>x</stamp>
+                    </report>""");
+            Path actual = write("actual.xml", """
+                    <report created="2026-11-09T10:00:00" run="77">
+                      <total>12</total><avg>3.334</avg><stamp>y</stamp>
+                    </report>""");
+            assertEquals(ExitCodes.FAILED, run("compare", expected, actual), err);
+            assertTrue(out.contains("2 differences"), out);
+            assertEquals(ExitCodes.OK, run("compare", expected, actual, "--ignore", "//stamp", "--tolerance", "0.01"), err);
+            assertEquals(ExitCodes.FAILED, run("compare", expected, actual, "--ignore", "//stamp", "--tolerance", "0.01",
+                    "--no-placeholders"), err);
+            assertEquals(ExitCodes.USAGE, run("compare", expected, actual, "--ignore", "//["));
+            assertTrue(err.contains("--ignore"), err);
+            assertEquals(ExitCodes.USAGE, run("compare", expected, actual, "--tolerance", "-1"));
+
+            Path moved = write("moved.xml", "<r><b/><a/></r>");
+            Path original = write("original.xml", "<r><a/><b/></r>");
+            assertEquals(ExitCodes.FAILED, run("compare", original, moved, "-f", "json"), err);
+            assertTrue(out.contains("\"similar\": true"), out);
+            assertEquals(ExitCodes.FAILED, run("compare", original, moved), err);
+            assertTrue(out.contains("[similar]") && out.contains("similar)"), out);
+        }
+
+        @Test
         @DisplayName("folders file by file; formatting-only changes match")
         void folders() throws Exception {
             write("l/x.xml", "<a><b/></a>");

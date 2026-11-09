@@ -90,6 +90,9 @@ public final class DiffView extends Tab {
     static final String PREF_PREFIXES = "diff.xml.reportPrefixes";
     static final String PREF_IGNORE_ORDER = "diff.xml.ignoreOrder";
     static final String PREF_KEYS = "diff.xml.keyAttributes";
+    static final String PREF_IGNORE_XPATHS = "diff.xml.ignoreXPaths";
+    static final String PREF_PLACEHOLDERS = "diff.xml.placeholders";
+    static final String PREF_TOLERANCE = "diff.xml.tolerance";
 
     private Mode mode = Mode.TEXT;
     private XmlStructuralDiff.Options xmlOptions = loadXmlOptions();
@@ -327,17 +330,25 @@ public final class DiffView extends Tab {
         CheckMenuItem prefixes = new CheckMenuItem(I18n.t("DiffView.report-namespace-prefix-changes"));
         CheckMenuItem order = new CheckMenuItem(I18n.t("DiffView.ignore-element-order"));
         MenuItem keys = new MenuItem(I18n.t("DiffView.key-attributes"));
+        CheckMenuItem placeholders = new CheckMenuItem(I18n.t("DiffView.evaluate-placeholders"));
+        MenuItem ignoreXPaths = new MenuItem(I18n.t("DiffView.ignore-xpaths"));
+        MenuItem tolerance = new MenuItem(I18n.t("DiffView.numeric-tolerance"));
         normalize.setSelected(xmlOptions.normalizeWhitespace());
         comments.setSelected(xmlOptions.ignoreComments());
         prefixes.setSelected(xmlOptions.reportPrefixChanges());
         order.setSelected(xmlOptions.ignoreElementOrder());
-        Runnable changed = () -> setXmlOptions(new XmlStructuralDiff.Options(normalize.isSelected(),
+        placeholders.setSelected(xmlOptions.placeholders());
+        Runnable changed = () -> setXmlOptions(xmlOptions.withBasics(normalize.isSelected(),
                 comments.isSelected(), prefixes.isSelected(), order.isSelected(), xmlOptions.keyAttributes()));
         for (CheckMenuItem item : List.of(normalize, comments, prefixes, order)) {
             item.setOnAction(e -> changed.run());
         }
+        placeholders.setOnAction(e -> setXmlOptions(xmlOptions.withPlaceholders(placeholders.isSelected())));
         keys.setOnAction(e -> askKeyAttributes());
-        xmlOptionsButton.getItems().setAll(normalize, comments, prefixes, order, new SeparatorMenuItem(), keys);
+        ignoreXPaths.setOnAction(e -> askIgnoreXPaths());
+        tolerance.setOnAction(e -> askTolerance());
+        xmlOptionsButton.getItems().setAll(normalize, comments, prefixes, order, new SeparatorMenuItem(), keys,
+                ignoreXPaths, tolerance, new SeparatorMenuItem(), placeholders);
         xmlOptionsButton.setId("diff-xml-options");
         IconifyIcon icon = new IconifyIcon("bi-sliders");
         icon.setIconSize(20);
@@ -357,9 +368,63 @@ public final class DiffView extends Tab {
         if (getTabPane() != null && getTabPane().getScene() != null) {
             dialog.initOwner(getTabPane().getScene().getWindow());
         }
-        dialog.showAndWait().ifPresent(text -> setXmlOptions(new XmlStructuralDiff.Options(
+        dialog.showAndWait().ifPresent(text -> setXmlOptions(xmlOptions.withBasics(
                 xmlOptions.normalizeWhitespace(), xmlOptions.ignoreComments(), xmlOptions.reportPrefixChanges(),
                 xmlOptions.ignoreElementOrder(), XmlStructuralDiff.Options.parseKeys(text))));
+    }
+
+    /** One XPath per line; an expression that does not compile keeps the dialog's text for a retry. */
+    private void askIgnoreXPaths() {
+        javafx.scene.control.Dialog<String> dialog = DialogHelper.createDialog(I18n.t("DiffView.ignore-xpaths-title"),
+                I18n.t("DiffView.ignore-xpaths-header"), "bi-eye-slash");
+        javafx.scene.control.TextArea area = new javafx.scene.control.TextArea(String.join("\n", xmlOptions.ignoreXPaths()));
+        area.setId("diff-ignore-xpaths");
+        area.setPrefRowCount(6);
+        area.setPrefColumnCount(48);
+        area.setPromptText("//@timestamp\n//DocumentGenerated");
+        Label hint = new Label(I18n.t("DiffView.ignore-xpaths-hint"));
+        hint.setWrapText(true);
+        hint.getStyleClass().add("dialog-section-subtitle");
+        Label error = new Label();
+        error.getStyleClass().add("fxt-dialog-error");
+        error.setWrapText(true);
+        javafx.scene.layout.VBox box = new javafx.scene.layout.VBox(8, area, hint, error);
+        dialog.getDialogPane().setContent(box);
+        dialog.getDialogPane().getButtonTypes().setAll(javafx.scene.control.ButtonType.OK,
+                javafx.scene.control.ButtonType.CANCEL);
+        javafx.scene.Node ok = dialog.getDialogPane().lookupButton(javafx.scene.control.ButtonType.OK);
+        ok.addEventFilter(javafx.event.ActionEvent.ACTION, e -> {
+            String invalid = xmlOptions.withIgnoreXPaths(XmlStructuralDiff.Options.parseXPaths(area.getText()))
+                    .invalidIgnoreXPath();
+            if (invalid != null) {
+                error.setText(invalid);
+                e.consume();
+            }
+        });
+        dialog.setResultConverter(b -> b == javafx.scene.control.ButtonType.OK ? area.getText() : null);
+        if (getTabPane() != null && getTabPane().getScene() != null) {
+            dialog.initOwner(getTabPane().getScene().getWindow());
+        }
+        dialog.showAndWait().ifPresent(text ->
+                setXmlOptions(xmlOptions.withIgnoreXPaths(XmlStructuralDiff.Options.parseXPaths(text))));
+    }
+
+    private void askTolerance() {
+        TextInputDialog dialog = DialogHelper.createTextInputDialog(I18n.t("DiffView.numeric-tolerance-title"),
+                I18n.t("DiffView.numeric-tolerance-header"), I18n.t("DiffView.numeric-tolerance-label"),
+                xmlOptions.numericTolerance() == 0 ? "0" : java.math.BigDecimal.valueOf(xmlOptions.numericTolerance())
+                        .stripTrailingZeros().toPlainString());
+        if (getTabPane() != null && getTabPane().getScene() != null) {
+            dialog.initOwner(getTabPane().getScene().getWindow());
+        }
+        dialog.showAndWait().ifPresent(text -> {
+            try {
+                setXmlOptions(xmlOptions.withNumericTolerance(Double.parseDouble(text.strip().replace(',', '.'))));
+            } catch (NumberFormatException e) {
+                DialogHelper.showWarning(I18n.t("DiffView.numeric-tolerance-title"),
+                        I18n.t("DiffView.numeric-tolerance-invalid"), text);
+            }
+        });
     }
 
     /** Uses new XML comparison options (remembered in the settings) and compares again. */
@@ -370,6 +435,9 @@ public final class DiffView extends Tab {
         setPreference(PREF_PREFIXES, String.valueOf(options.reportPrefixChanges()));
         setPreference(PREF_IGNORE_ORDER, String.valueOf(options.ignoreElementOrder()));
         setPreference(PREF_KEYS, String.join(",", options.keyAttributes()));
+        setPreference(PREF_IGNORE_XPATHS, String.join("\n", options.ignoreXPaths()));
+        setPreference(PREF_PLACEHOLDERS, String.valueOf(options.placeholders()));
+        setPreference(PREF_TOLERANCE, String.valueOf(options.numericTolerance()));
         if (mode == Mode.XML) {
             recomputeInBackground();
         }
@@ -415,7 +483,18 @@ public final class DiffView extends Tab {
         return new XmlStructuralDiff.Options(
                 flag(PREF_NORMALIZE, d.normalizeWhitespace()), flag(PREF_IGNORE_COMMENTS, d.ignoreComments()),
                 flag(PREF_PREFIXES, d.reportPrefixChanges()), flag(PREF_IGNORE_ORDER, d.ignoreElementOrder()),
-                XmlStructuralDiff.Options.parseKeys(preference(PREF_KEYS)));
+                XmlStructuralDiff.Options.parseKeys(preference(PREF_KEYS)),
+                XmlStructuralDiff.Options.parseXPaths(preference(PREF_IGNORE_XPATHS)),
+                flag(PREF_PLACEHOLDERS, d.placeholders()), number(PREF_TOLERANCE));
+    }
+
+    private static double number(String key) {
+        try {
+            String value = preference(key);
+            return value == null || value.isBlank() ? 0 : Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     private static boolean flag(String key, boolean fallback) {
@@ -788,6 +867,11 @@ public final class DiffView extends Tab {
     /** For tests: the XML differences shown in XML mode. */
     List<XmlStructuralDiff.Difference> getXmlDifferencesForTesting() {
         return xmlPanel.differences();
+    }
+
+    /** For tests: hides or shows the "similar" differences. */
+    void setHideSimilarForTesting(boolean hide) {
+        xmlPanel.setHideSimilar(hide);
     }
 
     /** For tests: the summary line above the XML differences. */

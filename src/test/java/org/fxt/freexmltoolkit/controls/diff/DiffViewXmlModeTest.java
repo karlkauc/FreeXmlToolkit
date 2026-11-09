@@ -122,6 +122,31 @@ class DiffViewXmlModeTest {
     }
 
     @Test
+    void xmlunitOptionsAndSimilarRows(@TempDir Path tmp) throws Exception {
+        DiffView diff = open(tmp, "<r stamp=\"${xmlunit.ignore}\"><v>1.00</v><a/><b/></r>",
+                "<r stamp=\"42\"><v>1.004</v><b/><a/></r>");
+        String withTolerance = WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            diff.setXmlOptions(XmlStructuralDiff.Options.DEFAULTS.withNumericTolerance(0.01));
+            diff.setModeForTesting(DiffView.Mode.XML);
+            return diff.getXmlSummaryForTesting();
+        });
+        assertTrue(withTolerance.contains("similar"), "only the move is left, and it is similar: " + withTolerance);
+        List<XmlStructuralDiff.Difference> shown = WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            diff.setHideSimilarForTesting(true);
+            return diff.getXmlDifferencesForTesting();
+        });
+        assertTrue(shown.isEmpty(), "hide similar leaves nothing: " + shown);
+        String exact = WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            diff.setHideSimilarForTesting(false);
+            diff.setXmlOptions(XmlStructuralDiff.Options.DEFAULTS.withIgnoreXPaths(List.of("//a", "//b")));
+            diff.setModeForTesting(DiffView.Mode.XML);
+            return diff.getXmlSummaryForTesting();
+        });
+        assertEquals("1 difference", exact, "the value differs without a tolerance; the placeholder still matches");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> diff.setXmlOptions(XmlStructuralDiff.Options.DEFAULTS));
+    }
+
+    @Test
     void xmlModeNeedsXmlOnBothSides(@TempDir Path tmp) throws Exception {
         DiffView diff = open(tmp, "plain text", "<a/>");
         assertFalse(diff.isXmlModeAvailableForTesting());
