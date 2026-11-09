@@ -1938,6 +1938,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Performance and Profiling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#profiling-an-xquery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Profiling an XQuery
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3412,6 +3429,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Performance and Profiling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#profiling-an-xquery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Profiling an XQuery
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3937,8 +3971,15 @@ module) at that line.</p>
 transformation; compare the parts with each other. The first run of a stylesheet also includes the
 warm-up of Java's JIT compiler: <strong>Profile Again</strong> measures once more after a warm-up run, which gives
 steadier numbers. <strong>Export</strong> writes the profile as JSON (with the call tree) or as a text report.</p>
-<p>On the command line, <code>fxt-cli transform --profile report.json …</code> profiles a run (see
-<a href="../command-line/#transform">Command Line</a>).</p>
+<h3 id="profiling-an-xquery">Profiling an XQuery<a class="headerlink" href="#profiling-an-xquery" title="Permanent link">&para;</a></h3>
+<p>An XQuery is profiled the same way: open the <code>.xq</code> file and choose <strong>Run ▾ → Profile Query</strong>. The
+query runs against the selected <strong>Input</strong> (or without a context item when none is chosen), its
+result goes to the OUTPUT panel, and a <strong>Profile: <query></strong> tab opens with the same four views. The
+components are the query's user functions (<code>declare function</code>); the time outside them belongs to the
+root of the call tree, <strong>(query body)</strong>. Saxon may move an expression that does not depend on a loop
+out of it, so a function called in a loop can show fewer calls than iterations.</p>
+<p>On the command line, <code>fxt-cli transform --profile report.json …</code> profiles a stylesheet or a query run
+(see <a href="../command-line/#transform">Command Line</a>).</p>
 <hr />
 <h2 id="testing-with-xspec">Testing with XSpec<a class="headerlink" href="#testing-with-xspec" title="Permanent link">&para;</a></h2>
 <p><a href="https://github.com/xspec/xspec">XSpec</a> tests are part of FreeXmlToolkit (XSpec 3, bundled): unit
@@ -3954,7 +3995,9 @@ tests for XSLT stylesheets, XQuery modules and Schematron, written as <code>.xsp
 <a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">  </span><span class="nt">&lt;/x:scenario&gt;</span>
 <a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="nt">&lt;/x:description&gt;</span>
 </code></pre></div>
-<p>Open the <code>.xspec</code> file and choose <strong>Tools → Run XSpec Tests</strong>. The tests run with the text in the
+<p>To start one, choose <strong>File → New…</strong>, type <strong>XML</strong>, and one of the templates <strong>XSpec test (XSLT)</strong>,
+<strong>XSpec test (XQuery)</strong> or <strong>XSpec test (Schematron)</strong>; the file is saved as <code>.xspec</code>. Open the
+<code>.xspec</code> file and choose <strong>Tools → Run XSpec Tests</strong>. The tests run with the text in the
 editor (also unsaved changes); the file must be saved once, because the stylesheet, query or
 Schematron it names is found relative to it. What is tested follows the description:
 <code>stylesheet="…"</code> an XSLT stylesheet, <code>query="…"</code> with <code>query-at="…"</code> an XQuery module,

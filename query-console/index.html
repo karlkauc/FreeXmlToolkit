@@ -3060,6 +3060,8 @@ button.</p>
 header search pill) opens it and focuses the query input. Close it with the <strong>✕</strong> button at its
 top right. It runs against whichever
 document is currently active, so it is the fastest way to probe an XML or JSON file while you work.</p>
+<p>The same queries run on the command line with <a href="../command-line/#query"><code>fxt-cli query</code></a>, e.g.
+<code>fxt-cli query -e 'count(//Position)' data/</code> for every XML file of a folder.</p>
 <p><img alt="Query Console docked at the bottom of the editor" src="../img/unified-shell-query-console.png" />
 <em>The Query Console with IntelliSense: typing <code>/</code> in the XPath input opens the completion popup
 (document elements and axes). The mode toggle and Run are on the left; on the right, the results
