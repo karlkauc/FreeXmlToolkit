@@ -877,6 +877,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#syntax-colours" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Syntax colours
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#clearing-the-cache-folder" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3091,6 +3102,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#syntax-colours" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Syntax colours
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#clearing-the-cache-folder" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3199,7 +3221,7 @@ settings may be greyed out and a notice at the top of the page says so; see
 </tr>
 <tr>
 <td><strong>Editor</strong></td>
-<td><strong>Editor font</strong> - font, size and line spacing of every code editor, see <a href="#editor-font">Editor font</a>. <strong>Editor</strong> - XML indent and JSON indent (spaces); <strong>Auto-format after loading</strong>; <strong>Pretty-print XSD on save</strong>; <strong>Pretty-print Schematron on load</strong>; <strong>Recent files to remember</strong> (1–100, default 20) - every file opened in the editor, opened in the background or saved with <strong>Save As</strong> goes into File → Recent, the Explorer's <strong>RECENT</strong> list and the Welcome page. <strong>Templates</strong> - a configurable <strong>templates directory</strong>, plus a <strong>New / Edit / Delete</strong> list of your own templates; see <a href="#managing-your-templates">Managing your templates</a> below. <strong>User Info</strong> - <strong>Name</strong>, <strong>Email</strong> and <strong>Company</strong>, used for example when generating documentation or signing.</td>
+<td><strong>Editor font</strong> - font, size and line spacing of every code editor, see <a href="#editor-font">Editor font</a>. <strong>Syntax colours</strong> - a colour scheme and own colours per role, see <a href="#syntax-colours">Syntax colours</a>. <strong>Editor</strong> - XML indent and JSON indent (spaces); <strong>Auto-format after loading</strong>; <strong>Pretty-print XSD on save</strong>; <strong>Pretty-print Schematron on load</strong>; <strong>Recent files to remember</strong> (1–100, default 20) - every file opened in the editor, opened in the background or saved with <strong>Save As</strong> goes into File → Recent, the Explorer's <strong>RECENT</strong> list and the Welcome page. <strong>Templates</strong> - a configurable <strong>templates directory</strong>, plus a <strong>New / Edit / Delete</strong> list of your own templates; see <a href="#managing-your-templates">Managing your templates</a> below. <strong>User Info</strong> - <strong>Name</strong>, <strong>Email</strong> and <strong>Company</strong>, used for example when generating documentation or signing.</td>
 </tr>
 <tr>
 <td><strong>Schemas &amp; Validation</strong></td>
@@ -3296,6 +3318,27 @@ and JSON editors, the Query Console, the transform output and the debugger's val
 <em>The Editor font card with its preview line</em></p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-editor-font-spacing.png" data-desc-position="bottom"><img alt="An XML document with line spacing 1.4" src="../img/unified-shell-editor-font-spacing.png"></a>
 <em>The same font at 13 pt with line spacing 1.4</em></p>
+<h2 id="syntax-colours">Syntax colours<a class="headerlink" href="#syntax-colours" title="Permanent link">¶</a></h2>
+<p><strong>Settings → Editor → Syntax colours</strong> sets the colours of XML, JSON and XPath code: in the
+editors, the Query Console results, the transform output, the compare view and the values of the
+Graphic grid.</p>
+<ul>
+<li><strong>Scheme</strong> - <strong>FreeXmlToolkit</strong> (the design's colours), <strong>GitHub</strong>, <strong>Solarized</strong>, <strong>Monokai</strong> or
+  <strong>High Contrast</strong>. Each scheme has a light and a dark variant.</li>
+<li><strong>Own colours</strong> - one colour per role: text, element / JSON key, attribute, value / string,
+  brackets, comment, number, keyword (<code>true</code>, <code>false</code>, <code>null</code>) and declaration. A colour you pick
+  replaces the scheme's colour for that role in the <strong>current</strong> theme; switch the theme to set the
+  colours of the other one.</li>
+<li><strong>Reset Colours</strong> returns to the FreeXmlToolkit scheme and clears your own colours in both themes.</li>
+</ul>
+<p>Colours of a scheme and colours you pick are adjusted until they stay readable on the editor
+background: text keeps a contrast of at least 4.5:1, brackets 3:1 (a pale yellow, for example, is
+darkened in the light theme). The preview below the colours shows the result; every change applies
+at once.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-settings-syntax-colours.png" data-desc-position="bottom"><img alt="Settings → Editor → Syntax colours" src="../img/unified-shell-settings-syntax-colours.png"></a>
+<em>The Syntax colours card with the Monokai scheme (light variant)</em></p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-syntax-monokai-dark.png" data-desc-position="bottom"><img alt="An XML document in Monokai, dark theme" src="../img/unified-shell-syntax-monokai-dark.png"></a>
+<em>The same scheme in the dark theme</em></p>
 <h2 id="clearing-the-cache-folder">Clearing the Cache Folder<a class="headerlink" href="#clearing-the-cache-folder" title="Permanent link">¶</a></h2>
 <p>The <strong>Clear Cache Folder</strong> button in the <strong>TEMP &amp; CACHE</strong> section deletes the contents of the
 application's local cache folder (<code>~/.freeXmlToolkit/cache</code>) - for example downloaded schemas,
