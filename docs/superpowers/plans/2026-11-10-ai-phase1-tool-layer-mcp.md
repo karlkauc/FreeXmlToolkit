@@ -174,9 +174,27 @@ problems one per line as `fxt-cli validate` prints them) — look at `cli/Valida
 
 **Steps:**
 
-- [ ] **Step 1 (red):** per tool: happy path with inline content; with a path under a temp root; a path outside the root → error result naming the roots; both or neither of a pair → `ToolException`; broken XML; a stylesheet with a compile error returns `error.code` (e.g. `XTSE0010`), `phase == "compile"` and a line; output longer than `maxOutputChars` is truncated and `truncated == true`; `validate` with the Schematron from `FxtCliTest` reports the warning with `source == "Schematron"`; with `maxItems = 2` and five problems `total == 5` and `problems.length == 2`.
-- [ ] **Step 2 (green):** implement on top of `ValidationRunner.runWithReport(xml, xsd, schematron, documentName, documentPath, declaredGrammars)`, `ValidationRunner.declaredSchema`, `TransformRunner.xpath`, `TransformRunner.xquery`, `TransformRunner.xsltTransformSandboxed`. Check well-formedness before an XQuery run the way `QueryCommand` does (`XmlStructuralDiff.wellFormednessError`).
-- [ ] **Step 3:** register in `ToolRegistry.standard()`; commit.
+- [x] **Step 1 (red):** per tool: happy path with inline content; with a path under a temp root; a path outside the root → error result naming the roots; both or neither of a pair → `ToolException`; broken XML; a stylesheet with a compile error returns `error.code` (e.g. `XTSE0010`), `phase == "compile"` and a line; output longer than `maxOutputChars` is truncated and `truncated == true`; `validate` with the Schematron from `FxtCliTest` reports the warning with `source == "Schematron"`; with `maxItems = 2` and five problems `total == 5` and `problems.length == 2`.
+- [x] **Step 2 (green):** implement on top of `ValidationRunner.runWithReport(xml, xsd, schematron, documentName, documentPath, declaredGrammars)`, `ValidationRunner.declaredSchema`, `TransformRunner.xpath`, `TransformRunner.xquery`, `TransformRunner.xsltTransformSandboxed`. Check well-formedness before an XQuery run the way `QueryCommand` does (`XmlStructuralDiff.wellFormednessError`).
+- [x] **Step 3:** register in `ToolRegistry.standard()`; commit.
+
+**Outcome:** fields added beyond the table above (all in `ToolSurfaceSnapshotTest` from Task 8):
+`validate` → `not_run_reason`, `schema` (the XSD used); `xpath` → argument `namespaces` (prefix → URI, `""` =
+default element namespace; the root element's prefixes are declared automatically), `item_count`, `timed_out`;
+`xquery` → `item_count`, `timed_out`; `xslt_transform` → `output_method`. `xpath` and `xquery` run sandboxed too
+(`service/SandboxedQuery`: per-run processor, reads inside the roots, no environment, output cap) — they are
+code from a model as much as a stylesheet is. "Schema did not load" moved from `cli/ValidateCommand` to
+`ValidationRunner.isSchemaNotLoaded` (shared).
+
+**Finding — expression loops:** Saxon-HE has no interrupt mechanism and its tracing hooks sit on templates,
+functions and instructions only; a loop inside one expression (`count(for $i in 1 to 1e9, $j in … where …)`)
+is optimised into a filter and never reaches the deadline listener. `ToolRegistry` gives up on such a call after
+the timeout (result `timed_out`) and counts the thread in `runawayCount()` while it keeps running. Task 7 uses it.
+
+**Known gap — Schematron in `validate`:** the Schematron runs on the shared processor through
+`ValidationRunner`, so its `doc()` / `unparsed-text()` are not limited to the roots. The Schematron must be a
+file inside the roots (`schematron_path` only), but its content can read elsewhere. Decide in Task 6 together
+with `schematron_check` (route the Schematron stage through a sandboxed processor, or document it).
 
 ---
 
@@ -258,7 +276,7 @@ descriptions to stdout and exits — no server), plus the inherited `-q` / `--ve
 
 - [ ] **Step 1 (red):** `McpToolServerTest` drives `serve` with piped streams: initialise with `2025-11-25` (the newest revision the SDK speaks, see the Task 1 report) and with an older one the server supports; `server/discover` (the `2026-07-28` probe) gets an error a modern client treats as "legacy server", so its fallback to `initialize` works; `tools/list` returns every registered tool with its input schema; `tools/call validate` with inline content returns text and structured content; an unknown tool and malformed arguments produce the error shape the spec prescribes (tool-level failures are results with the error flag, protocol misuse is a JSON-RPC error — follow the spec read in Task 1); a request before initialisation is rejected; end of input ends `serve` cleanly.
 - [ ] **Step 2 (red):** `StdoutGuardTest`: a tool that calls `System.out.println("noise")` during a call leaves the protocol stream byte-for-byte a sequence of valid messages; the noise arrives on stderr. `FxtCliMcpTest`: `--list-tools` prints the names; with the policy set for the test to `ai.mcp.allowed=false` (test helper `service/AdminPolicyTestAccess`; reset it after the test) the command returns `ExitCodes.USAGE` and reads nothing from stdin; `--tools nope` is a usage error naming the valid tools; `--root` pointing to a missing folder is a usage error.
-- [ ] **Step 3 (green):** implement with the choice from Task 1. `McpCommand.call()`: check policy → `CliSupport.initServices()` → build `WorkspaceAccess` → install `StdoutGuard` → `serve(System.in, originalStdout)`. Server name `freexmltoolkit`, version from `VersionUtil.getVersion()`.
+- [ ] **Step 3 (green):** implement with the choice from Task 1. `McpCommand.call()`: check policy → set `fxt.schema.localCopies=false` (`LocalSchemaCopies.PROPERTY`; otherwise a downloaded import is copied next to the schema that names it — a write into the user's folder) → `CliSupport.initServices()` → build `WorkspaceAccess` → install `StdoutGuard` → `serve(System.in, originalStdout)`. After each call, when `ToolRegistry.runawayCount()` reaches 3, finish the current response, write a message to stderr and exit (status `ExitCodes.FAILED`), so runaway expressions (Task 4 finding) cannot keep burning CPU; the client starts the server again. Tests for both. Server name `freexmltoolkit`, version from `VersionUtil.getVersion()`.
 - [ ] **Step 4:** manual check with a real client. Build (`./gradlew jar` or run through `./gradlew runCli --args="mcp --root …"` — make sure Gradle's own output does not share stdout; if it does, use the packaged launcher or `java -cp`), register the server in Claude Code, and run this scenario: *"Write an XSLT 3.0 stylesheet that turns `src/test/resources/…/<a sample>.xml` into a CSV of two fields, run it with the fxt tools, and show me the result."* Confirm the agent calls `document_outline` / `schema_describe`, then `xslt_transform` with inline content, and repairs after an error. Paste the transcript summary into the task's commit note. Record the exact registration command that worked in `docs/mcp-server.md`.
 - [ ] **Step 5:** commit.
 

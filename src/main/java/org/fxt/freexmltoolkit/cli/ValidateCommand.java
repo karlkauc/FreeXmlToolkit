@@ -242,16 +242,10 @@ final class ValidateCommand implements Callable<Integer> {
      * The validators report a schema that does not load as a problem without a line (and fall back
      * to a well-formedness check) instead of failing; these are the texts they use.
      */
-    private static final List<String> SCHEMA_NOT_LOADED = List.of(
-            "Schema is invalid or unreadable",      // SaxonXmlValidationService
-            "Schema validation error:",             // XercesXmlValidationService, XSD 1.0
-            "Could not read schema file");          // both
-
     /** @return the message of a "schema does not load" finding, else {@code null} */
     static String schemaNotLoaded(List<Finding> findings) {
         for (Finding f : findings) {
-            if (f.line() <= 0 && f.message() != null
-                    && SCHEMA_NOT_LOADED.stream().anyMatch(f.message()::startsWith)) {
+            if (f.line() <= 0 && ValidationRunner.isSchemaNotLoaded(f.message())) {
                 return f.message();
             }
         }

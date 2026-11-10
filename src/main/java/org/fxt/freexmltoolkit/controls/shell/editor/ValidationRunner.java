@@ -99,6 +99,19 @@ public final class ValidationRunner {
         return EditorSchemaBinding.declaredSchemaFile(xml, baseDir);
     }
 
+    private static final List<String> SCHEMA_NOT_LOADED = List.of(
+            "Schema is invalid or unreadable",      // SaxonXmlValidationService
+            "Schema validation error:",             // XercesXmlValidationService, XSD 1.0
+            "Could not read schema file");          // both
+
+    /**
+     * Whether a problem message without a line says the schema itself did not load — then the document
+     * was not validated at all (used by {@code fxt-cli validate} and the {@code validate} tool).
+     */
+    public static boolean isSchemaNotLoaded(String message) {
+        return message != null && SCHEMA_NOT_LOADED.stream().anyMatch(message::startsWith);
+    }
+
     public static List<ValidationProblem> run(String xml, File xsd, File schematron) {
         return runWithReport(xml, xsd, schematron, null).problems();
     }

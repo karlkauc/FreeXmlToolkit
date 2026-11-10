@@ -25,6 +25,8 @@ public final class ToolRegistry {
     private static final Logger logger = LogManager.getLogger(ToolRegistry.class);
 
     private final Map<String, AiTool> tools;
+    /** Workers given up on after their timeout; they keep running until the engine returns. */
+    private final java.util.Set<Thread> abandoned = java.util.concurrent.ConcurrentHashMap.newKeySet();
 
     /** @throws IllegalArgumentException when two tools share a name */
     public ToolRegistry(Collection<? extends AiTool> tools) {
@@ -39,7 +41,8 @@ public final class ToolRegistry {
 
     /** All tools of Phase 1. */
     public static ToolRegistry standard() {
-        return new ToolRegistry(List.of());
+        return new ToolRegistry(List.of(new ValidateTool(), new XPathTool(), new XQueryTool(),
+                new XsltTransformTool()));
     }
 
     /**
@@ -56,6 +59,15 @@ public final class ToolRegistry {
         return new ToolRegistry(names.stream().distinct().map(tools::get).toList());
     }
 
+    /**
+     * Abandoned calls that are still running. The MCP server exits once this passes a threshold, so a runaway
+     * expression cannot keep burning CPU (the client starts the server again).
+     */
+    public int runawayCount() {
+        abandoned.removeIf(thread -> !thread.isAlive());
+        return abandoned.size();
+    }
+
     public List<AiTool> tools() {
         return List.copyOf(tools.values());
     }
@@ -68,9 +80,10 @@ public final class ToolRegistry {
      * Runs a tool under the context's timeout. Never throws for tool-level failures: an unknown tool,
      * misuse ({@link ToolException}), a crash and a timeout all come back as an error result.
      *
-     * <p>The call runs on a virtual thread. On timeout that thread is interrupted and abandoned; a
-     * tool whose engine ignores interrupts (a non-terminating stylesheet) must enforce the deadline
-     * itself — the sandboxed transformation does.
+     * <p>The call runs on a virtual thread. On timeout that thread is interrupted and abandoned. Saxon
+     * ignores interrupts: the sandboxed engines check a deadline on every traced construct (templates,
+     * functions, instructions), but a loop inside one expression ({@code count((1 to 1e18)[. lt 0])})
+     * enters none and keeps running — see {@link #runawayCount()}.
      */
     public ToolResult call(String name, JsonObject arguments, ToolContext context) {
         AiTool tool = tools.get(name);
@@ -92,6 +105,7 @@ public final class ToolRegistry {
             return result != null ? result : ToolResult.failed(name + " returned no result", null);
         } catch (TimeoutException e) {
             worker.interrupt();
+            abandoned.add(worker);
             JsonObject structured = new JsonObject();
             structured.addProperty("timed_out", true);
             return ToolResult.failed(name + " did not finish within the time limit of " + millis + " ms",

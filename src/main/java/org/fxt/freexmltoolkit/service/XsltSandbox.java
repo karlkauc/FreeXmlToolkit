@@ -238,6 +238,30 @@ public final class XsltSandbox {
         });
     }
 
+    /**
+     * As {@link #readOnlyWithin(XsltTransformer, Processor, List)}, on the configuration of a per-run
+     * processor ({@link #newProcessor}), so it covers every compiler and evaluator built from it — XPath,
+     * XQuery and its module imports.
+     */
+    static void readOnlyWithin(Processor processor, List<Path> realRoots) {
+        Configuration config = processor.getUnderlyingConfiguration();
+        config.setResourceResolver(guard(config.getResourceResolver(), realRoots));
+        UnparsedTextURIResolver text = config.getUnparsedTextURIResolver();
+        config.setUnparsedTextURIResolver((uri, encoding, cfg) -> {
+            if (!RootedPaths.isFileUriWithin(uri, realRoots)) {
+                throw refused(uri == null ? null : uri.toString());
+            }
+            return text.resolve(uri, encoding, cfg);
+        });
+        CollectionFinder finder = config.getCollectionFinder();
+        config.setCollectionFinder((context, collectionUri) -> {
+            if (collectionUri != null && !RootedPaths.isFileUriWithin(toUri(collectionUri, null), realRoots)) {
+                throw refused(collectionUri);
+            }
+            return finder.findCollection(context, collectionUri);
+        });
+    }
+
     /** A resolver that refuses everything outside {@code realRoots} and hands the rest to {@code next}. */
     static ResourceResolver guard(ResourceResolver next, List<Path> realRoots) {
         return request -> {

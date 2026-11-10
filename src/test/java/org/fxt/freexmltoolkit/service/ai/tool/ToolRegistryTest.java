@@ -21,7 +21,7 @@ class ToolRegistryTest {
 
     /** A tool for the tests: behaviour chosen by its name. */
     private record FakeTool(String name, Behaviour behaviour) implements AiTool {
-        enum Behaviour { OK, MISUSE, CRASH, HANG }
+        enum Behaviour { OK, MISUSE, CRASH, HANG, SPIN }
 
         @Override public String description() { return "fake " + name; }
 
@@ -41,6 +41,13 @@ class ToolRegistryTest {
                     }
                     yield ToolResult.ok("late", null);
                 }
+                case SPIN -> {
+                    long end = System.nanoTime() + 1_500_000_000L; // ignores interrupts, like Saxon
+                    while (System.nanoTime() < end) {
+                        Thread.onSpinWait();
+                    }
+                    yield ToolResult.ok("late", null);
+                }
             };
         }
     }
@@ -51,7 +58,8 @@ class ToolRegistryTest {
                 new FakeTool("alpha", FakeTool.Behaviour.OK),
                 new FakeTool("misuse", FakeTool.Behaviour.MISUSE),
                 new FakeTool("crash", FakeTool.Behaviour.CRASH),
-                new FakeTool("hang", FakeTool.Behaviour.HANG)));
+                new FakeTool("hang", FakeTool.Behaviour.HANG),
+                new FakeTool("spin", FakeTool.Behaviour.SPIN)));
     }
 
     private ToolContext context(Duration timeout) {
@@ -61,7 +69,7 @@ class ToolRegistryTest {
 
     @Test
     void toolsAreListedInADeterministicOrder() {
-        assertEquals(List.of("alpha", "crash", "hang", "misuse", "zeta"),
+        assertEquals(List.of("alpha", "crash", "hang", "misuse", "spin", "zeta"),
                 registry().tools().stream().map(AiTool::name).toList());
     }
 
@@ -116,6 +124,30 @@ class ToolRegistryTest {
         assertTrue(result.text().contains("time"), result.text());
         assertTrue(millis < 5_000, "returned after " + millis + " ms");
         assertTrue(result.structured().get("timed_out").getAsBoolean());
+    }
+
+    @Test
+    void aWorkerThatIgnoresTheInterruptIsCountedAsRunawayUntilItEnds() throws Exception {
+        ToolRegistry registry = registry();
+        ToolResult result = registry.call("spin", new JsonObject(), context(Duration.ofMillis(200)));
+        assertTrue(result.error());
+        assertEquals(1, registry.runawayCount());
+        long end = System.nanoTime() + 10_000_000_000L;
+        while (registry.runawayCount() > 0 && System.nanoTime() < end) {
+            Thread.sleep(50);
+        }
+        assertEquals(0, registry.runawayCount());
+    }
+
+    @Test
+    void anInterruptibleToolIsNoRunaway() throws Exception {
+        ToolRegistry registry = registry();
+        registry.call("hang", new JsonObject(), context(Duration.ofMillis(200)));
+        long end = System.nanoTime() + 5_000_000_000L;
+        while (registry.runawayCount() > 0 && System.nanoTime() < end) {
+            Thread.sleep(20);
+        }
+        assertEquals(0, registry.runawayCount());
     }
 
     @Test

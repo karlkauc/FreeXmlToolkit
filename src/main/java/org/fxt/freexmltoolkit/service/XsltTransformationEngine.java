@@ -1655,11 +1655,11 @@ public class XsltTransformationEngine {
         return code == null ? "" : " [" + code + "]";
     }
 
-    private static String localCode(QName code) {
+    static String localCode(QName code) {
         return code == null ? null : code.getLocalName();
     }
 
-    private static XdmNode parseXmlDocument(Processor processor, String xmlContent, String baseUri)
+    static XdmNode parseXmlDocument(Processor processor, String xmlContent, String baseUri)
             throws SaxonApiException {
         DocumentBuilder builder = processor.newDocumentBuilder();
         StreamSource source = new StreamSource(new StringReader(sanitizeXmlPrologue(xmlContent)));

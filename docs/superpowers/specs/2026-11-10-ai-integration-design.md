@@ -159,10 +159,15 @@ merge, anything that writes.
   - `environment-variable()` / `available-environment-variables()` see nothing;
   - **deadline**: compiled with tracing, a trace listener checks the deadline on every instruction, template
     and function entry and unwinds the run on the calling thread (`timedOut`). Endless recursion ends earlier
-    with Saxon's stack error. A long computation inside one XPath expression that enters no traced construct
-    is not stopped this way — `ToolRegistry` then abandons the virtual thread after the timeout;
+    with Saxon's stack error. Saxon-HE has no interrupt mechanism, so a loop inside one expression that enters
+    no traced construct is not stopped this way: `ToolRegistry` gives up on the call after the timeout and
+    counts the still running thread (`runawayCount()`); `fxt-cli mcp` exits after three of them;
   - output capped at 16 M characters (principal result and result documents together);
   - errors carry code, phase and line (`XsltTransformationResult.getErrorLine`).
+- **XPath / XQuery** (`service/SandboxedQuery`): the same restrictions (per-run processor, reads inside the roots,
+  no environment, output cap); XQuery is compiled with tracing for the deadline, XPath has none in Saxon's API.
+- **Schematron** in `validate` runs through `ValidationRunner` on the shared processor; its `doc()` is not yet
+  limited to the roots (open point, Phase 1 Task 6).
 - **Limits** (`ToolLimits`, defaults in parentheses, settings keys `ai.tool.*`): wall-clock time per
   call (30 s), output text returned to the caller (64 KB, truncated with a marker and the full
   length), input file size read into memory (64 MB; larger inputs are refused with a hint to use
