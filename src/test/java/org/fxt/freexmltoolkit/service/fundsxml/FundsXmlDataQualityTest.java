@@ -117,6 +117,25 @@ class FundsXmlDataQualityTest {
         assertTrue(FundsXmlDataQuality.snippets().stream().allMatch(s -> s.query != null && !s.query.isBlank()));
     }
 
+    @Test
+    @DisplayName("Position elements outside a portfolio and assets used by earnings are no findings")
+    void otherPositionsAndEarnings() throws Exception {
+        String xml = fixture()
+                // an Austrian PKG2012 position list: Position elements that are not portfolio positions
+                .replace("<SingleFundFlag>true</SingleFundFlag>", """
+                        <SingleFundFlag>true</SingleFundFlag>
+                        <CountrySpecificData><AT><PKG2012><Details><Position><Identifiers><ISIN>US0378331005</ISIN></Identifiers>
+                          <Category>410</Category><Value><Amount ccy="EUR">-1.00</Amount></Value></Position></Details></PKG2012></AT></CountrySpecificData>""")
+                // an asset only an earning refers to
+                .replace("</Transactions>", """
+                        </Transactions>
+                        <Earnings><Earning><EarningID>E1</EarningID><AssetUniqueID>X9</AssetUniqueID><EarningKind>COUPON</EarningKind></Earning></Earnings>""")
+                .replace("</AssetMasterData>", """
+                        <Asset><UniqueID>X9</UniqueID><Identifiers><ISIN>DE0005140008</ISIN></Identifiers><Currency>EUR</Currency><Name>SOLD BOND</Name><AssetType>BO</AssetType></Asset>
+                        </AssetMasterData>""");
+        assertEquals(Map.of(), findings(xml));
+    }
+
     /** A share class with its own net asset value and its own portfolio (positions P1/P2 on 2025-10-01). */
     static String shareClass(String isin, String nav, String value1, String percent1, String value2, String percent2) {
         return """

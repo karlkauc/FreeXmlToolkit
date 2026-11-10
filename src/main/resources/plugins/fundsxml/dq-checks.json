@@ -53,26 +53,26 @@
     {
       "key": "asset-master",
       "name": "DQ: Positions have master data",
-      "description": "Every position's UniqueID has an Asset in AssetMasterData (when the document has AssetMasterData).",
-      "query": "let $assets := /FundsXML4/AssetMasterData/Asset/UniqueID\nwhere exists($assets)\nreturn for $pos in //Position[not(UniqueID = $assets)]\n       return local:at($pos, 'Position ' || $pos/UniqueID || ' has no Asset in AssetMasterData')"
+      "description": "Every portfolio position's UniqueID has an Asset in AssetMasterData (when the document has AssetMasterData).",
+      "query": "let $assets := /FundsXML4/AssetMasterData/Asset/UniqueID\nwhere exists($assets)\nreturn for $pos in //Positions/Position[not(UniqueID = $assets)]\n       return local:at($pos, 'Position ' || $pos/UniqueID || ' has no Asset in AssetMasterData')"
     },
     {
       "key": "unused-assets",
       "name": "DQ: Unused master data",
-      "description": "Assets in AssetMasterData that no position or transaction refers to.",
-      "query": "let $used := (//Position/UniqueID, //Transaction/AssetUniqueID)\nfor $a in /FundsXML4/AssetMasterData/Asset[not(UniqueID = $used)]\nreturn local:at($a, 'Asset ' || $a/UniqueID || ' (' || $a/Name || ') is not used by any position or transaction')"
+      "description": "Assets in AssetMasterData that no position, transaction or earning refers to.",
+      "query": "let $used := (//Positions/Position/UniqueID, //Transaction/AssetUniqueID, //Earning/AssetUniqueID)\nfor $a in /FundsXML4/AssetMasterData/Asset[not(UniqueID = $used)]\nreturn local:at($a, 'Asset ' || $a/UniqueID || ' (' || $a/Name || ') is not used by any position, transaction or earning')"
     },
     {
       "key": "negative-values",
       "name": "DQ: No negative values of securities",
       "description": "Equities, bonds, fund shares, certificates and warrants have no negative market value.",
-      "query": "for $pos in //Position[Equity or Bond or ShareClass or Certificate or Warrant]\nlet $v := local:dec(($pos/TotalValue/Amount)[1])\nwhere exists($v) and $v lt 0\nreturn local:at($pos, 'Position ' || $pos/UniqueID || ' has a negative value: ' || $v)"
+      "query": "for $pos in //Positions/Position[Equity or Bond or ShareClass or Certificate or Warrant]\nlet $v := local:dec(($pos/TotalValue/Amount)[1])\nwhere exists($v) and $v lt 0\nreturn local:at($pos, 'Position ' || $pos/UniqueID || ' has a negative value: ' || $v)"
     },
     {
       "key": "missing-identifier",
       "name": "DQ: Securities have an identifier",
       "description": "Equities, bonds, fund shares, certificates and warrants carry an identifier (ISIN …).",
-      "query": "for $pos in //Position[Equity or Bond or ShareClass or Certificate or Warrant][not(Identifiers/*)]\nreturn local:at($pos, 'Position ' || $pos/UniqueID || ' has no identifier')"
+      "query": "for $pos in //Positions/Position[Equity or Bond or ShareClass or Certificate or Warrant][not(Identifiers/*)]\nreturn local:at($pos, 'Position ' || $pos/UniqueID || ' has no identifier')"
     },
     {
       "key": "nav-dates",
@@ -102,7 +102,7 @@
       "key": "matured",
       "name": "DQ: No matured instruments held",
       "description": "Positions in bonds, futures, options, swaps, warrants … whose maturity date is before the content date.",
-      "query": "let $content := /FundsXML4/ControlData/ContentDate[. castable as xs:date] ! xs:date(.)\nwhere exists($content)\nreturn for $a in /FundsXML4/AssetMasterData/Asset[AssetDetails/*/MaturityDate castable as xs:date]\n       let $m := xs:date(($a/AssetDetails/*/MaturityDate)[1])\n       where $m lt $content and $a/UniqueID = //Position/UniqueID\n       return local:at($a, 'Asset ' || $a/UniqueID || ' (' || $a/Name || ') matured on ' || $m || ' but is still held')"
+      "query": "let $content := /FundsXML4/ControlData/ContentDate[. castable as xs:date] ! xs:date(.)\nwhere exists($content)\nreturn for $a in /FundsXML4/AssetMasterData/Asset[AssetDetails/*/MaturityDate castable as xs:date]\n       let $m := xs:date(($a/AssetDetails/*/MaturityDate)[1])\n       where $m lt $content and $a/UniqueID = //Positions/Position/UniqueID\n       return local:at($a, 'Asset ' || $a/UniqueID || ' (' || $a/Name || ') matured on ' || $m || ' but is still held')"
     }
   ],
   "snippets": [
@@ -139,21 +139,21 @@
       "description": "Positions whose weight is above 5 % of the portfolio.",
       "type": "XPATH",
       "category": "FILTERING",
-      "query": "//Position[xs:decimal(TotalPercentage) gt 5]"
+      "query": "//Positions/Position[xs:decimal(TotalPercentage) gt 5]"
     },
     {
       "name": "FundsXML: Positions without ISIN",
       "description": "Positions that carry no ISIN.",
       "type": "XPATH",
       "category": "FILTERING",
-      "query": "//Position[not(Identifiers/ISIN)]"
+      "query": "//Positions/Position[not(Identifiers/ISIN)]"
     },
     {
       "name": "FundsXML: Derivative positions",
       "description": "Futures, options, swaps, FX forwards and warrants.",
       "type": "XPATH",
       "category": "FILTERING",
-      "query": "//Position[Future or Option or Swap or FXForward or Warrant]"
+      "query": "//Positions/Position[Future or Option or Swap or FXForward or Warrant]"
     },
     {
       "name": "FundsXML: Share class prices",
