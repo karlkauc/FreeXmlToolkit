@@ -844,6 +844,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
+  <a href="#accent-colour" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Accent colour
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#clearing-the-cache-folder" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3025,6 +3036,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
+  <a href="#accent-colour" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Accent colour
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#clearing-the-cache-folder" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3116,7 +3138,7 @@ settings may be greyed out and a notice at the top of the page says so; see
   info, your templates, the file associations and the extension settings (FundsXML, Developer)
   unchanged.</li>
 <li>The <strong>language</strong> applies at the next start.</li>
-<li>A few actions take effect <strong>immediately</strong>, without Save: switching the <strong>theme</strong>, registering
+<li>A few actions take effect <strong>immediately</strong>, without Save: switching the <strong>theme</strong> or the <strong>accent colour</strong>, registering
   or unregistering <strong>file associations</strong>, and creating, editing or deleting <strong>templates</strong>.</li>
 </ul>
 <table>
@@ -3129,7 +3151,7 @@ settings may be greyed out and a notice at the top of the page says so; see
 <tbody>
 <tr>
 <td><strong>Appearance</strong></td>
-<td><strong>Theme</strong> - switch between <strong>Light</strong> and <strong>Dark</strong>. <strong>Language</strong> - the language of the interface: <strong>System default</strong>, <strong>English</strong> or <strong>Deutsch</strong> (takes effect after a restart; the system default is used when it is English or German, otherwise English). <strong>Layout</strong> - <strong>Show toolbar button labels</strong>; <strong>Show activity bar labels</strong>; <strong>Use small icons</strong>; toolbar icon size (<strong>Small</strong> / <strong>Large</strong>); <strong>Show left side panel</strong>; <strong>Show Properties (inspector) panel</strong>. <strong>Rendering</strong> - JavaFX graphics pipeline: <strong>Auto</strong> / <strong>Hardware</strong> / <strong>Software</strong> (takes effect after restart), with the active pipeline and GPU status; see <a href="#rendering-mode">Rendering mode (hardware vs. software)</a> below. <strong>Memory</strong> - <strong>Maximum memory</strong> for the application: <strong>Automatic</strong> (half of the installed memory) or a fixed limit (takes effect after restart); see <a href="#memory">Memory and large files</a> below.</td>
+<td><strong>Theme</strong> - <strong>Light</strong>, <strong>Dark</strong> or <strong>System</strong> (follows the light or dark setting of the operating system, also while the application runs). <strong>Accent colour</strong> - the colour of buttons, selection, focus and links: eight presets or <strong>Own colour</strong>; see <a href="#accent-colour">Accent colour</a> below. <strong>Language</strong> - the language of the interface: <strong>System default</strong>, <strong>English</strong> or <strong>Deutsch</strong> (takes effect after a restart; the system default is used when it is English or German, otherwise English). <strong>Layout</strong> - <strong>Show toolbar button labels</strong>; <strong>Show activity bar labels</strong>; <strong>Use small icons</strong>; toolbar icon size (<strong>Small</strong> / <strong>Large</strong>); <strong>Show left side panel</strong>; <strong>Show Properties (inspector) panel</strong>. <strong>Rendering</strong> - JavaFX graphics pipeline: <strong>Auto</strong> / <strong>Hardware</strong> / <strong>Software</strong> (takes effect after restart), with the active pipeline and GPU status; see <a href="#rendering-mode">Rendering mode (hardware vs. software)</a> below. <strong>Memory</strong> - <strong>Maximum memory</strong> for the application: <strong>Automatic</strong> (half of the installed memory) or a fixed limit (takes effect after restart); see <a href="#memory">Memory and large files</a> below.</td>
 </tr>
 <tr>
 <td><strong>Editor</strong></td>
@@ -3157,6 +3179,19 @@ settings may be greyed out and a notice at the top of the page says so; see
 </tr>
 </tbody>
 </table>
+<h2 id="accent-colour">Accent colour<a class="headerlink" href="#accent-colour" title="Permanent link">¶</a></h2>
+<p>The accent colour replaces the blue of the primary buttons, selected rows, focus rings, links,
+active tabs and toggles - in the shell, in dialogs, in the XSD diagram and in the grid. Pick one of
+the presets (Blue, Indigo, Violet, Green, Teal, Orange, Red, Graphite) or any colour with
+<strong>Own colour</strong>. The choice applies at once to every open window, in the light and the dark theme.</p>
+<p>You do not have to find a colour that works everywhere: the shades derived from it are adjusted so
+that texts on and in the accent keep a contrast of at least 4.5:1 (WCAG AA). A very light colour,
+for example, is darkened for text on white and lightened for text on the dark backgrounds.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-accent-violet.png" data-desc-position="bottom"><img alt="The Settings page in the violet accent" src="../img/unified-shell-accent-violet.png"></a>
+<em>Settings → Appearance with the violet accent</em></p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-accent-violet-dark.png" data-desc-position="bottom"><img alt="The same page in the dark theme" src="../img/unified-shell-accent-violet-dark.png"></a>
+<em>The same accent in the dark theme</em></p>
+<p>The workflow colours of the activities (Validation green, Transform orange, ...) stay as they are.</p>
 <h2 id="clearing-the-cache-folder">Clearing the Cache Folder<a class="headerlink" href="#clearing-the-cache-folder" title="Permanent link">¶</a></h2>
 <p>The <strong>Clear Cache Folder</strong> button in the <strong>TEMP &amp; CACHE</strong> section deletes the contents of the
 application's local cache folder (<code>~/.freeXmlToolkit/cache</code>) - for example downloaded schemas,
