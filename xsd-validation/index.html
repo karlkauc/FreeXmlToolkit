@@ -3702,14 +3702,18 @@ results collected so far are kept.</p>
 <tbody>
 <tr>
 <td><strong>Summary</strong></td>
-<td>Source file, generation timestamp, and counts (total, errors, warnings)</td>
+<td>Source file, export timestamp, application version, and counts (total, errors, warnings)</td>
 </tr>
 <tr>
 <td><strong>Problems</strong></td>
-<td>One row per problem: <code>#</code>, <code>Source</code>, <code>Severity</code>, <code>Line</code>, <code>Message</code> - with a frozen header row and an auto-filter</td>
+<td>One row per problem: <code>#</code>, <code>Source</code>, <code>Severity</code> (errors in red, warnings in amber), <code>Line</code>, <code>Message</code> - with a frozen header row and an auto-filter</td>
 </tr>
 </tbody>
 </table>
+<p>All Excel files FreeXmlToolkit writes share one look - the Data Dictionary, the Schema Analysis
+report, the XML → Excel conversion and this export: a dark header row, striped rows with a thin
+rule, no gridlines, coloured sheet tabs, and an info sheet with a title and sections. Every sheet
+prints one page wide.</p>
 <hr>
 <h2 id="favorites-integration">Favorites Integration<a class="headerlink" href="#favorites-integration" title="Permanent link">¶</a></h2>
 <p>Save frequently used XML and XSD files to favorites for quick access:</p>
