@@ -1,22 +1,22 @@
 .tagmark {
-  -fx-fill: rgb(0, 0, 255);
+  -fx-fill: -fxt-code-punct;
 }
 
 .anytag {
-  -fx-fill: rgb(128, 0, 0);
+  -fx-fill: -fxt-code-elem;
 }
 
 .paren {
-  -fx-fill: firebrick;
+  -fx-fill: -fxt-code-punct;
   -fx-font-weight: bold;
 }
 
 .attribute {
-  -fx-fill: darkviolet;
+  -fx-fill: -fxt-code-attr;
 }
 
 .avalue {
-  -fx-fill: black;
+  -fx-fill: -fxt-code-val;
 }
 
 .enumeration-content {
@@ -26,7 +26,7 @@
 }
 
 .comment {
-  -fx-fill: teal;
+  -fx-fill: -fxt-code-comment;
 }
 
 /* line Number */

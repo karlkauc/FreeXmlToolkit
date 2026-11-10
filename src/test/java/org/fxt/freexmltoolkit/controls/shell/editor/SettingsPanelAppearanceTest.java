@@ -41,6 +41,7 @@ class SettingsPanelAppearanceTest {
             ThemeManager.apply(settings.getScene(), false);
             EditorFont.update(EditorFont.Settings.defaults());
             ThemeManager.setTypography(null, null);
+            ThemeManager.resetSyntaxColors();
         });
     }
 
@@ -133,5 +134,26 @@ class SettingsPanelAppearanceTest {
         assertEquals(null, ThemeManager.typographySheet(), "Normal + Inter needs no sheet");
         assertEquals(2, root.getStylesheets().size(), "the stale sheet is removed");
         assertTrue(((ToggleButton) settings.lookup("#settings-ui-font-normal")).isSelected());
+    }
+
+    @Test
+    void aSyntaxSchemeAndAnOwnColourReachTheTokens() {
+        var light = DesignTokens.Theme.LIGHT;
+        var role = org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.Role.ELEMENT;
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> settings.applySyntaxScheme("github"));
+        assertEquals("github", ThemeManager.currentSyntaxScheme());
+        var github = org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.effective("github", k -> null, light).get(role);
+        assertEquals(github, DesignTokens.ColorToken.CODE_ELEM.color(light), "the grid and Java views follow");
+        assertEquals(github, settings.syntaxPickers().get(role).getValue());
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () ->
+                settings.syntaxPickers().get(role).setValue(javafx.scene.paint.Color.web("#123456")));
+        assertEquals(javafx.scene.paint.Color.web("#123456"), DesignTokens.ColorToken.CODE_ELEM.color(light));
+        assertEquals("#123456", ThemeManager.setting(role.key(light)));
+        assertTrue(!settings.isDirty(), "syntax colours apply at once");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, settings::onSyntaxReset);
+        assertEquals(DesignTokens.ColorToken.CODE_ELEM.defaultColor(light), DesignTokens.ColorToken.CODE_ELEM.color(light));
+        assertEquals("default", ThemeManager.currentSyntaxScheme());
     }
 }

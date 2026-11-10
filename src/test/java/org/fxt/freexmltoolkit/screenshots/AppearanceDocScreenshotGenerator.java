@@ -117,11 +117,31 @@ class AppearanceDocScreenshotGenerator {
             });
             settle(1200);
             shot("unified-shell-ui-font-xlarge");
+            onFx(() -> panel.applyUiFont(org.fxt.freexmltoolkit.controls.theme.Typography.Size.NORMAL, null));
+
+            // Syntax colours: the card, then the XML document in Monokai, dark
+            onFx(() -> {
+                panel.applySyntaxScheme("monokai");
+                shell.getSelectionModel().select(Activity.EXPLORER);
+                shell.getSelectionModel().select(Activity.SETTINGS);
+                panel.showSection("editor");
+            });
+            settle(1000);
+            shot("unified-shell-settings-syntax-colours");
+            onFx(() -> {
+                panel.applyTheme(true);
+                shell.getSelectionModel().select(Activity.EXPLORER);
+                host.openFile(xml.toAbsolutePath());
+            });
+            settle(1200);
+            shot("unified-shell-syntax-monokai-dark");
+            onFx(() -> panel.applyTheme(false));
         } finally {
             onFx(() -> {
                 org.fxt.freexmltoolkit.controls.shared.EditorFont.update(
                         org.fxt.freexmltoolkit.controls.shared.EditorFont.Settings.defaults());
                 ThemeManager.setTypography(null, null);
+                ThemeManager.resetSyntaxColors();
             });
             onFx(() -> {
                 SettingsPanel panel = findSettings(root);

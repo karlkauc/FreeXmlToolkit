@@ -19,6 +19,7 @@ import javafx.stage.Window;
 
 import org.fxt.freexmltoolkit.controls.theme.AccentPalette;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
+import org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes;
 import org.fxt.freexmltoolkit.controls.theme.Typography;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.PropertiesService;
@@ -293,6 +294,11 @@ public final class ThemeManager {
             // not persisted (tests); still applied
         }
         loadAccent(value);
+        applyAppearanceEverywhere();
+    }
+
+    /** Puts the rebuilt appearance sheet into every window and repaints the Java-drawn views. */
+    private static void applyAppearanceEverywhere() {
         for (Window window : List.copyOf(Window.getWindows())) {
             if (window.getScene() != null) {
                 syncAppearanceSheet(window.getScene());
@@ -316,17 +322,82 @@ public final class ThemeManager {
         }
     }
 
-    /** Derives the overrides and the appearance stylesheet of an accent. */
+    // ------------------------------------------------------------------ syntax colours
+
+    /** @return the stored syntax scheme id */
+    public static String currentSyntaxScheme() {
+        return SyntaxSchemes.scheme(setting(SyntaxSchemes.SCHEME_KEY)).id();
+    }
+
+    /**
+     * Sets the syntax scheme (keeping the user's own role colours), persists and applies it.
+     * Must be called on the JavaFX Application Thread.
+     *
+     * @param schemeId a scheme id of {@link SyntaxSchemes#SCHEMES}; null = default
+     */
+    public static void setSyntaxScheme(String schemeId) {
+        store(SyntaxSchemes.SCHEME_KEY, SyntaxSchemes.scheme(schemeId).id());
+        loadAccent(currentAccent());
+        applyAppearanceEverywhere();
+    }
+
+    /**
+     * Sets or clears the user's own colour of a syntax role in a theme, persists and applies it.
+     *
+     * @param role the role
+     * @param theme the theme the colour is for
+     * @param color the colour, or null to use the scheme's again
+     */
+    public static void setSyntaxColor(SyntaxSchemes.Role role, DesignTokens.Theme theme, Color color) {
+        store(role.key(theme), color == null ? "" : AccentPalette.hex(color));
+        loadAccent(currentAccent());
+        applyAppearanceEverywhere();
+    }
+
+    /** Clears every own role colour of both themes and goes back to the default scheme. */
+    public static void resetSyntaxColors() {
+        for (SyntaxSchemes.Role role : SyntaxSchemes.Role.values()) {
+            store(role.key(DesignTokens.Theme.LIGHT), "");
+            store(role.key(DesignTokens.Theme.DARK), "");
+        }
+        setSyntaxScheme(SyntaxSchemes.DEFAULT_ID);
+    }
+
+    /** @return a stored setting, or null (no settings service, e.g. in tests) */
+    public static String setting(String key) {
+        try {
+            return ServiceRegistry.get(PropertiesService.class).get(key);
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
+    private static void store(String key, String value) {
+        try {
+            ServiceRegistry.get(PropertiesService.class).set(key, value);
+        } catch (Throwable ignored) {
+            // not persisted (tests); still applied
+        }
+    }
+
+    /** Derives the token overrides and the appearance stylesheet: accent colour plus syntax colours. */
     private static void loadAccent(String value) {
         accentLoaded = true;
         Color accent = AccentPalette.parse(value);
-        if (accent == null) {
+        Map<String, Color> light = new java.util.LinkedHashMap<>();
+        Map<String, Color> dark = new java.util.LinkedHashMap<>();
+        if (accent != null) {
+            light.putAll(AccentPalette.light(accent));
+            dark.putAll(AccentPalette.dark(accent));
+        }
+        String scheme = setting(SyntaxSchemes.SCHEME_KEY);
+        light.putAll(SyntaxSchemes.overrides(scheme, ThemeManager::setting, DesignTokens.Theme.LIGHT));
+        dark.putAll(SyntaxSchemes.overrides(scheme, ThemeManager::setting, DesignTokens.Theme.DARK));
+        if (light.isEmpty() && dark.isEmpty()) {
             DesignTokens.setOverrides(null, null);
             appearanceSheet = null;
             return;
         }
-        Map<String, Color> light = AccentPalette.light(accent);
-        Map<String, Color> dark = AccentPalette.dark(accent);
         DesignTokens.setOverrides(light, dark);
         StringBuilder css = new StringBuilder(APPEARANCE_HEADER).append("/* accent ").append(value).append(" */\n.root {\n");
         light.forEach((name, color) -> css.append("    ").append(name).append(": ").append(AccentPalette.hex(color)).append(";\n"));

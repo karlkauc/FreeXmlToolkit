@@ -174,11 +174,14 @@ public final class DesignTokens {
         WF_NEUTRAL_RAIL("-fxt-wf-neutral-rail", "#9ba6b3", "#9ba6b3"),
 
         CODE_TEXT("-fxt-code-text", "#1a1d21", "#e6eaf0"),
-        CODE_ELEM("-fxt-code-elem", "#1f6fb2", "#6cb6ff"),
-        CODE_ATTR("-fxt-code-attr", "#c56a12", "#e0a458"),
-        CODE_VAL("-fxt-code-val", "#2e8b40", "#7ee787"),
+        CODE_ELEM("-fxt-code-elem", "#1f6fb2", "#58a6e8"),
+        CODE_ATTR("-fxt-code-attr", "#c56a12", "#e8944a"),
+        CODE_VAL("-fxt-code-val", "#2e8b40", "#5cbf72"),
         CODE_DECL("-fxt-code-decl", "#9a6bd6", "#c09bf0"),
-        CODE_PUNCT("-fxt-code-punct", "#7a8392", "#6b7480"),
+        CODE_PUNCT("-fxt-code-punct", "#7a8392", "#8b95a5"),
+        CODE_COMMENT("-fxt-code-comment", "#6e7781", "#7d8794"),
+        CODE_NUMBER("-fxt-code-number", "#0a7ea4", "#56d4dd"),
+        CODE_KEYWORD("-fxt-code-keyword", "#8250df", "#c09bf0"),
         CODE_CURLINE("-fxt-code-curline", "#f2f6ff", "#1b2438");
 
         private final String cssVariable;

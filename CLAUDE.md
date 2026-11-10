@@ -116,6 +116,12 @@ unified-shell.css with the same selector, scaled (and Inter rules with the chose
 right after `unified-shell.css` (`ThemeManager.typographySheet`, placed by the same `syncAppearanceSheet`;
 the two generated sheets are told apart by a fixed 33-byte header → fixed base64 prefix). Normal + Inter =
 no sheet. `.fxt-activity-*` (fixed 56 px rail) is not scaled; inline `setStyle` sizes are not scaled.
+Syntax colours: every highlighter class (`tagmark/paren/anytag/attribute/avalue/comment`, `json-*`, legacy
+`xml-*`) fills with a `-fxt-code-*` token (`CODE_TEXT/ELEM/ATTR/VAL/PUNCT/COMMENT/NUMBER/KEYWORD/DECL`) in every
+sheet — never hex. `controls/theme/SyntaxSchemes` (schemes, `Role`, `syntax.scheme`, `syntax.color.<role>.<light|dark>`,
+contrast-adjusted except the default) → merged with the accent into `DesignTokens.setOverrides` + the appearance
+sheet (`ThemeManager.loadAccent`, `setSyntaxScheme` / `setSyntaxColor` / `resetSyntaxColors`); grid values follow
+through the tokens.
 
 ## View Export (PNG / SVG / PDF / clipboard)
 

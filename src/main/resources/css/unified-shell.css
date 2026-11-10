@@ -1460,42 +1460,42 @@
 }
 
 .fxt-query-results .tagmark {
-    -fx-fill: #7a8392;
+    -fx-fill: -fxt-code-punct;
 }
 .fxt-query-results .anytag {
-    -fx-fill: #1f6fb2;
+    -fx-fill: -fxt-code-elem;
 }
 .fxt-query-results .attribute {
-    -fx-fill: #c56a12;
+    -fx-fill: -fxt-code-attr;
 }
 .fxt-query-results .avalue {
-    -fx-fill: #2e8b40;
+    -fx-fill: -fxt-code-val;
 }
 .fxt-query-results .comment {
-    -fx-fill: -fxt-text-muted;
+    -fx-fill: -fxt-code-comment;
     -fx-font-style: italic;
 }
 
 .fxt-query-results .json-key {
-    -fx-fill: #1f6fb2;
+    -fx-fill: -fxt-code-elem;
 }
 .fxt-query-results .json-string {
-    -fx-fill: #2e8b40;
+    -fx-fill: -fxt-code-val;
 }
 .fxt-query-results .json-number {
-    -fx-fill: #fd7e14;
+    -fx-fill: -fxt-code-number;
 }
 .fxt-query-results .json-boolean,
 .fxt-query-results .json-null {
-    -fx-fill: #6f42c1;
+    -fx-fill: -fxt-code-keyword;
     -fx-font-weight: bold;
 }
 .fxt-query-results .json-bracket,
 .fxt-query-results .json-punctuation {
-    -fx-fill: #7a8392;
+    -fx-fill: -fxt-code-punct;
 }
 .fxt-query-results .json-comment {
-    -fx-fill: -fxt-text-muted;
+    -fx-fill: -fxt-code-comment;
     -fx-font-style: italic;
 }
 
@@ -5235,4 +5235,13 @@
     -fx-background-radius: 4;
     -fx-padding: 6 8;
     -fx-text-fill: -fxt-text-primary;
+}
+
+/* Settings → Editor → Syntax colours: the sample code (colours set in Java from the scheme) */
+.fxt-syntax-preview {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 6 8;
 }

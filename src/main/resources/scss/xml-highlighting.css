@@ -19,29 +19,35 @@
 /* Syntax palette aligned with the Figma "Unified Editor" code view:
    brackets/punctuation grey, element names blue, attribute names orange,
    attribute values green, comments muted italic. */
+/* Plain text (element content) and every syntax role are -fxt-code-* tokens, so the user's
+   syntax colours (Settings → Editor → Syntax colours) reach every code area. Declared first:
+   the equally specific role rules below win their ties. */
+.text {
+    -fx-fill: -fxt-code-text;
+}
 .tagmark {
-    -fx-fill: #7a8392;
+    -fx-fill: -fxt-code-punct;
 }
 
 .anytag {
-    -fx-fill: #1f6fb2;
+    -fx-fill: -fxt-code-elem;
 }
 
 .paren {
-    -fx-fill: #7a8392;
+    -fx-fill: -fxt-code-punct;
     -fx-font-weight: bold;
 }
 
 .attribute {
-    -fx-fill: #c56a12;
+    -fx-fill: -fxt-code-attr;
 }
 
 .avalue {
-    -fx-fill: #2e8b40;
+    -fx-fill: -fxt-code-val;
 }
 
 .comment {
-    -fx-fill: #8a93a0;
+    -fx-fill: -fxt-code-comment;
     -fx-font-style: italic;
 }
 
@@ -96,25 +102,25 @@
 
 /* XML Tags (opening/closing) */
 .xml-tag {
-    -fx-fill: #0066CC;  /* Blue */
+    -fx-fill: -fxt-code-elem;
     -fx-font-weight: bold;
 }
 
 /* XML Attributes */
 .xml-attribute {
-    -fx-fill: #CC0066;  /* Purple-Red */
+    -fx-fill: -fxt-code-attr;
     -fx-font-weight: normal;
 }
 
 /* XML Attribute Values */
 .xml-value {
-    -fx-fill: #009900;  /* Green */
+    -fx-fill: -fxt-code-val;
     -fx-font-style: normal;
 }
 
 /* XML Comments */
 .xml-comment {
-    -fx-fill: #008080;  /* Teal */
+    -fx-fill: -fxt-code-comment;
     -fx-font-style: italic;
 }
 
@@ -127,7 +133,7 @@
 
 /* Processing Instructions (<?xml ... ?>) */
 .xml-processing-instruction {
-    -fx-fill: #CC6600;  /* Orange */
+    -fx-fill: -fxt-code-decl;
     -fx-font-weight: bold;
 }
 

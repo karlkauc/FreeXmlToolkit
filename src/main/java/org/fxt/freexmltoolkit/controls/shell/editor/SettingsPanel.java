@@ -81,6 +81,18 @@ public class SettingsPanel extends VBox {
     @FXML private ComboBox<String> uiFontFamily;
     /** Set while the UI-font controls show the stored value: their changes are no choice. */
     private boolean showingUiFont;
+    @FXML private ComboBox<org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.Scheme> syntaxScheme;
+    @FXML private Label syntaxColorsTheme;
+    @FXML private javafx.scene.layout.GridPane syntaxRoles;
+    @FXML private javafx.scene.text.TextFlow syntaxPreview;
+    /** Set while the syntax controls show stored values: their changes are no choice. */
+    private boolean showingSyntax;
+    private final java.util.Map<org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.Role,
+            javafx.scene.control.ColorPicker> syntaxPickers = new java.util.EnumMap<>(
+                    org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.Role.class);
+    /** Refreshes the syntax card on a theme switch (held strongly: DesignTokens keeps weak references). */
+    private final java.util.function.Consumer<org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme> syntaxThemeListener =
+            theme -> javafx.application.Platform.runLater(this::showSyntaxColors);
     @FXML private ComboBox<String> editorFontFamily;
     @FXML private Spinner<Integer> editorFontSize;
     @FXML private Spinner<Double> editorLineSpacing;
@@ -245,6 +257,7 @@ public class SettingsPanel extends VBox {
         buildAccentSwatches();
         initEditorFontControls();
         initUiFontControls();
+        initSyntaxControls();
 
         parserType.getItems().setAll(XmlParserType.values());
         collectPolicyLocks();
@@ -456,7 +469,8 @@ public class SettingsPanel extends VBox {
         java.util.Set<javafx.scene.Node> immediate = new java.util.HashSet<>(
                 java.util.List.of(light, dark, systemTheme, accentSwatches, accentPicker,
                         editorFontFamily, editorFontSize, editorLineSpacing, editorRememberZoom,
-                        uiFontSmall, uiFontNormal, uiFontLarge, uiFontXLarge, uiFontFamily));
+                        uiFontSmall, uiFontNormal, uiFontLarge, uiFontXLarge, uiFontFamily,
+                        syntaxScheme, syntaxRoles));
         immediate.addAll(associationCheckBoxes().keySet());
         javafx.beans.InvalidationListener mark = obs -> {
             if (!loading) {
@@ -740,6 +754,124 @@ public class SettingsPanel extends VBox {
     public void applyUiFont(org.fxt.freexmltoolkit.controls.theme.Typography.Size size, String family) {
         org.fxt.freexmltoolkit.controls.shell.ThemeManager.setTypography(size, family);
         showUiFont();
+    }
+
+    // ----- syntax colours ---------------------------------------------------------
+
+    /** Sample code of the preview: text and role per segment. */
+    private static final java.util.List<java.util.Map.Entry<String, org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.Role>>
+            SYNTAX_SAMPLE = sampleSegments();
+
+    private static java.util.List<java.util.Map.Entry<String, org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.Role>> sampleSegments() {
+        var p = org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.Role.PUNCTUATION;
+        var e = org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.Role.ELEMENT;
+        var a = org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.Role.ATTRIBUTE;
+        var v = org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.Role.VALUE;
+        var t = org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.Role.TEXT;
+        var c = org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.Role.COMMENT;
+        var n = org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.Role.NUMBER;
+        var k = org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.Role.KEYWORD;
+        var d = org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.Role.DECLARATION;
+        return java.util.List.of(java.util.Map.entry("<?", p), java.util.Map.entry("xml", d), java.util.Map.entry(" ", t),
+                java.util.Map.entry("version", a), java.util.Map.entry("=", p), java.util.Map.entry("\"1.0\"", v),
+                java.util.Map.entry("?>\n", p), java.util.Map.entry("<!-- an order -->\n", c),
+                java.util.Map.entry("<", p), java.util.Map.entry("order", e), java.util.Map.entry(" ", t),
+                java.util.Map.entry("id", a), java.util.Map.entry("=", p), java.util.Map.entry("\"42\"", v),
+                java.util.Map.entry(">", p), java.util.Map.entry("Books", t), java.util.Map.entry("</", p),
+                java.util.Map.entry("order", e), java.util.Map.entry(">\n", p),
+                java.util.Map.entry("{ ", p), java.util.Map.entry("\"total\"", e), java.util.Map.entry(": ", p),
+                java.util.Map.entry("99.5", n), java.util.Map.entry(", ", p), java.util.Map.entry("\"paid\"", e),
+                java.util.Map.entry(": ", p), java.util.Map.entry("true", k), java.util.Map.entry(" }", p));
+    }
+
+    /** Fills the syntax card: schemes, one picker per role, the preview. */
+    private void initSyntaxControls() {
+        syntaxScheme.getItems().setAll(org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.SCHEMES);
+        syntaxScheme.setConverter(new javafx.util.StringConverter<>() {
+            @Override
+            public String toString(org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.Scheme scheme) {
+                return scheme == null ? "" : I18n.t(scheme.labelKey());
+            }
+
+            @Override
+            public org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.Scheme fromString(String text) {
+                return null;
+            }
+        });
+        syntaxScheme.valueProperty().addListener((obs, old, value) -> {
+            if (!showingSyntax && value != null) {
+                org.fxt.freexmltoolkit.controls.shell.ThemeManager.setSyntaxScheme(value.id());
+                showSyntaxColors();
+            }
+        });
+        int row = 0;
+        for (var role : org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.Role.values()) {
+            Label label = new Label(I18n.t(role.labelKey()));
+            var picker = new javafx.scene.control.ColorPicker();
+            picker.setId("settings-syntax-" + role.id());
+            picker.setAccessibleText(I18n.t(role.labelKey()));
+            picker.valueProperty().addListener((obs, old, value) -> {
+                if (!showingSyntax && value != null) {
+                    org.fxt.freexmltoolkit.controls.shell.ThemeManager.setSyntaxColor(role,
+                            org.fxt.freexmltoolkit.controls.theme.DesignTokens.currentTheme(), value);
+                    showSyntaxColors();
+                }
+            });
+            label.setLabelFor(picker);
+            syntaxPickers.put(role, picker);
+            syntaxRoles.add(label, (row % 2) * 2, row / 2);
+            syntaxRoles.add(picker, (row % 2) * 2 + 1, row / 2);
+            row++;
+        }
+        org.fxt.freexmltoolkit.controls.theme.DesignTokens.addThemeListener(syntaxThemeListener);
+        showSyntaxColors();
+    }
+
+    /** Shows the stored scheme and the effective colour of every role of the current theme. */
+    private void showSyntaxColors() {
+        var theme = org.fxt.freexmltoolkit.controls.theme.DesignTokens.currentTheme();
+        String scheme = org.fxt.freexmltoolkit.controls.shell.ThemeManager.currentSyntaxScheme();
+        var colors = org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.effective(scheme,
+                org.fxt.freexmltoolkit.controls.shell.ThemeManager::setting, theme);
+        showingSyntax = true;
+        try {
+            syntaxScheme.setValue(org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.scheme(scheme));
+            syntaxPickers.forEach((role, picker) -> picker.setValue(colors.get(role)));
+        } finally {
+            showingSyntax = false;
+        }
+        syntaxColorsTheme.setText(I18n.t("SettingsPanel.colours-for-the-theme-switch",
+                theme == org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme.DARK
+                        ? I18n.t("SettingsPanel.themeDark") : I18n.t("SettingsPanel.themeLight")));
+        var font = org.fxt.freexmltoolkit.controls.shared.EditorFont.current();
+        javafx.scene.text.Font previewFont = javafx.scene.text.Font.font(
+                org.fxt.freexmltoolkit.controls.shared.EditorFont.resolveFamily(font.family()), 13);
+        java.util.List<javafx.scene.Node> texts = new java.util.ArrayList<>();
+        for (var segment : SYNTAX_SAMPLE) {
+            javafx.scene.text.Text text = new javafx.scene.text.Text(segment.getKey());
+            text.setFont(previewFont);
+            text.setFill(colors.get(segment.getValue()));
+            texts.add(text);
+        }
+        syntaxPreview.getChildren().setAll(texts);
+    }
+
+    /** Back to the design's colours: default scheme, no own role colours (both themes). */
+    @FXML
+    public void onSyntaxReset() {
+        org.fxt.freexmltoolkit.controls.shell.ThemeManager.resetSyntaxColors();
+        showSyntaxColors();
+    }
+
+    /** Chooses a syntax scheme (for tests/observers). */
+    public void applySyntaxScheme(String schemeId) {
+        org.fxt.freexmltoolkit.controls.shell.ThemeManager.setSyntaxScheme(schemeId);
+        showSyntaxColors();
+    }
+
+    /** @return the role pickers (for tests) */
+    java.util.Map<org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.Role, javafx.scene.control.ColorPicker> syntaxPickers() {
+        return syntaxPickers;
     }
 
     // ----- editor font ------------------------------------------------------------
@@ -1071,6 +1203,7 @@ public class SettingsPanel extends VBox {
             keys.put(size, new String[] {org.fxt.freexmltoolkit.controls.theme.Typography.SIZE_KEY});
         }
         keys.put(uiFontFamily, new String[] {org.fxt.freexmltoolkit.controls.theme.Typography.FAMILY_KEY});
+        keys.put(syntaxScheme, new String[] {org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.SCHEME_KEY});
         keys.put(editorFontFamily, new String[] {org.fxt.freexmltoolkit.controls.shared.EditorFont.FAMILY_KEY});
         keys.put(editorFontSize, new String[] {org.fxt.freexmltoolkit.controls.shared.EditorFont.SIZE_KEY});
         keys.put(editorLineSpacing, new String[] {org.fxt.freexmltoolkit.controls.shared.EditorFont.LINE_SPACING_KEY});

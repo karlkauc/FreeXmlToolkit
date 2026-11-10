@@ -7,86 +7,86 @@
 
 /* Object property keys - purple like attributes */
 .json-key {
-    -fx-fill: #9876aa;
+    -fx-fill: -fxt-code-elem;
     -fx-font-weight: bold;
 }
 
 /* String values - green */
 .json-string {
-    -fx-fill: #6a8759;
+    -fx-fill: -fxt-code-val;
 }
 
 /* Numeric values - blue */
 .json-number {
-    -fx-fill: #6897bb;
+    -fx-fill: -fxt-code-number;
 }
 
 /* Boolean values (true/false) - orange */
 .json-boolean {
-    -fx-fill: #cc7832;
+    -fx-fill: -fxt-code-keyword;
     -fx-font-weight: bold;
 }
 
 /* Null values - orange italic */
 .json-null {
-    -fx-fill: #cc7832;
+    -fx-fill: -fxt-code-keyword;
     -fx-font-style: italic;
 }
 
 /* Brackets and braces - gold/yellow */
 .json-bracket {
-    -fx-fill: #ffc66d;
+    -fx-fill: -fxt-code-punct;
     -fx-font-weight: bold;
 }
 
 /* Comments (JSONC/JSON5) - gray italic */
 .json-comment {
-    -fx-fill: #808080;
+    -fx-fill: -fxt-code-comment;
     -fx-font-style: italic;
 }
 
 /* Colons and commas - gray */
 .json-punctuation {
-    -fx-fill: #a9b7c6;
+    -fx-fill: -fxt-code-punct;
 }
 
 /* ========== Alternative Color Scheme (Light Theme) ========== */
 
 .json-editor-light .json-key {
-    -fx-fill: #0056b3;
+    -fx-fill: -fxt-code-elem;
     -fx-font-weight: bold;
 }
 
 .json-editor-light .json-string {
-    -fx-fill: #28a745;
+    -fx-fill: -fxt-code-val;
 }
 
 .json-editor-light .json-number {
-    -fx-fill: #17a2b8;
+    -fx-fill: -fxt-code-number;
 }
 
 .json-editor-light .json-boolean {
-    -fx-fill: #fd7e14;
+    -fx-fill: -fxt-code-keyword;
     -fx-font-weight: bold;
 }
 
 .json-editor-light .json-null {
-    -fx-fill: #6c757d;
+    -fx-fill: -fxt-code-keyword;
     -fx-font-style: italic;
 }
 
 .json-editor-light .json-bracket {
-    -fx-fill: #495057;
+    -fx-fill: -fxt-code-punct;
     -fx-font-weight: bold;
 }
 
 .json-editor-light .json-comment {
-    -fx-fill: #6c757d;
+    -fx-fill: -fxt-code-comment;
     -fx-font-style: italic;
 }
 
 .json-editor-light .json-punctuation {
-    -fx-fill: #212529;
+    -fx-fill: -fxt-code-punct;
 }
 
 /* ========== JSON Editor Root ========== */
@@ -518,31 +518,31 @@
 
 /* Dark theme syntax highlighting (already good from base) */
 .json-editor-root.dark-theme .json-key {
-    -fx-fill: #9876aa;
+    -fx-fill: -fxt-code-elem;
 }
 
 .json-editor-root.dark-theme .json-string {
-    -fx-fill: #6a8759;
+    -fx-fill: -fxt-code-val;
 }
 
 .json-editor-root.dark-theme .json-number {
-    -fx-fill: #6897bb;
+    -fx-fill: -fxt-code-number;
 }
 
 .json-editor-root.dark-theme .json-boolean {
-    -fx-fill: #cc7832;
+    -fx-fill: -fxt-code-keyword;
 }
 
 .json-editor-root.dark-theme .json-null {
-    -fx-fill: #cc7832;
+    -fx-fill: -fxt-code-keyword;
 }
 
 .json-editor-root.dark-theme .json-bracket {
-    -fx-fill: #ffc66d;
+    -fx-fill: -fxt-code-punct;
 }
 
 .json-editor-root.dark-theme .json-comment {
-    -fx-fill: #808080;
+    -fx-fill: -fxt-code-comment;
 }
 
 /* ========== Accessibility ========== */
@@ -555,29 +555,29 @@
 
 /* High contrast mode - applied via .high-contrast style class on root */
 .high-contrast .json-key {
-    -fx-fill: #0000ff;
+    -fx-fill: -fxt-code-elem;
     -fx-font-weight: bold;
 }
 
 .high-contrast .json-string {
-    -fx-fill: #008000;
+    -fx-fill: -fxt-code-val;
 }
 
 .high-contrast .json-number {
-    -fx-fill: #800080;
+    -fx-fill: -fxt-code-number;
 }
 
 .high-contrast .json-boolean,
 .high-contrast .json-null {
-    -fx-fill: #ff0000;
+    -fx-fill: -fxt-code-keyword;
     -fx-font-weight: bold;
 }
 
 .high-contrast .json-bracket {
-    -fx-fill: #000000;
+    -fx-fill: -fxt-code-punct;
     -fx-font-weight: bold;
 }
 
 .high-contrast .json-comment {
-    -fx-fill: #808080;
+    -fx-fill: -fxt-code-comment;
 }

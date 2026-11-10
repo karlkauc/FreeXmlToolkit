@@ -64,24 +64,24 @@
    XML Syntax Highlighting (Dark Mode)
    ================================================================= */
 .tagmark {
-  -fx-fill: #569cd6;  /* Blue for XML tags */
+  -fx-fill: -fxt-code-punct;
 }
 
 .anytag {
-  -fx-fill: #4ec9b0;  /* Teal for elements */
+  -fx-fill: -fxt-code-elem;
 }
 
 .paren {
-  -fx-fill: #d4d4d4;  /* Light gray for brackets */
+  -fx-fill: -fxt-code-punct;
   -fx-font-weight: bold;
 }
 
 .attribute {
-  -fx-fill: #9cdcfe;  /* Light blue for attributes */
+  -fx-fill: -fxt-code-attr;
 }
 
 .avalue {
-  -fx-fill: #ce9178;  /* Orange/brown for attribute values */
+  -fx-fill: -fxt-code-val;
 }
 
 .enumeration-content {
@@ -91,7 +91,7 @@
 }
 
 .comment {
-  -fx-fill: #6a9955;  /* Green for comments */
+  -fx-fill: -fxt-code-comment;
 }
 
 /* Line Numbers — gutter = bg/surface-2 dark (#1c232c), see DesignTokens.BG_SURFACE_2 */
@@ -314,23 +314,23 @@
    Also used by the Query Console results and the OUTPUT pane. */
 .root.fxt-theme-dark .code-area .tagmark,
 .root.fxt-theme-dark .code-area .paren {
-  -fx-fill: #8b95a5;
+  -fx-fill: -fxt-code-punct;
 }
 
 .root.fxt-theme-dark .code-area .anytag {
-  -fx-fill: #58a6e8;
+  -fx-fill: -fxt-code-elem;
 }
 
 .root.fxt-theme-dark .code-area .attribute {
-  -fx-fill: #e8944a;
+  -fx-fill: -fxt-code-attr;
 }
 
 .root.fxt-theme-dark .code-area .avalue {
-  -fx-fill: #5cbf72;
+  -fx-fill: -fxt-code-val;
 }
 
 .root.fxt-theme-dark .code-area .comment {
-  -fx-fill: #7d8794;
+  -fx-fill: -fxt-code-comment;
 }
 
 .root.fxt-theme-dark .code-area .enumeration {

@@ -58,6 +58,8 @@ Any key of the user's settings file works. These are the ones most often managed
 | `ui.accent` | `blue` / `indigo` / `violet` / `green` / `teal` / `orange` / `red` / `graphite` or `#rrggbb` | Accent colour (Settings → Appearance → Accent colour), e.g. the company colour |
 | `ui.font.size` | `small` / `normal` / `large` / `xlarge` | Text size of the interface (Settings → Appearance → Text size & font) |
 | `ui.font.family` | font family name (empty = Inter) | Font of the interface |
+| `syntax.scheme` | `default` / `github` / `solarized` / `monokai` / `high-contrast` | Syntax colour scheme (Settings → Editor → Syntax colours) |
+| `syntax.color.<role>.<light\|dark>` | `#rrggbb` (empty = the scheme's) | Own colour of a role: `text`, `element`, `attribute`, `value`, `punctuation`, `comment`, `number`, `keyword`, `declaration` |
 | `editor.font.family` | font family name (empty = JetBrains Mono) | Editor font (Settings → Editor → Editor font) |
 | `editor.font.size` | `8`–`32` (points) | Editor font size |
 | `editor.lineSpacing` | `1.0`–`2.0` | Editor line spacing |

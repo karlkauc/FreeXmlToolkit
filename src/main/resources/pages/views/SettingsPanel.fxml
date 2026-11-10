@@ -18,6 +18,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
@@ -289,6 +290,26 @@
                                                         </Button>
                                                     </children>
                                                 </HBox>
+                                            </children>
+                                        </SettingsCard>
+                                        <SettingsCard title="%SettingsPanel.syntax-colours.title" iconLiteral="bi-brush">
+                                            <children>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="%SettingsPanel.syntax-scheme.text"/>
+                                                        <ComboBox fx:id="syntaxScheme" id="settings-syntax-scheme" prefWidth="180"/>
+                                                        <Button text="%SettingsPanel.syntax-reset.text" id="settings-syntax-reset"
+                                                                onAction="#onSyntaxReset" styleClass="fxt-tool-button">
+                                                            <graphic>
+                                                                <IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="16"/>
+                                                            </graphic>
+                                                        </Button>
+                                                    </children>
+                                                </HBox>
+                                                <Label fx:id="syntaxColorsTheme" styleClass="fxt-placeholder-text" wrapText="true" minHeight="-Infinity"/>
+                                                <GridPane fx:id="syntaxRoles" id="settings-syntax-roles" hgap="8" vgap="4"/>
+                                                <javafx.scene.text.TextFlow fx:id="syntaxPreview" id="settings-syntax-preview"
+                                                                            styleClass="fxt-syntax-preview"/>
                                             </children>
                                         </SettingsCard>
                                         <SettingsCard title="%SettingsPanel.grid-table-colours.title" iconLiteral="bi-table">
