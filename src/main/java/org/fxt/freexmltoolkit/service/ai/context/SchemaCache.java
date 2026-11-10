@@ -1,4 +1,4 @@
-package org.fxt.freexmltoolkit.service.ai.tool;
+package org.fxt.freexmltoolkit.service.ai.context;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,16 +16,16 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
  * (includes, imports) has changed. An agent asks about the same schema many times in a row; parsing a large one
  * takes seconds. Bounded (least recently used out).
  */
-final class SchemaCache {
+public final class SchemaCache {
 
     private static final Logger logger = LogManager.getLogger(SchemaCache.class);
 
     /** One cache for the process: the tools are stateless, the schemas are not. */
-    static final SchemaCache SHARED = new SchemaCache(8);
+    public static final SchemaCache SHARED = new SchemaCache(8);
 
     /** A parsed schema, or why it did not parse. */
-    record Loaded(XsdSchema schema, String error) {
-        boolean ok() {
+    public record Loaded(XsdSchema schema, String error) {
+        public boolean ok() {
             return schema != null;
         }
     }
@@ -35,7 +35,7 @@ final class SchemaCache {
 
     private final Map<Path, Entry> entries;
 
-    SchemaCache(int capacity) {
+    public SchemaCache(int capacity) {
         this.entries = new LinkedHashMap<>(16, 0.75f, true) {
             @Override
             protected boolean removeEldestEntry(Map.Entry<Path, Entry> eldest) {
@@ -45,7 +45,7 @@ final class SchemaCache {
     }
 
     /** The schema at {@code file} (a real path inside the roots), parsed or from the cache. */
-    synchronized Loaded load(Path file) {
+    public synchronized Loaded load(Path file) {
         Entry entry = entries.get(file);
         if (entry != null && unchanged(entry.stamps())) {
             return new Loaded(entry.schema(), null);

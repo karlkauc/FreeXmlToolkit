@@ -190,6 +190,13 @@ are not bundled but downloaded from their publishers when first used.
 | **MCP Java SDK** (io.modelcontextprotocol.sdk:mcp-core, mcp-json-jackson3), for `fxt-cli mcp` | 2.1.0 | [MIT License](https://github.com/modelcontextprotocol/java-sdk/blob/main/LICENSE) |
 | **Reactor Core** (io.projectreactor:reactor-core), via the MCP Java SDK | 3.7.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Reactive Streams** (org.reactivestreams:reactive-streams), via Reactor Core | 1.0.4 | [MIT No Attribution](https://github.com/reactive-streams/reactive-streams-jvm/blob/main/LICENSE) |
+| **Anthropic Java SDK** (com.anthropic:anthropic-java-core), for the AI assistant's Anthropic provider | 3.8.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Kotlin standard library and reflection** (org.jetbrains.kotlin:kotlin-stdlib, kotlin-reflect), via the Anthropic SDK | 1.9.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Jackson 2** (com.fasterxml.jackson: core, databind, annotations, datatype-jdk8, datatype-jsr310, module-kotlin), via the Anthropic SDK | 2.19+ | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **OpenTelemetry API** (io.opentelemetry:opentelemetry-api), via the Anthropic SDK (switched off) | 1.62.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **victools JSON Schema Generator** (com.github.victools:jsonschema-generator and modules), via the Anthropic SDK | 4.38.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Standard Webhooks** (com.standardwebhooks:standardwebhooks), via the Anthropic SDK | 1.2.0 | [MIT License](https://github.com/standard-webhooks/standard-webhooks/blob/main/LICENSE) |
+| **Error Prone annotations, Swagger annotations**, via the Anthropic SDK | 2.50.0, 2.2.50 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
 ## Templating and Markdown
 

@@ -21,6 +21,14 @@ public final class AiPolicy {
         return allowed() && AdminPolicy.current().aiMcpAllowed();
     }
 
+    /**
+     * {@code ai.remote.allowed}: {@code false} allows only providers on this machine or a host listed in
+     * {@code ai.localHosts}; {@code ai.allowed=false} implies it.
+     */
+    public static boolean remoteAllowed() {
+        return allowed() && AdminPolicy.current().aiRemoteAllowed();
+    }
+
     /** The policy key that refuses the MCP server, for the message; {@code null} when it is allowed. */
     public static String mcpRefusedBy() {
         if (!allowed()) {

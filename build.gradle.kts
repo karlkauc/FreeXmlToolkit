@@ -195,6 +195,11 @@ dependencies {
     implementation("io.modelcontextprotocol.sdk:mcp-core:2.1.0")
     implementation("io.modelcontextprotocol.sdk:mcp-json-jackson3:2.1.0")
 
+    // Anthropic provider of the AI assistant (decision D13): the official SDK, used only in
+    // org.fxt.freexmltoolkit.service.ai.provider.anthropic (AiLayeringGuardTest), on a transport over
+    // ConnectionService (no OkHttp: anthropic-java-core, not anthropic-java).
+    implementation("com.anthropic:anthropic-java-core:3.8.0")
+
     // Note: Guice 7.0.0 doesn't support Java 25 (class file version 69)
     // Using manual DI pattern instead - see org.fxt.freexmltoolkit.di package
 
@@ -508,6 +513,22 @@ tasks.test {
 // Unlike `test`, it deliberately omits the Monocle/headless system properties so that JavaFX
 // popups render as real windows and java.awt.Robot can capture them.
 //   xvfb-run -a -s "-screen 0 1680x1050x24" ./gradlew docScreenshots
+// AI evaluation set against a real model (not part of `test`):
+//   ./gradlew aiEval -Pai.baseUrl=http://localhost:11434/v1 -Pai.model=qwen2.5-coder:7b
+//   FXT_AI_KEY=… ./gradlew aiEval -Pai.kind=anthropic -Pai.baseUrl=https://api.anthropic.com -Pai.model=…
+// Writes build/ai-eval.md. -Pai.cases=q01,t02 runs a subset.
+tasks.register<JavaExec>("aiEval") {
+    group = "verification"
+    description = "Runs the AI evaluation set against the model given by -Pai.baseUrl / -Pai.model"
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("org.fxt.freexmltoolkit.service.ai.eval.AiEvalRunner")
+    jvmArgs("--enable-preview", "-Djava.awt.headless=true", "-Dfxt.schema.localCopies=false")
+    listOf("ai.baseUrl", "ai.model", "ai.kind", "ai.cases").forEach { name ->
+        project.findProperty(name)?.let { systemProperty(name, it.toString()) }
+    }
+}
+
 tasks.register<Test>("docScreenshots") {
     group = "documentation"
     description = "Generate missing documentation screenshots into docs/img (run under xvfb-run)."

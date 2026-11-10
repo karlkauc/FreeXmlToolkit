@@ -78,6 +78,22 @@ class PropertiesServicePasswordEncryptionTest {
     }
 
     @Test
+    @DisplayName("AI provider keys are encrypted like passwords")
+    void aiProviderKeysAreEncrypted() throws Exception {
+        Properties props = new Properties();
+        props.setProperty("ai.provider.p1.apiKey", "sk-secret-123");
+        props.setProperty("ai.providers", "[{\"id\":\"p1\"}]");
+        savePropertiesWithEncryption(props);
+        Properties rawProps = new Properties();
+        try (FileInputStream fis = new FileInputStream(testPropertiesFile)) {
+            rawProps.load(fis);
+        }
+        assertTrue(encryptionService.isEncrypted(rawProps.getProperty("ai.provider.p1.apiKey")));
+        assertEquals("[{\"id\":\"p1\"}]", rawProps.getProperty("ai.providers"));
+        assertEquals("sk-secret-123", loadPropertiesWithDecryption().getProperty("ai.provider.p1.apiKey"));
+    }
+
+    @Test
     @DisplayName("Passwords are decrypted when loaded from file")
     void testPasswordsDecryptedOnLoad() throws Exception {
         // Create properties with plain text password and save

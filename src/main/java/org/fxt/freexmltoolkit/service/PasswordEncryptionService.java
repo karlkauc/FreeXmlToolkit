@@ -76,12 +76,8 @@ public interface PasswordEncryptionService {
     boolean isEncrypted(String value);
 
     /**
-     * Checks if a property key represents a password field.
-     *
-     * <p>Returns true if the key contains "password" (case-insensitive).
-     *
-     * @param key the property key to check
-     * @return true if key is a password property, false otherwise
+     * Whether a property holds a secret that is stored encrypted: its key contains "password", or ends with
+     * ".apiKey" (AI provider keys, {@code ai.provider.<id>.apiKey}) — both case-insensitive.
      */
     boolean isPasswordProperty(String key);
 }

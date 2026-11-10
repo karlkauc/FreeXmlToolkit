@@ -75,6 +75,11 @@ class PasswordEncryptionServiceTest {
         assertFalse(service.isPasswordProperty("http.proxy.user"), "Should not detect user property");
         assertFalse(service.isPasswordProperty("http.proxy.host"), "Should not detect host property");
         assertFalse(service.isPasswordProperty("username"), "Should not detect username without password");
+
+        assertTrue(service.isPasswordProperty("ai.provider.1234.apiKey"), "AI provider keys are secrets");
+        assertTrue(service.isPasswordProperty("ai.provider.x.APIKEY"), "Case-insensitive suffix");
+        assertFalse(service.isPasswordProperty("ai.provider.apiKeyEnv"), "Only the suffix counts");
+        assertFalse(service.isPasswordProperty("ai.providers"), "The provider list is no secret");
     }
 
     @Test

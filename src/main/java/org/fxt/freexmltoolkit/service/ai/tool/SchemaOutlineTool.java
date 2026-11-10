@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.service.ai.tool;
 
+import org.fxt.freexmltoolkit.service.ai.context.SchemaCache;
+
 import java.util.Optional;
 import java.util.Set;
 

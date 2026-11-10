@@ -61,6 +61,8 @@ public final class AdminPolicy {
     public static final String KEY_AI_ALLOWED = "ai.allowed";
     /** Policy only: {@code false} refuses {@code fxt-cli mcp}. */
     public static final String KEY_AI_MCP_ALLOWED = "ai.mcp.allowed";
+    /** Policy only: {@code false} allows only AI providers on this machine or a host in {@code ai.localHosts}. */
+    public static final String KEY_AI_REMOTE_ALLOWED = "ai.remote.allowed";
     /** Settings key of the automatic update check (see {@link PropertiesService#isUpdateCheckEnabled()}). */
     static final String KEY_UPDATE_CHECK = "update.check.enabled";
     /** Prefix of keys that are Java system properties rather than settings. */
@@ -264,6 +266,11 @@ public final class AdminPolicy {
     /** @return {@code false} when the administrator disabled the MCP server ({@value #KEY_AI_MCP_ALLOWED}=false) */
     public boolean aiMcpAllowed() {
         return !"false".equalsIgnoreCase(locked.getProperty(KEY_AI_MCP_ALLOWED, "true"));
+    }
+
+    /** @return {@code false} when the administrator allowed only local AI providers ({@value #KEY_AI_REMOTE_ALLOWED}=false) */
+    public boolean aiRemoteAllowed() {
+        return !"false".equalsIgnoreCase(locked.getProperty(KEY_AI_REMOTE_ALLOWED, "true"));
     }
 
     /** @return {@code false} when the administrator disabled XML encryption */

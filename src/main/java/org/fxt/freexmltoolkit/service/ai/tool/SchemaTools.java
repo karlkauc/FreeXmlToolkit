@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.service.ai.tool;
 
+import org.fxt.freexmltoolkit.service.ai.context.SchemaCache;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 

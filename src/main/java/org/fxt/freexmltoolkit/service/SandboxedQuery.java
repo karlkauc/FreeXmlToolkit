@@ -83,6 +83,17 @@ public final class SandboxedQuery {
     public static Outcome run(Language language, String xml, String xmlBaseUri, String query, String queryBaseUri,
                               Map<String, String> variables, Map<String, String> namespaces, Duration timeout,
                               List<Path> readableRoots) {
+        return run(language, xml, xmlBaseUri, query, queryBaseUri, variables, namespaces, timeout, readableRoots, true);
+    }
+
+    /**
+     * As {@link #run(Language, String, String, String, String, Map, Map, Duration, List)}; with
+     * {@code declareDocumentPrefixes == false} an XPath expression sees only the given namespaces — as in the Query
+     * Console, which declares none, so an expression verified here runs the same there.
+     */
+    public static Outcome run(Language language, String xml, String xmlBaseUri, String query, String queryBaseUri,
+                              Map<String, String> variables, Map<String, String> namespaces, Duration timeout,
+                              List<Path> readableRoots, boolean declareDocumentPrefixes) {
         long deadline = System.nanoTime() + timeout.toNanos();
         try {
             List<Path> roots = XsltSandbox.realRoots(readableRoots);
@@ -99,7 +110,7 @@ public final class SandboxedQuery {
                 }
             }
             return language == Language.XPATH
-                    ? xpath(processor, document, query, namespaces)
+                    ? xpath(processor, document, query, namespaces, declareDocumentPrefixes)
                     : xquery(processor, document, query, queryBaseUri, variables, deadline);
         } catch (IOException e) {
             return Outcome.failure(null, null, -1, "A readable folder does not exist: " + e.getMessage());
@@ -121,13 +132,13 @@ public final class SandboxedQuery {
     }
 
     private static Outcome xpath(Processor processor, XdmNode document, String expression,
-                                 Map<String, String> namespaces) {
+                                 Map<String, String> namespaces, boolean declareDocumentPrefixes) {
         XPathCompiler compiler = processor.newXPathCompiler();
         compiler.setLanguageVersion("3.1");
         compiler.declareNamespace("map", "http://www.w3.org/2005/xpath-functions/map");
         compiler.declareNamespace("array", "http://www.w3.org/2005/xpath-functions/array");
         compiler.declareNamespace("math", "http://www.w3.org/2005/xpath-functions/math");
-        if (document != null) {
+        if (document != null && declareDocumentPrefixes) {
             documentNamespaces(document).forEach(compiler::declareNamespace);
         }
         if (namespaces != null) {

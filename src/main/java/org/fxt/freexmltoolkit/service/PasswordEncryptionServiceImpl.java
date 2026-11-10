@@ -215,7 +215,12 @@ public class PasswordEncryptionServiceImpl implements PasswordEncryptionService 
      */
     @Override
     public boolean isPasswordProperty(String key) {
-        return key != null && key.toLowerCase().contains("password");
+        if (key == null) {
+            return false;
+        }
+        String lower = key.toLowerCase(java.util.Locale.ROOT);
+        // AI provider keys (ai.provider.<id>.apiKey) are secrets like the proxy password
+        return lower.contains("password") || lower.endsWith(".apikey");
     }
 
     /**
