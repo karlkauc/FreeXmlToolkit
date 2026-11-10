@@ -19,6 +19,7 @@ import javafx.stage.Window;
 
 import org.fxt.freexmltoolkit.controls.theme.AccentPalette;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
+import org.fxt.freexmltoolkit.controls.theme.Typography;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 
@@ -62,7 +63,13 @@ public final class ThemeManager {
     /** Settings key of the accent colour. */
     public static final String ACCENT_KEY = "ui.accent";
     private static final String THEME_KEY = "ui.theme";
-    private static final String APPEARANCE_SHEET_PREFIX = "data:text/css;charset=utf-8;base64,";
+    private static final String DATA_CSS_PREFIX = "data:text/css;charset=utf-8;base64,";
+    /** First line of the accent sheet; 33 bytes (a multiple of 3), so its base64 is a fixed prefix. */
+    private static final String APPEARANCE_HEADER = "/* FreeXmlToolkit appearance  */\n";
+    /** First line of the typography sheet; 33 bytes, see {@link #APPEARANCE_HEADER}. */
+    private static final String TYPOGRAPHY_HEADER = "/* FreeXmlToolkit typography  */\n";
+    private static final String APPEARANCE_SHEET_PREFIX = DATA_CSS_PREFIX + base64(APPEARANCE_HEADER);
+    private static final String TYPOGRAPHY_SHEET_PREFIX = DATA_CSS_PREFIX + base64(TYPOGRAPHY_HEADER);
 
     /** The scene the theme was last applied to with {@link #apply} (the main window), for system-theme changes. */
     private static WeakReference<Scene> mainScene = new WeakReference<>(null);
@@ -70,6 +77,9 @@ public final class ThemeManager {
     /** The appearance stylesheet for the current accent, or null for the design's own colours. */
     private static volatile String appearanceSheet;
     private static volatile boolean accentLoaded;
+    /** The typography stylesheet for the UI size and font, or null for the design's own. */
+    private static volatile String typographySheet;
+    private static volatile boolean typographyLoaded;
 
     private ThemeManager() {
     }
@@ -318,13 +328,83 @@ public final class ThemeManager {
         Map<String, Color> light = AccentPalette.light(accent);
         Map<String, Color> dark = AccentPalette.dark(accent);
         DesignTokens.setOverrides(light, dark);
-        StringBuilder css = new StringBuilder("/* FreeXmlToolkit appearance: accent ").append(value).append(" */\n.root {\n");
+        StringBuilder css = new StringBuilder(APPEARANCE_HEADER).append("/* accent ").append(value).append(" */\n.root {\n");
         light.forEach((name, color) -> css.append("    ").append(name).append(": ").append(AccentPalette.hex(color)).append(";\n"));
         css.append("}\n.root.fxt-theme-dark {\n");
         dark.forEach((name, color) -> css.append("    ").append(name).append(": ").append(AccentPalette.hex(color)).append(";\n"));
         css.append("}\n");
-        appearanceSheet = APPEARANCE_SHEET_PREFIX
-                + Base64.getEncoder().encodeToString(css.toString().getBytes(StandardCharsets.UTF_8));
+        appearanceSheet = DATA_CSS_PREFIX + base64(css.toString());
+    }
+
+    private static String base64(String text) {
+        return Base64.getEncoder().encodeToString(text.getBytes(StandardCharsets.UTF_8));
+    }
+
+    // ------------------------------------------------------------------ UI text size and font
+
+    /** @return the stored UI text size */
+    public static Typography.Size currentFontSize() {
+        try {
+            return Typography.Size.fromProperty(ServiceRegistry.get(PropertiesService.class).get(Typography.SIZE_KEY));
+        } catch (Throwable t) {
+            return Typography.Size.NORMAL;
+        }
+    }
+
+    /** @return the stored UI font family ({@link Typography#DEFAULT_FAMILY} when unset) */
+    public static String currentUiFont() {
+        try {
+            String value = ServiceRegistry.get(PropertiesService.class).get(Typography.FAMILY_KEY);
+            return value == null || value.isBlank() ? Typography.DEFAULT_FAMILY : value.trim();
+        } catch (Throwable t) {
+            return Typography.DEFAULT_FAMILY;
+        }
+    }
+
+    /**
+     * Sets the UI text size and font, persists them and applies them to every open window.
+     * Must be called on the JavaFX Application Thread.
+     *
+     * @param size the text size; null = normal
+     * @param family the UI font; null/blank = the design's Inter
+     */
+    public static void setTypography(Typography.Size size, String family) {
+        Typography.Size s = size == null ? Typography.Size.NORMAL : size;
+        String f = family == null || family.isBlank() ? Typography.DEFAULT_FAMILY : family.trim();
+        try {
+            PropertiesService props = ServiceRegistry.get(PropertiesService.class);
+            props.set(Typography.SIZE_KEY, s.id());
+            props.set(Typography.FAMILY_KEY, f.equals(Typography.DEFAULT_FAMILY) ? "" : f);
+        } catch (Throwable ignored) {
+            // not persisted (tests); still applied
+        }
+        loadTypography(s, f);
+        for (Window window : List.copyOf(Window.getWindows())) {
+            if (window.getScene() != null) {
+                syncAppearanceSheet(window.getScene());
+            }
+        }
+        syncAppearanceSheet(mainScene.get());
+    }
+
+    private static void loadTypography(Typography.Size size, String family) {
+        typographyLoaded = true;
+        double base;
+        try {
+            base = javafx.scene.text.Font.getDefault().getSize();
+        } catch (Throwable t) {
+            base = 13;
+        }
+        String css = Typography.css(size, family, base);
+        typographySheet = css == null ? null : DATA_CSS_PREFIX + base64(TYPOGRAPHY_HEADER + css);
+    }
+
+    /** @return the typography stylesheet URL for the UI size and font, or null for the design's */
+    public static String typographySheet() {
+        if (!typographyLoaded) {
+            loadTypography(currentFontSize(), currentUiFont());
+        }
+        return typographySheet;
     }
 
     /** @return the appearance stylesheet URL for the current accent, or null for the design's colours */
@@ -334,56 +414,78 @@ public final class ThemeManager {
     }
 
     /**
-     * Puts the current appearance stylesheet right after {@code design-tokens.css} in every
-     * stylesheet list of the scene (scene and parents) that declares it, removing a stale one.
+     * Puts the current appearance stylesheet right after {@code design-tokens.css} and the
+     * typography stylesheet right after {@code unified-shell.css} in every stylesheet list of the
+     * scene (scene and parents) that declares them, removing stale ones.
      */
     public static void syncAppearanceSheet(Scene scene) {
         if (scene == null) {
             return;
         }
         String sheet = appearanceSheet();
-        syncSheetList(scene.getStylesheets(), sheet);
+        String typography = typographySheet();
+        syncSheetList(scene.getStylesheets(), sheet, typography);
         if (scene.getRoot() != null) {
-            syncParents(scene.getRoot(), sheet);
+            syncParents(scene.getRoot(), sheet, typography);
         }
     }
 
     /** Same as {@link #syncAppearanceSheet(Scene)} for a node tree not (yet) in a scene, e.g. a popup's content. */
     public static void syncAppearanceSheet(Parent root) {
         if (root != null) {
-            syncParents(root, appearanceSheet());
+            syncParents(root, appearanceSheet(), typographySheet());
         }
     }
 
-    private static void syncParents(Parent parent, String sheet) {
-        syncSheetList(parent.getStylesheets(), sheet);
+    private static void syncParents(Parent parent, String sheet, String typography) {
+        syncSheetList(parent.getStylesheets(), sheet, typography);
         for (Node child : parent.getChildrenUnmodifiable()) {
             if (child instanceof Parent childParent) {
-                syncParents(childParent, sheet);
+                syncParents(childParent, sheet, typography);
             }
         }
     }
 
-    private static void syncSheetList(ObservableList<String> sheets, String sheet) {
+    /**
+     * Adds the generated sheets to a list holding the shell sheets.
+     *
+     * @param sheets a stylesheet list (left alone unless it declares the shell sheets)
+     * @return the list with the generated sheets in place
+     */
+    public static List<String> withGeneratedSheets(List<String> sheets) {
+        return arranged(sheets, appearanceSheet(), typographySheet());
+    }
+
+    private static void syncSheetList(ObservableList<String> sheets, String sheet, String typography) {
         if (sheets.isEmpty()) {
             return;
         }
-        int tokens = -1;
+        List<String> wanted = arranged(sheets, sheet, typography);
+        if (!wanted.equals(sheets)) {
+            sheets.setAll(wanted);
+        }
+    }
+
+    private static List<String> arranged(List<String> sheets, String sheet, String typography) {
+        List<String> wanted = new java.util.ArrayList<>(sheets);
+        wanted.removeIf(s -> s.startsWith(APPEARANCE_SHEET_PREFIX) || s.startsWith(TYPOGRAPHY_SHEET_PREFIX));
+        int tokens = indexOfSheet(wanted, "design-tokens.css");
+        if (sheet != null && tokens >= 0) {
+            wanted.add(tokens + 1, sheet);
+        }
+        int shell = indexOfSheet(wanted, "unified-shell.css");
+        if (typography != null && shell >= 0) {
+            wanted.add(shell + 1, typography);
+        }
+        return wanted;
+    }
+
+    private static int indexOfSheet(List<String> sheets, String name) {
         for (int i = 0; i < sheets.size(); i++) {
-            if (sheets.get(i).endsWith("design-tokens.css")) {
-                tokens = i;
-                break;
+            if (sheets.get(i).endsWith(name)) {
+                return i;
             }
         }
-        boolean hasStale = sheets.stream().anyMatch(s -> s.startsWith(APPEARANCE_SHEET_PREFIX) && !s.equals(sheet));
-        boolean present = sheet != null && sheets.contains(sheet);
-        if (!hasStale && (present || sheet == null || tokens < 0)) {
-            return;
-        }
-        sheets.removeIf(s -> s.startsWith(APPEARANCE_SHEET_PREFIX));
-        if (sheet != null && tokens >= 0) {
-            int index = Math.min(sheets.size(), tokens + 1);
-            sheets.add(index, sheet);
-        }
+        return -1;
     }
 }

@@ -40,6 +40,7 @@ class SettingsPanelAppearanceTest {
             ThemeManager.setAccent(null);
             ThemeManager.apply(settings.getScene(), false);
             EditorFont.update(EditorFont.Settings.defaults());
+            ThemeManager.setTypography(null, null);
         });
     }
 
@@ -110,5 +111,27 @@ class SettingsPanelAppearanceTest {
         WaitForAsyncUtils.waitForAsyncFx(2000, settings::onEditorFontReset);
         assertEquals(EditorFont.Settings.defaults(), EditorFont.current());
         assertEquals(EditorFont.DEFAULT_SIZE, size.getValue());
+    }
+
+    @Test
+    void aLargerTextSizeAddsTheTypographySheetAfterTheShellSheet() {
+        javafx.scene.Parent root = new HBox();
+        root.getStylesheets().setAll("x/design-tokens.css", "x/unified-shell.css");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            ((ToggleButton) settings.lookup("#settings-ui-font-xlarge")).fire();
+            ThemeManager.syncAppearanceSheet(root);
+        });
+        assertEquals(org.fxt.freexmltoolkit.controls.theme.Typography.Size.XLARGE, ThemeManager.currentFontSize());
+        assertNotNull(ThemeManager.typographySheet());
+        assertEquals(ThemeManager.typographySheet(), root.getStylesheets().get(2), "right after unified-shell.css");
+        assertTrue(!settings.isDirty(), "the text size applies at once");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            settings.onUiFontReset();
+            ThemeManager.syncAppearanceSheet(root);
+        });
+        assertEquals(null, ThemeManager.typographySheet(), "Normal + Inter needs no sheet");
+        assertEquals(2, root.getStylesheets().size(), "the stale sheet is removed");
+        assertTrue(((ToggleButton) settings.lookup("#settings-ui-font-normal")).isSelected());
     }
 }

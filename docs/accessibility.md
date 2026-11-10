@@ -13,6 +13,7 @@ standard that EN 301 549 applies to the user interface of desktop software.
 | Keyboard | Every function of the shell can be reached from the keyboard, except four options of the grid view header |
 | Visual views | The graphic XSD view and the grid view are drawn on a canvas and are not readable by screen readers; the Text and Tree views show the same content |
 | Screen reader support of the platform | Windows (Narrator, NVDA, JAWS) and macOS (VoiceOver) through JavaFX; Linux: none (JavaFX has no screen reader bridge on Linux) |
+| Text size | Interface text in four sizes up to 16 px, code editors 8–32 pt and Ctrl+mouse wheel zoom ([Settings → Text size and font](settings.md#text-size-and-font), [Editor font](settings.md#editor-font)) |
 | Interface language | English and German ([Settings → Language](settings.md)) |
 
 The automated checks run with the test suite, so the results stay true for later changes.

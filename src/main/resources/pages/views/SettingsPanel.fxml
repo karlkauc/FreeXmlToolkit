@@ -39,6 +39,7 @@
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <fx:define>
         <ToggleGroup fx:id="themeGroup"/>
+        <ToggleGroup fx:id="uiFontSizeGroup"/>
         <ToggleGroup fx:id="toolbarIconSizeGroup"/>
     </fx:define>
     <children>
@@ -103,6 +104,36 @@
                                                     </children>
                                                 </HBox>
                                                 <Label text="%SettingsPanel.accent-hint.text" wrapText="true"
+                                                       minHeight="-Infinity" styleClass="fxt-placeholder-text"/>
+                                            </children>
+                                        </SettingsCard>
+                                        <SettingsCard title="%SettingsPanel.ui-font.title" iconLiteral="bi-type">
+                                            <children>
+                                                <HBox spacing="6">
+                                                    <children>
+                                                        <ToggleButton fx:id="uiFontSmall" id="settings-ui-font-small" text="%Appearance.fontSize.small"
+                                                                      toggleGroup="$uiFontSizeGroup" styleClass="fxt-view-seg" onAction="#onUiFontSize"/>
+                                                        <ToggleButton fx:id="uiFontNormal" id="settings-ui-font-normal" text="%Appearance.fontSize.normal"
+                                                                      toggleGroup="$uiFontSizeGroup" styleClass="fxt-view-seg" onAction="#onUiFontSize"/>
+                                                        <ToggleButton fx:id="uiFontLarge" id="settings-ui-font-large" text="%Appearance.fontSize.large"
+                                                                      toggleGroup="$uiFontSizeGroup" styleClass="fxt-view-seg" onAction="#onUiFontSize"/>
+                                                        <ToggleButton fx:id="uiFontXLarge" id="settings-ui-font-xlarge" text="%Appearance.fontSize.xlarge"
+                                                                      toggleGroup="$uiFontSizeGroup" styleClass="fxt-view-seg" onAction="#onUiFontSize"/>
+                                                    </children>
+                                                </HBox>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="%SettingsPanel.ui-font-family.text"/>
+                                                        <ComboBox fx:id="uiFontFamily" id="settings-ui-font-family" editable="true" prefWidth="200"/>
+                                                        <Button text="%SettingsPanel.ui-font-reset.text" id="settings-ui-font-reset"
+                                                                onAction="#onUiFontReset" styleClass="fxt-tool-button">
+                                                            <graphic>
+                                                                <IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="16"/>
+                                                            </graphic>
+                                                        </Button>
+                                                    </children>
+                                                </HBox>
+                                                <Label text="%SettingsPanel.ui-font-hint.text" wrapText="true"
                                                        minHeight="-Infinity" styleClass="fxt-placeholder-text"/>
                                             </children>
                                         </SettingsCard>

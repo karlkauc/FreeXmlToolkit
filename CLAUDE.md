@@ -109,6 +109,13 @@ Editor font: `controls/shared/EditorFont` (`editor.font.family` / `.size` (pt) /
 `-fx-font-family` (a comma list breaks the whole inline style) — `Settings.cssFamily()` resolves the first
 installed fallback. Line spacing = a per-area `data:` sheet padding `.paragraph-box` (`applyLineSpacing`).
 Ctrl+wheel with "remember" → `EditorFont.zoomTo` (all editors, saved after 600 ms); without → per editor.
+UI text size / font: `controls/theme/Typography` (`ui.font.size` small|normal|large|xlarge, `ui.font.family`).
+JavaFX has no `rem` and `em` font sizes compound with the parent, so px are NOT converted: `Typography.css`
+re-states every `-fx-font-size` / `-fx-tab-min|max-height` rule of app-theme, fxt-theme, light-theme and
+unified-shell.css with the same selector, scaled (and Inter rules with the chosen family), as a `data:` sheet
+right after `unified-shell.css` (`ThemeManager.typographySheet`, placed by the same `syncAppearanceSheet`;
+the two generated sheets are told apart by a fixed 33-byte header → fixed base64 prefix). Normal + Inter =
+no sheet. `.fxt-activity-*` (fixed 56 px rail) is not scaled; inline `setStyle` sizes are not scaled.
 
 ## View Export (PNG / SVG / PDF / clipboard)
 

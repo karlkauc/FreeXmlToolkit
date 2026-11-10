@@ -71,12 +71,7 @@ public class DialogHelper {
         if (theme != null) {
             sheets.add(Math.max(0, sheets.size() - 1), theme.toExternalForm());
         }
-        String appearance = ThemeManager.appearanceSheet();
-        int tokens = sheets.indexOf(sheets.stream().filter(s -> s.endsWith("design-tokens.css")).findFirst().orElse(""));
-        if (appearance != null && tokens >= 0) {
-            sheets.add(tokens + 1, appearance);
-        }
-        return sheets;
+        return ThemeManager.withGeneratedSheets(sheets);
     }
 
     // ============================================

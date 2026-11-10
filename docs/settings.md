@@ -35,7 +35,7 @@ settings may be greyed out and a notice at the top of the page says so; see
 
 | Group | Cards and options |
 |-------|-------------------|
-| **Appearance** | **Theme** - **Light**, **Dark** or **System** (follows the light or dark setting of the operating system, also while the application runs). **Accent colour** - the colour of buttons, selection, focus and links: eight presets or **Own colour**; see [Accent colour](#accent-colour) below. **Language** - the language of the interface: **System default**, **English** or **Deutsch** (takes effect after a restart; the system default is used when it is English or German, otherwise English). **Layout** - **Show toolbar button labels**; **Show activity bar labels**; **Use small icons**; toolbar icon size (**Small** / **Large**); **Show left side panel**; **Show Properties (inspector) panel**. **Rendering** - JavaFX graphics pipeline: **Auto** / **Hardware** / **Software** (takes effect after restart), with the active pipeline and GPU status; see [Rendering mode (hardware vs. software)](#rendering-mode) below. **Memory** - **Maximum memory** for the application: **Automatic** (half of the installed memory) or a fixed limit (takes effect after restart); see [Memory and large files](#memory) below. |
+| **Appearance** | **Theme** - **Light**, **Dark** or **System** (follows the light or dark setting of the operating system, also while the application runs). **Accent colour** - the colour of buttons, selection, focus and links: eight presets or **Own colour**; see [Accent colour](#accent-colour) below. **Text size & font** - **Small**, **Normal**, **Large** or **Extra Large** text and the font of the interface; see [Text size and font](#text-size-and-font) below. **Language** - the language of the interface: **System default**, **English** or **Deutsch** (takes effect after a restart; the system default is used when it is English or German, otherwise English). **Layout** - **Show toolbar button labels**; **Show activity bar labels**; **Use small icons**; toolbar icon size (**Small** / **Large**); **Show left side panel**; **Show Properties (inspector) panel**. **Rendering** - JavaFX graphics pipeline: **Auto** / **Hardware** / **Software** (takes effect after restart), with the active pipeline and GPU status; see [Rendering mode (hardware vs. software)](#rendering-mode) below. **Memory** - **Maximum memory** for the application: **Automatic** (half of the installed memory) or a fixed limit (takes effect after restart); see [Memory and large files](#memory) below. |
 | **Editor** | **Editor font** - font, size and line spacing of every code editor, see [Editor font](#editor-font). **Editor** - XML indent and JSON indent (spaces); **Auto-format after loading**; **Pretty-print XSD on save**; **Pretty-print Schematron on load**; **Recent files to remember** (1–100, default 20) - every file opened in the editor, opened in the background or saved with **Save As** goes into File → Recent, the Explorer's **RECENT** list and the Welcome page. **Templates** - a configurable **templates directory**, plus a **New / Edit / Delete** list of your own templates; see [Managing your templates](#managing-your-templates) below. **User Info** - **Name**, **Email** and **Company**, used for example when generating documentation or signing. |
 | **Schemas & Validation** | **XSD** - **Auto-save** (with an interval in minutes); **Create backups on save** (with the number of versions to keep, and an optional **separate backup directory**). **Schema Library** - **Use the Schema Library to bind schemas automatically**; shows the library file's location and a **Manage schema cache…** link; see [Schema Library](schema-library.md). **Parser** - **XML parser** engine (Xerces or Saxon); **Allow XSLT extension functions**. |
 | **Files & Cache** | **Temp & Cache** - **Use system temp folder** or a custom temp folder; **Clear Temp Folder** to free disk space; **Clear Cache Folder** to delete cached files (downloaded schemas etc.); **Manage schema cache…**. **Log Files** - **Delete old log files automatically at startup** (on by default) with **Keep for (days)** (default 14) and **Maximum total size (MB)** (default 100; 0 = no limit); **Clean Up Now** applies the limits at once, **Open log folder** shows the folder, and the card names the folder with its file count and size. The log file in use is never deleted. **File Associations** - make FreeXmlToolkit the **default application** for XML, XSD, XSLT, Schematron and JSON files (per user, no admin rights); see [File Associations](file-associations.md). |
@@ -61,6 +61,32 @@ for example, is darkened for text on white and lightened for text on the dark ba
 *The same accent in the dark theme*
 
 The workflow colours of the activities (Validation green, Transform orange, ...) stay as they are.
+
+## Text size and font {#text-size-and-font}
+
+**Settings → Appearance → Text size & font** makes the text of menus, side panels, tabs, the
+Properties panel, dialogs and the Settings page larger or smaller:
+
+| Size | Body text |
+|---|---|
+| Small | 12 px |
+| Normal | 13 px (the design's size) |
+| Large | 14 px |
+| Extra Large | 16 px |
+
+All sizes of the interface grow or shrink by the same factor, so headings stay larger than body
+text. The activity bar on the left keeps its size, because it has a fixed width. **Font** replaces
+the design's Inter with another installed font (the list is filled when you open it); **Reset**
+returns to Inter at Normal size. The change applies at once to every open window.
+
+The code editors are not affected: they have their own [editor font](#editor-font). A few labels
+in older dialogs have a fixed size and do not scale yet.
+
+![Settings → Appearance with the Text size & font card](img/unified-shell-settings-ui-font.png)
+*The card with Large selected*
+
+![The shell in Extra Large](img/unified-shell-ui-font-xlarge.png)
+*The shell in Extra Large: side panel, tabs and Properties panel grow, the editor keeps its font*
 
 ## Editor font {#editor-font}
 

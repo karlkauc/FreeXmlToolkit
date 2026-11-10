@@ -74,6 +74,13 @@ public class SettingsPanel extends VBox {
     @FXML private ToggleButton systemTheme;
     @FXML private javafx.scene.layout.FlowPane accentSwatches;
     @FXML private javafx.scene.control.ColorPicker accentPicker;
+    @FXML private ToggleButton uiFontSmall;
+    @FXML private ToggleButton uiFontNormal;
+    @FXML private ToggleButton uiFontLarge;
+    @FXML private ToggleButton uiFontXLarge;
+    @FXML private ComboBox<String> uiFontFamily;
+    /** Set while the UI-font controls show the stored value: their changes are no choice. */
+    private boolean showingUiFont;
     @FXML private ComboBox<String> editorFontFamily;
     @FXML private Spinner<Integer> editorFontSize;
     @FXML private Spinner<Double> editorLineSpacing;
@@ -237,6 +244,7 @@ public class SettingsPanel extends VBox {
         }
         buildAccentSwatches();
         initEditorFontControls();
+        initUiFontControls();
 
         parserType.getItems().setAll(XmlParserType.values());
         collectPolicyLocks();
@@ -447,7 +455,8 @@ public class SettingsPanel extends VBox {
         // Theme and accent apply at once and are stored right away: no "unsaved changes"
         java.util.Set<javafx.scene.Node> immediate = new java.util.HashSet<>(
                 java.util.List.of(light, dark, systemTheme, accentSwatches, accentPicker,
-                        editorFontFamily, editorFontSize, editorLineSpacing, editorRememberZoom));
+                        editorFontFamily, editorFontSize, editorLineSpacing, editorRememberZoom,
+                        uiFontSmall, uiFontNormal, uiFontLarge, uiFontXLarge, uiFontFamily));
         immediate.addAll(associationCheckBoxes().keySet());
         javafx.beans.InvalidationListener mark = obs -> {
             if (!loading) {
@@ -634,6 +643,103 @@ public class SettingsPanel extends VBox {
                 swatch.setSelected(swatch.getId().equals("settings-accent-" + accent));
             }
         }
+    }
+
+    // ----- UI text size and font --------------------------------------------------
+
+    /** @return the size buttons by size, in order */
+    private java.util.Map<org.fxt.freexmltoolkit.controls.theme.Typography.Size, ToggleButton> uiFontSizeButtons() {
+        var map = new java.util.EnumMap<org.fxt.freexmltoolkit.controls.theme.Typography.Size, ToggleButton>(
+                org.fxt.freexmltoolkit.controls.theme.Typography.Size.class);
+        map.put(org.fxt.freexmltoolkit.controls.theme.Typography.Size.SMALL, uiFontSmall);
+        map.put(org.fxt.freexmltoolkit.controls.theme.Typography.Size.NORMAL, uiFontNormal);
+        map.put(org.fxt.freexmltoolkit.controls.theme.Typography.Size.LARGE, uiFontLarge);
+        map.put(org.fxt.freexmltoolkit.controls.theme.Typography.Size.XLARGE, uiFontXLarge);
+        return map;
+    }
+
+    /** Fills the text size and font card; every change applies at once. */
+    private void initUiFontControls() {
+        String current = org.fxt.freexmltoolkit.controls.shell.ThemeManager.currentUiFont();
+        uiFontFamily.getItems().setAll(new java.util.LinkedHashSet<>(java.util.List.of(
+                org.fxt.freexmltoolkit.controls.theme.Typography.DEFAULT_FAMILY, systemUiFont(), current)));
+        uiFontFamily.setOnShowing(event -> fillUiFontFamilies());
+        showUiFont();
+        uiFontFamily.valueProperty().addListener((obs, old, value) -> {
+            if (!showingUiFont && value != null && !value.isBlank()) {
+                applyUiFont(selectedUiFontSize(), value);
+            }
+        });
+        // a segmented control always keeps one size selected
+        uiFontSmall.getToggleGroup().selectedToggleProperty().addListener((obs, old, value) -> {
+            if (value == null && old != null) {
+                old.setSelected(true);
+            }
+        });
+    }
+
+    /** @return the platform's default UI font family */
+    private static String systemUiFont() {
+        return javafx.scene.text.Font.getDefault().getFamily();
+    }
+
+    private void fillUiFontFamilies() {
+        if (uiFontFamiliesListed) {
+            return;
+        }
+        uiFontFamiliesListed = true;
+        java.util.LinkedHashSet<String> families = new java.util.LinkedHashSet<>(uiFontFamily.getItems());
+        families.addAll(new java.util.TreeSet<>(javafx.scene.text.Font.getFamilies()));
+        String chosen = uiFontFamily.getValue();
+        showingUiFont = true;
+        try {
+            uiFontFamily.getItems().setAll(families);
+            uiFontFamily.setValue(chosen);
+        } finally {
+            showingUiFont = false;
+        }
+    }
+
+    private boolean uiFontFamiliesListed;
+
+    private void showUiFont() {
+        showingUiFont = true;
+        try {
+            uiFontSizeButtons().get(org.fxt.freexmltoolkit.controls.shell.ThemeManager.currentFontSize()).setSelected(true);
+            uiFontFamily.setValue(org.fxt.freexmltoolkit.controls.shell.ThemeManager.currentUiFont());
+        } finally {
+            showingUiFont = false;
+        }
+    }
+
+    private org.fxt.freexmltoolkit.controls.theme.Typography.Size selectedUiFontSize() {
+        for (var entry : uiFontSizeButtons().entrySet()) {
+            if (entry.getValue().isSelected()) {
+                return entry.getKey();
+            }
+        }
+        return org.fxt.freexmltoolkit.controls.theme.Typography.Size.NORMAL;
+    }
+
+    /** One of the size buttons was pressed. */
+    @FXML
+    public void onUiFontSize() {
+        if (!showingUiFont) {
+            applyUiFont(selectedUiFontSize(), uiFontFamily.getValue());
+        }
+    }
+
+    /** Back to the design's Inter at normal size. */
+    @FXML
+    public void onUiFontReset() {
+        applyUiFont(org.fxt.freexmltoolkit.controls.theme.Typography.Size.NORMAL,
+                org.fxt.freexmltoolkit.controls.theme.Typography.DEFAULT_FAMILY);
+    }
+
+    /** Applies and persists the UI text size and font in every window (for tests/observers). */
+    public void applyUiFont(org.fxt.freexmltoolkit.controls.theme.Typography.Size size, String family) {
+        org.fxt.freexmltoolkit.controls.shell.ThemeManager.setTypography(size, family);
+        showUiFont();
     }
 
     // ----- editor font ------------------------------------------------------------
@@ -961,6 +1067,10 @@ public class SettingsPanel extends VBox {
         keys.put(systemTheme, new String[] {"ui.theme"});
         keys.put(accentSwatches, new String[] {org.fxt.freexmltoolkit.controls.shell.ThemeManager.ACCENT_KEY});
         keys.put(accentPicker, new String[] {org.fxt.freexmltoolkit.controls.shell.ThemeManager.ACCENT_KEY});
+        for (ToggleButton size : uiFontSizeButtons().values()) {
+            keys.put(size, new String[] {org.fxt.freexmltoolkit.controls.theme.Typography.SIZE_KEY});
+        }
+        keys.put(uiFontFamily, new String[] {org.fxt.freexmltoolkit.controls.theme.Typography.FAMILY_KEY});
         keys.put(editorFontFamily, new String[] {org.fxt.freexmltoolkit.controls.shared.EditorFont.FAMILY_KEY});
         keys.put(editorFontSize, new String[] {org.fxt.freexmltoolkit.controls.shared.EditorFont.SIZE_KEY});
         keys.put(editorLineSpacing, new String[] {org.fxt.freexmltoolkit.controls.shared.EditorFont.LINE_SPACING_KEY});

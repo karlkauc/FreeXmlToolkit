@@ -56,6 +56,8 @@ Any key of the user's settings file works. These are the ones most often managed
 | `ui.language` | `system` / `en` / `de` | Language of the interface (Settings → Appearance → Language) |
 | `ui.theme` | `light` / `dark` / `system` | Theme (Settings → Appearance → Theme) |
 | `ui.accent` | `blue` / `indigo` / `violet` / `green` / `teal` / `orange` / `red` / `graphite` or `#rrggbb` | Accent colour (Settings → Appearance → Accent colour), e.g. the company colour |
+| `ui.font.size` | `small` / `normal` / `large` / `xlarge` | Text size of the interface (Settings → Appearance → Text size & font) |
+| `ui.font.family` | font family name (empty = Inter) | Font of the interface |
 | `editor.font.family` | font family name (empty = JetBrains Mono) | Editor font (Settings → Editor → Editor font) |
 | `editor.font.size` | `8`–`32` (points) | Editor font size |
 | `editor.lineSpacing` | `1.0`–`2.0` | Editor line spacing |

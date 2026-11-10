@@ -99,9 +99,30 @@ class AppearanceDocScreenshotGenerator {
                     () -> host.getActiveText().map(t -> t.contains("<order")).orElse(false));
             settle(1200);
             shot("unified-shell-editor-font-spacing");
+            onFx(() -> panel.applyEditorFont(org.fxt.freexmltoolkit.controls.shared.EditorFont.Settings.defaults()));
+
+            // UI text size: the Settings card, then the shell in Extra Large
+            onFx(() -> {
+                panel.applyUiFont(org.fxt.freexmltoolkit.controls.theme.Typography.Size.LARGE, null);
+                shell.getSelectionModel().select(Activity.EXPLORER);
+                shell.getSelectionModel().select(Activity.SETTINGS);
+                panel.showSection("appearance");
+            });
+            settle(1000);
+            shot("unified-shell-settings-ui-font");
+            onFx(() -> {
+                panel.applyUiFont(org.fxt.freexmltoolkit.controls.theme.Typography.Size.XLARGE, null);
+                shell.getSelectionModel().select(Activity.EXPLORER);
+                host.openFile(xml.toAbsolutePath());
+            });
+            settle(1200);
+            shot("unified-shell-ui-font-xlarge");
         } finally {
-            onFx(() -> org.fxt.freexmltoolkit.controls.shared.EditorFont.update(
-                    org.fxt.freexmltoolkit.controls.shared.EditorFont.Settings.defaults()));
+            onFx(() -> {
+                org.fxt.freexmltoolkit.controls.shared.EditorFont.update(
+                        org.fxt.freexmltoolkit.controls.shared.EditorFont.Settings.defaults());
+                ThemeManager.setTypography(null, null);
+            });
             onFx(() -> {
                 SettingsPanel panel = findSettings(root);
                 if (panel != null) {
