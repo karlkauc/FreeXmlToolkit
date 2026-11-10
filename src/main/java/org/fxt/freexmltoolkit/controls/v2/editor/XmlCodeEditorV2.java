@@ -231,6 +231,9 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
      * re-styles the previous and new paragraphs.
      */
     private void updateCurrentLineStyle(int newIndex) {
+        if (linkedFirstIndex >= 0 && (newIndex < linkedFirstIndex || newIndex > linkedLastIndex)) {
+            clearLinkedNodeRange(); // the caret left the node another view handed over
+        }
         int oldIndex = currentLineIndex;
         currentLineIndex = newIndex;
         if (oldIndex != newIndex) {
@@ -297,6 +300,48 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
         setDebugCurrentLine(-1);
     }
 
+    /** First and last paragraph (0-based) of the node handed over by a view switch, or -1. */
+    private int linkedFirstIndex = -1;
+    private int linkedLastIndex = -1;
+
+    /**
+     * Tints the lines of the node that was active in the Tree or Graphic view before switching to
+     * the Text view (paragraph style {@code linked-node-line}). It stays until the text changes or
+     * the caret leaves these lines.
+     *
+     * @param firstLine1 the node's first line (1-based)
+     * @param lastLine1  the node's last line (1-based); {@code <= 0} clears the tint
+     */
+    public void setLinkedNodeRange(int firstLine1, int lastLine1) {
+        int oldFirst = linkedFirstIndex;
+        int oldLast = linkedLastIndex;
+        if (firstLine1 > 0 && lastLine1 > 0) {
+            linkedFirstIndex = firstLine1 - 1;
+            linkedLastIndex = Math.max(firstLine1, lastLine1) - 1;
+        } else {
+            linkedFirstIndex = -1;
+            linkedLastIndex = -1;
+        }
+        for (int i = Math.max(0, oldFirst); oldFirst >= 0 && i <= oldLast; i++) {
+            restyleParagraph(i);
+        }
+        for (int i = Math.max(0, linkedFirstIndex); linkedFirstIndex >= 0 && i <= linkedLastIndex; i++) {
+            restyleParagraph(i);
+        }
+    }
+
+    /** Removes the {@link #setLinkedNodeRange linked-node} tint. */
+    public void clearLinkedNodeRange() {
+        if (linkedFirstIndex >= 0) {
+            setLinkedNodeRange(-1, -1);
+        }
+    }
+
+    /** @return the tinted node's first and last line (1-based), or {@code null} (tests). */
+    public int[] getLinkedNodeRange() {
+        return linkedFirstIndex < 0 ? null : new int[] {linkedFirstIndex + 1, linkedLastIndex + 1};
+    }
+
     /** Re-applies the composed paragraph styles (caret line, debug line) to one paragraph. */
     private void restyleParagraph(int index) {
         if (index < 0 || index >= codeArea.getParagraphs().size()) {
@@ -305,6 +350,9 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
         java.util.List<String> styles = new java.util.ArrayList<>(2);
         if (index == currentLineIndex) {
             styles.add("current-line");
+        }
+        if (linkedFirstIndex >= 0 && index >= linkedFirstIndex && index <= linkedLastIndex) {
+            styles.add("linked-node-line");
         }
         if (index == debugLineIndex) {
             styles.add("debug-current-line");
@@ -429,6 +477,10 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
         // key on multi-MB files. The highlighter reads the text itself, once, after its debounce.
         TextEdits.of(codeArea).subscribe(change -> {
             textRevision++;
+            if (linkedFirstIndex >= 0) {
+                // Deferred: re-styling paragraphs from inside the change re-enters the viewport.
+                Platform.runLater(this::clearLinkedNodeRange);
+            }
             editorContext.setDirty(true);
             syntaxManager.requestHighlighting();
         });

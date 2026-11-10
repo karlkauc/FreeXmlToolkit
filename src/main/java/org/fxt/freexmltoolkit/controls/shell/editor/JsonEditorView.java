@@ -20,6 +20,49 @@ import org.fxt.freexmltoolkit.service.JsonService;
 final class JsonEditorView implements EditorView {
 
     private final JsonCodeEditor editor = new JsonCodeEditor();
+    /** Lines (0-based) of the node a view switch handed over, or -1. */
+    private int linkedFirst = -1;
+    private int linkedLast = -1;
+
+    JsonEditorView() {
+        CodeArea area = editor.getCodeArea();
+        // The tint goes on the next edit or when the caret leaves it (deferred: re-styling from
+        // inside a change re-enters the viewport).
+        org.fxt.freexmltoolkit.controls.v2.editor.TextEdits.of(area).subscribe(change -> {
+            if (linkedFirst >= 0) {
+                javafx.application.Platform.runLater(() -> setLinkedNodeLines(-1, -1));
+            }
+        });
+        area.currentParagraphProperty().addListener((obs, oldP, newP) -> {
+            if (linkedFirst >= 0 && (newP < linkedFirst || newP > linkedLast)) {
+                javafx.application.Platform.runLater(() -> setLinkedNodeLines(-1, -1));
+            }
+        });
+    }
+
+    @Override
+    public void setLinkedNodeLines(int firstLine1, int lastLine1) {
+        CodeArea area = editor.getCodeArea();
+        int paragraphs = area.getParagraphs().size();
+        for (int i = Math.max(0, linkedFirst); linkedFirst >= 0 && i <= linkedLast && i < paragraphs; i++) {
+            area.setParagraphStyle(i, java.util.List.of());
+        }
+        if (firstLine1 > 0 && lastLine1 > 0) {
+            linkedFirst = firstLine1 - 1;
+            linkedLast = Math.max(firstLine1, lastLine1) - 1;
+            for (int i = linkedFirst; i <= linkedLast && i < paragraphs; i++) {
+                area.setParagraphStyle(i, java.util.List.of("linked-node-line"));
+            }
+        } else {
+            linkedFirst = -1;
+            linkedLast = -1;
+        }
+    }
+
+    @Override
+    public int[] getLinkedNodeLines() {
+        return linkedFirst < 0 ? null : new int[] {linkedFirst + 1, linkedLast + 1};
+    }
 
     @Override
     public Region getNode() {

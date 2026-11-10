@@ -176,6 +176,17 @@ Every document tab offers the same view modes:
 All views share one in-memory model per document, so edits and Undo/Redo history are preserved
 when you switch views.
 
+**Switching views keeps your place.** The new view continues at the node you were working on:
+
+- From **Text** to **Tree**, **Graphic** or **Overview**, the node at the caret is selected. The tree, grid or
+  schema diagram opens down to it and scrolls it into view (the grid briefly flashes its row or table cell).
+- From **Tree**, **Graphic** or **Overview** back to **Text**, the caret goes to the node that was active there.
+  All the node's lines are tinted, from its start tag to its end tag (for JSON, its whole member or item). The
+  tint goes away when you edit the text or move the caret off the node.
+- Between **Tree** and **Graphic**, the same node stays selected.
+
+This works for XML, XSLT, Schematron, XSD and JSON documents.
+
 ### The Grid (Graphic view for XML)
 
 The Graphic view of XML and JSON documents is an editable grid with tables for repeating elements, opened cells, entry helpers, filters and formulas - see **[Grid View](grid.md)**.

@@ -298,6 +298,17 @@ final class EditorTab extends Tab {
             }
             return;
         }
+        // Where the user is working in the view they leave: the new view continues there.
+        ViewAnchor anchor = target != viewMode ? captureAnchor() : null;
+        view.setLinkedNodeLines(-1, -1);
+        showViewMode(target);
+        if (anchor != null && viewMode == target) {
+            restoreAnchor(anchor);
+        }
+    }
+
+    /** Shows {@code target} (supported, its model current); the selection starts empty. */
+    private void showViewMode(ViewMode target) {
         this.viewMode = target;
         this.currentSelection = null;
         this.currentXmlSelection = null;
@@ -388,6 +399,233 @@ final class EditorTab extends Tab {
             }
             default -> showOnly(view.getNode());
         }
+    }
+
+    /**
+     * Where the user was working when leaving a view: the caret ({@code line} 1-based, {@code offset})
+     * when leaving the Text view, otherwise the active model node as a child-index {@code path} from
+     * the root (XML: child elements; XSD: structural children; JSON: members and items) plus the
+     * attribute an XML grid row stood for. A path, not the node, so it also finds the node in a
+     * model parsed again in between.
+     */
+    record ViewAnchor(int line, int offset, java.util.List<Integer> path, String attribute) {
+        static ViewAnchor caret(int line, int offset) {
+            return new ViewAnchor(line, offset, null, null);
+        }
+
+        static ViewAnchor node(java.util.List<Integer> path, String attribute) {
+            return path == null ? null : new ViewAnchor(-1, -1, path, attribute);
+        }
+    }
+
+    /** The anchor of the current view, or {@code null} when it has none to hand over. */
+    ViewAnchor captureAnchor() {
+        EditorFileType type = document.getFileType();
+        if (viewMode == ViewMode.TEXT) {
+            var area = view.getCodeArea();
+            return ViewAnchor.caret(area.getCurrentParagraph() + 1, area.getCaretPosition());
+        }
+        if (!viewMode.isStructured()) {
+            return null;
+        }
+        if (type == EditorFileType.XSD) {
+            return ViewAnchor.node(xsdModelIndexPath(currentSelection), null);
+        }
+        if (type == EditorFileType.JSON) {
+            return ViewAnchor.node(
+                    org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.pathOf(currentJsonSelection), null);
+        }
+        org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode node = currentXmlSelection;
+        String attribute = null;
+        if (node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlAttribute a) {
+            attribute = a.getName();
+        }
+        while (node != null && !(node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement)) {
+            node = node.getParent(); // an attribute, text or comment stands for its element
+        }
+        if (!(node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement element)) {
+            return null;
+        }
+        var root = element;
+        while (root.getParent() instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement pe) {
+            root = pe;
+        }
+        return ViewAnchor.node(indexPath(root, element), attribute);
+    }
+
+    /**
+     * Continues in the view just shown where the previous one was: a structured view selects the
+     * node at the old caret (or the old view's node), expanding the way to it; the Text view puts
+     * the caret on the old view's node and tints its lines. Asynchronous where a model or line map
+     * has to be parsed first; dropped when the view changed again meanwhile.
+     */
+    void restoreAnchor(ViewAnchor anchor) {
+        if (anchor == null) {
+            return;
+        }
+        if (viewMode == ViewMode.TEXT) {
+            if (anchor.path() != null) {
+                revealPathInText(anchor.path());
+            }
+            return;
+        }
+        if (!viewMode.isStructured()) {
+            return;
+        }
+        ViewMode mode = viewMode;
+        EditorFileType type = document.getFileType();
+        if (type == EditorFileType.JSON) {
+            if (anchor.path() != null) {
+                revealJsonNode(org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.nodeAt(
+                        jsonEditorContext != null ? jsonEditorContext.getDocument() : null, anchor.path()));
+            } else {
+                revealJsonOffset(anchor.offset());
+            }
+            return;
+        }
+        if (anchor.path() == null) {
+            revealLine(anchor.line(), null, false);
+            return;
+        }
+        if (type == EditorFileType.XSD) {
+            XsdNode node = editorContext != null ? navigateXsd(editorContext.getSchema(), anchor.path()) : null;
+            if (node != null && !(node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSchema)) {
+                revealXsdNode(node);
+            }
+            return;
+        }
+        if (!type.isXmlFamily() || xmlEditorContext == null || xmlEditorContext.getDocument() == null
+                || viewMode != mode) {
+            return;
+        }
+        revealXmlElement(navigate(xmlEditorContext.getDocument().getRootElement(), anchor.path()),
+                anchor.attribute());
+    }
+
+    /** Selects a model element in the XML Tree or grid, opening the way to it. */
+    private void revealXmlElement(org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement element,
+                                  String attribute) {
+        if (element == null) {
+            return;
+        }
+        if (viewMode == ViewMode.TREE && xmlInstanceTreeView != null) {
+            xmlInstanceTreeView.selectNode(element);
+        } else if (viewMode == ViewMode.GRAPHIC && xmlGridView != null && xmlGridView.getCanvasView() != null) {
+            xmlGridView.getCanvasView().revealProblem(element, attribute);
+        } else {
+            return;
+        }
+        currentXmlSelection = element;
+        selectionCallback.run();
+    }
+
+    /** Selects the JSON node at a text offset in the Tree or grid (JSON counterpart of {@link #revealLine}). */
+    private void revealJsonOffset(int offset) {
+        ensureJsonModelParsedAsync(() -> {
+            if (jsonEditorContext == null || !viewMode.isStructured()) {
+                return;
+            }
+            var span = org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.scan(view.getText());
+            var path = org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.pathAt(span, offset);
+            revealJsonNode(org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.nodeAt(
+                    jsonEditorContext.getDocument(), path));
+        });
+    }
+
+    /** Selects a JSON model node in the Tree or grid, opening the way to it. */
+    private void revealJsonNode(org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode node) {
+        if (node == null) {
+            return;
+        }
+        if (viewMode == ViewMode.TREE && jsonTreeView != null) {
+            jsonTreeView.selectNode(node);
+        } else if (viewMode == ViewMode.GRAPHIC && jsonGridView != null && jsonGridView.getCanvasView() != null) {
+            jsonGridView.getCanvasView().revealProblem(node, null);
+        } else {
+            return;
+        }
+        currentJsonSelection = node;
+        selectionCallback.run();
+    }
+
+    /** Above this size the Text view gets no element range for a handed-over node (one scan of the text). */
+    private static final int TEXT_RANGE_SCAN_LIMIT = 8 * 1024 * 1024;
+
+    /**
+     * Puts the caret on the node at {@code path} in the current text and tints its lines. The text
+     * is current here (pending diagram and grid edits were written back before the switch).
+     */
+    private void revealPathInText(java.util.List<Integer> path) {
+        String text = view.getText();
+        if (text == null || text.length() > TEXT_RANGE_SCAN_LIMIT) {
+            return;
+        }
+        EditorFileType type = document.getFileType();
+        int start;
+        int end;
+        if (type == EditorFileType.JSON) {
+            var span = org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.spanAt(
+                    org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.scan(text), path);
+            if (span == null) {
+                return;
+            }
+            start = span.start();
+            end = span.end();
+        } else if (type.isXmlFamily()) {
+            java.util.function.Predicate<String> skip = type == EditorFileType.XSD
+                    ? n -> "annotation".equals(n) || "documentation".equals(n) || "appinfo".equals(n)
+                    : null;
+            var range = org.fxt.freexmltoolkit.controls.shared.utilities.XmlElementAtCaret.rangeOf(text, path, skip);
+            if (range.isEmpty()) {
+                return;
+            }
+            start = range.get().start();
+            end = range.get().end();
+        } else {
+            return;
+        }
+        var area = view.getCodeArea();
+        area.moveTo(Math.min(start, area.getLength()));
+        area.requestFollowCaret();
+        int firstLine = area.offsetToPosition(start, org.fxmisc.richtext.model.TwoDimensional.Bias.Forward).getMajor() + 1;
+        int lastLine = area.offsetToPosition(Math.max(start, end - 1),
+                org.fxmisc.richtext.model.TwoDimensional.Bias.Forward).getMajor() + 1;
+        view.setLinkedNodeLines(firstLine, lastLine);
+    }
+
+    /**
+     * The structural child-index path of an XSD model node from its schema (comments and
+     * annotations are not counted, matching {@link #navigateXsd}), or {@code null}.
+     */
+    static java.util.List<Integer> xsdModelIndexPath(XsdNode node) {
+        if (node == null || node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSchema) {
+            return null;
+        }
+        java.util.LinkedList<Integer> path = new java.util.LinkedList<>();
+        XsdNode current = node;
+        while (current != null && !(current instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSchema)) {
+            XsdNode parent = current.getParent();
+            if (parent == null || isNonStructuralXsd(current) || current.isFromInclude()) {
+                return null; // not in this schema's own text
+            }
+            int index = 0;
+            boolean found = false;
+            for (XsdNode child : parent.getChildren()) {
+                if (child == current) {
+                    found = true;
+                    break;
+                }
+                if (!isNonStructuralXsd(child)) {
+                    index++;
+                }
+            }
+            if (!found) {
+                return null;
+            }
+            path.addFirst(index);
+            current = parent;
+        }
+        return current == null ? null : path;
     }
 
     /** (Re)parses the model only when missing or when the text changed since the last parse (P2). */
@@ -1148,6 +1386,14 @@ final class EditorTab extends Tab {
      * @param message the problem's message (an attribute it names is revealed in the grid)
      */
     void revealLine(int line, String message) {
+        revealLine(line, message, true);
+    }
+
+    /**
+     * {@link #revealLine(int, String)}; with {@code problem} false (a view switch) the node also
+     * becomes the current selection, so the Inspector shows it.
+     */
+    private void revealLine(int line, String message, boolean problem) {
         EditorFileType type = document.getFileType();
         if (type == EditorFileType.XSD) {
             ensureModelParsedAsync(() -> ensureCaretMapAsync(() -> {
@@ -1172,7 +1418,9 @@ final class EditorTab extends Tab {
                 }
                 java.util.regex.Matcher m = PROBLEM_ATTRIBUTE.matcher(message == null ? "" : message);
                 String attribute = m.find() ? m.group(1) : null;
-                if (viewMode == ViewMode.TREE && xmlInstanceTreeView != null) {
+                if (!problem) {
+                    revealXmlElement(element, attribute);
+                } else if (viewMode == ViewMode.TREE && xmlInstanceTreeView != null) {
                     xmlInstanceTreeView.selectNode(element);
                 } else if (viewMode == ViewMode.GRAPHIC && xmlGridView != null) {
                     xmlGridView.getCanvasView().revealProblem(element, attribute);

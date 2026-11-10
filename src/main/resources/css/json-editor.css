@@ -197,6 +197,11 @@
     -fx-background-color: rgba(245, 124, 0, 0.05);
 }
 
+/* The node that was active in the Tree / Graphic view before switching to the Text view. */
+.json-code-area .paragraph-text.linked-node-line {
+    -fx-background-color: #e2f4e6;
+}
+
 /* ========== JSON Tree View ========== */
 
 .json-tree-view {

@@ -120,6 +120,19 @@ public interface EditorView {
     default void setDebugInputLine(int line1Based) {
     }
 
+    /**
+     * Tints the lines of the node a view switch handed over (1-based, inclusive); {@code <= 0}
+     * clears it. The tint goes away by itself on the next edit or when the caret leaves it.
+     */
+    default void setLinkedNodeLines(int firstLine1, int lastLine1) {
+        // no paragraph styles by default
+    }
+
+    /** @return the tinted lines (1-based first and last) or {@code null}. */
+    default int[] getLinkedNodeLines() {
+        return null;
+    }
+
     /** Shows the XSLT debugger's inline values (1-based line → text; empty clears). No-op by default. */
     default void setDebugInlineValues(java.util.Map<Integer, String> lineValues) {
     }

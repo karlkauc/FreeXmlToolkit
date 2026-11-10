@@ -118,6 +118,16 @@ final class XmlEditorView implements EditorView {
     }
 
     @Override
+    public void setLinkedNodeLines(int firstLine1, int lastLine1) {
+        editor.setLinkedNodeRange(firstLine1, lastLine1);
+    }
+
+    @Override
+    public int[] getLinkedNodeLines() {
+        return editor.getLinkedNodeRange();
+    }
+
+    @Override
     public void setDebugInlineValues(java.util.Map<Integer, String> lineValues) {
         editor.setDebugInlineValues(lineValues);
     }

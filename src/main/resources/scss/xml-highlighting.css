@@ -86,6 +86,12 @@
     -fx-background-color: #d6e9ff;
 }
 
+/* The node that was active in the Tree / Graphic view before switching to the Text view
+   (XmlCodeEditorV2.setLinkedNodeRange); declared after current-line so the whole node keeps it. */
+.linked-node-line {
+    -fx-background-color: #e2f4e6;
+}
+
 /* ==================== V2 XML Syntax Highlighting ==================== */
 
 /* XML Tags (opening/closing) */

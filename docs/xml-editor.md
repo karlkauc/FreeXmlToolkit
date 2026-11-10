@@ -217,6 +217,10 @@ All three views share a single in-memory model for each open document. This mean
 and your full **Undo / Redo** history - are preserved when you switch between the Text, Tree,
 and Graphic views.
 
+Switching views also keeps your place. The node at the caret is selected and opened in the Tree and the grid.
+Coming back to the Text view, the caret goes to the node you last selected, and the node's lines are tinted
+(see [View Modes](unified-shell.md#view-modes)).
+
 > **Note:** Adding, deleting, or moving whole nodes (structural editing) is done in the
 > **Graphic** view (the grid) via its right-click context menu. The Text and Tree views provide
 > property editing through the inspector.

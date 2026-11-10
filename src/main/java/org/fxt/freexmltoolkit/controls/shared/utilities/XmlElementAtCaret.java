@@ -66,6 +66,55 @@ public final class XmlElementAtCaret {
         return Optional.of(new Result(xml.substring(best.start, best.end), xpathOf(best), best.startTagEnd));
     }
 
+    /** The source range of an element: {@code start} = its {@code <}, {@code end} just past its last {@code >}. */
+    public record Range(int start, int end, int startTagEnd) {
+    }
+
+    /**
+     * Finds an element by its child-element index path from the root element (the inverse of
+     * mapping a caret to a model path): {@code path} counts child elements, leaving out those whose
+     * local name {@code skip} accepts (e.g. {@code xs:annotation} for an XSD model without them).
+     *
+     * @param xml  the full XML document text
+     * @param path child-element indexes from the root element (empty = the root element)
+     * @param skip local names not counted, or {@code null}
+     * @return the element's range, or empty when the path does not exist in the text
+     */
+    public static Optional<Range> rangeOf(String xml, List<Integer> path,
+                                          java.util.function.Predicate<String> skip) {
+        if (xml == null || xml.isEmpty() || path == null) {
+            return Optional.empty();
+        }
+        El current = null;
+        for (El el : scan(xml)) {
+            if (el.parent == null) {
+                current = el; // the root element: the first top-level one
+                break;
+            }
+        }
+        if (current == null) {
+            return Optional.empty();
+        }
+        for (int index : path) {
+            El next = null;
+            int i = 0;
+            for (El child : current.children) {
+                if (skip != null && skip.test(child.name)) {
+                    continue;
+                }
+                if (i++ == index) {
+                    next = child;
+                    break;
+                }
+            }
+            if (next == null) {
+                return Optional.empty();
+            }
+            current = next;
+        }
+        return Optional.of(new Range(current.start, current.end, current.startTagEnd));
+    }
+
     // ---- scanning -----------------------------------------------------------
 
     private static final class El {

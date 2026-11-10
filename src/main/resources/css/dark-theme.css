@@ -296,6 +296,12 @@
   -fx-background-color: #13304f;
 }
 
+/* The node handed over by a switch from the Tree / Graphic view to the Text view. */
+.root.fxt-theme-dark .code-area .linked-node-line,
+.root.fxt-theme-dark .code-area .paragraph-text.linked-node-line {
+  -fx-background-color: #183d27;
+}
+
 /* Plain text without a syntax class (element content such as <xs:documentation> text)
    would otherwise keep RichTextFX's default black fill. Declared BEFORE the syntax palette
    below so the equally specific syntax rules still win their ties. */
