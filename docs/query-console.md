@@ -55,7 +55,7 @@ pane shows the previous run's XML result with syntax highlighting.*
 
 Like the text editor, every console area zooms with the mouse: hold **Ctrl** and scroll the
 **mouse wheel** over the query input or the results to change that area's font size
-(**Ctrl+0** resets it).
+(**Ctrl+0** resets it to the size of the [editor font](settings.md#editor-font)).
 
 ### Running a Query
 

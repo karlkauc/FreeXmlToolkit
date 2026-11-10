@@ -5226,3 +5226,13 @@
     -fx-max-height: 20;
     -fx-background-radius: 10;
 }
+
+/* Settings → Editor → Editor font: a sample line in the chosen font (family/size set inline) */
+.fxt-editor-font-preview {
+    -fx-background-color: -fxt-surface-2;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 6 8;
+    -fx-text-fill: -fxt-text-primary;
+}

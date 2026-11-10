@@ -56,6 +56,10 @@ Any key of the user's settings file works. These are the ones most often managed
 | `ui.language` | `system` / `en` / `de` | Language of the interface (Settings → Appearance → Language) |
 | `ui.theme` | `light` / `dark` / `system` | Theme (Settings → Appearance → Theme) |
 | `ui.accent` | `blue` / `indigo` / `violet` / `green` / `teal` / `orange` / `red` / `graphite` or `#rrggbb` | Accent colour (Settings → Appearance → Accent colour), e.g. the company colour |
+| `editor.font.family` | font family name (empty = JetBrains Mono) | Editor font (Settings → Editor → Editor font) |
+| `editor.font.size` | `8`–`32` (points) | Editor font size |
+| `editor.lineSpacing` | `1.0`–`2.0` | Editor line spacing |
+| `editor.zoom.remember` | `true` / `false` | Ctrl+mouse wheel changes and keeps the editor size |
 | `plugins.external.allowed` | `false` | **Policy only.** Load no [plugins](plugins.md) from the plugins folder (built-in ones still load) |
 | `fop.external.allowed` | `false` | **Policy only.** Only the bundled Apache FOP renders PDFs; [external XSL-FO processors](pdf-generator.md#external-xsl-fo-processors) are hidden and refused (panel, scenarios, `fxt-cli fop`) |
 | `fop.processors` | JSON list | The external XSL-FO processors (as written by *Settings → XSL-FO Processors*); in `defaults.properties` a starting list, in `policy.properties` a fixed one |

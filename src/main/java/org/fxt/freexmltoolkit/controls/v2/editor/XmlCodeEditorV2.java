@@ -13,6 +13,7 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.ReadOnlyStyledDocument;
 import org.fxmisc.richtext.model.StyledDocument;
+import org.fxt.freexmltoolkit.controls.shared.EditorFont;
 import org.fxt.freexmltoolkit.controls.shared.PlainTextCodeArea;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorEventBus;
@@ -68,11 +69,10 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
     // Used by the XSLT debugger to render breakpoint dots and execution markers.
     private java.util.function.IntFunction<javafx.scene.Node> extraGutterFactory;
 
-    // Font size control
-    private static final int DEFAULT_FONT_SIZE = 11;
-    private static final int MIN_FONT_SIZE = 6;
-    private static final int MAX_FONT_SIZE = 72;
-    private int fontSize = DEFAULT_FONT_SIZE;
+    // Font: the user's editor font (EditorFont); a zoom of this editor alone while "remember zoom" is off
+    private Integer localFontSize;
+    private final javafx.beans.value.ChangeListener<EditorFont.Settings> editorFontListener =
+            (obs, old, value) -> applyEditorFont();
 
     /**
      * Creates a new XmlCodeEditorV2.
@@ -139,7 +139,8 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
         loadStylesheets();
 
         // Set up code area styling
-        codeArea.setStyle("-fx-font-size: 11pt; -fx-font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;");
+        applyEditorFont();
+        EditorFont.settingsProperty().addListener(new javafx.beans.value.WeakChangeListener<>(editorFontListener));
 
         // Add style class to scrollPane so CSS can target its scrollbars
         scrollPane.getStyleClass().add("xml-editor-scroll-pane");
@@ -407,13 +408,13 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
             javafx.scene.control.Label lineNumber = new javafx.scene.control.Label(String.format("%4d", lineIndex + 1));
             lineNumber.styleProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
                     () -> codeArea.getCurrentParagraph() == lineIndex
-                            ? "-fx-font-family: 'JetBrains Mono', monospace; -fx-text-fill: "
+                            ? "-fx-font-family: " + EditorFont.current().cssFamily() + "; -fx-text-fill: "
                             + org.fxt.freexmltoolkit.controls.theme.AccentPalette.hex(
                                     org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.PRIMARY.color(
                                             org.fxt.freexmltoolkit.controls.theme.DesignTokens.currentTheme()))
                             + "; -fx-font-weight: bold;"
-                            : "-fx-font-family: 'JetBrains Mono', monospace; -fx-text-fill: #8a93a0;",
-                    codeArea.currentParagraphProperty()));
+                            : "-fx-font-family: " + EditorFont.current().cssFamily() + "; -fx-text-fill: #8a93a0;",
+                    codeArea.currentParagraphProperty(), EditorFont.settingsProperty()));
             hbox.getChildren().add(lineNumber);
 
             return hbox;
@@ -883,36 +884,42 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
      * Increases the font size by 1 point.
      */
     public void increaseFontSize() {
-        if (fontSize < MAX_FONT_SIZE) {
-            setFontSize(fontSize + 1);
-        }
+        setFontSize(getFontSize() + 1);
     }
 
     /**
      * Decreases the font size by 1 point.
      */
     public void decreaseFontSize() {
-        if (fontSize > MIN_FONT_SIZE) {
-            setFontSize(fontSize - 1);
+        setFontSize(getFontSize() - 1);
+    }
+
+    /**
+     * Resets the zoom: with "remember zoom" on the editor size returns to the built-in default,
+     * otherwise this editor returns to the size set in the settings.
+     */
+    public void resetFontSize() {
+        localFontSize = null;
+        if (!EditorFont.zoomTo(EditorFont.DEFAULT_SIZE)) {
+            applyEditorFont();
         }
     }
 
     /**
-     * Resets the font size to the default value.
-     */
-    public void resetFontSize() {
-        setFontSize(DEFAULT_FONT_SIZE);
-    }
-
-    /**
-     * Sets the font size.
+     * Sets the font size (a zoom): with "remember zoom" on it becomes the size of every editor,
+     * otherwise it applies to this editor only.
      *
      * @param size the font size in points
      */
     public void setFontSize(int size) {
-        this.fontSize = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, size));
-        codeArea.setStyle("-fx-font-size: " + fontSize + "pt; -fx-font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;");
-        logger.debug("Font size changed to: {}pt", fontSize);
+        int clamped = Math.clamp(size, EditorFont.MIN_SIZE, EditorFont.MAX_SIZE);
+        if (EditorFont.zoomTo(clamped)) {
+            localFontSize = null;
+        } else {
+            localFontSize = clamped;
+            applyEditorFont();
+        }
+        logger.debug("Font size changed to: {}pt", clamped);
     }
 
     /**
@@ -921,7 +928,15 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
      * @return the font size in points
      */
     public int getFontSize() {
-        return fontSize;
+        return localFontSize != null ? localFontSize : EditorFont.current().size();
+    }
+
+    /** Applies the editor font (family, size, line spacing) to the code area. */
+    private void applyEditorFont() {
+        EditorFont.Settings font = EditorFont.current();
+        int size = getFontSize();
+        codeArea.setStyle(EditorFont.inlineStyle(font, size, "pt"));
+        EditorFont.applyLineSpacing(codeArea, EditorFont.ptToPx(size), font.lineSpacing());
     }
 
     @Override

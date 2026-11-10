@@ -44,6 +44,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.StyleSpans;
+import org.fxt.freexmltoolkit.controls.shared.EditorFont;
 import org.fxt.freexmltoolkit.controls.shared.JsonSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.shared.PlainTextCodeArea;
 import org.fxt.freexmltoolkit.i18n.I18n;
@@ -66,10 +67,10 @@ public class JsonCodeEditor extends VBox {
     private String detectedFormat = "json";
 
     // Font size control
-    private static final int DEFAULT_FONT_SIZE = 11;
-    private static final int MIN_FONT_SIZE = 6;
-    private static final int MAX_FONT_SIZE = 72;
-    private int fontSize = DEFAULT_FONT_SIZE;
+    /** A zoom of this editor alone while "remember zoom" is off; null = the editor font's size. */
+    private Integer localFontSize;
+    private final javafx.beans.value.ChangeListener<EditorFont.Settings> editorFontListener =
+            (obs, old, value) -> updateFontSize();
 
     // Hover tooltip
     private Popup hoverPopup;
@@ -143,8 +144,19 @@ public class JsonCodeEditor extends VBox {
         // Load stylesheets
         loadStylesheets();
 
-        // Set up code area styling
-        codeArea.setStyle("-fx-font-size: " + fontSize + "pt; -fx-font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;");
+        // Set up code area styling: the user's editor font, followed live
+        updateFontSize();
+        EditorFont.settingsProperty().addListener(new javafx.beans.value.WeakChangeListener<>(editorFontListener));
+        codeArea.addEventFilter(javafx.scene.input.ScrollEvent.SCROLL, event -> {
+            if (event.isShortcutDown() && event.getDeltaY() != 0) {
+                if (event.getDeltaY() > 0) {
+                    increaseFontSize();
+                } else {
+                    decreaseFontSize();
+                }
+                event.consume();
+            }
+        });
 
         // Setup line numbers
         codeArea.setParagraphGraphicFactory(createLineNumberFactory());
@@ -688,33 +700,51 @@ public class JsonCodeEditor extends VBox {
      * Increases font size.
      */
     public void increaseFontSize() {
-        if (fontSize < MAX_FONT_SIZE) {
-            fontSize += 2;
-            updateFontSize();
-        }
+        setFontSize(getFontSize() + 1);
     }
 
     /**
      * Decreases font size.
      */
     public void decreaseFontSize() {
-        if (fontSize > MIN_FONT_SIZE) {
-            fontSize -= 2;
+        setFontSize(getFontSize() - 1);
+    }
+
+    /**
+     * Resets the zoom (built-in default with "remember zoom", otherwise the settings' size).
+     */
+    public void resetFontSize() {
+        localFontSize = null;
+        if (!EditorFont.zoomTo(EditorFont.DEFAULT_SIZE)) {
             updateFontSize();
         }
     }
 
     /**
-     * Resets font size to default.
+     * Zooms to a size: every editor with "remember zoom" on, otherwise this editor only.
+     *
+     * @param size the size in points
      */
-    public void resetFontSize() {
-        fontSize = DEFAULT_FONT_SIZE;
-        updateFontSize();
+    public void setFontSize(int size) {
+        int clamped = Math.clamp(size, EditorFont.MIN_SIZE, EditorFont.MAX_SIZE);
+        if (EditorFont.zoomTo(clamped)) {
+            localFontSize = null;
+        } else {
+            localFontSize = clamped;
+            updateFontSize();
+        }
+    }
+
+    /** @return the current font size in points */
+    public int getFontSize() {
+        return localFontSize != null ? localFontSize : EditorFont.current().size();
     }
 
     private void updateFontSize() {
-        codeArea.setStyle("-fx-font-size: " + fontSize + "pt; -fx-font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;");
-        logger.debug("Font size changed to: {}", fontSize);
+        EditorFont.Settings font = EditorFont.current();
+        int size = getFontSize();
+        codeArea.setStyle(EditorFont.inlineStyle(font, size, "pt"));
+        EditorFont.applyLineSpacing(codeArea, EditorFont.ptToPx(size), font.lineSpacing());
     }
 
     /**

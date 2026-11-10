@@ -9,6 +9,7 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
+import org.fxt.freexmltoolkit.controls.shared.EditorFont;
 import org.fxt.freexmltoolkit.controls.shell.ThemeManager;
 import org.fxt.freexmltoolkit.controls.theme.AccentPalette;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
@@ -38,6 +39,7 @@ class SettingsPanelAppearanceTest {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             ThemeManager.setAccent(null);
             ThemeManager.apply(settings.getScene(), false);
+            EditorFont.update(EditorFont.Settings.defaults());
         });
     }
 
@@ -85,5 +87,28 @@ class SettingsPanelAppearanceTest {
         var keys = WaitForAsyncUtils.waitForAsyncFx(2000, settings::policyKeys);
         assertTrue(keys.values().stream().anyMatch(k -> java.util.List.of(k).contains("ui.theme")));
         assertTrue(keys.values().stream().anyMatch(k -> java.util.List.of(k).contains(ThemeManager.ACCENT_KEY)));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void theEditorFontCardAppliesAtOnceAndFollowsAZoom() {
+        var size = (javafx.scene.control.Spinner<Integer>) settings.lookup("#settings-editor-font-size");
+        var spacing = (javafx.scene.control.Spinner<Double>) settings.lookup("#settings-editor-line-spacing");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            size.getValueFactory().setValue(16);
+            spacing.getValueFactory().setValue(1.4);
+        });
+        assertEquals(16, EditorFont.current().size());
+        assertEquals(1.4, EditorFont.current().lineSpacing(), 1e-9);
+        assertTrue(!settings.isDirty(), "the editor font applies at once: nothing left to save");
+        var preview = (javafx.scene.control.Label) settings.lookup("#settings-editor-font-preview");
+        assertTrue(preview.getStyle().contains("-fx-font-size: 16pt"), preview.getStyle());
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> EditorFont.zoomTo(18));
+        assertEquals(18, size.getValue(), "a zoom in an editor shows in the card");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, settings::onEditorFontReset);
+        assertEquals(EditorFont.Settings.defaults(), EditorFont.current());
+        assertEquals(EditorFont.DEFAULT_SIZE, size.getValue());
     }
 }

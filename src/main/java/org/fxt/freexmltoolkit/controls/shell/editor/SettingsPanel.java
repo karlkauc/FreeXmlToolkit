@@ -74,6 +74,18 @@ public class SettingsPanel extends VBox {
     @FXML private ToggleButton systemTheme;
     @FXML private javafx.scene.layout.FlowPane accentSwatches;
     @FXML private javafx.scene.control.ColorPicker accentPicker;
+    @FXML private ComboBox<String> editorFontFamily;
+    @FXML private Spinner<Integer> editorFontSize;
+    @FXML private Spinner<Double> editorLineSpacing;
+    @FXML private CheckBox editorRememberZoom;
+    @FXML private Label editorFontPreview;
+    /** Set while the editor-font controls show the stored value: their changes are no choice. */
+    private boolean showingEditorFont;
+    /** True once the installed monospace fonts are in the family list. */
+    private boolean editorFontFamiliesListed;
+    /** Follows editor-font changes made elsewhere (zoom in an editor). */
+    private final javafx.beans.value.ChangeListener<org.fxt.freexmltoolkit.controls.shared.EditorFont.Settings>
+            editorFontListener = (obs, old, value) -> showEditorFont(value);
     /** Set while the picker shows the chosen accent: its value change is no choice of its own. */
     private boolean showingAccent;
     /** The accent swatches; exactly one is selected while a preset is the accent. */
@@ -224,6 +236,7 @@ public class SettingsPanel extends VBox {
             default -> light.setSelected(true);
         }
         buildAccentSwatches();
+        initEditorFontControls();
 
         parserType.getItems().setAll(XmlParserType.values());
         collectPolicyLocks();
@@ -433,7 +446,8 @@ public class SettingsPanel extends VBox {
     private void trackChanges(javafx.scene.Parent root) {
         // Theme and accent apply at once and are stored right away: no "unsaved changes"
         java.util.Set<javafx.scene.Node> immediate = new java.util.HashSet<>(
-                java.util.List.of(light, dark, systemTheme, accentSwatches, accentPicker));
+                java.util.List.of(light, dark, systemTheme, accentSwatches, accentPicker,
+                        editorFontFamily, editorFontSize, editorLineSpacing, editorRememberZoom));
         immediate.addAll(associationCheckBoxes().keySet());
         javafx.beans.InvalidationListener mark = obs -> {
             if (!loading) {
@@ -620,6 +634,86 @@ public class SettingsPanel extends VBox {
                 swatch.setSelected(swatch.getId().equals("settings-accent-" + accent));
             }
         }
+    }
+
+    // ----- editor font ------------------------------------------------------------
+
+    /** Fills the editor-font card and applies every change at once (like theme and accent). */
+    private void initEditorFontControls() {
+        var font = org.fxt.freexmltoolkit.controls.shared.EditorFont.current();
+        // The installed monospace fonts are measured when the list first opens, not with the page
+        editorFontFamily.getItems().setAll(new java.util.LinkedHashSet<>(java.util.List.of(
+                org.fxt.freexmltoolkit.controls.shared.EditorFont.DEFAULT_FAMILY, font.family())));
+        editorFontFamily.setOnShowing(event -> fillEditorFontFamilies());
+        showEditorFont(font);
+        editorFontFamily.valueProperty().addListener((obs, old, value) -> applyEditorFontFromControls());
+        editorFontSize.valueProperty().addListener((obs, old, value) -> applyEditorFontFromControls());
+        editorLineSpacing.valueProperty().addListener((obs, old, value) -> applyEditorFontFromControls());
+        editorRememberZoom.selectedProperty().addListener((obs, old, value) -> applyEditorFontFromControls());
+        org.fxt.freexmltoolkit.controls.shared.EditorFont.settingsProperty().addListener(
+                new javafx.beans.value.WeakChangeListener<>(editorFontListener));
+    }
+
+    /** Lists the installed monospace fonts (once), keeping the chosen family. */
+    private void fillEditorFontFamilies() {
+        if (editorFontFamiliesListed) {
+            return;
+        }
+        editorFontFamiliesListed = true;
+        java.util.LinkedHashSet<String> families = new java.util.LinkedHashSet<>(
+                org.fxt.freexmltoolkit.controls.shared.EditorFont.monospaceFamilies());
+        String chosen = editorFontFamily.getValue();
+        if (chosen != null && !chosen.isBlank()) {
+            families.add(chosen);
+        }
+        showingEditorFont = true;
+        try {
+            editorFontFamily.getItems().setAll(families);
+            editorFontFamily.setValue(chosen);
+        } finally {
+            showingEditorFont = false;
+        }
+    }
+
+    /** Shows an editor-font setting in the card without applying it again. */
+    private void showEditorFont(org.fxt.freexmltoolkit.controls.shared.EditorFont.Settings font) {
+        showingEditorFont = true;
+        try {
+            editorFontFamily.setValue(font.family());
+            editorFontSize.getValueFactory().setValue(Math.clamp(font.size(),
+                    org.fxt.freexmltoolkit.controls.shared.EditorFont.MIN_SETTING_SIZE,
+                    org.fxt.freexmltoolkit.controls.shared.EditorFont.MAX_SETTING_SIZE));
+            editorLineSpacing.getValueFactory().setValue(Math.round(font.lineSpacing() * 10) / 10.0);
+            editorRememberZoom.setSelected(font.rememberZoom());
+        } finally {
+            showingEditorFont = false;
+        }
+        editorFontPreview.setStyle(org.fxt.freexmltoolkit.controls.shared.EditorFont.inlineStyle(font, font.size(), "pt"));
+    }
+
+    private void applyEditorFontFromControls() {
+        if (showingEditorFont) {
+            return;
+        }
+        String family = editorFontFamily.getValue();
+        Integer size = editorFontSize.getValue();
+        Double spacing = editorLineSpacing.getValue();
+        applyEditorFont(new org.fxt.freexmltoolkit.controls.shared.EditorFont.Settings(family,
+                size == null ? org.fxt.freexmltoolkit.controls.shared.EditorFont.DEFAULT_SIZE : size,
+                spacing == null ? org.fxt.freexmltoolkit.controls.shared.EditorFont.DEFAULT_LINE_SPACING : spacing,
+                editorRememberZoom.isSelected()));
+    }
+
+    /** Applies and persists an editor font, every editor follows (for tests/observers). */
+    public void applyEditorFont(org.fxt.freexmltoolkit.controls.shared.EditorFont.Settings font) {
+        org.fxt.freexmltoolkit.controls.shared.EditorFont.update(font);
+        showEditorFont(org.fxt.freexmltoolkit.controls.shared.EditorFont.current());
+    }
+
+    /** Puts the editor font back to the built-in default (JetBrains Mono 11 pt, single spacing). */
+    @FXML
+    public void onEditorFontReset() {
+        applyEditorFont(org.fxt.freexmltoolkit.controls.shared.EditorFont.Settings.defaults());
     }
 
     /** @return the accent swatches (for tests) */
@@ -867,6 +961,10 @@ public class SettingsPanel extends VBox {
         keys.put(systemTheme, new String[] {"ui.theme"});
         keys.put(accentSwatches, new String[] {org.fxt.freexmltoolkit.controls.shell.ThemeManager.ACCENT_KEY});
         keys.put(accentPicker, new String[] {org.fxt.freexmltoolkit.controls.shell.ThemeManager.ACCENT_KEY});
+        keys.put(editorFontFamily, new String[] {org.fxt.freexmltoolkit.controls.shared.EditorFont.FAMILY_KEY});
+        keys.put(editorFontSize, new String[] {org.fxt.freexmltoolkit.controls.shared.EditorFont.SIZE_KEY});
+        keys.put(editorLineSpacing, new String[] {org.fxt.freexmltoolkit.controls.shared.EditorFont.LINE_SPACING_KEY});
+        keys.put(editorRememberZoom, new String[] {org.fxt.freexmltoolkit.controls.shared.EditorFont.REMEMBER_ZOOM_KEY});
         keys.put(indentSpaces, new String[] {"xml.indent.spaces"});
         keys.put(jsonIndent, new String[] {"json.indent.spaces"});
         keys.put(autoFormat, new String[] {"xml.autoformat.after.loading"});

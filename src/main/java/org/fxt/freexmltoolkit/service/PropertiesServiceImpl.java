@@ -245,8 +245,6 @@ public class PropertiesServiceImpl implements PropertiesService {
     public void createDefaultProperties() {
         properties = newSettings();
         properties.setProperty("customTempFolder", System.getProperty("java.io.tmpdir"));
-        properties.setProperty("font.family", "");
-        properties.setProperty("font.size", "");
         properties.setProperty("http.proxy.user", "");
         properties.setProperty("http.proxy.password", "");
         properties.setProperty("https.proxy.host", "");

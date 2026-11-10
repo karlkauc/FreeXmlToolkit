@@ -78,7 +78,30 @@ class AppearanceDocScreenshotGenerator {
             onFx(() -> panel.applyTheme(true));
             settle(800);
             shot("unified-shell-accent-violet-dark");
+            onFx(() -> {
+                panel.applyAccent("blue");
+                panel.applyTheme(false);
+            });
+
+            // Settings → Editor → Editor font, then an XML document in that font
+            var font = new org.fxt.freexmltoolkit.controls.shared.EditorFont.Settings(
+                    org.fxt.freexmltoolkit.controls.shared.EditorFont.DEFAULT_FAMILY, 13, 1.4, true);
+            onFx(() -> {
+                panel.applyEditorFont(font);
+                panel.showSection("editor");
+            });
+            settle(800);
+            shot("unified-shell-settings-editor-font");
+            var host = shell.getEditorHost();
+            java.nio.file.Path xml = java.nio.file.Path.of("src/main/resources/examples/getting-started/order.xml");
+            onFx(() -> host.openFile(xml.toAbsolutePath()));
+            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                    () -> host.getActiveText().map(t -> t.contains("<order")).orElse(false));
+            settle(1200);
+            shot("unified-shell-editor-font-spacing");
         } finally {
+            onFx(() -> org.fxt.freexmltoolkit.controls.shared.EditorFont.update(
+                    org.fxt.freexmltoolkit.controls.shared.EditorFont.Settings.defaults()));
             onFx(() -> {
                 SettingsPanel panel = findSettings(root);
                 if (panel != null) {

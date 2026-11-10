@@ -103,6 +103,12 @@ stylesheet inserted right after `design-tokens.css` wherever that sheet is decla
 in `DialogTheming`, `DialogHelper.getThemeStylesheets`, popups). Accent colours in the theme sheets must be
 tokens (`-fxt-primary*`), never hex. Settings → Appearance: Theme (Light/Dark/System) and Accent colour cards,
 both applied at once and lockable (`policyKeys`).
+Editor font: `controls/shared/EditorFont` (`editor.font.family` / `.size` (pt) / `editor.lineSpacing` /
+`editor.zoom.remember`; observable `settingsProperty()`); `XmlCodeEditorV2`, `JsonCodeEditor` and every
+`CodeAreaFontZoom.install` area (same number in px) follow it via weak listeners. JavaFX CSS takes ONE
+`-fx-font-family` (a comma list breaks the whole inline style) — `Settings.cssFamily()` resolves the first
+installed fallback. Line spacing = a per-area `data:` sheet padding `.paragraph-box` (`applyLineSpacing`).
+Ctrl+wheel with "remember" → `EditorFont.zoomTo` (all editors, saved after 600 ms); without → per editor.
 
 ## View Export (PNG / SVG / PDF / clipboard)
 

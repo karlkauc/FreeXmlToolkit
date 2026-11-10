@@ -218,6 +218,48 @@
                                                 </HBox>
                                             </children>
                                         </SettingsCard>
+                                        <SettingsCard title="%SettingsPanel.editor-font.title" iconLiteral="bi-fonts">
+                                            <children>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="%SettingsPanel.editor-font-family.text"/>
+                                                        <ComboBox fx:id="editorFontFamily" id="settings-editor-font-family" editable="true"
+                                                                  prefWidth="200"/>
+                                                    </children>
+                                                </HBox>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="%SettingsPanel.editor-font-size.text"/>
+                                                        <Spinner fx:id="editorFontSize" id="settings-editor-font-size" editable="true" prefWidth="80">
+                                                            <valueFactory>
+                                                                <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="8" max="32" initialValue="11"/>
+                                                            </valueFactory>
+                                                        </Spinner>
+                                                        <Label text="%SettingsPanel.editor-line-spacing.text"/>
+                                                        <Spinner fx:id="editorLineSpacing" id="settings-editor-line-spacing" editable="true" prefWidth="80">
+                                                            <valueFactory>
+                                                                <javafx.scene.control.SpinnerValueFactory.DoubleSpinnerValueFactory min="1.0" max="2.0" initialValue="1.0" amountToStepBy="0.1"/>
+                                                            </valueFactory>
+                                                        </Spinner>
+                                                    </children>
+                                                </HBox>
+                                                <CheckBox fx:id="editorRememberZoom" id="settings-editor-remember-zoom"
+                                                          text="%SettingsPanel.editorRememberZoom.text"/>
+                                                <Label fx:id="editorFontPreview" id="settings-editor-font-preview"
+                                                       styleClass="fxt-editor-font-preview" maxWidth="Infinity"
+                                                       text="&lt;order id=&quot;42&quot;&gt;0O 1lI {}[]&lt;/order&gt;"/>
+                                                <HBox alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Button text="%SettingsPanel.editor-font-reset.text" id="settings-editor-font-reset"
+                                                                onAction="#onEditorFontReset" styleClass="fxt-tool-button">
+                                                            <graphic>
+                                                                <IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="16"/>
+                                                            </graphic>
+                                                        </Button>
+                                                    </children>
+                                                </HBox>
+                                            </children>
+                                        </SettingsCard>
                                         <SettingsCard title="%SettingsPanel.grid-table-colours.title" iconLiteral="bi-table">
                                             <children>
                                                 <CheckBox fx:id="gridCustomColors" id="settings-grid-custom-colors"

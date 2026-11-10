@@ -36,7 +36,7 @@ settings may be greyed out and a notice at the top of the page says so; see
 | Group | Cards and options |
 |-------|-------------------|
 | **Appearance** | **Theme** - **Light**, **Dark** or **System** (follows the light or dark setting of the operating system, also while the application runs). **Accent colour** - the colour of buttons, selection, focus and links: eight presets or **Own colour**; see [Accent colour](#accent-colour) below. **Language** - the language of the interface: **System default**, **English** or **Deutsch** (takes effect after a restart; the system default is used when it is English or German, otherwise English). **Layout** - **Show toolbar button labels**; **Show activity bar labels**; **Use small icons**; toolbar icon size (**Small** / **Large**); **Show left side panel**; **Show Properties (inspector) panel**. **Rendering** - JavaFX graphics pipeline: **Auto** / **Hardware** / **Software** (takes effect after restart), with the active pipeline and GPU status; see [Rendering mode (hardware vs. software)](#rendering-mode) below. **Memory** - **Maximum memory** for the application: **Automatic** (half of the installed memory) or a fixed limit (takes effect after restart); see [Memory and large files](#memory) below. |
-| **Editor** | **Editor** - XML indent and JSON indent (spaces); **Auto-format after loading**; **Pretty-print XSD on save**; **Pretty-print Schematron on load**; **Recent files to remember** (1–100, default 20) - every file opened in the editor, opened in the background or saved with **Save As** goes into File → Recent, the Explorer's **RECENT** list and the Welcome page. **Templates** - a configurable **templates directory**, plus a **New / Edit / Delete** list of your own templates; see [Managing your templates](#managing-your-templates) below. **User Info** - **Name**, **Email** and **Company**, used for example when generating documentation or signing. |
+| **Editor** | **Editor font** - font, size and line spacing of every code editor, see [Editor font](#editor-font). **Editor** - XML indent and JSON indent (spaces); **Auto-format after loading**; **Pretty-print XSD on save**; **Pretty-print Schematron on load**; **Recent files to remember** (1–100, default 20) - every file opened in the editor, opened in the background or saved with **Save As** goes into File → Recent, the Explorer's **RECENT** list and the Welcome page. **Templates** - a configurable **templates directory**, plus a **New / Edit / Delete** list of your own templates; see [Managing your templates](#managing-your-templates) below. **User Info** - **Name**, **Email** and **Company**, used for example when generating documentation or signing. |
 | **Schemas & Validation** | **XSD** - **Auto-save** (with an interval in minutes); **Create backups on save** (with the number of versions to keep, and an optional **separate backup directory**). **Schema Library** - **Use the Schema Library to bind schemas automatically**; shows the library file's location and a **Manage schema cache…** link; see [Schema Library](schema-library.md). **Parser** - **XML parser** engine (Xerces or Saxon); **Allow XSLT extension functions**. |
 | **Files & Cache** | **Temp & Cache** - **Use system temp folder** or a custom temp folder; **Clear Temp Folder** to free disk space; **Clear Cache Folder** to delete cached files (downloaded schemas etc.); **Manage schema cache…**. **Log Files** - **Delete old log files automatically at startup** (on by default) with **Keep for (days)** (default 14) and **Maximum total size (MB)** (default 100; 0 = no limit); **Clean Up Now** applies the limits at once, **Open log folder** shows the folder, and the card names the folder with its file count and size. The log file in use is never deleted. **File Associations** - make FreeXmlToolkit the **default application** for XML, XSD, XSLT, Schematron and JSON files (per user, no admin rights); see [File Associations](file-associations.md). |
 | **Network & Security** | **HTTP Proxy** - **Connection**: *System proxy* (default, includes automatic configuration via PAC/WPAD), *Manual proxy* (host and port) or *No proxy*; **No proxy for**: hosts connected directly (`*` wildcard, e.g. `*.corp.example, 10.*`; local addresses always); **Proxy authentication**: user (`DOMAIN\user` or `user@domain` also work), password (stored encrypted) and NTLM domain, or — without a user — sign-in with the Windows account (NTLM/Kerberos; takes effect after a restart); **Timeouts** for connecting and reading; **Test Connection** checks an address with the values shown, saved or not. Every connection uses these settings: schema and catalog downloads, updates, FundsXML, telemetry, `doc()` in XPath/XQuery, JSON Schema `$ref`s, XProc (incl. `p:http-request`) and HTML previews. **Security** - **Trust all certificates**: accept any TLS certificate for HTTPS downloads (schemas, updates); use with care. **Allow JavaScript and remote content in HTML previews** (off: previews run no scripts and load nothing from the network). **Run XProc pipelines without restrictions** (off: pipelines may not run programs, run computed pipelines, send HTTP requests or load documents from the network); see [Threat Model](threat-model.md). **Updates** - **Check for updates on startup**. |
@@ -61,6 +61,31 @@ for example, is darkened for text on white and lightened for text on the dark ba
 *The same accent in the dark theme*
 
 The workflow colours of the activities (Validation green, Transform orange, ...) stay as they are.
+
+## Editor font {#editor-font}
+
+**Settings → Editor → Editor font** sets the font of every code editor: the XML, XSD, XSLT, XQuery
+and JSON editors, the Query Console, the transform output and the debugger's value views.
+
+- **Font** - the bundled JetBrains Mono or any monospace font installed on your computer (the list
+  is filled when you open it; you can also type a name). A font that is missing on another
+  computer falls back to an installed monospace font.
+- **Size (pt)** - 8 to 32 points, default 11. The smaller code panels (console, output) use the
+  same number in pixels, so they stay a little more compact.
+- **Line spacing** - 1.0 to 2.0; the extra space goes above and below each line, so the line
+  numbers stay level with the text.
+- **Ctrl+mouse wheel changes and keeps the size of all editors** (on by default) - zooming an
+  editor changes this size for all editors and keeps it for the next start; **Ctrl+0** returns to
+  11 pt. Switched off, a zoom only affects that editor until it is closed, and **Ctrl+0** returns to
+  the size set here. The console and output areas always zoom on their own.
+
+Changes apply at once; **Reset Font** restores JetBrains Mono, 11 pt, single spacing.
+
+![Settings → Editor → Editor font](img/unified-shell-settings-editor-font.png)
+*The Editor font card with its preview line*
+
+![An XML document with line spacing 1.4](img/unified-shell-editor-font-spacing.png)
+*The same font at 13 pt with line spacing 1.4*
 
 ## Clearing the Cache Folder
 
