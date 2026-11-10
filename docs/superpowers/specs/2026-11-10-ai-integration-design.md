@@ -127,7 +127,7 @@ the stylesheet it just wrote without writing a file.
 | `xquery` | `TransformRunner.xquery(xml, query, variables, format)` | as above |
 | `xslt_transform` | new sandboxed entry point on `XsltTransformationEngine` (see Sandbox) | principal output (capped), result documents (URI → text, capped), `xsl:message` output, error code, phase (`compile`/`input`/`runtime`), line |
 | `schematron_check` | `SchematronCheckRunner.checkResult(sch)` | compile problems of a Schematron |
-| `xspec_run` | `XSpecRunner.run(text, file)` | per scenario/test: label, status, expected, actual; summary |
+| `xspec_run` | `service/XSpecRunner#run(text, file)` (instance method) | per scenario/test: label, status, expected, actual; summary |
 | `schema_outline` | `XsdNodeFactory.fromFile` | target namespace, global elements, named types (names only), tree of one global element to a given depth |
 | `schema_describe` | `XsdInstanceLocator.locate` + `SchemaFacets` | for an instance path: declaration, type and builtin base, cardinality, facets and enumeration values, documentation, child elements with cardinality, attributes |
 | `sample_xml` | `SampleXmlRunner.generateResult(xsd, mandatoryOnly, maxOccurrences, realistic, seed)` | a valid sample instance |
