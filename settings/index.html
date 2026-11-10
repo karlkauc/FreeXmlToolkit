@@ -855,6 +855,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#text-size-and-font" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Text size and font
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#editor-font" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3058,6 +3069,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#text-size-and-font" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Text size and font
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#editor-font" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3173,7 +3195,7 @@ settings may be greyed out and a notice at the top of the page says so; see
 <tbody>
 <tr>
 <td><strong>Appearance</strong></td>
-<td><strong>Theme</strong> - <strong>Light</strong>, <strong>Dark</strong> or <strong>System</strong> (follows the light or dark setting of the operating system, also while the application runs). <strong>Accent colour</strong> - the colour of buttons, selection, focus and links: eight presets or <strong>Own colour</strong>; see <a href="#accent-colour">Accent colour</a> below. <strong>Language</strong> - the language of the interface: <strong>System default</strong>, <strong>English</strong> or <strong>Deutsch</strong> (takes effect after a restart; the system default is used when it is English or German, otherwise English). <strong>Layout</strong> - <strong>Show toolbar button labels</strong>; <strong>Show activity bar labels</strong>; <strong>Use small icons</strong>; toolbar icon size (<strong>Small</strong> / <strong>Large</strong>); <strong>Show left side panel</strong>; <strong>Show Properties (inspector) panel</strong>. <strong>Rendering</strong> - JavaFX graphics pipeline: <strong>Auto</strong> / <strong>Hardware</strong> / <strong>Software</strong> (takes effect after restart), with the active pipeline and GPU status; see <a href="#rendering-mode">Rendering mode (hardware vs. software)</a> below. <strong>Memory</strong> - <strong>Maximum memory</strong> for the application: <strong>Automatic</strong> (half of the installed memory) or a fixed limit (takes effect after restart); see <a href="#memory">Memory and large files</a> below.</td>
+<td><strong>Theme</strong> - <strong>Light</strong>, <strong>Dark</strong> or <strong>System</strong> (follows the light or dark setting of the operating system, also while the application runs). <strong>Accent colour</strong> - the colour of buttons, selection, focus and links: eight presets or <strong>Own colour</strong>; see <a href="#accent-colour">Accent colour</a> below. <strong>Text size &amp; font</strong> - <strong>Small</strong>, <strong>Normal</strong>, <strong>Large</strong> or <strong>Extra Large</strong> text and the font of the interface; see <a href="#text-size-and-font">Text size and font</a> below. <strong>Language</strong> - the language of the interface: <strong>System default</strong>, <strong>English</strong> or <strong>Deutsch</strong> (takes effect after a restart; the system default is used when it is English or German, otherwise English). <strong>Layout</strong> - <strong>Show toolbar button labels</strong>; <strong>Show activity bar labels</strong>; <strong>Use small icons</strong>; toolbar icon size (<strong>Small</strong> / <strong>Large</strong>); <strong>Show left side panel</strong>; <strong>Show Properties (inspector) panel</strong>. <strong>Rendering</strong> - JavaFX graphics pipeline: <strong>Auto</strong> / <strong>Hardware</strong> / <strong>Software</strong> (takes effect after restart), with the active pipeline and GPU status; see <a href="#rendering-mode">Rendering mode (hardware vs. software)</a> below. <strong>Memory</strong> - <strong>Maximum memory</strong> for the application: <strong>Automatic</strong> (half of the installed memory) or a fixed limit (takes effect after restart); see <a href="#memory">Memory and large files</a> below.</td>
 </tr>
 <tr>
 <td><strong>Editor</strong></td>
@@ -3214,6 +3236,45 @@ for example, is darkened for text on white and lightened for text on the dark ba
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-accent-violet-dark.png" data-desc-position="bottom"><img alt="The same page in the dark theme" src="../img/unified-shell-accent-violet-dark.png"></a>
 <em>The same accent in the dark theme</em></p>
 <p>The workflow colours of the activities (Validation green, Transform orange, ...) stay as they are.</p>
+<h2 id="text-size-and-font">Text size and font<a class="headerlink" href="#text-size-and-font" title="Permanent link">¶</a></h2>
+<p><strong>Settings → Appearance → Text size &amp; font</strong> makes the text of menus, side panels, tabs, the
+Properties panel, dialogs and the Settings page larger or smaller:</p>
+<table>
+<thead>
+<tr>
+<th>Size</th>
+<th>Body text</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Small</td>
+<td>12 px</td>
+</tr>
+<tr>
+<td>Normal</td>
+<td>13 px (the design's size)</td>
+</tr>
+<tr>
+<td>Large</td>
+<td>14 px</td>
+</tr>
+<tr>
+<td>Extra Large</td>
+<td>16 px</td>
+</tr>
+</tbody>
+</table>
+<p>All sizes of the interface grow or shrink by the same factor, so headings stay larger than body
+text. The activity bar on the left keeps its size, because it has a fixed width. <strong>Font</strong> replaces
+the design's Inter with another installed font (the list is filled when you open it); <strong>Reset</strong>
+returns to Inter at Normal size. The change applies at once to every open window.</p>
+<p>The code editors are not affected: they have their own <a href="#editor-font">editor font</a>. A few labels
+in older dialogs have a fixed size and do not scale yet.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-settings-ui-font.png" data-desc-position="bottom"><img alt="Settings → Appearance with the Text size &amp; font card" src="../img/unified-shell-settings-ui-font.png"></a>
+<em>The card with Large selected</em></p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-ui-font-xlarge.png" data-desc-position="bottom"><img alt="The shell in Extra Large" src="../img/unified-shell-ui-font-xlarge.png"></a>
+<em>The shell in Extra Large: side panel, tabs and Properties panel grow, the editor keeps its font</em></p>
 <h2 id="editor-font">Editor font<a class="headerlink" href="#editor-font" title="Permanent link">¶</a></h2>
 <p><strong>Settings → Editor → Editor font</strong> sets the font of every code editor: the XML, XSD, XSLT, XQuery
 and JSON editors, the Query Console, the transform output and the debugger's value views.</p>
