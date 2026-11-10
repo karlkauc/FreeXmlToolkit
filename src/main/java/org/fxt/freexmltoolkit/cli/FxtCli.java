@@ -22,7 +22,8 @@ import picocli.CommandLine.Spec;
         versionProvider = FxtCli.Version.class,
         header = "FreeXmlToolkit on the command line.",
         description = "Validate, transform, test (XSpec), compare, merge, document schemas, convert and render "
-                + "PDF without the user interface. Logs go to standard error, results to standard output.",
+                + "PDF without the user interface, or serve these tools to AI agents (mcp). Logs go to standard "
+                + "error, results to standard output.",
         footerHeading = "%nMore help:%n",
         footer = {
                 "  fxt-cli <command> --help    options and examples of a command",
@@ -44,6 +45,7 @@ import picocli.CommandLine.Spec;
                 VerifyCommand.class,
                 EncryptCommand.class,
                 DecryptCommand.class,
+                McpCommand.class,
                 CommandLine.HelpCommand.class
         },
         exitCodeListHeading = "%nExit codes:%n",

@@ -57,6 +57,10 @@ public final class AdminPolicy {
     public static final String KEY_XMLENC_LEGACY_ALLOWED = "xmlenc.legacyAlgorithms.allowed";
     /** {@code false} disables external XSL-FO processors: only the bundled Apache FOP renders PDFs. */
     public static final String KEY_FOP_EXTERNAL_ALLOWED = "fop.external.allowed";
+    /** Policy only: {@code false} removes every AI feature, including {@code fxt-cli mcp}. */
+    public static final String KEY_AI_ALLOWED = "ai.allowed";
+    /** Policy only: {@code false} refuses {@code fxt-cli mcp}. */
+    public static final String KEY_AI_MCP_ALLOWED = "ai.mcp.allowed";
     /** Settings key of the automatic update check (see {@link PropertiesService#isUpdateCheckEnabled()}). */
     static final String KEY_UPDATE_CHECK = "update.check.enabled";
     /** Prefix of keys that are Java system properties rather than settings. */
@@ -250,6 +254,16 @@ public final class AdminPolicy {
     /** @return {@code false} when the administrator disabled plugins from the plugins folder */
     public boolean externalPluginsAllowed() {
         return !"false".equalsIgnoreCase(locked.getProperty(KEY_EXTERNAL_PLUGINS_ALLOWED, "true"));
+    }
+
+    /** @return {@code false} when the administrator removed the AI features ({@value #KEY_AI_ALLOWED}=false) */
+    public boolean aiAllowed() {
+        return !"false".equalsIgnoreCase(locked.getProperty(KEY_AI_ALLOWED, "true"));
+    }
+
+    /** @return {@code false} when the administrator disabled the MCP server ({@value #KEY_AI_MCP_ALLOWED}=false) */
+    public boolean aiMcpAllowed() {
+        return !"false".equalsIgnoreCase(locked.getProperty(KEY_AI_MCP_ALLOWED, "true"));
     }
 
     /** @return {@code false} when the administrator disabled XML encryption */

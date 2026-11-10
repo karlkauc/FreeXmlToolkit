@@ -187,6 +187,9 @@ are not bundled but downloaded from their publishers when first used.
 | **Apache Commons Text** (org.apache.commons:commons-text) | 1.15.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Apache Commons Validator** (commons-validator:commons-validator) | 1.11.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **picocli** (info.picocli:picocli), for `fxt-cli` | 4.7.7 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **MCP Java SDK** (io.modelcontextprotocol.sdk:mcp-core, mcp-json-jackson3), for `fxt-cli mcp` | 2.1.0 | [MIT License](https://github.com/modelcontextprotocol/java-sdk/blob/main/LICENSE) |
+| **Reactor Core** (io.projectreactor:reactor-core), via the MCP Java SDK | 3.7.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Reactive Streams** (org.reactivestreams:reactive-streams), via Reactor Core | 1.0.4 | [MIT No Attribution](https://github.com/reactive-streams/reactive-streams-jvm/blob/main/LICENSE) |
 
 ## Templating and Markdown
 

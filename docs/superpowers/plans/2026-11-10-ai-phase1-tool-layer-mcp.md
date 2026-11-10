@@ -299,11 +299,35 @@ descriptions to stdout and exits — no server), plus the inherited `-q` / `--ve
 
 **Steps:**
 
-- [ ] **Step 1 (red):** `McpToolServerTest` drives `serve` with piped streams: initialise with `2025-11-25` (the newest revision the SDK speaks, see the Task 1 report) and with an older one the server supports; `server/discover` (the `2026-07-28` probe) gets an error a modern client treats as "legacy server", so its fallback to `initialize` works; `tools/list` returns every registered tool with its input schema; `tools/call validate` with inline content returns text and structured content; an unknown tool and malformed arguments produce the error shape the spec prescribes (tool-level failures are results with the error flag, protocol misuse is a JSON-RPC error — follow the spec read in Task 1); a request before initialisation is rejected; end of input ends `serve` cleanly.
-- [ ] **Step 2 (red):** `StdoutGuardTest`: a tool that calls `System.out.println("noise")` during a call leaves the protocol stream byte-for-byte a sequence of valid messages; the noise arrives on stderr. `FxtCliMcpTest`: `--list-tools` prints the names; with the policy set for the test to `ai.mcp.allowed=false` (test helper `service/AdminPolicyTestAccess`; reset it after the test) the command returns `ExitCodes.USAGE` and reads nothing from stdin; `--tools nope` is a usage error naming the valid tools; `--root` pointing to a missing folder is a usage error.
-- [ ] **Step 3 (green):** implement with the choice from Task 1. `McpCommand.call()`: check policy → set `fxt.schema.localCopies=false` (`LocalSchemaCopies.PROPERTY`; otherwise a downloaded import is copied next to the schema that names it — a write into the user's folder) → `CliSupport.initServices()` → build `WorkspaceAccess` → install `StdoutGuard` → `serve(System.in, originalStdout)`. After each call, when `ToolRegistry.runawayCount()` reaches 3, finish the current response, write a message to stderr and exit (status `ExitCodes.FAILED`), so runaway expressions (Task 4 finding) cannot keep burning CPU; the client starts the server again. Tests for both. Server name `freexmltoolkit`, version from `VersionUtil.getVersion()`.
-- [ ] **Step 4:** manual check with a real client. Build (`./gradlew jar` or run through `./gradlew runCli --args="mcp --root …"` — make sure Gradle's own output does not share stdout; if it does, use the packaged launcher or `java -cp`), register the server in Claude Code, and run this scenario: *"Write an XSLT 3.0 stylesheet that turns `src/test/resources/…/<a sample>.xml` into a CSV of two fields, run it with the fxt tools, and show me the result."* Confirm the agent calls `document_outline` / `schema_describe`, then `xslt_transform` with inline content, and repairs after an error. Paste the transcript summary into the task's commit note. Record the exact registration command that worked in `docs/mcp-server.md`.
-- [ ] **Step 5:** commit.
+- [x] **Step 1 (red):** `McpToolServerTest` drives `serve` with piped streams: initialise with `2025-11-25` (the newest revision the SDK speaks, see the Task 1 report) and with an older one the server supports; `server/discover` (the `2026-07-28` probe) gets an error a modern client treats as "legacy server", so its fallback to `initialize` works; `tools/list` returns every registered tool with its input schema; `tools/call validate` with inline content returns text and structured content; an unknown tool and malformed arguments produce the error shape the spec prescribes (tool-level failures are results with the error flag, protocol misuse is a JSON-RPC error — follow the spec read in Task 1); a request before initialisation is rejected; end of input ends `serve` cleanly.
+- [x] **Step 2 (red):** `StdoutGuardTest`: a tool that calls `System.out.println("noise")` during a call leaves the protocol stream byte-for-byte a sequence of valid messages; the noise arrives on stderr. `FxtCliMcpTest`: `--list-tools` prints the names; with the policy set for the test to `ai.mcp.allowed=false` (test helper `service/AdminPolicyTestAccess`; reset it after the test) the command returns `ExitCodes.USAGE` and reads nothing from stdin; `--tools nope` is a usage error naming the valid tools; `--root` pointing to a missing folder is a usage error.
+- [x] **Step 3 (green):** implement with the choice from Task 1. `McpCommand.call()`: check policy → set `fxt.schema.localCopies=false` (`LocalSchemaCopies.PROPERTY`; otherwise a downloaded import is copied next to the schema that names it — a write into the user's folder) → `CliSupport.initServices()` → build `WorkspaceAccess` → install `StdoutGuard` → `serve(System.in, originalStdout)`. After each call, when `ToolRegistry.runawayCount()` reaches 3, finish the current response, write a message to stderr and exit (status `ExitCodes.FAILED`), so runaway expressions (Task 4 finding) cannot keep burning CPU; the client starts the server again. Tests for both. Server name `freexmltoolkit`, version from `VersionUtil.getVersion()`.
+- [x] **Step 4:** manual check with a real client. Build (`./gradlew jar` or run through `./gradlew runCli --args="mcp --root …"` — make sure Gradle's own output does not share stdout; if it does, use the packaged launcher or `java -cp`), register the server in Claude Code, and run this scenario: *"Write an XSLT 3.0 stylesheet that turns `src/test/resources/…/<a sample>.xml` into a CSV of two fields, run it with the fxt tools, and show me the result."* Confirm the agent calls `document_outline` / `schema_describe`, then `xslt_transform` with inline content, and repairs after an error. Paste the transcript summary into the task's commit note. Record the exact registration command that worked in `docs/mcp-server.md`.
+- [x] **Step 5:** commit.
+
+**Outcome:**
+- SDK `mcp-core` + `mcp-json-jackson3` 2.1.0 in `build.gradle.kts`; new runtime artifacts exactly as the Task 1
+  report predicted (`reactor-core` 3.7.0, `reactive-streams` 1.0.4); `docs/licenses.md` updated.
+- `McpToolServer.serve` ends on end of input (`Ending.INPUT_CLOSED`) or after `DEFAULT_RUNAWAY_LIMIT` (3) runaway
+  calls (`Ending.RUNAWAYS`, the answer of the call is written first); `fxt-cli mcp` then exits with `FAILED`.
+- Every structured result is also sent as serialized JSON in a second text block (the specification's
+  backwards-compatibility rule): in the manual check Claude Code showed only the text of an error result, so the
+  error code, phase and line were lost until then. An engine message that already names its code is not wrapped
+  again (`ToolJson.describe`).
+- SDK behaviour pinned by tests rather than changed: a request before `initialize` is held until the handshake (no
+  error, but no tool runs); `server/discover` gets −32601, so a 2026-07-28 client falls back. Not changed: a line
+  that is not JSON ends the SDK's stdio transport (documented in `docs/mcp-server.md`).
+- Tools get `readOnlyHint: true`, `idempotentHint: true`, `openWorldHint: false`.
+
+**Manual check (Step 4), 2026-11-10, Claude Code 2.1.322 as client** (`claude -p … --mcp-config … --strict-mcp-config
+--allowedTools "mcp__fxt__*"`, server = `fxt-cli mcp --root <folder with funds.xml>`):
+1. "Turn funds.xml into a CSV of name and nav": the agent called `document_outline`, then `xslt_transform` with the
+   stylesheet inline; output `name,nav / Alpha,10.5 / Beta,11`; no file was created.
+2. Deliberate syntax error first: `xslt_transform` returned `isError` with XPST0003, phase compile, line 4; the
+   agent fixed the stylesheet and the second call returned the names. This run surfaced the text-only error display
+   fixed above; a third run confirmed the agent now receives the JSON fields.
+3. A scripted session against the real process (`java … FxtCli mcp`) showed only JSON-RPC lines on stdout and an
+   empty stderr, exit 0 at end of input.
 
 ---
 

@@ -189,6 +189,12 @@ dependencies {
     // Command-line interface (fxt-cli, org.fxt.freexmltoolkit.cli)
     implementation("info.picocli:picocli:4.7.7")
 
+    // MCP server (fxt-cli mcp, org.fxt.freexmltoolkit.service.ai.mcp only - AiLayeringGuardTest); decision D4 in
+    // docs/superpowers/reports/2026-11-10-mcp-implementation-decision.md. Adds reactor-core + reactive-streams;
+    // slf4j, Jackson 3 and json-schema-validator resolve to the versions already pinned here.
+    implementation("io.modelcontextprotocol.sdk:mcp-core:2.1.0")
+    implementation("io.modelcontextprotocol.sdk:mcp-json-jackson3:2.1.0")
+
     // Note: Guice 7.0.0 doesn't support Java 25 (class file version 69)
     // Using manual DI pattern instead - see org.fxt.freexmltoolkit.di package
 

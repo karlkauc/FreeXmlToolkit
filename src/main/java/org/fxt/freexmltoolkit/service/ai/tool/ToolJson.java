@@ -27,6 +27,9 @@ final class ToolJson {
 
     /** "line 3: [XTSE0010] message" for the text of a result. */
     static String describe(String code, String phase, int line, String message) {
+        if (message != null && code != null && message.contains("[" + code + "]")) {
+            return message; // the engine's message already names location and code
+        }
         StringBuilder text = new StringBuilder();
         if (phase != null) {
             text.append(phase).append(" error");
