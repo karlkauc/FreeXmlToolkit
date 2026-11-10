@@ -349,8 +349,9 @@ public class FxtGui extends Application {
 
                 var scene = new Scene(root, 1024, 768);
 
-                org.fxt.freexmltoolkit.controls.shell.ThemeManager.apply(scene,
-                        org.fxt.freexmltoolkit.controls.shell.ThemeManager.currentIsDark());
+                // The stored mode, not its resolution: "system" must stay "system"
+                org.fxt.freexmltoolkit.controls.shell.ThemeManager.applyMode(scene,
+                        org.fxt.freexmltoolkit.controls.shell.ThemeManager.currentMode());
 
                 setupTaskbarIcons(primaryStage);
 

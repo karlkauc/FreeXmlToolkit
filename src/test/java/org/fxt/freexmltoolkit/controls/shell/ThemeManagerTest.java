@@ -143,4 +143,79 @@ class ThemeManagerTest {
             ThemeManager.removeThemeChangeListener(listener);
         }
     }
+
+    @Test
+    void storedModesAreReadAndSystemStaysStored() {
+        assertEquals(ThemeManager.Mode.SYSTEM, ThemeManager.Mode.fromProperty("system"));
+        assertEquals(ThemeManager.Mode.DARK, ThemeManager.Mode.fromProperty("Dark"));
+        assertEquals(ThemeManager.Mode.LIGHT, ThemeManager.Mode.fromProperty(null));
+        assertEquals(ThemeManager.Mode.LIGHT, ThemeManager.Mode.fromProperty("blue"));
+
+        var props = org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class);
+        try {
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> ThemeManager.applyMode(scene, ThemeManager.Mode.SYSTEM));
+            assertEquals("system", props.get("ui.theme"), "the mode is stored, not its resolution");
+            assertEquals(ThemeManager.Mode.SYSTEM, ThemeManager.currentMode());
+            boolean dark = ThemeManager.systemPrefersDark();
+            assertEquals(dark, ThemeManager.currentIsDark(), "system resolves to the platform's scheme");
+            assertTrue(scene.getRoot().getStyleClass().contains(dark ? "fxt-theme-dark" : "fxt-theme-light"));
+        } finally {
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> ThemeManager.apply(scene, false));
+        }
+    }
+
+    @Test
+    void anAccentAddsItsSheetRightAfterTheDesignTokensAndTheDefaultRemovesIt() {
+        String tokens = sheet("design-tokens.css");
+        String shell = sheet("unified-shell.css");
+        try {
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                nested.getStylesheets().setAll(tokens, shell);
+                ThemeManager.apply(scene, false);
+                ThemeManager.setAccent("green");
+            });
+            List<String> sheets = nested.getStylesheets();
+            assertEquals(tokens, sheets.get(0));
+            assertTrue(sheets.get(1).startsWith("data:text/css"), "accent sheet after the tokens: " + sheets);
+            assertEquals("green", ThemeManager.currentAccent());
+            assertTrue(org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.PRIMARY
+                    .color(org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme.LIGHT).getGreen() > 0.4, "Java tokens follow");
+            String css = new String(java.util.Base64.getDecoder().decode(
+                    sheets.get(1).substring(sheets.get(1).indexOf(',') + 1)), java.nio.charset.StandardCharsets.UTF_8);
+            assertTrue(css.contains("-fxt-primary:") && css.contains(".root.fxt-theme-dark"), css);
+
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> ThemeManager.setAccent("violet"));
+            assertEquals(1, nested.getStylesheets().stream().filter(s -> s.startsWith("data:")).count(), "replaced, not added");
+        } finally {
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> ThemeManager.setAccent(null));
+        }
+        assertTrue(nested.getStylesheets().stream().noneMatch(s -> s.startsWith("data:")), "the default needs no sheet");
+        assertEquals(javafx.scene.paint.Color.web("#1373d9"), org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.PRIMARY
+                .color(org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme.LIGHT));
+    }
+
+    @Test
+    void theAccentReachesTheLookedUpColoursOfTheNodes() {
+        try {
+            javafx.scene.layout.Region probe = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                // .root rules apply to the scene root only, as in the shell
+                root.getStylesheets().setAll(sheet("design-tokens.css"));
+                javafx.scene.layout.Region r = new javafx.scene.layout.Region();
+                r.setStyle("-fx-background-color: -fxt-primary;");
+                nested.getChildren().setAll(r);
+                ThemeManager.apply(scene, false);
+                ThemeManager.setAccent("#c2410c");
+                scene.getRoot().applyCss();
+                return r;
+            });
+            javafx.scene.paint.Paint fill = probe.getBackground().getFills().getFirst().getFill();
+            assertEquals(org.fxt.freexmltoolkit.controls.theme.AccentPalette.light(javafx.scene.paint.Color.web("#c2410c"))
+                    .get("-fxt-primary"), fill);
+        } finally {
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                ThemeManager.setAccent(null);
+                root.getStylesheets().clear();
+            });
+        }
+    }
 }

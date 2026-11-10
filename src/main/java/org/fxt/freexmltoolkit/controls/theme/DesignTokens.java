@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls.theme;
 
 import java.lang.ref.WeakReference;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
@@ -53,6 +54,8 @@ public final class DesignTokens {
         PRIMARY_TEXT("-fxt-primary-text", "#1068c4", "#4c9bf5"),
         /** Fill of buttons whose text is {@link #ON_PRIMARY}: at least 4.5:1 with it in both themes. */
         PRIMARY_FILL("-fxt-primary-fill", "#1373d9", "#1f6fd1"),
+        /** Strong primary of selected list/tree rows and focus borders of the classic controls (white text on it). */
+        PRIMARY_STRONG("-fxt-primary-strong", "#0969da", "#094771"),
         ACCENT("-fxt-accent", "#f08c2e", "#f59f46"),
 
         BG_CANVAS("-fxt-bg-canvas", "#f5f7fa", "#0f1419"),
@@ -193,8 +196,15 @@ public final class DesignTokens {
             return cssVariable;
         }
 
-        /** @return the token's color for the given theme. */
+        /** @return the token's color for the given theme: the user's override (accent) or the design value. */
         public Color color(Theme theme) {
+            Map<String, Color> overrides = theme == Theme.DARK ? darkOverrides : lightOverrides;
+            Color override = overrides.get(cssVariable);
+            return override != null ? override : defaultColor(theme);
+        }
+
+        /** @return the design value of the token, ignoring overrides */
+        public Color defaultColor(Theme theme) {
             return theme == Theme.DARK ? dark : light;
         }
     }
@@ -208,6 +218,29 @@ public final class DesignTokens {
     // ---------------------------------------------------------------------
 
     private static volatile Theme currentTheme = Theme.LIGHT;
+
+    /** User overrides of CSS variables (the accent palette), per theme; empty = design values. */
+    private static volatile Map<String, Color> lightOverrides = Map.of();
+    private static volatile Map<String, Color> darkOverrides = Map.of();
+
+    /**
+     * Replaces the overrides of token values (e.g. the primary family derived from an accent
+     * colour). Java-rendered surfaces read them through {@link ColorToken#color}; the CSS side
+     * gets the same values from {@code ThemeManager}'s appearance stylesheet. Call
+     * {@link #publishTheme} afterwards so open views repaint.
+     *
+     * @param light CSS variable → colour for the light theme (null = none)
+     * @param dark  CSS variable → colour for the dark theme (null = none)
+     */
+    public static void setOverrides(Map<String, Color> light, Map<String, Color> dark) {
+        lightOverrides = light == null ? Map.of() : Map.copyOf(light);
+        darkOverrides = dark == null ? Map.of() : Map.copyOf(dark);
+    }
+
+    /** @return the current overrides of a theme (CSS variable → colour) */
+    public static Map<String, Color> overrides(Theme theme) {
+        return theme == Theme.DARK ? darkOverrides : lightOverrides;
+    }
 
     private static final CopyOnWriteArrayList<WeakReference<Consumer<Theme>>> THEME_LISTENERS =
             new CopyOnWriteArrayList<>();

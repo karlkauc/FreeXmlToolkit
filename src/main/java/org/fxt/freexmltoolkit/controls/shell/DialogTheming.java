@@ -152,6 +152,7 @@ public final class DialogTheming {
             root.getStyleClass().add(DIALOG_CLASS);
         }
         insertThemeSheet(root, dark);
+        ThemeManager.syncAppearanceSheet(root);
         if (root instanceof DialogPane pane) {
             fitButtonsToLabels(pane);
         }

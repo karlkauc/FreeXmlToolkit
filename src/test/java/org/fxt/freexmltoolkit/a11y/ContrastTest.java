@@ -28,7 +28,7 @@ class ContrastTest {
             {"text-secondary", "bg-surface"}, {"text-secondary", "bg-canvas"}, {"text-secondary", "bg-surface-2"},
             {"text-muted", "bg-surface"}, {"text-muted", "bg-canvas"}, {"text-muted", "bg-surface-2"},
             {"primary-text", "bg-surface"}, {"primary-text", "bg-canvas"}, {"primary-text", "bg-subtle"},
-            {"on-primary", "primary-fill"},
+            {"on-primary", "primary-fill"}, {"on-primary", "primary-strong"},
             {"warning-text", "bg-surface"}, {"warning-text", "bg-canvas"},
             {"danger", "bg-surface"}, {"success-text", "success-bg"}, {"type-frame-fg", "type-frame-bg"},
             // Dialogs: button bar, sections and info boxes sit on surface-2

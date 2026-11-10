@@ -1,0 +1,138 @@
+package org.fxt.freexmltoolkit.screenshots;
+
+import java.io.File;
+import java.util.concurrent.TimeUnit;
+
+import javax.imageio.ImageIO;
+
+import javafx.embed.swing.SwingFXUtils;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
+import javafx.stage.Stage;
+
+import org.fxt.freexmltoolkit.controls.shell.Activity;
+import org.fxt.freexmltoolkit.controls.shell.ThemeManager;
+import org.fxt.freexmltoolkit.controls.shell.UnifiedShellView;
+import org.fxt.freexmltoolkit.controls.shell.editor.SettingsPanel;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.testfx.framework.junit5.ApplicationExtension;
+import org.testfx.framework.junit5.Start;
+import org.testfx.util.WaitForAsyncUtils;
+
+/**
+ * Captures the appearance settings for the documentation ({@code docs/img/}): the Appearance
+ * cards of the Settings page, and the same page in an accent colour, light and dark.
+ *
+ * <pre>{@code
+ * xvfb-run -a -s "-screen 0 1680x1050x24" ./gradlew docScreenshots --tests "*AppearanceDocScreenshotGenerator*"
+ * }</pre>
+ */
+@ExtendWith(ApplicationExtension.class)
+class AppearanceDocScreenshotGenerator {
+
+    private static final File IMG_DIR = new File("docs/img");
+
+    private Parent root;
+    private UnifiedShellView shell;
+
+    @Start
+    void start(Stage stage) throws Exception {
+        org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
+        org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class)
+                .set(org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlHint.SHOWN_KEY, "true");
+        org.fxt.freexmltoolkit.controls.v2.view.XsdTypeIconPaths.registerAll();
+        for (String font : new String[]{"Inter-Regular", "Inter-Medium", "Inter-SemiBold", "Inter-Bold",
+                "JetBrainsMono-Regular", "JetBrainsMono-Medium", "JetBrainsMono-Bold"}) {
+            javafx.scene.text.Font.loadFont(getClass().getResourceAsStream("/css/fonts/" + font + ".ttf"), 10);
+        }
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_unified_shell.fxml"));
+        root = loader.load();
+        stage.setScene(new Scene(root, 1680, 1000));
+        stage.setX(0);
+        stage.setY(0);
+        stage.show();
+    }
+
+    @Test
+    void generateAppearanceScreenshots() throws Exception {
+        IMG_DIR.mkdirs();
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> root.lookup(".fxt-shell") != null);
+        shell = (UnifiedShellView) root.lookup(".fxt-shell");
+        try {
+            onFx(() -> ThemeManager.apply(root.getScene(), false));
+
+            // The Settings page scrolled to its Appearance cards
+            onFx(() -> shell.getSelectionModel().select(Activity.SETTINGS));
+            settle(800);
+            shot("unified-shell-settings-appearance");
+
+            // The same page in the violet accent, light and dark, set through the page itself
+            SettingsPanel panel = findSettings(root);
+            onFx(() -> panel.applyAccent("violet"));
+            settle(800);
+            shot("unified-shell-accent-violet");
+            onFx(() -> panel.applyTheme(true));
+            settle(800);
+            shot("unified-shell-accent-violet-dark");
+        } finally {
+            onFx(() -> {
+                SettingsPanel panel = findSettings(root);
+                if (panel != null) {
+                    panel.applyAccent("blue");
+                    panel.applyTheme(false);
+                } else {
+                    ThemeManager.setAccent(null);
+                    ThemeManager.apply(root.getScene(), false);
+                }
+            });
+        }
+    }
+
+    /** @return the Settings page in the node tree, or null */
+    private static SettingsPanel findSettings(Node node) {
+        if (node instanceof SettingsPanel panel) {
+            return panel;
+        }
+        if (node instanceof Parent parent) {
+            for (Node child : parent.getChildrenUnmodifiable()) {
+                SettingsPanel found = findSettings(child);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        if (node instanceof javafx.scene.control.TabPane tabs) {
+            for (var tab : tabs.getTabs()) {
+                SettingsPanel found = tab.getContent() == null ? null : findSettings(tab.getContent());
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return null;
+    }
+
+    private void onFx(Runnable action) {
+        ScreenshotFx.run("appearance-screenshot", action);
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+
+    private void settle(long millis) {
+        WaitForAsyncUtils.sleep(millis, TimeUnit.MILLISECONDS);
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+
+    private void shot(String name) throws Exception {
+        var img = ScreenshotFx.call("appearance-screenshot", () -> {
+            Node target = shell != null ? shell : root;
+            return target.snapshot(new SnapshotParameters(), null);
+        });
+        File out = new File(IMG_DIR, name + ".png");
+        ImageIO.write(SwingFXUtils.fromFXImage(img, null), "png", out);
+        System.out.println("[appearance-screenshot] wrote " + out.getAbsolutePath());
+    }
+}

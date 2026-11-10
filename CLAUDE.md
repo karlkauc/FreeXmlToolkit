@@ -91,6 +91,19 @@ UI: `SignatureView` (activity "Sign & Encrypt") actions ENCRYPT/DECRYPT/INSPECT,
 `*-env` (`CliSecrets`). Examples `release/examples/encryption/` (`EncryptionExamplesTest`). Docs:
 `docs/xml-encryption.md`. The Decryption Transform for signatures is not supported.
 
+## Appearance (theme mode, accent colour)
+
+`controls/shell/ThemeManager`: `ui.theme` = `light|dark|system` (`Mode`; `applyMode` stores the mode,
+`currentIsDark()` resolves `SYSTEM` via `Platform.getPreferences().getColorScheme()` and follows OS changes —
+store the mode, never its resolution). `ui.accent` = preset id of `controls/theme/AccentPalette` or `#rrggbb`:
+`AccentPalette.light/dark` derive the primary family (`-fxt-primary`, `-primary-text`, `-primary-fill`,
+`-primary-strong`, `-bg-subtle`, `-tool-primary-*`) with WCAG adjustment; Java gets them through
+`DesignTokens.setOverrides` (`ColorToken.color` = override or `defaultColor`), CSS through a `data:` "appearance"
+stylesheet inserted right after `design-tokens.css` wherever that sheet is declared (`syncAppearanceSheet`, also
+in `DialogTheming`, `DialogHelper.getThemeStylesheets`, popups). Accent colours in the theme sheets must be
+tokens (`-fxt-primary*`), never hex. Settings → Appearance: Theme (Light/Dark/System) and Accent colour cards,
+both applied at once and lockable (`policyKeys`).
+
 ## View Export (PNG / SVG / PDF / clipboard)
 
 The diagram renderers draw through `controls/v2/view/render/DiagramGraphics` (mirrors `GraphicsContext`;

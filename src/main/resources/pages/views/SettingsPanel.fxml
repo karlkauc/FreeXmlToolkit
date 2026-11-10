@@ -7,6 +7,7 @@
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.control.ColorPicker?>
 <?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
@@ -78,8 +79,31 @@
                                                                 <IconifyIcon iconLiteral="bi-moon" iconSize="16"/>
                                                             </graphic>
                                                         </ToggleButton>
+                                                        <ToggleButton fx:id="systemTheme" id="settings-theme-system" text="%SettingsPanel.systemTheme.text"
+                                                                      toggleGroup="$themeGroup" styleClass="fxt-view-seg" onAction="#onThemeSystem">
+                                                            <graphic>
+                                                                <IconifyIcon iconLiteral="bi-circle-half" iconSize="16"/>
+                                                            </graphic>
+                                                        </ToggleButton>
                                                     </children>
                                                 </HBox>
+                                                <Label text="%SettingsPanel.theme-system-hint.text" wrapText="true"
+                                                       minHeight="-Infinity" styleClass="fxt-placeholder-text"/>
+                                            </children>
+                                        </SettingsCard>
+                                        <SettingsCard title="%SettingsPanel.accent.title" iconLiteral="bi-droplet-half">
+                                            <children>
+                                                <FlowPane fx:id="accentSwatches" id="settings-accent-swatches" hgap="6" vgap="6"/>
+                                                <HBox spacing="8" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="%SettingsPanel.accent-custom.text"/>
+                                                        <ColorPicker fx:id="accentPicker" id="settings-accent-custom"
+                                                                     accessibleText="%SettingsPanel.accent-custom.accessibleText"
+                                                                     onAction="#onAccentCustom"/>
+                                                    </children>
+                                                </HBox>
+                                                <Label text="%SettingsPanel.accent-hint.text" wrapText="true"
+                                                       minHeight="-Infinity" styleClass="fxt-placeholder-text"/>
                                             </children>
                                         </SettingsCard>
                                         <SettingsCard title="%SettingsPanel.language.title" iconLiteral="bi-translate">

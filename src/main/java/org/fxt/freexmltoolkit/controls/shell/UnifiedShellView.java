@@ -1975,6 +1975,9 @@ public class UnifiedShellView extends BorderPane {
 
     /** Toggles light/dark theme and flips the header toggle's sun/moon icon literal. */
     private void toggleTheme() {
+        if (org.fxt.freexmltoolkit.service.AdminPolicy.current().isLocked("ui.theme")) {
+            return; // the administrator fixed the theme
+        }
         boolean dark = !ThemeManager.currentIsDark();
         if (getScene() != null) {
             ThemeManager.apply(getScene(), dark);

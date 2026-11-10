@@ -322,6 +322,7 @@ public final class TypePickerPopup {
                 }
             }
         }
+        ThemeManager.syncAppearanceSheet(content);
     }
 
     // ----- cells ---------------------------------------------------------------------------

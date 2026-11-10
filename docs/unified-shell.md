@@ -204,6 +204,12 @@ copied as an image:
 Both items are only available while a graphical view is shown (the **Graphic** view of a
 document, or a Profile tab).
 
+![The Export View dialog with the PNG options](img/unified-shell-export-view-dialog.png)
+*The Export View dialog: format, area, scale, colours, background and margin, with the resulting image size*
+
+![An XSD diagram exported as PNG](img/unified-shell-export-view-result.png)
+*The result: the diagram as it is expanded on screen, without selection or hover marks*
+
 | Format | Best for |
 |--------|----------|
 | **PNG image** | Wikis, tickets, e-mail, Office documents. Scale 1× to 4×; the file carries its resolution, so it prints at the size of the diagram on screen. |

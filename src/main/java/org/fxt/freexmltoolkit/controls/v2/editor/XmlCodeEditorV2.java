@@ -408,7 +408,10 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
             lineNumber.styleProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
                     () -> codeArea.getCurrentParagraph() == lineIndex
                             ? "-fx-font-family: 'JetBrains Mono', monospace; -fx-text-fill: "
-                            + (isDarkTheme() ? "#4c9bf5" : "#1373d9") + "; -fx-font-weight: bold;"
+                            + org.fxt.freexmltoolkit.controls.theme.AccentPalette.hex(
+                                    org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.PRIMARY.color(
+                                            org.fxt.freexmltoolkit.controls.theme.DesignTokens.currentTheme()))
+                            + "; -fx-font-weight: bold;"
                             : "-fx-font-family: 'JetBrains Mono', monospace; -fx-text-fill: #8a93a0;",
                     codeArea.currentParagraphProperty()));
             hbox.getChildren().add(lineNumber);
@@ -439,16 +442,6 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
     /**
      * Loads CSS stylesheets.
      */
-    /** @return {@code true} if the persisted UI theme is dark (same key ThemeManager writes). */
-    private static boolean isDarkTheme() {
-        try {
-            return "dark".equals(org.fxt.freexmltoolkit.di.ServiceRegistry
-                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class).get("ui.theme"));
-        } catch (Throwable t) {
-            return false;
-        }
-    }
-
     private void loadStylesheets() {
         try {
             // NOTE: fxt-theme.css is deliberately NOT attached here. It reaches the editor

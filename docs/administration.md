@@ -54,6 +54,8 @@ Any key of the user's settings file works. These are the ones most often managed
 | `security.dtd.allowed` | `false` | No DTD validation and no DTD loading; DOCTYPEs are only checked for well-formedness |
 | `fundsxml.enabled` | `true` / `false` | FundsXML extension |
 | `ui.language` | `system` / `en` / `de` | Language of the interface (Settings → Appearance → Language) |
+| `ui.theme` | `light` / `dark` / `system` | Theme (Settings → Appearance → Theme) |
+| `ui.accent` | `blue` / `indigo` / `violet` / `green` / `teal` / `orange` / `red` / `graphite` or `#rrggbb` | Accent colour (Settings → Appearance → Accent colour), e.g. the company colour |
 | `plugins.external.allowed` | `false` | **Policy only.** Load no [plugins](plugins.md) from the plugins folder (built-in ones still load) |
 | `fop.external.allowed` | `false` | **Policy only.** Only the bundled Apache FOP renders PDFs; [external XSL-FO processors](pdf-generator.md#external-xsl-fo-processors) are hidden and refused (panel, scenarios, `fxt-cli fop`) |
 | `fop.processors` | JSON list | The external XSL-FO processors (as written by *Settings → XSL-FO Processors*); in `defaults.properties` a starting list, in `policy.properties` a fixed one |

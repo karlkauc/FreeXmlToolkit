@@ -26,6 +26,8 @@
        buttons with -fxt-on-primary text, warning as text */
     -fxt-primary-text: #1068c4;
     -fxt-primary-fill: #1373d9;
+    /* Selected rows and focus borders of the classic controls (white text on it) */
+    -fxt-primary-strong: #0969da;
     -fxt-warning-text: #a65500;
     -fxt-accent: #f08c2e;
 
@@ -116,6 +118,7 @@
     -fxt-primary: #4c9bf5;
     -fxt-primary-text: #4c9bf5;
     -fxt-primary-fill: #1f6fd1;   /* white text 4.9:1 (the light #4c9bf5 gave 2.9:1) */
+    -fxt-primary-strong: #094771;
     -fxt-warning-text: #fab005;
     -fxt-accent: #f59f46;
 

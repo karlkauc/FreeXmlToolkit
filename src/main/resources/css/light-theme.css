@@ -181,9 +181,9 @@
 }
 
 .button:default {
-  -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #2b8aff, #0969da);
+  -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, derive(-fxt-primary-strong, 25%), -fxt-primary-strong);
   -fx-text-fill: white;
-  -fx-border-color: #0550ae; /* Dunklerer Blauton für den Rand */
+  -fx-border-color: derive(-fxt-primary-strong, -25%); /* darker edge of the default button */
 }
 
 .button:default:hover {
@@ -220,7 +220,7 @@
 }
 
 .text-field:focused, .text-area:focused {
-  -fx-border-color: #0969da;
+  -fx-border-color: -fxt-primary-strong;
   -fx-effect: dropshadow(gaussian, rgba(9, 105, 218, 0.3), 5, 0, 0, 0);
 }
 
@@ -276,7 +276,7 @@
 
 .tab-pane .tab:selected {
   -fx-background-color: #f5f5f5;
-  -fx-border-color: #0969da;
+  -fx-border-color: -fxt-primary-strong;
   -fx-font-weight: bold;
 }
 
@@ -309,12 +309,12 @@
 }
 
 .tree-cell:selected, .list-cell:selected {
-  -fx-background-color: #0969da;
+  -fx-background-color: -fxt-primary-strong;
   -fx-text-fill: white;
 }
 
 .tree-cell:selected:focused, .list-cell:selected:focused {
-  -fx-background-color: #0969da;
+  -fx-background-color: -fxt-primary-strong;
 }
 
 .tree-cell > .tree-disclosure-node > .arrow {
@@ -353,7 +353,7 @@
 }
 
 .menu-item:focused {
-  -fx-background-color: #0969da;
+  -fx-background-color: -fxt-primary-strong;
 }
 
 .menu-item:focused .label {
@@ -621,7 +621,7 @@
 }
 
 .attribute-box .label {
-  -fx-text-fill: #0550ae;
+  -fx-text-fill: derive(-fxt-primary-strong, -25%);
 }
 
 .node-value-box, .attribute-value-box {
@@ -632,7 +632,7 @@
 }
 
 .node-value-box:hover, .attribute-value-box:hover {
-  -fx-background-color: #0969da;
+  -fx-background-color: -fxt-primary-strong;
   -fx-cursor: hand;
 }
 
@@ -856,12 +856,12 @@
 }
 
 .trend-chart .chart-series-line {
-  -fx-stroke: #0969da;
+  -fx-stroke: -fxt-primary-strong;
   -fx-stroke-width: 2px;
 }
 
 .trend-chart .chart-line-symbol {
-  -fx-background-color: #0969da, white;
+  -fx-background-color: -fxt-primary-strong, white;
   -fx-background-insets: 0, 2;
   -fx-background-radius: 5px;
 }
@@ -913,7 +913,7 @@
 
 .feature-chip.discovered {
   -fx-background-color: #e7f3ff;
-  -fx-border-color: #0969da;
+  -fx-border-color: -fxt-primary-strong;
   -fx-border-width: 1px;
 }
 
@@ -952,13 +952,13 @@
 }
 
 .tips-header-icon {
-  -fx-fill: #0969da;
+  -fx-fill: -fxt-primary-strong;
 }
 
 .tips-header-label {
   -fx-font-size: 12px;
   -fx-font-weight: bold;
-  -fx-text-fill: #0969da;
+  -fx-text-fill: -fxt-primary-strong;
 }
 
 .tips-dismiss-button {
@@ -973,7 +973,7 @@
 }
 
 .tip-icon {
-  -fx-fill: #0969da;
+  -fx-fill: -fxt-primary-strong;
 }
 
 .tip-message {
@@ -982,7 +982,7 @@
 }
 
 .tip-action-button {
-  -fx-background-color: #0969da;
+  -fx-background-color: -fxt-primary-strong;
   -fx-text-fill: white;
   -fx-font-size: 11px;
   -fx-font-weight: bold;
@@ -992,7 +992,7 @@
 }
 
 .tip-action-button:hover {
-  -fx-background-color: #0550ae;
+  -fx-background-color: derive(-fxt-primary-strong, -25%);
 }
 
 .tips-nav-button {

@@ -15,7 +15,6 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
-import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.FileAssociationResult;
 import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
@@ -72,6 +71,13 @@ public class SettingsPanel extends VBox {
 
     @FXML private ToggleButton light;
     @FXML private ToggleButton dark;
+    @FXML private ToggleButton systemTheme;
+    @FXML private javafx.scene.layout.FlowPane accentSwatches;
+    @FXML private javafx.scene.control.ColorPicker accentPicker;
+    /** Set while the picker shows the chosen accent: its value change is no choice of its own. */
+    private boolean showingAccent;
+    /** The accent swatches; exactly one is selected while a preset is the accent. */
+    private final javafx.scene.control.ToggleGroup accentGroup = new javafx.scene.control.ToggleGroup();
 
     // Editor
     @FXML private Spinner<Integer> indentSpaces;
@@ -212,8 +218,12 @@ public class SettingsPanel extends VBox {
     public SettingsPanel() {
         FxmlViews.load(this, "/pages/views/SettingsPanel.fxml");
 
-        boolean isDark = DesignTokens.Theme.fromProperty(currentThemeProperty()) == DesignTokens.Theme.DARK;
-        (isDark ? dark : light).setSelected(true);
+        switch (org.fxt.freexmltoolkit.controls.shell.ThemeManager.currentMode()) {
+            case DARK -> dark.setSelected(true);
+            case SYSTEM -> systemTheme.setSelected(true);
+            default -> light.setSelected(true);
+        }
+        buildAccentSwatches();
 
         parserType.getItems().setAll(XmlParserType.values());
         collectPolicyLocks();
@@ -421,7 +431,9 @@ public class SettingsPanel extends VBox {
      * once (theme, file associations: they are not saved by "Save Settings").
      */
     private void trackChanges(javafx.scene.Parent root) {
-        java.util.Set<javafx.scene.Node> immediate = new java.util.HashSet<>(java.util.List.of(light, dark));
+        // Theme and accent apply at once and are stored right away: no "unsaved changes"
+        java.util.Set<javafx.scene.Node> immediate = new java.util.HashSet<>(
+                java.util.List.of(light, dark, systemTheme, accentSwatches, accentPicker));
         immediate.addAll(associationCheckBoxes().keySet());
         javafx.beans.InvalidationListener mark = obs -> {
             if (!loading) {
@@ -546,6 +558,74 @@ public class SettingsPanel extends VBox {
     @FXML
     public void onThemeDark() {
         applyTheme(true);
+    }
+
+    @FXML
+    public void onThemeSystem() {
+        applyThemeMode(org.fxt.freexmltoolkit.controls.shell.ThemeManager.Mode.SYSTEM);
+    }
+
+    /** A colour picked in the custom accent picker becomes the accent. */
+    @FXML
+    public void onAccentCustom() {
+        javafx.scene.paint.Color color = accentPicker.getValue();
+        if (color != null && !showingAccent) {
+            applyAccent(org.fxt.freexmltoolkit.controls.theme.AccentPalette.hex(color));
+        }
+    }
+
+    /** One round swatch per accent preset, the stored accent selected. */
+    private void buildAccentSwatches() {
+        String current = org.fxt.freexmltoolkit.controls.shell.ThemeManager.currentAccent();
+        for (var preset : org.fxt.freexmltoolkit.controls.theme.AccentPalette.PRESETS) {
+            ToggleButton swatch = new ToggleButton();
+            swatch.setId("settings-accent-" + preset.id());
+            swatch.getStyleClass().add("fxt-accent-swatch");
+            swatch.setToggleGroup(accentGroup);
+            javafx.scene.layout.Region dot = new javafx.scene.layout.Region();
+            dot.getStyleClass().add("fxt-accent-swatch-dot");
+            dot.setStyle("-fx-background-color: " + preset.hex() + ";");
+            swatch.setGraphic(dot);
+            String name = I18n.t(preset.labelKey());
+            swatch.setAccessibleText(name);
+            swatch.setTooltip(new javafx.scene.control.Tooltip(name));
+            swatch.setSelected(preset.id().equalsIgnoreCase(current));
+            swatch.setOnAction(e -> {
+                swatch.setSelected(true); // a click on the selected swatch keeps it
+                applyAccent(preset.id());
+            });
+            accentSwatches.getChildren().add(swatch);
+        }
+        showAccentInPicker(current);
+    }
+
+    /** Shows the accent's base colour in the own-colour picker without choosing it. */
+    private void showAccentInPicker(String accent) {
+        javafx.scene.paint.Color color = org.fxt.freexmltoolkit.controls.theme.AccentPalette.parse(accent);
+        showingAccent = true;
+        try {
+            accentPicker.setValue(color != null ? color
+                    : org.fxt.freexmltoolkit.controls.theme.AccentPalette.PRESETS.getFirst().color());
+        } finally {
+            showingAccent = false;
+        }
+    }
+
+    /** Applies and persists an accent (preset id or {@code #rrggbb}) and marks its swatch (for tests/observers). */
+    public void applyAccent(String accent) {
+        org.fxt.freexmltoolkit.controls.shell.ThemeManager.setAccent(accent);
+        showAccentInPicker(accent);
+        for (javafx.scene.Node node : accentSwatches.getChildren()) {
+            if (node instanceof ToggleButton swatch) {
+                swatch.setSelected(swatch.getId().equals("settings-accent-" + accent));
+            }
+        }
+    }
+
+    /** @return the accent swatches (for tests) */
+    java.util.List<ToggleButton> accentSwatchButtons() {
+        return accentSwatches.getChildren().stream().filter(ToggleButton.class::isInstance)
+                .map(ToggleButton.class::cast).toList();
     }
 
     @FXML
@@ -782,6 +862,11 @@ public class SettingsPanel extends VBox {
     /** The settings keys each control edits, for the administrator's locks. */
     java.util.Map<javafx.scene.Node, String[]> policyKeys() {
         var keys = new java.util.LinkedHashMap<javafx.scene.Node, String[]>();
+        keys.put(light, new String[] {"ui.theme"});
+        keys.put(dark, new String[] {"ui.theme"});
+        keys.put(systemTheme, new String[] {"ui.theme"});
+        keys.put(accentSwatches, new String[] {org.fxt.freexmltoolkit.controls.shell.ThemeManager.ACCENT_KEY});
+        keys.put(accentPicker, new String[] {org.fxt.freexmltoolkit.controls.shell.ThemeManager.ACCENT_KEY});
         keys.put(indentSpaces, new String[] {"xml.indent.spaces"});
         keys.put(jsonIndent, new String[] {"json.indent.spaces"});
         keys.put(autoFormat, new String[] {"xml.autoformat.after.loading"});
@@ -1746,20 +1831,22 @@ public class SettingsPanel extends VBox {
 
     /** Applies the theme to the scene and persists it (for tests/observers). */
     public void applyTheme(boolean darkTheme) {
-        (darkTheme ? dark : light).setSelected(true);
-        org.fxt.freexmltoolkit.controls.shell.ThemeManager.apply(getScene(), darkTheme);
+        applyThemeMode(darkTheme ? org.fxt.freexmltoolkit.controls.shell.ThemeManager.Mode.DARK
+                : org.fxt.freexmltoolkit.controls.shell.ThemeManager.Mode.LIGHT);
+    }
+
+    /** Applies a theme mode (light, dark, system) to the scene and persists it (for tests/observers). */
+    public void applyThemeMode(org.fxt.freexmltoolkit.controls.shell.ThemeManager.Mode mode) {
+        (switch (mode) {
+            case DARK -> dark;
+            case SYSTEM -> systemTheme;
+            default -> light;
+        }).setSelected(true);
+        org.fxt.freexmltoolkit.controls.shell.ThemeManager.applyMode(getScene(), mode);
     }
 
     /** @return {@code true} if Dark is currently selected (for tests/observers). */
     public boolean isDarkSelected() {
         return dark.isSelected();
-    }
-
-    private String currentThemeProperty() {
-        try {
-            return ServiceRegistry.get(PropertiesService.class).get("ui.theme");
-        } catch (Throwable t) {
-            return null;
-        }
     }
 }

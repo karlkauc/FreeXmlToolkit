@@ -4956,6 +4956,14 @@
     -fx-border-color: -fxt-primary;
 }
 
+/* The combo's button cell is a ListCell: without this the themed .list-cell:selected rule paints
+   the shown value primary-blue like a selected list row (dialogs, Settings, every panel). */
+.combo-box > .list-cell,
+.combo-box > .list-cell:selected {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fxt-text-primary;
+}
+
 .fxt-dialog.dialog-pane .scroll-pane {
     -fx-background-color: transparent;
     -fx-border-width: 0;
@@ -5184,4 +5192,37 @@
     -fx-background-insets: 0;
     -fx-padding: 0;
     -fx-border-width: 0;
+}
+
+/* Settings → Appearance → Accent colour: round swatches, the chosen one ringed */
+.fxt-accent-swatch {
+    -fx-background-color: transparent;
+    -fx-background-radius: 14;
+    -fx-border-color: transparent;
+    -fx-border-width: 2;
+    -fx-border-radius: 14;
+    -fx-padding: 2;
+    -fx-cursor: hand;
+}
+
+.fxt-accent-swatch:hover {
+    -fx-border-color: -fxt-border;
+}
+
+.fxt-accent-swatch:selected {
+    -fx-border-color: -fxt-text-primary;
+}
+
+.fxt-accent-swatch:focused {
+    -fx-border-color: -fxt-primary;
+}
+
+.fxt-accent-swatch-dot {
+    -fx-min-width: 20;
+    -fx-min-height: 20;
+    -fx-pref-width: 20;
+    -fx-pref-height: 20;
+    -fx-max-width: 20;
+    -fx-max-height: 20;
+    -fx-background-radius: 10;
 }

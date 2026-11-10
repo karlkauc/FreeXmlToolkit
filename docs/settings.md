@@ -30,18 +30,37 @@ settings may be greyed out and a notice at the top of the page says so; see
   info, your templates, the file associations and the extension settings (FundsXML, Developer)
   unchanged.
 - The **language** applies at the next start.
-- A few actions take effect **immediately**, without Save: switching the **theme**, registering
+- A few actions take effect **immediately**, without Save: switching the **theme** or the **accent colour**, registering
   or unregistering **file associations**, and creating, editing or deleting **templates**.
 
 | Group | Cards and options |
 |-------|-------------------|
-| **Appearance** | **Theme** - switch between **Light** and **Dark**. **Language** - the language of the interface: **System default**, **English** or **Deutsch** (takes effect after a restart; the system default is used when it is English or German, otherwise English). **Layout** - **Show toolbar button labels**; **Show activity bar labels**; **Use small icons**; toolbar icon size (**Small** / **Large**); **Show left side panel**; **Show Properties (inspector) panel**. **Rendering** - JavaFX graphics pipeline: **Auto** / **Hardware** / **Software** (takes effect after restart), with the active pipeline and GPU status; see [Rendering mode (hardware vs. software)](#rendering-mode) below. **Memory** - **Maximum memory** for the application: **Automatic** (half of the installed memory) or a fixed limit (takes effect after restart); see [Memory and large files](#memory) below. |
+| **Appearance** | **Theme** - **Light**, **Dark** or **System** (follows the light or dark setting of the operating system, also while the application runs). **Accent colour** - the colour of buttons, selection, focus and links: eight presets or **Own colour**; see [Accent colour](#accent-colour) below. **Language** - the language of the interface: **System default**, **English** or **Deutsch** (takes effect after a restart; the system default is used when it is English or German, otherwise English). **Layout** - **Show toolbar button labels**; **Show activity bar labels**; **Use small icons**; toolbar icon size (**Small** / **Large**); **Show left side panel**; **Show Properties (inspector) panel**. **Rendering** - JavaFX graphics pipeline: **Auto** / **Hardware** / **Software** (takes effect after restart), with the active pipeline and GPU status; see [Rendering mode (hardware vs. software)](#rendering-mode) below. **Memory** - **Maximum memory** for the application: **Automatic** (half of the installed memory) or a fixed limit (takes effect after restart); see [Memory and large files](#memory) below. |
 | **Editor** | **Editor** - XML indent and JSON indent (spaces); **Auto-format after loading**; **Pretty-print XSD on save**; **Pretty-print Schematron on load**; **Recent files to remember** (1–100, default 20) - every file opened in the editor, opened in the background or saved with **Save As** goes into File → Recent, the Explorer's **RECENT** list and the Welcome page. **Templates** - a configurable **templates directory**, plus a **New / Edit / Delete** list of your own templates; see [Managing your templates](#managing-your-templates) below. **User Info** - **Name**, **Email** and **Company**, used for example when generating documentation or signing. |
 | **Schemas & Validation** | **XSD** - **Auto-save** (with an interval in minutes); **Create backups on save** (with the number of versions to keep, and an optional **separate backup directory**). **Schema Library** - **Use the Schema Library to bind schemas automatically**; shows the library file's location and a **Manage schema cache…** link; see [Schema Library](schema-library.md). **Parser** - **XML parser** engine (Xerces or Saxon); **Allow XSLT extension functions**. |
 | **Files & Cache** | **Temp & Cache** - **Use system temp folder** or a custom temp folder; **Clear Temp Folder** to free disk space; **Clear Cache Folder** to delete cached files (downloaded schemas etc.); **Manage schema cache…**. **Log Files** - **Delete old log files automatically at startup** (on by default) with **Keep for (days)** (default 14) and **Maximum total size (MB)** (default 100; 0 = no limit); **Clean Up Now** applies the limits at once, **Open log folder** shows the folder, and the card names the folder with its file count and size. The log file in use is never deleted. **File Associations** - make FreeXmlToolkit the **default application** for XML, XSD, XSLT, Schematron and JSON files (per user, no admin rights); see [File Associations](file-associations.md). |
 | **Network & Security** | **HTTP Proxy** - **Connection**: *System proxy* (default, includes automatic configuration via PAC/WPAD), *Manual proxy* (host and port) or *No proxy*; **No proxy for**: hosts connected directly (`*` wildcard, e.g. `*.corp.example, 10.*`; local addresses always); **Proxy authentication**: user (`DOMAIN\user` or `user@domain` also work), password (stored encrypted) and NTLM domain, or — without a user — sign-in with the Windows account (NTLM/Kerberos; takes effect after a restart); **Timeouts** for connecting and reading; **Test Connection** checks an address with the values shown, saved or not. Every connection uses these settings: schema and catalog downloads, updates, FundsXML, telemetry, `doc()` in XPath/XQuery, JSON Schema `$ref`s, XProc (incl. `p:http-request`) and HTML previews. **Security** - **Trust all certificates**: accept any TLS certificate for HTTPS downloads (schemas, updates); use with care. **Allow JavaScript and remote content in HTML previews** (off: previews run no scripts and load nothing from the network). **Run XProc pipelines without restrictions** (off: pipelines may not run programs, run computed pipelines, send HTTP requests or load documents from the network); see [Threat Model](threat-model.md). **Updates** - **Check for updates on startup**. |
 | **Privacy** | **Usage Statistics** - **Enable usage tracking** (local, anonymous feature-usage counters shown on the Welcome page) and **Clear statistics**. Below them: **Send anonymous usage statistics** and **Send anonymous error reports** (both on by default) and a **What is sent?** link that shows the exact data and your anonymous installation ID. See [Privacy & Anonymous Telemetry](telemetry.md). |
 | **Extensions** | **FundsXML** - **Enable FundsXML extensions** adds the [FundsXML activity](fundsxml-extensions.md) to the activity bar. **Developer** - **Record execution statistics** collects duration, CPU and memory per XSLT/XQuery/validation run; view them in the **Execution Statistics** tool tab or via the "last run" item in the status bar. **Support the Project** - a **Sponsor on GitHub** link. |
+
+## Accent colour {#accent-colour}
+
+The accent colour replaces the blue of the primary buttons, selected rows, focus rings, links,
+active tabs and toggles - in the shell, in dialogs, in the XSD diagram and in the grid. Pick one of
+the presets (Blue, Indigo, Violet, Green, Teal, Orange, Red, Graphite) or any colour with
+**Own colour**. The choice applies at once to every open window, in the light and the dark theme.
+
+You do not have to find a colour that works everywhere: the shades derived from it are adjusted so
+that texts on and in the accent keep a contrast of at least 4.5:1 (WCAG AA). A very light colour,
+for example, is darkened for text on white and lightened for text on the dark backgrounds.
+
+![The Settings page in the violet accent](img/unified-shell-accent-violet.png)
+*Settings → Appearance with the violet accent*
+
+![The same page in the dark theme](img/unified-shell-accent-violet-dark.png)
+*The same accent in the dark theme*
+
+The workflow colours of the activities (Validation green, Transform orange, ...) stay as they are.
 
 ## Clearing the Cache Folder
 
