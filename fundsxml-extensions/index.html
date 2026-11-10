@@ -3644,11 +3644,11 @@ back and forth freely.</p>
 </tr>
 <tr>
 <td>Position weights add up to 100 %</td>
-<td><code>TotalPercentage</code> of a fund's positions per date, over all portfolios (± 0.5)</td>
+<td><code>TotalPercentage</code> of the positions per date (± 0.5), for each node with its own portfolios: fund, subfund, segment and share class — a share-class portfolio is weighted against its share class, not the fund</td>
 </tr>
 <tr>
 <td>Positions vs. net asset value</td>
-<td>market values in fund currency against <code>TotalNetAssetValue</code> of the date (± 1 %)</td>
+<td>market values against the <code>TotalNetAssetValue</code> of the same node and date, in that node's currency (± 1 %)</td>
 </tr>
 <tr>
 <td>No duplicate positions</td>
@@ -3668,7 +3668,7 @@ back and forth freely.</p>
 </tr>
 <tr>
 <td>Portfolio dates have a net asset value</td>
-<td>each <code>Portfolio/NavDate</code> has a <code>TotalAssetValue</code></td>
+<td>each <code>Portfolio/NavDate</code> has a <code>TotalAssetValue</code> of the same node (fund, share class …)</td>
 </tr>
 <tr>
 <td>Share classes add up to the fund</td>
