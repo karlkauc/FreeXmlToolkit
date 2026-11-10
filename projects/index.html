@@ -3590,7 +3590,7 @@ is saved.</p>
 </tr>
 <tr>
 <td><code>scenarios</code></td>
-<td><code>name</code>, <code>stylesheet</code>, optional <code>input</code> (<code>${file}</code> = the file it runs for), <code>parameters</code>, <code>outputFormat</code> (<code>XML</code>, <code>HTML</code>, <code>XHTML</code>, <code>TEXT</code>, <code>JSON</code>, <code>PDF</code>; default from <code>xsl:output</code>), <code>output</code> (<code>${name}</code>, <code>${dir}</code>), <code>expected</code> (like <code>output</code>), <code>compare</code> (optional: <code>ignore</code> list of XPaths, <code>tolerance</code>, <code>ignoreOrder</code>, <code>keys</code>, <code>placeholders</code>, <code>ignoreComments</code>, <code>exactWhitespace</code>)</td>
+<td><code>name</code>, <code>stylesheet</code>, optional <code>input</code> (<code>${file}</code> = the file it runs for), <code>parameters</code>, <code>outputFormat</code> (<code>XML</code>, <code>HTML</code>, <code>XHTML</code>, <code>TEXT</code>, <code>JSON</code>, <code>PDF</code>; default from <code>xsl:output</code>), <code>output</code> (<code>${name}</code>, <code>${dir}</code>), <code>processor</code> (PDF only: <code>builtin</code> or the name of an <a href="../pdf-generator/#external-xsl-fo-processors">external XSL-FO processor</a> from the settings; default: the default processor), <code>expected</code> (like <code>output</code>), <code>compare</code> (optional: <code>ignore</code> list of XPaths, <code>tolerance</code>, <code>ignoreOrder</code>, <code>keys</code>, <code>placeholders</code>, <code>ignoreComments</code>, <code>exactWhitespace</code>)</td>
 </tr>
 </tbody>
 </table>

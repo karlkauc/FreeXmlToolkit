@@ -4248,9 +4248,11 @@ application. The mappings are described in the
 (not well-formed, not valid JSON or YAML, not in the W3C vocabulary with <code>-m w3c</code>) is reported on
 standard error and gives exit code 1; the other files are still converted.</p>
 <h2 id="fop">fop<a class="headerlink" href="#fop" title="Permanent link">¶</a></h2>
-<p>Renders a PDF with Apache FOP, like the <a href="../pdf-generator/">PDF Generator</a>.</p>
+<p>Renders a PDF with Apache FOP or an <a href="../pdf-generator/#external-xsl-fo-processors">external XSL-FO processor</a>,
+like the <a href="../pdf-generator/">PDF Generator</a>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>fxt-cli<span class="w"> </span>fop<span class="w"> </span>-i<span class="w"> </span>XML<span class="w"> </span>-s<span class="w"> </span>XSL<span class="w"> </span>-o<span class="w"> </span>OUT.pdf<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
 <a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>fxt-cli<span class="w"> </span>fop<span class="w"> </span>--fo<span class="w"> </span>DOCUMENT.fo<span class="w"> </span>-o<span class="w"> </span>OUT.pdf<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>fxt-cli<span class="w"> </span>fop<span class="w"> </span>--list-processors
 </code></pre></div>
 <table>
 <thead>
@@ -4284,8 +4286,18 @@ standard error and gives exit code 1; the other files are still converted.</p>
 <td><code>--page-size</code>, <code>--orientation</code></td>
 <td>Passed to the stylesheet as the parameters <code>page-size</code> and <code>page-orientation</code></td>
 </tr>
+<tr>
+<td><code>-p</code>, <code>--processor NAME</code></td>
+<td><code>builtin</code> (the bundled Apache FOP) or the name or id of an external processor from <em>Settings → XSL-FO Processors</em>. Default: the default processor of the settings</td>
+</tr>
+<tr>
+<td><code>--list-processors</code></td>
+<td>Lists the processors (<code>*</code> marks the default) and exits</td>
+</tr>
 </tbody>
 </table>
+<p>The external processor's warnings and errors are printed to standard error; a failed run gives
+exit code 1.</p>
 <h2 id="sign">sign<a class="headerlink" href="#sign" title="Permanent link">¶</a></h2>
 <p>Signs an XML document (XML digital signature), like <a href="../digital-signatures/">Sign &amp; Encrypt → Sign</a>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>fxt-cli<span class="w"> </span>sign<span class="w"> </span>INPUT<span class="w"> </span>--keystore<span class="w"> </span>FILE<span class="w"> </span><span class="o">[</span>--alias<span class="w"> </span>ALIAS<span class="o">]</span><span class="w"> </span><span class="o">(</span>--storepass<span class="o">[=</span>PW<span class="o">]</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>--storepass-env<span class="w"> </span>VAR<span class="o">)</span><span class="w"> </span><span class="o">[</span>options<span class="o">]</span>

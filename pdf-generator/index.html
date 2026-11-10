@@ -1982,6 +1982,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#external-xsl-fo-processors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        External XSL-FO Processors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="External XSL-FO Processors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#argument-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Argument template
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-a-run-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How a run works
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#tips" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3391,6 +3430,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#external-xsl-fo-processors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        External XSL-FO Processors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="External XSL-FO Processors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#argument-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Argument template
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-a-run-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How a run works
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#tips" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3529,6 +3607,10 @@ bar. The panel is organized into these sections plus the primary action:</p>
   below the dropdown says, it <strong>only applies if the stylesheet uses these parameters</strong> -
   stylesheets that declare them can switch their <code>fo:simple-page-master</code> accordingly;
   others ignore the setting.</li>
+<li><strong>Processor</strong> - which program renders the XSL-FO: the bundled <strong>Apache FOP</strong> or an
+  <a href="#external-xsl-fo-processors">external XSL-FO processor</a> you configured. <strong>Manage processors…</strong>
+  opens the list. With an external processor, the metadata fields and PDF/A are only available
+  when its arguments pass them on (<code>${title}</code>, <code>${pdfa}</code> …).</li>
 </ul>
 <h3 id="step-4-generate-the-pdf">Step 4: Generate the PDF<a class="headerlink" href="#step-4-generate-the-pdf" title="Permanent link">¶</a></h3>
 <p>Click <strong>Generate PDF</strong>. You are asked where to save the output file, and the PDF is
@@ -3679,6 +3761,136 @@ FO you just debugged to a PDF of your choice.</p>
 </tbody>
 </table>
 <hr>
+<h2 id="external-xsl-fo-processors">External XSL-FO Processors<a class="headerlink" href="#external-xsl-fo-processors" title="Permanent link">¶</a></h2>
+<p>Instead of the bundled Apache FOP, the PDF can be rendered by any formatter that has a command
+line: <strong>Antenna House Formatter</strong> (<code>AHFCmd</code>), <strong>RenderX XEP</strong> (<code>xep</code>), a separately installed
+<strong>Apache FOP</strong> (another version, your own <code>fop.xconf</code> with fonts), or a script of your own. The
+XSLT stage (XML → XSL-FO) still runs inside FreeXmlToolkit with Saxon, so <strong>Show intermediate
+FO</strong>, the stylesheet's messages and the debugger work the same; only the rendering is handed to
+the external program.</p>
+<p><strong>Set one up:</strong> <em>Settings → Extensions → XSL-FO Processors</em> (or <strong>Manage processors…</strong> in the
+PDF/FOP panel) → <strong>Add…</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Preset</strong></td>
+<td>Fills the arguments for Apache FOP, Antenna House, XEP or <em>Custom</em></td>
+</tr>
+<tr>
+<td><strong>Name</strong></td>
+<td>Shown in the panel; also used by scenarios and <code>fxt-cli fop --processor</code></td>
+</tr>
+<tr>
+<td><strong>Program</strong></td>
+<td>The executable or script. Empty: the preset's program is looked up on the <code>PATH</code> (<strong>Find on PATH</strong> shows it)</td>
+</tr>
+<tr>
+<td><strong>Arguments</strong></td>
+<td>The argument template (below)</td>
+</tr>
+<tr>
+<td><strong>Working folder</strong></td>
+<td>Where the program runs. Empty: the stylesheet's folder</td>
+</tr>
+<tr>
+<td><strong>Time limit</strong></td>
+<td>The program is stopped after this many seconds (default 300)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Test</strong> renders a one-page document with the current settings and shows the program's output -
+use it before saving. <strong>Use as Default</strong> makes a processor the default for the panel, PDF
+scenarios and the command line.</p>
+<h3 id="argument-template">Argument template<a class="headerlink" href="#argument-template" title="Permanent link">¶</a></h3>
+<p>Arguments are separated by spaces; an argument with spaces goes in double quotes. The program is
+started directly, never through a shell. Placeholders:</p>
+<table>
+<thead>
+<tr>
+<th>Placeholder</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>${fo}</code></td>
+<td>The XSL-FO file to render (required)</td>
+</tr>
+<tr>
+<td><code>${pdf}</code> / <code>${out}</code></td>
+<td>The PDF to write (required)</td>
+</tr>
+<tr>
+<td><code>${xml}</code>, <code>${xsl}</code></td>
+<td>The XML input and the stylesheet (empty when rendering a finished FO)</td>
+</tr>
+<tr>
+<td><code>${baseDir}</code></td>
+<td>The stylesheet's folder</td>
+</tr>
+<tr>
+<td><code>${title}</code>, <code>${author}</code>, <code>${subject}</code></td>
+<td>The PDF metadata from the panel</td>
+</tr>
+<tr>
+<td><code>${pdfa}</code></td>
+<td>Present when PDF/A was asked for; expands to nothing</td>
+</tr>
+</tbody>
+</table>
+<p>Arguments in square brackets are an <strong>optional group</strong>, left out when one of its placeholders
+is empty: <code>[-title ${title}]</code> passes the title only when there is one, and
+<code>[-pdfprofile PDF/A-1b ${pdfa}]</code> adds the flag only for PDF/A.</p>
+<p>The presets start with:</p>
+<table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>Program</th>
+<th>Arguments</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Apache FOP (external)</td>
+<td><code>fop</code></td>
+<td><code>-fo ${fo} -pdf ${pdf} [-pdfprofile PDF/A-1b ${pdfa}]</code></td>
+</tr>
+<tr>
+<td>Antenna House Formatter</td>
+<td><code>AHFCmd</code></td>
+<td><code>-d ${fo} -o ${pdf}</code></td>
+</tr>
+<tr>
+<td>RenderX XEP</td>
+<td><code>xep</code></td>
+<td><code>-fo ${fo} -pdf ${pdf}</code></td>
+</tr>
+</tbody>
+</table>
+<p>Check your formatter's manual for further options (configuration file, PDF version, fonts) and
+add them to the template, e.g. <code>-c /etc/fop/fop.xconf</code> for Apache FOP.</p>
+<h3 id="how-a-run-works">How a run works<a class="headerlink" href="#how-a-run-works" title="Permanent link">¶</a></h3>
+<ol>
+<li>The XSL-FO is written to a temporary file <strong>in the stylesheet's folder</strong> (<code>.fxt-render-….fo</code>,
+   deleted afterwards), so relative image and font references resolve as they would next to
+   the stylesheet. If that folder is not writable, the temp folder is used.</li>
+<li>The program runs with the expanded arguments in the working folder.</li>
+<li>It succeeded when it exits with code 0 <strong>and</strong> wrote the PDF (an old PDF of the same name is
+   removed first, so it never passes for a new one).</li>
+<li>Its console output appears under <strong>Messages &amp; events</strong>: lines with <em>error</em>, <em>fatal</em> or
+   <em>severe</em> count as errors, lines with <em>warn</em> / <em>warning</em> as warnings.</li>
+</ol>
+<p><strong>Cancel</strong> in the panel stops the program (and the processes it started).</p>
+<p>An administrator can turn external processors off with <code>fop.external.allowed=false</code> in the
+policy, or hand out a processor list with <code>fop.processors</code> - see <a href="../administration/">Administration</a>.</p>
+<hr>
 <h2 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">¶</a></h2>
 <ul>
 <li><strong>Validate first</strong> - Ensure your XML and XSL-FO files are valid before generating</li>
@@ -3717,6 +3929,14 @@ FO you just debugged to a PDF of your choice.</p>
 <tr>
 <td>PDF looks wrong (fonts, overflow)</td>
 <td>Open <strong>Messages &amp; events</strong> - FOP reports substituted fonts and overflowing content there</td>
+</tr>
+<tr>
+<td>External processor: "program not found"</td>
+<td>Set <strong>Program</strong> to the full path, or use <strong>Find on PATH</strong>; on Windows choose the <code>.exe</code> or <code>.bat</code></td>
+</tr>
+<tr>
+<td>External processor: images missing</td>
+<td>Relative paths resolve against the stylesheet's folder - set <strong>Working folder</strong> or pass the base folder to the program (<code>${baseDir}</code>)</td>
 </tr>
 <tr>
 <td>A template does not fire / wrong values</td>

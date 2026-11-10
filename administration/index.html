@@ -3284,6 +3284,21 @@ forward slashes (<code>C:/Schemas</code>). Characters outside Latin-1 have to be
 <td><strong>Policy only.</strong> Load no <a href="../plugins/">plugins</a> from the plugins folder (built-in ones still load)</td>
 </tr>
 <tr>
+<td><code>fop.external.allowed</code></td>
+<td><code>false</code></td>
+<td><strong>Policy only.</strong> Only the bundled Apache FOP renders PDFs; <a href="../pdf-generator/#external-xsl-fo-processors">external XSL-FO processors</a> are hidden and refused (panel, scenarios, <code>fxt-cli fop</code>)</td>
+</tr>
+<tr>
+<td><code>fop.processors</code></td>
+<td>JSON list</td>
+<td>The external XSL-FO processors (as written by <em>Settings → XSL-FO Processors</em>); in <code>defaults.properties</code> a starting list, in <code>policy.properties</code> a fixed one</td>
+</tr>
+<tr>
+<td><code>fop.processor.default</code></td>
+<td><code>builtin</code> or an id</td>
+<td>The default XSL-FO processor</td>
+</tr>
+<tr>
 <td><code>xmlenc.allowed</code></td>
 <td><code>false</code></td>
 <td><strong>Policy only.</strong> No <a href="../xml-encryption/">XML encryption</a> or decryption (page, editor menu and <code>fxt-cli</code>)</td>
