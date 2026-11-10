@@ -310,7 +310,8 @@ public class SimpleTypeEditorView extends BorderPane {
         panel.setPadding(new Insets(20));
 
         Label title = new Label(I18n.t("SimpleTypeEditorView.general-properties"));
-        title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        title.setStyle("-fx-font-weight: bold;");
+        title.getStyleClass().add("fxt-text-xl");
 
         GridPane grid = new GridPane();
         grid.setHgap(10);
@@ -385,7 +386,7 @@ public class SimpleTypeEditorView extends BorderPane {
         );
         infoLabel.setWrapText(true);
         infoLabel.getStyleClass().add("theme-text-secondary");
-        infoLabel.setStyle("-fx-font-size: 11px;");
+        infoLabel.getStyleClass().add("fxt-text-sm");
         infoLabel.setPrefWidth(400);
 
         panel.getChildren().addAll(title, grid, new Label(""), infoLabel);
@@ -402,7 +403,8 @@ public class SimpleTypeEditorView extends BorderPane {
         panel.setPadding(new Insets(10));
 
         Label title = new Label(I18n.t("SimpleTypeEditorView.restriction"));
-        title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        title.setStyle("-fx-font-weight: bold;");
+        title.getStyleClass().add("fxt-text-xl");
 
         // Base Type selector
         HBox baseTypeBox = new HBox(10);
@@ -470,7 +472,8 @@ public class SimpleTypeEditorView extends BorderPane {
 
         // Title and description
         Label titleLabel = new Label(I18n.t("SimpleTypeEditorView.enumeration-values"));
-        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
+        titleLabel.setStyle("-fx-font-weight: bold;");
+        titleLabel.getStyleClass().add("fxt-text-md");
         Label descLabel = new Label(I18n.t("SimpleTypeEditorView.define-a-list-of-allowed"));
         descLabel.setWrapText(true);
         descLabel.getStyleClass().add("desc-label");
@@ -534,7 +537,8 @@ public class SimpleTypeEditorView extends BorderPane {
 
         // Title and description
         Label titleLabel = new Label(I18n.t("SimpleTypeEditorView.regular-expression-patterns"));
-        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
+        titleLabel.setStyle("-fx-font-weight: bold;");
+        titleLabel.getStyleClass().add("fxt-text-md");
         Label descLabel = new Label("Define regex patterns that values must match (e.g., [0-9]{3}-[0-9]{2}-[0-9]{4})");
         descLabel.setWrapText(true);
         descLabel.getStyleClass().add("desc-label");
@@ -594,7 +598,8 @@ public class SimpleTypeEditorView extends BorderPane {
 
         // Title and description
         Label titleLabel = new Label(I18n.t("SimpleTypeEditorView.xsd-1-1-assertions"));
-        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
+        titleLabel.setStyle("-fx-font-weight: bold;");
+        titleLabel.getStyleClass().add("fxt-text-md");
         Label descLabel = new Label(I18n.t("SimpleTypeEditorView.xpath-based-assertions-for-complex"));
         descLabel.setWrapText(true);
         descLabel.getStyleClass().add("desc-label");
@@ -637,7 +642,8 @@ public class SimpleTypeEditorView extends BorderPane {
 
         // Info note about XSD 1.1
         Label infoLabel = new Label(I18n.t("SimpleTypeEditorView.note-assertions-are-an-xsd"));
-        infoLabel.setStyle("-fx-text-fill: #ff8c00; -fx-font-size: 10px; -fx-font-style: italic;");
+        infoLabel.setStyle("-fx-text-fill: #ff8c00; -fx-font-style: italic;");
+        infoLabel.getStyleClass().add("fxt-text-xs");
         infoLabel.setWrapText(true);
 
         vbox.getChildren().addAll(titleLabel, descLabel, new Separator(), assertionsListView, buttonBox, infoLabel);
@@ -1125,7 +1131,8 @@ public class SimpleTypeEditorView extends BorderPane {
         panel.setPadding(new Insets(20));
 
         Label title = new Label(I18n.t("SimpleTypeEditorView.list"));
-        title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        title.setStyle("-fx-font-weight: bold;");
+        title.getStyleClass().add("fxt-text-xl");
 
         Label itemTypeLabel = new Label(I18n.t("SimpleTypeEditorView.item-type"));
         TypePickerField itemTypePicker = newSimpleTypePicker("simple-type-item-type");
@@ -1145,7 +1152,7 @@ public class SimpleTypeEditorView extends BorderPane {
         );
         description.setWrapText(true);
         description.getStyleClass().add("theme-text-secondary");
-        description.setStyle("-fx-font-size: 11px;");
+        description.getStyleClass().add("fxt-text-sm");
 
         panel.getChildren().addAll(
                 title,
@@ -1214,7 +1221,8 @@ public class SimpleTypeEditorView extends BorderPane {
         panel.setPadding(new Insets(20));
 
         Label title = new Label(I18n.t("SimpleTypeEditorView.union"));
-        title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        title.setStyle("-fx-font-weight: bold;");
+        title.getStyleClass().add("fxt-text-xl");
 
         Label memberTypesLabel = new Label(I18n.t("SimpleTypeEditorView.member-types"));
         ListView<String> memberTypesList = new ListView<>();
@@ -1250,7 +1258,7 @@ public class SimpleTypeEditorView extends BorderPane {
         );
         description.setWrapText(true);
         description.getStyleClass().add("theme-text-secondary");
-        description.setStyle("-fx-font-size: 11px;");
+        description.getStyleClass().add("fxt-text-sm");
 
         panel.getChildren().addAll(
                 title,
@@ -1351,7 +1359,8 @@ public class SimpleTypeEditorView extends BorderPane {
 
         // Title
         Label title = new Label(I18n.t("SimpleTypeEditorView.annotation"));
-        title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        title.setStyle("-fx-font-weight: bold;");
+        title.getStyleClass().add("fxt-text-xl");
 
         // Description
         Label description = new Label(
@@ -1359,7 +1368,7 @@ public class SimpleTypeEditorView extends BorderPane {
         );
         description.setWrapText(true);
         description.getStyleClass().add("theme-text-secondary");
-        description.setStyle("-fx-font-size: 11px;");
+        description.getStyleClass().add("fxt-text-sm");
 
         // TypeDocumentationPanel - reusable component for multi-language docs and AppInfo
         typeDocumentationPanel = new TypeDocumentationPanel(editorContext);

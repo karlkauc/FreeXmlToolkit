@@ -107,7 +107,8 @@ public class UriTextField implements TypeAwareWidgetFactory.EditWidget {
         };
 
         Button btn = new Button(label);
-        btn.setStyle("-fx-font-size: 9; -fx-padding: 2 4; -fx-background-radius: 2; " +
+        btn.getStyleClass().add("fxt-text-2xs");
+        btn.setStyle("-fx-padding: 2 4; -fx-background-radius: 2; " +
                 "-fx-background-color: #e9ecef; -fx-text-fill: #495057;");
         btn.setTooltip(new Tooltip(I18n.t("UriTextField.insert", prefix)));
 
@@ -126,10 +127,10 @@ public class UriTextField implements TypeAwareWidgetFactory.EditWidget {
 
         // Hover effect
         btn.setOnMouseEntered(e ->
-                btn.setStyle("-fx-font-size: 9; -fx-padding: 2 4; -fx-background-radius: 2; " +
+                btn.setStyle("-fx-padding: 2 4; -fx-background-radius: 2; " +
                         "-fx-background-color: #007bff; -fx-text-fill: white;"));
         btn.setOnMouseExited(e ->
-                btn.setStyle("-fx-font-size: 9; -fx-padding: 2 4; -fx-background-radius: 2; " +
+                btn.setStyle("-fx-padding: 2 4; -fx-background-radius: 2; " +
                         "-fx-background-color: #e9ecef; -fx-text-fill: #495057;"));
 
         return btn;

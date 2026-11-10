@@ -34,8 +34,7 @@
         <TitledPane fx:id="previewPane" text="%ErrorReportDialog.previewPane.text" expanded="false"
                     animated="false">
             <content>
-                <TextArea fx:id="preview" editable="false" wrapText="false" prefRowCount="10"
-                          style="-fx-font-family: 'JetBrains Mono', monospace; -fx-font-size: 11px;"/>
+                <TextArea styleClass="fxt-mono-text" fx:id="preview" editable="false" wrapText="false" prefRowCount="10"/>
             </content>
         </TitledPane>
         <Label fx:id="status" wrapText="true" minHeight="-Infinity"/>

@@ -295,8 +295,8 @@
                                 </Button>
                             </children>
                         </HBox>
-                        <Label text="%XsdPropertiesPanel.note-assertions-are-an-xsd.text" wrapText="true"
-                               style="-fx-text-fill: #ff8c00; -fx-font-size: 10px; -fx-font-style: italic;"/>
+                        <Label styleClass="fxt-text-xs" text="%XsdPropertiesPanel.note-assertions-are-an-xsd.text" wrapText="true"
+                               style="-fx-text-fill: #ff8c00; -fx-font-style: italic;"/>
                     </children>
                 </VBox>
             </content>
@@ -337,7 +337,7 @@
                         <Insets top="8" right="12" bottom="8" left="12"/>
                     </padding>
                     <children>
-                        <Label text="%XsdPropertiesPanel.schema-properties.text" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
+                        <Label styleClass="fxt-text-base" text="%XsdPropertiesPanel.schema-properties.text" style="-fx-font-weight: bold;"/>
                         <Region HBox.hgrow="ALWAYS"/>
                         <Button fx:id="gearButton" styleClass="settings-gear-button, flat-button"
                                 onAction="#onCustomizeSections">

@@ -65,8 +65,8 @@
                         <Insets topRightBottomLeft="10"/>
                     </padding>
                     <children>
-                        <Label text="%AppInfoEditorPanel.add-references-to-related-elements.text"
-                               wrapText="true" style="-fx-text-fill: #666; -fx-font-size: 11px;"/>
+                        <Label styleClass="fxt-text-sm" text="%AppInfoEditorPanel.add-references-to-related-elements.text"
+                               wrapText="true" style="-fx-text-fill: #666;"/>
                         <ListView fx:id="seeListView" prefHeight="100" VBox.vgrow="ALWAYS">
                             <placeholder>
                                 <Label text="%AppInfoEditorPanel.no-see-references-defined.text"/>
@@ -105,8 +105,8 @@
                     <children>
                         <CheckBox fx:id="deprecatedCheckBox" text="%AppInfoEditorPanel.deprecatedCheckBox.text"
                                   style="-fx-font-weight: bold;"/>
-                        <Label text="%AppInfoEditorPanel.provide-a-deprecation-message-use.text"
-                               wrapText="true" style="-fx-text-fill: #666; -fx-font-size: 11px;"/>
+                        <Label styleClass="fxt-text-sm" text="%AppInfoEditorPanel.provide-a-deprecation-message-use.text"
+                               wrapText="true" style="-fx-text-fill: #666;"/>
                         <TextArea fx:id="deprecatedTextArea" promptText="%AppInfoEditorPanel.deprecatedTextArea.promptText"
                                   prefRowCount="2" wrapText="true" disable="true" VBox.vgrow="ALWAYS"/>
                     </children>

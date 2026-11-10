@@ -127,7 +127,8 @@ public class JsonTreeView extends VBox implements PropertyChangeListener,
 
         // Status label
         statusLabel = new Label(I18n.t("JsonTreeView.ready"));
-        statusLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 11px;");
+        statusLabel.setStyle("-fx-text-fill: #6c757d;");
+        statusLabel.getStyleClass().add("fxt-text-sm");
 
         getChildren().addAll(searchBar, treeView, statusLabel);
 

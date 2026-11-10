@@ -145,7 +145,8 @@ public class SimpleTypesListView extends BorderPane {
         HBox topBar = new HBox(10);
         topBar.setPadding(new Insets(10));
         Label title = new Label(I18n.t("SimpleTypesListView.simpletypes-overview"));
-        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+        title.setStyle("-fx-font-weight: bold;");
+        title.getStyleClass().add("fxt-text-2xl");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);

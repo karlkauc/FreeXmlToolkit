@@ -274,6 +274,24 @@ public final class Typography {
                 && !lower.contains("mono");
     }
 
+    /**
+     * An inline font size for nodes outside the shell stylesheets (plain popups), scaled by the
+     * stored UI text size. Everything inside a shell window takes a {@code fxt-text-*} class instead.
+     *
+     * @param px the size at Normal
+     * @return {@code -fx-font-size: …px;}
+     */
+    public static String fontSize(double px) {
+        Size size = Size.NORMAL;
+        try {
+            size = Size.fromProperty(org.fxt.freexmltoolkit.di.ServiceRegistry
+                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class).get(SIZE_KEY));
+        } catch (RuntimeException e) {
+            // no settings (tests): Normal
+        }
+        return "-fx-font-size: " + px(px * size.factor()) + ";";
+    }
+
     private static String em(double value) {
         return Math.round(value * 1000) / 1000.0 + "em";
     }

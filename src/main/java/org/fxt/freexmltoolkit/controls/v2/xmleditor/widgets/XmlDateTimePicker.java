@@ -99,7 +99,8 @@ public class XmlDateTimePicker implements TypeAwareWidgetFactory.EditWidget {
 
         // Labels
         Label tLabel = new Label("T");
-        tLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #6c757d;");
+        tLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #6c757d;");
+        tLabel.getStyleClass().add("fxt-text-md");
         Label colon1 = new Label(":");
         colon1.setStyle("-fx-font-weight: bold;");
         Label colon2 = new Label(":");

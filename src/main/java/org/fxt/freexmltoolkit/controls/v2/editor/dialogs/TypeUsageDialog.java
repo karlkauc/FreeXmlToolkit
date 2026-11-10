@@ -88,12 +88,12 @@ public class TypeUsageDialog extends Dialog<TypeUsageLocation> {
         dialogPane.setContent(FxmlViews.loadContent(this, "/pages/dialogs/TypeUsageDialog.fxml"));
         if (usages.isEmpty()) {
             headerLabel.setText(I18n.t("TypeUsageDialog.no-usages-found-for-type", typeName));
-            SemanticStyle.style(headerLabel, DesignTokens.ColorToken.SUCCESS, c -> "-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: " + c + ";");
+            SemanticStyle.style(headerLabel, DesignTokens.ColorToken.SUCCESS, c -> "-fx-font-weight: bold; -fx-text-fill: " + c + ";");
             SemanticIcon.paint(checkIcon, DesignTokens.ColorToken.SUCCESS);
             content.getChildren().removeAll(tableView, helpLabel);
         } else {
             headerLabel.setText(usages.size() + " usage" + (usages.size() == 1 ? "" : "s") + " of type '" + typeName + "'");
-            headerLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+            headerLabel.setStyle("-fx-font-weight: bold;");
             content.getChildren().remove(noUsagesBox);
             configureTableView();
         }

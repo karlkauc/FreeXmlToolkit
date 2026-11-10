@@ -24,8 +24,7 @@
         <Label wrapText="true"
                text="%TelemetryInfoDialog.freexmltoolkit-sends-anonymous-usage-statistics.text"/>
         <Label text="%TelemetryInfoDialog.example-of-the-data-sent.text"/>
-        <TextArea fx:id="payload" editable="false" wrapText="false" prefRowCount="14"
-                  style="-fx-font-family: 'JetBrains Mono', monospace; -fx-font-size: 11px;"
+        <TextArea styleClass="fxt-mono-text" fx:id="payload" editable="false" wrapText="false" prefRowCount="14"
                   VBox.vgrow="ALWAYS"/>
         <HBox spacing="6" alignment="CENTER_LEFT">
             <children>

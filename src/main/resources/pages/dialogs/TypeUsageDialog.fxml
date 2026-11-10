@@ -25,7 +25,7 @@
         <HBox spacing="10" alignment="CENTER_LEFT">
             <children>
                 <IconifyIcon iconLiteral="bi-search" iconSize="20" iconColor="DODGERBLUE"/>
-                <Label fx:id="headerLabel"/>
+                <Label fx:id="headerLabel" styleClass="fxt-text-lg"/>
             </children>
         </HBox>
 
@@ -36,8 +36,8 @@
             </padding>
             <children>
                 <IconifyIcon fx:id="checkIcon" iconLiteral="bi-check-circle" iconSize="48"/>
-                <Label text="%TypeUsageDialog.this-type-is-not-used.text"
-                       wrapText="true" style="-fx-font-size: 13px; -fx-text-alignment: center;"/>
+                <Label styleClass="fxt-text-base" text="%TypeUsageDialog.this-type-is-not-used.text"
+                       wrapText="true" style="-fx-text-alignment: center;"/>
             </children>
         </VBox>
 

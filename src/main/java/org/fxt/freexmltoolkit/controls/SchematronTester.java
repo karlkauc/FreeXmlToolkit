@@ -167,7 +167,7 @@ public class SchematronTester extends VBox {
         detailsTextArea = new TextArea();
         detailsTextArea.setEditable(false);
         detailsTextArea.setPrefHeight(120);
-        detailsTextArea.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 11px;");
+        detailsTextArea.getStyleClass().add("fxt-mono-text");
         detailsTextArea.setPromptText(I18n.t("SchematronTester.select-a-test-result-to"));
     }
 

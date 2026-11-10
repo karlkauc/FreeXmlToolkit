@@ -268,8 +268,8 @@ public class JsonCodeEditor extends VBox {
                 "-fx-background-color: #2d2d2d; " +
                 "-fx-text-fill: #e0e0e0; " +
                 "-fx-padding: 8 12; " +
-                "-fx-font-family: 'JetBrains Mono', 'Consolas', monospace; " +
-                "-fx-font-size: 11px; " +
+                "-fx-font-family: 'JetBrains Mono'; " +
+                org.fxt.freexmltoolkit.controls.theme.Typography.fontSize(11) + " " +
                 "-fx-background-radius: 4; " +
                 "-fx-border-radius: 4; " +
                 "-fx-border-color: #555; " +

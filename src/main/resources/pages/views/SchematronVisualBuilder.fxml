@@ -178,8 +178,7 @@
                                         onAction="#onGenerateCode"/>
                             </children>
                         </HBox>
-                        <TextArea fx:id="previewArea" editable="false" prefHeight="200"
-                                  style="-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 11px;"/>
+                        <TextArea styleClass="fxt-mono-text" fx:id="previewArea" editable="false" prefHeight="200"/>
                     </children>
                 </VBox>
             </children>

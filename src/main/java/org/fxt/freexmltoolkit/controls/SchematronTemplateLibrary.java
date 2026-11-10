@@ -578,10 +578,11 @@ public class SchematronTemplateLibrary extends VBox {
             templateArea.setText(template.getTemplate());
             templateArea.setPrefRowCount(15);
             templateArea.setPrefColumnCount(60);
-            templateArea.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace;");
+            templateArea.getStyleClass().add("fxt-mono-text");
 
             Label helpLabel = new Label("Placeholders: {CONTEXT}, {FIELD_NAME}, {CONDITION}, etc.");
-            helpLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #666;");
+            helpLabel.setStyle("-fx-text-fill: #666;");
+            helpLabel.getStyleClass().add("fxt-text-sm");
 
             content.getChildren().addAll(instructionLabel, templateArea, helpLabel);
             getDialogPane().setContent(content);

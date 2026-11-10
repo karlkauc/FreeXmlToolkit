@@ -91,7 +91,7 @@ public class LinkAutocompletePopup extends Popup {
 
         // Hint label
         Label hintLabel = new Label(I18n.t("LinkAutocompletePopup.navigate-enter-select-esc-cancel"));
-        hintLabel.setStyle("-fx-text-fill: #888; -fx-font-size: 10px;");
+        hintLabel.setStyle("-fx-text-fill: #888; " + org.fxt.freexmltoolkit.controls.theme.Typography.fontSize(10));
 
         content.getChildren().addAll(headerLabel, filterField, listView, hintLabel);
         getContent().add(content);
@@ -273,7 +273,7 @@ public class LinkAutocompletePopup extends Popup {
             HBox.setHgrow(textLabel, Priority.ALWAYS);
 
             typeLabel = new Label();
-            typeLabel.setStyle("-fx-text-fill: #888; -fx-font-size: 10px;");
+            typeLabel.setStyle("-fx-text-fill: #888; " + org.fxt.freexmltoolkit.controls.theme.Typography.fontSize(10));
 
             content.getChildren().addAll(icon, textLabel, typeLabel);
         }

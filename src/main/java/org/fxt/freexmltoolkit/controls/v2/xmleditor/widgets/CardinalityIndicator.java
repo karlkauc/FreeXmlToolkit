@@ -88,7 +88,8 @@ public class CardinalityIndicator {
 
         // Badge label
         Label label = new Label(info.displayText());
-        label.setStyle("-fx-font-size: 9px; -fx-text-fill: " + info.color() + ";");
+        label.setStyle("-fx-text-fill: " + info.color() + ";");
+        label.getStyleClass().add("fxt-text-2xs");
 
         badge.getChildren().add(label);
         badge.setStyle("-fx-background-color: " + lightenColor(info.color()) + "; " +
@@ -116,7 +117,8 @@ public class CardinalityIndicator {
         }
 
         Label asterisk = new Label("*");
-        asterisk.setStyle("-fx-text-fill: " + REQUIRED_COLOR + "; -fx-font-size: 14px; -fx-font-weight: bold;");
+        asterisk.setStyle("-fx-text-fill: " + REQUIRED_COLOR + "; -fx-font-weight: bold;");
+        asterisk.getStyleClass().add("fxt-text-lg");
 
         Tooltip tooltip = new Tooltip(I18n.t("CardinalityIndicator.required-element"));
         tooltip.setShowDelay(Duration.millis(200));

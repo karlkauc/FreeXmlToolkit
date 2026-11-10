@@ -58,9 +58,11 @@ public final class TelemetryNotice extends VBox {
                 + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 14, 0, 0, 4);");
         icon.iconColorProperty().bind(new javafx.beans.property.SimpleObjectProperty<>(
                 Color.web(SemanticColors.INFO)));
-        title.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: " + text + ";");
+        title.setStyle("-fx-font-weight: bold; -fx-text-fill: " + text + ";");
+        title.getStyleClass().add("fxt-text-base");
         message.setText(MESSAGE);
-        message.setStyle("-fx-font-size: 12px; -fx-text-fill: " + text + ";");
+        message.setStyle("-fx-text-fill: " + text + ";");
+        message.getStyleClass().add("fxt-text-md");
     }
 
     @FXML

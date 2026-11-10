@@ -86,9 +86,11 @@ public class XmlTimePicker implements TypeAwareWidgetFactory.EditWidget {
 
         // Labels
         Label colonLabel1 = new Label(":");
-        colonLabel1.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");
+        colonLabel1.setStyle("-fx-font-weight: bold;");
+        colonLabel1.getStyleClass().add("fxt-text-lg");
         Label colonLabel2 = new Label(":");
-        colonLabel2.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");
+        colonLabel2.setStyle("-fx-font-weight: bold;");
+        colonLabel2.getStyleClass().add("fxt-text-lg");
 
         // Parse initial value
         if (currentValue != null && !currentValue.isEmpty()) {

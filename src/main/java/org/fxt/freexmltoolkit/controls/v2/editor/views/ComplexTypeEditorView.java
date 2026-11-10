@@ -139,7 +139,8 @@ public class ComplexTypeEditorView extends BorderPane {
             logger.error("Error initializing ComplexTypeEditorView", e);
             // Show error in UI
             Label errorLabel = new Label(I18n.t("ComplexTypeEditorView.error-loading-type-editor", e.getMessage()));
-            errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 14px;");
+            errorLabel.setStyle("-fx-text-fill: red;");
+            errorLabel.getStyleClass().add("fxt-text-lg");
             setCenter(new VBox(20, errorLabel));
         }
     }

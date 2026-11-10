@@ -5245,3 +5245,22 @@
     -fx-background-radius: 4;
     -fx-padding: 6 8;
 }
+
+/* ----- Text size scale -------------------------------------------------
+   Fixed sizes of single labels in code and FXML: use these classes instead of an inline
+   -fx-font-size, so the size follows Settings → Appearance → Text size (the typography sheet
+   re-states them scaled). ".root" raises them above generic label rules, as inline sizes were. */
+.root .fxt-text-2xs { -fx-font-size: 9px; }
+.root .fxt-text-xs { -fx-font-size: 10px; }
+.root .fxt-text-sm { -fx-font-size: 11px; }
+.root .fxt-text-md { -fx-font-size: 12px; }
+.root .fxt-text-base { -fx-font-size: 13px; }
+.root .fxt-text-lg { -fx-font-size: 14px; }
+.root .fxt-text-xl { -fx-font-size: 16px; }
+.root .fxt-text-2xl { -fx-font-size: 18px; }
+
+/* Read-only code / payload text areas outside the code editors */
+.root .fxt-mono-text {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 11px;
+}

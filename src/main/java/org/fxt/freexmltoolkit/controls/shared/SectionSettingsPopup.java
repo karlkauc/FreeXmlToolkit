@@ -73,7 +73,7 @@ public class SectionSettingsPopup {
 
         // Header
         Label header = new Label(I18n.t("SectionSettingsPopup.customize-sections"));
-        header.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
+        header.setStyle("-fx-font-weight: bold; " + org.fxt.freexmltoolkit.controls.theme.Typography.fontSize(13));
 
         itemsBox = new VBox(2);
 

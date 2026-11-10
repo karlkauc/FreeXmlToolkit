@@ -24,11 +24,11 @@
                 <HBox spacing="10" alignment="CENTER_LEFT">
                     <children>
                         <IconifyIcon fx:id="stageIcon" iconLiteral="bi-cloud-download" iconSize="24"/>
-                        <Label fx:id="stageLabel" text="%UpdateProgressDialog.stageLabel.text"
-                               style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                        <Label styleClass="fxt-text-xl" fx:id="stageLabel" text="%UpdateProgressDialog.stageLabel.text"
+                               style="-fx-font-weight: bold;"/>
                     </children>
                 </HBox>
-                <Label fx:id="versionLabel" styleClass="theme-text-secondary" style="-fx-font-size: 12px;"/>
+                <Label fx:id="versionLabel" styleClass="theme-text-secondary, fxt-text-md"/>
             </children>
         </VBox>
 
@@ -36,7 +36,7 @@
         <VBox spacing="8">
             <children>
                 <ProgressBar fx:id="progressBar" progress="0" prefWidth="Infinity" maxWidth="Infinity"/>
-                <Label fx:id="statusLabel" text="%UpdateProgressDialog.statusLabel.text" style="-fx-font-size: 12px;"/>
+                <Label styleClass="fxt-text-md" fx:id="statusLabel" text="%UpdateProgressDialog.statusLabel.text"/>
             </children>
         </VBox>
 

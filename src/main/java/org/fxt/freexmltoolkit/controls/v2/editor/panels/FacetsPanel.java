@@ -86,7 +86,8 @@ public class FacetsPanel extends VBox {
         // Description
         Label descLabel = new Label(I18n.t("FacetsPanel.facets-define-restrictions-on-data"));
         descLabel.setWrapText(true);
-        descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
+        descLabel.setStyle("-fx-text-fill: #666666;");
+        descLabel.getStyleClass().add("fxt-text-sm");
 
         // Info label for inherited facets
         infoLabel = new Label();

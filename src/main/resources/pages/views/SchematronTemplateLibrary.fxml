@@ -112,9 +112,8 @@
                 </Label>
                 <VBox spacing="5">
                     <children>
-                        <TextArea fx:id="previewArea" editable="false" prefHeight="200"
-                                  promptText="%SchematronTemplateLibrary.previewArea.promptText"
-                                  style="-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 11px;"/>
+                        <TextArea styleClass="fxt-mono-text" fx:id="previewArea" editable="false" prefHeight="200"
+                                  promptText="%SchematronTemplateLibrary.previewArea.promptText"/>
                         <HBox spacing="10" alignment="CENTER_LEFT">
                             <children>
                                 <Button fx:id="insertButton" text="%SchematronTemplateLibrary.insertButton.text" disable="true"

@@ -2053,7 +2053,8 @@ public class XsdPropertiesPanel extends BorderPane {
             commentIcon.setIconSize(18);
             commentIcon.setIconColor(Color.web("#6c757d"));
             Label titleLabel = new Label(I18n.t("XsdPropertiesPanel.comment"));
-            titleLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+            titleLabel.setStyle("-fx-font-weight: bold;");
+            titleLabel.getStyleClass().add("fxt-text-lg");
             titleBox.getChildren().addAll(commentIcon, titleLabel);
 
             // TextArea for comment content

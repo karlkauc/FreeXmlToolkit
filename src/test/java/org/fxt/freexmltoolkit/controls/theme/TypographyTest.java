@@ -55,6 +55,8 @@ class TypographyTest {
     void theShellSheetsAreReadAndProduceRules() {
         String css = Typography.css(Typography.Size.LARGE, null, 13);
         assertTrue(css.lines().count() > 200, "every px font rule of the shell sheets: " + css.lines().count());
+        String xl = Typography.css(Typography.Size.XLARGE, null, 13);
+        assertTrue(xl.contains(".root .fxt-text-sm { -fx-font-size: 13.5px; }"), "the size classes scale too");
         assertEquals(Typography.Size.LARGE, Typography.Size.fromProperty("large"));
         assertEquals(Typography.Size.NORMAL, Typography.Size.fromProperty("huge"));
     }

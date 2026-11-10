@@ -76,7 +76,8 @@ public class LengthValidatedField implements TypeAwareWidgetFactory.EditWidget {
 
         // Counter label
         counterLabel = new Label();
-        SemanticStyle.style(counterLabel, DesignTokens.ColorToken.NEUTRAL, c -> "-fx-font-size: 10; -fx-text-fill: " + c + ";");
+        counterLabel.getStyleClass().add("fxt-text-xs");
+        SemanticStyle.style(counterLabel, DesignTokens.ColorToken.NEUTRAL, c -> "-fx-text-fill: " + c + ";");
 
         // Layout with counter on the right
         HBox fieldRow = new HBox(5);
@@ -145,16 +146,16 @@ public class LengthValidatedField implements TypeAwareWidgetFactory.EditWidget {
         // Color the counter based on state
         if (exactLength != null) {
             if (currentLength == exactLength) {
-                SemanticStyle.style(counterLabel, DesignTokens.ColorToken.SUCCESS, c -> "-fx-font-size: 10; -fx-text-fill: " + c + "; -fx-font-weight: bold;");
+                SemanticStyle.style(counterLabel, DesignTokens.ColorToken.SUCCESS, c -> "-fx-text-fill: " + c + "; -fx-font-weight: bold;");
             } else {
-                SemanticStyle.style(counterLabel, DesignTokens.ColorToken.DANGER, c -> "-fx-font-size: 10; -fx-text-fill: " + c + ";");
+                SemanticStyle.style(counterLabel, DesignTokens.ColorToken.DANGER, c -> "-fx-text-fill: " + c + ";");
             }
         } else if (maxLength != null && currentLength > maxLength) {
-            SemanticStyle.style(counterLabel, DesignTokens.ColorToken.DANGER, c -> "-fx-font-size: 10; -fx-text-fill: " + c + "; -fx-font-weight: bold;");
+            SemanticStyle.style(counterLabel, DesignTokens.ColorToken.DANGER, c -> "-fx-text-fill: " + c + "; -fx-font-weight: bold;");
         } else if (minLength != null && currentLength < minLength) {
-            SemanticStyle.style(counterLabel, DesignTokens.ColorToken.WARNING, c -> "-fx-font-size: 10; -fx-text-fill: " + c + ";");
+            SemanticStyle.style(counterLabel, DesignTokens.ColorToken.WARNING, c -> "-fx-text-fill: " + c + ";");
         } else {
-            SemanticStyle.style(counterLabel, DesignTokens.ColorToken.SUCCESS, c -> "-fx-font-size: 10; -fx-text-fill: " + c + ";");
+            SemanticStyle.style(counterLabel, DesignTokens.ColorToken.SUCCESS, c -> "-fx-text-fill: " + c + ";");
         }
     }
 

@@ -90,8 +90,7 @@ to Normal.
 ![Comfortable density](img/unified-shell-density-comfortable.png)
 *Comfortable*
 
-The code editors are not affected: they have their own [editor font](#editor-font). A few labels
-in older dialogs have a fixed size and do not scale yet.
+The code editors are not affected: they have their own [editor font](#editor-font).
 
 ![Settings → Appearance with the Text size & font card](img/unified-shell-settings-ui-font.png)
 *The card with Large selected*
