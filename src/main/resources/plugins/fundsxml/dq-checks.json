@@ -1,6 +1,6 @@
 {
   "comment": "FundsXML 4 data-quality checks (XQuery 3.1). Each check returns one text per finding; none = passed. The prolog is put in front of every check. Developed and tested against the fundsxml/examples repository.",
-  "prolog": "declare function local:isin-ok($s as xs:string) as xs:boolean {\n  matches($s, '^[A-Z]{2}[A-Z0-9]{9}[0-9]$') and (\n    let $digits := string-join(for $c in string-to-codepoints(substring($s, 1, 11))\n                               return if ($c ge 65) then string($c - 55) else codepoints-to-string($c), '')\n    let $rev := reverse(string-to-codepoints($digits) ! (. - 48))\n    let $sum := sum(for $i in 1 to count($rev) return\n                      if ($i mod 2 = 1) then (let $x := $rev[$i] * 2 return if ($x gt 9) then $x - 9 else $x) else $rev[$i])\n    return (10 - $sum mod 10) mod 10 = xs:integer(substring($s, 12, 1)))\n};\ndeclare function local:lei-ok($s as xs:string) as xs:boolean {\n  matches($s, '^[A-Z0-9]{18}[0-9]{2}$') and\n  xs:integer(string-join(for $c in string-to-codepoints($s)\n                         return if ($c ge 65) then string($c - 55) else codepoints-to-string($c), '')) mod 97 = 1\n};\n(: Where a node is: the UniqueID of its position, asset or transaction, else its path :)\ndeclare function local:where($n as node()) as xs:string {\n  let $owner := $n/ancestor-or-self::*[UniqueID or TransactionID][1]\n  return if ($owner) then local-name($owner) || ' ' || ($owner/UniqueID, $owner/TransactionID)[1]\n         else string-join($n/ancestor-or-self::* ! local-name(), '/')\n};\ndeclare function local:fund($n as node()) as xs:string {\n  let $f := $n/ancestor-or-self::Fund[1]\n  return 'Fund ' || ($f/Names/OfficialName, $f/Identifiers/LEI, '?')[1]\n};\ndeclare function local:dec($s) as xs:decimal? { if ($s castable as xs:decimal) then xs:decimal($s) else () };\n",
+  "prolog": "declare function local:isin-ok($s as xs:string) as xs:boolean {\n  matches($s, '^[A-Z]{2}[A-Z0-9]{9}[0-9]$') and (\n    let $digits := string-join(for $c in string-to-codepoints(substring($s, 1, 11))\n                               return if ($c ge 65) then string($c - 55) else codepoints-to-string($c), '')\n    let $rev := reverse(string-to-codepoints($digits) ! (. - 48))\n    let $sum := sum(for $i in 1 to count($rev) return\n                      if ($i mod 2 = 1) then (let $x := $rev[$i] * 2 return if ($x gt 9) then $x - 9 else $x) else $rev[$i])\n    return (10 - $sum mod 10) mod 10 = xs:integer(substring($s, 12, 1)))\n};\ndeclare function local:lei-ok($s as xs:string) as xs:boolean {\n  matches($s, '^[A-Z0-9]{18}[0-9]{2}$') and\n  xs:integer(string-join(for $c in string-to-codepoints($s)\n                         return if ($c ge 65) then string($c - 55) else codepoints-to-string($c), '')) mod 97 = 1\n};\n(: Where a node is: the UniqueID of its position, asset or transaction, else its path :)\ndeclare function local:where($n as node()) as xs:string {\n  let $owner := $n/ancestor-or-self::*[UniqueID or TransactionID][1]\n  return if ($owner) then local-name($owner) || ' ' || ($owner/UniqueID, $owner/TransactionID)[1]\n         else string-join($n/ancestor-or-self::* ! local-name(), '/')\n};\ndeclare function local:fund($n as node()) as xs:string {\n  let $f := $n/ancestor-or-self::Fund[1]\n  return 'Fund ' || ($f/Names/OfficialName, $f/Identifiers/LEI, '?')[1]\n};\ndeclare function local:dec($s) as xs:decimal? { if ($s castable as xs:decimal) then xs:decimal($s) else () };\n(: The node a portfolio, its weights and values belong to: share class, segment, subfund or fund :)\ndeclare function local:owner-node($n as node()) as element()? {\n  $n/ancestor-or-self::*[self::ShareClass or self::Segment or self::Subfund or self::Fund][1]\n};\ndeclare function local:owner($n as node()) as xs:string {\n  let $o := local:owner-node($n)\n  return if (empty($o)) then '?'\n         else if ($o/self::Fund) then local:fund($o)\n         else (if ($o/self::ShareClass) then 'Share class ' else if ($o/self::Segment) then 'Segment ' else 'Subfund ')\n              || ($o/Identifiers/ISIN, $o/Names/OfficialName, $o/Identifiers/LEI, '?')[1]\n};\ndeclare function local:owner-ccy($n as node()) as xs:string {\n  string((local:owner-node($n)/Currency, $n/ancestor::Fund[1]/Currency)[1])\n};\n",
   "checks": [
     {
       "key": "control-data",
@@ -35,14 +35,14 @@
     {
       "key": "weights",
       "name": "DQ: Position weights add up to 100 %",
-      "description": "The TotalPercentage of all positions of a fund on a date (over all its portfolios) add up to 100 % (± 0.5).",
-      "query": "for $f in //Fund[.//Position/TotalPercentage], $d in distinct-values($f//Portfolio/NavDate)\nlet $sum := sum($f//Portfolio[NavDate = $d]/Positions/Position/TotalPercentage ! local:dec(.))\nwhere abs($sum - 100) gt 0.5\nreturn local:at(($f//Portfolio[NavDate = $d])[1], local:fund($f) || ', ' || $d || ': the position weights add up to ' || $sum || ' %')"
+      "description": "The TotalPercentage of all positions of a fund, share class, segment or subfund on a date (over all its own portfolios) add up to 100 % (± 0.5). Share-class portfolios are weighted against the share class, not the fund.",
+      "query": "for $ps in //Portfolios[Portfolio/Positions/Position/TotalPercentage], $d in distinct-values($ps/Portfolio/NavDate)\nlet $sum := sum($ps/Portfolio[NavDate = $d]/Positions/Position/TotalPercentage ! local:dec(.))\nwhere abs($sum - 100) gt 0.5\nreturn local:at(($ps/Portfolio[NavDate = $d])[1], local:owner($ps) || ', ' || $d || ': the position weights add up to ' || $sum || ' %')"
     },
     {
       "key": "value-vs-nav",
       "name": "DQ: Positions vs. net asset value",
-      "description": "The market values of all positions of a fund on a date (in fund currency, over all its portfolios) match its total net asset value of that date (± 1 %).",
-      "query": "for $f in //Fund, $d in distinct-values($f//Portfolio/NavDate)\nlet $ccy := string($f/Currency)\nlet $tna := local:dec(($f/FundDynamicData/TotalAssetValues/TotalAssetValue[NavDate = $d]/TotalNetAssetValue/Amount[@ccy = $ccy])[1])\nlet $sum := sum($f//Portfolio[NavDate = $d]/Positions/Position/TotalValue/Amount[@ccy = $ccy] ! local:dec(.))\nwhere exists($tna) and $tna ne 0 and abs($sum - $tna) div abs($tna) gt 0.01\nreturn local:at(($f//Portfolio[NavDate = $d])[1], local:fund($f) || ', ' || $d || ': positions add up to ' || $sum || ' ' || $ccy || ', the net asset value is ' || $tna || ' ' || $ccy || ' (' || round(($sum - $tna) div $tna * 100, 2) || ' %)')"
+      "description": "The market values of all positions of a fund, share class, segment or subfund on a date (in its currency, over all its own portfolios) match its own total net asset value of that date (± 1 %).",
+      "query": "for $ps in //Portfolios[Portfolio/Positions/Position], $d in distinct-values($ps/Portfolio/NavDate)\nlet $ccy := local:owner-ccy($ps)\nlet $tna := local:dec(($ps/../TotalAssetValues/TotalAssetValue[NavDate = $d]/TotalNetAssetValue/Amount[@ccy = $ccy])[1])\nlet $sum := sum($ps/Portfolio[NavDate = $d]/Positions/Position/TotalValue/Amount[@ccy = $ccy] ! local:dec(.))\nwhere exists($tna) and $tna ne 0 and abs($sum - $tna) div abs($tna) gt 0.01\nreturn local:at(($ps/Portfolio[NavDate = $d])[1], local:owner($ps) || ', ' || $d || ': positions add up to ' || $sum || ' ' || $ccy || ', the net asset value is ' || $tna || ' ' || $ccy || ' (' || round(($sum - $tna) div $tna * 100, 2) || ' %)')"
     },
     {
       "key": "duplicate-positions",
@@ -77,8 +77,8 @@
     {
       "key": "nav-dates",
       "name": "DQ: Portfolio dates have a net asset value",
-      "description": "Every portfolio's NavDate has a TotalAssetValue of the fund for that date.",
-      "query": "for $p in //Portfolio[NavDate]\nlet $fund := $p/ancestor::Fund[1]\nwhere exists($fund/FundDynamicData/TotalAssetValues/TotalAssetValue) and not($p/NavDate = $fund/FundDynamicData/TotalAssetValues/TotalAssetValue/NavDate)\nreturn local:at($p, local:fund($p) || ': no net asset value for the portfolio date ' || $p/NavDate)"
+      "description": "Every portfolio's NavDate has a TotalAssetValue of the node it belongs to (fund, share class, segment, subfund) for that date.",
+      "query": "for $p in //Portfolio[NavDate]\nlet $tavs := $p/../../TotalAssetValues/TotalAssetValue\nwhere exists($tavs) and not($p/NavDate = $tavs/NavDate)\nreturn local:at($p, local:owner($p) || ': no net asset value for the portfolio date ' || $p/NavDate)"
     },
     {
       "key": "share-classes-sum",
@@ -115,24 +115,24 @@
     },
     {
       "name": "FundsXML: Top 10 positions",
-      "description": "The ten largest positions by market value, with name and weight.",
+      "description": "The ten largest positions by market value, with name and weight (fund portfolios; share-class portfolios repeat them).",
       "type": "XQUERY",
       "category": "ANALYSIS",
-      "query": "let $assets := /FundsXML4/AssetMasterData/Asset\nlet $top := (for $p in //Position\n             order by xs:decimal(($p/TotalValue/Amount)[1]) descending\n             return $p)[position() le 10]\nfor $p in $top\nreturn string-join(($p/UniqueID, ($assets[UniqueID = $p/UniqueID]/Name, '')[1], $p/TotalValue/Amount[1] || ' ' || $p/TotalValue/Amount[1]/@ccy, $p/TotalPercentage || ' %'), ' | ')"
+      "query": "let $assets := /FundsXML4/AssetMasterData/Asset\nlet $top := (for $p in (//FundDynamicData | //SubfundDynamicData)/Portfolios/Portfolio/Positions/Position\n             order by xs:decimal(($p/TotalValue/Amount)[1]) descending\n             return $p)[position() le 10]\nfor $p in $top\nreturn string-join(($p/UniqueID, ($assets[UniqueID = $p/UniqueID]/Name, '')[1], $p/TotalValue/Amount[1] || ' ' || $p/TotalValue/Amount[1]/@ccy, $p/TotalPercentage || ' %'), ' | ')"
     },
     {
       "name": "FundsXML: Exposure by asset type",
-      "description": "Sum of market values and weights per AssetType (joined with AssetMasterData).",
+      "description": "Sum of market values and weights per AssetType (joined with AssetMasterData) (fund portfolios; share-class portfolios repeat them).",
       "type": "XQUERY",
       "category": "ANALYSIS",
-      "query": "let $assets := /FundsXML4/AssetMasterData/Asset\nfor $type in distinct-values($assets/AssetType)\nlet $ids := $assets[AssetType = $type]/UniqueID\nlet $pos := //Position[UniqueID = $ids]\norder by sum($pos/TotalPercentage ! xs:decimal(.)) descending\nreturn $type || ': ' || count($pos) || ' positions, ' || sum($pos/TotalPercentage ! xs:decimal(.)) || ' %'"
+      "query": "let $assets := /FundsXML4/AssetMasterData/Asset\nfor $type in distinct-values($assets/AssetType)\nlet $ids := $assets[AssetType = $type]/UniqueID\nlet $pos := (//FundDynamicData | //SubfundDynamicData)/Portfolios/Portfolio/Positions/Position[UniqueID = $ids]\norder by sum($pos/TotalPercentage ! xs:decimal(.)) descending\nreturn $type || ': ' || count($pos) || ' positions, ' || sum($pos/TotalPercentage ! xs:decimal(.)) || ' %'"
     },
     {
       "name": "FundsXML: Exposure by currency",
-      "description": "Sum of position weights per position currency.",
+      "description": "Sum of position weights per position currency (fund portfolios; share-class portfolios repeat them).",
       "type": "XQUERY",
       "category": "ANALYSIS",
-      "query": "for $c in distinct-values(//Position/Currency)\nlet $pos := //Position[Currency = $c]\norder by sum($pos/TotalPercentage ! xs:decimal(.)) descending\nreturn $c || ': ' || sum($pos/TotalPercentage ! xs:decimal(.)) || ' % in ' || count($pos) || ' positions'"
+      "query": "let $all := (//FundDynamicData | //SubfundDynamicData)/Portfolios/Portfolio/Positions/Position\nfor $c in distinct-values($all/Currency)\nlet $pos := $all[Currency = $c]\norder by sum($pos/TotalPercentage ! xs:decimal(.)) descending\nreturn $c || ': ' || sum($pos/TotalPercentage ! xs:decimal(.)) || ' % in ' || count($pos) || ' positions'"
     },
     {
       "name": "FundsXML: Positions over 5 %",

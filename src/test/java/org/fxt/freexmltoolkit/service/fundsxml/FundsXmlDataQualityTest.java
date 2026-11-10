@@ -117,6 +117,65 @@ class FundsXmlDataQualityTest {
         assertTrue(FundsXmlDataQuality.snippets().stream().allMatch(s -> s.query != null && !s.query.isBlank()));
     }
 
+    /** A share class with its own net asset value and its own portfolio (positions P1/P2 on 2025-10-01). */
+    static String shareClass(String isin, String nav, String value1, String percent1, String value2, String percent2) {
+        return """
+                <ShareClass>
+                  <Identifiers><ISIN>%s</ISIN></Identifiers>
+                  <Currency>EUR</Currency>
+                  <TotalAssetValues><TotalAssetValue><NavDate>2025-10-01</NavDate><TotalAssetNature>OFFICIAL</TotalAssetNature>
+                    <TotalNetAssetValue><Amount ccy="EUR">%s</Amount></TotalNetAssetValue></TotalAssetValue></TotalAssetValues>
+                  <Portfolios><Portfolio><NavDate>2025-10-01</NavDate><Positions>
+                    <Position><UniqueID>P1</UniqueID><Identifiers><ISIN>US0378331005</ISIN></Identifiers><Currency>EUR</Currency>
+                      <TotalValue><Amount ccy="EUR">%s</Amount></TotalValue><TotalPercentage>%s</TotalPercentage><Equity><Units>700</Units></Equity></Position>
+                    <Position><UniqueID>P2</UniqueID><Identifiers><ISIN>DE0005140008</ISIN></Identifiers><Currency>EUR</Currency>
+                      <TotalValue><Amount ccy="EUR">%s</Amount></TotalValue><TotalPercentage>%s</TotalPercentage><Equity><Units>1400</Units></Equity></Position>
+                  </Positions></Portfolio></Portfolios>
+                </ShareClass>
+                """.formatted(isin, nav, value1, percent1, value2, percent2);
+    }
+
+    /** The fixture with two share classes (7 M + 3 M of the fund's 10 M), each with its own portfolio. */
+    static String withShareClasses(String first, String second) throws Exception {
+        return fixture().replace("</FundDynamicData>",
+                "</FundDynamicData>\n<SingleFund><ShareClasses>" + first + second + "</ShareClasses></SingleFund>");
+    }
+
+    @Test
+    @DisplayName("share-class portfolios are weighted and valued against their own share class, not the fund")
+    void shareClassPortfoliosAgainstTheirOwnNode() throws Exception {
+        String a = shareClass("AT0000A0K2G5", "7000000.00", "4200000.00", "60.00", "2800000.00", "40.00");
+        String b = shareClass("AT0000A0K2H3", "3000000.00", "1800000.00", "60.00", "1200000.00", "40.00");
+        // every portfolio adds up to 100 % and to its own node's net asset value
+        assertEquals(Map.of(), findings(withShareClasses(a, b)));
+
+        Map<String, List<String>> wrongWeights = findings(withShareClasses(a,
+                shareClass("AT0000A0K2H3", "3000000.00", "1800000.00", "50.00", "1200000.00", "40.00")));
+        assertEquals(List.of("Share class AT0000A0K2H3, 2025-10-01: the position weights add up to 90 %"),
+                wrongWeights.get("weights"), wrongWeights.toString());
+        assertEquals(1, wrongWeights.size(), wrongWeights.toString());
+
+        Map<String, List<String>> wrongValue = findings(withShareClasses(
+                shareClass("AT0000A0K2G5", "7000000.00", "4200000.00", "60.00", "2100000.00", "40.00"), b));
+        assertEquals(1, wrongValue.get("value-vs-nav").size(), wrongValue.toString());
+        assertTrue(wrongValue.get("value-vs-nav").getFirst().startsWith("Share class AT0000A0K2G5, 2025-10-01: positions add up to 6300000"),
+                wrongValue.toString());
+
+        Map<String, List<String>> wrongDate = findings(withShareClasses(a.replace(
+                "<Portfolio><NavDate>2025-10-01</NavDate>", "<Portfolio><NavDate>2025-09-30</NavDate>"), b));
+        assertEquals(List.of("Share class AT0000A0K2G5: no net asset value for the portfolio date 2025-09-30"),
+                wrongDate.get("nav-dates"), wrongDate.toString());
+
+        // the fund's grid formulas count the fund's own portfolio only
+        String once = FundsXmlGridSetup.apply(withShareClasses(a, b), true);
+        Map<String, String> results = new java.util.LinkedHashMap<>();
+        List<String> errors = new java.util.ArrayList<>();
+        collect(new XmlParser().parse(once).getRootElement(), results, errors);
+        assertEquals(List.of(), errors);
+        assertEquals("10,000,000.00 EUR", results.get("Fund/Positions value"));
+        assertEquals("100.00", results.get("Fund/Weights %"));
+    }
+
     @Test
     @DisplayName("grid setup: formulas and filters that evaluate without errors; running it again changes nothing")
     void gridSetup() throws Exception {

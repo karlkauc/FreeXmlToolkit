@@ -51,14 +51,16 @@
     </xsl:copy>
   </xsl:template>
 
+  <!-- Positions value and Weights % of the fund's own portfolio: share-class portfolios repeat the positions
+       weighted against the share class, so .//Position would count them several times. -->
   <xsl:template match="Fund[parent::Funds]">
     <xsl:copy>
       <xsl:apply-templates select="@*"/>
       <xsl:sequence select="f:formula(., 'Net asset value',
           '(FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount)[1] ! (format-number(xs:decimal(.), ''#,##0.00'') || '' '' || @ccy)')"/>
       <xsl:sequence select="f:formula(., 'Positions value',
-          'let $c := string(Currency) return format-number(sum(.//Position/TotalValue/Amount[@ccy = $c] ! xs:decimal(.)), ''#,##0.00'') || '' '' || $c')"/>
-      <xsl:sequence select="f:formula(., 'Weights %', 'format-number(sum(.//Position/TotalPercentage ! xs:decimal(.)), ''0.00'')')"/>
+          'let $c := string(Currency) return format-number(sum(FundDynamicData/Portfolios/Portfolio/Positions/Position/TotalValue/Amount[@ccy = $c] ! xs:decimal(.)), ''#,##0.00'') || '' '' || $c')"/>
+      <xsl:sequence select="f:formula(., 'Weights %', 'format-number(sum(FundDynamicData/Portfolios/Portfolio/Positions/Position/TotalPercentage ! xs:decimal(.)), ''0.00'')')"/>
       <xsl:sequence select="f:formula(., 'Share classes', 'count(SingleFund/ShareClasses/ShareClass)')"/>
       <xsl:apply-templates/>
     </xsl:copy>

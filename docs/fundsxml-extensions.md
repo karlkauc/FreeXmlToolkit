@@ -147,13 +147,13 @@ The validation uses whichever FundsXML schema version is currently marked as act
 | Content date not in the future | `ControlData/ContentDate` |
 | ISIN / LEI check digits | every `ISIN` (ISO 6166) and `LEI` (ISO 17442) |
 | Currency codes | currency elements and `ccy` attributes are ISO 4217 codes |
-| Position weights add up to 100 % | `TotalPercentage` of a fund's positions per date, over all portfolios (± 0.5) |
-| Positions vs. net asset value | market values in fund currency against `TotalNetAssetValue` of the date (± 1 %) |
+| Position weights add up to 100 % | `TotalPercentage` of the positions per date (± 0.5), for each node with its own portfolios: fund, subfund, segment and share class — a share-class portfolio is weighted against its share class, not the fund |
+| Positions vs. net asset value | market values against the `TotalNetAssetValue` of the same node and date, in that node's currency (± 1 %) |
 | No duplicate positions | one `UniqueID` per portfolio |
 | Positions have master data / unused master data | positions without an `Asset`, assets nobody refers to |
 | No negative values of securities | equities, bonds, fund shares, certificates, warrants |
 | Securities have an identifier | the same positions without `Identifiers` |
-| Portfolio dates have a net asset value | each `Portfolio/NavDate` has a `TotalAssetValue` |
+| Portfolio dates have a net asset value | each `Portfolio/NavDate` has a `TotalAssetValue` of the same node (fund, share class …) |
 | Share classes add up to the fund | share class net asset values against the fund's (± 0.5 %) |
 | Price × shares = share class value | `NavPrice` × `SharesOutstanding` against the share class's net asset value (± 1 %) |
 | Transactions settle after entry | `ValutaDate` not before `EntryDate` |
