@@ -50,10 +50,10 @@ loaded, every contribution type, threads, translations, building, testing and de
 | Plugin | On by default | |
 |---|---|---|
 | FundsXML | yes (its activity appears once the extension is enabled) | [FundsXML Extensions](fundsxml-extensions.md) |
-| ISO 20022 Payments (SEPA) | no | [Industry Plugins](industry-plugins.md#iso-20022-payments-sepa) |
-| ebInterface (Austrian e-invoice) | no | [Industry Plugins](industry-plugins.md#ebinterface-austrian-e-invoice) |
-| FinDatEx Templates (EMT, EET, EPT, TPT) | no | [Industry Plugins](industry-plugins.md#findatex-templates-emt-eet-ept-tpt) |
-| XBRL (with Arelle) | no | [Industry Plugins](industry-plugins.md#xbrl-with-arelle) |
+| ISO 20022 Payments (SEPA) | no | [ISO 20022 Payments](plugin-iso20022.md) |
+| ebInterface (Austrian e-invoice) | no | [ebInterface](plugin-ebinterface.md) |
+| FinDatEx Templates (EMT, EET, EPT, TPT) | no | [FinDatEx Templates](plugin-findatex.md) |
+| XBRL (with Arelle) | no | [XBRL](plugin-xbrl.md) |
 
 A plugin can say it is off until the user switches it on (`enabledByDefault()`), and it can add
 XML Schemas to the Schema Library (`context.addSchema(new PluginSchema(namespace, url, description, null))`).

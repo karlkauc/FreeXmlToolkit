@@ -131,7 +131,7 @@ Industry plugins (`plugins/`, off by default via `enabledByDefault()`): `iso2002
 `PluginContext.addSchema` → Schema Library source PLUGIN, control sums, EPC SEPA rules), `ebinterface`,
 `findatex` (EMT/EET/EPT/TPT V7+V8 CSV against `plugins/findatex/templates.json` from `scripts/findatex-fields.py NAME=xlsx…`; versions sharing a version field are picked by its value, `FinDatExTemplates.forVersion`; TPT mandatory fields per CIC category, `Field.isMandatoryFor`),
 `xbrl` (runs the user's Arelle, `ArelleRunner`). Shared: `IndustryPanel` (FXML), `IdentifierKind`,
-`service/finance/FinancialIdentifiers` (IBAN, BIC, LEI, ISIN, AT UID), `plugin/XmlScan`. Docs: `docs/industry-plugins.md`.
+`service/finance/FinancialIdentifiers` (IBAN, BIC, LEI, ISIN, AT UID), `plugin/XmlScan`. Docs: `docs/industry-plugins.md` (overview) + one page per plugin `docs/plugin-<id>.md`; screenshots `PluginsDocScreenshotGenerator`.
 
 ## Administrator Policy
 

@@ -156,7 +156,12 @@ nav:
     - Schematron Quick Fixes: schematron-quick-fixes.md
   - Industry Standards:
     - FundsXML Extensions: fundsxml-extensions.md
-    - Industry Plugins: industry-plugins.md
+    - Industry Plugins:
+      - Overview: industry-plugins.md
+      - ISO 20022 Payments (SEPA): plugin-iso20022.md
+      - ebInterface: plugin-ebinterface.md
+      - FinDatEx Templates: plugin-findatex.md
+      - XBRL (with Arelle): plugin-xbrl.md
     - Plugins: plugins.md
     - Writing Plugins: plugin-development.md
   - Security:
