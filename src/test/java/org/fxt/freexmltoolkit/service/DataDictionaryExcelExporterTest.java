@@ -15,6 +15,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement.DocumentationInfo;
+import org.fxt.freexmltoolkit.service.excel.FxtExcelTheme;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -180,13 +181,13 @@ public class DataDictionaryExcelExporterTest {
             assertFalse(workbook.getSheet("Schema Info").isDisplayGridlines());
 
             org.apache.poi.xssf.usermodel.XSSFCellStyle header = sheet.getRow(0).getCell(0).getCellStyle();
-            assertEquals("FF" + DataDictionaryExcelStyles.HEADER_FILL, header.getFillForegroundXSSFColor().getARGBHex());
+            assertEquals("FF" + FxtExcelTheme.HEADER_FILL, header.getFillForegroundXSSFColor().getARGBHex());
             assertTrue(header.getFont().getBold());
             assertEquals("FFFFFFFF", header.getFont().getXSSFColor().getARGBHex());
 
             // First data row plain, second striped
             assertNull(sheet.getRow(1).getCell(1).getCellStyle().getFillForegroundXSSFColor());
-            assertEquals("FF" + DataDictionaryExcelStyles.ZEBRA_FILL,
+            assertEquals("FF" + FxtExcelTheme.ZEBRA_FILL,
                     sheet.getRow(2).getCell(1).getCellStyle().getFillForegroundXSSFColor().getARGBHex());
 
             // Mandatory: coloured bold text, no filled block on a plain row
@@ -194,7 +195,7 @@ public class DataDictionaryExcelExporterTest {
             assertEquals("Yes", sheet.getRow(1).getCell(4).getStringCellValue());
             assertNull(yes.getFillForegroundXSSFColor());
             assertTrue(yes.getFont().getBold());
-            assertEquals("FF" + DataDictionaryExcelStyles.MANDATORY, yes.getFont().getXSSFColor().getARGBHex());
+            assertEquals("FF" + FxtExcelTheme.Accent.OK.text(), yes.getFont().getXSSFColor().getARGBHex());
 
             // XPath in a monospace font
             assertEquals("Consolas", sheet.getRow(1).getCell(1).getCellStyle().getFont().getFontName());

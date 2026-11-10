@@ -25,6 +25,7 @@ import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement.DocumentationInfo;
+import org.fxt.freexmltoolkit.service.excel.FxtExcelTheme;
 import org.fxt.freexmltoolkit.util.MarkdownSupport;
 import org.w3c.dom.Node;
 
@@ -61,25 +62,25 @@ public class DataDictionaryExcelExporter {
     private static final int MANDATORY_COLUMN = 4;
 
     /** How each column's cells look (parallel to {@link #COLUMN_HEADERS}). */
-    private static final DataDictionaryExcelStyles.Role[] COLUMN_ROLES = {
-            DataDictionaryExcelStyles.Role.CENTER,  // #
-            DataDictionaryExcelStyles.Role.XPATH,   // XPath
-            DataDictionaryExcelStyles.Role.NAME,    // Element Name
-            DataDictionaryExcelStyles.Role.MONO,    // Type
-            DataDictionaryExcelStyles.Role.CENTER,  // Mandatory (replaced by its value's role)
-            DataDictionaryExcelStyles.Role.CENTER,  // Min Occurs
-            DataDictionaryExcelStyles.Role.CENTER,  // Max Occurs
-            DataDictionaryExcelStyles.Role.CENTER,  // Cardinality
-            DataDictionaryExcelStyles.Role.WRAP,    // Documentation
-            DataDictionaryExcelStyles.Role.WRAP,    // Type Documentation
-            DataDictionaryExcelStyles.Role.MONO,    // Restriction Base
-            DataDictionaryExcelStyles.Role.WRAP,    // Enumerations
-            DataDictionaryExcelStyles.Role.MONO,    // Pattern
-            DataDictionaryExcelStyles.Role.TEXT,    // Min/Max Length
-            DataDictionaryExcelStyles.Role.TEXT,    // Min/Max Value
-            DataDictionaryExcelStyles.Role.TEXT,    // Total/Fraction Digits
-            DataDictionaryExcelStyles.Role.TEXT,    // Sample Data
-            DataDictionaryExcelStyles.Role.CENTER   // Level
+    private static final FxtExcelTheme.Role[] COLUMN_ROLES = {
+            FxtExcelTheme.Role.CENTER,  // #
+            FxtExcelTheme.Role.XPATH,   // XPath
+            FxtExcelTheme.Role.NAME,    // Element Name
+            FxtExcelTheme.Role.MONO,    // Type
+            FxtExcelTheme.Role.CENTER,  // Mandatory (replaced by its value's role)
+            FxtExcelTheme.Role.CENTER,  // Min Occurs
+            FxtExcelTheme.Role.CENTER,  // Max Occurs
+            FxtExcelTheme.Role.CENTER,  // Cardinality
+            FxtExcelTheme.Role.WRAP,    // Documentation
+            FxtExcelTheme.Role.WRAP,    // Type Documentation
+            FxtExcelTheme.Role.MONO,    // Restriction Base
+            FxtExcelTheme.Role.WRAP,    // Enumerations
+            FxtExcelTheme.Role.MONO,    // Pattern
+            FxtExcelTheme.Role.TEXT,    // Min/Max Length
+            FxtExcelTheme.Role.TEXT,    // Min/Max Value
+            FxtExcelTheme.Role.TEXT,    // Total/Fraction Digits
+            FxtExcelTheme.Role.TEXT,    // Sample Data
+            FxtExcelTheme.Role.CENTER   // Level
     };
 
     private static final int[] COLUMN_WIDTHS = {
@@ -107,7 +108,7 @@ public class DataDictionaryExcelExporter {
     private final XsdDocumentationHtmlService htmlService;
 
     // Styles of the Schema Info sheet's helpers (set by createMetadataSheet)
-    private DataDictionaryExcelStyles metadataStyles;
+    private FxtExcelTheme metadataStyles;
 
     /**
      * Creates a new exporter.
@@ -184,7 +185,7 @@ public class DataDictionaryExcelExporter {
                 languagesToExport = allLanguages;
             }
 
-            DataDictionaryExcelStyles styles = new DataDictionaryExcelStyles(workbook);
+            FxtExcelTheme styles = new FxtExcelTheme(workbook);
 
             // Create metadata sheet FIRST (will be moved to position 0)
             createMetadataSheet(workbook, styles, elements, languagesToExport);
@@ -287,26 +288,11 @@ public class DataDictionaryExcelExporter {
      * Creates a sheet for a specific language with all element data.
      */
     private void createLanguageSheet(Workbook workbook, String sheetName, String language,
-                                     List<PrecomputedRow> rows, DataDictionaryExcelStyles styles) {
+                                     List<PrecomputedRow> rows, FxtExcelTheme styles) {
         Sheet sheet = workbook.createSheet(sheetName);
-        sheet.setDisplayGridlines(false);
-        if (sheet instanceof org.apache.poi.xssf.streaming.SXSSFSheet streaming) {
-            streaming.setTabColor(DataDictionaryExcelStyles.color(DataDictionaryExcelStyles.ACCENT_RULE));
-        }
-        int rowNum = 0;
-
-        // Create header row
-        Row headerRow = sheet.createRow(rowNum++);
-        headerRow.setHeightInPoints(22);
-        for (int i = 0; i < COLUMN_HEADERS.length; i++) {
-            Cell cell = headerRow.createCell(i);
-            cell.setCellValue(COLUMN_HEADERS[i]);
-            cell.setCellStyle(COLUMN_ROLES[i] == DataDictionaryExcelStyles.Role.CENTER
-                    ? styles.headerCenter : styles.header);
-        }
-
-        // Freeze header row
-        sheet.createFreezePane(0, 1);
+        FxtExcelTheme.tableSheet(sheet);
+        int rowNum = styles.writeHeaderRow(sheet, 0, COLUMN_HEADERS,
+                i -> COLUMN_ROLES[i] == FxtExcelTheme.Role.CENTER);
 
         // Create data rows (language-independent values are pre-computed; only the two
         // documentation columns are resolved per language here)
@@ -335,11 +321,15 @@ public class DataDictionaryExcelExporter {
                     data.level()
             };
             for (int col = 0; col < values.length; col++) {
-                DataDictionaryExcelStyles.Role role = col == MANDATORY_COLUMN
-                        ? (data.mandatory() ? DataDictionaryExcelStyles.Role.MANDATORY_YES
-                                : DataDictionaryExcelStyles.Role.MANDATORY_NO)
-                        : COLUMN_ROLES[col];
-                createCell(row, col, values[col], styles.body(role, stripe));
+                CellStyle style;
+                if (col == MANDATORY_COLUMN) {
+                    style = data.mandatory()
+                            ? styles.accentText(FxtExcelTheme.Accent.OK, stripe)
+                            : styles.body(FxtExcelTheme.Role.FAINT, stripe);
+                } else {
+                    style = styles.body(COLUMN_ROLES[col], stripe);
+                }
+                createCell(row, col, values[col], style);
             }
         }
 
@@ -348,21 +338,7 @@ public class DataDictionaryExcelExporter {
             sheet.setColumnWidth(i, COLUMN_WIDTHS[i]);
         }
 
-        printOnePageWide(sheet, true);
-        sheet.setRepeatingRows(org.apache.poi.ss.util.CellRangeAddress.valueOf("1:1"));
-
-        // Enable auto-filter
-        if (rowNum > 1) {
-            sheet.setAutoFilter(new org.apache.poi.ss.util.CellRangeAddress(0, rowNum - 1, 0, COLUMN_HEADERS.length - 1));
-        }
-    }
-
-    /** Prints the sheet one page wide (as many pages tall as needed), landscape for the wide tables. */
-    private static void printOnePageWide(Sheet sheet, boolean landscape) {
-        sheet.setFitToPage(true);
-        sheet.getPrintSetup().setLandscape(landscape);
-        sheet.getPrintSetup().setFitWidth((short) 1);
-        sheet.getPrintSetup().setFitHeight((short) 0);
+        FxtExcelTheme.finishTable(sheet, 0, rowNum - 1, COLUMN_HEADERS.length - 1);
     }
 
     private void createCell(Row row, int colIndex, String value, CellStyle style) {
@@ -566,23 +542,15 @@ public class DataDictionaryExcelExporter {
     /**
      * Creates the metadata sheet with export info, schema info, and statistics.
      */
-    private void createMetadataSheet(Workbook workbook, DataDictionaryExcelStyles styles,
+    private void createMetadataSheet(Workbook workbook, FxtExcelTheme styles,
                                      List<XsdExtendedElement> elements, Set<String> languages) {
         Sheet sheet = workbook.createSheet("Schema Info");
-        sheet.setDisplayGridlines(false);
-        if (sheet instanceof org.apache.poi.xssf.streaming.SXSSFSheet streaming) {
-            streaming.setTabColor(DataDictionaryExcelStyles.color(DataDictionaryExcelStyles.HEADER_FILL));
-        }
+        FxtExcelTheme.infoSheet(sheet);
         metadataStyles = styles;
-        int rowNum = 0;
 
-        // Title
-        Row titleRow = sheet.createRow(rowNum++);
-        titleRow.setHeightInPoints(28);
-        Cell titleCell = titleRow.createCell(0);
         String schemaName = getSchemaFileName(xsdDocumentationData.getXsdFilePath());
-        titleCell.setCellValue(schemaName.isEmpty() ? "Data Dictionary" : "Data Dictionary \u2014 " + schemaName);
-        titleCell.setCellStyle(styles.title);
+        int rowNum = styles.writeTitle(sheet, 0,
+                schemaName.isEmpty() ? "Data Dictionary" : "Data Dictionary \u2014 " + schemaName);
         rowNum++; // Empty row
 
         // === SECTION 1: Export Information ===
@@ -680,11 +648,6 @@ public class DataDictionaryExcelExporter {
         rowNum = createMetadataRow(sheet, rowNum, "Number of Language Sheets",
                 String.valueOf(languages.size()));
 
-        // Set column widths
-        sheet.setColumnWidth(0, 10000);  // Label column
-        sheet.setColumnWidth(1, 20000);  // Value column
-        printOnePageWide(sheet, false);
-
         logger.debug("Created Schema Info sheet with {} rows", rowNum);
     }
 
@@ -692,31 +655,14 @@ public class DataDictionaryExcelExporter {
      * Creates a section header row in the metadata sheet.
      */
     private int createSectionHeader(Sheet sheet, int rowNum, String title) {
-        Row row = sheet.createRow(rowNum);
-        row.setHeightInPoints(22);
-        Cell cell = row.createCell(0);
-        cell.setCellValue(title);
-        cell.setCellStyle(metadataStyles.section);
-        // The rule below the title spans both columns
-        row.createCell(1).setCellStyle(metadataStyles.section);
-        return rowNum + 1;
+        return metadataStyles.writeSection(sheet, rowNum, title, 1);
     }
 
     /**
      * Creates a data row with label and value in the metadata sheet.
      */
     private int createMetadataRow(Sheet sheet, int rowNum, String label, String value) {
-        Row row = sheet.createRow(rowNum);
-
-        Cell labelCell = row.createCell(0);
-        labelCell.setCellValue(label);
-        labelCell.setCellStyle(metadataStyles.label);
-
-        Cell valueCell = row.createCell(1);
-        valueCell.setCellValue(value != null ? value : "");
-        valueCell.setCellStyle(metadataStyles.value);
-
-        return rowNum + 1;
+        return metadataStyles.writeLabelValue(sheet, rowNum, label, value);
     }
 
     /**

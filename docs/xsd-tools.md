@@ -660,7 +660,8 @@ CSV, JSON, HTML, PDF, or Excel. Each sub-tab additionally has its own **Export**
 writes just that section in the same formats. All formats carry the same content: CSV as one
 block per section (facts as `Key,Value`, then each table), JSON as sections keyed by id with
 tables as arrays of objects, HTML with a table of contents, PDF with one chapter per section,
-and Excel with one sheet per section.
+and Excel with one sheet per section (in the same look as every other Excel export: dark header
+row, striped rows, highlighted findings in their status colour).
 
 ### Statistics
 

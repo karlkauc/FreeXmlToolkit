@@ -7,84 +7,40 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.FillPatternType;
-import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.util.WorkbookUtil;
-import org.apache.poi.xssf.usermodel.XSSFCellStyle;
-import org.apache.poi.xssf.usermodel.XSSFColor;
-import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.fxt.freexmltoolkit.service.excel.FxtExcelTheme;
+import org.fxt.freexmltoolkit.service.excel.FxtExcelTheme.Accent;
+import org.fxt.freexmltoolkit.service.excel.FxtExcelTheme.Role;
 
 /**
- * Excel rendering (XSSF): one sheet per section — a title row, the facts as key/value rows,
- * then each table with a bold header row; toned rows get a light fill. Sheet names are made
- * safe and unique, cells are truncated to Excel's 32 767-character limit and column widths are
- * set from the content (no {@code autoSizeColumn}, which needs AWT fonts).
+ * Excel rendering (XSSF) in the shared house style ({@link FxtExcelTheme}): one sheet per section — a
+ * title, the subject and timestamp as muted lines, the facts as label/value rows, then each table under a
+ * section heading with the slate header row and zebra rows; toned rows get the accent's light fill, toned
+ * facts coloured text. A section with a single table gets a frozen header and an auto-filter. Sheet names
+ * are made safe and unique, cells are cut to Excel's 32 767-character limit and column widths are set
+ * from the content (no {@code autoSizeColumn}, which needs AWT fonts).
  */
 public final class ExcelReportWriter implements ReportWriter {
 
-    private static final int MAX_CELL = 32_767;
     private static final int MAX_WIDTH_CHARS = 80;
 
     @Override
     public void write(ReportModel model, Path target) throws IOException {
         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
             ReportMetadata.service().setExcelMetadata(workbook, model.title());
-            Styles styles = new Styles(workbook);
+            FxtExcelTheme theme = new FxtExcelTheme(workbook);
             Set<String> usedNames = new HashSet<>();
             if (model.sections().isEmpty()) {
                 Sheet sheet = workbook.createSheet("Report");
-                title(sheet, 0, model.title(), styles.title);
+                FxtExcelTheme.tableSheet(sheet);
+                theme.writeTitle(sheet, 0, model.title());
             }
             for (ReportSection section : model.sections()) {
-                Sheet sheet = workbook.createSheet(sheetName(section, usedNames));
-                int[] widths = new int[64];
-                int rowNum = 0;
-                rowNum = title(sheet, rowNum, model.title() + " — " + section.title(), styles.title);
-                if (!model.subject().isBlank()) {
-                    text(sheet.createRow(rowNum++), 0, model.subject(), null, widths);
-                }
-                text(sheet.createRow(rowNum++), 0, "Generated: " + model.generatedAt().format(ReportWriters.TIMESTAMP), null, widths);
-                rowNum++;
-                if (!section.facts().isEmpty()) {
-                    for (KeyValue fact : section.facts()) {
-                        Row row = sheet.createRow(rowNum++);
-                        text(row, 0, fact.key(), styles.label, widths);
-                        text(row, 1, fact.value(), styles.forTone(fact.tone(), false), widths);
-                    }
-                    rowNum++;
-                }
-                for (ReportTable table : section.tables()) {
-                    text(sheet.createRow(rowNum++), 0, table.title(), styles.section, widths);
-                    Row header = sheet.createRow(rowNum++);
-                    for (int i = 0; i < table.headers().size(); i++) {
-                        text(header, i, table.headers().get(i), styles.header, widths);
-                    }
-                    if (table.isEmpty()) {
-                        text(sheet.createRow(rowNum++), 0, "(none)", styles.muted, widths);
-                    }
-                    for (ReportRow dataRow : table.rows()) {
-                        Row row = sheet.createRow(rowNum++);
-                        CellStyle style = styles.forTone(dataRow.tone(), true);
-                        for (int i = 0; i < dataRow.cells().size(); i++) {
-                            text(row, i, dataRow.cells().get(i), style, widths);
-                        }
-                    }
-                    rowNum++;
-                }
-                if (section.note() != null && !section.note().isBlank()) {
-                    text(sheet.createRow(rowNum), 0, section.note(), styles.muted, widths);
-                }
-                for (int i = 0; i < widths.length; i++) {
-                    if (widths[i] > 0) {
-                        sheet.setColumnWidth(i, Math.min(MAX_WIDTH_CHARS, Math.max(8, widths[i] + 2)) * 256);
-                    }
-                }
+                writeSection(workbook.createSheet(sheetName(section, usedNames)), theme, model, section);
             }
             try (OutputStream out = Files.newOutputStream(target)) {
                 workbook.write(out);
@@ -92,24 +48,83 @@ public final class ExcelReportWriter implements ReportWriter {
         }
     }
 
-    private static int title(Sheet sheet, int rowNum, String text, CellStyle style) {
-        Row row = sheet.createRow(rowNum);
-        Cell cell = row.createCell(0);
-        cell.setCellValue(text);
-        cell.setCellStyle(style);
-        return rowNum + 1;
+    private static void writeSection(Sheet sheet, FxtExcelTheme theme, ReportModel model, ReportSection section) {
+        FxtExcelTheme.tableSheet(sheet);
+        int[] widths = new int[64];
+        int rowNum = theme.writeTitle(sheet, 0, model.title() + " — " + section.title());
+        if (!model.subject().isBlank()) {
+            text(sheet.createRow(rowNum++), 0, model.subject(), theme.subtitle(), widths);
+        }
+        text(sheet.createRow(rowNum++), 0, "Generated: " + model.generatedAt().format(ReportWriters.TIMESTAMP),
+                theme.subtitle(), widths);
+        rowNum++;
+        if (!section.facts().isEmpty()) {
+            for (KeyValue fact : section.facts()) {
+                Row row = sheet.createRow(rowNum++);
+                text(row, 0, fact.key(), theme.label(), widths);
+                Accent accent = accent(fact.tone());
+                text(row, 1, fact.value(), accent == null ? theme.value() : theme.value(accent), widths);
+            }
+            rowNum++;
+        }
+        int headerRow = -1;
+        int lastRow = -1;
+        for (ReportTable table : section.tables()) {
+            int lastColumn = Math.max(1, table.headers().size() - 1);
+            rowNum = theme.writeSection(sheet, rowNum, table.title(), lastColumn);
+            headerRow = rowNum;
+            Row header = sheet.createRow(rowNum++);
+            header.setHeightInPoints(22);
+            for (int i = 0; i < table.headers().size(); i++) {
+                text(header, i, table.headers().get(i), theme.header(), widths);
+            }
+            if (table.isEmpty()) {
+                text(sheet.createRow(rowNum++), 0, "(none)", theme.body(Role.NOTE, false), widths);
+            }
+            for (ReportRow dataRow : table.rows()) {
+                boolean stripe = (rowNum - headerRow) % 2 == 0;
+                Row row = sheet.createRow(rowNum++);
+                Accent accent = accent(dataRow.tone());
+                CellStyle style = accent == null ? theme.body(Role.TEXT, stripe) : theme.accentRow(accent);
+                for (int i = 0; i < dataRow.cells().size(); i++) {
+                    text(row, i, dataRow.cells().get(i), style, widths);
+                }
+            }
+            lastRow = rowNum - 1;
+            rowNum++;
+        }
+        if (section.note() != null && !section.note().isBlank()) {
+            text(sheet.createRow(rowNum), 0, section.note(), theme.note(), widths);
+        }
+        for (int i = 0; i < widths.length; i++) {
+            if (widths[i] > 0) {
+                sheet.setColumnWidth(i, Math.min(MAX_WIDTH_CHARS, Math.max(8, widths[i] + 2)) * 256);
+            }
+        }
+        if (section.tables().size() == 1 && section.facts().isEmpty()) {
+            ReportTable only = section.tables().get(0);
+            FxtExcelTheme.finishTable(sheet, headerRow, only.isEmpty() ? headerRow : lastRow,
+                    Math.max(0, only.headers().size() - 1));
+        } else {
+            FxtExcelTheme.printOnePageWide(sheet, true);
+        }
+    }
+
+    /** @return the house-style accent of a report tone, or {@code null} for none */
+    static Accent accent(Tone tone) {
+        return switch (tone) {
+            case NONE -> null;
+            case ERROR -> Accent.ERROR;
+            case WARNING -> Accent.WARNING;
+            case INFO -> Accent.INFO;
+            case SUGGESTION -> Accent.SUGGESTION;
+            case OK -> Accent.OK;
+        };
     }
 
     private static void text(Row row, int column, String value, CellStyle style, int[] widths) {
-        Cell cell = row.createCell(column);
-        String text = value == null ? "" : value;
-        if (text.length() > MAX_CELL) {
-            text = text.substring(0, MAX_CELL - 1) + "…";
-        }
-        cell.setCellValue(text);
-        if (style != null) {
-            cell.setCellStyle(style);
-        }
+        String text = FxtExcelTheme.clip(value);
+        FxtExcelTheme.cell(row, column, text, style);
         if (column < widths.length) {
             int longestLine = 0;
             for (String line : text.split("\n")) {
@@ -132,66 +147,4 @@ public final class ExcelReportWriter implements ReportWriter {
         }
         return name;
     }
-
-    private static final class Styles {
-        final CellStyle title;
-        final CellStyle section;
-        final CellStyle header;
-        final CellStyle label;
-        final CellStyle muted;
-        private final XSSFWorkbook workbook;
-        private final java.util.Map<String, CellStyle> toned = new java.util.HashMap<>();
-
-        Styles(XSSFWorkbook workbook) {
-            this.workbook = workbook;
-            title = bold(workbook, 14);
-            section = bold(workbook, 11);
-            header = bold(workbook, 10);
-            header.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
-            header.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-            label = workbook.createCellStyle();
-            Font labelFont = workbook.createFont();
-            labelFont.setColor(IndexedColors.GREY_50_PERCENT.getIndex());
-            label.setFont(labelFont);
-            muted = workbook.createCellStyle();
-            Font mutedFont = workbook.createFont();
-            mutedFont.setItalic(true);
-            mutedFont.setColor(IndexedColors.GREY_50_PERCENT.getIndex());
-            muted.setFont(mutedFont);
-        }
-
-        CellStyle forTone(Tone tone, boolean fill) {
-            if (tone == Tone.NONE) {
-                return null;
-            }
-            return toned.computeIfAbsent(tone.name() + fill, k -> {
-                XSSFCellStyle style = workbook.createCellStyle();
-                if (fill) {
-                    style.setFillForegroundColor(new XSSFColor(rgb(tone.background()), null));
-                    style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-                } else {
-                    XSSFFont font = workbook.createFont();
-                    font.setBold(true);
-                    font.setColor(new XSSFColor(rgb(tone.foreground()), null));
-                    style.setFont(font);
-                }
-                return style;
-            });
-        }
-
-        private static CellStyle bold(XSSFWorkbook workbook, int size) {
-            CellStyle style = workbook.createCellStyle();
-            Font font = workbook.createFont();
-            font.setBold(true);
-            font.setFontHeightInPoints((short) size);
-            style.setFont(font);
-            return style;
-        }
-
-        private static byte[] rgb(String hex) {
-            int value = Integer.parseInt(hex.substring(1), 16);
-            return new byte[]{(byte) (value >> 16), (byte) (value >> 8), (byte) value};
-        }
-    }
-
 }

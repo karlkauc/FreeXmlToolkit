@@ -1,13 +1,15 @@
 package org.fxt.freexmltoolkit.service;
 
-import static org.fxt.freexmltoolkit.service.DataDictionaryExcelStyles.FAINT;
-import static org.fxt.freexmltoolkit.service.DataDictionaryExcelStyles.HEADER_FILL;
-import static org.fxt.freexmltoolkit.service.DataDictionaryExcelStyles.MUTED;
-import static org.fxt.freexmltoolkit.service.DataDictionaryExcelStyles.RULE;
-import static org.fxt.freexmltoolkit.service.DataDictionaryExcelStyles.STRONG;
-import static org.fxt.freexmltoolkit.service.DataDictionaryExcelStyles.TEXT;
-import static org.fxt.freexmltoolkit.service.DataDictionaryExcelStyles.ZEBRA_FILL;
-import static org.fxt.freexmltoolkit.service.DataDictionaryExcelStyles.color;
+import static org.fxt.freexmltoolkit.service.excel.FxtExcelTheme.FAINT;
+import static org.fxt.freexmltoolkit.service.excel.FxtExcelTheme.HEADER_FILL;
+import static org.fxt.freexmltoolkit.service.excel.FxtExcelTheme.MONO;
+import static org.fxt.freexmltoolkit.service.excel.FxtExcelTheme.MUTED;
+import static org.fxt.freexmltoolkit.service.excel.FxtExcelTheme.RULE;
+import static org.fxt.freexmltoolkit.service.excel.FxtExcelTheme.SANS;
+import static org.fxt.freexmltoolkit.service.excel.FxtExcelTheme.STRONG;
+import static org.fxt.freexmltoolkit.service.excel.FxtExcelTheme.TEXT;
+import static org.fxt.freexmltoolkit.service.excel.FxtExcelTheme.ZEBRA_FILL;
+import static org.fxt.freexmltoolkit.service.excel.FxtExcelTheme.color;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,16 +28,14 @@ import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 
 /**
- * Cell styles of the XML → Excel workbook, in the look of the Data Dictionary export
- * ({@link DataDictionaryExcelStyles}: slate header, zebra rows with a hairline rule, Consolas for
- * XPaths). Styles are created on first use and cached, since a workbook holds at most 64 000.
+ * Cell styles of the XML → Excel workbook in the shared house style
+ * ({@link org.fxt.freexmltoolkit.service.excel.FxtExcelTheme}: slate header, zebra rows with a hairline
+ * rule, Consolas for XPaths), plus typed number/date formats. Styles are created on first use and cached, since a workbook holds at most 64 000.
  * A legacy {@code .xls} workbook cannot take RGB colours and gets the same fonts and alignment
  * with an indexed-colour header instead.
  */
 final class XmlSpreadsheetExcelStyles {
 
-    private static final String SANS = "Calibri";
-    private static final String MONO = "Consolas";
 
     /** How a body cell looks. */
     enum Role {

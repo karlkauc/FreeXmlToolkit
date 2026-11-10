@@ -260,6 +260,9 @@ controls; controls outside the tab order need an entry in `KEYBOARD_ALTERNATIVES
 - **Dialogs:** never `new Alert/TextInputDialog/ChoiceDialog/Dialog<>` or own dialog stylesheets — use
   `DialogHelper` factories (subclasses: `DialogHelper.prepare(this)`); `controls/shell/DialogTheming`
   gives every dialog the shell look (tokens, Inter, light/dark live). `DialogCreationGuardTest` enforces it.
+- **Excel exports:** every `.xlsx` the app writes uses `service/excel/FxtExcelTheme` (slate header, zebra
+  rows, no gridlines, tab colours, info sheet with title/sections, `finishTable` for freeze/filter/print) —
+  no own fonts/colours/`IndexedColors`. `ExcelHouseStyleTest` checks every exporter.
 - **Icons:** Use `IconifyIcon` with `bi-*` names. Unknown names no longer crash (placeholder +
   log), but `IconifyIconCoverageTest` fails the build for them — keep literals valid.
 - **CSS beats `setIconColor()`:** themed CSS rules (`-fx-icon-color`) override programmatically

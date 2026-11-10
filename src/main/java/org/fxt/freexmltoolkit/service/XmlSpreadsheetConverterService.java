@@ -47,6 +47,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.excel.FxtExcelTheme;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -249,10 +250,7 @@ public class XmlSpreadsheetConverterService {
 
             XmlSpreadsheetExcelStyles styles = new XmlSpreadsheetExcelStyles(workbook);
             Sheet sheet = workbook.createSheet("XML Structure");
-            sheet.setDisplayGridlines(false);
-            if (sheet instanceof org.apache.poi.xssf.streaming.SXSSFSheet streamingSheet) {
-                streamingSheet.setTabColor(DataDictionaryExcelStyles.color(DataDictionaryExcelStyles.ACCENT_RULE));
-            }
+            FxtExcelTheme.tableSheet(sheet);
             createExcelHeader(sheet, config, styles);
             populateExcelSheet(sheet, rows, config, styles, resolver);
             formatExcelSheet(sheet, rows, config);
@@ -595,7 +593,7 @@ public class XmlSpreadsheetConverterService {
             typeCell.setCellValue("Type");
             typeCell.setCellStyle(styles.headerCenter);
         }
-        sheet.createFreezePane(0, 1);
+        header.setHeightInPoints(22);
     }
 
     /**
@@ -707,15 +705,8 @@ public class XmlSpreadsheetConverterService {
             sheet.setColumnWidth(2, columnWidth(typeChars));
         }
 
-        // Enable autofilter
-        sheet.setAutoFilter(new org.apache.poi.ss.util.CellRangeAddress(
-                0, rows.size(), 0, config.isIncludeTypeColumn() ? 2 : 1));
-
-        // Print one page wide, with the header on every page
-        sheet.setFitToPage(true);
-        sheet.getPrintSetup().setFitWidth((short) 1);
-        sheet.getPrintSetup().setFitHeight((short) 0);
-        sheet.setRepeatingRows(org.apache.poi.ss.util.CellRangeAddress.valueOf("1:1"));
+        // Frozen header, autofilter, printed one page wide with the header on every page
+        FxtExcelTheme.finishTable(sheet, 0, rows.size(), config.isIncludeTypeColumn() ? 2 : 1);
     }
 
     private static int length(String s) {

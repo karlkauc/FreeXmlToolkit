@@ -175,8 +175,13 @@ The suggested file name is `<document>-problems.xlsx`. The workbook contains:
 
 | Sheet | Content |
 |-------|---------|
-| **Summary** | Source file, generation timestamp, and counts (total, errors, warnings) |
-| **Problems** | One row per problem: `#`, `Source`, `Severity`, `Line`, `Message` - with a frozen header row and an auto-filter |
+| **Summary** | Source file, export timestamp, application version, and counts (total, errors, warnings) |
+| **Problems** | One row per problem: `#`, `Source`, `Severity` (errors in red, warnings in amber), `Line`, `Message` - with a frozen header row and an auto-filter |
+
+All Excel files FreeXmlToolkit writes share one look - the Data Dictionary, the Schema Analysis
+report, the XML → Excel conversion and this export: a dark header row, striped rows with a thin
+rule, no gridlines, coloured sheet tabs, and an info sheet with a title and sections. Every sheet
+prints one page wide.
 
 ---
 
