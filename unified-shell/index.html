@@ -4651,6 +4651,16 @@ active - and, for <strong>XSD documents only</strong>, the <strong>Overview</str
 </table>
 <p>All views share one in-memory model per document, so edits and Undo/Redo history are preserved
 when you switch views.</p>
+<p><strong>Switching views keeps your place.</strong> The new view continues at the node you were working on:</p>
+<ul>
+<li>From <strong>Text</strong> to <strong>Tree</strong>, <strong>Graphic</strong> or <strong>Overview</strong>, the node at the caret is selected. The tree, grid or
+  schema diagram opens down to it and scrolls it into view (the grid briefly flashes its row or table cell).</li>
+<li>From <strong>Tree</strong>, <strong>Graphic</strong> or <strong>Overview</strong> back to <strong>Text</strong>, the caret goes to the node that was active there.
+  All the node's lines are tinted, from its start tag to its end tag (for JSON, its whole member or item). The
+  tint goes away when you edit the text or move the caret off the node.</li>
+<li>Between <strong>Tree</strong> and <strong>Graphic</strong>, the same node stays selected.</li>
+</ul>
+<p>This works for XML, XSLT, Schematron, XSD and JSON documents.</p>
 <h3 id="the-grid-graphic-view-for-xml">The Grid (Graphic view for XML)<a class="headerlink" href="#the-grid-graphic-view-for-xml" title="Permanent link">¶</a></h3>
 <p>The Graphic view of XML and JSON documents is an editable grid with tables for repeating elements, opened cells, entry helpers, filters and formulas - see <strong><a href="../grid/">Grid View</a></strong>.</p>
 <h3 id="html-preview">HTML Preview (Preview view for HTML)<a class="headerlink" href="#html-preview" title="Permanent link">¶</a></h3>

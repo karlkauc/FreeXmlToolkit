@@ -4209,6 +4209,9 @@ errors, or <em>Well-formed · no schema bound</em> when no schema is bound.</p>
 <p>All three views share a single in-memory model for each open document. This means your edits -
 and your full <strong>Undo / Redo</strong> history - are preserved when you switch between the Text, Tree,
 and Graphic views.</p>
+<p>Switching views also keeps your place. The node at the caret is selected and opened in the Tree and the grid.
+Coming back to the Text view, the caret goes to the node you last selected, and the node's lines are tinted
+(see <a href="../unified-shell/#view-modes">View Modes</a>).</p>
 <blockquote>
 <p><strong>Note:</strong> Adding, deleting, or moving whole nodes (structural editing) is done in the
 <strong>Graphic</strong> view (the grid) via its right-click context menu. The Text and Tree views provide
