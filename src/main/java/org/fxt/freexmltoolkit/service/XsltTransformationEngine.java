@@ -573,6 +573,121 @@ public class XsltTransformationEngine {
     }
 
     /**
+     * The result of {@link #transformSandboxed}.
+     *
+     * @param result          output, messages, or the failure with code, phase and line
+     * @param resultDocuments every {@code xsl:result-document} by resolved URI, in the order they were opened —
+     *                        none of them was written to disk
+     * @param timedOut        the run was stopped at its deadline
+     */
+    public record SandboxedTransformation(XsltTransformationResult result, Map<String, String> resultDocuments,
+                                          boolean timedOut) {
+    }
+
+    /**
+     * Runs a stylesheet that may come from a model or an external agent, so that it cannot change anything:
+     * see {@link XsltSandbox} for what is restricted. The stylesheet is compiled with tracing on every call
+     * (no cache — an agent changes it between calls) so the deadline can be checked per instruction; when
+     * it passes, the transformation unwinds on the calling thread and {@code timedOut} is set. Static and
+     * dynamic errors are results with code, phase and line, as for {@link #transform}.
+     *
+     * @param readableRoots the folders {@code doc()}, {@code unparsed-text()}, {@code collection()},
+     *                      {@code xsl:include} and {@code xsl:import} may read from
+     */
+    public SandboxedTransformation transformSandboxed(String xmlContent, String xmlBaseUri, String xsltContent,
+                                                      String xsltSystemId, Map<String, Object> parameters,
+                                                      OutputFormat outputFormat, java.time.Duration timeout,
+                                                      List<java.nio.file.Path> readableRoots) {
+        long start = System.nanoTime();
+        long deadline = start + timeout.toNanos();
+        Map<String, java.util.function.Supplier<String>> documents =
+                java.util.Collections.synchronizedMap(new java.util.LinkedHashMap<>());
+        XsltDebugMessageListener messageListener = new XsltDebugMessageListener();
+        XsltTransformationResult result;
+        boolean timedOut = false;
+        try {
+            List<java.nio.file.Path> roots = XsltSandbox.realRoots(readableRoots);
+            Processor processor = XsltSandbox.newProcessor();
+            XsltCompiler compiler = processor.newXsltCompiler();
+            compiler.setXsltLanguageVersion("3.0");
+            compiler.setCompileWithTracing(true);
+            compiler.setResourceResolver(XsltSandbox.guard(compiler.getResourceResolver(), roots));
+            List<XmlProcessingError> staticErrors = new ArrayList<>();
+            compiler.setErrorReporter(collectStaticErrors(staticErrors, messageListener));
+            StreamSource source = new StreamSource(new StringReader(xsltContent));
+            if (xsltSystemId != null && !xsltSystemId.isBlank()) {
+                source.setSystemId(xsltSystemId);
+            }
+            XsltExecutable executable;
+            try {
+                executable = compiler.compile(source);
+            } catch (SaxonApiException e) {
+                return new SandboxedTransformation(compileFailure(staticErrors, e).toResult(), Map.of(), false);
+            }
+            XsltSandbox.lockDown(processor);
+
+            XsltTransformer transformer = executable.load();
+            configureTransformer(transformer, parameters, outputFormat, false);
+            transformer.setTraceListener(new XsltSandbox.DeadlineListener(deadline));
+            transformer.setMessageHandler(messageListener);
+            transformer.setErrorReporter(messageListener::reportError);
+            long[] budget = {XsltSandbox.MAX_OUTPUT_CHARS};
+            transformer.setBaseOutputURI(xmlBaseUri != null && !xmlBaseUri.isBlank() ? xmlBaseUri
+                    : xsltSystemId != null && !xsltSystemId.isBlank() ? xsltSystemId : "file:///sandbox/");
+            XsltSandbox.resultDocumentsInMemory(processor, transformer, documents::put,
+                    () -> new XsltSandbox.LimitedWriter(budget));
+            XsltSandbox.readOnlyWithin(transformer, processor, roots);
+
+            XdmNode sourceDoc;
+            try {
+                sourceDoc = parseXmlDocument(processor, xmlContent, xmlBaseUri);
+            } catch (SaxonApiException e) {
+                return new SandboxedTransformation(inputFailure(e), Map.of(), false);
+            }
+            transformer.setInitialContextNode(sourceDoc);
+            XsltSandbox.LimitedWriter output = new XsltSandbox.LimitedWriter(budget);
+            transformer.setDestination(processor.newSerializer(output));
+            configureSerializer(transformer.getDestination(), outputFormat);
+            try {
+                transformer.transform();
+                result = XsltTransformationResult.success(output.toString(), outputFormat, new TransformationProfile());
+            } catch (RuntimeException | SaxonApiException e) {
+                if (XsltSandbox.causedBy(e, XsltSandbox.DeadlineExceeded.class)) {
+                    timedOut = true;
+                    result = XsltTransformationResult.timeout(timeout.toMillis());
+                } else if (XsltSandbox.causedBy(e, XsltSandbox.OutputLimitExceeded.class)) {
+                    result = XsltTransformationResult.error("The transformation produced more than "
+                            + XsltSandbox.MAX_OUTPUT_CHARS + " characters of output and was stopped",
+                            null, XsltTransformationResult.PHASE_RUNTIME);
+                } else if (e instanceof SaxonApiException saxon) {
+                    result = runtimeFailure(saxon);
+                } else {
+                    throw e;
+                }
+            } catch (StackOverflowError e) {
+                result = XsltTransformationResult.error("The transformation ran out of stack (endless recursion?)",
+                        null, XsltTransformationResult.PHASE_RUNTIME);
+            }
+        } catch (java.io.IOException e) {
+            result = XsltTransformationResult.error("A readable folder does not exist: " + e.getMessage());
+        } catch (Exception e) {
+            logger.warn("Unexpected failure in a sandboxed transformation: {}", e.getClass().getName());
+            logger.debug("Sandboxed transformation failure", e);
+            result = XsltTransformationResult.error("Unexpected error: " + e.getMessage(), e);
+        }
+        result.setExecutionTime((System.nanoTime() - start) / 1_000_000);
+        result.setMessages(messageListener.getMessages());
+        if (!messageListener.getWarnings().isEmpty()) {
+            result.addAllWarnings(messageListener.getWarnings());
+        }
+        Map<String, String> texts = new java.util.LinkedHashMap<>();
+        synchronized (documents) {
+            documents.forEach((uri, text) -> texts.put(uri, text.get()));
+        }
+        return new SandboxedTransformation(result, java.util.Collections.unmodifiableMap(texts), timedOut);
+    }
+
+    /**
      * The result of {@link #profileTransformation}: the transformation result of the measured run and
      * its profile ({@code null} when the run failed).
      */
@@ -676,7 +791,8 @@ public class XsltTransformationEngine {
             String code = first != null && first.getErrorCode() != null
                     ? first.getErrorCode().getLocalName() : localCode(e.getErrorCode());
             throw new StylesheetCompileException("XQuery compilation failed" + where + bracket(code) + ": "
-                    + (first != null ? first.getMessage() : e.getMessage()), code, e);
+                    + (first != null ? first.getMessage() : e.getMessage()), code,
+                    first != null ? lineOf(first) : e.getLineNumber(), e);
         }
     }
 
@@ -878,11 +994,7 @@ public class XsltTransformationEngine {
             transformer.setBaseOutputURI(inputSystemId != null && !inputSystemId.isBlank() ? inputSystemId
                     : xsltSystemId != null && !xsltSystemId.isBlank() ? xsltSystemId : "file:///debug-output/");
         }
-        transformer.setResultDocumentHandler(uri -> {
-            StringWriter writer = new StringWriter();
-            session.addResultDocument(uri.toString(), writer::toString);
-            return processor.newSerializer(writer);
-        });
+        XsltSandbox.resultDocumentsInMemory(processor, transformer, session::addResultDocument, StringWriter::new);
         // Delegate to the secured resolver (remote references stay blocked, see SaxonResourceAccess).
         net.sf.saxon.lib.ResourceResolver controllerResolver = transformer.getUnderlyingController().getResourceResolver();
         net.sf.saxon.lib.ResourceResolver resolver = controllerResolver != null ? controllerResolver
@@ -1456,18 +1568,24 @@ public class XsltTransformationEngine {
     /** A stylesheet had static errors; carries the formatted, user-facing failure. */
     static final class StylesheetCompileException extends Exception {
         private final String code;
+        private final int line;
 
         StylesheetCompileException(String message, String code) {
-            this(message, code, null);
+            this(message, code, -1);
         }
 
-        StylesheetCompileException(String message, String code, Throwable cause) {
+        StylesheetCompileException(String message, String code, int line) {
+            this(message, code, line, null);
+        }
+
+        StylesheetCompileException(String message, String code, int line, Throwable cause) {
             super(message, cause);
             this.code = code;
+            this.line = line;
         }
 
         XsltTransformationResult toResult() {
-            return XsltTransformationResult.error(getMessage(), code, XsltTransformationResult.PHASE_COMPILE);
+            return XsltTransformationResult.error(getMessage(), code, XsltTransformationResult.PHASE_COMPILE, line);
         }
 
         String code() {
@@ -1483,13 +1601,13 @@ public class XsltTransformationEngine {
         if (errors.isEmpty()) {
             String code = localCode(e.getErrorCode());
             return new StylesheetCompileException("XSLT compile error" + at(e.getLineNumber(), -1)
-                    + bracket(code) + ": " + e.getMessage(), code);
+                    + bracket(code) + ": " + e.getMessage(), code, e.getLineNumber());
         }
         XmlProcessingError first = errors.getFirst();
         String code = localCode(first.getErrorCode());
         if (errors.size() == 1) {
             return new StylesheetCompileException("XSLT compile error" + at(first) + bracket(code)
-                    + ": " + first.getMessage(), code);
+                    + ": " + first.getMessage(), code, lineOf(first));
         }
         StringBuilder sb = new StringBuilder("XSLT stylesheet has ").append(errors.size())
                 .append(" compile errors:");
@@ -1499,21 +1617,26 @@ public class XsltTransformationEngine {
         if (errors.size() > MAX_REPORTED_COMPILE_ERRORS) {
             sb.append("\n  … and ").append(errors.size() - MAX_REPORTED_COMPILE_ERRORS).append(" more");
         }
-        return new StylesheetCompileException(sb.toString(), code);
+        return new StylesheetCompileException(sb.toString(), code, lineOf(first));
+    }
+
+    private static int lineOf(XmlProcessingError error) {
+        return error.getLocation() == null ? -1 : error.getLocation().getLineNumber();
     }
 
     /** The input document is not well-formed. */
     private static XsltTransformationResult inputFailure(SaxonApiException e) {
         String code = localCode(e.getErrorCode());
         return XsltTransformationResult.error("Input XML is not well-formed" + bracket(code) + ": "
-                + e.getMessage(), code, XsltTransformationResult.PHASE_INPUT);
+                + e.getMessage(), code, XsltTransformationResult.PHASE_INPUT, e.getLineNumber());
     }
 
     /** The transformation raised a dynamic error. */
     private static XsltTransformationResult runtimeFailure(SaxonApiException e) {
         String code = localCode(e.getErrorCode());
         return XsltTransformationResult.error("Transformation failed" + at(e.getLineNumber(), -1)
-                + bracket(code) + ": " + e.getMessage(), code, XsltTransformationResult.PHASE_RUNTIME);
+                + bracket(code) + ": " + e.getMessage(), code, XsltTransformationResult.PHASE_RUNTIME,
+                e.getLineNumber());
     }
 
     private static String at(XmlProcessingError error) {

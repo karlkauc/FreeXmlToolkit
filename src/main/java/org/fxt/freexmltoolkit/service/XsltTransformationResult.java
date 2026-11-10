@@ -54,6 +54,7 @@ public class XsltTransformationResult {
     // Machine-readable failure classification (safe for anonymous telemetry: no free text)
     private String errorCode;
     private String errorPhase;
+    private int errorLine = -1;
     /** The exception behind an unclassified failure (never sent as text; telemetry uses its stack signature). */
     private Throwable cause;
     private long executionTime; // in milliseconds
@@ -148,6 +149,19 @@ public class XsltTransformationResult {
         XsltTransformationResult result = error(errorMessage);
         result.errorCode = errorCode;
         result.errorPhase = errorPhase;
+        return result;
+    }
+
+    /**
+     * As {@link #error(String, String, String)}, also giving the line of the stylesheet (compile / runtime)
+     * or of the input document (input) where the failure was reported.
+     *
+     * @param errorLine 1-based line, or a value &lt; 1 when unknown
+     */
+    public static XsltTransformationResult error(String errorMessage, String errorCode, String errorPhase,
+                                                 int errorLine) {
+        XsltTransformationResult result = error(errorMessage, errorCode, errorPhase);
+        result.errorLine = errorLine > 0 ? errorLine : -1;
         return result;
     }
 
@@ -509,6 +523,11 @@ public class XsltTransformationResult {
     /** @return the failure phase ({@code compile | input | runtime}), or null */
     public String getErrorPhase() {
         return errorPhase;
+    }
+
+    /** @return the line reported with the failure (see {@link #error(String, String, String, int)}), or -1 */
+    public int getErrorLine() {
+        return errorLine;
     }
 
     public long getExecutionTime() {

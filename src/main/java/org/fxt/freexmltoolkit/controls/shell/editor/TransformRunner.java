@@ -30,6 +30,20 @@ public final class TransformRunner {
     }
 
     /**
+     * Runs a stylesheet that may come from a model or an external agent in the sandbox
+     * ({@link XsltTransformationEngine#transformSandboxed}): no file is written ({@code xsl:result-document}
+     * output is returned), no Java extensions, no network, reads only inside {@code readableRoots}, no
+     * environment variables, and the run stops at {@code timeout}.
+     */
+    public static XsltTransformationEngine.SandboxedTransformation xsltTransformSandboxed(String xml,
+            String xmlBaseUri, String xsltContent, String xsltSystemId, java.util.Map<String, Object> parameters,
+            XsltTransformationEngine.OutputFormat outputFormat, java.time.Duration timeout,
+            java.util.List<java.nio.file.Path> readableRoots) {
+        return XsltTransformationEngine.getInstance().transformSandboxed(xml, xmlBaseUri, xsltContent, xsltSystemId,
+                parameters, outputFormat, timeout, readableRoots);
+    }
+
+    /**
      * Transforms {@code xml} with {@code xsltContent}, passing the given stylesheet
      * parameters and producing the chosen output format.
      *

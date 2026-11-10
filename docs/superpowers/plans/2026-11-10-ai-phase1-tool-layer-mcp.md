@@ -142,9 +142,14 @@ public static SandboxedTransformation xsltTransformSandboxed(String xml, String 
 
 **Steps:**
 
-- [ ] **Step 1 (red):** tests — (a) a stylesheet with `<xsl:result-document href="/tmp/…/fxt-sandbox-probe.xml">` produces the text in `resultDocuments()` and **no file**; (b) the same with a relative `href` and a stylesheet system id under a temp folder: no file in that folder; (c) Java extension call fails even when `security.xslt.allow.extensions=true` is set in the test properties; (d) remote `doc('https://…')` fails (already blocked — regression pin); (e) a non-terminating stylesheet returns `timedOut == true` within the timeout plus a margin; (f) `xsl:message` text is available on the result (it already is: `XsltDebugMessageListener` is always attached).
-- [ ] **Step 2 (green):** implement; decide the timeout mechanism (Review Focus 1) and say in the JavaDoc what happens to the thread.
-- [ ] **Step 3:** existing `TransformRunner`, debugger and CLI tests still pass (`FxtCliTest`, the debugger test classes that cover result documents). Commit.
+- [x] **Step 1 (red):** tests — (a) a stylesheet with `<xsl:result-document href="/tmp/…/fxt-sandbox-probe.xml">` produces the text in `resultDocuments()` and **no file**; (b) the same with a relative `href` and a stylesheet system id under a temp folder: no file in that folder; (c) Java extension call fails even when `security.xslt.allow.extensions=true` is set in the test properties; (d) remote `doc('https://…')` fails (already blocked — regression pin); (e) a non-terminating stylesheet returns `timedOut == true` within the timeout plus a margin; (f) `xsl:message` text is available on the result (it already is: `XsltDebugMessageListener` is always attached).
+- [x] **Step 2 (green):** implement; decide the timeout mechanism (Review Focus 1) and say in the JavaDoc what happens to the thread.
+- [x] **Step 3:** existing `TransformRunner`, debugger and CLI tests still pass (`FxtCliTest`, the debugger test classes that cover result documents). Commit.
+
+**Outcome:** see the spec, "Sandbox and limits" → Stylesheets. Deviations from this task: the entry point
+takes `readableRoots` (local `doc()` etc. restricted to the roots, as the spec requires); a per-run processor
+instead of a shared one (the `ALLOW_EXTERNAL_FUNCTIONS` / `system-property()` finding); `XsltTransformationResult`
+got `getErrorLine()`; `util/RootedPaths` holds the containment check shared with `WorkspaceAccess`.
 
 ---
 

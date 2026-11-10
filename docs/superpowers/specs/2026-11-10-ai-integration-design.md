@@ -144,11 +144,25 @@ merge, anything that writes.
   through symlinks (`toRealPath`) before the check; anything outside a root is refused with a
   message naming the roots. Reuse the application's existing path validation where it fits
   (threat model row "Path traversal in file names from documents").
-- **Stylesheets:** the sandboxed transformation installs a result-document handler that writes into
-  memory (the pattern of `XsltTransformationEngine.recordDebugArtifacts`), so `xsl:result-document`
-  never touches the disk. `security.xslt.allow.extensions` is ignored and treated as off for tool
-  runs. Remote `doc()`/`unparsed-text()` stay blocked by `SaxonResourceAccess`. `doc()` of local
-  files is limited to the roots.
+- **Stylesheets** (`XsltTransformationEngine.transformSandboxed`, building blocks in `service/XsltSandbox`;
+  decided in Phase 1 Task 3):
+  - a **new Saxon processor per run**. Saxon refuses to compile `xsl:result-document` unless
+    `Feature.ALLOW_EXTERNAL_FUNCTIONS` is on, but with the flag on `system-property()` returns Java system
+    properties (read when the function runs). So the stylesheet is compiled with the flag on and the flag is
+    switched off before the run (`XsltSandbox.lockDown`). Saxon-HE has no reflexive Java extension functions,
+    so `security.xslt.allow.extensions` plays no part. The flag belongs to the `Configuration`, hence one
+    processor per run;
+  - `xsl:result-document` goes into memory (the handler is shared with the debugger), relative and absolute
+    `href`s alike;
+  - `doc()`, `document()`, `unparsed-text()`, `collection()`, `xsl:include`/`xsl:import` read only `file:` URIs
+    inside the roots (`util/RootedPaths`); remote references stay blocked by `SaxonResourceAccess`;
+  - `environment-variable()` / `available-environment-variables()` see nothing;
+  - **deadline**: compiled with tracing, a trace listener checks the deadline on every instruction, template
+    and function entry and unwinds the run on the calling thread (`timedOut`). Endless recursion ends earlier
+    with Saxon's stack error. A long computation inside one XPath expression that enters no traced construct
+    is not stopped this way — `ToolRegistry` then abandons the virtual thread after the timeout;
+  - output capped at 16 M characters (principal result and result documents together);
+  - errors carry code, phase and line (`XsltTransformationResult.getErrorLine`).
 - **Limits** (`ToolLimits`, defaults in parentheses, settings keys `ai.tool.*`): wall-clock time per
   call (30 s), output text returned to the caller (64 KB, truncated with a marker and the full
   length), input file size read into memory (64 MB; larger inputs are refused with a hint to use

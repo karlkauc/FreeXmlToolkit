@@ -8,12 +8,13 @@ import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.fxt.freexmltoolkit.util.RootedPaths;
 
 /**
  * The folders a tool may read from, and the only way a tool turns a path argument into a file.
@@ -21,9 +22,8 @@ import java.util.regex.Pattern;
  * <p>A path is made absolute (a relative one against the first root), normalised, and resolved through
  * symbolic links ({@link Path#toRealPath}) before it is compared with the roots; for a file that does not
  * exist yet the nearest existing parent is resolved, so a linked folder cannot lead outside either. A
- * dangling link is refused. {@code util/PathValidator.isPathWithinDirectory} falls back to the unresolved
- * path for non-existing files and logs the path, so it is not used here: paths are tool arguments and must
- * not reach logs above DEBUG ({@code .claude/rules/ai-integration.md}).
+ * dangling link is refused ({@link RootedPaths}). Paths are tool arguments and must not reach logs above
+ * DEBUG ({@code .claude/rules/ai-integration.md}), so this class logs nothing.
  */
 public final class WorkspaceAccess {
 
@@ -119,25 +119,8 @@ public final class WorkspaceAccess {
     }
 
     private Path realPath(Path normalized, String original) throws ToolException {
-        Path existing = normalized;
-        List<Path> missing = new ArrayList<>();
-        while (existing != null && !Files.exists(existing, LinkOption.NOFOLLOW_LINKS)) {
-            missing.addFirst(existing.getFileName());
-            existing = existing.getParent();
-        }
-        if (existing == null) {
-            throw new ToolException("'" + original + "' is outside the allowed folders " + describeRoots());
-        }
-        Path real;
-        try {
-            real = existing.toRealPath();
-        } catch (IOException e) {
-            throw new ToolException("cannot resolve '" + original + "' (a broken link?)");
-        }
-        for (Path name : missing) {
-            real = real.resolve(name);
-        }
-        return real;
+        return RootedPaths.realPath(normalized)
+                .orElseThrow(() -> new ToolException("cannot resolve '" + original + "' (a broken link?)"));
     }
 
     static String decode(byte[] bytes) {
