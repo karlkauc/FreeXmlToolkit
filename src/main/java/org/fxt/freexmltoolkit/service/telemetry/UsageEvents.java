@@ -1086,6 +1086,37 @@ public final class UsageEvents {
         }
     }
 
+    private static final java.util.Set<String> AI_ACTIONS =
+            java.util.Set.of("explain", "fix_problem", "ask_xpath", "ask_xquery", "generate_xslt");
+    private static final java.util.Set<String> AI_PROVIDER_KINDS = java.util.Set.of("local", "openai_compatible", "anthropic");
+    private static final java.util.Set<String> AI_OUTCOMES =
+            java.util.Set.of("verified", "unverified", "refused", "failed", "cancelled");
+
+    /**
+     * An AI action ended. Only fixed values are sent — never a prompt, an answer, a model or host name, or anything of
+     * the document (see docs/telemetry.md).
+     *
+     * @param actionId     {@code explain | fix_problem | ask_xpath | ask_xquery | generate_xslt}
+     * @param providerKind {@code local | openai_compatible | anthropic}
+     * @param outcome      {@code verified | unverified | refused | failed | cancelled}
+     * @param repairRounds repair rounds used (0–9)
+     */
+    public static void aiAction(String actionId, String providerKind, String outcome, int repairRounds, long startNanos) {
+        String action = AI_ACTIONS.contains(actionId) ? actionId : "other";
+        String kind = AI_PROVIDER_KINDS.contains(providerKind) ? providerKind : "other";
+        String result = AI_OUTCOMES.contains(outcome) ? outcome : "other";
+        action("ai_action", b -> {
+            b.meta("action", action).meta("provider", kind).meta("outcome", result)
+                    .meta("repairs", String.valueOf(Math.max(0, Math.min(repairRounds, 9))));
+            b.status(switch (result) {
+                case "failed" -> TelemetryEvent.Status.ERROR;
+                case "cancelled" -> TelemetryEvent.Status.CANCELLED;
+                default -> TelemetryEvent.Status.OK;
+            });
+            duration(b, startNanos);
+        });
+    }
+
     /** The debugger could not be started (stylesheet or input unreadable, no input document). */
     public static void debugStartFailed(String language, QueryFailure failure) {
         action("debug_run", b -> {

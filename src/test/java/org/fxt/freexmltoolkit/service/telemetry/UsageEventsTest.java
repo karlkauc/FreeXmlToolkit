@@ -48,6 +48,25 @@ class UsageEventsTest {
     }
 
     @Test
+    void aiActionsCarryFixedValuesOnly() {
+        UsageEvents.aiAction("fix_problem", "local", "verified", 1, System.nanoTime());
+        UsageEvents.aiAction("my prompt with SECRET text", "https://secret.host/v1", "SECRET outcome", 99, 0);
+        List<TelemetryEvent> events = telemetry.events("ai_action");
+        assertEquals(2, events.size());
+        assertEquals("fix_problem", events.get(0).meta().get("action"));
+        assertEquals("local", events.get(0).meta().get("provider"));
+        assertEquals("verified", events.get(0).meta().get("outcome"));
+        assertEquals("1", events.get(0).meta().get("repairs"));
+        assertEquals(TelemetryEvent.Status.OK, events.get(0).status());
+        TelemetryEvent free = events.get(1);
+        assertEquals("other", free.meta().get("action"));
+        assertEquals("other", free.meta().get("provider"));
+        assertEquals("other", free.meta().get("outcome"));
+        assertEquals("9", free.meta().get("repairs"));
+        assertFalse(free.toString().contains("SECRET"), free.toString());
+    }
+
+    @Test
     void fileOpenedFeedsBothSinks() {
         UsageEvents.fileOpened(DocKind.XSD, 1234, UsageEvents.SOURCE_FILE);
 

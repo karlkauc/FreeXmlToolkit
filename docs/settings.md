@@ -165,6 +165,14 @@ at once.
 ![An XML document in Monokai, dark theme](img/unified-shell-syntax-monokai-dark.png)
 *The same scheme in the dark theme*
 
+## AI {#ai}
+
+**Settings → AI** switches the [AI assistant](ai-assistant.md) on (it is off by default), sets what may be sent
+to local and to remote providers (*Schema only*, *Structure*, *Excerpts*), whether every request is shown before it is
+sent, and manages the providers (Ollama, LM Studio, OpenAI-compatible services, Anthropic): **Add…**, **Edit…**,
+**Remove** and **Use for AI actions**. Changes are saved at once. When the administrator sets `ai.allowed=false`, the
+group is not shown at all.
+
 ## Clearing the Cache Folder
 
 The **Clear Cache Folder** button in the **TEMP & CACHE** section deletes the contents of the

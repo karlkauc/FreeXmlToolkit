@@ -126,6 +126,7 @@ nav:
     - Execution Statistics: execution-statistics.md
     - Command Line (fxt-cli): command-line.md
     - MCP Server (AI agents): mcp-server.md
+    - AI Assistant: ai-assistant.md
   - XML Editing:
     - XML Editor: xml-editor.md
     - Grid View: grid.md

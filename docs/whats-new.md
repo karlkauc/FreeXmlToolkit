@@ -10,6 +10,11 @@ running is shown under **Help → About FreeXmlToolkit**.
   test XSLT/XQuery (with XSpec), explore schemas, outline large documents and compare results — read-only and
   sandboxed, restricted to the folders you name. Eleven tools; administrators can switch it off with
   `ai.mcp.allowed=false`. See [MCP Server](mcp-server.md).
+- **AI assistant** (off by default): fix or explain a validation problem, turn a question into XPath / XQuery, and
+  generate a stylesheet from a target sample — with a model on your computer (Ollama, LM Studio) or a provider you
+  choose (OpenAI-compatible, Anthropic). Every answer is checked by the application (compiled, run, validated) and
+  repaired up to three times before you see it; nothing is applied without you. Data levels and a request preview
+  control what leaves your computer. See [AI Assistant](ai-assistant.md).
 
 ## 3.0.0 (2026-11-09)
 

@@ -67,6 +67,12 @@ skipped one `cancelled` with `meta.reason`), `replace` (`meta.kind` = `xpath`/`t
 run is `cancelled`), `xsd_flatten`, `type_usages`, `schema_library` (`meta.action`), `template_insert`
 and `update_apply`. A dialog that belongs to such an action is not counted a second time.
 
+An **AI action** (`ai_action`, see [AI Assistant](ai-assistant.md)) carries only fixed values: `meta.action`
+(`explain`, `fix_problem`, `ask_xpath`, `ask_xquery`, `generate_xslt`), `meta.provider` (`local`,
+`openai_compatible`, `anthropic`), `meta.outcome` (`verified`, `unverified`, `refused`, `failed`, `cancelled`),
+`meta.repairs` (0–9) and the duration. The request, the answer, the model and host names never leave your computer
+as telemetry — the request itself goes only to the provider you configured.
+
 A **PDF generation** (`fop_pdf`) names the stage that ran last in `meta.stage` (`transform` = the
 XSLT run that produces the XSL-FO, `render` = Apache FOP rendering it) and, for a failure, the
 processor's error code or the exception class in `error_code`. A stylesheet that does not compile
@@ -102,6 +108,7 @@ events are sent per session.
 
 - File names, folder names or paths
 - Document content, XPath/XQuery expressions, schema or element names
+- AI prompts, answers, model names or provider hosts
 - Exception **messages** (they often contain paths or content — only class names and code
   locations are used)
 - User names, e-mail addresses, the "User Info" from the settings, license or machine identifiers

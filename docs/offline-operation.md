@@ -27,6 +27,7 @@ back to its cache; the application is never blocked.
 | XProc `p:http-request` and remote `href`s | The URL in the pipeline | When the pipeline runs, only with **Run XProc pipelines without restrictions** on | – | Blocked by default | Pipeline error |
 | HTML preview | Remote images, scripts and styles the page refers to | When the preview is shown | – | – | Missing resources |
 | Open from URL, proxy test | The URL you enter | On your action | – | – | Error message |
+| AI assistant | The base URL of the provider you configured (e.g. `localhost:11434` for Ollama) | Only when you start an AI action, test a provider or load its models | **Off** | Settings → AI; `ai.allowed=false` (policy), `ai.remote.allowed=false` for local providers only | Error in the AI panel |
 
 Not on this list because they never connect: XSLT, XQuery and XPath (also in the Query Console,
 grid formulas and filters: `doc()`, `document()` and `unparsed-text()` refuse remote URLs), XSL-FO/PDF output (remote resources are refused),

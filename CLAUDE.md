@@ -227,6 +227,26 @@ results also as JSON text), `StdoutGuard`. CLI `cli/McpCommand` (`fxt-cli mcp --
 `AdminPolicy`). Public surface pinned by `ToolSurfaceSnapshotTest` (`src/test/resources/ai/mcp-tools.snapshot.json`,
 regenerate with `-Dfxt.ai.updateSnapshot=true`); `ToolsWriteNothingTest` calls every tool and checks no file changed.
 Docs: `docs/mcp-server.md`.
+**AI assistant (Phase 2, off by default):** `service/ai/provider/` — `ChatProvider` (`ChatRequest`/`ChatResponse`/
+`ChatMessage` with opaque `providerState` replayed unchanged, `ToolCall`, `StopReason`, `ProviderException` kinds,
+`CancelToken`), `OpenAiCompatibleProvider` (Chat Completions on `ProviderHttp` over `ConnectionService`, SSE via
+`SseReader`, token field per config, no `tool_choice`), `provider/anthropic/AnthropicProvider` (official SDK
+`anthropic-java-core` on `ConnectionServiceHttpClient`, `maxRetries(0)`, no temperature — API 2026-10-21),
+`ProviderConfig`/`ProviderPreset`/`ProviderStore` (`ai.providers`, `ai.provider.default`), `ProviderSecrets`
+(`ai.provider.<id>.apiKey` encrypted via `isPasswordProperty` `.apiKey` suffix, or `apiKeyEnv`; never from policy/defaults),
+`Providers.create`. `service/ai/context/`: `ContextBuilder` (`forProblem`/`forQuery`/`forStylesheet`, data in
+`<document-data>`/`<schema-data>` blocks, D12 rule in the system prompt), `DataLevel` (SCHEMA/STRUCTURE/EXCERPTS),
+`ContextBudget`, `Redactor`, `SchemaCache` (moved here). `service/ai/agent/`: `VerifiedGeneration` (append-only,
+max 3 repairs, refusal ends), `CandidateExtractor`, verifiers `QueryVerifier` (`SandboxedQuery`, document prefixes
+NOT declared — like the Query Console), `XsltVerifier` (tools xslt_transform/validate/compare), `ProblemFixVerifier`
+(FixProposal JSON → `XPathMatchLocator`/`XPathReplacePlanner`/`EditPlan`, problem gone + no new + no content removed),
+`InAppToolContext`. `AiSettings` (`ai.*`), `AiPolicy.remoteAllowed`. UI `controls/shell/editor/ai/`: `AiState`
+(availability property the entry points bind to), `AiSettingsPane` (Settings → AI group, removed under
+`ai.allowed=false`, saves at once), `AiProviderDialog`, `AiSendPreviewDialog` + `AiConsent`, `AiProposalView`
+(bottom dock "AI", stale check = document identity + revision + text), `AiActions` (explain/fix from
+`ProblemsPanel`/`ValidationPanel` menus, Ask AI in `QueryConsole`, Generate stylesheet in `TransformPanel`),
+`GenerateStylesheetDialog`. Telemetry `UsageEvents.aiAction` (fixed values only). Eval: `./gradlew aiEval -Pai.baseUrl=…
+-Pai.model=…` (`src/test/resources/ai/evals/cases.json`). Docs: `docs/ai-assistant.md`.
 
 ## Administrator Policy
 

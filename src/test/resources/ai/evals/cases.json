@@ -1,0 +1,35 @@
+{
+  "documents": {
+    "funds": "<funds xmlns=\"urn:funds\" date=\"2026-10-31\">\n  <fund id=\"F1\" currency=\"EUR\"><name>Alpha Equity</name><nav>101.25</nav><shares>1000</shares></fund>\n  <fund id=\"F2\" currency=\"USD\"><name>Beta Bond</name><nav>98.10</nav><shares>500</shares></fund>\n  <fund id=\"F3\" currency=\"EUR\"><name>Gamma Mix</name><nav>110.00</nav><shares>250</shares></fund>\n</funds>",
+    "orders": "<orders>\n  <order no=\"1\"><customer>Ada</customer><item sku=\"A\" qty=\"2\" price=\"9.5\"/><item sku=\"B\" qty=\"1\" price=\"20\"/></order>\n  <order no=\"2\"><customer>Bob</customer><item sku=\"A\" qty=\"5\" price=\"9.5\"/></order>\n  <order no=\"3\"><customer>Ada</customer><item sku=\"C\" qty=\"1\" price=\"100\"/></order>\n</orders>",
+    "library": "<library>\n  <book year=\"1999\"><title>XML in a Nutshell</title><author>Harold</author><author>Means</author></book>\n  <book year=\"2004\"><title>XSLT 2.0</title><author>Kay</author></book>\n  <book year=\"2017\"><title>XQuery</title><author>Walmsley</author></book>\n</library>"
+  },
+  "schemas": {
+    "orders": "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">\n  <xs:element name=\"orders\"><xs:complexType><xs:sequence><xs:element ref=\"order\" maxOccurs=\"unbounded\"/></xs:sequence></xs:complexType></xs:element>\n  <xs:element name=\"order\"><xs:complexType><xs:sequence>\n    <xs:element name=\"customer\" type=\"xs:string\"/>\n    <xs:element name=\"item\" maxOccurs=\"unbounded\"><xs:complexType>\n      <xs:attribute name=\"sku\" type=\"xs:string\" use=\"required\"/>\n      <xs:attribute name=\"qty\" type=\"xs:positiveInteger\" use=\"required\"/>\n      <xs:attribute name=\"price\" type=\"xs:decimal\" use=\"required\"/>\n    </xs:complexType></xs:element>\n  </xs:sequence><xs:attribute name=\"no\" type=\"xs:int\" use=\"required\"/></xs:complexType></xs:element>\n</xs:schema>",
+    "csv": "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"><xs:element name=\"rows\"><xs:complexType><xs:sequence><xs:element name=\"row\" maxOccurs=\"unbounded\"><xs:complexType><xs:sequence><xs:element name=\"a\" type=\"xs:string\"/><xs:element name=\"b\" type=\"xs:decimal\"/></xs:sequence></xs:complexType></xs:element></xs:sequence></xs:complexType></xs:element></xs:schema>"
+  },
+  "cases": [
+    {"id": "q01", "kind": "xpath", "doc": "funds", "question": "How many funds are there?", "expected": "3"},
+    {"id": "q02", "kind": "xpath", "doc": "funds", "question": "The names of the funds in EUR.", "expected": "Alpha Equity\nGamma Mix"},
+    {"id": "q03", "kind": "xpath", "doc": "funds", "question": "The id of the fund with the highest NAV.", "expected": "F3"},
+    {"id": "q04", "kind": "xpath", "doc": "funds", "question": "The total number of shares of all funds.", "expected": "1750"},
+    {"id": "q05", "kind": "xpath", "doc": "funds", "question": "The reporting date of the document.", "expected": "2026-10-31"},
+    {"id": "q06", "kind": "xpath", "doc": "orders", "question": "How many orders did Ada place?", "expected": "2"},
+    {"id": "q07", "kind": "xpath", "doc": "orders", "question": "The total quantity of SKU A over all orders.", "expected": "7"},
+    {"id": "q08", "kind": "xpath", "doc": "orders", "question": "The order numbers that contain more than one item.", "expected": "1"},
+    {"id": "q09", "kind": "xpath", "doc": "library", "question": "The titles of books with more than one author.", "expected": "XML in a Nutshell"},
+    {"id": "q10", "kind": "xpath", "doc": "library", "question": "The title of the newest book.", "expected": "XQuery"},
+    {"id": "x01", "kind": "xquery", "doc": "orders", "question": "The value of each order (sum of qty times price), one number per order in document order.", "expected": "39 47.5 100"},
+    {"id": "x02", "kind": "xquery", "doc": "orders", "question": "The distinct customer names, sorted alphabetically.", "expected": "Ada Bob"},
+    {"id": "x03", "kind": "xquery", "doc": "library", "question": "For each author the number of books, as text lines 'name: count' sorted by name.", "expected": "Harold: 1\nKay: 1\nMeans: 1\nWalmsley: 1"},
+    {"id": "x04", "kind": "xquery", "doc": "funds", "question": "The market value (nav times shares) of all funds together, rounded to two decimals.", "expected": "177800"},
+    {"id": "t01", "kind": "xslt", "doc": "funds", "target": "<list><entry>Alpha Equity</entry><entry>Beta Bond</entry><entry>Gamma Mix</entry></list>", "notes": "One entry per fund with its name."},
+    {"id": "t02", "kind": "xslt", "doc": "orders", "target": "<rows><row><a>1</a><b>39</b></row><row><a>2</a><b>47.5</b></row><row><a>3</a><b>100</b></row></rows>", "schema": "csv", "notes": "a = order number, b = order value (sum of qty times price)."},
+    {"id": "t03", "kind": "xslt", "doc": "library", "target": "<authors><author name=\"Harold\"/><author name=\"Kay\"/><author name=\"Means\"/><author name=\"Walmsley\"/></authors>", "notes": "Distinct authors sorted by name."},
+    {"id": "t04", "kind": "xslt", "doc": "funds", "target": "<summary currency=\"EUR\" funds=\"2\"/>", "notes": "Only EUR funds, count them."},
+    {"id": "f01", "kind": "fix", "schema": "orders", "xml": "<orders>\n  <order no=\"1\"><customer>Ada</customer><item sku=\"A\" qty=\"0\" price=\"9.5\"/></order>\n</orders>", "line": 2, "message": "cvc-minInclusive-valid: Value '0' is not facet-valid with respect to minInclusive '1' for type 'positiveInteger'."},
+    {"id": "f02", "kind": "fix", "schema": "orders", "xml": "<orders>\n  <order no=\"1\"><item sku=\"A\" qty=\"1\" price=\"9.5\"/></order>\n</orders>", "line": 2, "message": "cvc-complex-type.2.4.a: Invalid content was found starting with element 'item'. One of '{customer}' is expected."},
+    {"id": "f03", "kind": "fix", "schema": "orders", "xml": "<orders>\n  <order no=\"x\"><customer>Ada</customer><item sku=\"A\" qty=\"1\" price=\"9.5\"/></order>\n</orders>", "line": 2, "message": "cvc-datatype-valid.1.2.1: 'x' is not a valid value for 'integer'."},
+    {"id": "f04", "kind": "fix", "schema": "orders", "xml": "<orders>\n  <order no=\"1\"><customer>Ada</customer><item sku=\"A\" price=\"9.5\"/></order>\n</orders>", "line": 2, "message": "cvc-complex-type.4: Attribute 'qty' must appear on element 'item'."}
+  ]
+}

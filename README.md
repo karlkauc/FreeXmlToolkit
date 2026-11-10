@@ -158,6 +158,10 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
   Schema; text, JSON, JUnit and SARIF reports), `transform` (XSLT, XQuery, XProc, profiling),
   `xsd-doc`, `xspec`, `scenario`, `compare`, `merge`, `convert`, `fop`; installed with the
   application. See [Command Line](https://karlkauc.github.io/FreeXmlToolkit/command-line/).
+- **AI assistant** (off by default): fix validation problems, write XPath/XQuery from a question and XSLT from a
+  target sample with a model you choose — local (Ollama, LM Studio) or a provider (OpenAI-compatible, Anthropic).
+  Every answer is checked by the application before you see it. See
+  [AI Assistant](https://karlkauc.github.io/FreeXmlToolkit/ai-assistant/).
 - **`fxt-cli mcp`** gives AI agents (Claude Code and other MCP clients) the same engines as tools, so an
   agent can validate, run and test the XML, XSLT and XQuery it writes: read-only, sandboxed, limited to the
   folders you name, no AI service involved. See [MCP Server](https://karlkauc.github.io/FreeXmlToolkit/mcp-server/).
@@ -233,7 +237,7 @@ All shortcuts: [Keyboard Shortcuts](https://karlkauc.github.io/FreeXmlToolkit/ke
 
 ### Privacy
 
-FreeXmlToolkit sends anonymous usage statistics and error reports (never file names, paths or document content). Both are on by default and can be switched off under **Settings → Privacy**. See [Privacy & Anonymous Telemetry](https://karlkauc.github.io/FreeXmlToolkit/telemetry/) for exactly what is sent.
+FreeXmlToolkit sends anonymous usage statistics and error reports (never file names, paths or document content). Both are on by default and can be switched off under **Settings → Privacy**. See [Privacy & Anonymous Telemetry](https://karlkauc.github.io/FreeXmlToolkit/telemetry/) for exactly what is sent. Requests of the optional AI assistant go only to the AI provider you configure and are not telemetry.
 
 ### Code Signing
 

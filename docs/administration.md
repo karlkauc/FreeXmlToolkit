@@ -72,8 +72,12 @@ Any key of the user's settings file works. These are the ones most often managed
 | `fop.processor.default` | `builtin` or an id | The default XSL-FO processor |
 | `xmlenc.allowed` | `false` | **Policy only.** No [XML encryption](xml-encryption.md) or decryption (page, editor menu and `fxt-cli`) |
 | `xmlenc.legacyAlgorithms.allowed` | `false` | **Policy only.** Block the legacy XML encryption algorithms (RSA-1_5, TripleDES, CBC modes, finite-field DH) for encryption and decryption |
-| `ai.allowed` | `false` | **Policy only.** Every AI feature off; today that is the [MCP server](mcp-server.md) (`fxt-cli mcp` refuses to start) |
+| `ai.allowed` | `false` | **Policy only.** Every AI feature off: the [AI assistant](ai-assistant.md) (no Settings group, no menu items) and the [MCP server](mcp-server.md) (`fxt-cli mcp` refuses to start) |
 | `ai.mcp.allowed` | `false` | **Policy only.** `fxt-cli mcp` refuses to start, so AI agents cannot use the application's tools |
+| `ai.remote.allowed` | `false` | **Policy only.** The [AI assistant](ai-assistant.md) may use only providers on this computer or hosts in `ai.localHosts` |
+| `ai.enabled`, `ai.dataLevel`, `ai.dataLevel.remote`, `ai.preview.always` | `true`/`false`; `SCHEMA` / `STRUCTURE` / `EXCERPTS` | AI assistant on/off, what may be sent to local / remote providers, preview every request (Settings → AI) |
+| `ai.providers`, `ai.provider.default` | JSON list, provider id | The AI providers; in `policy.properties` a fixed list. API keys are never read from the machine-wide files |
+| `ai.localHosts` | host list | Hosts that count as local (a company gateway) |
 | `plugin.<id>.enabled` | `true` / `false` | A [plugin](plugins.md) on or off (Settings → Plugins), e.g. `plugin.fundsxml.enabled` |
 | `schemaLibrary.autoBind.enabled` | `true` / `false` | Bind schemas from the Schema Library automatically |
 | `xml.parser.type` | `XERCES` / `SAXON` | XSD validator (XSD 1.1 schemas always use Xerces) |

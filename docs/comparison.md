@@ -113,9 +113,11 @@ read-only). The other products cover areas that FreeXmlToolkit does not:
     - Visual Studio and Eclipse integration;
     - an AI chat (separate subscription).
 
-FreeXmlToolkit has no built-in AI assistant. Instead `fxt-cli mcp` gives an AI agent of your choice (for example
-Claude Code) its validation, XSLT/XQuery, XSpec and schema tools over the Model Context Protocol, so the agent can
-check its own work; nothing is sent anywhere by the application. See [MCP Server](mcp-server.md).
+FreeXmlToolkit's [AI assistant](ai-assistant.md) works with a model you choose — on your computer (Ollama, LM
+Studio) or a service you have an account with — and checks every answer before you see it (compiles, runs,
+validates); it is off by default and needs no subscription. `fxt-cli mcp` additionally gives an AI agent of your
+choice (for example Claude Code) the validation, XSLT/XQuery, XSpec and schema tools over the Model Context
+Protocol. See [MCP Server](mcp-server.md).
 - **XMLBlueprint:**
     - refactoring (rename or split elements, rename namespace prefixes);
     - editing files on FTPS, SFTP and WebDAV servers;
