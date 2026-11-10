@@ -423,7 +423,9 @@ final class EditorTab extends Tab {
         EditorFileType type = document.getFileType();
         if (viewMode == ViewMode.TEXT) {
             var area = view.getCodeArea();
-            return ViewAnchor.caret(area.getCurrentParagraph() + 1, area.getCaretPosition());
+            // A caret still at the very start marks no place (a freshly opened document).
+            return area.getCaretPosition() == 0 ? null
+                    : ViewAnchor.caret(area.getCurrentParagraph() + 1, area.getCaretPosition());
         }
         if (!viewMode.isStructured()) {
             return null;
@@ -522,8 +524,8 @@ final class EditorTab extends Tab {
     /** Selects the JSON node at a text offset in the Tree or grid (JSON counterpart of {@link #revealLine}). */
     private void revealJsonOffset(int offset) {
         ensureJsonModelParsedAsync(() -> {
-            if (jsonEditorContext == null || !viewMode.isStructured()) {
-                return;
+            if (jsonEditorContext == null || !viewMode.isStructured() || currentJsonSelection != null) {
+                return; // no model, another view, or the user chose a node meanwhile
             }
             var span = org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.scan(view.getText());
             var path = org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.pathAt(span, offset);
@@ -1398,7 +1400,7 @@ final class EditorTab extends Tab {
         if (type == EditorFileType.XSD) {
             ensureModelParsedAsync(() -> ensureCaretMapAsync(() -> {
                 XsdNode node = xsdNodeAtLine(line);
-                if (node != null) {
+                if (node != null && (problem || currentSelection == null)) {
                     revealXsdNode(node);
                 }
             }));
@@ -1419,7 +1421,9 @@ final class EditorTab extends Tab {
                 java.util.regex.Matcher m = PROBLEM_ATTRIBUTE.matcher(message == null ? "" : message);
                 String attribute = m.find() ? m.group(1) : null;
                 if (!problem) {
-                    revealXmlElement(element, attribute);
+                    if (currentXmlSelection == null) { // the user chose a node meanwhile: keep it
+                        revealXmlElement(element, attribute);
+                    }
                 } else if (viewMode == ViewMode.TREE && xmlInstanceTreeView != null) {
                     xmlInstanceTreeView.selectNode(element);
                 } else if (viewMode == ViewMode.GRAPHIC && xmlGridView != null) {
