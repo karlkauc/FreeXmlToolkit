@@ -1,7 +1,7 @@
 # Command Line (fxt-cli)
 
 `fxt-cli` runs FreeXmlToolkit's validators, transformation engines, XPath/XQuery/JSONPath queries, XML
-comparison and merge, schema documentation, XML/JSON/YAML conversion, PDF output, XML signatures and XML encryption without the user interface: in build pipelines, scripts and scheduled jobs. It uses the
+comparison and merge, schema documentation, XML/JSON/YAML conversion, PDF output, XML signatures and XML encryption without the user interface: in build pipelines, scripts and scheduled jobs. `fxt-cli mcp` offers the same engines to AI agents. It uses the
 same engines and the same security defaults as the application, and it is installed with it.
 
 ```bash
@@ -17,6 +17,7 @@ fxt-cli convert data/order.xml -o order.json
 fxt-cli convert -t yaml data/config.json
 fxt-cli sign order.xml --keystore me.p12 --storepass-env KS_PW
 fxt-cli encrypt order.xml -x //payment --cert partner.pem
+fxt-cli mcp --root .
 ```
 
 ## Where it is
@@ -533,6 +534,26 @@ fxt-cli decrypt --inspect [-f text|json] INPUT
 
 Exit code `0` when everything selected was decrypted, `1` when no key fits or data stays encrypted,
 `3` on errors.
+
+## mcp
+
+Serves validation, XPath/XQuery, XSLT, XSpec, schema and comparison tools to an AI agent over the Model Context
+Protocol on standard input and output. Started by the agent, not by you; set-up, the tools and the safety model
+are on [MCP Server](mcp-server.md).
+
+```bash
+fxt-cli mcp [--root DIR]... [--tools NAMES] [--list-tools]
+```
+
+| Option | Meaning |
+|---|---|
+| `--root DIR` | Folder the tools may read (repeatable; default: the current folder) |
+| `--tools NAMES` | Offer only these tools, comma-separated |
+| `--list-tools` | Print the tools and exit |
+
+Standard output carries only protocol messages. The tools write no file. Exit code `0` when the client closes
+the connection, `1` when the server stopped itself after calls that ran past their time limit, `2` when the
+administrator policy disables it (`ai.mcp.allowed=false` or `ai.allowed=false`).
 
 ## Exit codes
 

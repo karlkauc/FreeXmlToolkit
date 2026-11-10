@@ -158,6 +158,9 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
   Schema; text, JSON, JUnit and SARIF reports), `transform` (XSLT, XQuery, XProc, profiling),
   `xsd-doc`, `xspec`, `scenario`, `compare`, `merge`, `convert`, `fop`; installed with the
   application. See [Command Line](https://karlkauc.github.io/FreeXmlToolkit/command-line/).
+- **`fxt-cli mcp`** gives AI agents (Claude Code and other MCP clients) the same engines as tools, so an
+  agent can validate, run and test the XML, XSLT and XQuery it writes: read-only, sandboxed, limited to the
+  folders you name, no AI service involved. See [MCP Server](https://karlkauc.github.io/FreeXmlToolkit/mcp-server/).
 
 ## Getting Started
 

@@ -1,0 +1,367 @@
+[
+  {
+    "name": "compare",
+    "read_only": true,
+    "description": "Compare two XML documents structurally (not as text): every added, removed, changed or moved node with its XPath on both sides, line numbers and values. 'equivalent' is true when nothing differs. Whitespace between elements is ignored by default; options ignore comments, element order, the nodes matched by ignore_xpaths, and numeric differences up to numeric_tolerance. Use it to check a transformation's output against an expected result.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "left_path": {
+          "type": "string",
+          "description": "Path of the left (expected) document (inside the allowed folders). Give this or left_content, not both."
+        },
+        "left_content": {
+          "type": "string",
+          "description": "The left (expected) document as text. Give this or left_path, not both."
+        },
+        "right_path": {
+          "type": "string",
+          "description": "Path of the right (actual) document (inside the allowed folders). Give this or right_content, not both."
+        },
+        "right_content": {
+          "type": "string",
+          "description": "The right (actual) document as text. Give this or right_path, not both."
+        },
+        "ignore_whitespace": {
+          "type": "boolean",
+          "description": "Trim text and collapse whitespace.",
+          "default": true
+        },
+        "ignore_comments": {
+          "type": "boolean",
+          "description": "Ignore comments.",
+          "default": false
+        },
+        "ignore_order": {
+          "type": "boolean",
+          "description": "Match child elements regardless of their order.",
+          "default": false
+        },
+        "ignore_xpaths": {
+          "type": "array",
+          "description": "XPaths of nodes to leave out on both sides.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "numeric_tolerance": {
+          "type": "number",
+          "description": "Numbers that differ by at most this much count as equal."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "document_outline",
+    "read_only": true,
+    "description": "Outline an XML document without reading it whole: root element, namespace declarations, declared schema, size, element count, depth, and every distinct element path (/a/b, no positions) with how often it occurs, its attribute names and one sample value. Works on files of any size (streamed). Use it first on an unknown or large document, then xpath for details.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "xml_path": {
+          "type": "string",
+          "description": "Path of the XML document (inside the allowed folders). Give this or xml_content, not both."
+        },
+        "xml_content": {
+          "type": "string",
+          "description": "The XML document as text. Give this or xml_path, not both."
+        },
+        "max_paths": {
+          "type": "integer",
+          "description": "Distinct paths returned at most.",
+          "default": 200,
+          "minimum": 1,
+          "maximum": 5000
+        },
+        "samples": {
+          "type": "boolean",
+          "description": "Include one sample value per path.",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "sample_xml",
+    "read_only": true,
+    "description": "Generate a sample XML instance from an XSD, for its first global element: all elements or only the mandatory ones, repeating elements up to max_occurrences, with realistic values (names, dates, amounts matching the types and facets) or placeholders. The same seed gives the same sample. Use it as test input for a stylesheet or a query.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "xsd_path": {
+          "type": "string",
+          "description": "Path of the XSD."
+        },
+        "mandatory_only": {
+          "type": "boolean",
+          "description": "Only elements and attributes that are required.",
+          "default": false
+        },
+        "max_occurrences": {
+          "type": "integer",
+          "description": "Repetitions of repeating elements.",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 10
+        },
+        "realistic": {
+          "type": "boolean",
+          "description": "Realistic values instead of placeholders.",
+          "default": true
+        },
+        "seed": {
+          "type": "integer",
+          "description": "Seed for a reproducible sample."
+        }
+      },
+      "required": [
+        "xsd_path"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "schema_describe",
+    "read_only": true,
+    "description": "Describe what an XSD declares for one place in an instance document, given as a path of element names from the root (/Order/Item/Price; prefixes and [n] are ignored), or an attribute of that element: type, built-in base type, min/max occurrences, nillable, default/fixed, facets, enumeration values, documentation, allowed child elements (choice alternatives marked) and attributes, and the file it is declared in when that is an included or imported schema. If the path does not exist, 'found' is false and the nearest path that does is returned with its children.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "xsd_path": {
+          "type": "string",
+          "description": "Path of the XSD."
+        },
+        "instance_path": {
+          "type": "string",
+          "description": "Element path from the document root, e.g. /Order/Item/Price."
+        },
+        "attribute": {
+          "type": "string",
+          "description": "Name of an attribute of that element to describe instead."
+        }
+      },
+      "required": [
+        "xsd_path",
+        "instance_path"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "schema_outline",
+    "read_only": true,
+    "description": "Outline an XSD: target namespace, global elements, named types and imports. With 'element' (a global element name) also its content tree to 'depth' levels: name, type, min, max (\"unbounded\"), children; 'choice': true marks alternatives, 'more': true a cut subtree, 'recursive': true a type that repeats. Start here to learn a schema, then use schema_describe for one place in detail.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "xsd_path": {
+          "type": "string",
+          "description": "Path of the XSD."
+        },
+        "element": {
+          "type": "string",
+          "description": "A global element whose content tree is returned."
+        },
+        "depth": {
+          "type": "integer",
+          "description": "Levels of the tree below the element.",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "required": [
+        "xsd_path"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "schematron_check",
+    "read_only": true,
+    "description": "Check a Schematron schema without running it: XML well-formedness, structure (schema, pattern, rule, assert/report), the XPath syntax of every context and test, and common mistakes. Returns the issues with severity, line and message; 'ok' is true when there is no error. Use it after writing or changing a Schematron, then validate a document with it.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "schematron_path": {
+          "type": "string",
+          "description": "Path of the Schematron schema (inside the allowed folders). Give this or schematron_content, not both."
+        },
+        "schematron_content": {
+          "type": "string",
+          "description": "The Schematron schema as text. Give this or schematron_path, not both."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "validate",
+    "read_only": true,
+    "description": "Validate an XML document: well-formedness, then the schema (XSD 1.0/1.1, DTD or RELAX NG), then an optional Schematron, then the checks of enabled plugins (e.g. FundsXML, ISO 20022). The schema is xsd_path if given, else the one the document declares (xsi:schemaLocation, DOCTYPE, Schema Library) unless declared_schema is false. Returns every problem with source, severity, line, column and message; 'valid' is true when the run had no errors (warnings allowed). 'not_run' means the schema or Schematron itself could not be loaded, so the document was not checked. Use it after every change to a document.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "xml_path": {
+          "type": "string",
+          "description": "Path of the XML document (inside the allowed folders). Give this or xml_content, not both."
+        },
+        "xml_content": {
+          "type": "string",
+          "description": "The XML document as text. Give this or xml_path, not both."
+        },
+        "xsd_path": {
+          "type": "string",
+          "description": "Path of the schema (XSD, DTD, .rng or .rnc) to validate against."
+        },
+        "schematron_path": {
+          "type": "string",
+          "description": "Path of a Schematron (.sch) to check after the schema."
+        },
+        "declared_schema": {
+          "type": "boolean",
+          "description": "Use the schema the document declares when xsd_path is not given.",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "xpath",
+    "read_only": true,
+    "description": "Evaluate an XPath 3.1 expression against an XML document and return the items, one per line: atomic values as text, attributes as name=\"value\", elements serialized as XML. The prefixes declared on the root element are available; pass 'namespaces' for others, with the key \"\" for the default element namespace (or use *:name). Errors come back with code and phase. Reads only inside the allowed folders. Use it to inspect large documents instead of reading them whole.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "xml_path": {
+          "type": "string",
+          "description": "Path of the XML document (inside the allowed folders). Give this or xml_content, not both."
+        },
+        "xml_content": {
+          "type": "string",
+          "description": "The XML document as text. Give this or xml_path, not both."
+        },
+        "expression": {
+          "type": "string",
+          "description": "The XPath 3.1 expression; the document node is the context item."
+        },
+        "namespaces": {
+          "type": "object",
+          "description": "Prefix → namespace URI; the key \"\" sets the default element namespace.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "expression"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "xquery",
+    "read_only": true,
+    "description": "Run an XQuery 3.1 query, with an XML document as the context item when one is given. The result sequence is serialized as XML (maps, arrays and attributes adaptively); 'item_count' says how many items it has. External variables are passed as strings in 'variables' (declare them with 'declare variable $name external;'). Static and dynamic errors come back with code, phase and line. Reads only inside the allowed folders; stops at the time limit.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "xml_path": {
+          "type": "string",
+          "description": "Path of the XML document used as the context item (optional) (inside the allowed folders). Give this or xml_content, not both."
+        },
+        "xml_content": {
+          "type": "string",
+          "description": "The XML document used as the context item (optional) as text. Give this or xml_path, not both."
+        },
+        "query_path": {
+          "type": "string",
+          "description": "Path of the XQuery (inside the allowed folders). Give this or query_content, not both."
+        },
+        "query_content": {
+          "type": "string",
+          "description": "The XQuery as text. Give this or query_path, not both."
+        },
+        "variables": {
+          "type": "object",
+          "description": "External variables: name → string value.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "xslt_transform",
+    "read_only": true,
+    "description": "Run an XSLT stylesheet (1.0, 2.0 or 3.0, Saxon) on an XML document and return the output. Pass the stylesheet you just wrote as xslt_content to check it without saving it. Nothing is written to disk: xsl:result-document output comes back in 'result_documents'. xsl:message output is in 'messages'. A stylesheet that does not compile or fails at run time returns 'error' with code, phase (compile, input, runtime) and line — fix the stylesheet and call again. No Java extensions, no network, reads only inside the allowed folders, stops at the time limit.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "xml_path": {
+          "type": "string",
+          "description": "Path of the XML source document (inside the allowed folders). Give this or xml_content, not both."
+        },
+        "xml_content": {
+          "type": "string",
+          "description": "The XML source document as text. Give this or xml_path, not both."
+        },
+        "xslt_path": {
+          "type": "string",
+          "description": "Path of the XSLT stylesheet (inside the allowed folders). Give this or xslt_content, not both."
+        },
+        "xslt_content": {
+          "type": "string",
+          "description": "The XSLT stylesheet as text. Give this or xslt_path, not both."
+        },
+        "parameters": {
+          "type": "object",
+          "description": "Stylesheet parameters: name → string value.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "output": {
+          "type": "string",
+          "description": "Output method; by default the one xsl:output declares.",
+          "enum": [
+            "xml",
+            "html",
+            "xhtml",
+            "text",
+            "json"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "xspec_run",
+    "read_only": true,
+    "description": "Run XSpec tests (for an XSLT stylesheet, an XQuery module or a Schematron) and return every scenario and test with label, status (passed, failed, pending) and, for failures, the expected and actual result. Relative references in the XSpec (stylesheet=, query-at=, schematron=, x:context href) resolve against the XSpec file; for inline xspec_content give base_path, a path inside the allowed folders that stands for where the XSpec would be. 'passed' is true when no test failed.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "xspec_path": {
+          "type": "string",
+          "description": "Path of the XSpec description (inside the allowed folders). Give this or xspec_content, not both."
+        },
+        "xspec_content": {
+          "type": "string",
+          "description": "The XSpec description as text. Give this or xspec_path, not both."
+        },
+        "base_path": {
+          "type": "string",
+          "description": "For xspec_content: the file path relative references resolve against."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+]

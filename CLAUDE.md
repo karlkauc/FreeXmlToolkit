@@ -205,6 +205,29 @@ Industry plugins (`plugins/`, off by default via `enabledByDefault()`): `iso2002
 `xbrl` (runs the user's Arelle, `ArelleRunner`). Shared: `IndustryPanel` (FXML), `IdentifierKind`,
 `service/finance/FinancialIdentifiers` (IBAN, BIC, LEI, ISIN, AT UID), `plugin/XmlScan`. Docs: `docs/industry-plugins.md` (overview) + one page per plugin `docs/plugin-<id>.md`; screenshots `PluginsDocScreenshotGenerator`.
 
+## AI and MCP
+
+Rules and invariants: `.claude/rules/ai-integration.md`; design `docs/superpowers/specs/2026-11-10-ai-integration-design.md`.
+`service/ai/tool/`: `AiTool` (name, description, JSON-Schema input, `call` → `ToolResult` text + structured JSON +
+error flag; a failing artefact is a result, `ToolException` only for misuse), `ToolRegistry` (sorted; `standard()` =
+validate, xpath, xquery, xslt_transform, xspec_run, document_outline, schema_outline, schema_describe, sample_xml,
+schematron_check, compare; each call on a virtual thread under `ToolLimits.timeout`, abandoned workers counted by
+`runawayCount()` — Saxon-HE cannot be interrupted), `WorkspaceAccess` (roots as real paths, `util/RootedPaths`),
+`ToolArgs` (unknown keys refused), `ToolInput` (`x_path` | `x_content`), `ToolSchemas`, `SchemaCache`.
+Sandbox (`service/XsltSandbox`): a Saxon processor per run compiled with `ALLOW_EXTERNAL_FUNCTIONS` on (else no
+`xsl:result-document`) and `lockDown` before running (else `system-property()` reads Java properties), result
+documents in memory, reads only in the roots (+ allowed URI prefixes for bundled resources), no environment, deadline
+via a trace listener (stylesheets compiled with tracing), 16 M output cap. Users: `XsltTransformationEngine.transformSandboxed`
+(`TransformRunner.xsltTransformSandboxed`), `SandboxedQuery` (XPath / XQuery), `XSpecRunner.sandboxed`.
+`service/ai/context/`: `SchemaSlice` (what an XSD declares at an instance path; JSON + compact text; outline, bounded
+tree), `XmlOutline` (StAX, paths/counts/samples, no values with `samples=false`). `service/ai/mcp/`: `McpToolServer`
+(the only place with MCP SDK / Reactor types — `AiLayeringGuardTest`; SDK 2.1.0, revisions ≤ 2025-11-25, structured
+results also as JSON text), `StdoutGuard`. CLI `cli/McpCommand` (`fxt-cli mcp --root --tools --list-tools`; sets
+`fxt.schema.localCopies=false`; exits after 3 runaways). Policy `ai.allowed`, `ai.mcp.allowed` (`service/ai/AiPolicy`,
+`AdminPolicy`). Public surface pinned by `ToolSurfaceSnapshotTest` (`src/test/resources/ai/mcp-tools.snapshot.json`,
+regenerate with `-Dfxt.ai.updateSnapshot=true`); `ToolsWriteNothingTest` calls every tool and checks no file changed.
+Docs: `docs/mcp-server.md`.
+
 ## Administrator Policy
 
 `service/AdminPolicy` reads machine-wide `policy.properties` (locked) and `defaults.properties`

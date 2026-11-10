@@ -4,6 +4,13 @@ The highlights of each release. The complete notes and all downloads are on the
 [GitHub Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases); the version you are
 running is shown under **Help → About FreeXmlToolkit**.
 
+## Next release (unreleased)
+
+- **MCP server for AI agents:** `fxt-cli mcp` lets Claude Code and other MCP clients validate documents, run and
+  test XSLT/XQuery (with XSpec), explore schemas, outline large documents and compare results — read-only and
+  sandboxed, restricted to the folders you name. Eleven tools; administrators can switch it off with
+  `ai.mcp.allowed=false`. See [MCP Server](mcp-server.md).
+
 ## 3.0.0 (2026-11-09)
 
 **Platform and enterprise**

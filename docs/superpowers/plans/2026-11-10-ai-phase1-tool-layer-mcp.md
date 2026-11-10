@@ -341,10 +341,20 @@ descriptions to stdout and exits — no server), plus the inherited `-q` / `--ve
 
 **Steps:**
 
-- [ ] **Step 1:** `ToolSurfaceSnapshotTest` serialises name, description and input schema of every standard tool and compares with the snapshot file; the failure message says how to regenerate (`-Dfxt.ai.updateSnapshot=true`) and that a change is a public API change that needs a line in `docs/whats-new.md`.
-- [ ] **Step 2:** `docs/mcp-server.md` for users: what it is and when it helps; set-up for Claude Code and for a generic client configuration file (command = path of the `fxt-cli` launcher, args = `mcp --root <folder>`; the launcher paths per platform are in `docs/command-line.md` "Where it is"); the tool reference generated from the snapshot (a table per tool: arguments, result fields, an example); the safety model in plain words (read-only, roots, no files written, limits, what `--tools` is for); administration (`ai.mcp.allowed`); troubleshooting (nothing happens → check stderr / `--verbose`; path refused → `--root`).
-- [ ] **Step 3:** run the `docs-updater` agent for the remaining pages; run `./gradlew test` completely; fix what the guard tests report (`I18nBundlesTest` is not affected — the CLI has no bundle texts; `AccessibilityAuditTest` is not affected — no UI).
+- [x] **Step 1:** `ToolSurfaceSnapshotTest` serialises name, description and input schema of every standard tool and compares with the snapshot file; the failure message says how to regenerate (`-Dfxt.ai.updateSnapshot=true`) and that a change is a public API change that needs a line in `docs/whats-new.md`.
+- [x] **Step 2:** `docs/mcp-server.md` for users: what it is and when it helps; set-up for Claude Code and for a generic client configuration file (command = path of the `fxt-cli` launcher, args = `mcp --root <folder>`; the launcher paths per platform are in `docs/command-line.md` "Where it is"); the tool reference generated from the snapshot (a table per tool: arguments, result fields, an example); the safety model in plain words (read-only, roots, no files written, limits, what `--tools` is for); administration (`ai.mcp.allowed`); troubleshooting (nothing happens → check stderr / `--verbose`; path refused → `--root`).
+- [x] **Step 3:** run the `docs-updater` agent for the remaining pages; run `./gradlew test` completely; fix what the guard tests report (`I18nBundlesTest` is not affected — the CLI has no bundle texts; `AccessibilityAuditTest` is not affected — no UI).
 - [ ] **Step 4:** commit; open the pull request titled `feat(ai): tool layer and MCP server (fxt-cli mcp)` with the spec, the decision report and the manual transcript linked.
+
+**Outcome:** the remaining pages were updated directly instead of through the `docs-updater` agent (small,
+known edits): `docs/command-line.md` (`## mcp`), `docs/threat-model.md` (row + two known limits + hardening line),
+`docs/administration.md`, `docs/offline-operation.md`, `docs/comparison.md`, `docs/whats-new.md` ("Next release"),
+`mkdocs.yml`, `README.md`, `CLAUDE.md` ("AI and MCP"); `docs/licenses.md` in Task 7. `mkdocs build` shows no
+warning for them. The tool reference in `docs/mcp-server.md` was generated from the snapshot. Added
+`ToolsWriteNothingTest` (definition of done: every standard tool called, the workspace unchanged). Step 4 (pull
+request) waits for the maintainer.
+
+---
 
 ## Definition of done for Phase 1
 

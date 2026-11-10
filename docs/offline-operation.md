@@ -34,7 +34,8 @@ XSD documentation (all assets are bundled), the user interface's icons and fonts
 
 The [command line](command-line.md) (`fxt-cli`) connects only for what the files ask for (the
 schema rows above); it sends no telemetry, does not check for updates and does not start the
-FundsXML extension.
+FundsXML extension. This includes `fxt-cli mcp`, the [MCP server](mcp-server.md) for AI agents: it talks to the
+agent over standard input and output, opens no port and calls no AI service.
 
 ## Schemas without the internet
 

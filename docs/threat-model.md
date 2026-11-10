@@ -45,6 +45,7 @@ release, see [Licenses](licenses.md#software-bill-of-materials-sbom)) and the up
 | **Stored proxy password** | Encrypted with AES-256-GCM; the key is derived (PBKDF2-SHA256) from machine identifiers, so the properties file alone does not reveal it on another machine. This protects against casual disclosure, not against code running as the same user on the same machine. | – |
 | **YAML that expands or loops** (alias bombs, recursive aliases) when converting to JSON or XML | YAML is read with the core schema only (no Java objects are created from tags); at most 50 aliases per collection, the expanded document may hold at most twice as many values as the text has characters (at least one million), duplicate keys and recursive aliases are refused. | – |
 | **Project files writing elsewhere** (a `.fxtproj` from a repository or a download) | The output of a scenario must be a relative path inside the project folder; `../…` and absolute paths are refused before the scenario runs. | – |
+| **AI agents running code through the MCP server** (`fxt-cli mcp`): a stylesheet, query or XSpec test written by the agent, or steered by text in a document it read | The tools only read. Code runs in a sandbox: a Saxon processor per call, `xsl:result-document` into memory, reads (`doc()`, `unparsed-text()`, `collection()`, includes) only inside the `--root` folders, no network, no Java extensions, no Java system properties or environment variables, a time limit checked per template/function/instruction, output capped; file arguments are resolved through links and refused outside the roots; downloaded imports are not copied next to schemas. The server sends no telemetry and opens no port (stdio). See [MCP Server](mcp-server.md#safety). | `ai.mcp.allowed=false`, `ai.allowed=false` (policy); `--root`, `--tools` |
 | **Path traversal in file names from documents** | Paths are validated (parent traversals, system directories, encoded sequences, null bytes, symlink escapes). | – |
 | **Telemetry leaking data** | Anonymous counts and error reports without file contents; documented on [Privacy & Telemetry](telemetry.md). | `FXT_TELEMETRY_DISABLED=1` or `DO_NOT_TRACK=1` (machine-wide), Settings |
 
@@ -58,8 +59,12 @@ untrusted sources:
   `security.xproc.unrestricted` they can also run programs and reach the network.
 - **Stylesheets write files.** `xsl:result-document` writes to any path the user may write to,
   as in every XSLT 2.0+ processor; this also holds for the stylesheet of a project scenario and
-  for the stylesheet under test in an XSpec run. Only the debugger keeps such results in memory.
-  Run only stylesheets you trust.
+  for the stylesheet under test in an XSpec run. Only the debugger and the tools of the MCP server keep such
+  results in memory. Run only stylesheets you trust.
+- **Runaway expressions in the MCP server.** Saxon cannot be interrupted: a loop inside one XPath expression
+  keeps running after its call has been answered as timed out. `fxt-cli mcp` exits after three such calls.
+- **Schematron in the MCP server's `validate`** runs like the Validation panel, so its `doc()` is not limited to
+  the `--root` folders (the Schematron file itself must lie inside them).
 - **Opening a document downloads its schema.** An `xsi:schemaLocation` with an http(s) URL is
   fetched when the file is opened (from public addresses only; the Schema Library and catalogs
   are asked first). The download reveals to that server that the file was opened.
@@ -81,6 +86,7 @@ For machines that process untrusted files or must not contact the internet:
 | Nothing written next to schemas | `-Dfxt.schema.localCopies=false` |
 | Certificate checks everywhere | Leave "Trust all certificates" off |
 | No Java from stylesheets | Leave `security.xslt.allow.extensions` off (default) |
+| No AI agents using the tools | `ai.mcp.allowed=false` (or `ai.allowed=false`) in the policy file |
 | XProc without programs and network | Leave `security.xproc.unrestricted` off (default); lock it with `security.xproc.unrestricted=false` in the policy file |
 | HTML previews without scripts and remote content | Leave `security.htmlPreview.allowActiveContent` off (default); lock it in the policy file |
 
