@@ -147,6 +147,35 @@ public final class XsdInstanceLocator {
         return namedTypeOf(declaration, allSchemas(schema));
     }
 
+    /**
+     * The element particles allowed directly inside {@code declaration} (compositors, groups and extension
+     * bases flattened, in document order; a {@code ref=} particle as is — resolve it with {@link #declarationOf}).
+     */
+    public static List<XsdNode> childElements(XsdNode declaration, XsdSchema schema) {
+        return childElementParticles(declaration, allSchemas(schema));
+    }
+
+    /** The attribute particles of an element declaration, including attribute groups and base types. */
+    public static List<XsdNode> attributesOf(XsdNode declaration, XsdSchema schema) {
+        return attributes(declaration, allSchemas(schema));
+    }
+
+    /** The declaration a particle stands for: the referenced global one for {@code ref=}, else itself. */
+    public static XsdNode declarationOf(XsdNode particle, XsdSchema schema) {
+        XsdNodeType kind = particle.getNodeType() == XsdNodeType.ATTRIBUTE ? XsdNodeType.ATTRIBUTE : XsdNodeType.ELEMENT;
+        return resolveRef(particle, allSchemas(schema), kind);
+    }
+
+    /** The name a particle matches in an instance: its own name, or the local part of its {@code ref}. */
+    public static String instanceName(XsdNode particle) {
+        return effectiveName(particle);
+    }
+
+    /** Whether {@code node} belongs to an included or imported file rather than to {@code root}'s own document. */
+    public static boolean isForeignTo(XsdNode node, XsdSchema root) {
+        return isForeign(node, root);
+    }
+
     // ----- content model walk --------------------------------------------------
 
     /** Element particles directly allowed inside {@code element} (compositors/groups/extensions flattened). */

@@ -215,9 +215,17 @@ with `schematron_check` (route the Schematron stage through a sandboxed processo
 
 **Steps:**
 
-- [ ] **Step 1 (red):** use schemas from `src/test/resources/` (a small one inline, plus one with imports and one with a recursive type). Tests: outline lists the global elements; `depth` cuts with `more`; a recursive type terminates; `schema_describe` of an element with an enumeration returns the values; of an element whose type comes from an imported schema fills `declared_in`; an unknown path gives `found == false` and the nearest resolvable ancestor path in `text`; an attribute lookup works; documentation in two languages returns both.
-- [ ] **Step 2 (green):** load with `new XsdNodeFactory().fromFile(path)`; locate with `XsdInstanceLocator.instancePath(xpath)` + `XsdInstanceLocator.locate(schema, path, attribute)`; facets with `SchemaFacets.collect`, `resolveReferencedTypeFacets`, `resolveBaseChainFacets`, `builtinBase`. Read `controls/shell/inspector/` to see how the Properties Inspector turns a `Located` into type / cardinality / facets / documentation and follow the same rules (do not import inspector classes — they are JavaFX; move a shared, UI-free helper if one is needed). Cache parsed schemas per `(real path, last-modified)` inside the registry instance.
-- [ ] **Step 3:** `sample_xml` on `SampleXmlRunner.generateResult`. Register; commit.
+- [x] **Step 1 (red):** use schemas from `src/test/resources/` (a small one inline, plus one with imports and one with a recursive type). Tests: outline lists the global elements; `depth` cuts with `more`; a recursive type terminates; `schema_describe` of an element with an enumeration returns the values; of an element whose type comes from an imported schema fills `declared_in`; an unknown path gives `found == false` and the nearest resolvable ancestor path in `text`; an attribute lookup works; documentation in two languages returns both.
+- [x] **Step 2 (green):** load with `new XsdNodeFactory().fromFile(path)`; locate with `XsdInstanceLocator.instancePath(xpath)` + `XsdInstanceLocator.locate(schema, path, attribute)`; facets with `SchemaFacets.collect`, `resolveReferencedTypeFacets`, `resolveBaseChainFacets`, `builtinBase`. Read `controls/shell/inspector/` to see how the Properties Inspector turns a `Located` into type / cardinality / facets / documentation and follow the same rules (do not import inspector classes — they are JavaFX; move a shared, UI-free helper if one is needed). Cache parsed schemas per `(real path, last-modified)` inside the registry instance.
+- [x] **Step 3:** `sample_xml` on `SampleXmlRunner.generateResult`. Register; commit.
+
+**Outcome:** `XsdInstanceLocator` got public accessors for its content-model walk (`childElements`,
+`attributesOf`, `declarationOf`, `instanceName`, `isForeignTo`) instead of a copy. Fields beyond the table:
+`schema_outline` → `named_types[] = {name, kind}`, tree nodes `choice` / `recursive` (a named type already on the
+way down is not entered again); `schema_describe` → `kind`, `use` (attributes), `nearest_known_path` and
+`children_of_nearest` when not found. The schema cache (`SchemaCache`, 8 entries, invalidated when any involved
+file changes) is shared by the three tools, not held by the registry: the registry is built per consumer, the
+parsed schemas are per process.
 
 ---
 

@@ -42,7 +42,7 @@ public final class ToolRegistry {
     /** All tools of Phase 1. */
     public static ToolRegistry standard() {
         return new ToolRegistry(List.of(new ValidateTool(), new XPathTool(), new XQueryTool(),
-                new XsltTransformTool()));
+                new XsltTransformTool(), new SchemaOutlineTool(), new SchemaDescribeTool(), new SampleXmlTool()));
     }
 
     /**
