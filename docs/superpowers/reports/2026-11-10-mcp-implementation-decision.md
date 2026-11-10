@@ -1,6 +1,6 @@
 # MCP implementation decision (Phase 1, Task 1 / decision D4)
 
-**Date:** 2026-11-10 · **Base:** `main` at `333269060` · **Status:** recommendation, awaiting the maintainer's approval
+**Date:** 2026-11-10 · **Base:** `main` at `333269060` · **Status:** decided — SDK approved by the maintainer on 2026-11-10
 
 ## What was measured
 
