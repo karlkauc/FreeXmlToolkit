@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 > - `domain.md` - the 38 XsdNode types, circular-reference warning
 > - `quick-reference.md` - Build commands, command template, icons, FXML rules, testing, gotchas
 > - `xsd-editor-v2-details.md` - Type Editor, CommandManager, XsdEditorContext, facets, serialization, package structure
+> - `ai-integration.md` - AI tool layer / MCP server invariants and the tests that pin them
 
 ## Build Commands
 
