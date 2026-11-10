@@ -110,8 +110,10 @@ public final class FxtProject {
      * where the result is written (optional: the result is shown instead); {@code outputFormat} one
      * of XML, HTML, XHTML, TEXT, JSON (optional: from the stylesheet's {@code xsl:output});
      * {@code expected} the result it must produce (optional; a regression check compares against it,
-     * {@code ${name}} / {@code ${dir}} / {@code ${file}} as in the output) and {@code compare} how
-     * (optional, see {@link CompareSettings}).
+     * {@code ${name}} / {@code ${dir}} / {@code ${file}} as in the output), {@code compare} how
+     * (optional, see {@link CompareSettings}) and, for PDF, {@code processor} the XSL-FO processor
+     * (optional: the default of the settings; {@code builtin} or the name of an external processor
+     * configured in the settings — a project file names a processor, it never carries a command line).
      */
     public static final class Scenario {
         public String name;
@@ -122,6 +124,7 @@ public final class FxtProject {
         public String output;
         public String expected;
         public CompareSettings compare;
+        public String processor;
 
         public Scenario() {
         }
@@ -141,6 +144,7 @@ public final class FxtProject {
             Scenario copy = new Scenario(name, stylesheet, input, parameters, outputFormat, output);
             copy.expected = expected;
             copy.compare = compare == null ? null : compare.copy();
+            copy.processor = processor;
             return copy;
         }
 

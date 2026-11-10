@@ -1,22 +1,31 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 
 import org.fxt.freexmltoolkit.domain.PDFSettings;
 import org.fxt.freexmltoolkit.service.FOPService;
 import org.fxt.freexmltoolkit.service.FopEvent;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult.TransformationMessage;
+import org.fxt.freexmltoolkit.service.fo.ExternalFoRenderer;
+import org.fxt.freexmltoolkit.service.fo.FoProcessorConfig;
+import org.fxt.freexmltoolkit.service.fo.FoProcessorException;
+import org.fxt.freexmltoolkit.service.fo.FoProcessorStore;
 import org.fxt.freexmltoolkit.service.telemetry.QueryFailure;
 
 /**
  * UI-free PDF generation for the PDF/FOP activity: transforms an XML file with
  * an XSL(-FO) stylesheet to PDF via the reused {@link FOPService}, in two stages
  * (XSLT → XSL-FO → PDF) so the intermediate FO, the stylesheet's {@code xsl:message}
- * output and FOP's rendering events are available to the panel. The string
- * variants return {@code "OK: …"} / {@code "ERROR: …"} rather than throwing.
+ * output and FOP's rendering events are available to the panel. The render stage runs
+ * the bundled Apache FOP or an external XSL-FO processor the user configured
+ * ({@link PdfOptions#processor()}, {@link FoProcessorStore}). The string variants return
+ * {@code "OK: …"} / {@code "ERROR: …"} rather than throwing.
  */
 public final class FopRunner {
 
@@ -28,17 +37,60 @@ public final class FopRunner {
     /** Stage of a generation: FOP rendering the XSL-FO to PDF. */
     public static final String STAGE_RENDER = "render";
 
+    /** Finds the external processor of a run (empty = the bundled FOP); replaceable in tests. */
+    private static volatile Function<String, Optional<FoProcessorConfig>> processorLookup =
+            idOrName -> FoProcessorStore.settings().resolve(idOrName);
+
+    /** Test hook: how processor ids / names are resolved ({@code null} restores the settings). */
+    static void setProcessorLookup(Function<String, Optional<FoProcessorConfig>> lookup) {
+        processorLookup = lookup != null ? lookup : idOrName -> FoProcessorStore.settings().resolve(idOrName);
+    }
+
+    /**
+     * Where the FO of a run came from, for the placeholders and the base folder of an external
+     * processor; every part may be {@code null}.
+     *
+     * @param xml    the XML input of the XSLT stage
+     * @param xsl    the stylesheet of the XSLT stage
+     * @param foFile the FO file being rendered
+     */
+    public record RenderContext(Path xml, Path xsl, Path foFile) {
+
+        /** @return a context without any file */
+        public static RenderContext none() {
+            return new RenderContext(null, null, null);
+        }
+    }
+
+    /** @return whether the id / name stands for the bundled Apache FOP */
+    public static boolean isBuiltin(String processor) {
+        return processor == null || processor.isBlank() || FoProcessorStore.BUILTIN_ID.equalsIgnoreCase(processor.strip());
+    }
+
     /**
      * The panel's generation options (Figma mockup node 49:2): PDF metadata
      * (title/author/subject), PDF/A-1b conformance, and the page size/orientation,
      * which are passed to the stylesheet as the XSLT parameters {@code page-size}
-     * and {@code page-orientation} (honoured by stylesheets that declare them).
+     * and {@code page-orientation} (honoured by stylesheets that declare them), and the
+     * processor that renders the FO: {@code null} / {@value FoProcessorStore#BUILTIN_ID} = the
+     * bundled Apache FOP, otherwise the id or name of a configured external processor.
      */
     public record PdfOptions(String title, String author, String subject,
-                             boolean pdfACompliant, String pageSize, String orientation) {
+                             boolean pdfACompliant, String pageSize, String orientation, String processor) {
+
+        /** Options rendered by the bundled Apache FOP. */
+        public PdfOptions(String title, String author, String subject,
+                          boolean pdfACompliant, String pageSize, String orientation) {
+            this(title, author, subject, pdfACompliant, pageSize, orientation, null);
+        }
 
         public static PdfOptions none() {
             return new PdfOptions("", "", "", false, "", "");
+        }
+
+        /** @return these options rendered by another processor */
+        public PdfOptions withProcessor(String processorIdOrName) {
+            return new PdfOptions(title, author, subject, pdfACompliant, pageSize, orientation, processorIdOrName);
         }
 
         /** @return the stylesheet parameters this option set contributes. */
@@ -113,14 +165,14 @@ public final class FopRunner {
                 if (sb.length() > 0) {
                     sb.append('\n');
                 }
-                sb.append("FOP events (").append(events.size()).append(")\n");
+                sb.append("Renderer messages (").append(events.size()).append(")\n");
                 for (FopEvent e : events) {
                     sb.append("  ").append(e.severity()).append(" [").append(e.shortId()).append("]: ")
                             .append(e.message()).append('\n');
                 }
             }
             if (sb.length() == 0) {
-                sb.append("No messages: the stylesheet produced no xsl:message output and FOP raised no events.\n");
+                sb.append("No messages: the stylesheet produced no xsl:message output and the renderer reported nothing.\n");
             }
             return sb.toString();
         }
@@ -152,22 +204,62 @@ public final class FopRunner {
                     "Failed to transform XML using XSL stylesheet: " + fo.getErrorMessage(),
                     STAGE_TRANSFORM, QueryFailure.ofCode(fo.getErrorCode()));
         }
-        return render(service, fo.getOutputContent(), fo.getMessages(), pdfOutput, opts);
+        return render(service, fo.getOutputContent(), fo.getMessages(), pdfOutput, opts,
+                new RenderContext(xmlFile.toPath(), xslFile.toPath(), null));
     }
 
     /** Renders an already produced XSL-FO document (e.g. the result of a debug run) to PDF. */
     public static FopResult renderFo(String foXml, File pdfOutput, PdfOptions options) {
-        return render(new FOPService(), foXml, List.of(), pdfOutput, options == null ? PdfOptions.none() : options);
+        return renderFo(foXml, pdfOutput, options, RenderContext.none());
+    }
+
+    /**
+     * Renders an already produced XSL-FO document to PDF.
+     *
+     * @param context where the FO came from (base folder and placeholders of an external processor)
+     */
+    public static FopResult renderFo(String foXml, File pdfOutput, PdfOptions options, RenderContext context) {
+        return render(new FOPService(), foXml, List.of(), pdfOutput, options == null ? PdfOptions.none() : options,
+                context == null ? RenderContext.none() : context);
     }
 
     private static FopResult render(FOPService service, String foXml, List<TransformationMessage> messages,
-                                    File pdfOutput, PdfOptions opts) {
+                                    File pdfOutput, PdfOptions opts, RenderContext context) {
+        Optional<FoProcessorConfig> external;
+        try {
+            external = isBuiltin(opts.processor()) ? Optional.empty() : processorLookup.apply(opts.processor());
+        } catch (RuntimeException e) {
+            return new FopResult(false, null, foXml, messages, List.of(), e.getMessage(),
+                    STAGE_RENDER, QueryFailure.of(e));
+        }
+        if (external.isPresent()) {
+            return renderExternal(external.get(), foXml, messages, pdfOutput, opts, context);
+        }
         try {
             List<FopEvent> events = service.renderFo(foXml, pdfOutput, opts.toSettings(),
                     opts.subject(), opts.pdfACompliant(), null);
             return new FopResult(true, pdfOutput, foXml, messages, events, null, STAGE_RENDER, null);
         } catch (Exception e) {
             return new FopResult(false, null, foXml, messages, List.of(), e.getMessage(),
+                    STAGE_RENDER, QueryFailure.of(e));
+        }
+    }
+
+    private static FopResult renderExternal(FoProcessorConfig processor, String foXml,
+                                            List<TransformationMessage> messages, File pdfOutput,
+                                            PdfOptions opts, RenderContext context) {
+        ExternalFoRenderer.Request request = new ExternalFoRenderer.Request(foXml, context.foFile(),
+                pdfOutput.toPath(), context.xml(), context.xsl(), nullToEmpty(opts.title()),
+                nullToEmpty(opts.author()), nullToEmpty(opts.subject()), opts.pdfACompliant());
+        try {
+            List<FopEvent> events = ExternalFoRenderer.render(processor, request);
+            return new FopResult(true, pdfOutput, foXml, messages, events, null, STAGE_RENDER, null);
+        } catch (FoProcessorException e) {
+            return new FopResult(false, null, foXml, messages, e.events(), e.getMessage(),
+                    STAGE_RENDER, QueryFailure.of(e));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return new FopResult(false, null, foXml, messages, List.of(), processor.name() + " was cancelled.",
                     STAGE_RENDER, QueryFailure.of(e));
         }
     }

@@ -55,6 +55,9 @@ Any key of the user's settings file works. These are the ones most often managed
 | `fundsxml.enabled` | `true` / `false` | FundsXML extension |
 | `ui.language` | `system` / `en` / `de` | Language of the interface (Settings → Appearance → Language) |
 | `plugins.external.allowed` | `false` | **Policy only.** Load no [plugins](plugins.md) from the plugins folder (built-in ones still load) |
+| `fop.external.allowed` | `false` | **Policy only.** Only the bundled Apache FOP renders PDFs; [external XSL-FO processors](pdf-generator.md#external-xsl-fo-processors) are hidden and refused (panel, scenarios, `fxt-cli fop`) |
+| `fop.processors` | JSON list | The external XSL-FO processors (as written by *Settings → XSL-FO Processors*); in `defaults.properties` a starting list, in `policy.properties` a fixed one |
+| `fop.processor.default` | `builtin` or an id | The default XSL-FO processor |
 | `xmlenc.allowed` | `false` | **Policy only.** No [XML encryption](xml-encryption.md) or decryption (page, editor menu and `fxt-cli`) |
 | `xmlenc.legacyAlgorithms.allowed` | `false` | **Policy only.** Block the legacy XML encryption algorithms (RSA-1_5, TripleDES, CBC modes, finite-field DH) for encryption and decryption |
 | `plugin.<id>.enabled` | `true` / `false` | A [plugin](plugins.md) on or off (Settings → Plugins), e.g. `plugin.fundsxml.enabled` |

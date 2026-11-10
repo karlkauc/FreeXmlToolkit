@@ -1,6 +1,5 @@
 package org.fxt.freexmltoolkit.plugins.xbrl;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -13,6 +12,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.fxt.freexmltoolkit.plugin.DocumentValidator;
+import org.fxt.freexmltoolkit.util.ExternalCommands;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -42,20 +42,7 @@ public final class ArelleRunner {
             Path path = Path.of(configured.strip());
             return Files.isRegularFile(path) ? Optional.of(path) : Optional.empty();
         }
-        String pathVariable = System.getenv("PATH");
-        if (pathVariable == null) {
-            return Optional.empty();
-        }
-        boolean windows = System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("win");
-        for (String dir : pathVariable.split(File.pathSeparator)) {
-            for (String name : windows ? List.of(COMMAND + ".exe", COMMAND + ".cmd", COMMAND) : List.of(COMMAND)) {
-                Path candidate = Path.of(dir, name);
-                if (Files.isRegularFile(candidate) && Files.isExecutable(candidate)) {
-                    return Optional.of(candidate);
-                }
-            }
-        }
-        return Optional.empty();
+        return ExternalCommands.findOnPath(COMMAND);
     }
 
     /**
@@ -96,11 +83,7 @@ public final class ArelleRunner {
      * {@code %} and the like in arguments as its own syntax, whatever the quoting.
      */
     static boolean unsafeForBatch(Path command, Path file) {
-        String name = command.getFileName() == null ? "" : command.getFileName().toString().toLowerCase(java.util.Locale.ROOT);
-        if (!name.endsWith(".cmd") && !name.endsWith(".bat")) {
-            return false;
-        }
-        return file.toAbsolutePath().toString().chars().anyMatch(c -> "&|<>^%!\"\r\n".indexOf(c) >= 0);
+        return ExternalCommands.unsafeForBatch(command, List.of(file.toAbsolutePath().toString()));
     }
 
     /** Turns Arelle's JSON log into problems; {@code fileName} picks the line of a reference into the file. */

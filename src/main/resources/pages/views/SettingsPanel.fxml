@@ -21,6 +21,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.FoProcessorsSettings?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.SettingsCard?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.SettingsCardGrid?>
 <?import org.fxt.freexmltoolkit.controls.theme.SemanticColors?>
@@ -641,6 +642,12 @@
                                                         <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
                                                     </graphic>
                                                 </Button>
+                                            </children>
+                                        </SettingsCard>
+                                        <!-- External XSL-FO processors (FoProcessorsSettings saves its changes itself) -->
+                                        <SettingsCard title="%SettingsPanel.xsl-fo-processors.title" iconLiteral="bi-printer">
+                                            <children>
+                                                <FoProcessorsSettings fx:id="foProcessors"/>
                                             </children>
                                         </SettingsCard>
                                         <SettingsCard title="%SettingsPanel.developer.title" iconLiteral="bi-speedometer2">

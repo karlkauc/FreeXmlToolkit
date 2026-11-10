@@ -55,6 +55,8 @@ public final class AdminPolicy {
     public static final String KEY_XMLENC_ALLOWED = "xmlenc.allowed";
     /** {@code false} blocks the legacy XML encryption algorithms (RSA-1_5, TripleDES, CBC, DH). */
     public static final String KEY_XMLENC_LEGACY_ALLOWED = "xmlenc.legacyAlgorithms.allowed";
+    /** {@code false} disables external XSL-FO processors: only the bundled Apache FOP renders PDFs. */
+    public static final String KEY_FOP_EXTERNAL_ALLOWED = "fop.external.allowed";
     /** Settings key of the automatic update check (see {@link PropertiesService#isUpdateCheckEnabled()}). */
     static final String KEY_UPDATE_CHECK = "update.check.enabled";
     /** Prefix of keys that are Java system properties rather than settings. */
@@ -253,6 +255,11 @@ public final class AdminPolicy {
     /** @return {@code false} when the administrator disabled XML encryption */
     public boolean xmlEncryptionAllowed() {
         return !"false".equalsIgnoreCase(locked.getProperty(KEY_XMLENC_ALLOWED, "true"));
+    }
+
+    /** @return {@code false} when the administrator disabled external XSL-FO processors */
+    public boolean externalFoProcessorsAllowed() {
+        return !"false".equalsIgnoreCase(locked.getProperty(KEY_FOP_EXTERNAL_ALLOWED, "true"));
     }
 
     /** @return {@code false} when the administrator blocked the legacy XML encryption algorithms */

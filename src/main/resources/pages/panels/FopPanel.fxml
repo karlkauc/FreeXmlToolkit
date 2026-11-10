@@ -6,6 +6,7 @@
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ScrollPane?>
@@ -99,6 +100,22 @@
                             <children>
                                 <VBox spacing="6" styleClass="fxt-tp-section-body">
                                     <children>
+                                        <VBox fx:id="processorBox" spacing="6">
+                                            <children>
+                                                <Label text="%FopPanel.processor.text" styleClass="fxt-sig-field-label"/>
+                                                <ComboBox fx:id="processorChoice" id="fop-processor" maxWidth="Infinity"
+                                                          styleClass="fxt-neutral-combo">
+                                                    <tooltip>
+                                                        <Tooltip text="%FopPanel.renders-the-xsl-fo-the.text"/>
+                                                    </tooltip>
+                                                </ComboBox>
+                                                <Hyperlink id="fop-manage-processors" text="%FopPanel.fop-manage-processors.text" onAction="#onManageProcessors">
+                                                    <graphic>
+                                                        <IconifyIcon iconLiteral="bi-gear" iconSize="16"/>
+                                                    </graphic>
+                                                </Hyperlink>
+                                            </children>
+                                        </VBox>
                                         <CheckBox fx:id="pdfACompliant" id="fop-pdfa" text="%FopPanel.pdfACompliant.text">
                                             <tooltip>
                                                 <Tooltip text="%FopPanel.requires-embeddable-fonts-the-stylesheet.text"/>

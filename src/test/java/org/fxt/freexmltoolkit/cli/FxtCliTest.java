@@ -824,6 +824,14 @@ class FxtCliTest {
             assertEquals(ExitCodes.OK, run("fop", "--fo", fo, "-o", pdf), err);
             assertTrue(Files.size(pdf) > 100);
             assertEquals(ExitCodes.USAGE, run("fop", "--fo", fo, "-i", valid, "-o", pdf));
+            assertEquals(ExitCodes.USAGE, run("fop", "--fo", fo), "the PDF is required unless listing processors");
+
+            assertEquals(ExitCodes.OK, run("fop", "--fo", fo, "-o", pdf, "--processor", "builtin"), err);
+            assertEquals(ExitCodes.FAILED, run("fop", "--fo", fo, "-o", dir.resolve("out/none.pdf"),
+                    "--processor", "No Such Formatter"));
+            assertTrue(err.contains("No Such Formatter"), err);
+            assertEquals(ExitCodes.OK, run("fop", "--list-processors"), err);
+            assertTrue(out.contains("builtin"), out);
         }
     }
 

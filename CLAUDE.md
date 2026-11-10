@@ -62,6 +62,19 @@ components, root "(query body)"); UI `controls/shell/editor/debug/ProfileView` +
 `XmlDiffPanel`), `MergeView` + `MergeFilesDialog`, `controls/shell/editor/FolderCompareView`,
 `DataConversionAction`. CLI: `compare`, `merge`, `convert`. Diff colours: `-fxt-diff-*` tokens.
 
+## External XSL-FO Processors
+
+`service/fo/`: `FoProcessorConfig` (program + argument template, preset `FoProcessorPreset` APACHE_FOP /
+ANTENNA_HOUSE / XEP / CUSTOM), `ArgumentTemplate` (`${fo} ${pdf} ${xml} ${xsl} ${baseDir} ${title} ${author}
+${subject} ${pdfa}`, optional groups `[ … ]`, no shell), `ExternalFoRenderer` (FO temp file in the stylesheet's
+folder, exit 0 + written output = success, timeout kills descendants, output → `FopEvent` via `OutputLineParser`),
+`FoProcessorStore` (settings `fop.processors` JSON, `fop.processor.default` / `.last`, id `builtin`; policy
+`fop.external.allowed`). Only the render stage is external — `FopRunner.render` picks it from
+`PdfOptions.processor` (`RenderContext` = xml/xsl/fo paths). UI: Settings card `FoProcessorsSettings` +
+`FoProcessorDialog` (Test renders `resources/fo/processor-test.fo`), FopPanel processor combo; CLI
+`fop --processor / --list-processors`; `Scenario.processor` (a name, never a command line). Tests start
+`FakeFoProcessor` with the running JVM (`FakeProcessors`). Docs: `docs/pdf-generator.md`.
+
 ## XML Signatures and Encryption
 
 `service/crypto/`: `XmlEncryptionService` (W3C XML Encryption 1.1 on Santuario `XMLCipher`: element / content /

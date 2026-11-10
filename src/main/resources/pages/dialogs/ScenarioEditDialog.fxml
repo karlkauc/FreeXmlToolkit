@@ -7,6 +7,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
@@ -47,6 +48,13 @@
         <Label text="%ScenarioEditDialog.output-method.text" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
         <ComboBox fx:id="formatChoice" id="scenario-edit-format" maxWidth="Infinity" GridPane.rowIndex="4"
                   GridPane.columnIndex="1"/>
+        <ComboBox fx:id="processorChoice" id="scenario-edit-processor" editable="true" maxWidth="Infinity"
+                  promptText="%ScenarioEditDialog.processorChoice.promptText" visible="false" managed="false"
+                  GridPane.rowIndex="4" GridPane.columnIndex="2">
+            <tooltip>
+                <Tooltip text="%ScenarioEditDialog.processorChoice.tooltip"/>
+            </tooltip>
+        </ComboBox>
         <Label text="%ScenarioEditDialog.output-file.text" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
         <TextField fx:id="outputField" id="scenario-edit-output" promptText="%ScenarioEditDialog.outputField.promptText"
                    GridPane.rowIndex="5" GridPane.columnIndex="1" GridPane.columnSpan="2"/>

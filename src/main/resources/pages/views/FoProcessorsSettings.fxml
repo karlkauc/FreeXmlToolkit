@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.FlowPane?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Settings → XSL-FO Processors: the external processors (rows built by FoProcessorsSettings),
+  the default one and the Add / Edit / Remove / Default buttons. Changes are saved at once.
+-->
+<fx:root type="javafx.scene.layout.VBox" spacing="6"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <Label text="%FoProcessorsSettings.render-pdfs-with-another-xsl.text"
+               wrapText="true" minHeight="-Infinity" styleClass="fxt-placeholder-text"/>
+        <ListView fx:id="processorList" id="settings-fo-processors" prefHeight="130" minHeight="80"/>
+        <FlowPane hgap="6" vgap="6">
+            <children>
+                <Button fx:id="addButton" id="settings-fo-add" text="%FoProcessorsSettings.addButton.text" styleClass="fxt-tool-button" onAction="#onAdd">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-plus-lg" iconSize="16"/>
+                    </graphic>
+                </Button>
+                <Button fx:id="editButton" id="settings-fo-edit" text="%FoProcessorsSettings.editButton.text" styleClass="fxt-tool-button" onAction="#onEdit">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-pencil" iconSize="16"/>
+                    </graphic>
+                </Button>
+                <Button fx:id="removeButton" id="settings-fo-remove" text="%FoProcessorsSettings.removeButton.text" styleClass="fxt-tool-button" onAction="#onRemove">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>
+                    </graphic>
+                </Button>
+                <Button fx:id="defaultButton" id="settings-fo-default" text="%FoProcessorsSettings.defaultButton.text" styleClass="fxt-tool-button"
+                        onAction="#onMakeDefault">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-star" iconSize="16"/>
+                    </graphic>
+                </Button>
+            </children>
+        </FlowPane>
+        <Label fx:id="policyNote" id="settings-fo-policy" text="%FoProcessorsSettings.policyNote.text"
+               wrapText="true" minHeight="-Infinity" visible="false" managed="false" styleClass="fxt-placeholder-text"/>
+    </children>
+</fx:root>

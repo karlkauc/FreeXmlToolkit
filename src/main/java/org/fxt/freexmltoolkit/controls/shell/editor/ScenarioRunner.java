@@ -216,7 +216,11 @@ public final class ScenarioRunner {
             if (parent != null) {
                 Files.createDirectories(parent);
             }
-            FopRunner.FopResult pdf = FopRunner.renderFo(fo.getOutputContent(), target.toFile(), FopRunner.PdfOptions.none());
+            String processor = scenario.processor != null && !scenario.processor.isBlank() ? scenario.processor
+                    : org.fxt.freexmltoolkit.service.fo.FoProcessorStore.settings().defaultId();
+            FopRunner.FopResult pdf = FopRunner.renderFo(fo.getOutputContent(), target.toFile(),
+                    FopRunner.PdfOptions.none().withProcessor(processor),
+                    new FopRunner.RenderContext(input, code, null));
             if (!pdf.ok()) {
                 return new Result(null, null, null, pdf.error());
             }

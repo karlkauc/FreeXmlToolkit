@@ -38,6 +38,7 @@ public class ScenarioEditDialog extends Dialog<FxtProject.Scenario> {
     @FXML private TextField inputField;
     @FXML private TextArea parametersArea;
     @FXML private ComboBox<String> formatChoice;
+    @FXML private ComboBox<String> processorChoice;
     @FXML private TextField outputField;
     @FXML private TextField expectedField;
     @FXML private TextArea ignoreArea;
@@ -82,6 +83,10 @@ public class ScenarioEditDialog extends Dialog<FxtProject.Scenario> {
         String format = scenario.outputFormat == null ? "" : scenario.outputFormat.strip().toUpperCase(Locale.ROOT);
         formatChoice.setValue(FORMATS.contains(format) ? format : "");
         outputField.setText(nullToEmpty(scenario.output));
+        processorChoice.getItems().setAll(processorNames());
+        processorChoice.setValue(nullToEmpty(scenario.processor));
+        processorChoice.visibleProperty().bind(formatChoice.valueProperty().isEqualTo("PDF"));
+        processorChoice.managedProperty().bind(processorChoice.visibleProperty());
         expectedField.setText(nullToEmpty(scenario.expected));
         FxtProject.CompareSettings compare = scenario.compare;
         if (compare != null) {
@@ -107,6 +112,7 @@ public class ScenarioEditDialog extends Dialog<FxtProject.Scenario> {
                 blankToNull(inputField.getText()), parseParameters(parametersArea.getText()),
                 blankToNull(formatChoice.getValue()), blankToNull(outputField.getText()));
         scenario.expected = blankToNull(expectedField.getText());
+        scenario.processor = scenario.isPdf() ? blankToNull(processorChoice.getEditor().getText()) : null;
         FxtProject.CompareSettings compare = originalCompare == null ? new FxtProject.CompareSettings()
                 : originalCompare.copy();
         compare.ignore = new java.util.ArrayList<>(XmlStructuralDiff.Options.parseXPaths(ignoreArea.getText()));
@@ -115,6 +121,18 @@ public class ScenarioEditDialog extends Dialog<FxtProject.Scenario> {
         compare.keys = new java.util.ArrayList<>(XmlStructuralDiff.Options.parseKeys(keysField.getText()));
         scenario.compare = compare.isDefault() ? null : compare;
         return scenario;
+    }
+
+    /** @return the processors a PDF scenario can name: the bundled FOP and the configured ones */
+    private static List<String> processorNames() {
+        List<String> names = new java.util.ArrayList<>();
+        names.add(org.fxt.freexmltoolkit.service.fo.FoProcessorStore.BUILTIN_ID);
+        try {
+            org.fxt.freexmltoolkit.service.fo.FoProcessorStore.settings().list().forEach(p -> names.add(p.name()));
+        } catch (RuntimeException e) {
+            // no settings (tests): the bundled FOP only
+        }
+        return names;
     }
 
     /** @return the tolerance entered (0 when empty), or -1 when it is not a number */

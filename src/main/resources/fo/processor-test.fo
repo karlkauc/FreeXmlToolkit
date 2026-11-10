@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The test page of Settings → XSL-FO Processors → Test: one A4 page, plain fonts. -->
+<fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format">
+  <fo:layout-master-set>
+    <fo:simple-page-master master-name="page" page-height="297mm" page-width="210mm" margin="20mm">
+      <fo:region-body/>
+    </fo:simple-page-master>
+  </fo:layout-master-set>
+  <fo:page-sequence master-reference="page">
+    <fo:flow flow-name="xsl-region-body">
+      <fo:block font-size="18pt" font-weight="bold" space-after="6mm">FreeXmlToolkit</fo:block>
+      <fo:block>This page was rendered by an external XSL-FO processor.</fo:block>
+    </fo:flow>
+  </fo:page-sequence>
+</fo:root>

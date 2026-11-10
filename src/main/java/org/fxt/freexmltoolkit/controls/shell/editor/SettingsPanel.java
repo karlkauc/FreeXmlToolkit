@@ -168,6 +168,7 @@ public class SettingsPanel extends VBox {
     @FXML private CheckBox fundsXmlEnabled;
     @FXML private javafx.scene.control.ComboBox<org.fxt.freexmltoolkit.i18n.I18n.Language> uiLanguage;
     @FXML private VBox pluginRows;
+    @FXML private FoProcessorsSettings foProcessors;
     /** One switch per plugin that can be switched (built-in and external, not failed ones). */
     private final java.util.Map<String, CheckBox> pluginSwitches = new java.util.LinkedHashMap<>();
 
@@ -835,6 +836,8 @@ public class SettingsPanel extends VBox {
         keys.put(templatesDir, new String[] {"templates.directory"});
         keys.put(schemaLibraryAutoBind, new String[] {"schemaLibrary.autoBind.enabled"});
         keys.put(uiLanguage, new String[] {org.fxt.freexmltoolkit.i18n.I18n.SETTING});
+        keys.put(foProcessors, new String[] {org.fxt.freexmltoolkit.service.fo.FoProcessorStore.KEY_PROCESSORS,
+                org.fxt.freexmltoolkit.service.fo.FoProcessorStore.KEY_DEFAULT});
         return keys;
     }
 

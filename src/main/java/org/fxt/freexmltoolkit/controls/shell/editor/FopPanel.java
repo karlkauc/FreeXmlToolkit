@@ -19,6 +19,9 @@ import javafx.stage.FileChooser;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.service.fo.FoProcessorConfig;
+import org.fxt.freexmltoolkit.service.fo.FoProcessorStore;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * The PDF/FOP activity side panel, laid out after the Figma mockup
@@ -42,6 +45,8 @@ public class FopPanel extends VBox {
     @FXML private TextField subjectField;
     @FXML private CheckBox pdfACompliant;
     @FXML private ComboBox<String> pageSize;
+    @FXML private VBox processorBox;
+    @FXML private ComboBox<String> processorChoice;
     @FXML private Label status;
     @FXML private PanelProgress progress;
     @FXML private Button generateButton;
@@ -83,6 +88,96 @@ public class FopPanel extends VBox {
 
         prefillAuthor();
         pageSize.getSelectionModel().selectFirst();
+        setUpProcessorChoice();
+    }
+
+    // ----- XSL-FO processor --------------------------------------------------
+
+    /** Ids in the processor combo → display names. */
+    private final java.util.Map<String, String> processorNames = new java.util.LinkedHashMap<>();
+    private boolean fillingProcessors;
+
+    private void setUpProcessorChoice() {
+        processorChoice.setConverter(new javafx.util.StringConverter<>() {
+            @Override
+            public String toString(String id) {
+                return id == null ? "" : processorNames.getOrDefault(id, id);
+            }
+
+            @Override
+            public String fromString(String text) {
+                return text;
+            }
+        });
+        processorChoice.valueProperty().addListener((obs, o, id) -> {
+            if (!fillingProcessors && id != null) {
+                try {
+                    FoProcessorStore.settings().setLastId(id);
+                } catch (RuntimeException e) {
+                    // no settings available: the choice is not remembered
+                }
+            }
+            updateOptionsForProcessor();
+        });
+        refreshProcessors();
+    }
+
+    /** Fills the processor combo from the settings and selects the last choice (or the default). */
+    void refreshProcessors() {
+        fillingProcessors = true;
+        try {
+            FoProcessorStore store = FoProcessorStore.settings();
+            processorNames.clear();
+            processorNames.put(FoProcessorStore.BUILTIN_ID, I18n.t("FoProcessorsSettings.builtin"));
+            store.list().forEach(p -> processorNames.put(p.id(), p.name()));
+            processorChoice.getItems().setAll(processorNames.keySet());
+            String last = store.lastId();
+            processorChoice.setValue(processorNames.containsKey(last) ? last : FoProcessorStore.BUILTIN_ID);
+            boolean allowed = store.externalAllowed();
+            processorBox.setVisible(allowed);
+            processorBox.setManaged(allowed);
+        } catch (RuntimeException e) {
+            processorChoice.getItems().setAll(FoProcessorStore.BUILTIN_ID);
+            processorChoice.setValue(FoProcessorStore.BUILTIN_ID);
+        } finally {
+            fillingProcessors = false;
+        }
+        updateOptionsForProcessor();
+    }
+
+    /** An external processor gets metadata and PDF/A only when its arguments pass them on. */
+    private void updateOptionsForProcessor() {
+        FoProcessorConfig external = selectedExternalProcessor();
+        boolean metadata = external == null || external.supportsMetadata();
+        boolean pdfA = external == null || external.supportsPdfA();
+        titleField.setDisable(!metadata);
+        authorField.setDisable(!metadata);
+        subjectField.setDisable(!metadata);
+        pdfACompliant.setDisable(!pdfA);
+    }
+
+    private FoProcessorConfig selectedExternalProcessor() {
+        String id = processorChoice.getValue();
+        if (FopRunner.isBuiltin(id)) {
+            return null;
+        }
+        try {
+            return FoProcessorStore.settings().list().stream().filter(p -> p.id().equals(id)).findFirst().orElse(null);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    /** Opens the processor list (the same as Settings → XSL-FO Processors) in a dialog. */
+    @FXML
+    public void onManageProcessors() {
+        javafx.scene.control.Dialog<Void> dialog = DialogHelper.createDialog(I18n.t("FopPanel.processors.title"),
+                I18n.t("FopPanel.processors.header"), "bi-printer");
+        dialog.getDialogPane().setContent(new FoProcessorsSettings());
+        dialog.getDialogPane().getButtonTypes().setAll(javafx.scene.control.ButtonType.CLOSE);
+        dialog.getDialogPane().setPrefWidth(560);
+        dialog.showAndWait();
+        refreshProcessors();
     }
 
     @FXML
@@ -209,10 +304,13 @@ public class FopPanel extends VBox {
         }
         String fo = lastResult.foXml();
         FopRunner.PdfOptions options = currentOptions();
+        File contextXml = inputXmlFile();
+        FopRunner.RenderContext context = new FopRunner.RenderContext(
+                contextXml == null ? null : contextXml.toPath(), xslFile == null ? null : xslFile.toPath(), null);
         PanelStatus.info(status, I18n.t("FopPanel.rendering"));
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
-            FopRunner.FopResult outcome = FopRunner.renderFo(fo, pdfOutput, options);
+            FopRunner.FopResult outcome = FopRunner.renderFo(fo, pdfOutput, options, context);
             org.fxt.freexmltoolkit.service.telemetry.UsageEvents.pdfGenerated(t0, outcome.stage(), outcome.failure());
             Platform.runLater(() -> {
                 lastResult = new FopRunner.FopResult(outcome.ok(), outcome.pdf(), fo,
@@ -374,7 +472,9 @@ public class FopPanel extends VBox {
         String size = pageSize.getValue() != null ? pageSize.getValue() : "";
         String[] parts = size.split(" · ", 2);
         return new FopRunner.PdfOptions(titleField.getText(), authorField.getText(), subjectField.getText(),
-                pdfACompliant.isSelected(), parts.length > 0 ? parts[0] : "", parts.length > 1 ? parts[1] : "");
+                pdfACompliant.isSelected() && !pdfACompliant.isDisabled(),
+                parts.length > 0 ? parts[0] : "", parts.length > 1 ? parts[1] : "",
+                processorChoice.getValue());
     }
 
     /** Sets the PDF metadata fields (for tests/observers). */

@@ -6,6 +6,8 @@ import java.util.concurrent.Callable;
 
 import org.fxt.freexmltoolkit.controls.shell.editor.FopRunner;
 import org.fxt.freexmltoolkit.service.FopEvent;
+import org.fxt.freexmltoolkit.service.fo.FoProcessorConfig;
+import org.fxt.freexmltoolkit.service.fo.FoProcessorStore;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -14,20 +16,25 @@ import picocli.CommandLine.ParentCommand;
 import picocli.CommandLine.Spec;
 
 /**
- * {@code fxt-cli fop}: renders a PDF with Apache FOP, either from XML plus an XSL-FO stylesheet
- * or from a finished XSL-FO document.
+ * {@code fxt-cli fop}: renders a PDF with Apache FOP or an external XSL-FO processor configured in
+ * the settings, either from XML plus an XSL-FO stylesheet or from a finished XSL-FO document.
  */
 @Command(name = "fop",
         mixinStandardHelpOptions = true,
-        header = "Render a PDF with Apache FOP from XML + XSL-FO stylesheet or an XSL-FO file.",
+        header = "Render a PDF with Apache FOP or an external FO processor from XML + XSL-FO stylesheet or an XSL-FO file.",
         footer = {
                 "  # XML + stylesheet producing XSL-FO",
                 "  fxt-cli fop -i order.xml -s order-fo.xsl -o order.pdf",
                 "",
                 "  # A finished XSL-FO document as PDF/A",
-                "  fxt-cli fop --fo order.fo -o order.pdf --pdfa"
+                "  fxt-cli fop --fo order.fo -o order.pdf --pdfa",
+                "",
+                "  # With an external processor configured in Settings > XSL-FO Processors",
+                "  fxt-cli fop --list-processors",
+                "  fxt-cli fop -i order.xml -s order-fo.xsl -o order.pdf --processor \"RenderX XEP\""
         },
-        description = "Render a PDF with Apache FOP from XML + XSL-FO stylesheet, or from an XSL-FO document.",
+        description = "Render a PDF from XML + XSL-FO stylesheet, or from an XSL-FO document, with the bundled "
+                + "Apache FOP or an external XSL-FO processor configured in the settings.",
         sortOptions = false)
 final class FopCommand implements Callable<Integer> {
 
@@ -46,8 +53,16 @@ final class FopCommand implements Callable<Integer> {
     @Option(names = "--fo", paramLabel = "FO", description = "A finished XSL-FO document (instead of -i and -s).")
     Path fo;
 
-    @Option(names = {"-o", "--output"}, required = true, paramLabel = "PDF", description = "The PDF to write.")
+    @Option(names = {"-o", "--output"}, paramLabel = "PDF", description = "The PDF to write.")
     Path output;
+
+    @Option(names = {"-p", "--processor"}, paramLabel = "NAME",
+            description = "The XSL-FO processor: \"builtin\" (the bundled Apache FOP) or the name or id of an external "
+                    + "processor configured in the settings. Default: the default processor of the settings.")
+    String processor;
+
+    @Option(names = "--list-processors", description = "List the configured XSL-FO processors and exit.")
+    boolean listProcessors;
 
     @Option(names = "--title", description = "PDF title.")
     String title = "";
@@ -72,6 +87,13 @@ final class FopCommand implements Callable<Integer> {
     @Override
     public Integer call() throws Exception {
         CommandLine commandLine = spec.commandLine();
+        if (listProcessors) {
+            CliSupport.initServices();
+            return listProcessors(commandLine.getOut());
+        }
+        if (output == null) {
+            throw new CommandLine.ParameterException(commandLine, "Missing required option: '--output=PDF'");
+        }
         boolean fromFo = fo != null;
         if (fromFo == (input != null || stylesheet != null)) {
             throw new CommandLine.ParameterException(commandLine, "Give either --fo, or --input and --stylesheet");
@@ -88,9 +110,12 @@ final class FopCommand implements Callable<Integer> {
         if (parentDir != null) {
             java.nio.file.Files.createDirectories(parentDir);
         }
-        FopRunner.PdfOptions options = new FopRunner.PdfOptions(title, author, subject, pdfA, pageSize, orientation);
+        String chosen = processor != null ? processor : FoProcessorStore.settings().defaultId();
+        FopRunner.PdfOptions options = new FopRunner.PdfOptions(title, author, subject, pdfA, pageSize, orientation,
+                chosen);
         FopRunner.FopResult result = fromFo
-                ? FopRunner.renderFo(CliSupport.read(fo), output.toFile(), options)
+                ? FopRunner.renderFo(CliSupport.read(fo), output.toFile(), options,
+                        new FopRunner.RenderContext(null, null, fo.toAbsolutePath()))
                 : FopRunner.generateResult(input.toFile(), stylesheet.toFile(), output.toFile(), options);
 
         PrintWriter err = commandLine.getErr(); // NOPMD - picocli's stream, owned by CommandLine
@@ -115,6 +140,22 @@ final class FopCommand implements Callable<Integer> {
         if (!quiet) {
             err.println("Wrote " + output);
         }
+        return ExitCodes.OK;
+    }
+
+    private int listProcessors(PrintWriter out) {
+        FoProcessorStore store = FoProcessorStore.settings();
+        String defaultId = store.defaultId();
+        out.println((FoProcessorStore.BUILTIN_ID.equals(defaultId) ? "* " : "  ") + FoProcessorStore.BUILTIN_ID
+                + "\tApache FOP (bundled)");
+        for (FoProcessorConfig p : store.list()) {
+            String program = p.resolveExecutable().map(Path::toString).orElse("not found");
+            out.println((p.id().equals(defaultId) ? "* " : "  ") + p.name() + "\t" + program + "\t" + p.id());
+        }
+        if (!store.externalAllowed()) {
+            out.println("  (external processors are disabled by the administrator)");
+        }
+        out.flush();
         return ExitCodes.OK;
     }
 }

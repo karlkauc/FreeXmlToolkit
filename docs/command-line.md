@@ -426,11 +426,13 @@ standard error and gives exit code 1; the other files are still converted.
 
 ## fop
 
-Renders a PDF with Apache FOP, like the [PDF Generator](pdf-generator.md).
+Renders a PDF with Apache FOP or an [external XSL-FO processor](pdf-generator.md#external-xsl-fo-processors),
+like the [PDF Generator](pdf-generator.md).
 
 ```bash
 fxt-cli fop -i XML -s XSL -o OUT.pdf [options]
 fxt-cli fop --fo DOCUMENT.fo -o OUT.pdf [options]
+fxt-cli fop --list-processors
 ```
 
 | Option | Meaning |
@@ -441,6 +443,11 @@ fxt-cli fop --fo DOCUMENT.fo -o OUT.pdf [options]
 | `--title`, `--author`, `--subject` | PDF metadata |
 | `--pdfa` | Produce PDF/A-1b |
 | `--page-size`, `--orientation` | Passed to the stylesheet as the parameters `page-size` and `page-orientation` |
+| `-p`, `--processor NAME` | `builtin` (the bundled Apache FOP) or the name or id of an external processor from *Settings → XSL-FO Processors*. Default: the default processor of the settings |
+| `--list-processors` | Lists the processors (`*` marks the default) and exits |
+
+The external processor's warnings and errors are printed to standard error; a failed run gives
+exit code 1.
 
 ## sign
 

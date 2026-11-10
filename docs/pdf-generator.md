@@ -70,6 +70,10 @@ Add metadata to your PDF document in the **METADATA** section:
   below the dropdown says, it **only applies if the stylesheet uses these parameters** -
   stylesheets that declare them can switch their `fo:simple-page-master` accordingly;
   others ignore the setting.
+- **Processor** - which program renders the XSL-FO: the bundled **Apache FOP** or an
+  [external XSL-FO processor](#external-xsl-fo-processors) you configured. **Manage processors…**
+  opens the list. With an external processor, the metadata fields and PDF/A are only available
+  when its arguments pass them on (`${title}`, `${pdfa}` …).
 
 ### Step 4: Generate the PDF
 
@@ -192,6 +196,78 @@ XSL-FO (Extensible Stylesheet Language Formatting Objects) defines how your XML 
 
 ---
 
+## External XSL-FO Processors
+
+Instead of the bundled Apache FOP, the PDF can be rendered by any formatter that has a command
+line: **Antenna House Formatter** (`AHFCmd`), **RenderX XEP** (`xep`), a separately installed
+**Apache FOP** (another version, your own `fop.xconf` with fonts), or a script of your own. The
+XSLT stage (XML → XSL-FO) still runs inside FreeXmlToolkit with Saxon, so **Show intermediate
+FO**, the stylesheet's messages and the debugger work the same; only the rendering is handed to
+the external program.
+
+**Set one up:** *Settings → Extensions → XSL-FO Processors* (or **Manage processors…** in the
+PDF/FOP panel) → **Add…**
+
+| Field | Meaning |
+|---|---|
+| **Preset** | Fills the arguments for Apache FOP, Antenna House, XEP or *Custom* |
+| **Name** | Shown in the panel; also used by scenarios and `fxt-cli fop --processor` |
+| **Program** | The executable or script. Empty: the preset's program is looked up on the `PATH` (**Find on PATH** shows it) |
+| **Arguments** | The argument template (below) |
+| **Working folder** | Where the program runs. Empty: the stylesheet's folder |
+| **Time limit** | The program is stopped after this many seconds (default 300) |
+
+**Test** renders a one-page document with the current settings and shows the program's output -
+use it before saving. **Use as Default** makes a processor the default for the panel, PDF
+scenarios and the command line.
+
+### Argument template
+
+Arguments are separated by spaces; an argument with spaces goes in double quotes. The program is
+started directly, never through a shell. Placeholders:
+
+| Placeholder | Value |
+|---|---|
+| `${fo}` | The XSL-FO file to render (required) |
+| `${pdf}` / `${out}` | The PDF to write (required) |
+| `${xml}`, `${xsl}` | The XML input and the stylesheet (empty when rendering a finished FO) |
+| `${baseDir}` | The stylesheet's folder |
+| `${title}`, `${author}`, `${subject}` | The PDF metadata from the panel |
+| `${pdfa}` | Present when PDF/A was asked for; expands to nothing |
+
+Arguments in square brackets are an **optional group**, left out when one of its placeholders
+is empty: `[-title ${title}]` passes the title only when there is one, and
+`[-pdfprofile PDF/A-1b ${pdfa}]` adds the flag only for PDF/A.
+
+The presets start with:
+
+| Preset | Program | Arguments |
+|---|---|---|
+| Apache FOP (external) | `fop` | `-fo ${fo} -pdf ${pdf} [-pdfprofile PDF/A-1b ${pdfa}]` |
+| Antenna House Formatter | `AHFCmd` | `-d ${fo} -o ${pdf}` |
+| RenderX XEP | `xep` | `-fo ${fo} -pdf ${pdf}` |
+
+Check your formatter's manual for further options (configuration file, PDF version, fonts) and
+add them to the template, e.g. `-c /etc/fop/fop.xconf` for Apache FOP.
+
+### How a run works
+
+1. The XSL-FO is written to a temporary file **in the stylesheet's folder** (`.fxt-render-….fo`,
+   deleted afterwards), so relative image and font references resolve as they would next to
+   the stylesheet. If that folder is not writable, the temp folder is used.
+2. The program runs with the expanded arguments in the working folder.
+3. It succeeded when it exits with code 0 **and** wrote the PDF (an old PDF of the same name is
+   removed first, so it never passes for a new one).
+4. Its console output appears under **Messages & events**: lines with *error*, *fatal* or
+   *severe* count as errors, lines with *warn* / *warning* as warnings.
+
+**Cancel** in the panel stops the program (and the processes it started).
+
+An administrator can turn external processors off with `fop.external.allowed=false` in the
+policy, or hand out a processor list with `fop.processors` - see [Administration](administration.md).
+
+---
+
 ## Tips
 
 - **Validate first** - Ensure your XML and XSL-FO files are valid before generating
@@ -212,4 +288,6 @@ XSL-FO (Extensible Stylesheet Language Formatting Objects) defines how your XML 
 | Image not showing | Check image path is correct and accessible |
 | Generation fails | The status shows a short reason; the OUTPUT panel has the stylesheet error with its line, or FOP's reason. **Show intermediate FO** tells you whether the FO itself is what you expect |
 | PDF looks wrong (fonts, overflow) | Open **Messages & events** - FOP reports substituted fonts and overflowing content there |
+| External processor: "program not found" | Set **Program** to the full path, or use **Find on PATH**; on Windows choose the `.exe` or `.bat` |
+| External processor: images missing | Relative paths resolve against the stylesheet's folder - set **Working folder** or pass the base folder to the program (`${baseDir}`) |
 | A template does not fire / wrong values | **TOOLS → Debug stylesheet…** and step through it - see [Debugging the stylesheet](#debugging-the-stylesheet) |

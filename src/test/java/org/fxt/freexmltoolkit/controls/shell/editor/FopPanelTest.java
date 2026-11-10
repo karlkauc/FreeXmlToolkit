@@ -257,7 +257,7 @@ class FopPanelTest {
             return null;
         });
         assertTrue(host.transformOutputPanel().isShowing(), "messages & events go to OUTPUT");
-        assertTrue(host.transformOutputPanel().getOutputText().contains("FOP events")
+        assertTrue(host.transformOutputPanel().getOutputText().contains("Renderer messages")
                 || host.transformOutputPanel().getOutputText().contains("No messages"));
 
         Path fromFo = tmp.resolve("from-fo.pdf");

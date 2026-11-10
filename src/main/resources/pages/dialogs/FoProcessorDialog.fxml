@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Content of FoProcessorDialog (Settings → XSL-FO Processors → Add / Edit): an external XSL-FO
+  processor started with an argument template. Buttons, validation and the test run are in code.
+-->
+<GridPane hgap="8" vgap="8" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets top="8" right="8" bottom="8" left="8"/>
+    </padding>
+    <children>
+        <Label text="%FoProcessorDialog.preset.text" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="presetChoice" id="fo-processor-preset" maxWidth="Infinity"
+                  GridPane.rowIndex="0" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+        <Label text="%FoProcessorDialog.name.text" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextField fx:id="nameField" id="fo-processor-name" prefColumnCount="40"
+                   GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+        <Label text="%FoProcessorDialog.program.text" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <TextField fx:id="executableField" id="fo-processor-executable"
+                   promptText="%FoProcessorDialog.executableField.promptText"
+                   GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <HBox spacing="6" GridPane.rowIndex="2" GridPane.columnIndex="2">
+            <children>
+                <Button id="fo-processor-browse" text="%FoProcessorDialog.fo-processor-browse.text" onAction="#onBrowseExecutable">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                    </graphic>
+                </Button>
+                <Button id="fo-processor-find" text="%FoProcessorDialog.fo-processor-find.text" onAction="#onFindOnPath">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-search" iconSize="16"/>
+                    </graphic>
+                </Button>
+            </children>
+        </HBox>
+        <Label text="%FoProcessorDialog.arguments.text" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <TextField fx:id="argumentsField" id="fo-processor-arguments"
+                   GridPane.rowIndex="3" GridPane.columnIndex="1" GridPane.columnSpan="2">
+            <tooltip>
+                <Tooltip fx:id="argumentsTooltip"/>
+            </tooltip>
+        </TextField>
+        <Label fx:id="placeholderHelp" id="fo-processor-placeholders" wrapText="true" minHeight="-Infinity"
+               maxWidth="560" styleClass="fxt-placeholder-text"
+               GridPane.rowIndex="4" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+        <Label text="%FoProcessorDialog.working-folder.text" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+        <TextField fx:id="workingDirField" id="fo-processor-working-dir"
+                   promptText="%FoProcessorDialog.workingDirField.promptText"
+                   GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+        <Button id="fo-processor-browse-dir" text="%FoProcessorDialog.fo-processor-browse-dir.text" onAction="#onBrowseWorkingDir"
+                GridPane.rowIndex="5" GridPane.columnIndex="2">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+            </graphic>
+        </Button>
+        <Label text="%FoProcessorDialog.time-limit-s.text" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+        <Spinner fx:id="timeoutSpinner" id="fo-processor-timeout" editable="true" prefWidth="120"
+                 GridPane.rowIndex="6" GridPane.columnIndex="1">
+            <valueFactory>
+                <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="5" max="7200" initialValue="300" amountToStepBy="30"/>
+            </valueFactory>
+        </Spinner>
+        <HBox spacing="8" alignment="CENTER_LEFT" GridPane.rowIndex="7" GridPane.columnIndex="1" GridPane.columnSpan="2">
+            <children>
+                <Button fx:id="testButton" id="fo-processor-test" text="%FoProcessorDialog.testButton.text" onAction="#onTest">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-play-circle" iconSize="16"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="%FoProcessorDialog.renders-a-one-page-test.text"/>
+                    </tooltip>
+                </Button>
+                <Label fx:id="testStatus" id="fo-processor-test-status" wrapText="true"/>
+            </children>
+        </HBox>
+        <TextArea fx:id="testOutput" id="fo-processor-test-output" editable="false" wrapText="true" prefRowCount="6"
+                  visible="false" managed="false"
+                  GridPane.rowIndex="8" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
+        <Label fx:id="error" id="fo-processor-error" wrapText="true" visible="false" managed="false"
+               styleClass="fxt-dialog-error" GridPane.rowIndex="9" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
+    </children>
+</GridPane>
