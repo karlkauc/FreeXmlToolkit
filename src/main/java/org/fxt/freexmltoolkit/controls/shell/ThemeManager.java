@@ -19,6 +19,7 @@ import javafx.stage.Window;
 
 import org.fxt.freexmltoolkit.controls.theme.AccentPalette;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
+import org.fxt.freexmltoolkit.controls.theme.HighContrast;
 import org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes;
 import org.fxt.freexmltoolkit.controls.theme.Typography;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
@@ -363,6 +364,31 @@ public final class ThemeManager {
         setSyntaxScheme(SyntaxSchemes.DEFAULT_ID);
     }
 
+    // ------------------------------------------------------------------ high contrast
+
+    /** @return true when high contrast is on */
+    public static boolean isHighContrast() {
+        return "true".equalsIgnoreCase(setting(HighContrast.KEY));
+    }
+
+    /**
+     * Turns high contrast on or off, persists and applies it everywhere.
+     * Must be called on the JavaFX Application Thread.
+     */
+    public static void setHighContrast(boolean on) {
+        store(HighContrast.KEY, Boolean.toString(on));
+        loadAccent(currentAccent());
+        applyAppearanceEverywhere();
+    }
+
+    /** The JavaFX focus ring (Modena's looked-up colours) in the strongest text colour, no faint halo. */
+    private static void focusRing(StringBuilder css, Color color) {
+        if (color != null) {
+            css.append("    -fx-focus-color: ").append(AccentPalette.hex(color)).append(";\n");
+            css.append("    -fx-faint-focus-color: transparent;\n");
+        }
+    }
+
     /** @return a stored setting, or null (no settings service, e.g. in tests) */
     public static String setting(String key) {
         try {
@@ -393,6 +419,11 @@ public final class ThemeManager {
         String scheme = setting(SyntaxSchemes.SCHEME_KEY);
         light.putAll(SyntaxSchemes.overrides(scheme, ThemeManager::setting, DesignTokens.Theme.LIGHT));
         dark.putAll(SyntaxSchemes.overrides(scheme, ThemeManager::setting, DesignTokens.Theme.DARK));
+        boolean highContrast = isHighContrast();
+        if (highContrast) {
+            light.putAll(HighContrast.overrides(light, DesignTokens.Theme.LIGHT));
+            dark.putAll(HighContrast.overrides(dark, DesignTokens.Theme.DARK));
+        }
         if (light.isEmpty() && dark.isEmpty()) {
             DesignTokens.setOverrides(null, null);
             appearanceSheet = null;
@@ -401,8 +432,14 @@ public final class ThemeManager {
         DesignTokens.setOverrides(light, dark);
         StringBuilder css = new StringBuilder(APPEARANCE_HEADER).append("/* accent ").append(value).append(" */\n.root {\n");
         light.forEach((name, color) -> css.append("    ").append(name).append(": ").append(AccentPalette.hex(color)).append(";\n"));
+        if (highContrast) {
+            focusRing(css, light.get(DesignTokens.ColorToken.TEXT_PRIMARY.cssVariable()));
+        }
         css.append("}\n.root.fxt-theme-dark {\n");
         dark.forEach((name, color) -> css.append("    ").append(name).append(": ").append(AccentPalette.hex(color)).append(";\n"));
+        if (highContrast) {
+            focusRing(css, dark.get(DesignTokens.ColorToken.TEXT_PRIMARY.cssVariable()));
+        }
         css.append("}\n");
         appearanceSheet = DATA_CSS_PREFIX + base64(css.toString());
     }
@@ -440,6 +477,21 @@ public final class ThemeManager {
      * @param family the UI font; null/blank = the design's Inter
      */
     public static void setTypography(Typography.Size size, String family) {
+        setTypography(size, family, currentDensity());
+    }
+
+    /** @return the stored density */
+    public static Typography.Density currentDensity() {
+        return Typography.Density.fromProperty(setting(Typography.DENSITY_KEY));
+    }
+
+    /**
+     * Sets the UI text size, font and density, persists them and applies them to every open window.
+     * Must be called on the JavaFX Application Thread.
+     */
+    public static void setTypography(Typography.Size size, String family, Typography.Density density) {
+        Typography.Density d = density == null ? Typography.Density.NORMAL : density;
+        store(Typography.DENSITY_KEY, d.id());
         Typography.Size s = size == null ? Typography.Size.NORMAL : size;
         String f = family == null || family.isBlank() ? Typography.DEFAULT_FAMILY : family.trim();
         try {
@@ -449,7 +501,7 @@ public final class ThemeManager {
         } catch (Throwable ignored) {
             // not persisted (tests); still applied
         }
-        loadTypography(s, f);
+        loadTypography(s, f, d);
         for (Window window : List.copyOf(Window.getWindows())) {
             if (window.getScene() != null) {
                 syncAppearanceSheet(window.getScene());
@@ -458,7 +510,7 @@ public final class ThemeManager {
         syncAppearanceSheet(mainScene.get());
     }
 
-    private static void loadTypography(Typography.Size size, String family) {
+    private static void loadTypography(Typography.Size size, String family, Typography.Density density) {
         typographyLoaded = true;
         double base;
         try {
@@ -466,14 +518,14 @@ public final class ThemeManager {
         } catch (Throwable t) {
             base = 13;
         }
-        String css = Typography.css(size, family, base);
+        String css = Typography.css(size, family, density, base);
         typographySheet = css == null ? null : DATA_CSS_PREFIX + base64(TYPOGRAPHY_HEADER + css);
     }
 
     /** @return the typography stylesheet URL for the UI size and font, or null for the design's */
     public static String typographySheet() {
         if (!typographyLoaded) {
-            loadTypography(currentFontSize(), currentUiFont());
+            loadTypography(currentFontSize(), currentUiFont(), currentDensity());
         }
         return typographySheet;
     }

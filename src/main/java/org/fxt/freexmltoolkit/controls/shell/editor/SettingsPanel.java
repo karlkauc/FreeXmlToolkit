@@ -79,6 +79,10 @@ public class SettingsPanel extends VBox {
     @FXML private ToggleButton uiFontLarge;
     @FXML private ToggleButton uiFontXLarge;
     @FXML private ComboBox<String> uiFontFamily;
+    @FXML private ToggleButton densityCompact;
+    @FXML private ToggleButton densityNormal;
+    @FXML private ToggleButton densityComfortable;
+    @FXML private CheckBox highContrast;
     /** Set while the UI-font controls show the stored value: their changes are no choice. */
     private boolean showingUiFont;
     @FXML private ComboBox<org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.Scheme> syntaxScheme;
@@ -470,6 +474,7 @@ public class SettingsPanel extends VBox {
                 java.util.List.of(light, dark, systemTheme, accentSwatches, accentPicker,
                         editorFontFamily, editorFontSize, editorLineSpacing, editorRememberZoom,
                         uiFontSmall, uiFontNormal, uiFontLarge, uiFontXLarge, uiFontFamily,
+                        densityCompact, densityNormal, densityComfortable, highContrast,
                         syntaxScheme, syntaxRoles));
         immediate.addAll(associationCheckBoxes().keySet());
         javafx.beans.InvalidationListener mark = obs -> {
@@ -684,12 +689,15 @@ public class SettingsPanel extends VBox {
                 applyUiFont(selectedUiFontSize(), value);
             }
         });
-        // a segmented control always keeps one size selected
-        uiFontSmall.getToggleGroup().selectedToggleProperty().addListener((obs, old, value) -> {
-            if (value == null && old != null) {
-                old.setSelected(true);
-            }
-        });
+        // a segmented control always keeps one choice selected
+        for (var group : java.util.List.of(uiFontSmall.getToggleGroup(), densityNormal.getToggleGroup())) {
+            group.selectedToggleProperty().addListener((obs, old, value) -> {
+                if (value == null && old != null) {
+                    old.setSelected(true);
+                }
+            });
+        }
+        highContrast.setSelected(org.fxt.freexmltoolkit.controls.shell.ThemeManager.isHighContrast());
     }
 
     /** @return the platform's default UI font family */
@@ -721,6 +729,7 @@ public class SettingsPanel extends VBox {
         try {
             uiFontSizeButtons().get(org.fxt.freexmltoolkit.controls.shell.ThemeManager.currentFontSize()).setSelected(true);
             uiFontFamily.setValue(org.fxt.freexmltoolkit.controls.shell.ThemeManager.currentUiFont());
+            densityButtons().get(org.fxt.freexmltoolkit.controls.shell.ThemeManager.currentDensity()).setSelected(true);
         } finally {
             showingUiFont = false;
         }
@@ -743,11 +752,54 @@ public class SettingsPanel extends VBox {
         }
     }
 
-    /** Back to the design's Inter at normal size. */
+    /** Back to the design's Inter at normal size and density. */
     @FXML
     public void onUiFontReset() {
-        applyUiFont(org.fxt.freexmltoolkit.controls.theme.Typography.Size.NORMAL,
-                org.fxt.freexmltoolkit.controls.theme.Typography.DEFAULT_FAMILY);
+        org.fxt.freexmltoolkit.controls.shell.ThemeManager.setTypography(null, null, null);
+        showUiFont();
+    }
+
+    /** @return the density buttons by density, in order */
+    private java.util.Map<org.fxt.freexmltoolkit.controls.theme.Typography.Density, ToggleButton> densityButtons() {
+        var map = new java.util.EnumMap<org.fxt.freexmltoolkit.controls.theme.Typography.Density, ToggleButton>(
+                org.fxt.freexmltoolkit.controls.theme.Typography.Density.class);
+        map.put(org.fxt.freexmltoolkit.controls.theme.Typography.Density.COMPACT, densityCompact);
+        map.put(org.fxt.freexmltoolkit.controls.theme.Typography.Density.NORMAL, densityNormal);
+        map.put(org.fxt.freexmltoolkit.controls.theme.Typography.Density.COMFORTABLE, densityComfortable);
+        return map;
+    }
+
+    /** One of the density buttons was pressed. */
+    @FXML
+    public void onDensity() {
+        if (!showingUiFont) {
+            for (var entry : densityButtons().entrySet()) {
+                if (entry.getValue().isSelected()) {
+                    applyDensity(entry.getKey());
+                }
+            }
+        }
+    }
+
+    /** Applies and persists a density (for tests/observers). */
+    public void applyDensity(org.fxt.freexmltoolkit.controls.theme.Typography.Density density) {
+        org.fxt.freexmltoolkit.controls.shell.ThemeManager.setTypography(
+                org.fxt.freexmltoolkit.controls.shell.ThemeManager.currentFontSize(),
+                org.fxt.freexmltoolkit.controls.shell.ThemeManager.currentUiFont(), density);
+        showUiFont();
+    }
+
+    /** The high-contrast box was toggled. */
+    @FXML
+    public void onHighContrast() {
+        applyHighContrast(highContrast.isSelected());
+    }
+
+    /** Turns high contrast on or off (for tests/observers). */
+    public void applyHighContrast(boolean on) {
+        org.fxt.freexmltoolkit.controls.shell.ThemeManager.setHighContrast(on);
+        highContrast.setSelected(on);
+        showSyntaxColors();
     }
 
     /** Applies and persists the UI text size and font in every window (for tests/observers). */
@@ -1203,6 +1255,10 @@ public class SettingsPanel extends VBox {
             keys.put(size, new String[] {org.fxt.freexmltoolkit.controls.theme.Typography.SIZE_KEY});
         }
         keys.put(uiFontFamily, new String[] {org.fxt.freexmltoolkit.controls.theme.Typography.FAMILY_KEY});
+        for (ToggleButton density : densityButtons().values()) {
+            keys.put(density, new String[] {org.fxt.freexmltoolkit.controls.theme.Typography.DENSITY_KEY});
+        }
+        keys.put(highContrast, new String[] {org.fxt.freexmltoolkit.controls.theme.HighContrast.KEY});
         keys.put(syntaxScheme, new String[] {org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes.SCHEME_KEY});
         keys.put(editorFontFamily, new String[] {org.fxt.freexmltoolkit.controls.shared.EditorFont.FAMILY_KEY});
         keys.put(editorFontSize, new String[] {org.fxt.freexmltoolkit.controls.shared.EditorFont.SIZE_KEY});

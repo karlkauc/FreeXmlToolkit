@@ -12,16 +12,29 @@ import javafx.scene.text.FontWeight;
  * from FX-side code.</p>
  */
 public enum GridFont {
-    /** Regular row/value font (Monospaced 12). */
+    /** Regular row/value font (editor font, 12). */
     ROW(12, FontWeight.NORMAL),
-    /** Semi-bold label font (Monospaced 12). */
+    /** Semi-bold label font (editor font, 12). */
     ROW_BOLD(12, FontWeight.SEMI_BOLD),
-    /** Small secondary font for counts and hints (Monospaced 10). */
+    /** Small secondary font for counts and hints (editor font, 10). */
     SMALL(10, FontWeight.NORMAL),
-    /** Bold icon-glyph font (Monospaced 11). */
+    /** Bold icon-glyph font (editor font, 11). */
     ICON(11, FontWeight.BOLD);
 
-    private static final String FAMILY = "Monospaced";
+    /**
+     * The editor font's family (Settings → Editor → Editor font), resolved to an installed one.
+     * The painter caches its fonts and text widths, so a change reaches the grid after a restart.
+     */
+    private static final String FAMILY = editorFamily();
+
+    private static String editorFamily() {
+        try {
+            var font = org.fxt.freexmltoolkit.controls.shared.EditorFont.current();
+            return org.fxt.freexmltoolkit.controls.shared.EditorFont.resolveFamily(font.family());
+        } catch (RuntimeException | Error e) {
+            return "Monospaced";
+        }
+    }
 
     private final double size;
     private final FontWeight weight;

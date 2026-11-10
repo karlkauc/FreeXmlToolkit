@@ -41,6 +41,7 @@
     <fx:define>
         <ToggleGroup fx:id="themeGroup"/>
         <ToggleGroup fx:id="uiFontSizeGroup"/>
+        <ToggleGroup fx:id="densityGroup"/>
         <ToggleGroup fx:id="toolbarIconSizeGroup"/>
     </fx:define>
     <children>
@@ -91,6 +92,8 @@
                                                 </HBox>
                                                 <Label text="%SettingsPanel.theme-system-hint.text" wrapText="true"
                                                        minHeight="-Infinity" styleClass="fxt-placeholder-text"/>
+                                                <CheckBox fx:id="highContrast" id="settings-high-contrast"
+                                                          text="%SettingsPanel.highContrast.text" onAction="#onHighContrast"/>
                                             </children>
                                         </SettingsCard>
                                         <SettingsCard title="%SettingsPanel.accent.title" iconLiteral="bi-droplet-half">
@@ -120,6 +123,17 @@
                                                                       toggleGroup="$uiFontSizeGroup" styleClass="fxt-view-seg" onAction="#onUiFontSize"/>
                                                         <ToggleButton fx:id="uiFontXLarge" id="settings-ui-font-xlarge" text="%Appearance.fontSize.xlarge"
                                                                       toggleGroup="$uiFontSizeGroup" styleClass="fxt-view-seg" onAction="#onUiFontSize"/>
+                                                    </children>
+                                                </HBox>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="%SettingsPanel.density.text"/>
+                                                        <ToggleButton fx:id="densityCompact" id="settings-density-compact" text="%Appearance.density.compact"
+                                                                      toggleGroup="$densityGroup" styleClass="fxt-view-seg" onAction="#onDensity"/>
+                                                        <ToggleButton fx:id="densityNormal" id="settings-density-normal" text="%Appearance.density.normal"
+                                                                      toggleGroup="$densityGroup" styleClass="fxt-view-seg" onAction="#onDensity"/>
+                                                        <ToggleButton fx:id="densityComfortable" id="settings-density-comfortable" text="%Appearance.density.comfortable"
+                                                                      toggleGroup="$densityGroup" styleClass="fxt-view-seg" onAction="#onDensity"/>
                                                     </children>
                                                 </HBox>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">

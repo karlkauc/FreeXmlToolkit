@@ -35,7 +35,7 @@ settings may be greyed out and a notice at the top of the page says so; see
 
 | Group | Cards and options |
 |-------|-------------------|
-| **Appearance** | **Theme** - **Light**, **Dark** or **System** (follows the light or dark setting of the operating system, also while the application runs). **Accent colour** - the colour of buttons, selection, focus and links: eight presets or **Own colour**; see [Accent colour](#accent-colour) below. **Text size & font** - **Small**, **Normal**, **Large** or **Extra Large** text and the font of the interface; see [Text size and font](#text-size-and-font) below. **Language** - the language of the interface: **System default**, **English** or **Deutsch** (takes effect after a restart; the system default is used when it is English or German, otherwise English). **Layout** - **Show toolbar button labels**; **Show activity bar labels**; **Use small icons**; toolbar icon size (**Small** / **Large**); **Show left side panel**; **Show Properties (inspector) panel**. **Rendering** - JavaFX graphics pipeline: **Auto** / **Hardware** / **Software** (takes effect after restart), with the active pipeline and GPU status; see [Rendering mode (hardware vs. software)](#rendering-mode) below. **Memory** - **Maximum memory** for the application: **Automatic** (half of the installed memory) or a fixed limit (takes effect after restart); see [Memory and large files](#memory) below. |
+| **Appearance** | **Theme** - **Light**, **Dark** or **System** (follows the light or dark setting of the operating system, also while the application runs), plus **High contrast**; see [High contrast](#high-contrast) below. **Accent colour** - the colour of buttons, selection, focus and links: eight presets or **Own colour**; see [Accent colour](#accent-colour) below. **Text size & font** - **Small**, **Normal**, **Large** or **Extra Large** text, the **Density** (**Compact** / **Normal** / **Comfortable**) and the font of the interface; see [Text size and font](#text-size-and-font) below. **Language** - the language of the interface: **System default**, **English** or **Deutsch** (takes effect after a restart; the system default is used when it is English or German, otherwise English). **Layout** - **Show toolbar button labels**; **Show activity bar labels**; **Use small icons**; toolbar icon size (**Small** / **Large**); **Show left side panel**; **Show Properties (inspector) panel**. **Rendering** - JavaFX graphics pipeline: **Auto** / **Hardware** / **Software** (takes effect after restart), with the active pipeline and GPU status; see [Rendering mode (hardware vs. software)](#rendering-mode) below. **Memory** - **Maximum memory** for the application: **Automatic** (half of the installed memory) or a fixed limit (takes effect after restart); see [Memory and large files](#memory) below. |
 | **Editor** | **Editor font** - font, size and line spacing of every code editor, see [Editor font](#editor-font). **Syntax colours** - a colour scheme and own colours per role, see [Syntax colours](#syntax-colours). **Editor** - XML indent and JSON indent (spaces); **Auto-format after loading**; **Pretty-print XSD on save**; **Pretty-print Schematron on load**; **Recent files to remember** (1–100, default 20) - every file opened in the editor, opened in the background or saved with **Save As** goes into File → Recent, the Explorer's **RECENT** list and the Welcome page. **Templates** - a configurable **templates directory**, plus a **New / Edit / Delete** list of your own templates; see [Managing your templates](#managing-your-templates) below. **User Info** - **Name**, **Email** and **Company**, used for example when generating documentation or signing. |
 | **Schemas & Validation** | **XSD** - **Auto-save** (with an interval in minutes); **Create backups on save** (with the number of versions to keep, and an optional **separate backup directory**). **Schema Library** - **Use the Schema Library to bind schemas automatically**; shows the library file's location and a **Manage schema cache…** link; see [Schema Library](schema-library.md). **Parser** - **XML parser** engine (Xerces or Saxon); **Allow XSLT extension functions**. |
 | **Files & Cache** | **Temp & Cache** - **Use system temp folder** or a custom temp folder; **Clear Temp Folder** to free disk space; **Clear Cache Folder** to delete cached files (downloaded schemas etc.); **Manage schema cache…**. **Log Files** - **Delete old log files automatically at startup** (on by default) with **Keep for (days)** (default 14) and **Maximum total size (MB)** (default 100; 0 = no limit); **Clean Up Now** applies the limits at once, **Open log folder** shows the folder, and the card names the folder with its file count and size. The log file in use is never deleted. **File Associations** - make FreeXmlToolkit the **default application** for XML, XSD, XSLT, Schematron and JSON files (per user, no admin rights); see [File Associations](file-associations.md). |
@@ -79,6 +79,17 @@ text. The activity bar on the left keeps its size, because it has a fixed width.
 the design's Inter with another installed font (the list is filled when you open it); **Reset**
 returns to Inter at Normal size. The change applies at once to every open window.
 
+**Density** sets how much room the interface leaves around texts: **Compact** tightens the
+paddings and gaps of panels, lists, trees, menus and toolbars so more fits on the screen;
+**Comfortable** widens them and makes rows and buttons taller. **Reset** also returns the density
+to Normal.
+
+![Compact density](img/unified-shell-density-compact.png)
+*Compact*
+
+![Comfortable density](img/unified-shell-density-comfortable.png)
+*Comfortable*
+
 The code editors are not affected: they have their own [editor font](#editor-font). A few labels
 in older dialogs have a fixed size and do not scale yet.
 
@@ -87,6 +98,20 @@ in older dialogs have a fixed size and do not scale yet.
 
 ![The shell in Extra Large](img/unified-shell-ui-font-xlarge.png)
 *The shell in Extra Large: side panel, tabs and Properties panel grow, the editor keeps its font*
+
+## High contrast {#high-contrast}
+
+**Settings → Appearance → Theme → High contrast** works on top of the light or the dark theme:
+all texts - including secondary and muted texts, links and the syntax colours - are strengthened
+to a contrast of at least 7:1 (WCAG AAA), borders and outlines to 4.5:1, and the keyboard focus
+ring takes the text colour instead of the light blue halo. The accent colour and the syntax colours
+you chose stay recognisable; only their brightness is adjusted.
+
+![High contrast, light theme](img/unified-shell-high-contrast.png)
+*High contrast in the light theme*
+
+![High contrast, dark theme](img/unified-shell-high-contrast-dark.png)
+*High contrast in the dark theme*
 
 ## Editor font {#editor-font}
 
@@ -100,6 +125,8 @@ and JSON editors, the Query Console, the transform output and the debugger's val
   same number in pixels, so they stay a little more compact.
 - **Line spacing** - 1.0 to 2.0; the extra space goes above and below each line, so the line
   numbers stay level with the text.
+- The **Graphic** grid uses the same font family (at its own size; zoom it with Ctrl+mouse wheel).
+  A new family reaches the grid after a restart.
 - **Ctrl+mouse wheel changes and keeps the size of all editors** (on by default) - zooming an
   editor changes this size for all editors and keeps it for the next start; **Ctrl+0** returns to
   11 pt. Switched off, a zoom only affects that editor until it is closed, and **Ctrl+0** returns to

@@ -40,7 +40,7 @@ class SettingsPanelAppearanceTest {
             ThemeManager.setAccent(null);
             ThemeManager.apply(settings.getScene(), false);
             EditorFont.update(EditorFont.Settings.defaults());
-            ThemeManager.setTypography(null, null);
+            ThemeManager.setTypography(null, null, null);
             ThemeManager.resetSyntaxColors();
         });
     }

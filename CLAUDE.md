@@ -122,6 +122,11 @@ sheet — never hex. `controls/theme/SyntaxSchemes` (schemes, `Role`, `syntax.sc
 contrast-adjusted except the default) → merged with the accent into `DesignTokens.setOverrides` + the appearance
 sheet (`ThemeManager.loadAccent`, `setSyntaxScheme` / `setSyntaxColor` / `resetSyntaxColors`); grid values follow
 through the tokens.
+High contrast (`ui.contrast.high`, `controls/theme/HighContrast`): raises the text tokens to 7:1 and border tokens to
+4.5:1 on the current values (after accent + syntax) in `loadAccent`, plus `-fx-focus-color` in the appearance sheet.
+Density (`ui.density`, `Typography.Density`): the typography sheet also re-states `-fx-padding/-spacing/-hgap/-vgap`
+×factor (heights only when roomier) and Modena's cell/menu-item paddings. The grid's `GridFont` family = the editor
+font, resolved once at class load (painter caches fonts and widths).
 
 ## View Export (PNG / SVG / PDF / clipboard)
 

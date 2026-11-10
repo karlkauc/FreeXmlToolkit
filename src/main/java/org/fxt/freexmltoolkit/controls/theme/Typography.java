@@ -26,6 +26,8 @@ public final class Typography {
 
     /** Settings key of the UI text size ({@link Size#id()}). */
     public static final String SIZE_KEY = "ui.font.size";
+    /** Settings key of the density ({@link Density#id()}). */
+    public static final String DENSITY_KEY = "ui.density";
     /** Settings key of the UI font family (empty = {@link #DEFAULT_FAMILY}). */
     public static final String FAMILY_KEY = "ui.font.family";
     /** The design's UI font (bundled). */
@@ -80,6 +82,56 @@ public final class Typography {
         }
     }
 
+    /** How much room the interface leaves around texts: paddings, gaps and (when roomier) heights. */
+    public enum Density {
+        COMPACT(0.65), NORMAL(1.0), COMFORTABLE(1.35);
+
+        private final double factor;
+
+        Density(double factor) {
+            this.factor = factor;
+        }
+
+        /** @return the factor applied to paddings and gaps */
+        public double factor() {
+            return factor;
+        }
+
+        /** @return the stored id */
+        public String id() {
+            return name().toLowerCase(Locale.ROOT);
+        }
+
+        /** @return the i18n key of the density's name */
+        public String labelKey() {
+            return "Appearance.density." + id();
+        }
+
+        /** @return the density stored as {@code value}, {@link #NORMAL} for null/unknown */
+        public static Density fromProperty(String value) {
+            if (value != null) {
+                for (Density density : values()) {
+                    if (density.id().equalsIgnoreCase(value.trim())) {
+                        return density;
+                    }
+                }
+            }
+            return NORMAL;
+        }
+    }
+
+    /** Spacing declarations scaled by the density. */
+    private static final List<Pattern> SPACING = java.util.stream.Stream.of(
+                    "-fx-padding", "-fx-spacing", "-fx-hgap", "-fx-vgap")
+            .map(p -> Pattern.compile("(?<![\\w-])(" + Pattern.quote(p) + ")\\s*:\\s*([^;]+);"))
+            .toList();
+    /** Height declarations, grown with a roomier density (never shrunk: texts must still fit). */
+    private static final List<Pattern> HEIGHTS = java.util.stream.Stream.of(
+                    "-fx-min-height", "-fx-pref-height", "-fx-max-height")
+            .map(p -> Pattern.compile("(?<![\\w-])(" + Pattern.quote(p) + ")\\s*:\\s*([^;]+);"))
+            .toList();
+    private static final Pattern LENGTH = Pattern.compile("(-?[0-9]*\\.?[0-9]+)(px|em)?");
+
     private static final Pattern COMMENT = Pattern.compile("/\\*.*?\\*/", Pattern.DOTALL);
     private static final Pattern RULE = Pattern.compile("([^{}@]+)\\{([^{}]*)\\}");
     /** The declarations scaled with the text: the font size and the fixed tab heights that hold it. */
@@ -105,15 +157,34 @@ public final class Typography {
      * @return the CSS, or null when nothing differs from the design
      */
     public static String css(Size size, String family, double baseFontPx) {
-        return css(size, family, baseFontPx, shellSources());
+        return css(size, family, Density.NORMAL, baseFontPx, shellSources());
+    }
+
+    /**
+     * Builds the typography and density stylesheet for the shell sheets.
+     *
+     * @param size the UI text size
+     * @param family the UI font family (null = the design's)
+     * @param density the density
+     * @param baseFontPx the platform's default font size
+     * @return the CSS, or null when nothing differs from the design
+     */
+    public static String css(Size size, String family, Density density, double baseFontPx) {
+        return css(size, family, density, baseFontPx, shellSources());
     }
 
     /** {@link #css(Size, String, double)} over given stylesheet texts (for tests). */
     static String css(Size size, String family, double baseFontPx, List<String> sources) {
+        return css(size, family, Density.NORMAL, baseFontPx, sources);
+    }
+
+    /** {@link #css(Size, String, double)} over given stylesheet texts (for tests). */
+    static String css(Size size, String family, Density density, double baseFontPx, List<String> sources) {
         Size s = size == null ? Size.NORMAL : size;
+        Density d = density == null ? Density.NORMAL : density;
         String fam = family == null || family.isBlank() || family.trim().equalsIgnoreCase(DEFAULT_FAMILY)
                 ? null : family.trim().replace("'", "").replace("\"", "");
-        if (s == Size.NORMAL && fam == null) {
+        if (s == Size.NORMAL && fam == null && d == Density.NORMAL) {
             return null;
         }
         double factor = s.factor();
@@ -126,6 +197,14 @@ public final class Typography {
             css.append(" -fx-font-family: '").append(fam).append("';");
         }
         css.append(" }\n");
+        if (d != Density.NORMAL) {
+            // Modena's cells and menu items (their paddings are not in the shell sheets): vertical room only
+            double f = d.factor();
+            css.append(".list-cell { -fx-padding: ").append(em(0.25 * f)).append(" 0.583em; }\n");
+            css.append(".tree-cell { -fx-padding: ").append(em(0.25 * f)).append(" 0.25em; }\n");
+            css.append(".table-cell { -fx-padding: ").append(em(0.166667 * f)).append(" 0.166667em; }\n");
+            css.append(".menu-item { -fx-padding: ").append(em(0.333333 * f)).append(" 0.41777em; }\n");
+        }
         for (String source : sources) {
             Matcher rule = RULE.matcher(COMMENT.matcher(source).replaceAll(""));
             while (rule.find()) {
@@ -142,6 +221,12 @@ public final class Typography {
                         }
                     }
                 }
+                if (d != Density.NORMAL && FIXED_CHROME.stream().noneMatch(selectors::contains)) {
+                    scaleLengths(decls, body, SPACING, d.factor());
+                    if (d.factor() > 1) {
+                        scaleLengths(decls, body, HEIGHTS, d.factor());
+                    }
+                }
                 Matcher familyMatch = FAMILY.matcher(body);
                 if (fam != null && familyMatch.find() && isUiFamily(familyMatch.group(1))) {
                     decls.append(" -fx-font-family: '").append(fam).append("';");
@@ -154,11 +239,43 @@ public final class Typography {
         return css.toString();
     }
 
+    /** Appends the declarations of {@code properties} found in {@code body}, every length times {@code factor}. */
+    private static void scaleLengths(StringBuilder decls, String body, List<Pattern> properties, double factor) {
+        for (Pattern property : properties) {
+            Matcher decl = property.matcher(body);
+            if (!decl.find()) {
+                continue;
+            }
+            String[] parts = decl.group(2).trim().split("\\s+");
+            StringBuilder value = new StringBuilder();
+            for (String part : parts) {
+                Matcher length = LENGTH.matcher(part);
+                if (!length.matches()) {
+                    value = null; // -Infinity, USE_PREF_SIZE, lookups: leave the declaration alone
+                    break;
+                }
+                double scaled = Double.parseDouble(length.group(1)) * factor;
+                boolean em = "em".equals(length.group(2));
+                // px to half pixels, em to hundredths
+                String number = em ? String.valueOf(Math.round(scaled * 100) / 100.0) : num(Math.round(scaled * 2) / 2.0);
+                value.append(value.isEmpty() ? "" : " ").append(number)
+                        .append(length.group(2) == null ? "" : length.group(2));
+            }
+            if (value != null) {
+                decls.append(' ').append(decl.group(1)).append(": ").append(value).append(';');
+            }
+        }
+    }
+
     /** @return true for the UI font (Inter / system sans), false for monospace code fonts */
     static boolean isUiFamily(String declaration) {
         String lower = declaration.toLowerCase(Locale.ROOT);
         return (lower.contains("inter") || lower.contains("segoe") || lower.contains("sans-serif"))
                 && !lower.contains("mono");
+    }
+
+    private static String em(double value) {
+        return Math.round(value * 1000) / 1000.0 + "em";
     }
 
     private static String px(double value) {

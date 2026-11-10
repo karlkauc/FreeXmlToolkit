@@ -135,13 +135,38 @@ class AppearanceDocScreenshotGenerator {
             });
             settle(1200);
             shot("unified-shell-syntax-monokai-dark");
-            onFx(() -> panel.applyTheme(false));
+            onFx(() -> {
+                panel.applyTheme(false);
+                ThemeManager.resetSyntaxColors();
+            });
+
+            // Density and high contrast, on the XML document with the Explorer open
+            onFx(() -> panel.applyDensity(org.fxt.freexmltoolkit.controls.theme.Typography.Density.COMPACT));
+            settle(1200);
+            shot("unified-shell-density-compact");
+            onFx(() -> panel.applyDensity(org.fxt.freexmltoolkit.controls.theme.Typography.Density.COMFORTABLE));
+            settle(1200);
+            shot("unified-shell-density-comfortable");
+            onFx(() -> {
+                panel.applyDensity(org.fxt.freexmltoolkit.controls.theme.Typography.Density.NORMAL);
+                panel.applyHighContrast(true);
+            });
+            settle(1200);
+            shot("unified-shell-high-contrast");
+            onFx(() -> panel.applyTheme(true));
+            settle(1200);
+            shot("unified-shell-high-contrast-dark");
+            onFx(() -> {
+                panel.applyHighContrast(false);
+                panel.applyTheme(false);
+            });
         } finally {
             onFx(() -> {
                 org.fxt.freexmltoolkit.controls.shared.EditorFont.update(
                         org.fxt.freexmltoolkit.controls.shared.EditorFont.Settings.defaults());
-                ThemeManager.setTypography(null, null);
+                ThemeManager.setTypography(null, null, null);
                 ThemeManager.resetSyntaxColors();
+                ThemeManager.setHighContrast(false);
             });
             onFx(() -> {
                 SettingsPanel panel = findSettings(root);
