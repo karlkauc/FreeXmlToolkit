@@ -58,6 +58,22 @@ FreeXmlToolkit is a free desktop application for working with XML files. It help
 - **Extend** it with [plugins](plugins.md) — industry plugins for ISO 20022, ebInterface, FinDatEx and XBRL included
 - **Work in English or German**, [accessible](accessibility.md), centrally [administrable](administration.md)
 
+### Supported Standards
+
+These are the XML-related standards and versions FreeXmlToolkit reads, validates, runs or writes:
+
+| Area | Standard and version | Engine |
+|---|---|---|
+| XML | XML 1.0 (Fifth Edition), XML 1.1, Namespaces in XML, OASIS XML Catalogs 1.1 | Xerces 2.12 |
+| Schemas | **XSD 1.0 and 1.1** (assertions, type alternatives, open content, `xs:override`), DTD, RELAX NG (XML and compact syntax) | Xerces (XSD 1.1 build), Jing, Trang |
+| Business rules | ISO Schematron (query bindings `xslt2` and `xslt3`), Schematron Quick Fixes (SQF) | ph-schematron / SchXslt on Saxon |
+| Transformation | **XSLT 1.0, 2.0 and 3.0** | Saxon HE 12 (not schema-aware, no streaming) |
+| Query | **XPath 1.0 – 3.1**, **XQuery 1.0 – 3.1**, JSONPath | Saxon HE 12, Jayway JsonPath |
+| Pipelines and tests | **XProc 3.0**, XSpec 4 (XSLT, XQuery, Schematron) | XML Calabash 3, XSpec |
+| PDF | **XSL-FO 1.1** (as implemented by Apache FOP), PDF/A-1b; external XSL-FO processors | Apache FOP 2.12 |
+| Security | **XML Signature 1.1**, **XML Encryption 1.1**, Canonical XML 1.0 / 1.1, Exclusive XML Canonicalization 1.0 | Apache Santuario 4 |
+| JSON and YAML | JSON (RFC 8259), **JSON Schema Draft-07, 2019-09 and 2020-12**, YAML 1.2 | networknt json-schema-validator, SnakeYAML Engine |
+
 ### Works On All Platforms
 
 FreeXmlToolkit runs on **Windows** (x64), **macOS** (Apple Silicon and Intel) and **Linux** (x64) - as an installer, a native package or a portable ZIP, and via **Scoop** and **Homebrew**. The [Installation](installation.md) page explains every format and the package managers.
