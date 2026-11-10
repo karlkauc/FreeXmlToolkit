@@ -18,6 +18,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Window;
 
 import org.fxt.freexmltoolkit.controls.theme.AccentPalette;
+import org.fxt.freexmltoolkit.controls.theme.DensityScaler;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 import org.fxt.freexmltoolkit.controls.theme.HighContrast;
 import org.fxt.freexmltoolkit.controls.theme.SyntaxSchemes;
@@ -512,6 +513,7 @@ public final class ThemeManager {
 
     private static void loadTypography(Typography.Size size, String family, Typography.Density density) {
         typographyLoaded = true;
+        DensityScaler.setFactor(density == null ? 1.0 : density.factor());
         double base;
         try {
             base = javafx.scene.text.Font.getDefault().getSize();
@@ -550,6 +552,7 @@ public final class ThemeManager {
         syncSheetList(scene.getStylesheets(), sheet, typography);
         if (scene.getRoot() != null) {
             syncParents(scene.getRoot(), sheet, typography);
+            DensityScaler.apply(scene.getRoot());
         }
     }
 
@@ -557,6 +560,7 @@ public final class ThemeManager {
     public static void syncAppearanceSheet(Parent root) {
         if (root != null) {
             syncParents(root, appearanceSheet(), typographySheet());
+            DensityScaler.apply(root);
         }
     }
 

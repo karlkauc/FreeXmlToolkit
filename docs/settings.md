@@ -79,9 +79,10 @@ text. The activity bar on the left keeps its size, because it has a fixed width.
 the design's Inter with another installed font (the list is filled when you open it); **Reset**
 returns to Inter at Normal size. The change applies at once to every open window.
 
-**Density** sets how much room the interface leaves around texts: **Compact** tightens the
-paddings and gaps of panels, lists, trees, menus and toolbars so more fits on the screen;
-**Comfortable** widens them and makes rows and buttons taller. **Reset** also returns the density
+**Density** sets the vertical room of the interface: **Compact** tightens the space above and
+below texts and between rows - in panels, lists, trees, menus, toolbars, dialogs and the Settings
+page - so more fits on the screen; **Comfortable** adds room and makes rows and buttons taller.
+The horizontal room stays, so texts in narrow panels keep their width. **Reset** also returns the density
 to Normal.
 
 ![Compact density](img/unified-shell-density-compact.png)

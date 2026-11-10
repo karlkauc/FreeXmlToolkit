@@ -122,7 +122,7 @@ public final class Typography {
 
     /** Spacing declarations scaled by the density. */
     private static final List<Pattern> SPACING = java.util.stream.Stream.of(
-                    "-fx-padding", "-fx-spacing", "-fx-hgap", "-fx-vgap")
+                    "-fx-padding", "-fx-spacing", "-fx-vgap")
             .map(p -> Pattern.compile("(?<![\\w-])(" + Pattern.quote(p) + ")\\s*:\\s*([^;]+);"))
             .toList();
     /** Height declarations, grown with a roomier density (never shrunk: texts must still fit). */
@@ -247,8 +247,22 @@ public final class Typography {
                 continue;
             }
             String[] parts = decl.group(2).trim().split("\\s+");
+            if (decl.group(1).equals("-fx-padding")) {
+                parts = verticalOnly(parts);
+                if (parts == null) {
+                    continue;
+                }
+            }
             StringBuilder value = new StringBuilder();
             for (String part : parts) {
+                if (part.startsWith("=")) {
+                    if (!LENGTH.matcher(part.substring(1)).matches()) {
+                        value = null;
+                        break;
+                    }
+                    value.append(value.isEmpty() ? "" : " ").append(part.substring(1));
+                    continue;
+                }
                 Matcher length = LENGTH.matcher(part);
                 if (!length.matches()) {
                     value = null; // -Infinity, USE_PREF_SIZE, lookups: leave the declaration alone
@@ -265,6 +279,27 @@ public final class Typography {
                 decls.append(' ').append(decl.group(1)).append(": ").append(value).append(';');
             }
         }
+    }
+
+    /**
+     * Expands a padding to top / right / bottom / left and marks the horizontal sides as fixed
+     * (prefix {@code =}), so only the vertical room changes.
+     *
+     * @return the four parts, or null for an unexpected form
+     */
+    private static String[] verticalOnly(String[] parts) {
+        String[] four = switch (parts.length) {
+            case 1 -> new String[] {parts[0], parts[0], parts[0], parts[0]};
+            case 2 -> new String[] {parts[0], parts[1], parts[0], parts[1]};
+            case 3 -> new String[] {parts[0], parts[1], parts[2], parts[1]};
+            case 4 -> parts.clone();
+            default -> null;
+        };
+        if (four != null) {
+            four[1] = "=" + four[1];
+            four[3] = "=" + four[3];
+        }
+        return four;
     }
 
     /** @return true for the UI font (Inter / system sans), false for monospace code fonts */

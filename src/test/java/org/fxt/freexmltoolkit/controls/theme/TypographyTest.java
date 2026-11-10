@@ -62,7 +62,7 @@ class TypographyTest {
     }
 
     @Test
-    void densityScalesPaddingsAndGrowsHeightsOnlyWhenRoomier() {
+    void densityScalesVerticalRoomAndGrowsHeightsOnlyWhenRoomier() {
         List<String> sample = List.of("""
                 .row { -fx-padding: 4 8; -fx-spacing: 6; -fx-pref-height: 28; }
                 .rel { -fx-padding: 0.5em 1em; }
@@ -70,14 +70,14 @@ class TypographyTest {
                 .fxt-activity-button { -fx-padding: 4; }
                 """);
         String compact = Typography.css(Typography.Size.NORMAL, null, Typography.Density.COMPACT, 13, sample);
-        assertTrue(compact.contains(".row { -fx-padding: 2.5 5; -fx-spacing: 4; }"), compact);
-        assertTrue(compact.contains(".rel { -fx-padding: 0.33em 0.65em; }"), compact);
+        assertTrue(compact.contains(".row { -fx-padding: 2.5 8 2.5 8; -fx-spacing: 4; }"), compact);
+        assertTrue(compact.contains(".rel { -fx-padding: 0.33em 1em 0.33em 1em; }"), compact);
         assertTrue(compact.contains(".list-cell { -fx-padding: 0.163em 0.583em; }"), compact);
         assertFalse(compact.contains(".free"), "non-lengths stay");
         assertFalse(compact.contains(".fxt-activity-button"), "the fixed rail stays");
 
         String roomy = Typography.css(Typography.Size.NORMAL, null, Typography.Density.COMFORTABLE, 13, sample);
-        assertTrue(roomy.contains(".row { -fx-padding: 5.5 11; -fx-spacing: 8; -fx-pref-height: 38; }"), roomy);
+        assertTrue(roomy.contains(".row { -fx-padding: 5.5 8 5.5 8; -fx-spacing: 8; -fx-pref-height: 38; }"), roomy);
         assertNull(Typography.css(Typography.Size.NORMAL, null, Typography.Density.NORMAL, 13, sample));
     }
 }
