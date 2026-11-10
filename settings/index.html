@@ -855,6 +855,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#editor-font" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editor font
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#clearing-the-cache-folder" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3047,6 +3058,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#editor-font" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editor font
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#clearing-the-cache-folder" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3155,7 +3177,7 @@ settings may be greyed out and a notice at the top of the page says so; see
 </tr>
 <tr>
 <td><strong>Editor</strong></td>
-<td><strong>Editor</strong> - XML indent and JSON indent (spaces); <strong>Auto-format after loading</strong>; <strong>Pretty-print XSD on save</strong>; <strong>Pretty-print Schematron on load</strong>; <strong>Recent files to remember</strong> (1–100, default 20) - every file opened in the editor, opened in the background or saved with <strong>Save As</strong> goes into File → Recent, the Explorer's <strong>RECENT</strong> list and the Welcome page. <strong>Templates</strong> - a configurable <strong>templates directory</strong>, plus a <strong>New / Edit / Delete</strong> list of your own templates; see <a href="#managing-your-templates">Managing your templates</a> below. <strong>User Info</strong> - <strong>Name</strong>, <strong>Email</strong> and <strong>Company</strong>, used for example when generating documentation or signing.</td>
+<td><strong>Editor font</strong> - font, size and line spacing of every code editor, see <a href="#editor-font">Editor font</a>. <strong>Editor</strong> - XML indent and JSON indent (spaces); <strong>Auto-format after loading</strong>; <strong>Pretty-print XSD on save</strong>; <strong>Pretty-print Schematron on load</strong>; <strong>Recent files to remember</strong> (1–100, default 20) - every file opened in the editor, opened in the background or saved with <strong>Save As</strong> goes into File → Recent, the Explorer's <strong>RECENT</strong> list and the Welcome page. <strong>Templates</strong> - a configurable <strong>templates directory</strong>, plus a <strong>New / Edit / Delete</strong> list of your own templates; see <a href="#managing-your-templates">Managing your templates</a> below. <strong>User Info</strong> - <strong>Name</strong>, <strong>Email</strong> and <strong>Company</strong>, used for example when generating documentation or signing.</td>
 </tr>
 <tr>
 <td><strong>Schemas &amp; Validation</strong></td>
@@ -3192,6 +3214,27 @@ for example, is darkened for text on white and lightened for text on the dark ba
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-accent-violet-dark.png" data-desc-position="bottom"><img alt="The same page in the dark theme" src="../img/unified-shell-accent-violet-dark.png"></a>
 <em>The same accent in the dark theme</em></p>
 <p>The workflow colours of the activities (Validation green, Transform orange, ...) stay as they are.</p>
+<h2 id="editor-font">Editor font<a class="headerlink" href="#editor-font" title="Permanent link">¶</a></h2>
+<p><strong>Settings → Editor → Editor font</strong> sets the font of every code editor: the XML, XSD, XSLT, XQuery
+and JSON editors, the Query Console, the transform output and the debugger's value views.</p>
+<ul>
+<li><strong>Font</strong> - the bundled JetBrains Mono or any monospace font installed on your computer (the list
+  is filled when you open it; you can also type a name). A font that is missing on another
+  computer falls back to an installed monospace font.</li>
+<li><strong>Size (pt)</strong> - 8 to 32 points, default 11. The smaller code panels (console, output) use the
+  same number in pixels, so they stay a little more compact.</li>
+<li><strong>Line spacing</strong> - 1.0 to 2.0; the extra space goes above and below each line, so the line
+  numbers stay level with the text.</li>
+<li><strong>Ctrl+mouse wheel changes and keeps the size of all editors</strong> (on by default) - zooming an
+  editor changes this size for all editors and keeps it for the next start; <strong>Ctrl+0</strong> returns to
+  11 pt. Switched off, a zoom only affects that editor until it is closed, and <strong>Ctrl+0</strong> returns to
+  the size set here. The console and output areas always zoom on their own.</li>
+</ul>
+<p>Changes apply at once; <strong>Reset Font</strong> restores JetBrains Mono, 11 pt, single spacing.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-settings-editor-font.png" data-desc-position="bottom"><img alt="Settings → Editor → Editor font" src="../img/unified-shell-settings-editor-font.png"></a>
+<em>The Editor font card with its preview line</em></p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-editor-font-spacing.png" data-desc-position="bottom"><img alt="An XML document with line spacing 1.4" src="../img/unified-shell-editor-font-spacing.png"></a>
+<em>The same font at 13 pt with line spacing 1.4</em></p>
 <h2 id="clearing-the-cache-folder">Clearing the Cache Folder<a class="headerlink" href="#clearing-the-cache-folder" title="Permanent link">¶</a></h2>
 <p>The <strong>Clear Cache Folder</strong> button in the <strong>TEMP &amp; CACHE</strong> section deletes the contents of the
 application's local cache folder (<code>~/.freeXmlToolkit/cache</code>) - for example downloaded schemas,
