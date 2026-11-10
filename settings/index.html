@@ -866,6 +866,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#high-contrast" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        High contrast
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#editor-font" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3091,6 +3102,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#high-contrast" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        High contrast
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#editor-font" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3217,7 +3239,7 @@ settings may be greyed out and a notice at the top of the page says so; see
 <tbody>
 <tr>
 <td><strong>Appearance</strong></td>
-<td><strong>Theme</strong> - <strong>Light</strong>, <strong>Dark</strong> or <strong>System</strong> (follows the light or dark setting of the operating system, also while the application runs). <strong>Accent colour</strong> - the colour of buttons, selection, focus and links: eight presets or <strong>Own colour</strong>; see <a href="#accent-colour">Accent colour</a> below. <strong>Text size &amp; font</strong> - <strong>Small</strong>, <strong>Normal</strong>, <strong>Large</strong> or <strong>Extra Large</strong> text and the font of the interface; see <a href="#text-size-and-font">Text size and font</a> below. <strong>Language</strong> - the language of the interface: <strong>System default</strong>, <strong>English</strong> or <strong>Deutsch</strong> (takes effect after a restart; the system default is used when it is English or German, otherwise English). <strong>Layout</strong> - <strong>Show toolbar button labels</strong>; <strong>Show activity bar labels</strong>; <strong>Use small icons</strong>; toolbar icon size (<strong>Small</strong> / <strong>Large</strong>); <strong>Show left side panel</strong>; <strong>Show Properties (inspector) panel</strong>. <strong>Rendering</strong> - JavaFX graphics pipeline: <strong>Auto</strong> / <strong>Hardware</strong> / <strong>Software</strong> (takes effect after restart), with the active pipeline and GPU status; see <a href="#rendering-mode">Rendering mode (hardware vs. software)</a> below. <strong>Memory</strong> - <strong>Maximum memory</strong> for the application: <strong>Automatic</strong> (half of the installed memory) or a fixed limit (takes effect after restart); see <a href="#memory">Memory and large files</a> below.</td>
+<td><strong>Theme</strong> - <strong>Light</strong>, <strong>Dark</strong> or <strong>System</strong> (follows the light or dark setting of the operating system, also while the application runs), plus <strong>High contrast</strong>; see <a href="#high-contrast">High contrast</a> below. <strong>Accent colour</strong> - the colour of buttons, selection, focus and links: eight presets or <strong>Own colour</strong>; see <a href="#accent-colour">Accent colour</a> below. <strong>Text size &amp; font</strong> - <strong>Small</strong>, <strong>Normal</strong>, <strong>Large</strong> or <strong>Extra Large</strong> text, the <strong>Density</strong> (<strong>Compact</strong> / <strong>Normal</strong> / <strong>Comfortable</strong>) and the font of the interface; see <a href="#text-size-and-font">Text size and font</a> below. <strong>Language</strong> - the language of the interface: <strong>System default</strong>, <strong>English</strong> or <strong>Deutsch</strong> (takes effect after a restart; the system default is used when it is English or German, otherwise English). <strong>Layout</strong> - <strong>Show toolbar button labels</strong>; <strong>Show activity bar labels</strong>; <strong>Use small icons</strong>; toolbar icon size (<strong>Small</strong> / <strong>Large</strong>); <strong>Show left side panel</strong>; <strong>Show Properties (inspector) panel</strong>. <strong>Rendering</strong> - JavaFX graphics pipeline: <strong>Auto</strong> / <strong>Hardware</strong> / <strong>Software</strong> (takes effect after restart), with the active pipeline and GPU status; see <a href="#rendering-mode">Rendering mode (hardware vs. software)</a> below. <strong>Memory</strong> - <strong>Maximum memory</strong> for the application: <strong>Automatic</strong> (half of the installed memory) or a fixed limit (takes effect after restart); see <a href="#memory">Memory and large files</a> below.</td>
 </tr>
 <tr>
 <td><strong>Editor</strong></td>
@@ -3291,12 +3313,30 @@ Properties panel, dialogs and the Settings page larger or smaller:</p>
 text. The activity bar on the left keeps its size, because it has a fixed width. <strong>Font</strong> replaces
 the design's Inter with another installed font (the list is filled when you open it); <strong>Reset</strong>
 returns to Inter at Normal size. The change applies at once to every open window.</p>
+<p><strong>Density</strong> sets how much room the interface leaves around texts: <strong>Compact</strong> tightens the
+paddings and gaps of panels, lists, trees, menus and toolbars so more fits on the screen;
+<strong>Comfortable</strong> widens them and makes rows and buttons taller. <strong>Reset</strong> also returns the density
+to Normal.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-density-compact.png" data-desc-position="bottom"><img alt="Compact density" src="../img/unified-shell-density-compact.png"></a>
+<em>Compact</em></p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-density-comfortable.png" data-desc-position="bottom"><img alt="Comfortable density" src="../img/unified-shell-density-comfortable.png"></a>
+<em>Comfortable</em></p>
 <p>The code editors are not affected: they have their own <a href="#editor-font">editor font</a>. A few labels
 in older dialogs have a fixed size and do not scale yet.</p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-settings-ui-font.png" data-desc-position="bottom"><img alt="Settings → Appearance with the Text size &amp; font card" src="../img/unified-shell-settings-ui-font.png"></a>
 <em>The card with Large selected</em></p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-ui-font-xlarge.png" data-desc-position="bottom"><img alt="The shell in Extra Large" src="../img/unified-shell-ui-font-xlarge.png"></a>
 <em>The shell in Extra Large: side panel, tabs and Properties panel grow, the editor keeps its font</em></p>
+<h2 id="high-contrast">High contrast<a class="headerlink" href="#high-contrast" title="Permanent link">¶</a></h2>
+<p><strong>Settings → Appearance → Theme → High contrast</strong> works on top of the light or the dark theme:
+all texts - including secondary and muted texts, links and the syntax colours - are strengthened
+to a contrast of at least 7:1 (WCAG AAA), borders and outlines to 4.5:1, and the keyboard focus
+ring takes the text colour instead of the light blue halo. The accent colour and the syntax colours
+you chose stay recognisable; only their brightness is adjusted.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-high-contrast.png" data-desc-position="bottom"><img alt="High contrast, light theme" src="../img/unified-shell-high-contrast.png"></a>
+<em>High contrast in the light theme</em></p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-high-contrast-dark.png" data-desc-position="bottom"><img alt="High contrast, dark theme" src="../img/unified-shell-high-contrast-dark.png"></a>
+<em>High contrast in the dark theme</em></p>
 <h2 id="editor-font">Editor font<a class="headerlink" href="#editor-font" title="Permanent link">¶</a></h2>
 <p><strong>Settings → Editor → Editor font</strong> sets the font of every code editor: the XML, XSD, XSLT, XQuery
 and JSON editors, the Query Console, the transform output and the debugger's value views.</p>
@@ -3308,6 +3348,8 @@ and JSON editors, the Query Console, the transform output and the debugger's val
   same number in pixels, so they stay a little more compact.</li>
 <li><strong>Line spacing</strong> - 1.0 to 2.0; the extra space goes above and below each line, so the line
   numbers stay level with the text.</li>
+<li>The <strong>Graphic</strong> grid uses the same font family (at its own size; zoom it with Ctrl+mouse wheel).
+  A new family reaches the grid after a restart.</li>
 <li><strong>Ctrl+mouse wheel changes and keeps the size of all editors</strong> (on by default) - zooming an
   editor changes this size for all editors and keeps it for the next start; <strong>Ctrl+0</strong> returns to
   11 pt. Switched off, a zoom only affects that editor until it is closed, and <strong>Ctrl+0</strong> returns to
