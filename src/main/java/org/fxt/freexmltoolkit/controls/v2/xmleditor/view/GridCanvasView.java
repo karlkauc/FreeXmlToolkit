@@ -12,7 +12,6 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Orientation;
 import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
@@ -74,7 +73,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     // ==================== Canvas ====================
 
     final Canvas canvas;
-    final GraphicsContext gc;
+    /** The drawing surface: the canvas, or an export surface while {@link GridPainter#renderExport} runs. */
+    org.fxt.freexmltoolkit.controls.v2.view.render.DiagramGraphics gc;
     final Pane canvasContainer;
     final ScrollBar vScrollBar;
     private final ScrollBar hScrollBar;
@@ -262,7 +262,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         // JavaFX's CacheFilter renders the whole canvas into one backing RTTexture, which fails
         // (null texture / "Unrecognized PGCanvas token") once it exceeds the GPU texture limit.
         this.canvas = new Canvas(800, 600);
-        this.gc = canvas.getGraphicsContext2D();
+        this.gc = new org.fxt.freexmltoolkit.controls.v2.view.render.FxDiagramGraphics(canvas.getGraphicsContext2D());
 
         this.canvasContainer = new Pane();
         canvasContainer.getChildren().add(canvas);
@@ -2082,6 +2082,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                     this::toggleFilterSavedOfSelection, this::filterSavedStateOfSelection,
                     this::expandSelectionOneLevel, this::collapseSelectionOneLevel, this::selectModelNode,
                     this::sortTable));
+            contextMenu.appendItems(org.fxt.freexmltoolkit.controls.v2.view.render.DiagramExportMenu.items(exportable(), canvas));
         }
         return contextMenu;
     }
@@ -3767,6 +3768,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     /** @return the top offset of visible row {@code i} in content space (test hook) */
     double rowTopAt(int i) {
         return rowYPositions[i];
+    }
+
+    /** @return the grid as an exportable drawing (PNG, SVG, PDF, clipboard) */
+    public org.fxt.freexmltoolkit.controls.v2.view.render.ExportableDiagram exportable() {
+        return new GridExport<>(this);
     }
 
     /** @return the scrollable content width in unscaled pixels (test hook) */

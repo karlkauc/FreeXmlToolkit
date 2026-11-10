@@ -191,6 +191,39 @@ This works for XML, XSLT, Schematron, XSD and JSON documents.
 
 The Graphic view of XML and JSON documents is an editable grid with tables for repeating elements, opened cells, entry helpers, filters and formulas - see **[Grid View](grid.md)**.
 
+### Exporting a Graphical View {#export-view}
+
+The XSD diagram, the XML and JSON grid and the profiler's flame graph can be saved as a file or
+copied as an image:
+
+- **File → Export View…** (also **Export View…** in the context menu of the diagram's empty
+  canvas, of the grid and of the flame graph) asks for the format and options, then for the file.
+- **Edit → Copy View as Image** (also in those context menus) puts the view on the clipboard as an
+  image, ready to paste into Word, a wiki page, a ticket or a chat.
+
+Both items are only available while a graphical view is shown (the **Graphic** view of a
+document, or a Profile tab).
+
+| Format | Best for |
+|--------|----------|
+| **PNG image** | Wikis, tickets, e-mail, Office documents. Scale 1× to 4×; the file carries its resolution, so it prints at the size of the diagram on screen. |
+| **SVG vector graphic** | Web pages, documentation, Inkscape and current Office versions. Scales without loss; the texts stay text. |
+| **PDF document** | Printing and archiving. Vector graphics with selectable text and the fonts embedded; one page the size of the drawing, or A4 / A3 / US Letter (turned to landscape for wide drawings, shrunk to fit). |
+
+Options:
+
+- **Area:** the whole view (also the parts scrolled out of sight) or only the visible part.
+- **Colours:** *Light* (the default, best for paper), *Dark* or *As shown*.
+- **Background:** the page colour of the view, white or transparent.
+- **Margin** around the drawing in pixels.
+- **Embed fonts** (SVG only): adds the fonts to the file, so the texts look the same on machines
+  without them. The file gets larger.
+
+The dialog shows the size of the result. The diagram is exported as it is expanded on screen, but
+without selection, hover and drag marks. A PNG larger than about 150 megapixels is refused; choose
+a smaller scale, the visible area, or SVG / PDF instead. The last options and folder are
+remembered.
+
 ### HTML Preview (Preview view for HTML) {#html-preview}
 
 HTML documents (`.html`, `.htm`, `.xhtml`) get their own **Preview** view mode - the eye
@@ -304,8 +337,8 @@ schemas, **Save** needs an open document).
 
 | Menu | Contents |
 |------|----------|
-| **File** | New…, Open…, Open in Large File Viewer…, Open from URL…, **Open Recent** (the last opened files), **Open Favorite** (all favorites, by folder, plus Manage Favorites…), Close Tab, Save, Save As…, Save All, Settings…, Exit (Ctrl+Q; asks to save unsaved changes first) |
-| **Edit** | Undo, Redo, Find…, Replace…, Find in Files…, Replace in Files…, Format Document, Minify, Insert Template… |
+| **File** | New…, Open…, Open in Large File Viewer…, Open from URL…, **Open Recent** (the last opened files), **Open Favorite** (all favorites, by folder, plus Manage Favorites…), Close Tab, Save, Save As…, Save All, **Export View…** (see [Exporting a Graphical View](#export-view)), Settings…, Exit (Ctrl+Q; asks to save unsaved changes first) |
+| **Edit** | Undo, Redo, Find…, Replace…, Find in Files…, Replace in Files…, **Copy View as Image**, Format Document, Minify, Insert Template… |
 | **View** | The view modes (Text / Tree / Graphic / Overview / Preview), Side Panel, Properties Inspector, Query Console, Favorites Panel, **Activities** (jump to any activity), **Show Constraints in Diagram**, **Show Constraints on Target Nodes**, Toggle Light / Dark Theme, Full Screen |
 | **Tools** | Validate, Run, Transform with XSLT…, Debug with XSLT… (Shift+F5), Run XSpec Tests, Debug Configuration…, Re-run Last Debug (Ctrl+Shift+F5), Toggle Breakpoint (F9), Run to Cursor (Ctrl+F10), Set Schema…, Generate Documentation…, Generate Sample XML…, Generate XSD from XML, Generate XSD from XML Files…, Type Editor, Compare with File…, Compare Folders…, Merge Files…, Spreadsheet Converter…, Convert to JSON…, Convert to XML…, Convert to YAML…, Add to Favorites |
 | **Help** | Documentation, Keyboard Shortcuts, FundsXML Website and FundsXML Schema Docs (only while the [FundsXML extension](fundsxml-extensions.md) is enabled), Report a Problem… (when error reporting is enabled), GitHub Repository, Sponsor this Project, Check for Updates…, About FreeXmlToolkit - see [Help Menu & About](#help-menu-about) |

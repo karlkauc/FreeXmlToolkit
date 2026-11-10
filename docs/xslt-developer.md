@@ -317,7 +317,7 @@ where the time goes.
 |---|---|
 | **Hot Spots** | Every template rule (with its mode), named template and function: calls, **Self** time and its share of the run, **Total** time, average per call. Sorted by self time: the top rows are what to optimize. |
 | **Call Tree** | Who called whom: the whole run at the top, below it the templates and functions each one called, with calls, total time and its share, and self time. The slowest path is expanded. |
-| **Flame Graph** | The call tree as bars; the width is the total time. Click a bar to zoom in (it fills the width), click it again or **Reset Zoom** to go back; hover for the numbers. |
+| **Flame Graph** | The call tree as bars; the width is the total time. Click a bar to zoom in (it fills the width), click it again or **Reset Zoom** to go back; hover for the numbers. Right-click to export it as PNG, SVG or PDF or to copy it as an image ([Exporting a Graphical View](unified-shell.md#export-view)). |
 | **Lines** | Self time per stylesheet line, with the line's text: the expressions and instructions that cost the most. |
 
 **Total** is the time from entering a template or function until leaving it, including everything it

@@ -52,6 +52,7 @@ The Graphic View lets you explore and edit your schemas visually.
 - **Drag and Drop**: Move or copy elements, compositors, group references and attributes by dragging their cards - see [Moving and Copying by Drag and Drop](#drag-and-drop-in-the-diagram)
 - **Reorder and Duplicate**: Move nodes up and down, copy, cut, paste and duplicate them from the context menu
 - **Full Undo/Redo**: Go back and forward through your changes
+- **Export**: Save the diagram as PNG, SVG or PDF, or copy it as an image (**File → Export View…**, **Edit → Copy View as Image**, or right-click the empty canvas) - see [Exporting a Graphical View](unified-shell.md#export-view)
 
 ### How to Use
 

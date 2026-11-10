@@ -441,6 +441,11 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         contextMenu.hide();
     }
 
+    @Override
+    public void appendItems(java.util.List<javafx.scene.control.MenuItem> items) {
+        contextMenu.getItems().addAll(items);
+    }
+
     /** @return whether the menu is showing (for tests) */
     boolean isShowing() {
         return contextMenu.isShowing();

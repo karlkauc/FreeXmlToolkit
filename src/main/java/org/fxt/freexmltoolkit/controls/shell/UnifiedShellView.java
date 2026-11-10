@@ -187,6 +187,8 @@ public class UnifiedShellView extends BorderPane {
         // new-file entry points (toolbar, Explorer, Welcome) share one flow.
         editorHost.setNewDocumentHandler(this::newDocument);
         editorHost.setRevealInExplorerHandler(this::revealInExplorer);
+        // "Export View…" / "Copy View as Image" in the diagram, grid and flame-graph context menus
+        org.fxt.freexmltoolkit.controls.shell.editor.ViewExport.installMenuHandler(editorHost);
         queryConsole = new org.fxt.freexmltoolkit.controls.shell.editor.QueryConsole(editorHost);
         queryConsole.setMinHeight(180);
         queryConsole.setPrefHeight(220);

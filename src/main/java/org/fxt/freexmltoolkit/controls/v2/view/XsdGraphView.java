@@ -13,7 +13,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.CacheHint;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -49,6 +48,9 @@ import org.fxt.freexmltoolkit.controls.v2.model.IncludeSourceInfo;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
+import org.fxt.freexmltoolkit.controls.v2.view.render.DiagramGraphics;
+import org.fxt.freexmltoolkit.controls.v2.view.render.ExportableDiagram;
+import org.fxt.freexmltoolkit.controls.v2.view.render.FxDiagramGraphics;
 import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
@@ -58,7 +60,7 @@ import org.fxt.freexmltoolkit.i18n.I18n;
  * @since 2.0
  */
 public class XsdGraphView extends BorderPane implements PropertyChangeListener,
-        org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget {
+        org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget, ExportableDiagram {
 
     private static final Logger logger = LogManager.getLogger(XsdGraphView.class);
 
@@ -916,7 +918,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             return;
         }
         positionViewportCanvas();
-        GraphicsContext gc = canvas.getGraphicsContext2D();
+        DiagramGraphics gc = new FxDiagramGraphics(canvas.getGraphicsContext2D());
         // Clear the whole (small) canvas in device space.
         gc.setFill(pageBackground);
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
@@ -977,7 +979,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
      * region so partially-overlapping neighbours and connector lines are not corrupted.
      */
     private void repaintRegion(double rx, double ry, double rw, double rh) {
-        GraphicsContext gc = canvas.getGraphicsContext2D();
+        DiagramGraphics gc = new FxDiagramGraphics(canvas.getGraphicsContext2D());
         gc.save();
         try {
             // Same viewport transform as the full render, so the region's diagram coordinates
@@ -1006,7 +1008,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
      * Renders only the nodes and connections intersecting the given region. The
      * surrounding {@link #repaintRegion} clip guarantees nothing paints outside it.
      */
-    private void renderTreeInRegion(GraphicsContext gc, VisualNode node,
+    private void renderTreeInRegion(DiagramGraphics gc, VisualNode node,
             double rx, double ry, double rw, double rh) {
         if (isNodeInViewport(node)
                 && rectsIntersect(node.getX(), node.getY(), node.getWidth(), node.getHeight(),
@@ -1030,7 +1032,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
      *
      * @param region the repaint region {x, y, w, h}, or null for the viewport
      */
-    private void renderTypeFrames(GraphicsContext gc, VisualNode node, double[] region) {
+    private void renderTypeFrames(DiagramGraphics gc, VisualNode node, double[] region) {
         java.util.List<TypeFrame> frames = node.getTypeFrames();
         for (int i = frames.size() - 1; i >= 0; i--) { // stored innermost first
             TypeFrame frame = frames.get(i);
@@ -1192,6 +1194,98 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         return titleChip;
     }
 
+    // ------------------------------------------------------------------ export
+
+    /** Room around the card bounds for what is drawn outside them (stack outline, shadow, labels). */
+    private static final double EXPORT_SLACK = 8;
+
+    @Override
+    public javafx.geometry.Rectangle2D exportContentBounds() {
+        if (rootNode == null) {
+            return javafx.geometry.Rectangle2D.EMPTY;
+        }
+        double[] min = {Double.MAX_VALUE, Double.MAX_VALUE};
+        collectMinBounds(rootNode, min);
+        double[] max = calculateCanvasBounds(rootNode);
+        double minX = min[0] - EXPORT_SLACK;
+        double minY = min[1] - EXPORT_SLACK;
+        // Compositor cardinality labels hang below their box
+        return new javafx.geometry.Rectangle2D(minX, minY,
+                max[0] + EXPORT_SLACK - minX, max[1] + EXPORT_SLACK + 12 - minY);
+    }
+
+    private static void collectMinBounds(VisualNode node, double[] min) {
+        min[0] = Math.min(min[0], node.getX());
+        min[1] = Math.min(min[1], node.getY());
+        if (node.isExpanded() && node.hasChildren()) {
+            for (TypeFrame frame : node.getTypeFrames()) {
+                min[0] = Math.min(min[0], frame.getX());
+                min[1] = Math.min(min[1], frame.getY());
+            }
+            for (VisualNode child : node.getChildren()) {
+                collectMinBounds(child, min);
+            }
+        }
+    }
+
+    @Override
+    public javafx.geometry.Rectangle2D exportVisibleBounds() {
+        return new javafx.geometry.Rectangle2D(viewportX / zoomLevel, viewportY / zoomLevel,
+                Math.max(1, viewportWidth / zoomLevel), Math.max(1, viewportHeight / zoomLevel));
+    }
+
+    @Override
+    public String exportTitle() {
+        if (rootNode != null && rootNode.getLabel() != null && !rootNode.getLabel().isBlank()) {
+            return rootNode.getLabel();
+        }
+        return xsdSchema != null && xsdSchema.getName() != null ? xsdSchema.getName() : "schema";
+    }
+
+    @Override
+    public void paintExport(DiagramGraphics g, javafx.geometry.Rectangle2D region,
+                            org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme theme) {
+        if (rootNode == null) {
+            return;
+        }
+        boolean dark = renderer.isDarkMode();
+        renderer.setDarkMode(theme == org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme.DARK);
+        renderer.setExportMode(true);
+        try {
+            exportTree(g, rootNode, region.getMinX(), region.getMinY(), region.getWidth(), region.getHeight());
+        } finally {
+            renderer.setExportMode(false);
+            renderer.setDarkMode(dark);
+        }
+    }
+
+    /** Like {@link #renderTreeInRegion} without the viewport: every card meeting the region. */
+    private void exportTree(DiagramGraphics g, VisualNode node, double rx, double ry, double rw, double rh) {
+        if (rectsIntersect(node.getX() - EXPORT_SLACK, node.getY() - EXPORT_SLACK,
+                node.getWidth() + 2 * EXPORT_SLACK, node.getHeight() + 2 * EXPORT_SLACK + 12, rx, ry, rw, rh)) {
+            renderer.renderNode(g, node, node.getX(), node.getY());
+        }
+        if (node.isExpanded() && node.hasChildren()) {
+            renderTypeFrames(g, node, new double[]{rx, ry, rw, rh});
+            for (VisualNode child : node.getChildren()) {
+                if (connectionIntersectsRegion(node, child, rx, ry, rw, rh)) {
+                    renderer.renderConnection(g, node, child);
+                }
+                exportTree(g, child, rx, ry, rw, rh);
+            }
+        }
+    }
+
+    @Override
+    public Color exportBackground(org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme theme) {
+        return org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.BG_CANVAS.color(theme);
+    }
+
+    @Override
+    public void exportFinished() {
+        renderViewport();
+    }
+
     /**
      * Calculates the required canvas bounds based on all visible nodes.
      * Returns [maxX, maxY] coordinates.
@@ -1312,7 +1406,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
      * Recursively renders the tree with viewport culling optimization.
      * Only renders nodes that are visible within the current viewport.
      */
-    private void renderTree(GraphicsContext gc, VisualNode node) {
+    private void renderTree(DiagramGraphics gc, VisualNode node) {
         // Check if this node is visible in the viewport
         boolean nodeVisible = isNodeInViewport(node);
 
@@ -1570,6 +1664,10 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         // Create and show context menu
         hideContextMenu();
         ContextMenu contextMenu = contextMenuFactory.createContextMenu(clickedNode);
+        if (clickedNode == null) {
+            contextMenu.getItems().addAll(
+                    org.fxt.freexmltoolkit.controls.v2.view.render.DiagramExportMenu.items(this, canvas));
+        }
         openContextMenu = contextMenu;
         contextMenu.show(canvas, event.getScreenX(), event.getScreenY());
 

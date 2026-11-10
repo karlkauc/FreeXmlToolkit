@@ -83,6 +83,14 @@ public interface GridContextMenu<N> {
     void show(Node anchor, double screenX, double screenY, N selectedNode,
               RepeatingElementsTable table, int rowIndex, String columnName);
 
+    /**
+     * Appends items at the end of the menu (the view's export items). Does nothing by default.
+     *
+     * @param items the items to append
+     */
+    default void appendItems(java.util.List<javafx.scene.control.MenuItem> items) {
+    }
+
     /** Hides the menu if it is showing. */
     void hide();
 

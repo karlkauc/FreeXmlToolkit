@@ -425,6 +425,11 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         contextMenu.hide();
     }
 
+    @Override
+    public void appendItems(java.util.List<javafx.scene.control.MenuItem> items) {
+        contextMenu.getItems().addAll(items);
+    }
+
     /** @return the Table submenu (test hook) */
     Menu tableMenuForTest() {
         return tableMenu;

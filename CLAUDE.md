@@ -91,6 +91,22 @@ UI: `SignatureView` (activity "Sign & Encrypt") actions ENCRYPT/DECRYPT/INSPECT,
 `*-env` (`CliSecrets`). Examples `release/examples/encryption/` (`EncryptionExamplesTest`). Docs:
 `docs/xml-encryption.md`. The Decryption Transform for signatures is not supported.
 
+## View Export (PNG / SVG / PDF / clipboard)
+
+The diagram renderers draw through `controls/v2/view/render/DiagramGraphics` (mirrors `GraphicsContext`;
+`FxDiagramGraphics` on screen, `SvgDiagramGraphics` writes SVG: shapes/text in user space with a `matrix`
+transform, paths in device space, clips as nested `<g clip-path>`, text baseline from JavaFX metrics, bundled
+Inter / JetBrains Mono optionally embedded). `XsdNodeRenderer`, `SvgIconRenderer`, `SvgPathParser`, `GridPainter`
+(`view.gc`) and `FlameGraph` take it — a new drawing call goes into all three classes. Views implement
+`ExportableDiagram` (`XsdGraphView`; grid via `GridCanvasView.exportable()` → `GridExport` → `GridPainter.renderExport`;
+`FlameGraph`): content/visible bounds, `paintExport` in a given theme without interaction states (renderer
+`setExportMode`, painter `shows(…)`), `exportFinished` repaints. `service/export/DiagramExporter`: PNG in 2048 px
+tiles (one per FX pulse, off-screen canvas snapshot, pHYs DPI), SVG, PDF = SVG → FOP `PDFTranscoder` with the
+bundled fonts registered for every weight 100–900 (FOP re-maps CSS weights), clipboard. UI: `ExportViewDialog`
+(FXML), `ViewExport` (File → Export View…, Edit → Copy View as Image, options `export.view.*`, test hooks
+`setDialogHandler` / `setFileChooser`); the views' context menus get their items from `DiagramExportMenu`
+(handler registered by the shell). Docs: `docs/unified-shell.md#export-view`.
+
 ## Large File Viewer
 
 `service/largefile/`: `LargeFileIndex` (sparse row index, every 1024th row's offset; rows ≤ 4 KB, read

@@ -358,6 +358,9 @@ public final class ShellMenuBar extends MenuBar {
                 item.setDisable(!editorHost.canRunToCursor()); // a saved XSLT document
             } else if ("menu-tools-rerun-debug".equals(id)) {
                 item.setDisable(!editorHost.canRerunLastDebug());
+            } else if ("menu-file-export-view".equals(id) || "menu-edit-copy-view".equals(id)) {
+                // Only while a graphical view (diagram, grid, flame graph) is shown
+                item.setDisable(org.fxt.freexmltoolkit.controls.shell.editor.ViewExport.activeView(editorHost) == null);
             }
         }
         // Run only for runnable documents, exactly like the toolbar's Run button.
@@ -481,6 +484,14 @@ public final class ShellMenuBar extends MenuBar {
     @FXML public void onSave() { run("save", shell::onSave); }
     @FXML public void onSaveAs() { run("save_as", shell::onSaveAs); }
     @FXML public void onSaveAll() { run("save_all", shell::onSaveAll); }
+
+    @FXML public void onExportView() {
+        run("export_view", () -> org.fxt.freexmltoolkit.controls.shell.editor.ViewExport.exportActive(editorHost, window()));
+    }
+
+    @FXML public void onCopyViewAsImage() {
+        run("copy_view_image", () -> org.fxt.freexmltoolkit.controls.shell.editor.ViewExport.copyActive(editorHost, window()));
+    }
     @FXML public void onSettings() { run("settings", shell::openSettings); }
 
     /** Closes the window like its title-bar button, so the application's close handling applies. */

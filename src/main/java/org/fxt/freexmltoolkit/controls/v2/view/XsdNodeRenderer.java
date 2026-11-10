@@ -4,7 +4,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javafx.geometry.VPos;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
@@ -14,6 +13,7 @@ import javafx.scene.text.TextAlignment;
 
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken;
+import org.fxt.freexmltoolkit.controls.v2.view.render.DiagramGraphics;
 
 /**
  * Renders the cards of the graphic XSD view: one rounded surface per node with a kind-tinted
@@ -124,9 +124,32 @@ public class XsdNodeRenderer {
      */
     private boolean darkMode = DesignTokens.currentTheme() == DesignTokens.Theme.DARK;
 
+    /** Set while drawing for an export: interaction states are left out. */
+    private boolean exportMode;
+
     /** Switches the renderer between the light and dark drawing palette. */
     public void setDarkMode(boolean darkMode) {
         this.darkMode = darkMode;
+    }
+
+    /** @return whether the renderer draws the dark palette */
+    public boolean isDarkMode() {
+        return darkMode;
+    }
+
+    /**
+     * Export mode: cards are drawn without the interaction states (selection, hover, focus,
+     * drag and drop, edit badge), the way a diagram is wanted in a document.
+     *
+     * @param exportMode true while drawing for an export
+     */
+    public void setExportMode(boolean exportMode) {
+        this.exportMode = exportMode;
+    }
+
+    /** @return the interaction state as drawn: always false in export mode */
+    private boolean shows(boolean interactionState) {
+        return interactionState && !exportMode;
     }
 
     /**
@@ -397,7 +420,7 @@ public class XsdNodeRenderer {
      * @param x    X position
      * @param y    Y position
      */
-    public void renderNode(GraphicsContext gc, VisualNode node, double x, double y) {
+    public void renderNode(DiagramGraphics gc, VisualNode node, double x, double y) {
         if (isCompositorNode(node)) {
             renderCompositorSymbol(gc, node, x, y);
         } else {
@@ -423,16 +446,16 @@ public class XsdNodeRenderer {
      * Renders a card: shadow, stack outline (repeating), surface with border (dashed when optional),
      * icon tile, name, pill, type line, constraint rows, expand button and the state overlays.
      */
-    private void renderRegularNode(GraphicsContext gc, VisualNode node, double x, double y) {
+    private void renderRegularNode(DiagramGraphics gc, VisualNode node, double x, double y) {
         double width = node.getWidth();
         double height = node.getHeight();
         if (width <= 0 || height <= 0 || width > 4000) {
             return;
         }
-        boolean selected = node.isSelected();
+        boolean selected = shows(node.isSelected());
         Color tint = kindTint(node.getType());
         Color strokeColor = selected ? token(ColorToken.PRIMARY)
-                : node.isHovered() ? withAlpha(token(ColorToken.PRIMARY), 0.55) : border();
+                : shows(node.isHovered()) ? withAlpha(token(ColorToken.PRIMARY), 0.55) : border();
         double strokeWidth = selected ? 2 : 1;
 
         gc.save();
@@ -483,23 +506,23 @@ public class XsdNodeRenderer {
         renderConstraintRows(gc, node, x, y, width);
         gc.restore();
 
-        if (node.isFocused()) {
+        if (shows(node.isFocused())) {
             gc.setStroke(token(ColorToken.INDIGO));
             gc.setLineWidth(2);
             gc.setLineDashes(4, 4);
             gc.strokeRoundRect(x - 4, y - 4, width + 8, height + 8, (CARD_RADIUS + 4) * 2, (CARD_RADIUS + 4) * 2);
             gc.setLineDashes(null);
         }
-        if (node.isDropTarget()) {
+        if (shows(node.isDropTarget())) {
             renderDropIndicator(gc, node, x, y, width, height);
         }
-        if (node.isDragging()) {
+        if (shows(node.isDragging())) {
             gc.setGlobalAlpha(0.45);
             gc.setFill(token(ColorToken.BG_SUBTLE));
             gc.fillRoundRect(x, y, width, height, CARD_RADIUS * 2, CARD_RADIUS * 2);
             gc.setGlobalAlpha(1.0);
         }
-        if (node.isInEditMode()) {
+        if (shows(node.isInEditMode())) {
             double size = 8;
             double badgeX = x + width - size - 4;
             double badgeY = y + 4;
@@ -530,7 +553,7 @@ public class XsdNodeRenderer {
         }
     }
 
-    private void drawCardShape(GraphicsContext gc, double x, double y, double width, double height,
+    private void drawCardShape(DiagramGraphics gc, double x, double y, double width, double height,
                                Color fill, Color stroke, double strokeWidth, boolean dashed) {
         gc.setFill(fill);
         gc.fillRoundRect(x, y, width, height, CARD_RADIUS * 2, CARD_RADIUS * 2);
@@ -554,7 +577,7 @@ public class XsdNodeRenderer {
      * Draws a type frame: a light tint with a dashed outline and the type's name
      * top left. It lies behind the content of the type, which is read-only in place.
      */
-    public void renderTypeFrame(GraphicsContext gc, TypeFrame frame) {
+    public void renderTypeFrame(DiagramGraphics gc, TypeFrame frame) {
         double x = frame.getX();
         double y = frame.getY();
         double w = frame.getWidth();
@@ -582,7 +605,7 @@ public class XsdNodeRenderer {
     }
 
     /** Draws the section that lists a card's constraints below its text lines. */
-    private void renderConstraintRows(GraphicsContext gc, VisualNode node, double x, double y, double width) {
+    private void renderConstraintRows(DiagramGraphics gc, VisualNode node, double x, double y, double width) {
         int lines = constraintLines(node);
         if (lines == 0) {
             return;
@@ -609,7 +632,7 @@ public class XsdNodeRenderer {
         gc.setTextBaseline(VPos.TOP);
     }
 
-    private void renderConstraintRow(GraphicsContext gc, ConstraintRow row, double x, double rowY) {
+    private void renderConstraintRow(DiagramGraphics gc, ConstraintRow row, double x, double rowY) {
         Color color = constraintColor(row.kind());
         double labelY = rowY + (CONSTRAINT_ROW_HEIGHT - CONSTRAINT_LABEL_HEIGHT) / 2;
         if (row.incoming()) {
@@ -647,7 +670,7 @@ public class XsdNodeRenderer {
      * Draws the drop feedback of a card: an insertion line above (before) or below (after) it,
      * a frame for a drop into it, and a red frame when the drop is refused.
      */
-    private void renderDropIndicator(GraphicsContext gc, VisualNode node, double x, double y,
+    private void renderDropIndicator(DiagramGraphics gc, VisualNode node, double x, double y,
                                      double width, double height) {
         XsdDropPlanner.Position position = node.getDropPosition();
         Color into = token(ColorToken.SUCCESS);
@@ -676,12 +699,12 @@ public class XsdNodeRenderer {
      * Renders a compositor (sequence, choice, all) as a small rounded box with its symbol; a
      * cardinality other than 1..1 is written below the box.
      */
-    private void renderCompositorSymbol(GraphicsContext gc, VisualNode node, double x, double y) {
+    private void renderCompositorSymbol(DiagramGraphics gc, VisualNode node, double x, double y) {
         double size = node.getWidth();
-        boolean selected = node.isSelected();
+        boolean selected = shows(node.isSelected());
         double strokeWidth = selected ? 2 : 1.5;
         Color stroke = selected ? token(ColorToken.PRIMARY)
-                : node.isHovered() ? withAlpha(token(ColorToken.PRIMARY), 0.55) : border();
+                : shows(node.isHovered()) ? withAlpha(token(ColorToken.PRIMARY), 0.55) : border();
         double arc = COMPOSITOR_RADIUS * 2;
 
         gc.setFill(selected ? token(ColorToken.BG_SUBTLE) : surface());
@@ -705,7 +728,7 @@ public class XsdNodeRenderer {
             gc.setTextAlign(TextAlignment.LEFT);
         }
 
-        if (node.isFocused()) {
+        if (shows(node.isFocused())) {
             gc.setStroke(token(ColorToken.INDIGO));
             gc.setLineWidth(2);
             gc.setLineDashes(4, 4);
@@ -713,12 +736,12 @@ public class XsdNodeRenderer {
             gc.setLineDashes(null);
         }
         // Compositors only take drops into them
-        if (node.isDropTarget()) {
+        if (shows(node.isDropTarget())) {
             gc.setStroke(node.isDropBlocked() ? token(ColorToken.DANGER) : token(ColorToken.SUCCESS));
             gc.setLineWidth(3);
             gc.strokeRoundRect(x - 4, y - 4, size + 8, size + 8, arc + 8, arc + 8);
         }
-        if (node.isDragging()) {
+        if (shows(node.isDragging())) {
             gc.setGlobalAlpha(0.45);
             gc.setFill(token(ColorToken.BG_SUBTLE));
             gc.fillRoundRect(x, y, size, size, arc, arc);
@@ -731,7 +754,7 @@ public class XsdNodeRenderer {
      * Draws the expand/collapse button: a chevron pointing right (collapsed) or left (expanded),
      * a dot for children not loaded yet, three dots while they load.
      */
-    private void drawExpandButton(GraphicsContext gc, VisualNode node, double x, double y, double nodeWidth) {
+    private void drawExpandButton(DiagramGraphics gc, VisualNode node, double x, double y, double nodeWidth) {
         double btnX = expandButtonX(x, nodeWidth);
         double btnY = y + (CARD_HEIGHT - EXPAND_BUTTON_SIZE) / 2;
         node.setExpandButtonBounds(btnX, btnY, EXPAND_BUTTON_SIZE, EXPAND_BUTTON_SIZE);
@@ -767,7 +790,7 @@ public class XsdNodeRenderer {
      * a vertical bus just left of the children, along the bus, and into the child — the comb shape
      * all siblings share.
      */
-    public void renderConnection(GraphicsContext gc, VisualNode parent, VisualNode child) {
+    public void renderConnection(DiagramGraphics gc, VisualNode parent, VisualNode child) {
         double startX = parent.getX() + parent.getWidth();
         double startY = anchorY(parent);
         double endX = child.getX();

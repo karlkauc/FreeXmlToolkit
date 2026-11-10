@@ -62,6 +62,8 @@
                                accelerator="Shortcut+Shift+S" onAction="#onSaveAs"/>
                 <ShellMenuItem id="menu-file-save-all" text="%ShellMenuBar.menu-file-save-all.text" iconLiteral="bi-files" color="TOOL"
                                onAction="#onSaveAll"/>
+                <ShellMenuItem id="menu-file-export-view" text="%ShellMenuBar.menu-file-export-view.text" iconLiteral="bi-image"
+                               color="TOOL" onAction="#onExportView"/>
                 <SeparatorMenuItem fx:id="fileAppSeparator"/>
                 <ShellMenuItem fx:id="settingsItem" id="menu-file-settings" text="%ShellMenuBar.settingsItem.text" iconLiteral="bi-gear"
                                color="NEUTRAL" accelerator="Shortcut+Comma" onAction="#onSettings"/>
@@ -87,6 +89,9 @@
                 <ShellMenuItem id="menu-edit-replace-in-files" text="%ShellMenuBar.menu-edit-replace-in-files.text"
                                iconLiteral="bi-arrow-left-right" color="MODIFY"
                                accelerator="Shortcut+Shift+H" onAction="#onReplaceInFiles"/>
+                <SeparatorMenuItem/>
+                <ShellMenuItem id="menu-edit-copy-view" text="%ShellMenuBar.menu-edit-copy-view.text" iconLiteral="bi-clipboard"
+                               color="TOOL" onAction="#onCopyViewAsImage"/>
                 <SeparatorMenuItem/>
                 <ShellMenuItem id="menu-edit-format" text="%ShellMenuBar.menu-edit-format.text" iconLiteral="bi-text-indent-left"
                                color="TOOL" accelerator="Shift+Alt+F" onAction="#onFormat"/>

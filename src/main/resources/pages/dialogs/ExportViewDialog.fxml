@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+
+<!--
+  Content of the "Export View" dialog: format and the options of the image / document. Loaded by ExportViewDialog
+  (FxmlViews.loadContent), which is the controller and adds title, header and buttons. Rows that do not apply to the
+  chosen format are hidden in code.
+-->
+<GridPane hgap="12" vgap="8" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="16"/>
+    </padding>
+    <columnConstraints>
+        <ColumnConstraints minWidth="130"/>
+        <ColumnConstraints minWidth="260"/>
+    </columnConstraints>
+    <children>
+        <Label text="%ExportViewDialog.format.text" GridPane.rowIndex="0"/>
+        <ComboBox fx:id="formatBox" id="export-view-format" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+        <Label text="%ExportViewDialog.area.text" GridPane.rowIndex="1"/>
+        <ComboBox fx:id="areaBox" id="export-view-area" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+        <Label fx:id="scaleLabel" text="%ExportViewDialog.scale.text" GridPane.rowIndex="2"/>
+        <ComboBox fx:id="scaleBox" id="export-view-scale" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+        <Label fx:id="pageSizeLabel" text="%ExportViewDialog.page-size.text" GridPane.rowIndex="3"/>
+        <ComboBox fx:id="pageSizeBox" id="export-view-page-size" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+        <Label text="%ExportViewDialog.theme.text" GridPane.rowIndex="4"/>
+        <ComboBox fx:id="themeBox" id="export-view-theme" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+
+        <Label text="%ExportViewDialog.background.text" GridPane.rowIndex="5"/>
+        <ComboBox fx:id="backgroundBox" id="export-view-background" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+
+        <Label text="%ExportViewDialog.padding.text" GridPane.rowIndex="6"/>
+        <Spinner fx:id="paddingSpinner" id="export-view-padding" editable="true" prefWidth="110" GridPane.columnIndex="1" GridPane.rowIndex="6">
+            <valueFactory>
+                <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="0" max="200" initialValue="16" amountToStepBy="4"/>
+            </valueFactory>
+        </Spinner>
+
+        <CheckBox fx:id="embedFontsBox" id="export-view-embed-fonts" text="%ExportViewDialog.embedFontsBox.text"
+                  GridPane.columnIndex="1" GridPane.rowIndex="7"/>
+
+        <Label fx:id="sizeLabel" id="export-view-size" wrapText="true" maxWidth="420" opacity="0.75"
+               GridPane.columnSpan="2" GridPane.rowIndex="8"/>
+        <Label fx:id="errorLabel" id="export-view-error" wrapText="true" maxWidth="420" visible="false" managed="false"
+               styleClass="fxt-dialog-error" GridPane.columnSpan="2" GridPane.rowIndex="9"/>
+    </children>
+</GridPane>

@@ -1,11 +1,12 @@
 package org.fxt.freexmltoolkit.controls.v2.view;
 
 import javafx.geometry.VPos;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
+
+import org.fxt.freexmltoolkit.controls.v2.view.render.DiagramGraphics;
 
 /**
  * Renders icon symbols on JavaFX Canvas using SVG path rendering and geometric shapes.
@@ -33,7 +34,7 @@ public class SvgIconRenderer {
     }
 
     /**
-     * Renders an icon symbol on the given GraphicsContext.
+     * Renders an icon symbol on the given drawing surface.
      * <p>
      * This method first attempts to render the icon using real SVG path data from
      * {@link BootstrapIconPaths}. If no path data is available, it falls back to
@@ -42,14 +43,14 @@ public class SvgIconRenderer {
      * For XSD SimpleType icons (xsd-simple-*), a special two-layer rendering is used
      * to show an "S" badge with proper contrast.
      *
-     * @param gc          the GraphicsContext to draw on
+     * @param gc          the drawing surface to draw on
      * @param iconLiteral the icon identifier (e.g., "bi-diagram-3")
      * @param x           the x-coordinate for the top-left corner
      * @param y           the y-coordinate for the top-left corner
      * @param size        the size of the icon (width and height in pixels)
      * @param color       the color to render the icon in
      */
-    public static void renderIcon(GraphicsContext gc, String iconLiteral,
+    public static void renderIcon(DiagramGraphics gc, String iconLiteral,
                                    double x, double y, double size, Color color) {
         if (iconLiteral == null || iconLiteral.isEmpty()) {
             renderPlaceholder(gc, x, y, size, color);
@@ -187,7 +188,7 @@ public class SvgIconRenderer {
     /**
      * Renders a diagram icon (box with internal pattern).
      */
-    private static void renderDiagram(GraphicsContext gc, double x, double y, double size) {
+    private static void renderDiagram(DiagramGraphics gc, double x, double y, double size) {
         double margin = size * 0.1;
         double innerX = x + margin;
         double innerY = y + margin;
@@ -206,7 +207,7 @@ public class SvgIconRenderer {
     /**
      * Renders an HDD stack icon (database).
      */
-    private static void renderHddStack(GraphicsContext gc, double x, double y, double size) {
+    private static void renderHddStack(DiagramGraphics gc, double x, double y, double size) {
         double margin = size * 0.2;
         double width = size - 2 * margin;
         double height = (size - 2 * margin) / 3.5;
@@ -225,7 +226,7 @@ public class SvgIconRenderer {
     /**
      * Renders a folder icon.
      */
-    private static void renderFolder(GraphicsContext gc, double x, double y, double size) {
+    private static void renderFolder(DiagramGraphics gc, double x, double y, double size) {
         double margin = size * 0.15;
         double width = size - 2 * margin;
         double height = size * 0.6;
@@ -246,7 +247,7 @@ public class SvgIconRenderer {
     /**
      * Renders a key icon.
      */
-    private static void renderKey(GraphicsContext gc, double x, double y, double size) {
+    private static void renderKey(DiagramGraphics gc, double x, double y, double size) {
         double headRadius = size * 0.25;
         double cx = x + size * 0.3;
         double cy = y + size * 0.3;
@@ -268,7 +269,7 @@ public class SvgIconRenderer {
     /**
      * Renders a globe icon.
      */
-    private static void renderGlobe(GraphicsContext gc, double x, double y, double size) {
+    private static void renderGlobe(DiagramGraphics gc, double x, double y, double size) {
         double radius = size * 0.4;
         double cx = x + size / 2;
         double cy = y + size / 2;
@@ -290,7 +291,7 @@ public class SvgIconRenderer {
     /**
      * Renders a fonts/text icon ("A").
      */
-    private static void renderFonts(GraphicsContext gc, double x, double y, double size) {
+    private static void renderFonts(DiagramGraphics gc, double x, double y, double size) {
         // Draw letter 'A' shape manually
         double width = size * 0.6;
         double height = size * 0.7;
@@ -314,7 +315,7 @@ public class SvgIconRenderer {
     /**
      * Renders a calculator icon.
      */
-    private static void renderCalculator(GraphicsContext gc, double x, double y, double size) {
+    private static void renderCalculator(DiagramGraphics gc, double x, double y, double size) {
         double margin = size * 0.15;
         double width = size - 2 * margin;
         double height = size - 2 * margin;
@@ -342,7 +343,7 @@ public class SvgIconRenderer {
     /**
      * Renders an ordered list icon.
      */
-    private static void renderListOl(GraphicsContext gc, double x, double y, double size) {
+    private static void renderListOl(DiagramGraphics gc, double x, double y, double size) {
         double margin = size * 0.15;
         double itemX = x + margin;
         double itemY = y + margin;
@@ -364,7 +365,7 @@ public class SvgIconRenderer {
     /**
      * Renders a box with seam icon (package).
      */
-    private static void renderBoxSeam(GraphicsContext gc, double x, double y, double size) {
+    private static void renderBoxSeam(DiagramGraphics gc, double x, double y, double size) {
         double margin = size * 0.15;
         double width = size - 2 * margin;
         double height = size - 2 * margin;
@@ -388,7 +389,7 @@ public class SvgIconRenderer {
     /**
      * Renders a Type icon (letter T).
      */
-    private static void renderType(GraphicsContext gc, double x, double y, double size) {
+    private static void renderType(DiagramGraphics gc, double x, double y, double size) {
         double margin = size * 0.2;
         double width = size - 2 * margin;
         double height = size - 2 * margin;
@@ -413,7 +414,7 @@ public class SvgIconRenderer {
     /**
      * Renders a link/chain icon.
      */
-    private static void renderLink(GraphicsContext gc, double x, double y, double size) {
+    private static void renderLink(DiagramGraphics gc, double x, double y, double size) {
         double w = size * 0.4;
         double h = size * 0.25;
         double cx = x + size / 2;
@@ -429,7 +430,7 @@ public class SvgIconRenderer {
     /**
      * Renders a document icon (page with lines).
      */
-    private static void renderDocument(GraphicsContext gc, double x, double y, double size) {
+    private static void renderDocument(DiagramGraphics gc, double x, double y, double size) {
         double margin = size * 0.15;
         double docX = x + margin;
         double docY = y + margin;
@@ -460,7 +461,7 @@ public class SvgIconRenderer {
     /**
      * Renders an attribute icon (@ symbol).
      */
-    private static void renderAttribute(GraphicsContext gc, double x, double y, double size) {
+    private static void renderAttribute(DiagramGraphics gc, double x, double y, double size) {
         double centerX = x + size / 2;
         double centerY = y + size / 2;
         double radius = size * 0.35;
@@ -480,7 +481,7 @@ public class SvgIconRenderer {
     /**
      * Renders a sequence icon (list with checkmarks).
      */
-    private static void renderSequence(GraphicsContext gc, double x, double y, double size) {
+    private static void renderSequence(DiagramGraphics gc, double x, double y, double size) {
         double margin = size * 0.15;
         double itemX = x + margin;
         double itemY = y + margin;
@@ -507,7 +508,7 @@ public class SvgIconRenderer {
     /**
      * Renders a choice icon (branching pattern).
      */
-    private static void renderChoice(GraphicsContext gc, double x, double y, double size) {
+    private static void renderChoice(DiagramGraphics gc, double x, double y, double size) {
         double centerX = x + size / 2;
         double centerY = y + size / 2;
         double branchSize = size * 0.3;
@@ -530,7 +531,7 @@ public class SvgIconRenderer {
     /**
      * Renders an ALL icon (asterisk pattern).
      */
-    private static void renderAll(GraphicsContext gc, double x, double y, double size) {
+    private static void renderAll(DiagramGraphics gc, double x, double y, double size) {
         double centerX = x + size / 2;
         double centerY = y + size / 2;
         double radius = size * 0.3;
@@ -551,7 +552,7 @@ public class SvgIconRenderer {
     /**
      * Renders a placeholder when icon is not found.
      */
-    private static void renderPlaceholder(GraphicsContext gc, double x, double y,
+    private static void renderPlaceholder(DiagramGraphics gc, double x, double y,
                                          double size, Color color) {
         gc.save();
         gc.setFill(color);
@@ -565,7 +566,7 @@ public class SvgIconRenderer {
     /**
      * Attempts to render an icon using real SVG path data.
      *
-     * @param gc          the GraphicsContext to draw on
+     * @param gc          the drawing surface to draw on
      * @param iconLiteral the icon identifier
      * @param x           the x-coordinate
      * @param y           the y-coordinate
@@ -573,7 +574,7 @@ public class SvgIconRenderer {
      * @param color       the color to render in
      * @return true if the icon was rendered from SVG path data, false if no path data available
      */
-    private static boolean renderFromSvgPath(GraphicsContext gc, String iconLiteral,
+    private static boolean renderFromSvgPath(DiagramGraphics gc, String iconLiteral,
                                               double x, double y, double size, Color color) {
         String pathData = BootstrapIconPaths.getPath(iconLiteral);
         if (pathData == null) {
@@ -595,14 +596,14 @@ public class SvgIconRenderer {
      *   <li>The letter "S" in a dark color on top of the white circle</li>
      * </ol>
      *
-     * @param gc          the GraphicsContext to draw on
+     * @param gc          the drawing surface to draw on
      * @param iconLiteral the SimpleType icon name (e.g., "xsd-simple-string")
      * @param x           the x-coordinate
      * @param y           the y-coordinate
      * @param size        the icon size
      * @param color       the main icon color
      */
-    private static void renderSimpleTypeIcon(GraphicsContext gc, String iconLiteral,
+    private static void renderSimpleTypeIcon(DiagramGraphics gc, String iconLiteral,
                                               double x, double y, double size, Color color) {
         // 1. Render the base icon (without badge) in the main color
         String basePathData = XsdTypeIconPaths.getBaseIconPath(iconLiteral);
@@ -644,7 +645,7 @@ public class SvgIconRenderer {
     /**
      * Renders a hash/number-like icon (used for numeric datatypes).
      */
-    private static void renderHash(GraphicsContext gc, double x, double y, double size) {
+    private static void renderHash(DiagramGraphics gc, double x, double y, double size) {
         double margin = size * 0.25;
         double startX = x + margin;
         double startY = y + margin;
@@ -660,7 +661,7 @@ public class SvgIconRenderer {
     /**
      * Renders a percent icon (used for decimals).
      */
-    private static void renderPercent(GraphicsContext gc, double x, double y, double size) {
+    private static void renderPercent(DiagramGraphics gc, double x, double y, double size) {
         double circleRadius = size * 0.12;
         double offset = size * 0.15;
         gc.strokeLine(x + offset, y + size - offset, x + size - offset, y + offset);
@@ -672,7 +673,7 @@ public class SvgIconRenderer {
     /**
      * Renders a hexagon icon (used for float).
      */
-    private static void renderHexagon(GraphicsContext gc, double x, double y, double size) {
+    private static void renderHexagon(DiagramGraphics gc, double x, double y, double size) {
         double r = size * 0.4;
         double cx = x + size / 2;
         double cy = y + size / 2;
@@ -689,7 +690,7 @@ public class SvgIconRenderer {
     /**
      * Renders a simple box (used for double).
      */
-    private static void renderBox(GraphicsContext gc, double x, double y, double size) {
+    private static void renderBox(DiagramGraphics gc, double x, double y, double size) {
         double margin = size * 0.2;
         gc.strokeRect(x + margin, y + margin, size - 2 * margin, size - 2 * margin);
     }
@@ -697,7 +698,7 @@ public class SvgIconRenderer {
     /**
      * Renders a calendar icon (used for date/datetime).
      */
-    private static void renderCalendar(GraphicsContext gc, double x, double y, double size) {
+    private static void renderCalendar(DiagramGraphics gc, double x, double y, double size) {
         double margin = size * 0.15;
         double header = size * 0.25;
         gc.strokeRect(x + margin, y + margin, size - 2 * margin, size - 2 * margin);
@@ -712,7 +713,7 @@ public class SvgIconRenderer {
     /**
      * Renders a clock icon (used for time).
      */
-    private static void renderClock(GraphicsContext gc, double x, double y, double size) {
+    private static void renderClock(DiagramGraphics gc, double x, double y, double size) {
         double radius = size * 0.35;
         double cx = x + size / 2;
         double cy = y + size / 2;
@@ -724,7 +725,7 @@ public class SvgIconRenderer {
     /**
      * Renders an hourglass icon (used for duration).
      */
-    private static void renderHourglass(GraphicsContext gc, double x, double y, double size) {
+    private static void renderHourglass(DiagramGraphics gc, double x, double y, double size) {
         double top = y + size * 0.2;
         double bottom = y + size - size * 0.2;
         double left = x + size * 0.25;
@@ -743,7 +744,7 @@ public class SvgIconRenderer {
     /**
      * Renders a toggle icon (used for boolean).
      */
-    private static void renderToggle(GraphicsContext gc, double x, double y, double size) {
+    private static void renderToggle(DiagramGraphics gc, double x, double y, double size) {
         double radius = size * 0.25;
         double trackHeight = radius * 2;
         double trackWidth = size - radius;
@@ -756,7 +757,7 @@ public class SvgIconRenderer {
     /**
      * Renders a shield icon (used for ID types).
      */
-    private static void renderShield(GraphicsContext gc, double x, double y, double size) {
+    private static void renderShield(DiagramGraphics gc, double x, double y, double size) {
         double top = y + size * 0.15;
         double width = size * 0.6;
         double height = size * 0.7;

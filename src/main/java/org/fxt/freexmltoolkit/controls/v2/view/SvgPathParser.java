@@ -23,11 +23,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.view.render.DiagramGraphics;
 
 /**
  * SVG Path Parser and Renderer for JavaFX Canvas.
@@ -281,9 +281,9 @@ public class SvgPathParser {
     }
 
     /**
-     * Renders parsed path commands on a GraphicsContext.
+     * Renders parsed path commands on a drawing surface.
      *
-     * @param gc         the GraphicsContext to render on
+     * @param gc         the drawing surface to render on
      * @param commands   the parsed path commands
      * @param x          x offset for rendering
      * @param y          y offset for rendering
@@ -291,7 +291,7 @@ public class SvgPathParser {
      * @param color      the color to use for rendering
      * @param fill       true to fill the path, false to stroke
      */
-    public static void render(GraphicsContext gc, List<PathCommand> commands,
+    public static void render(DiagramGraphics gc, List<PathCommand> commands,
                               double x, double y, double scale, Color color, boolean fill) {
         if (commands == null || commands.isEmpty()) {
             return;
@@ -470,7 +470,7 @@ public class SvgPathParser {
      * Renders an elliptical arc as bezier curves (approximation).
      * This is a simplified implementation for common use cases.
      *
-     * @param gc the GraphicsContext to render on
+     * @param gc the drawing surface to render on
      * @param offsetX the x offset for rendering
      * @param offsetY the y offset for rendering
      * @param scale the scale factor for rendering
@@ -484,7 +484,7 @@ public class SvgPathParser {
      * @param x2 the ending x coordinate
      * @param y2 the ending y coordinate
      */
-    private static void renderArcAsBezier(GraphicsContext gc, double offsetX, double offsetY, double scale,
+    private static void renderArcAsBezier(DiagramGraphics gc, double offsetX, double offsetY, double scale,
                                           double x1, double y1, double rx, double ry, double _rotation,
                                           boolean _largeArc, boolean sweep, double x2, double y2) {
         // Simple arc approximation using quadratic curves
@@ -532,7 +532,7 @@ public class SvgPathParser {
     /**
      * Convenience method to parse and render an SVG path in one call.
      *
-     * @param gc        the GraphicsContext
+     * @param gc        the drawing surface
      * @param pathData  the SVG path data string
      * @param x         x offset
      * @param y         y offset
@@ -541,7 +541,7 @@ public class SvgPathParser {
      * @param fill      true to fill, false to stroke
      * @param viewBoxSize the original viewBox size of the SVG (typically 16 for Bootstrap Icons)
      */
-    public static void renderPath(GraphicsContext gc, String pathData,
+    public static void renderPath(DiagramGraphics gc, String pathData,
                                   double x, double y, double size, Color color, boolean fill, double viewBoxSize) {
         List<PathCommand> commands = parse(pathData);
         double scale = size / viewBoxSize;

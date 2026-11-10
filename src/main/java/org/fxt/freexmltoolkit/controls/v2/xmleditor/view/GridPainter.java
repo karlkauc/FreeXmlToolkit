@@ -50,6 +50,9 @@ final class GridPainter<N> {
     private double cullLeft;
     private double cullRight;
 
+    /** Set while {@link #renderExport} draws: no interaction states, no overlays, no scrolling. */
+    private boolean exporting;
+
     // ==================== Colors (design tokens, theme-dependent) ====================
     //
     // Instance fields (kept in UPPER_SNAKE for diff-friendliness with the former
@@ -256,6 +259,73 @@ final class GridPainter<N> {
         drawInfo();
     }
 
+    /**
+     * Draws the rows and tables meeting {@code region} (content coordinates, unscrolled and
+     * unzoomed) onto an export surface, in the given theme and without interaction states
+     * (selection, hover, search flashes, inline editing), the sticky header or the info line.
+     * The view's own surface, scroll position and palette are restored afterwards; the caller
+     * re-renders the view, because drawing records hit-test geometry.
+     *
+     * @param g      the export surface, transformed so content coordinates map onto it
+     * @param region the part of the content to draw
+     * @param theme  the palette to draw with
+     */
+    void renderExport(org.fxt.freexmltoolkit.controls.v2.view.render.DiagramGraphics g,
+                      javafx.geometry.Rectangle2D region,
+                      org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme theme) {
+        org.fxt.freexmltoolkit.controls.v2.view.render.DiagramGraphics screen = view.gc;
+        double scrollX = view.scrollOffsetX;
+        double scrollY = view.scrollOffsetY;
+        view.gc = g;
+        view.scrollOffsetX = 0;
+        view.scrollOffsetY = 0;
+        exporting = true;
+        applyPalette(theme);
+        try {
+            if (view.visibleRows.isEmpty()) {
+                return;
+            }
+            cullTop = region.getMinY();
+            cullBottom = region.getMaxY();
+            cullLeft = region.getMinX();
+            cullRight = region.getMaxX();
+            int last = view.visibleRows.size() - 1;
+            int first = Math.max(0, view.findRowIndexAtY(region.getMinY()));
+            int to = view.findRowIndexAtY(region.getMaxY());
+            if (to < 0 || to > last) {
+                to = last;
+            }
+            for (int idx : view.ancestorIndices(first)) {
+                drawRow(idx);
+            }
+            for (int i = first; i <= to; i++) {
+                drawRow(i);
+            }
+            for (int i = first; i <= to; i++) {
+                FlatRow row = view.visibleRows.get(i);
+                if (row.hasRepeatingTable() && row.isExpanded()) {
+                    renderInlineTable(row, view.rowYPositions[i]);
+                }
+            }
+        } finally {
+            exporting = false;
+            view.gc = screen;
+            view.scrollOffsetX = scrollX;
+            view.scrollOffsetY = scrollY;
+            applyPalette(org.fxt.freexmltoolkit.controls.theme.DesignTokens.currentTheme());
+        }
+    }
+
+    /** @return the page colour of the grid in a theme (the even-row background) */
+    static Color pageBackground(org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme theme) {
+        return BG_SURFACE.color(theme);
+    }
+
+    /** @return an interaction state as drawn: never while exporting */
+    private boolean shows(boolean interactionState) {
+        return interactionState && !exporting;
+    }
+
     /** Draws the red problem marker ("!" in a circle) at the right end of a name cell's first line. */
     private void drawProblemMarker(double rightX, double cy) {
         double r = 6;
@@ -331,7 +401,8 @@ final class GridPainter<N> {
     private void drawRow(int visibleIndex) {
         drawRowAt(view.visibleRows.get(visibleIndex), view.rowYPositions[visibleIndex] - view.scrollOffsetY,
                 view.rowHeights[visibleIndex], view.rowSpanHeight(visibleIndex),
-                Math.max(view.totalWidth, view.viewportWidthModel() + view.scrollOffsetX));
+                exporting ? Math.max(view.totalWidth, cullRight)
+                        : Math.max(view.totalWidth, view.viewportWidthModel() + view.scrollOffsetX));
     }
 
     /** Space kept free between the clipped name and the value column. */
@@ -353,13 +424,13 @@ final class GridPainter<N> {
 
         // -- Background (name cell; the value cell too while the row has one) --
         Color bgColor = null;
-        if (row == view.highlightedRow) {
+        if (shows(row == view.highlightedRow)) {
             bgColor = view.highlightColor;
-        } else if (row.isSelected()) {
+        } else if (shows(row.isSelected())) {
             bgColor = selectedBg;
-        } else if (view.queryRows.contains(row)) {
+        } else if (shows(view.queryRows.contains(row))) {
             bgColor = view.queryHighlightColor;
-        } else if (row.isHovered()) {
+        } else if (shows(row.isHovered())) {
             bgColor = hoveredBg;
         }
         if (bgColor != null) {
@@ -379,7 +450,7 @@ final class GridPainter<N> {
         }
 
         // -- Selection border --
-        if (row.isSelected()) {
+        if (shows(row.isSelected())) {
             view.gc.setStroke(selectedBorder);
             view.gc.setLineWidth(1);
             view.gc.strokeRect(labelX + 0.5, top + 0.5, valueX - labelX, span);
@@ -407,8 +478,8 @@ final class GridPainter<N> {
 
         double textX = view.rowTextX(row);
 
-        boolean isEditingThisRowName = (view.editor.editingRow == row && view.editor.editingElementName);
-        boolean isEditingThisRowValue = (view.editor.editingRow == row && view.editor.editingValue);
+        boolean isEditingThisRowName = shows(view.editor.editingRow == row && view.editor.editingElementName);
+        boolean isEditingThisRowValue = shows(view.editor.editingRow == row && view.editor.editingValue);
 
         double afterLabelX = textX;
         if (view.displayLabel(row) != null && !isEditingThisRowName) {
@@ -515,7 +586,7 @@ final class GridPainter<N> {
 
     /** Draws the ▶ / ▼ expand arrow in the arrow area left of the icon. */
     private void drawExpandArrow(FlatRow row, double labelX, double cy) {
-        boolean hovered = row == view.hoveredExpandBar;
+        boolean hovered = shows(row == view.hoveredExpandBar);
         view.gc.setFill(hovered ? expandBarHover : expandBarArrow);
         double cx = labelX + GridCanvasView.EXPAND_BAR_WIDTH / 2 + 1;
         double size = 4;
@@ -735,7 +806,7 @@ final class GridPainter<N> {
     private void drawColumnHeaderCell(RepeatingElementsTable table, RepeatingElementsTable.TableColumn col,
                                       double x, double y, double w, double h) {
         boolean sorted = col != null && table.isSortedBy(col.getName());
-        boolean selected = col != null && view.tables.isWholeColumnSelected(table, table.getColumns().indexOf(col));
+        boolean selected = shows(col != null && view.tables.isWholeColumnSelected(table, table.getColumns().indexOf(col)));
         drawHeaderCellFrame(x, y, w, h, sorted || selected ? tableHeaderSelected : tableHeaderBg);
         if (col == null) {
             return;
@@ -763,8 +834,8 @@ final class GridPainter<N> {
     /** A row-number cell, highlighted when its row is selected. */
     private void drawRowNumberCell(RepeatingElementsTable table, int rowIndex,
                                    double x, double y, double w, double h) {
-        boolean selected = view.tables.selAnchorRow >= 0 ? view.tables.isWholeRowSelected(table, rowIndex)
-                : rowIndex == table.getSelectedRowIndex();
+        boolean selected = shows(view.tables.selAnchorRow >= 0 ? view.tables.isWholeRowSelected(table, rowIndex)
+                : rowIndex == table.getSelectedRowIndex());
         drawHeaderCellFrame(x, y, w, h, selected ? tableHeaderSelected : tableHeaderBg);
         view.gc.setFont(SMALL_FONT);
         view.gc.setFill(tableHeaderText);
@@ -797,15 +868,15 @@ final class GridPainter<N> {
                 break;
             }
         }
-        if (flashed) {
+        if (shows(flashed)) {
             bg = view.highlightColor;
-        } else if (inRange) {
+        } else if (shows(inRange)) {
             bg = selectedBg;
-        } else if (queryHit) {
+        } else if (shows(queryHit)) {
             bg = view.queryHighlightColor;
-        } else if (rowIndex == table.getSelectedRowIndex() && view.tables.selAnchorRow < 0) {
+        } else if (shows(rowIndex == table.getSelectedRowIndex() && view.tables.selAnchorRow < 0)) {
             bg = tableRowSelected;
-        } else if (rowIndex == view.tables.hoveredTableRowIndex && table == view.tables.hoveredTable) {
+        } else if (shows(rowIndex == view.tables.hoveredTableRowIndex && table == view.tables.hoveredTable)) {
             bg = tableRowHover;
         } else if (missing) {
             bg = tableMissingBg;
