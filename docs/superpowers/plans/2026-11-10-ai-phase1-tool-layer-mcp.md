@@ -247,10 +247,27 @@ parsed schemas are per process.
 
 **Steps:**
 
-- [ ] **Step 1 (red):** `XmlOutlineTest`: paths are positional-predicate-free (`/a/b`, not `/a/b[3]`); counts are right for repeated elements; `sample` is the first non-blank text, cut to 80 characters; `max_paths` truncates and reports it; a 30 MB generated document is outlined in bounded memory (streaming — StAX with the application's secure factory, see `plugin/XmlScan` and `SecureXmlFactory`; do not build a DOM). With `samples == false` no document value appears anywhere in the result (Phase 2's `STRUCTURE` data level depends on this — assert it by scanning the JSON for a marker value).
-- [ ] **Step 2 (green):** implement the outline and the four tools on `new service.XSpecRunner().run(text, file)` (instance method), `SchematronCheckRunner.checkResult`, `XmlStructuralDiff.compare(left, right, options)` (`Options.DEFAULTS` and its `with…` methods; check `Options.invalidIgnoreXPath()` and report it as a `ToolException`).
-- [ ] **Step 3:** XSpec runs the stylesheet under test, which may contain `xsl:result-document` (threat model, "Known limits"). Either route XSpec runs through the sandbox as well or, if that is not possible without changing `io.xspec`, state it in the tool description and in `docs/mcp-server.md` and leave `xspec_run` out of the default tool set (`--tools` must name it). Decide, write the decision into the spec's tool table, test it.
-- [ ] **Step 4:** register; commit.
+- [x] **Step 1 (red):** `XmlOutlineTest`: paths are positional-predicate-free (`/a/b`, not `/a/b[3]`); counts are right for repeated elements; `sample` is the first non-blank text, cut to 80 characters; `max_paths` truncates and reports it; a 30 MB generated document is outlined in bounded memory (streaming — StAX with the application's secure factory, see `plugin/XmlScan` and `SecureXmlFactory`; do not build a DOM). With `samples == false` no document value appears anywhere in the result (Phase 2's `STRUCTURE` data level depends on this — assert it by scanning the JSON for a marker value).
+- [x] **Step 2 (green):** implement the outline and the four tools on `new service.XSpecRunner().run(text, file)` (instance method), `SchematronCheckRunner.checkResult`, `XmlStructuralDiff.compare(left, right, options)` (`Options.DEFAULTS` and its `with…` methods; check `Options.invalidIgnoreXPath()` and report it as a `ToolException`).
+- [x] **Step 3:** XSpec runs the stylesheet under test, which may contain `xsl:result-document` (threat model, "Known limits"). Either route XSpec runs through the sandbox as well or, if that is not possible without changing `io.xspec`, state it in the tool description and in `docs/mcp-server.md` and leave `xspec_run` out of the default tool set (`--tools` must name it). Decide, write the decision into the spec's tool table, test it.
+- [x] **Step 4:** register; commit.
+
+**Outcome / decisions:**
+- **`xspec_run` is in the default set**, sandboxed: `XSpecRunner.sandboxed(roots, timeout)` — a per-run processor,
+  reads only inside the roots plus XSpec's bundled library (its URI prefix is allowed), no environment, Java system
+  properties off while the tests run (`XsltSandbox.lockDown` after the generated tests are compiled), the generated
+  tests compiled with tracing for the deadline (`XSpecRunner.TIMED_OUT`), secondary results discarded in memory.
+  In XSpec the tested code always runs inside a variable, so `xsl:result-document` fails with XTDE1480 there and
+  never writes anyway. The Schematron flavour writes its compiled Schematron to a temporary file in the system
+  temp folder and deletes it after the run (unchanged, outside the workspace).
+- **Schematron in `validate`** (Task 4 gap): left as a documented limit. ph-schematron compiles through a shared,
+  path-keyed cache; sandboxing it means replacing that pipeline. In Phase 1 the Schematron must be a file inside the
+  roots (no inline content), so only someone who can already write files there can use it to read elsewhere.
+  Revisit before the in-app agent (Phase 2) can pass Schematron content.
+- `schematron_check` is static only (`SchematronErrorDetector`: no document is processed), so it needs no sandbox.
+- `document_outline` streams `xml_path` from disk with no size limit (the other tools read at most
+  `ToolLimits.maxInputBytes`). Extra fields: `compare` → `left_value`, `right_value`, `left_line`, `right_line`,
+  `similar`, `truncated`, `left_error`, `right_error`; `schematron_check` → `total`, `error`; `xspec_run` → `timed_out`.
 
 ---
 

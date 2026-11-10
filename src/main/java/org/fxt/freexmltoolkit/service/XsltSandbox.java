@@ -244,29 +244,54 @@ public final class XsltSandbox {
      * XQuery and its module imports.
      */
     static void readOnlyWithin(Processor processor, List<Path> realRoots) {
+        readOnlyWithin(processor, realRoots, List.of());
+    }
+
+    /**
+     * As {@link #readOnlyWithin(Processor, List)}, also allowing URIs that start with one of {@code allowedPrefixes}
+     * — the application's own bundled resources (XSpec's library) that the engine itself reads.
+     */
+    public static void readOnlyWithin(Processor processor, List<Path> realRoots, List<String> allowedPrefixes) {
         Configuration config = processor.getUnderlyingConfiguration();
-        config.setResourceResolver(guard(config.getResourceResolver(), realRoots));
+        config.setResourceResolver(guard(config.getResourceResolver(), realRoots, allowedPrefixes));
         UnparsedTextURIResolver text = config.getUnparsedTextURIResolver();
         config.setUnparsedTextURIResolver((uri, encoding, cfg) -> {
-            if (!RootedPaths.isFileUriWithin(uri, realRoots)) {
+            if (!allowed(uri, realRoots, allowedPrefixes)) {
                 throw refused(uri == null ? null : uri.toString());
             }
             return text.resolve(uri, encoding, cfg);
         });
         CollectionFinder finder = config.getCollectionFinder();
         config.setCollectionFinder((context, collectionUri) -> {
-            if (collectionUri != null && !RootedPaths.isFileUriWithin(toUri(collectionUri, null), realRoots)) {
+            if (collectionUri != null && !allowed(toUri(collectionUri, null), realRoots, allowedPrefixes)) {
                 throw refused(collectionUri);
             }
             return finder.findCollection(context, collectionUri);
         });
     }
 
+    private static boolean allowed(URI uri, List<Path> realRoots, List<String> allowedPrefixes) {
+        if (uri == null) {
+            return false;
+        }
+        String text = uri.toString();
+        for (String prefix : allowedPrefixes) {
+            if (text.startsWith(prefix) && !text.contains("..")) {
+                return true;
+            }
+        }
+        return RootedPaths.isFileUriWithin(uri, realRoots);
+    }
+
     /** A resolver that refuses everything outside {@code realRoots} and hands the rest to {@code next}. */
     static ResourceResolver guard(ResourceResolver next, List<Path> realRoots) {
+        return guard(next, realRoots, List.of());
+    }
+
+    static ResourceResolver guard(ResourceResolver next, List<Path> realRoots, List<String> allowedPrefixes) {
         return request -> {
             URI uri = request == null ? null : toUri(request.uri, request);
-            if (!RootedPaths.isFileUriWithin(uri, realRoots)) {
+            if (!allowed(uri, realRoots, allowedPrefixes)) {
                 throw refused(request == null ? null : request.uri);
             }
             return next == null ? null : next.resolve(request);

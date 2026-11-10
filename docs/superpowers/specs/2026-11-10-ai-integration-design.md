@@ -127,7 +127,7 @@ the stylesheet it just wrote without writing a file.
 | `xquery` | `TransformRunner.xquery(xml, query, variables, format)` | as above |
 | `xslt_transform` | new sandboxed entry point on `XsltTransformationEngine` (see Sandbox) | principal output (capped), result documents (URI → text, capped), `xsl:message` output, error code, phase (`compile`/`input`/`runtime`), line |
 | `schematron_check` | `SchematronCheckRunner.checkResult(sch)` | compile problems of a Schematron |
-| `xspec_run` | `service/XSpecRunner#run(text, file)` (instance method) | per scenario/test: label, status, expected, actual; summary |
+| `xspec_run` | `service/XSpecRunner.sandboxed(roots, timeout).run(text, file)` | per scenario/test: label, status, expected, actual; summary; in the default set (sandboxed, see Phase 1 Task 6) |
 | `schema_outline` | `XsdNodeFactory.fromFile` | target namespace, global elements, named types (names only), tree of one global element to a given depth |
 | `schema_describe` | `XsdInstanceLocator.locate` + `SchemaFacets` | for an instance path: declaration, type and builtin base, cardinality, facets and enumeration values, documentation, child elements with cardinality, attributes |
 | `sample_xml` | `SampleXmlRunner.generateResult(xsd, mandatoryOnly, maxOccurrences, realistic, seed)` | a valid sample instance |
@@ -166,8 +166,9 @@ merge, anything that writes.
   - errors carry code, phase and line (`XsltTransformationResult.getErrorLine`).
 - **XPath / XQuery** (`service/SandboxedQuery`): the same restrictions (per-run processor, reads inside the roots,
   no environment, output cap); XQuery is compiled with tracing for the deadline, XPath has none in Saxon's API.
-- **Schematron** in `validate` runs through `ValidationRunner` on the shared processor; its `doc()` is not yet
-  limited to the roots (open point, Phase 1 Task 6).
+- **Schematron** in `validate` runs through `ValidationRunner` on the shared processor; its `doc()` is not limited
+  to the roots. Accepted for Phase 1 (the Schematron must be a file inside the roots); to be closed before the
+  in-app agent can pass Schematron content (Phase 2).
 - **Limits** (`ToolLimits`, defaults in parentheses, settings keys `ai.tool.*`): wall-clock time per
   call (30 s), output text returned to the caller (64 KB, truncated with a marker and the full
   length), input file size read into memory (64 MB; larger inputs are refused with a hint to use

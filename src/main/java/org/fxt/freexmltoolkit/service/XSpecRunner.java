@@ -102,11 +102,24 @@ public final class XSpecRunner {
         }
     }
 
+    /** The error text of a sandboxed run stopped at its deadline ({@link #sandboxed}). */
+    public static final String TIMED_OUT = "The tests did not finish within the time limit";
+
     private final Processor processor;
     private final Map<String, XsltExecutable> stylesheets = new ConcurrentHashMap<>();
+    /** Non-null for a sandboxed runner: its time limit. */
+    private final java.time.Duration timeout;
+    /** URIs a sandboxed run may read besides the roots: XSpec's library, a temporary compiled Schematron. */
+    private final List<String> allowedPrefixes = new java.util.concurrent.CopyOnWriteArrayList<>();
+    private long deadlineNanos;
 
     public XSpecRunner() {
-        this.processor = SaxonResourceAccess.restrictedProcessor();
+        this(SaxonResourceAccess.restrictedProcessor(), null);
+    }
+
+    private XSpecRunner(Processor processor, java.time.Duration timeout) {
+        this.processor = processor;
+        this.timeout = timeout;
         // XSpec's stylesheets read files next to themselves with unparsed-text() (VERSION, report
         // styles); inside the application's jar Saxon cannot infer their encoding: read them as UTF-8
         var config = processor.getUnderlyingConfiguration();
@@ -126,6 +139,36 @@ public final class XSpecRunner {
         });
     }
 
+    /**
+     * A runner for tests written by a model or an external agent, for one run: the restrictions of
+     * {@link XsltSandbox} (a processor of its own, reads only inside {@code readableRoots} and XSpec's bundled
+     * library, no environment variables, no Java system properties while the tests run, secondary results
+     * discarded in memory) and a deadline checked on every traced construct of the tested code.
+     *
+     * @throws IOException when a root does not exist
+     */
+    public static XSpecRunner sandboxed(List<Path> readableRoots, java.time.Duration timeout) throws IOException {
+        XSpecRunner runner = new XSpecRunner(XsltSandbox.newProcessor(), timeout);
+        runner.allowedPrefixes.add(libraryPrefix());
+        XsltSandbox.readOnlyWithin(runner.processor, XsltSandbox.realRoots(readableRoots), runner.allowedPrefixes);
+        return runner;
+    }
+
+    /** The URI prefix of XSpec's bundled files ({@code jar:…!/io/xspec/xspec/} or a folder in tests). */
+    private static String libraryPrefix() throws IOException {
+        URL url = XSpecRunner.class.getResource(BASE + "compiler/compile-xslt-tests.xsl");
+        if (url == null) {
+            throw new IOException("XSpec is missing from the application");
+        }
+        String text = url.toString();
+        String marker = "/io/xspec/xspec/";
+        return text.substring(0, text.indexOf(marker) + marker.length());
+    }
+
+    private boolean sandboxed() {
+        return timeout != null;
+    }
+
     /** @return whether a document is an XSpec description ({@code x:description} root) */
     public static boolean isXSpec(String text) {
         return text != null && text.contains(XSPEC_NS) && text.contains("description");
@@ -139,6 +182,9 @@ public final class XSpecRunner {
      */
     public Result run(String xspecText, Path xspecFile) {
         Kind kind = Kind.XSLT;
+        if (sandboxed()) {
+            deadlineNanos = System.nanoTime() + timeout.toNanos();
+        }
         try {
             String systemId = xspecFile.toAbsolutePath().toUri().toString();
             XdmNode description = processor.newDocumentBuilder()
@@ -161,16 +207,45 @@ public final class XSpecRunner {
             };
             return new Result(kind, scenarios(rootElement(report)), serialize(report), null);
         } catch (SaxonApiException e) {
-            return new Result(kind, List.of(), null, message(e));
+            return new Result(kind, List.of(), null, timedOut(e) ? TIMED_OUT : message(e));
         } catch (IOException | RuntimeException e) {
-            return new Result(kind, List.of(), null, String.valueOf(e.getMessage()));
+            return new Result(kind, List.of(), null, timedOut(e) ? TIMED_OUT : String.valueOf(e.getMessage()));
+        } catch (StackOverflowError e) {
+            return new Result(kind, List.of(), null, "The tests ran out of stack (endless recursion?)");
         }
+    }
+
+    private static boolean timedOut(Throwable e) {
+        return XsltSandbox.causedBy(e, XsltSandbox.DeadlineExceeded.class);
+    }
+
+    /** In a sandboxed run: tracing for the deadline, before the generated tests are compiled. */
+    private void prepareCompile(net.sf.saxon.s9api.XsltCompiler compiler) {
+        if (sandboxed()) {
+            compiler.setCompileWithTracing(true);
+        }
+    }
+
+    /**
+     * In a sandboxed run, right before the tests run: Java system properties off (Saxon reads the flag when
+     * {@code system-property()} is evaluated), the deadline, and secondary results into memory.
+     */
+    private void prepareRun(net.sf.saxon.s9api.AbstractXsltTransformer transformer) {
+        if (!sandboxed()) {
+            return;
+        }
+        XsltSandbox.lockDown(processor);
+        transformer.setTraceListener(new XsltSandbox.DeadlineListener(deadlineNanos));
+        transformer.setResultDocumentHandler(uri -> processor.newSerializer(new StringWriter()));
     }
 
     private XdmNode runXslt(XdmNode description, String systemId) throws SaxonApiException, IOException {
         XdmNode compiled = transform("compiler/compile-xslt-tests.xsl", description, Map.of());
-        XsltExecutable tests = processor.newXsltCompiler().compile(withSystemId(compiled, systemId));
+        net.sf.saxon.s9api.XsltCompiler compiler = processor.newXsltCompiler();
+        prepareCompile(compiler);
+        XsltExecutable tests = compiler.compile(withSystemId(compiled, systemId));
         Xslt30Transformer transformer = tests.load30();
+        prepareRun(transformer);
         XdmDestination report = new XdmDestination();
         transformer.callTemplate(new QName(XSPEC_NS, "main"), report);
         return report.getXdmNode();
@@ -180,7 +255,12 @@ public final class XSpecRunner {
         String query = transformToText("compiler/compile-xquery-tests.xsl", description);
         var compiler = processor.newXQueryCompiler();
         compiler.setBaseURI(java.net.URI.create(systemId));
+        compiler.setCompileWithTracing(sandboxed());
         XQueryEvaluator evaluator = compiler.compile(query).load();
+        if (sandboxed()) {
+            XsltSandbox.lockDown(processor);
+            evaluator.setTraceListener(new XsltSandbox.DeadlineListener(deadlineNanos));
+        }
         XdmDestination report = new XdmDestination();
         evaluator.run(report);
         return report.getXdmNode();
@@ -189,6 +269,8 @@ public final class XSpecRunner {
     private XdmNode runSchematron(XdmNode description, String systemId) throws SaxonApiException, IOException {
         XdmNode compiledSchematron = transform("schematron/schut-to-xslt.xsl", description, Map.of());
         Path temp = Files.createTempFile("fxt-xspec-schematron", ".xsl");
+        String tempUri = temp.toUri().toString();
+        allowedPrefixes.add(tempUri);
         try {
             Files.writeString(temp, serialize(compiledSchematron), StandardCharsets.UTF_8);
             XdmNode tests = transform("schematron/schut-to-xspec.xsl", description,
@@ -196,6 +278,7 @@ public final class XSpecRunner {
             XdmNode rebased = processor.newDocumentBuilder().build(source(serialize(tests), systemId));
             return runXslt(rebased, systemId);
         } finally {
+            allowedPrefixes.remove(tempUri);
             Files.deleteIfExists(temp);
         }
     }
