@@ -1015,12 +1015,15 @@ public class ValidationPanel extends VBox {
             IconifyIcon icon = icon(warning ? "bi-exclamation-triangle-fill" : "bi-x-circle", 13);
             icon.getStyleClass().add(warning ? "sev-warning" : "sev-error");
             setGraphic(icon);
-            setContextMenu(item.hasFixes()
-                    ? new javafx.scene.control.ContextMenu(
-                            org.fxt.freexmltoolkit.controls.shell.editor.quickfix.QuickFixMenuFactory
-                                    .buildQuickFixMenu(item, fix -> editorHost
-                                            .getQuickFixController().applyFix(item, fix)))
-                    : null);
+            javafx.scene.control.ContextMenu menu = new javafx.scene.control.ContextMenu();
+            if (item.hasFixes()) {
+                menu.getItems().add(org.fxt.freexmltoolkit.controls.shell.editor.quickfix.QuickFixMenuFactory
+                        .buildQuickFixMenu(item, fix -> editorHost.getQuickFixController().applyFix(item, fix)));
+            }
+            var ai = org.fxt.freexmltoolkit.controls.shell.editor.ai.AiActions.problemItems(editorHost, item);
+            // the separator AiActions puts first is only needed after the quick fixes
+            menu.getItems().addAll(menu.getItems().isEmpty() && !ai.isEmpty() ? ai.subList(1, ai.size()) : ai);
+            setContextMenu(menu.getItems().isEmpty() ? null : menu);
         }
     }
 

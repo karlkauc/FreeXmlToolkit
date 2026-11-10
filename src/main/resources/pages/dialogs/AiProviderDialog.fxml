@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!-- Content of AiProviderDialog (Settings → AI → Add / Edit provider). Buttons, validation and Test in code. -->
+<GridPane hgap="8" vgap="8" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets top="8" right="8" bottom="8" left="8"/>
+    </padding>
+    <children>
+        <Label text="%AiProviderDialog.preset.text" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="presetChoice" id="ai-provider-preset" maxWidth="Infinity"
+                  GridPane.rowIndex="0" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+        <Label text="%AiProviderDialog.name.text" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextField fx:id="nameField" id="ai-provider-name" prefColumnCount="36"
+                   GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+        <Label text="%AiProviderDialog.baseUrl.text" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <TextField fx:id="baseUrlField" id="ai-provider-base-url" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <Label fx:id="localBadge" id="ai-provider-local" styleClass="fxt-status-badge" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+        <Label text="%AiProviderDialog.model.text" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="modelChoice" id="ai-provider-model" maxWidth="Infinity" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+        <Button fx:id="loadModelsButton" id="ai-provider-load-models" text="%AiProviderDialog.loadModels.text"
+                onAction="#onLoadModels" GridPane.rowIndex="3" GridPane.columnIndex="2">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/>
+            </graphic>
+        </Button>
+        <Label text="%AiProviderDialog.apiKey.text" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <PasswordField fx:id="apiKeyField" id="ai-provider-api-key" promptText="%AiProviderDialog.apiKeyField.promptText"
+                       GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+        <Button id="ai-provider-clear-key" text="%AiProviderDialog.clearKey.text" onAction="#onClearKey"
+                GridPane.rowIndex="4" GridPane.columnIndex="2">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-x-circle" iconSize="16"/>
+            </graphic>
+        </Button>
+        <Label fx:id="apiKeyNote" id="ai-provider-key-note" wrapText="true" minHeight="-Infinity" maxWidth="520"
+               styleClass="fxt-placeholder-text" GridPane.rowIndex="5" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+        <Label text="%AiProviderDialog.apiKeyEnv.text" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+        <TextField fx:id="apiKeyEnvField" id="ai-provider-api-key-env" promptText="%AiProviderDialog.apiKeyEnvField.promptText"
+                   GridPane.rowIndex="6" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+        <Label text="%AiProviderDialog.authHeader.text" GridPane.rowIndex="7" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="authHeaderChoice" id="ai-provider-auth-header" GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+        <Label text="%AiProviderDialog.tokenField.text" GridPane.rowIndex="8" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="tokenFieldChoice" id="ai-provider-token-field" GridPane.rowIndex="8" GridPane.columnIndex="1"/>
+        <Label text="%AiProviderDialog.maxTokens.text" GridPane.rowIndex="9" GridPane.columnIndex="0"/>
+        <Spinner fx:id="maxTokensSpinner" id="ai-provider-max-tokens" editable="true" GridPane.rowIndex="9" GridPane.columnIndex="1">
+            <valueFactory>
+                <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="256" max="128000" initialValue="8192" amountToStepBy="1024"/>
+            </valueFactory>
+        </Spinner>
+        <Label text="%AiProviderDialog.timeout.text" GridPane.rowIndex="10" GridPane.columnIndex="0"/>
+        <Spinner fx:id="timeoutSpinner" id="ai-provider-timeout" editable="true" GridPane.rowIndex="10" GridPane.columnIndex="1">
+            <valueFactory>
+                <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="10" max="3600" initialValue="300" amountToStepBy="30"/>
+            </valueFactory>
+        </Spinner>
+        <HBox spacing="8" alignment="CENTER_LEFT" GridPane.rowIndex="11" GridPane.columnIndex="1" GridPane.columnSpan="2">
+            <children>
+                <Button fx:id="testButton" id="ai-provider-test" text="%AiProviderDialog.test.text" onAction="#onTest">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-play-circle" iconSize="16"/>
+                    </graphic>
+                </Button>
+                <Label fx:id="testStatus" id="ai-provider-test-status" wrapText="true" minHeight="-Infinity" maxWidth="440"/>
+            </children>
+        </HBox>
+        <Label fx:id="error" id="ai-provider-error" wrapText="true" minHeight="-Infinity" maxWidth="560"
+               styleClass="fxt-dialog-error" visible="false" managed="false" GridPane.rowIndex="12" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+    </children>
+</GridPane>

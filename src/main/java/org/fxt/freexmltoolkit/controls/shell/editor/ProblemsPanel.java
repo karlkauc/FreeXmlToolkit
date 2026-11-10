@@ -171,6 +171,8 @@ public class ProblemsPanel extends VBox {
                         () -> copyToClipboard(describe(item, documentName()))),
                 menuItem("problems-ctx-copy-all", I18n.t("ProblemsPanel.copy-all-problems"), "bi-clipboard-data",
                         () -> copyToClipboard(describeAll(items, documentName()))));
+        // Explain / Fix with AI — after the deterministic quick fixes and the copy actions, only when AI is on
+        menu.getItems().addAll(org.fxt.freexmltoolkit.controls.shell.editor.ai.AiActions.problemItems(editorHost, item));
         return menu;
     }
 

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!-- The AI panel of the editor's bottom dock (AiProposalView): progress, proposal, checks, actions. -->
+<fx:root type="javafx.scene.layout.VBox" spacing="6" styleClass="fxt-side-panel-content"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="8"/>
+    </padding>
+    <children>
+        <HBox spacing="8" alignment="CENTER_LEFT">
+            <children>
+                <IconifyIcon iconLiteral="bi-stars" iconSize="16"/>
+                <Label fx:id="title" id="ai-proposal-title" styleClass="fxt-side-panel-title"/>
+                <ProgressIndicator fx:id="progress" id="ai-proposal-progress" prefWidth="16" prefHeight="16"/>
+                <Label fx:id="status" id="ai-proposal-status" wrapText="true" styleClass="fxt-output-status"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="cancelButton" id="ai-proposal-cancel" text="%AiProposalView.cancel.text" styleClass="fxt-tool-button" onAction="#onCancel">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-stop-circle" iconSize="16"/>
+                    </graphic>
+                </Button>
+            </children>
+        </HBox>
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+            <content>
+                <VBox spacing="6">
+                    <children>
+                        <TextArea fx:id="answer" id="ai-proposal-answer" editable="false" wrapText="true" prefRowCount="4"/>
+                        <StackPane fx:id="contentHost" id="ai-proposal-content"/>
+                        <VBox fx:id="checks" id="ai-proposal-checks" spacing="4"/>
+                    </children>
+                </VBox>
+            </content>
+        </ScrollPane>
+        <FlowPane hgap="6" vgap="6">
+            <children>
+                <Button fx:id="applyButton" id="ai-proposal-apply" text="%AiProposalView.apply.text" styleClass="fxt-tool-button" onAction="#onApply">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-check-lg" iconSize="16"/>
+                    </graphic>
+                </Button>
+                <Button fx:id="applyUnverifiedButton" id="ai-proposal-apply-unverified" text="%AiProposalView.applyUnverified.text" styleClass="fxt-tool-button" onAction="#onApplyUnverified">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-exclamation-triangle" iconSize="16"/>
+                    </graphic>
+                </Button>
+                <Button fx:id="openButton" id="ai-proposal-open" text="%AiProposalView.open.text" styleClass="fxt-tool-button" onAction="#onOpen">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="16"/>
+                    </graphic>
+                </Button>
+                <Button fx:id="copyButton" id="ai-proposal-copy" text="%AiProposalView.copy.text" styleClass="fxt-tool-button" onAction="#onCopy">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-clipboard" iconSize="16"/>
+                    </graphic>
+                </Button>
+                <Button fx:id="discardButton" id="ai-proposal-discard" text="%AiProposalView.discard.text" styleClass="fxt-tool-button" onAction="#onDiscard">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-x-lg" iconSize="16"/>
+                    </graphic>
+                </Button>
+            </children>
+        </FlowPane>
+    </children>
+</fx:root>

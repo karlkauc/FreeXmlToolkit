@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.GridPane?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!-- Content of GenerateStylesheetDialog (Transform panel → Generate stylesheet…). Buttons and validation in code. -->
+<GridPane hgap="8" vgap="8" prefWidth="620" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets top="8" right="8" bottom="8" left="8"/>
+    </padding>
+    <children>
+        <Label text="%GenerateStylesheetDialog.source.text" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <Label fx:id="sourceLabel" id="ai-xslt-source" GridPane.rowIndex="0" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+        <Label text="%GenerateStylesheetDialog.target.text" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextField fx:id="targetField" id="ai-xslt-target" promptText="%GenerateStylesheetDialog.targetField.promptText"
+                   GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <Button id="ai-xslt-target-browse" text="%GenerateStylesheetDialog.browse.text" onAction="#onBrowseTarget"
+                GridPane.rowIndex="1" GridPane.columnIndex="2">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+            </graphic>
+        </Button>
+        <Label text="%GenerateStylesheetDialog.schema.text" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <TextField fx:id="schemaField" id="ai-xslt-schema" promptText="%GenerateStylesheetDialog.schemaField.promptText"
+                   GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <Button id="ai-xslt-schema-browse" text="%GenerateStylesheetDialog.browse.text" onAction="#onBrowseSchema"
+                GridPane.rowIndex="2" GridPane.columnIndex="2">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+            </graphic>
+        </Button>
+        <Label text="%GenerateStylesheetDialog.version.text" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="versionChoice" id="ai-xslt-version" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+        <Label text="%GenerateStylesheetDialog.notes.text" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <TextArea fx:id="notesArea" id="ai-xslt-notes" prefRowCount="4" wrapText="true"
+                  promptText="%GenerateStylesheetDialog.notesArea.promptText"
+                  GridPane.rowIndex="4" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+        <Label fx:id="error" id="ai-xslt-error" wrapText="true" minHeight="-Infinity" visible="false" managed="false"
+               styleClass="fxt-dialog-error" GridPane.rowIndex="5" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
+    </children>
+</GridPane>

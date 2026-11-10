@@ -23,6 +23,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.ai.AiSettingsPane?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.FoProcessorsSettings?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.SettingsCard?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.SettingsCardGrid?>
@@ -748,6 +749,21 @@
                                                 </Hyperlink>
                                             </children>
                                         </SettingsCard>
+                                            </children>
+                                        </SettingsCardGrid>
+                                    </children>
+                                </VBox>
+                                <!-- AI: removed from the page by SettingsPanel when the policy sets ai.allowed=false -->
+                                <VBox fx:id="aiGroup" id="settings-group-ai" spacing="12" styleClass="fxt-settings-group">
+                                    <children>
+                                        <Label text="%SettingsPanel.ai.text" styleClass="fxt-settings-group-title"/>
+                                        <SettingsCardGrid color="#7c3aed">
+                                            <children>
+                                                <SettingsCard title="%SettingsPanel.ai-assistant.title" iconLiteral="bi-stars">
+                                                    <children>
+                                                        <AiSettingsPane fx:id="aiSettings"/>
+                                                    </children>
+                                                </SettingsCard>
                                             </children>
                                         </SettingsCardGrid>
                                     </children>

@@ -66,6 +66,7 @@ public class TransformPanel extends VBox {
     @FXML private Button debugButton;
     private final MenuButton recentXsltMenu = new MenuButton();
     @FXML private PanelActionList tools;
+    @FXML private PanelActionButton generateStylesheetButton;
     @FXML private javafx.scene.control.CheckBox runAutomatically;
     @FXML private javafx.scene.control.CheckBox livePreview;
     @FXML private javafx.scene.control.CheckBox watchXslt;
@@ -137,6 +138,8 @@ public class TransformPanel extends VBox {
         this.editorHost = editorHost;
         this.out = editorHost.transformOutputPanel();
         FxmlViews.load(this, "/pages/panels/TransformPanel.fxml");
+        generateStylesheetButton.visibleProperty().bind(org.fxt.freexmltoolkit.controls.shell.editor.ai.AiState.availableProperty());
+        generateStylesheetButton.managedProperty().bind(generateStylesheetButton.visibleProperty());
 
         // --- STYLESHEET -----------------------------------------------------
         recentXsltMenu.setGraphic(icon("bi-clock-history", 13));
@@ -650,6 +653,39 @@ public class TransformPanel extends VBox {
     @FXML
     public void onTransform() {
         transform();
+    }
+
+    /** Generate stylesheet… (AI): from the panel's input document and a target sample. */
+    @FXML
+    public void onGenerateStylesheet() {
+        String source;
+        String name;
+        File file;
+        try {
+            if (inputOverride != null) {
+                file = inputOverride;
+                name = inputOverride.getName();
+                source = java.nio.file.Files.readString(inputOverride.toPath());
+            } else {
+                OpenDocument input = inputDocument().orElse(null);
+                if (input == null) {
+                    org.fxt.freexmltoolkit.util.DialogHelper.showInformation(I18n.t("GenerateStylesheetDialog.title"),
+                            I18n.t("TransformPanel.ai.noInput"), "");
+                    return;
+                }
+                name = input.getDisplayName();
+                file = input.getPath() == null ? null : input.getPath().toFile();
+                boolean active = editorHost.getActiveDocument().map(d -> d == input).orElse(false);
+                source = active ? editorHost.getActiveText().orElse("")
+                        : file != null ? java.nio.file.Files.readString(file.toPath()) : "";
+            }
+        } catch (java.io.IOException e) {
+            org.fxt.freexmltoolkit.util.DialogHelper.showError(I18n.t("GenerateStylesheetDialog.title"), e.getMessage(), "");
+            return;
+        }
+        new org.fxt.freexmltoolkit.controls.shell.editor.ai.GenerateStylesheetDialog(source, name, file).showAndWait()
+                .ifPresent(request -> org.fxt.freexmltoolkit.controls.shell.editor.ai.AiActions.generateStylesheet(
+                        editorHost, request));
     }
 
     @FXML

@@ -106,6 +106,15 @@
                                 <Tooltip text="%QueryConsole.the-query-runs-against-the.text"/>
                             </tooltip>
                         </Label>
+                        <Button fx:id="askButton" id="query-ask-ai" text="%QueryConsole.askButton.text" styleClass="fxt-tool-button"
+                                onAction="#onAskAi">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-stars" iconSize="16"/>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="%QueryConsole.askButton.tooltip"/>
+                            </tooltip>
+                        </Button>
                     </children>
                 </HBox>
                 <StackPane fx:id="inputStack" maxHeight="Infinity" VBox.vgrow="ALWAYS"/>

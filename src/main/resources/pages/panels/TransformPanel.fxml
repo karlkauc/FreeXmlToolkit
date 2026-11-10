@@ -77,6 +77,9 @@
                                         <PanelActionButton id="transform-tool-stats" iconLiteral="bi-speedometer2"
                                                            text="%TransformPanel.transform-tool-stats.text" color="NAVIGATE"
                                                            onAction="#onOpenExecutionStats"/>
+                                        <PanelActionButton fx:id="generateStylesheetButton" id="transform-tool-ai-generate" iconLiteral="bi-stars"
+                                                           text="%TransformPanel.transform-tool-ai-generate.text" color="TOOL"
+                                                           onAction="#onGenerateStylesheet"/>
                                     </children>
                                 </PanelActionList>
                             </children>

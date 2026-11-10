@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Settings → AI (AiSettingsPane): on/off, data levels, preview, providers. Changes are saved at once.
+-->
+<fx:root type="javafx.scene.layout.VBox" spacing="8"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <Label text="%AiSettingsPane.intro.text" wrapText="true" minHeight="-Infinity" styleClass="fxt-placeholder-text"/>
+        <CheckBox fx:id="enabledBox" id="settings-ai-enabled" text="%AiSettingsPane.enabled.text"/>
+        <VBox fx:id="details" spacing="8">
+            <children>
+                <GridPane hgap="8" vgap="6">
+                    <children>
+                        <Label text="%AiSettingsPane.dataLevel.text" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                        <ComboBox fx:id="dataLevelChoice" id="settings-ai-data-level" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                        <Label text="%AiSettingsPane.dataLevelRemote.text" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                        <ComboBox fx:id="dataLevelRemoteChoice" id="settings-ai-data-level-remote" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                    </children>
+                </GridPane>
+                <Label text="%AiSettingsPane.levels.text" wrapText="true" minHeight="-Infinity" styleClass="fxt-placeholder-text"/>
+                <CheckBox fx:id="previewBox" id="settings-ai-preview" text="%AiSettingsPane.preview.text"/>
+                <Label text="%AiSettingsPane.providers.text" styleClass="fxt-text-sm"/>
+                <ListView fx:id="providerList" id="settings-ai-providers" prefHeight="120" minHeight="80"/>
+                <FlowPane hgap="6" vgap="6">
+                    <children>
+                        <Button fx:id="addButton" id="settings-ai-add" text="%AiSettingsPane.addButton.text" styleClass="fxt-tool-button" onAction="#onAdd">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-plus-lg" iconSize="16"/>
+                            </graphic>
+                        </Button>
+                        <Button fx:id="editButton" id="settings-ai-edit" text="%AiSettingsPane.editButton.text" styleClass="fxt-tool-button" onAction="#onEdit">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-pencil" iconSize="16"/>
+                            </graphic>
+                        </Button>
+                        <Button fx:id="removeButton" id="settings-ai-remove" text="%AiSettingsPane.removeButton.text" styleClass="fxt-tool-button" onAction="#onRemove">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>
+                            </graphic>
+                        </Button>
+                        <Button fx:id="defaultButton" id="settings-ai-default" text="%AiSettingsPane.defaultButton.text" styleClass="fxt-tool-button" onAction="#onMakeDefault">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-star" iconSize="16"/>
+                            </graphic>
+                        </Button>
+                    </children>
+                </FlowPane>
+                <Label fx:id="policyNote" id="settings-ai-policy" text="%AiSettingsPane.policyNote.text"
+                       wrapText="true" minHeight="-Infinity" visible="false" managed="false" styleClass="fxt-placeholder-text"/>
+            </children>
+        </VBox>
+        <Label text="%AiSettingsPane.mcp.text" wrapText="true" minHeight="-Infinity" styleClass="fxt-placeholder-text"/>
+    </children>
+</fx:root>

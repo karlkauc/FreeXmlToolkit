@@ -91,6 +91,7 @@ public class QueryConsole extends Region {
     private XPathIntelliSenseEngine xqueryIntelliSense;
 
     @FXML private Button runButton;
+    @FXML private Button askButton;
 
     /** Monotonic run id; a late async result is dropped if a newer run has started (FX-thread only). */
     private int runGeneration;
@@ -114,6 +115,8 @@ public class QueryConsole extends Region {
         getStyleClass().add("fxt-query-console");
 
         SplitPane split = FxmlViews.loadContent(this, "/pages/views/QueryConsole.fxml");
+        askButton.visibleProperty().bind(org.fxt.freexmltoolkit.controls.shell.editor.ai.AiState.availableProperty());
+        askButton.managedProperty().bind(askButton.visibleProperty());
         initInput();
         initResults();
 
@@ -348,6 +351,25 @@ public class QueryConsole extends Region {
         } else {
             xpathField.requestFocus();
         }
+    }
+
+    /**
+     * Ask AI: a question in the user's words becomes an XPath expression (or an XQuery query in XQuery mode), verified
+     * against the active document, and is placed into the input — Run stays the user's action.
+     */
+    @FXML
+    public void onAskAi() {
+        if (isJsonActive()) {
+            org.fxt.freexmltoolkit.util.DialogHelper.showInformation(org.fxt.freexmltoolkit.i18n.I18n.t(
+                    "QueryConsole.ask.title"), org.fxt.freexmltoolkit.i18n.I18n.t("QueryConsole.ask.json"), "");
+            return;
+        }
+        boolean xquery = isXQueryMode();
+        org.fxt.freexmltoolkit.util.DialogHelper.promptText(org.fxt.freexmltoolkit.i18n.I18n.t("QueryConsole.ask.title"),
+                org.fxt.freexmltoolkit.i18n.I18n.t(xquery ? "QueryConsole.ask.headerXQuery" : "QueryConsole.ask.headerXPath"),
+                org.fxt.freexmltoolkit.i18n.I18n.t("QueryConsole.ask.label"), "").filter(q -> !q.isBlank())
+                .ifPresent(question -> org.fxt.freexmltoolkit.controls.shell.editor.ai.AiActions.askQuery(editorHost,
+                        question.strip(), xquery, expression -> setText(xquery ? xqueryArea : xpathField, expression)));
     }
 
     /** Runs the current query (XPath or XQuery) against the active document. */

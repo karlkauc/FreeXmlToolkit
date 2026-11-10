@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Content of AiSendPreviewDialog: exactly what goes to the AI provider. Buttons in code. -->
+<VBox spacing="8" prefWidth="720" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <HBox spacing="8">
+            <children>
+                <Label fx:id="providerLabel" id="ai-preview-provider" styleClass="fxt-text-sm"/>
+                <Label fx:id="badge" id="ai-preview-badge" styleClass="fxt-status-badge"/>
+            </children>
+        </HBox>
+        <Label fx:id="levelLabel" id="ai-preview-level" wrapText="true" minHeight="-Infinity" styleClass="fxt-placeholder-text"/>
+        <Label fx:id="droppedLabel" id="ai-preview-dropped" wrapText="true" minHeight="-Infinity" styleClass="fxt-placeholder-text"/>
+        <TextArea fx:id="requestText" id="ai-preview-text" editable="false" wrapText="true" prefRowCount="22"
+                  styleClass="fxt-mono-text" VBox.vgrow="ALWAYS"/>
+        <CheckBox fx:id="dontShow" id="ai-preview-dont-show" text="%AiSendPreviewDialog.dontShow.text"/>
+    </children>
+</VBox>

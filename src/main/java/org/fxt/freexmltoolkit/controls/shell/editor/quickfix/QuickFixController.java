@@ -60,6 +60,13 @@ public final class QuickFixController {
         this.onFixApplied = onFixApplied;
     }
 
+    /** Runs the after-fix hook (re-validation) for a fix applied elsewhere, e.g. by the AI assistant. */
+    public void fixApplied() {
+        if (onFixApplied != null) {
+            onFixApplied.run();
+        }
+    }
+
     /**
      * Applies the chosen fix to the active document. Call on the FX thread.
      *

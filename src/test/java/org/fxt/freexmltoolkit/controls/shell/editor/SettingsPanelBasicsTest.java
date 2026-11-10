@@ -48,10 +48,10 @@ class SettingsPanelBasicsTest {
     }
 
     @Test
-    void cardsComeInSevenGroupsWhichTheSidePanelLists() {
+    void cardsComeInEightGroupsWhichTheSidePanelLists() {
         WaitForAsyncUtils.waitForFxEvents();
         var sections = settings.sections();
-        assertEquals(java.util.List.of("appearance", "editor", "schemas", "files", "network", "privacy", "extensions"),
+        assertEquals(java.util.List.of("appearance", "editor", "schemas", "files", "network", "privacy", "ai", "extensions"),
                 sections.stream().map(PageNavigator.Entry::key).toList());
         assertEquals("Schemas & Validation", sections.get(2).label());
         assertTrue(sections.get(4).keywords().contains("Trust all certificates"),

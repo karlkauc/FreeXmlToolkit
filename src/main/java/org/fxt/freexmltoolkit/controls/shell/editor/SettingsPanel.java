@@ -49,7 +49,7 @@ public class SettingsPanel extends VBox {
     private static final java.util.Map<String, String> GROUP_ICONS = java.util.Map.of(
             "appearance", "bi-palette", "editor", "bi-pencil-square", "schemas", "bi-diagram-3",
             "files", "bi-folder2", "network", "bi-globe", "privacy", "bi-incognito",
-            "extensions", "bi-puzzle");
+            "extensions", "bi-puzzle", "ai", "bi-stars");
     private static final String GROUP_ID_PREFIX = "settings-group-";
 
     @FXML private javafx.scene.control.ScrollPane scroll;
@@ -210,6 +210,8 @@ public class SettingsPanel extends VBox {
     @FXML private javafx.scene.control.ComboBox<org.fxt.freexmltoolkit.i18n.I18n.Language> uiLanguage;
     @FXML private VBox pluginRows;
     @FXML private FoProcessorsSettings foProcessors;
+    @FXML private VBox aiGroup;
+    @FXML private org.fxt.freexmltoolkit.controls.shell.editor.ai.AiSettingsPane aiSettings;
     /** One switch per plugin that can be switched (built-in and external, not failed ones). */
     private final java.util.Map<String, CheckBox> pluginSwitches = new java.util.LinkedHashMap<>();
 
@@ -252,6 +254,10 @@ public class SettingsPanel extends VBox {
     /** Loads the layout from {@code /pages/views/SettingsPanel.fxml} and fills in the saved values. */
     public SettingsPanel() {
         FxmlViews.load(this, "/pages/views/SettingsPanel.fxml");
+        if (!org.fxt.freexmltoolkit.service.ai.AiPolicy.allowed()) {
+            // ai.allowed=false: no AI control at all, not even a disabled one (and no navigator entry)
+            groups.getChildren().remove(aiGroup);
+        }
 
         switch (org.fxt.freexmltoolkit.controls.shell.ThemeManager.currentMode()) {
             case DARK -> dark.setSelected(true);
@@ -475,7 +481,7 @@ public class SettingsPanel extends VBox {
                         editorFontFamily, editorFontSize, editorLineSpacing, editorRememberZoom,
                         uiFontSmall, uiFontNormal, uiFontLarge, uiFontXLarge, uiFontFamily,
                         densityCompact, densityNormal, densityComfortable, highContrast,
-                        syntaxScheme, syntaxRoles));
+                        syntaxScheme, syntaxRoles, aiSettings));
         immediate.addAll(associationCheckBoxes().keySet());
         javafx.beans.InvalidationListener mark = obs -> {
             if (!loading) {
@@ -1318,6 +1324,7 @@ public class SettingsPanel extends VBox {
         keys.put(templatesDir, new String[] {"templates.directory"});
         keys.put(schemaLibraryAutoBind, new String[] {"schemaLibrary.autoBind.enabled"});
         keys.put(uiLanguage, new String[] {org.fxt.freexmltoolkit.i18n.I18n.SETTING});
+        keys.putAll(aiSettings.policyKeys());
         keys.put(foProcessors, new String[] {org.fxt.freexmltoolkit.service.fo.FoProcessorStore.KEY_PROCESSORS,
                 org.fxt.freexmltoolkit.service.fo.FoProcessorStore.KEY_DEFAULT});
         return keys;
