@@ -914,6 +914,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp-server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP Server (AI agents)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -3243,7 +3271,8 @@ grid formulas and filters: <code>doc()</code>, <code>document()</code> and <code
 XSD documentation (all assets are bundled), the user interface's icons and fonts.</p>
 <p>The <a href="../command-line/">command line</a> (<code>fxt-cli</code>) connects only for what the files ask for (the
 schema rows above); it sends no telemetry, does not check for updates and does not start the
-FundsXML extension.</p>
+FundsXML extension. This includes <code>fxt-cli mcp</code>, the <a href="../mcp-server/">MCP server</a> for AI agents: it talks to the
+agent over standard input and output, opens no port and calls no AI service.</p>
 <h2 id="schemas-without-the-internet">Schemas without the internet<a class="headerlink" href="#schemas-without-the-internet" title="Permanent link">¶</a></h2>
 <p>Give the application a local copy of every schema your documents and schemas refer to:</p>
 <ol>

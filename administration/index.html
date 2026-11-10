@@ -914,6 +914,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp-server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP Server (AI agents)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -3367,6 +3395,16 @@ forward slashes (<code>C:/Schemas</code>). Characters outside Latin-1 have to be
 <td><code>xmlenc.legacyAlgorithms.allowed</code></td>
 <td><code>false</code></td>
 <td><strong>Policy only.</strong> Block the legacy XML encryption algorithms (RSA-1_5, TripleDES, CBC modes, finite-field DH) for encryption and decryption</td>
+</tr>
+<tr>
+<td><code>ai.allowed</code></td>
+<td><code>false</code></td>
+<td><strong>Policy only.</strong> Every AI feature off; today that is the <a href="../mcp-server/">MCP server</a> (<code>fxt-cli mcp</code> refuses to start)</td>
+</tr>
+<tr>
+<td><code>ai.mcp.allowed</code></td>
+<td><code>false</code></td>
+<td><strong>Policy only.</strong> <code>fxt-cli mcp</code> refuses to start, so AI agents cannot use the application's tools</td>
 </tr>
 <tr>
 <td><code>plugin.&lt;id&gt;.enabled</code></td>
