@@ -62,6 +62,7 @@
 - Create: `…/service/ai/tool/ToolRegistry.java`
 - Create: `…/service/ai/tool/ToolArgs.java` (typed access to a `JsonObject`: required/optional string, int, boolean, string map; unknown keys → `ToolException`)
 - Create: `…/service/ai/tool/ToolInput.java` (resolves "`path` or `content`" argument pairs to text + optional file)
+- Create: `…/service/ai/tool/ToolSchemas.java` (builder for the argument schemas; the path/content pair as `input(name, what)`)
 - Test: `src/test/java/org/fxt/freexmltoolkit/service/ai/tool/WorkspaceAccessTest.java`, `ToolArgsTest.java`, `ToolRegistryTest.java`
 - Test: `src/test/java/org/fxt/freexmltoolkit/service/ai/AiLayeringGuardTest.java`
 
@@ -113,10 +114,10 @@ public final class ToolRegistry {
 
 **Steps:**
 
-- [ ] **Step 1 (red):** `WorkspaceAccessTest` — inside root resolves; `../` escape refused; absolute path outside refused; symlink pointing outside refused (skip on platforms without symlink rights via `Assumptions`); non-existing file under a root allowed for `resolve`, refused by `read`; a file larger than `maxBytes` refused with the size in the message; relative paths resolve against the first root. `ToolArgsTest` — missing required, wrong type, unknown key each give a `ToolException` naming the argument. `ToolRegistryTest` — `only(...)` with an unknown name throws; `call` of an unknown tool returns an error result; a tool that throws `RuntimeException` yields an error result (failure contained, as plugin validators are).
-- [ ] **Step 2 (green):** implement. Look at `util/PathValidator` first and reuse what fits instead of duplicating checks.
-- [ ] **Step 3:** `AiLayeringGuardTest`: walk `src/main/java/org/fxt/freexmltoolkit/service/ai`, fail on `import javafx.` anywhere and on `io.modelcontextprotocol` outside `service/ai/mcp/` (model the test on `HttpCallsGuardTest`).
-- [ ] **Step 4:** run the three tests and `HttpCallsGuardTest`; commit.
+- [x] **Step 1 (red):** `WorkspaceAccessTest` — inside root resolves; `../` escape refused; absolute path outside refused; symlink pointing outside refused (skip on platforms without symlink rights via `Assumptions`); non-existing file under a root allowed for `resolve`, refused by `read`; a file larger than `maxBytes` refused with the size in the message; relative paths resolve against the first root. `ToolArgsTest` — missing required, wrong type, unknown key each give a `ToolException` naming the argument. `ToolRegistryTest` — `only(...)` with an unknown name throws; `call` of an unknown tool returns an error result; a tool that throws `RuntimeException` yields an error result (failure contained, as plugin validators are).
+- [x] **Step 2 (green):** implement. Look at `util/PathValidator` first and reuse what fits instead of duplicating checks.
+- [x] **Step 3:** `AiLayeringGuardTest`: walk `src/main/java/org/fxt/freexmltoolkit/service/ai`, fail on `import javafx.` anywhere and on `io.modelcontextprotocol` outside `service/ai/mcp/` (model the test on `HttpCallsGuardTest`).
+- [x] **Step 4:** run the three tests and `HttpCallsGuardTest`; commit.
 
 ---
 
