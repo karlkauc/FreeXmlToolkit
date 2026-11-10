@@ -25,6 +25,9 @@ public interface PluginContext {
     /** Adds a listener called on the JavaFX thread when a document has been opened in the editor. */
     void addDocumentListener(DocumentListener listener);
 
+    /** Adds a status-bar mark shown while the active document is one the plugin recognises. */
+    void addDocumentBadge(DocumentBadge badge);
+
     /** Adds an XML Schema to the Schema Library while the plugin is on. */
     void addSchema(PluginSchema schema);
 

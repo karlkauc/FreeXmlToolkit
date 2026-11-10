@@ -122,6 +122,7 @@ public class UnifiedShellView extends BorderPane {
     @FXML private Label statusChars;
     @FXML private Label statusType;
     @FXML private Label statusEncoding;
+    @FXML private javafx.scene.layout.HBox statusBadges;
     @FXML private Label statusSchema;
     @FXML private Label statusFile;
     @FXML private Label statusLastRun;
@@ -322,7 +323,10 @@ public class UnifiedShellView extends BorderPane {
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> {
             watchActiveEncoding();
             updateStatusBar();
+            updateDocumentBadges();
         });
+        statusBadges.managedProperty().bind(javafx.beans.binding.Bindings.isNotEmpty(statusBadges.getChildren()));
+        statusBadges.visibleProperty().bind(statusBadges.managedProperty());
         watchActiveEncoding();
         updateStatusBar();
 
@@ -338,6 +342,9 @@ public class UnifiedShellView extends BorderPane {
             if (doc == validateWhenLoaded) {
                 validateWhenLoaded = null;
                 validateActive();
+            }
+            if (editorHost.getActiveDocument().orElse(null) == doc) {
+                updateDocumentBadges();
             }
             for (var listener : org.fxt.freexmltoolkit.plugin.PluginManager.getInstance().documentListeners()) {
                 try {
@@ -550,6 +557,45 @@ public class UnifiedShellView extends BorderPane {
         activityBar.refresh();
         if (menuBar != null) {
             menuBar.refreshPluginItems();
+        }
+        updateDocumentBadges();
+    }
+
+    /**
+     * Shows the plugins' marks for the active document in the status bar (a chip in the plugin's
+     * workflow colours, "FundsXML" while the FundsXML extension is on and the document is FundsXML),
+     * so the user sees that a plugin recognised the document and its checks apply.
+     */
+    void updateDocumentBadges() {
+        if (statusBadges == null) {
+            return;
+        }
+        statusBadges.getChildren().clear();
+        var doc = editorHost.getActiveDocument().orElse(null);
+        if (doc == null) {
+            return;
+        }
+        String text = editorHost.getActiveText().orElse(null);
+        for (var badge : org.fxt.freexmltoolkit.plugin.PluginManager.getInstance().badgesFor(doc.getPath(), text)) {
+            Label chip = new Label(badge.text());
+            chip.getStyleClass().addAll("fxt-status-item", "fxt-status-badge", "fxt-status-document-badge");
+            org.fxt.freexmltoolkit.controls.theme.WorkflowStyle.apply(chip, badge.workflow());
+            if (badge.icon() != null) {
+                IconifyIcon icon = new IconifyIcon(badge.icon());
+                icon.setIconSize(11);
+                // the chip's text colour comes from the workflow CSS; the icon follows it
+                icon.iconColorProperty().bind(chip.textFillProperty());
+                chip.setGraphic(icon);
+                chip.setGraphicTextGap(4);
+            }
+            if (badge.tooltip() != null) {
+                chip.setTooltip(new javafx.scene.control.Tooltip(badge.tooltip()));
+            }
+            if (badge.onClick() != null) {
+                chip.setCursor(javafx.scene.Cursor.HAND);
+                chip.setOnMouseClicked(e -> badge.onClick().accept(pluginUi()));
+            }
+            statusBadges.getChildren().add(chip);
         }
     }
 
@@ -1506,6 +1552,7 @@ public class UnifiedShellView extends BorderPane {
         settings.setManageSchemaCacheAction(this::showSchemaCache);
         settings.setOnSaved(() -> {
             activityBar.refreshLabels();
+            updateDocumentBadges(); // an extension switched on or off adds or removes its mark
             reloadPanelPrefs();
             applyToolbarDisplaySettings();
             // Turning the developer feature off hides the "last run" status-bar item.

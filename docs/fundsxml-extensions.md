@@ -50,6 +50,14 @@ Once enabled, the FundsXML integration appears in several places:
 
 You can turn the feature off again at any time from the same Settings card. Disabling it hides these entries, but leaves the downloaded content on disk intact.
 
+### Recognised documents: the FundsXML mark
+
+While the extension is **on**, a FundsXML document (root element `FundsXML4`, `FundsXML` …) shows a
+small green **FundsXML** mark in the status bar, next to the encoding. It tells you that the
+document was recognised and that the FundsXML data-quality checks run with every validation of it.
+A click opens the **FundsXML** panel. Other documents, or a FundsXML document while the extension
+is off, show no mark.
+
 ### The FundsXML hint bar
 
 You do not have to know about the extension in advance. When you open a document whose root

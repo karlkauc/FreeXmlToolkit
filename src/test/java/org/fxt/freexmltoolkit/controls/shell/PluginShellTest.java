@@ -18,6 +18,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.stage.Stage;
 
+import org.fxt.freexmltoolkit.plugin.DocumentBadge;
 import org.fxt.freexmltoolkit.plugin.FxtPlugin;
 import org.fxt.freexmltoolkit.plugin.PluginActivity;
 import org.fxt.freexmltoolkit.plugin.PluginContext;
@@ -57,6 +58,10 @@ class PluginShellTest {
                     }));
                     context.addMenuItem(new PluginMenuItem(PluginMenuItem.Menu.TOOLS, "sample-tool", "Sample Tool",
                             "bi-puzzle", ui -> RAN.add("tool"), VISIBLE::get));
+                    context.addDocumentBadge((path, content) -> content.contains("<sample")
+                            ? new DocumentBadge.Badge("Sample", "bi-puzzle", "A sample document", null,
+                                    ui -> RAN.add("badge"))
+                            : null);
                     context.addDocumentListener((ui, path, content) -> {
                         OPENED.add(path == null ? "?" : path.getFileName().toString());
                         if (content.contains("<sample")) {
@@ -143,7 +148,33 @@ class PluginShellTest {
             return null;
         });
         assertNull(fx(() -> shell.lookup("#sample-bar")));
+
+        // Document badge: a chip in the status bar while the recognised document is active
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> fx(() -> badgeTexts().equals(List.of("Sample"))));
+        Label chip = fx(() -> (Label) ((javafx.scene.layout.HBox) shell.lookup("#status-document-badges"))
+                .getChildren().getFirst());
+        assertEquals("A sample document", fx(() -> chip.getTooltip().getText()));
+        fx(() -> {
+            chip.getOnMouseClicked().handle(null);
+            return null;
+        });
+        assertTrue(RAN.contains("badge"));
+        Path other = dir.resolve("o.xml");
+        Files.writeString(other, "<other/>");
+        fx(() -> {
+            shell.openFile(other);
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> fx(() -> badgeTexts().isEmpty()
+                && !shell.lookup("#status-document-badges").isVisible()));
+
         assertEquals("sample-plugin", sample.id());
         assertTrue(sample.plugin().isPresent());
+    }
+
+    /** @return the texts of the status bar's document badges (FX thread) */
+    private List<String> badgeTexts() {
+        var box = (javafx.scene.layout.HBox) shell.lookup("#status-document-badges");
+        return box.getChildren().stream().map(n -> ((Label) n).getText()).toList();
     }
 }

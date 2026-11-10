@@ -55,6 +55,7 @@ public final class PluginManager {
     private final List<DocumentValidator> validators = new CopyOnWriteArrayList<>();
     private final List<Runnable> startupTasks = new CopyOnWriteArrayList<>();
     private final List<DocumentListener> documentListeners = new CopyOnWriteArrayList<>();
+    private final List<DocumentBadge> documentBadges = new CopyOnWriteArrayList<>();
     private final List<String> stylesheets = new CopyOnWriteArrayList<>();
     private final List<PluginSchema> schemas = new CopyOnWriteArrayList<>();
     private volatile boolean loaded;
@@ -186,6 +187,7 @@ public final class PluginManager {
         validators.addAll(collector.validators);
         startupTasks.addAll(collector.startupTasks);
         documentListeners.addAll(collector.documentListeners);
+        documentBadges.addAll(collector.documentBadges);
         stylesheets.addAll(collector.stylesheets);
         if (!collector.schemas.isEmpty()) {
             schemas.addAll(collector.schemas);
@@ -254,6 +256,35 @@ public final class PluginManager {
         return List.copyOf(documentListeners);
     }
 
+    /** @return the plugins' status-bar marks for documents */
+    public List<DocumentBadge> documentBadges() {
+        ensureLoaded();
+        return List.copyOf(documentBadges);
+    }
+
+    /**
+     * The marks of the active document; a failing badge is skipped (and logged).
+     *
+     * @return the badges in plugin order, empty when none applies
+     */
+    public List<DocumentBadge.Badge> badgesFor(java.nio.file.Path path, String content) {
+        List<DocumentBadge.Badge> result = new ArrayList<>();
+        if (content == null) {
+            return result;
+        }
+        for (DocumentBadge badge : documentBadges()) {
+            try {
+                DocumentBadge.Badge shown = badge.badgeFor(path, content);
+                if (shown != null) {
+                    result.add(shown);
+                }
+            } catch (RuntimeException | LinkageError e) {
+                logger.warn("Plugin document badge failed", e);
+            }
+        }
+        return result;
+    }
+
     public List<String> stylesheets() {
         ensureLoaded();
         return List.copyOf(stylesheets);
@@ -311,6 +342,7 @@ public final class PluginManager {
         validators.clear();
         startupTasks.clear();
         documentListeners.clear();
+        documentBadges.clear();
         stylesheets.clear();
         if (!schemas.isEmpty()) {
             schemas.clear();
@@ -334,6 +366,7 @@ public final class PluginManager {
         final List<DocumentValidator> validators = new ArrayList<>();
         final List<Runnable> startupTasks = new ArrayList<>();
         final List<DocumentListener> documentListeners = new ArrayList<>();
+        final List<DocumentBadge> documentBadges = new ArrayList<>();
         final List<String> stylesheets = new ArrayList<>();
         final List<PluginSchema> schemas = new ArrayList<>();
 
@@ -347,6 +380,7 @@ public final class PluginManager {
         @Override public void addValidator(DocumentValidator validator) { validators.add(validator); }
         @Override public void addStartupTask(Runnable task) { startupTasks.add(task); }
         @Override public void addDocumentListener(DocumentListener listener) { documentListeners.add(listener); }
+        @Override public void addDocumentBadge(DocumentBadge badge) { documentBadges.add(badge); }
         @Override public void addStylesheet(String url) { stylesheets.add(url); }
         @Override public void addSchema(PluginSchema schema) { schemas.add(schema); }
         @Override public <T> T service(Class<T> type) { return ServiceRegistry.get(type); }

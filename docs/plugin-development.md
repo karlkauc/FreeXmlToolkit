@@ -92,6 +92,7 @@ Everything a plugin adds goes through the `PluginContext` passed to `register`:
 | `addValidator(DocumentValidator)` | Checks that run with every XML validation (Validation panel, F8, `fxt-cli validate`) |
 | `addStartupTask(Runnable)` | A background task a few seconds after start (update checks, cache refresh) |
 | `addDocumentListener(DocumentListener)` | A callback when a document has been opened in the editor |
+| `addDocumentBadge(DocumentBadge)` | A small mark in the status bar while the active document is one your plugin recognises |
 | `addStylesheet(String url)` | A CSS file added to the window, for your panels |
 | `addSchema(PluginSchema)` | An XML Schema in the Schema Library (source *Plugin*) while the plugin is on |
 | `service(Class<T>)` | An application service (see [Application services](#application-services)) |
@@ -157,6 +158,20 @@ context.addDocumentListener((ui, path, content) -> {
 ```
 
 `path` is `null` for unsaved documents. Call `ui.hideEditorBar()` to remove the bar.
+
+### Document badges
+
+```java
+context.addDocumentBadge((path, content) -> looksLikeAnOrder(content)
+        ? new DocumentBadge.Badge("Order", "bi-receipt", "Recognised as an order; the order checks apply.",
+                Workflow.VALIDATION, ui -> ui.showActivity("orders"))
+        : null);
+```
+
+The status bar asks every badge when another document becomes active, a document has been loaded
+or the settings were saved; return `null` when the document is not yours. It runs on the JavaFX
+thread, so look at the text only (no I/O). The chip uses the colours of the given `Workflow`; the
+click action and the icon are optional. FundsXML uses it to show that a document was recognised.
 
 ### Startup tasks
 

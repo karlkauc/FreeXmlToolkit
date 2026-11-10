@@ -336,6 +336,8 @@
                 <Label fx:id="statusType" styleClass="fxt-status-item"/>
                 <Label fx:id="statusSchema" id="status-schema" text="%shell.statusSchema.text" styleClass="fxt-status-item"/>
                 <Label fx:id="statusEncoding" id="status-encoding" text="%shell.statusEncoding.text" styleClass="fxt-status-item"/>
+                <!-- Plugin marks of the active document ("FundsXML"), filled by UnifiedShellView.updateDocumentBadges -->
+                <HBox fx:id="statusBadges" id="status-document-badges" alignment="CENTER_LEFT" spacing="6"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Label fx:id="statusLastRun" styleClass="fxt-status-item"/>
                 <Label fx:id="statusMemory" styleClass="fxt-status-item"/>

@@ -62,11 +62,27 @@ public final class FundsXmlPlugin implements FxtPlugin {
         context.addStartupTask(FundsXmlPlugin::startupSync);
         context.addStartupTask(FundsXmlPlugin::registerSnippets);
         context.addValidator(new DataQualityValidator());
+        context.addDocumentBadge(FundsXmlPlugin::badgeFor);
         context.addDocumentListener((ui, path, content) -> {
             if (FundsXmlHint.shouldOffer(content)) {
                 showHint(ui);
             }
         });
+    }
+
+    /**
+     * The status-bar mark of a FundsXML document while the extension is on: the document has been
+     * recognised and the data-quality checks run with its validation. A click opens the FundsXML panel.
+     */
+    static org.fxt.freexmltoolkit.plugin.DocumentBadge.Badge badgeFor(java.nio.file.Path path, String content) {
+        if (!FundsXmlRunner.isEnabled()
+                || !org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.isFundsXml(content)) {
+            return null;
+        }
+        return new org.fxt.freexmltoolkit.plugin.DocumentBadge.Badge(
+                org.fxt.freexmltoolkit.i18n.I18n.t("FundsXmlPlugin.badge"), "bi-patch-check",
+                org.fxt.freexmltoolkit.i18n.I18n.t("FundsXmlPlugin.badge-tooltip"), Workflow.FUNDSXML,
+                ui -> ui.showActivity(ID));
     }
 
     /** Shows the one-time hint above the editor (UX plan 5.5). */
