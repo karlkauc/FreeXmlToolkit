@@ -643,6 +643,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#supported-standards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported Standards
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#works-on-all-platforms" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3237,6 +3248,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#supported-standards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported Standards
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#works-on-all-platforms" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3527,6 +3549,64 @@
 <li><strong>Extend</strong> it with <a href="plugins/">plugins</a> — industry plugins for ISO 20022, ebInterface, FinDatEx and XBRL included</li>
 <li><strong>Work in English or German</strong>, <a href="accessibility/">accessible</a>, centrally <a href="administration/">administrable</a></li>
 </ul>
+<h3 id="supported-standards">Supported Standards<a class="headerlink" href="#supported-standards" title="Permanent link">¶</a></h3>
+<p>These are the XML-related standards and versions FreeXmlToolkit reads, validates, runs or writes:</p>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Standard and version</th>
+<th>Engine</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>XML</td>
+<td>XML 1.0 (Fifth Edition), XML 1.1, Namespaces in XML, OASIS XML Catalogs 1.1</td>
+<td>Xerces 2.12</td>
+</tr>
+<tr>
+<td>Schemas</td>
+<td><strong>XSD 1.0 and 1.1</strong> (assertions, type alternatives, open content, <code>xs:override</code>), DTD, RELAX NG (XML and compact syntax)</td>
+<td>Xerces (XSD 1.1 build), Jing, Trang</td>
+</tr>
+<tr>
+<td>Business rules</td>
+<td>ISO Schematron (query bindings <code>xslt2</code> and <code>xslt3</code>), Schematron Quick Fixes (SQF)</td>
+<td>ph-schematron / SchXslt on Saxon</td>
+</tr>
+<tr>
+<td>Transformation</td>
+<td><strong>XSLT 1.0, 2.0 and 3.0</strong></td>
+<td>Saxon HE 12 (not schema-aware, no streaming)</td>
+</tr>
+<tr>
+<td>Query</td>
+<td><strong>XPath 1.0 – 3.1</strong>, <strong>XQuery 1.0 – 3.1</strong>, JSONPath</td>
+<td>Saxon HE 12, Jayway JsonPath</td>
+</tr>
+<tr>
+<td>Pipelines and tests</td>
+<td><strong>XProc 3.0</strong>, XSpec 4 (XSLT, XQuery, Schematron)</td>
+<td>XML Calabash 3, XSpec</td>
+</tr>
+<tr>
+<td>PDF</td>
+<td><strong>XSL-FO 1.1</strong> (as implemented by Apache FOP), PDF/A-1b; external XSL-FO processors</td>
+<td>Apache FOP 2.12</td>
+</tr>
+<tr>
+<td>Security</td>
+<td><strong>XML Signature 1.1</strong>, <strong>XML Encryption 1.1</strong>, Canonical XML 1.0 / 1.1, Exclusive XML Canonicalization 1.0</td>
+<td>Apache Santuario 4</td>
+</tr>
+<tr>
+<td>JSON and YAML</td>
+<td>JSON (RFC 8259), <strong>JSON Schema Draft-07, 2019-09 and 2020-12</strong>, YAML 1.2</td>
+<td>networknt json-schema-validator, SnakeYAML Engine</td>
+</tr>
+</tbody>
+</table>
 <h3 id="works-on-all-platforms">Works On All Platforms<a class="headerlink" href="#works-on-all-platforms" title="Permanent link">¶</a></h3>
 <p>FreeXmlToolkit runs on <strong>Windows</strong> (x64), <strong>macOS</strong> (Apple Silicon and Intel) and <strong>Linux</strong> (x64) - as an installer, a native package or a portable ZIP, and via <strong>Scoop</strong> and <strong>Homebrew</strong>. The <a href="installation/">Installation</a> page explains every format and the package managers.</p>
 <hr>
