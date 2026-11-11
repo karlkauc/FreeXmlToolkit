@@ -74,6 +74,7 @@ These are the XML-related standards and versions FreeXmlToolkit reads, validates
 | PDF | **XSL-FO 1.1** (as implemented by Apache FOP), PDF/A-1b; external XSL-FO processors | Apache FOP 2.12 |
 | Security | **XML Signature 1.1**, **XML Encryption 1.1**, Canonical XML 1.0 / 1.1, Exclusive XML Canonicalization 1.0 | Apache Santuario 4 |
 | JSON and YAML | JSON (RFC 8259), **JSON Schema Draft-07, 2019-09 and 2020-12**, YAML 1.2 | networknt json-schema-validator, SnakeYAML Engine |
+| AI agents | Model Context Protocol (MCP, revisions up to 2025-11-25, stdio) | MCP Java SDK |
 
 ### Works On All Platforms
 
@@ -97,7 +98,7 @@ Edit your XML files with professional tools:
 | **Code Folding** | Collapse sections to focus on what matters |
 | **Grid View** | Edit XML like a spreadsheet in the Graphic view: repeating elements as tables, opened cells, entry helpers, copy/paste with Excel |
 | **Properties Inspector** | View and edit the selected node - and its schema declaration - in every view |
-| **Query Console** | Run XPath 3.1, XQuery 3.1 and JSONPath against the open document (Ctrl+K) |
+| **Query Console** | Run XPath 3.1, XQuery 3.1 and JSONPath against the open document (Ctrl+K); **Ask AI** writes the query from a question |
 
 Learn more: [XML Editor Guide](xml-editor.md) | [Grid View](grid.md)
 
@@ -145,6 +146,7 @@ Convert XML into other formats:
 | **Interactive Debugger** | Debug XSLT, XQuery and Schematron: conditional breakpoints, logpoints, stepping, variables, watches, call stack and coverage |
 | **Multi-File Batch Processing** | Process multiple XML files with one XQuery using `collection()` |
 | **XProc 3.0 Pipelines** | Run multi-step processing pipelines (`.xpl`) with the built-in XML Calabash engine |
+| **Generate a Stylesheet with AI** | Describe the output with a target sample; the AI assistant writes the XSLT, which is run and compared before you see it |
 
 Learn more: [Transform Panel](transform-panel.md) | [XSLT Developer](xslt-developer.md) | [Debugger](debugger.md) | [XProc Pipelines](xproc.md)
 
@@ -195,6 +197,7 @@ Define custom business rules:
 | **Visual Rule Builder** | Create rules without writing code |
 | **Detailed Reports** | Get clear validation results |
 | **Quick Fixes (SQF)** | Correct rule violations automatically with one click |
+| **Explain / Fix with AI** | Let the AI assistant explain a validation problem or propose a fix that is checked against the schema and the rules |
 
 Learn more: [Schematron Guide](schematron-support.md) | [Quick Fixes](schematron-quick-fixes.md)
 
@@ -215,6 +218,26 @@ Opt-in integration with the [FundsXML](https://fundsxml.org/) industry standard 
 This feature is **off by default**. Enable it from Settings only if you work with FundsXML files - when you open a FundsXML document, the app offers to enable it once.
 
 Learn more: [FundsXML Extensions Guide](fundsxml-extensions.md)
+
+### AI Assistant and MCP Server (Optional)
+
+Use a language model for the routine parts of XML work - with every answer checked by the application:
+
+| Feature | What It Does |
+|---------|--------------|
+| **Fix or Explain a Problem** | Right-click a validation problem → Fix with AI / Explain with AI; the fix is applied only by you, as one undo step |
+| **Ask AI for a Query** | Turn a question into XPath or XQuery in the Query Console; the query is run before you see it |
+| **Generate a Stylesheet** | Write XSLT from a target sample in the Transform panel; the stylesheet is run and its output compared |
+| **Model of Your Choice** | A model on your computer (Ollama, LM Studio) or a provider you have an account with (OpenAI-compatible, Anthropic) - no subscription |
+| **Your Data, Your Choice** | Data levels (schema only, structure, excerpts), a preview of every request, nothing in telemetry or logs |
+| **MCP Server** | `fxt-cli mcp` gives AI agents such as Claude Code the validation, XSLT/XQuery, XSpec and schema tools - read-only, sandboxed, limited to the folders you name |
+
+The assistant is **off by default**; turn it on under Settings → AI. Administrators can remove both features
+(`ai.allowed`, `ai.mcp.allowed`).
+
+![AI assistant: a validation problem fixed and verified against the schema](img/ai-assistant-proposal.png)
+
+Learn more: [AI Assistant](ai-assistant.md) | [MCP Server](mcp-server.md)
 
 ---
 

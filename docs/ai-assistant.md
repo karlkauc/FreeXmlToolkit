@@ -28,6 +28,8 @@ the [MCP Server](mcp-server.md) instead — that needs no setting here.
 4. **Test** sends a one-line request and shows the model, the time it took and whether the host counts as *local*.
 5. With several providers, **Use for AI actions** picks the one the actions use.
 
+![Settings → AI with a local Ollama provider](img/ai-assistant-settings.png)
+
 ## What is sent {#data-levels}
 
 Every request is built for the task, within a size limit, and contains only what the data level allows:
@@ -58,6 +60,8 @@ Right-click a problem in the **Problems** list or the Validation panel → **Fix
   schema (and Schematron), and accepts it only when **the problem is gone, no new problem appeared and no content was
   removed**. The AI panel at the bottom shows the change side by side and the checks; **Apply** makes it one edit
   (Ctrl+Z undoes it). Quick fixes from the Schematron stay first in the menu: they are deterministic.
+
+![A fix proposed by the model, verified against the schema and shown side by side in the AI panel](img/ai-assistant-proposal.png)
 
 ### A question → XPath or XQuery
 

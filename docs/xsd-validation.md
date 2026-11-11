@@ -254,6 +254,8 @@ disk nor from the network, so a missing DTD file does no harm.
   **PROBLEMS** panel below the editor counts errors and warnings separately in its header
 - Double-click a file in **RESULTS** to open it in the editor; select a problem to jump to
   its line
+- Not sure what a message means? With the optional [AI assistant](ai-assistant.md) on, right-click the problem →
+  **Explain with AI**, or **Fix with AI** for a change that is validated against the schema before you apply it
 
 ---
 

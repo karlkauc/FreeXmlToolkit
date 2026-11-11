@@ -44,6 +44,11 @@ FreeXmlToolkit connects to other systems only for the following purposes:
   installed when the user confirms them.
 - **FundsXML extension** — off by default; when enabled, downloads and updates the FundsXML
   schemas, samples and rules from GitHub.
+- **AI assistant** — off by default; when the user turns it on and adds a provider, requests go only to the
+  provider the user configured (a model on the same computer or a service the user has an account with), with
+  the content the chosen data level allows. The program has no AI service of its own. The MCP server
+  (`fxt-cli mcp`) talks to the agent over standard input and output and connects only to load schemas the
+  documents refer to, as described below.
 - **Schemas and stylesheets** referenced by documents the user opens (e.g. `xs:import`,
   `schemaLocation`, catalogs) are downloaded from the locations given in those documents.
 

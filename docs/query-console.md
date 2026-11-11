@@ -43,6 +43,11 @@ pane shows the previous run's XML result with syntax highlighting.*
     switches to the matching mode automatically).
   - **Examples** - Inserts a built-in XQuery example: **Simple**, **FLWOR**, **HTML report** or
     **Data-quality check**.
+  - **Ask AI…** - Shown while the [AI assistant](ai-assistant.md) is on: describe what you want in your own
+    words; the model writes the XPath or XQuery (for the current mode), the application runs it against the active
+    document and shows the item count and first results, and **Insert into the console** puts it into the input.
+    Running it stays your action. XML documents only. See
+    [A question → XPath or XQuery](ai-assistant.md#a-question-xpath-or-xquery).
 - **Right - the results:**
   - A read-only, selectable results editor with **line numbers** showing the query
     result. **XML results are

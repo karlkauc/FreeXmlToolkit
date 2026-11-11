@@ -8,7 +8,7 @@ offer more.
 
 | Product | Version | Publisher |
 |---------|---------|-----------|
-| FreeXmlToolkit | 2.10 | Karl Kauc (open source) |
+| FreeXmlToolkit | 3.1 | Karl Kauc (open source) |
 | Oxygen XML Editor | 28.1 (March 2026) | Syncro Soft SRL |
 | Altova XMLSpy | 2027 (October 2026) | Altova GmbH |
 | XMLBlueprint | 22 (June 2026) | Monkfish XML Software |
@@ -87,8 +87,28 @@ please [open an issue](https://github.com/karlkauc/FreeXmlToolkit/issues) and it
 | XML digital signatures | ✓ sign and verify | ✓ sign | ✓ sign and verify | – |
 | XML encryption (W3C 1.1) | ✓ encrypt, decrypt, inspect | – | – | – |
 | Projects / transformation scenarios | ✓ | ✓ | ✓ | ◐ |
-| Command line | ✓ included (`fxt-cli`) | ◐ separate product (Oxygen Scripting) | ◐ separate product (RaptorXML Server) for automation | ✓ |
+| Command line | ✓ included (`fxt-cli`, also an MCP server for AI agents) | ◐ separate product (Oxygen Scripting) | ◐ separate product (RaptorXML Server) for automation | ✓ |
 | Plugin / extension API | ✓ Java plugins | ✓ | ◐ scripting, OLE / ActiveX | – |
+
+## AI
+
+| | FreeXmlToolkit | Oxygen XML Editor | XMLSpy | XMLBlueprint |
+|---|---|---|---|---|
+| AI assistant | ✓ included, off by default | ◐ separate add-on (Oxygen AI Positron, subscription) | ◐ separate subscription (Altova AI) | – |
+| Explain / fix validation problems | ✓ | ✓ AI Positron Fix in the quick fixes | – | – |
+| Natural language → XPath / XQuery | ✓ | ◐ through the assistant's chat and code actions | ◐ chat about the open file | – |
+| Generate an XSLT stylesheet | ✓ from a target sample | ◐ through the assistant's chat and code actions | ◐ chat about the open file | – |
+| Model of your choice (OpenAI-compatible, Anthropic) | ✓ | ◐ Enterprise edition of the add-on | ✗ Altova's hosted service | – |
+| Local models (Ollama, LM Studio) | ✓ | ◐ through an OpenAI-compatible connection, according to the publisher's forum | – | – |
+| AI answers checked by the application before you see them | ✓ compiled, run and validated, repaired up to three times | – | – | – |
+| MCP server for AI agents (Claude Code, Cursor, …) | ✓ `fxt-cli mcp`, read-only, sandboxed | ◐ in the add-on and, experimental, in the Enterprise edition | – | – |
+| Administrators can switch AI off | ✓ policy `ai.allowed`, `ai.mcp.allowed` | – | – | – |
+
+FreeXmlToolkit's [AI assistant](ai-assistant.md) works with a model you choose — on your computer (Ollama, LM
+Studio) or a service you have an account with — and needs no subscription. Data levels and a request preview
+control what leaves your computer, and nothing is applied without you. `fxt-cli mcp` gives an AI agent of your
+choice the validation, XSLT/XQuery, XSpec and schema tools over the Model Context Protocol, restricted to the
+folders you name. See [MCP Server](mcp-server.md).
 
 ## Where the Others Offer More
 
@@ -113,11 +133,6 @@ read-only). The other products cover areas that FreeXmlToolkit does not:
     - Visual Studio and Eclipse integration;
     - an AI chat (separate subscription).
 
-FreeXmlToolkit's [AI assistant](ai-assistant.md) works with a model you choose — on your computer (Ollama, LM
-Studio) or a service you have an account with — and checks every answer before you see it (compiles, runs,
-validates); it is off by default and needs no subscription. `fxt-cli mcp` additionally gives an AI agent of your
-choice (for example Claude Code) the validation, XSLT/XQuery, XSpec and schema tools over the Model Context
-Protocol. See [MCP Server](mcp-server.md).
 - **XMLBlueprint:**
     - refactoring (rename or split elements, rename namespace prefixes);
     - editing files on FTPS, SFTP and WebDAV servers;
@@ -135,6 +150,7 @@ Publishers' pages, read in November 2026:
     - [Download and system requirements](https://www.oxygenxml.com/xml_editor/download_oxygenxml_editor.html)
     - [User guide](https://www.oxygenxml.com/doc/ug-editor/), including the pages on [debugging](https://www.oxygenxml.com/doc/ug-editor/topics/debugging.html), [profiling](https://www.oxygenxml.com/doc/ug-editor/topics/performance-profiling.html), [XSpec](https://www.oxygenxml.com/doc/ug-editor/topics/schematron-unit-test-xspec.html), [SQF](https://www.oxygenxml.com/doc/ug-editor/topics/editing-schematron-quick-fixes.html) and [large documents](https://www.oxygenxml.com/doc/ug-editor/topics/editing-large-documents.html)
     - Feature pages: [XSD diagram](https://www.oxygenxml.com/xml_editor/xml_schema_diagram_editor.html), [XSD 1.1](https://www.oxygenxml.com/xml_editor/xml_schema_1_1_support.html), [YAML](https://www.oxygenxml.com/xml_editor/yaml_validation.html), [JSON converter](https://www.oxygenxml.com/xml_editor/json_converter.html), [signatures](https://www.oxygenxml.com/xml_editor/xml_signature.html), [change tracking](https://www.oxygenxml.com/xml_editor/wysiwyg_xml_editor_review_change_tracking.html)
+    - AI: [AI Positron Enterprise](https://www.oxygenxml.com/doc/ug-addons/topics/ai_positron_enterprise.html), [MCP preferences](https://www.oxygenxml.com/doc/ug-positron-desktop/ai/model_context_protocol_preferences.html), [forum: Ollama](https://www.oxygenxml.com/forum/post75125.html)
     - [Shop](https://www.oxygenxml.com/buy.html)
 - **XMLSpy:**
     - [Product overview](https://www.altova.com/xmlspy-xml-editor)
@@ -143,6 +159,7 @@ Publishers' pages, read in November 2026:
     - [Download](https://www.altova.com/xmlspy-xml-editor/download)
     - [XSLT debugger](https://www.altova.com/xmlspy-xml-editor/xslt-debugger)
     - [Manual](https://www.altova.com/manual/XMLSpy/spyenterprise/)
+    - AI: [Altova AI for XML development](https://www.altova.com/xmlspy-xml-editor/ai), [announcement of the Altova AI subscription](https://www.altova.com/blog/2026/05/new-altova-ai-smart-assistance-for-xmlspy-mapforce-and-databasespy)
 - **XMLBlueprint:**
     - [Home page](https://www.xmlblueprint.com/)
     - [What's new](https://www.xmlblueprint.com/what-is-new.htm)

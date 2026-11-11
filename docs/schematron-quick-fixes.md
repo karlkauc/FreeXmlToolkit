@@ -42,6 +42,10 @@ Applying a fix
 If the document was edited after the last validation, the fix refuses to run
 and asks for a re-validation instead of guessing.
 
+For problems without a quick fix, the optional [AI assistant](ai-assistant.md) adds **Fix with AI** and
+**Explain with AI** to the same menu, below the quick fixes. Quick fixes stay first: they are deterministic,
+while an AI fix is a proposal that is validated against the schema and the Schematron before you apply it.
+
 ## Authoring fixes
 
 The Schematron editor's IntelliSense completes the SQF vocabulary

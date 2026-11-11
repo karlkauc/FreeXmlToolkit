@@ -23,6 +23,7 @@
       <li>XSLT 3.0, XQuery 3.1, XPath 3.1 and XProc 3.0 with Saxon and XML Calabash</li>
       <li>PDF generation with Apache FOP and XML digital signatures</li>
       <li>JSON editing with text, tree and grid views</li>
+      <li>Optional AI assistant with a model of your choice, local or remote, whose answers are checked before you see them, and an MCP server for AI agents</li>
     </ul>
   </description>
 

@@ -86,6 +86,9 @@ collapsed to give the editor more room - the activity bar always stays visible.
   panel or the Properties inspector more room; the widths are remembered across restarts
   (see [Resizing and collapsing the side panels](#collapsing-the-side-panels))
 - **Favorites** - Quick access to frequently used files
+- **Optional AI assistant** - explain or fix validation problems, ask for an XPath/XQuery query or generate a
+  stylesheet, each answer checked by the application before you see it (off by default; see
+  [AI Assistant](ai-assistant.md)); AI agents use the application's tools through the [MCP Server](mcp-server.md)
 
 ### Colours: workflows and actions
 
@@ -1024,7 +1027,7 @@ These buttons are only shown while **Send anonymous error reports** is enabled i
 
 ## Settings Page
 
-Settings open as a page in the editor area (**Ctrl+,**), grouped into colour-coded cards - see **[Settings](settings.md)** for every option.
+Settings open as a page in the editor area (**Ctrl+,**), grouped into colour-coded cards - see **[Settings](settings.md)** for every option, including the [AI](settings.md#ai) group.
 
 ## Welcome / Dashboard
 
@@ -1293,7 +1296,8 @@ On the command line, also as a Git merge driver: [`fxt-cli merge`](command-line.
 ## Jump to Validation Errors
 
 Validation errors appear in the **PROBLEMS** panel below the editor and in the **Validation**
-side panel. **Select** a problem to show it **in the view you are in** - the view does not change:
+side panel. **Select** a problem to show it **in the view you are in** - the view does not change
+(with the [AI assistant](ai-assistant.md) on, the right-click menu also offers **Fix with AI** and **Explain with AI**):
 
 - In the **Text** view the caret moves to the problem's line (and, for XML and XSD errors, its column).
 - In the **Tree** view the element of that line is selected and scrolled into view.
@@ -1344,7 +1348,7 @@ faster way to reach them.
 
 ## Query Console
 
-The **Query Console** (Ctrl+K) runs XPath, XQuery and JSONPath against the open document; `.xq` / `.xpath` documents run against a selectable input - see **[Query Console & Query Documents](query-console.md)**.
+The **Query Console** (Ctrl+K) runs XPath, XQuery and JSONPath against the open document; `.xq` / `.xpath` documents run against a selectable input; with the [AI assistant](ai-assistant.md) on, **Ask AI…** writes a query from a question - see **[Query Console & Query Documents](query-console.md)**.
 
 ## Drag and Drop
 

@@ -19,6 +19,10 @@ When working with XML files, there are several potential security risks - especi
 
 These protections work automatically in the background - you do not need to configure them for normal use.
 
+The optional AI features have their own protections - code written by an AI agent runs in a sandbox in the
+[MCP Server](mcp-server.md#safety), and the [AI assistant](ai-assistant.md) sends only what its data level allows
+to the provider you configured. The [Threat Model](threat-model.md#threats-and-mitigations) lists them.
+
 ---
 
 ## XXE (XML External Entity) Protection

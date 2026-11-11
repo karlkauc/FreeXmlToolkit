@@ -116,6 +116,12 @@ source, message, file and line/column, plus rule and context for Schematron) or 
 Problems** (one problem per line). **Ctrl+C** (**Cmd+C** on macOS) copies the selected row
 like Copy Problem.
 
+While the [AI assistant](ai-assistant.md) is on, the same menu - in the PROBLEMS panel and in the side panel's
+list - also offers **Fix with AI** and **Explain with AI** (below any quick fixes). A fix is applied to a copy
+and validated against the same schema and Schematron first; the **AI** panel below the editor shows it side by
+side with the result of the checks, and **Apply** makes it one edit (Ctrl+Z undoes it). See
+[Fix or explain a validation problem](ai-assistant.md#fix-or-explain-a-validation-problem).
+
 Selecting a problem in either list shows it **in the view you are in**:
 
 - **Text** - the caret jumps to its line and, for XML and XSD errors, to the reported column.

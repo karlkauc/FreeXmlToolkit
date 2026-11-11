@@ -32,6 +32,8 @@ SLIDES = [
      "XSLT 3.0 and XQuery 3.1 with Saxon, live preview and a profiler"),
     ("unified-shell-query-console.png", "Query Console",
      "Ad-hoc XPath, XQuery and JSONPath against the open document"),
+    ("ai-assistant-proposal.png", "Optional AI assistant",
+     "A model of your choice - every answer checked before you see it; MCP server for agents"),
     ("fop-pdf-preview.png", "PDF with Apache FOP",
      "XSL-FO to PDF with in-app preview and PDF/A output"),
     ("unified-shell-schema-statistics.png", "Schema analysis and documentation",

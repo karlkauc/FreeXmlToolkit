@@ -39,6 +39,10 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 - **BouncyCastle:** 1.86 - Cryptographic operations for XML digital signatures
 - **Java Cryptography Architecture (JCA):** Native Java crypto support
 
+### AI
+- **MCP Java SDK:** 2.1.0 - Model Context Protocol server for `fxt-cli mcp` (stdio)
+- **Anthropic Java SDK:** 3.8.0 (`anthropic-java-core`) - Anthropic provider of the optional AI assistant, on the application's own HTTP connection service (OpenAI-compatible providers use plain HTTP)
+
 ### Office Integration
 - **Apache POI:** 6.0.0 - Excel export for validation results
 
@@ -163,6 +167,10 @@ dependencies {
 
     // PDF Generation
     implementation("org.apache.xmlgraphics:fop:2.12")
+
+    // AI (MCP server, Anthropic provider)
+    implementation("io.modelcontextprotocol.sdk:mcp-core:2.1.0")
+    implementation("com.anthropic:anthropic-java-core:3.8.0")
 
     // UI Components
     implementation("org.fxmisc.richtext:richtextfx:0.11.7")

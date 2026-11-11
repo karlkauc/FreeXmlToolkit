@@ -54,10 +54,35 @@ XProc and HTML previews. See [Settings](settings.md).
 
 Yes. Editing, validation against local schemas, transformations, debugging and PDF output run
 locally. What goes online is optional or comes from your documents: the update check, the
-anonymous telemetry, the FundsXML extension, and schemas a document or import refers to by an
+anonymous telemetry, the FundsXML extension, the AI assistant when you configure a remote provider, and schemas a document or import refers to by an
 `http(s)` URL that is neither cached nor mapped to a local file. [Operation without
 internet](offline-operation.md) lists every connection, how to switch it off and how to prepare
 schemas for an offline machine.
+
+### Does FreeXmlToolkit use AI? Is my data sent anywhere?
+
+Only if you turn it on. The [AI assistant](ai-assistant.md) is **off by default**; under **Settings → AI** you
+choose the model - one on your computer (Ollama, LM Studio) or a provider you have an account with
+(OpenAI-compatible, Anthropic). FreeXmlToolkit has no model and no AI account of its own. The data level decides
+what a request may contain (schema only, structure without values, or excerpts), **Show every request before it
+is sent** lets you read each one, and prompts and answers never go into telemetry or the logs.
+
+### Which models work with the AI assistant?
+
+Models that are good at code and support tool calls, local or remote. Every answer is checked by the application
+(compiled, run, validated) and repaired up to three times, so a small local model is useful too - see
+[What to expect from which model](ai-assistant.md#what-to-expect-from-which-model).
+
+### How do I use FreeXmlToolkit from Claude Code or another AI agent?
+
+Register `fxt-cli mcp --root <folder>` as an MCP server in the agent. The agent then gets the validation,
+XPath/XQuery, XSLT, XSpec, schema and compare tools - read-only, sandboxed and limited to the folders you name.
+No AI setting in the application is needed. See [MCP Server](mcp-server.md).
+
+### Can administrators switch the AI features off?
+
+Yes: `ai.allowed=false` in the machine-wide `policy.properties` removes the assistant and every AI control,
+`ai.mcp.allowed=false` refuses `fxt-cli mcp`. See [Administration](administration.md).
 
 ## Schemas and Validation
 

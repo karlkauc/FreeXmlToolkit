@@ -2,7 +2,7 @@
 
 > Settings open as a **full page** (a tab in the main editor
 > area) rather than in the narrow left side panel. The options are presented
-> as **color-coded cards**, sorted into seven groups.
+> as **color-coded cards**, sorted into eight groups.
 
 Click the gear icon at the bottom of the activity bar (or press **Ctrl+,**): the **Settings page
 opens as a tab in the main editor area**, where there is room for all options.
@@ -11,7 +11,7 @@ opens as a tab in the main editor area**, where there is room for all options.
 ![Settings page](img/unified-shell-settings-dark.png#only-dark)
 *The Settings page: groups in the side panel, colour-coded cards in the main area*
 
-**Finding a setting** - the side panel on the left lists the seven groups. Click a group to
+**Finding a setting** - the side panel on the left lists the eight groups. Click a group to
 scroll the page to it; the group you are looking at is highlighted. Type into the **search field** at the top of the side panel to filter both
 the group list and the cards on the page down to the matching settings; if nothing matches, the
 page shows *"No settings match the search."*.
@@ -41,6 +41,7 @@ settings may be greyed out and a notice at the top of the page says so; see
 | **Files & Cache** | **Temp & Cache** - **Use system temp folder** or a custom temp folder; **Clear Temp Folder** to free disk space; **Clear Cache Folder** to delete cached files (downloaded schemas etc.); **Manage schema cache…**. **Log Files** - **Delete old log files automatically at startup** (on by default) with **Keep for (days)** (default 14) and **Maximum total size (MB)** (default 100; 0 = no limit); **Clean Up Now** applies the limits at once, **Open log folder** shows the folder, and the card names the folder with its file count and size. The log file in use is never deleted. **File Associations** - make FreeXmlToolkit the **default application** for XML, XSD, XSLT, Schematron and JSON files (per user, no admin rights); see [File Associations](file-associations.md). |
 | **Network & Security** | **HTTP Proxy** - **Connection**: *System proxy* (default, includes automatic configuration via PAC/WPAD), *Manual proxy* (host and port) or *No proxy*; **No proxy for**: hosts connected directly (`*` wildcard, e.g. `*.corp.example, 10.*`; local addresses always); **Proxy authentication**: user (`DOMAIN\user` or `user@domain` also work), password (stored encrypted) and NTLM domain, or — without a user — sign-in with the Windows account (NTLM/Kerberos; takes effect after a restart); **Timeouts** for connecting and reading; **Test Connection** checks an address with the values shown, saved or not. Every connection uses these settings: schema and catalog downloads, updates, FundsXML, telemetry, `doc()` in XPath/XQuery, JSON Schema `$ref`s, XProc (incl. `p:http-request`) and HTML previews. **Security** - **Trust all certificates**: accept any TLS certificate for HTTPS downloads (schemas, updates); use with care. **Allow JavaScript and remote content in HTML previews** (off: previews run no scripts and load nothing from the network). **Run XProc pipelines without restrictions** (off: pipelines may not run programs, run computed pipelines, send HTTP requests or load documents from the network); see [Threat Model](threat-model.md). **Updates** - **Check for updates on startup**. |
 | **Privacy** | **Usage Statistics** - **Enable usage tracking** (local, anonymous feature-usage counters shown on the Welcome page) and **Clear statistics**. Below them: **Send anonymous usage statistics** and **Send anonymous error reports** (both on by default) and a **What is sent?** link that shows the exact data and your anonymous installation ID. See [Privacy & Anonymous Telemetry](telemetry.md). |
+| **AI** | **AI Assistant** - **Use the AI assistant** (off by default); what **may be sent** to local models and to remote providers (*Schema only*, *Structure*, *Excerpts*); **Show every request before it is sent**; the **Providers** list (**Add… / Edit… / Remove**, **Use for AI actions**). Removed entirely when an administrator sets `ai.allowed=false`. See [AI](#ai) below and [AI Assistant](ai-assistant.md). |
 | **Extensions** | **FundsXML** - **Enable FundsXML extensions** adds the [FundsXML activity](fundsxml-extensions.md) to the activity bar. **Developer** - **Record execution statistics** collects duration, CPU and memory per XSLT/XQuery/validation run; view them in the **Execution Statistics** tool tab or via the "last run" item in the status bar. **Support the Project** - a **Sponsor on GitHub** link. |
 
 ## Accent colour {#accent-colour}

@@ -36,5 +36,7 @@ Please include:
 ## Built-in Protections
 
 FreeXmlToolkit protects against common XML attacks (XXE, SSRF, path traversal, untrusted XSLT/XQuery
-extensions, tampered updates). See
-[Security Features](https://karlkauc.github.io/FreeXmlToolkit/SECURITY/) in the user guide for details.
+extensions, tampered updates) and keeps its optional AI features in check (a sandbox for code an AI agent
+runs through the MCP server, data levels for the AI assistant). See
+[Security Features](https://karlkauc.github.io/FreeXmlToolkit/SECURITY/) and the
+[Threat Model](https://karlkauc.github.io/FreeXmlToolkit/threat-model/) in the user guide for details.

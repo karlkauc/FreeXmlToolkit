@@ -10,7 +10,7 @@
 **FreeXmlToolkit** is a free, open-source desktop workstation for XML: edit, validate, transform, debug and
 document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Windows, macOS and Linux.
 
-![Feature tour: visual XSD editor, XML grid, IntelliSense, validation, debugger, transformations, Query Console, PDF, schema analysis, JSON, signatures, dark mode](docs/img/feature-tour.webp)
+![Feature tour: visual XSD editor, XML grid, IntelliSense, validation, debugger, transformations, Query Console, AI assistant, PDF, schema analysis, JSON, signatures, dark mode](docs/img/feature-tour.webp)
 
 **[⬇ Download the latest release](https://github.com/karlkauc/FreeXmlToolkit/releases/latest)** – Windows (.exe/.msi/portable), macOS (.dmg/.pkg, Apple Silicon & Intel), Linux (.deb/.rpm/portable) – or via `scoop install freexmltoolkit` / `brew install --cask karlkauc/tap/freexmltoolkit` ([details](#install-with-a-package-manager)). Full guide: [karlkauc.github.io/FreeXmlToolkit](https://karlkauc.github.io/FreeXmlToolkit/).
 
@@ -36,6 +36,10 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
   <tr>
     <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/transform-panel/">Transformations</a></b><br>XSLT 3.0, XPath 3.1 and XQuery 3.1 with Saxon, live preview, XProc 3.0 pipelines, and a Query Console for ad-hoc XPath/XQuery (Ctrl+K).</td>
     <td width="50%"><a href="docs/img/xslt-developer-overview.png"><img src="docs/img/xslt-developer-overview.png" alt="Transformations" width="420"></a></td>
+  </tr>
+  <tr>
+    <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/ai-assistant/">AI assistant and MCP server</a></b><br>Optional and off by default: fix or explain validation problems, turn a question into XPath / XQuery and generate a stylesheet from a target sample - with a local model (Ollama, LM Studio) or a provider you choose. Every answer is checked by the application before you see it. <code>fxt-cli mcp</code> gives AI agents such as Claude Code the same engines as tools.</td>
+    <td width="50%"><a href="docs/img/ai-assistant-proposal.png"><img src="docs/img/ai-assistant-proposal.png" alt="AI assistant and MCP server" width="420"></a></td>
   </tr>
   <tr>
     <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/pdf-generator/">PDF with Apache FOP</a></b><br>XSL-FO to PDF with in-app preview, the intermediate FO and every FOP message at hand, and PDF/A-1b output.</td>
@@ -83,6 +87,8 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
 | XML encryption | ✓ | – | – | – |
 | JSON · JSON Schema · XML↔JSON | ✓ | ✓ | ✓ | ◐ |
 | Command line included | ✓ | ◐ | ◐ | ✓ |
+| AI assistant (local models possible) | ✓ | ◐ | ◐ | – |
+| MCP server for AI agents | ✓ | ◐ | – | – |
 
 ✓ supported · ◐ partly or as a separate product · – not found in the publisher's documentation. As of November 2026; details, sources and trademarks: [Comparison with Other Editors](https://karlkauc.github.io/FreeXmlToolkit/comparison/).
 
@@ -114,12 +120,16 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
 - **DTD and RELAX NG** (XML and compact syntax): against the grammar a document declares or one you
   bind, with IntelliSense; DTDs load only from files, catalogs or the schema cache
 - **Batch validation** of whole folders
+- **Explain / Fix with AI** in the problem list's context menu (optional AI assistant), verified
+  against the schema before you apply it
 
 ### Transform, Query and Debug
 
 - **XSLT 3.0 / XPath 3.1 / XQuery 3.1** (Saxon HE) with live preview, parameters and HTML/text/XML output
 - **XProc 3.0** pipelines (XML Calabash)
-- **Query Console** for XPath/XQuery against the open document
+- **Generate a stylesheet** from a target sample with the optional AI assistant, checked by running it
+- **Query Console** for XPath/XQuery against the open document; **Ask AI** turns a question into a
+  query (optional AI assistant)
 - **Interactive debugger** for XSLT, XQuery and Schematron: conditional breakpoints, logpoints,
   stepping, watches, call stack, "explain match", output-to-source mapping and coverage
 
@@ -156,8 +166,12 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
 
 - **`fxt-cli`** for build pipelines and scripts: `validate` (XSD, DTD, RELAX NG, Schematron, JSON
   Schema; text, JSON, JUnit and SARIF reports), `transform` (XSLT, XQuery, XProc, profiling),
-  `xsd-doc`, `xspec`, `scenario`, `compare`, `merge`, `convert`, `fop`; installed with the
+  `query`, `xsd-doc`, `xspec`, `scenario`, `compare`, `merge`, `convert`, `fop`, `sign`, `verify`,
+  `encrypt`, `decrypt` and `mcp` (MCP server for AI agents); installed with the
   application. See [Command Line](https://karlkauc.github.io/FreeXmlToolkit/command-line/).
+
+### AI
+
 - **AI assistant** (off by default): fix validation problems, write XPath/XQuery from a question and XSLT from a
   target sample with a model you choose — local (Ollama, LM Studio) or a provider (OpenAI-compatible, Anthropic).
   Every answer is checked by the application before you see it. See
@@ -165,6 +179,8 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
 - **`fxt-cli mcp`** gives AI agents (Claude Code and other MCP clients) the same engines as tools, so an
   agent can validate, run and test the XML, XSLT and XQuery it writes: read-only, sandboxed, limited to the
   folders you name, no AI service involved. See [MCP Server](https://karlkauc.github.io/FreeXmlToolkit/mcp-server/).
+- **Data stays under your control:** data levels (schema only, structure, excerpts), a preview of every
+  request, no telemetry of prompts or answers; administrators can remove the feature (`ai.allowed=false`).
 
 ## Getting Started
 

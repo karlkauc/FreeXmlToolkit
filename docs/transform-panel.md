@@ -235,6 +235,7 @@ Below the options, the advanced **tools** are labelled rows (icon + name):
 |-----|--------------|
 | **Debug XSLT…** | Same as the **Debug** button next to **Run Transform**: opens the stylesheet (with the breakpoints set in its gutter) and the **DEBUG** dock below the editor - see [Debugging a Stylesheet](#xslt-debugger). |
 | **Batch Transform…** | Runs the chosen stylesheet - or, when no stylesheet is set, the active XQuery document - over many XML files, with per-file results and "Save All". |
+| **Generate stylesheet…** | Shown while the [AI assistant](ai-assistant.md) is on: writes an XSLT stylesheet from the panel's input document and a **target sample** you choose (optionally its schema and notes). The stylesheet is compiled and run in a sandbox and its output checked before it opens as a new, unsaved tab - choose it there with **Use current tab** in the STYLESHEET row. See [A stylesheet from a target sample](ai-assistant.md#a-stylesheet-from-a-target-sample). |
 | **Execution Statistics** | Opens the **Execution Statistics** tool tab (duration, CPU and memory per XSLT/XQuery/validation run). Runs are only recorded while **Record execution statistics** is enabled in the Settings page's **DEVELOPER** card. |
 
 > XSLT version selection (1.0/2.0/3.0) is intentionally not offered: Saxon HE
