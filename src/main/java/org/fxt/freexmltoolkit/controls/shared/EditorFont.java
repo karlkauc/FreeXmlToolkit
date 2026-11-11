@@ -93,7 +93,8 @@ public final class EditorFont {
     }
 
     private static final ReadOnlyObjectWrapper<Settings> SETTINGS = new ReadOnlyObjectWrapper<>(load());
-    private static PauseTransition pendingSave;
+    /** FX thread only; volatile for the lazy initialization. */
+    private static volatile PauseTransition pendingSave;
     private static List<String> monospaceFamilies;
 
     private EditorFont() {

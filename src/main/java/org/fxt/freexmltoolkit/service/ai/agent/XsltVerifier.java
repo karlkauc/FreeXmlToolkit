@@ -20,16 +20,14 @@ import com.google.gson.JsonObject;
 public final class XsltVerifier implements Verifier {
 
     private final String source;
-    private final String sourceUri;
     private final String targetSample;
     private final Path targetSchema;
     private final ToolRegistry tools;
     private final ToolContext context;
     private volatile String lastOutput = "";
 
-    public XsltVerifier(String source, String sourceUri, String targetSample, Path targetSchema, ToolContext context) {
+    public XsltVerifier(String source, String targetSample, Path targetSchema, ToolContext context) {
         this.source = source;
-        this.sourceUri = sourceUri;
         this.targetSample = targetSample;
         this.targetSchema = targetSchema;
         this.tools = ToolRegistry.standard();

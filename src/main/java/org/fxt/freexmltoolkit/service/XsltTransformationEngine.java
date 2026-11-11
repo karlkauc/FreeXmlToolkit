@@ -645,7 +645,7 @@ public class XsltTransformationEngine {
                 return new SandboxedTransformation(inputFailure(e), Map.of(), false);
             }
             transformer.setInitialContextNode(sourceDoc);
-            XsltSandbox.LimitedWriter output = new XsltSandbox.LimitedWriter(budget);
+            XsltSandbox.LimitedWriter output = new XsltSandbox.LimitedWriter(budget); // NOPMD - in-memory writer, nothing to close
             transformer.setDestination(processor.newSerializer(output));
             configureSerializer(transformer.getDestination(), outputFormat);
             try {

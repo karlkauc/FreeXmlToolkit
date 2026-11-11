@@ -101,7 +101,7 @@ public final class AiEvalRunner {
                     ai = builder.forStylesheet(doc, target, schema, c.has("notes") ? c.get("notes").getAsString() : "",
                             "3.0");
                     extractor = CandidateExtractor.xslt();
-                    verifier = new XsltVerifier(doc, null, target, schema, context);
+                    verifier = new XsltVerifier(doc, target, schema, context);
                 }
                 default -> {
                     ValidationProblemFacts problem = new ValidationProblemFacts("XSD", "error", c.get("line").getAsInt(), 0,

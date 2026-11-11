@@ -1456,10 +1456,7 @@ public class TransformPanel extends VBox {
 
     /** @return whether {@code document} is the selected stylesheet itself (it cannot be its own input). */
     private boolean isTheStylesheet(OpenDocument document) {
-        if (document == xsltDocument && document != null) {
-            return true;
-        }
-        return xsltFile != null && document.getPath() != null
+        return document != null && document == xsltDocument || xsltFile != null && document.getPath() != null
                 && document.getPath().toAbsolutePath().normalize().equals(xsltFile.toPath().toAbsolutePath().normalize());
     }
 

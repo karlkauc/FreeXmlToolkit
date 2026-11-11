@@ -1,9 +1,9 @@
 package org.fxt.freexmltoolkit.service.ai.tool;
 
-import org.fxt.freexmltoolkit.service.ai.context.SchemaCache;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import org.fxt.freexmltoolkit.service.ai.context.SchemaCache;
 
 /** Argument handling shared by the schema tools. */
 final class SchemaTools {

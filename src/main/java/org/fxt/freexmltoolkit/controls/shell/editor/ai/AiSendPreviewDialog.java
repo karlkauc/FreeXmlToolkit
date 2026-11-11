@@ -1,11 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.ai;
 
-import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
-import org.fxt.freexmltoolkit.i18n.I18n;
-import org.fxt.freexmltoolkit.service.ai.context.AiContext;
-import org.fxt.freexmltoolkit.service.ai.provider.ProviderConfig;
-import org.fxt.freexmltoolkit.util.DialogHelper;
-
 import javafx.fxml.FXML;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
@@ -13,6 +7,12 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
+import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.service.ai.context.AiContext;
+import org.fxt.freexmltoolkit.service.ai.provider.ProviderConfig;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /** Shows exactly what will be sent to an AI provider: the provider, local or remote, the data level and the text. */
 public class AiSendPreviewDialog extends Dialog<Boolean> {

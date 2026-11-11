@@ -4,7 +4,9 @@ The highlights of each release. The complete notes and all downloads are on the
 [GitHub Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases); the version you are
 running is shown under **Help → About FreeXmlToolkit**.
 
-## Next release (unreleased)
+## 3.1.0 (2026-11-11)
+
+**AI**
 
 - **MCP server for AI agents:** `fxt-cli mcp` lets Claude Code and other MCP clients validate documents, run and
   test XSLT/XQuery (with XSpec), explore schemas, outline large documents and compare results — read-only and
@@ -15,10 +17,60 @@ running is shown under **Help → About FreeXmlToolkit**.
   choose (OpenAI-compatible, Anthropic). Every answer is checked by the application (compiled, run, validated) and
   repaired up to three times before you see it; nothing is applied without you. Data levels and a request preview
   control what leaves your computer. See [AI Assistant](ai-assistant.md).
+
+**Appearance**
+
+- **System theme and accent colour:** Settings → Appearance → Theme offers **System**, which follows the light or
+  dark setting of your operating system while the application runs. The **accent colour** (eight presets or your
+  own) colours buttons, selection, focus and links, with readable contrast kept automatically. See
+  [Settings](settings.md#accent-colour).
+- **Editor font:** font, size and line spacing of every code editor, and a zoom (Ctrl+mouse wheel) that can apply
+  to all editors and be remembered. The grid uses the editor font too. See [Settings](settings.md#editor-font).
+- **Text size, font and density of the interface:** Small to Extra Large text, your own interface font, and a
+  Compact, Normal or Comfortable density. See [Settings](settings.md#text-size-and-font).
+- **Syntax colours:** colour schemes for XML, JSON and XPath (Monokai and others, each with a light and a dark
+  variant) and your own colour per role. See [Settings](settings.md#syntax-colours).
+- **High contrast:** stronger texts, borders and focus rings on top of the light or the dark theme. See
+  [Settings](settings.md#high-contrast).
+
+**Editing and output**
+
+- **Export views:** the XSD diagram, the XML / JSON grid and the profiler's flame graph can be saved as PNG, SVG or
+  PDF, or copied to the clipboard as an image (File → Export View…, Edit → Copy View as Image, context menu). See
+  [Exporting a Graphical View](unified-shell.md#export-view).
+- **Switching views keeps your place:** going from Text to Tree, Graphic or Overview selects the node at the caret;
+  going back to Text puts the caret on the node you had selected and tints its lines. See
+  [View Modes](unified-shell.md#view-modes).
 - **Transform from open tabs:** STYLESHEET → Change and INPUT → Change list every open XSLT / XML tab, saved
   or not, and a **Use current tab** button takes the tab you are editing — a generated stylesheet opened in a new
   tab runs straight away, with its editor text. See
   [Transform Panel](transform-panel.md#stylesheet).
+- **External XSL-FO processors:** render PDFs with Antenna House Formatter, RenderX XEP, another Apache FOP or a
+  script of your own; the XSLT stage, the intermediate FO and the debugger stay the same. Set them up under
+  Settings → Extensions → XSL-FO Processors, choose one in the PDF/FOP panel, in a PDF scenario or with
+  `fxt-cli fop --processor`. See [PDF Generator](pdf-generator.md#external-xsl-fo-processors).
+- **One look for every Excel export:** validation problems, the Schema Analysis report, the Data Dictionary and the
+  XML → Excel conversion share one house style — dark header, striped rows, no gridlines, an info sheet, frozen
+  header and auto-filter, printed one page wide. See [XSD Validation](xsd-validation.md).
+
+**Plugins and FundsXML**
+
+- **A page per industry plugin:** ISO 20022, ebInterface, FinDatEx and XBRL each have their own guide; the
+  [Industry Plugins](industry-plugins.md) page compares them.
+- **Recognised documents are marked:** while the FundsXML extension is on, a FundsXML document shows a
+  **FundsXML** mark in the status bar; a click opens the FundsXML panel. Plugins can add such marks too. See
+  [FundsXML Extensions](fundsxml-extensions.md#recognised-documents-the-fundsxml-mark) and
+  [Writing Plugins](plugin-development.md#document-badges).
+- **FundsXML data-quality checks** compare position weights, net asset values and portfolio dates with the fund,
+  subfund, segment or share class the portfolio belongs to, so share-class portfolios no longer add up to 300 %.
+  Positions in country-specific data are no longer taken for portfolio positions, and assets used only by an
+  earning no longer count as unused. See
+  [FundsXML Extensions](fundsxml-extensions.md#data-quality-checks).
+
+**Documentation**
+
+- **Supported standards:** one table lists the XML-related standards and versions FreeXmlToolkit reads, validates,
+  runs or writes, and the engine behind each. See [Supported Standards](index.md#supported-standards).
 
 ## 3.0.0 (2026-11-09)
 

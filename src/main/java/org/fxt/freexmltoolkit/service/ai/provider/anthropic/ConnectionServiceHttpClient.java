@@ -67,7 +67,7 @@ final class ConnectionServiceHttpClient implements HttpClient {
                 }
             }
             if (request.body().isPresent()) {
-                HttpRequestBody body = request.body().get();
+                HttpRequestBody body = request.body().get(); // NOPMD - owned by the request, closed by the SDK
                 connection.setDoOutput(true);
                 if (body.contentType() != null) {
                     connection.setRequestProperty("Content-Type", body.contentType());

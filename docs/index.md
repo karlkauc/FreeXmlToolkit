@@ -55,6 +55,7 @@ FreeXmlToolkit is a free desktop application for working with XML files. It help
 - **Compare and merge** XML files by structure, compare folders, convert XML ↔ JSON ↔ YAML
 - **Open huge files** (gigabytes) in the [Large File Viewer](large-files.md)
 - **Automate** with the [command line](command-line.md) (`fxt-cli`) and [projects](projects.md)
+- **Work with AI** - an optional [AI assistant](ai-assistant.md) that checks every answer, and an [MCP server](mcp-server.md) for AI agents
 - **Extend** it with [plugins](plugins.md) — industry plugins for ISO 20022, ebInterface, FinDatEx and XBRL included
 - **Work in English or German**, [accessible](accessibility.md), centrally [administrable](administration.md)
 
@@ -155,6 +156,7 @@ Create professional PDF documents:
 |---------|--------------|
 | **XSL-FO Support** | Use XSL-FO stylesheets for formatting |
 | **High-Quality Output** | Professional PDF generation |
+| **External Processors** | Render with Antenna House, RenderX XEP or another XSL-FO processor installed on your computer |
 
 Learn more: [PDF Generation Guide](pdf-generator.md)
 
@@ -174,8 +176,14 @@ Learn more: [Digital Signatures Guide](digital-signatures.md)
 
 | Feature | What It Does |
 |---------|--------------|
-| **Dark Mode** | Switch between light and dark themes to suit your preference |
-| **Modern UI** | Clean, modern interface with light and dark themes |
+| **Light, Dark or System** | Pick a theme, or follow the light or dark setting of your operating system |
+| **Accent Colour** | Eight presets or your own colour for buttons, selection, focus and links |
+| **Text Size, Font and Density** | Larger or smaller interface text, your own interface font, compact or roomy spacing |
+| **Editor Font and Syntax Colours** | Font, size and line spacing of every code editor; colour schemes such as Monokai, plus your own colours |
+| **High Contrast** | Stronger texts and borders on top of the light or the dark theme |
+| **Export Views** | Save the XSD diagram, the grid or a flame graph as PNG, SVG or PDF, or copy it as an image |
+
+Learn more: [Settings](settings.md) | [Exporting a Graphical View](unified-shell.md#export-view)
 
 ### Schematron Validation
 

@@ -3,18 +3,6 @@ package org.fxt.freexmltoolkit.controls.shell.editor.ai;
 import java.util.List;
 import java.util.function.Supplier;
 
-import org.fxt.freexmltoolkit.controls.diff.DiffChunk;
-import org.fxt.freexmltoolkit.controls.diff.DiffEngine;
-import org.fxt.freexmltoolkit.controls.diff.DiffHighlighter;
-import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
-import org.fxt.freexmltoolkit.controls.shared.PlainTextCodeArea;
-import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
-import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
-import org.fxt.freexmltoolkit.i18n.I18n;
-import org.fxt.freexmltoolkit.service.ai.agent.Check;
-import org.fxt.freexmltoolkit.service.ai.agent.Verification;
-import org.fxt.freexmltoolkit.util.DialogHelper;
-
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -26,6 +14,18 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+
+import org.fxt.freexmltoolkit.controls.diff.DiffChunk;
+import org.fxt.freexmltoolkit.controls.diff.DiffEngine;
+import org.fxt.freexmltoolkit.controls.diff.DiffHighlighter;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shared.PlainTextCodeArea;
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
+import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
+import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.service.ai.agent.Check;
+import org.fxt.freexmltoolkit.service.ai.agent.Verification;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * The AI panel in the editor's bottom dock (like the Transform output and the debugger): progress while the model

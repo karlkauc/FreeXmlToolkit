@@ -7,6 +7,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import javafx.application.Platform;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType;
@@ -43,10 +47,6 @@ import org.fxt.freexmltoolkit.service.project.ProjectService;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 import org.fxt.freexmltoolkit.service.xmledit.EditPlan;
 import org.fxt.freexmltoolkit.util.DialogHelper;
-
-import javafx.application.Platform;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
 
 /**
  * The AI actions of the editor (Phase 2): explain or fix a validation problem, a question → XPath / XQuery for the
@@ -163,7 +163,7 @@ public final class AiActions {
                 (builder, schema) -> builder.forStylesheet(request.source(), request.targetSample(),
                         request.targetSchema() == null ? null : request.targetSchema().toPath(), request.notes(),
                         request.version()),
-                CandidateExtractor.xslt(), (context, schema) -> new XsltVerifier(request.source(), snapshot.uri(),
+                CandidateExtractor.xslt(), (context, schema) -> new XsltVerifier(request.source(),
                         request.targetSample(), request.targetSchema() == null ? null : request.targetSchema().toPath(),
                         context),
                 (view, outcome) -> {

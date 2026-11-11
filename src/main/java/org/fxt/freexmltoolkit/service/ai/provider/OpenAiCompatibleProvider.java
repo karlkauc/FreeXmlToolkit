@@ -122,7 +122,7 @@ public final class OpenAiCompatibleProvider implements ChatProvider {
         } catch (IOException e) {
             throw ProviderHttp.translate(e, cancel);
         } catch (JsonParseException | IllegalStateException e) {
-            throw new ProviderException(ProviderException.Kind.PROTOCOL, "The model list could not be read.");
+            throw new ProviderException(ProviderException.Kind.PROTOCOL, "The model list could not be read."); // NOPMD - the cause may quote response text or the host; never in logs (AI rules)
         } finally {
             connection.disconnect();
         }
@@ -251,7 +251,7 @@ public final class OpenAiCompatibleProvider implements ChatProvider {
             try {
                 chunk = JsonParser.parseString(data).getAsJsonObject();
             } catch (JsonParseException | IllegalStateException e) {
-                throw new ProviderException(ProviderException.Kind.PROTOCOL,
+                throw new ProviderException(ProviderException.Kind.PROTOCOL, // NOPMD - the cause may quote response text; never in logs (AI rules)
                         ProviderException.describe(ProviderException.Kind.PROTOCOL));
             }
             if (chunk.has("error")) {
@@ -310,7 +310,7 @@ public final class OpenAiCompatibleProvider implements ChatProvider {
         try {
             json = JsonParser.parseString(new String(in.readAllBytes(), StandardCharsets.UTF_8)).getAsJsonObject();
         } catch (JsonParseException | IllegalStateException e) {
-            throw new ProviderException(ProviderException.Kind.PROTOCOL,
+            throw new ProviderException(ProviderException.Kind.PROTOCOL, // NOPMD - the cause may quote response text; never in logs (AI rules)
                     ProviderException.describe(ProviderException.Kind.PROTOCOL));
         }
         if (json.has("error")) {

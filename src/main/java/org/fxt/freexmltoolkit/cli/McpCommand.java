@@ -79,7 +79,7 @@ final class McpCommand implements Callable<Integer> {
             try {
                 registry = registry.only(tools.stream().map(String::strip).filter(t -> !t.isEmpty()).toList());
             } catch (IllegalArgumentException e) {
-                throw new CommandLine.ParameterException(spec.commandLine(), "--tools: " + e.getMessage());
+                throw new CommandLine.ParameterException(spec.commandLine(), "--tools: " + e.getMessage(), e);
             }
         }
         if (listTools) {

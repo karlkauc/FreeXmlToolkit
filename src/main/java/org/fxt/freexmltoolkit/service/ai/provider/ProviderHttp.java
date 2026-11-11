@@ -125,7 +125,7 @@ final class ProviderHttp {
         try {
             return URI.create(baseUrl.replaceAll("/+$", "") + path);
         } catch (IllegalArgumentException e) {
-            throw new ProviderException(ProviderException.Kind.BAD_REQUEST, "The base URL is not valid.");
+            throw new ProviderException(ProviderException.Kind.BAD_REQUEST, "The base URL is not valid."); // NOPMD - the cause quotes the host; never in logs (AI rules)
         }
     }
 }

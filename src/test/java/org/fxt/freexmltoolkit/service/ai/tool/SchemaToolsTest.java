@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.service.ai.tool;
 
+import static org.fxt.freexmltoolkit.service.ai.tool.SchemaToolsTestSchemas.MAIN;
+import static org.fxt.freexmltoolkit.service.ai.tool.SchemaToolsTestSchemas.OTHER;
 import static org.fxt.freexmltoolkit.service.ai.tool.ToolTestSupport.args;
 import static org.fxt.freexmltoolkit.service.ai.tool.ToolTestSupport.context;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,9 +23,6 @@ import org.junit.jupiter.api.io.TempDir;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-
-import static org.fxt.freexmltoolkit.service.ai.tool.SchemaToolsTestSchemas.MAIN;
-import static org.fxt.freexmltoolkit.service.ai.tool.SchemaToolsTestSchemas.OTHER;
 
 class SchemaToolsTest {
 

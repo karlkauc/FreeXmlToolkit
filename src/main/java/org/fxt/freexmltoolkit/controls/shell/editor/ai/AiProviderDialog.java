@@ -5,6 +5,17 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javafx.application.Platform;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.TextField;
+
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.i18n.I18n;
@@ -23,17 +34,6 @@ import org.fxt.freexmltoolkit.service.ai.provider.ProviderPreset;
 import org.fxt.freexmltoolkit.service.ai.provider.TokenLimitField;
 import org.fxt.freexmltoolkit.service.ai.provider.anthropic.AnthropicProvider;
 import org.fxt.freexmltoolkit.util.DialogHelper;
-
-import javafx.application.Platform;
-import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.Spinner;
-import javafx.scene.control.TextField;
 
 /**
  * Settings → AI → Add / Edit provider: preset, name, base URL, model (from the provider's model list or typed),

@@ -5,6 +5,18 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javafx.fxml.FXML;
+import javafx.scene.Node;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.input.MouseButton;
+import javafx.scene.layout.VBox;
+import javafx.util.StringConverter;
+
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.i18n.I18n;
@@ -17,18 +29,6 @@ import org.fxt.freexmltoolkit.service.ai.provider.ProviderConfig;
 import org.fxt.freexmltoolkit.service.ai.provider.ProviderSecrets;
 import org.fxt.freexmltoolkit.service.ai.provider.ProviderStore;
 import org.fxt.freexmltoolkit.util.DialogHelper;
-
-import javafx.fxml.FXML;
-import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.input.MouseButton;
-import javafx.scene.layout.VBox;
-import javafx.util.StringConverter;
 
 /**
  * Settings → AI: switch the assistant on, choose how much of a document may be sent (locally and to remote

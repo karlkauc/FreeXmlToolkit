@@ -2,14 +2,14 @@ package org.fxt.freexmltoolkit.controls.shell.editor.ai;
 
 import java.util.Optional;
 
+import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
+
 import org.fxt.freexmltoolkit.service.ai.AiPolicy;
 import org.fxt.freexmltoolkit.service.ai.AiSettings;
 import org.fxt.freexmltoolkit.service.ai.provider.ProviderConfig;
 import org.fxt.freexmltoolkit.service.ai.provider.ProviderStore;
-
-import javafx.application.Platform;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanWrapper;
 
 /**
  * Whether the AI actions are offered: the policy allows AI, the user switched it on and a usable default provider

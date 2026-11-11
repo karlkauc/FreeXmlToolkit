@@ -8,6 +8,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.file.Path;
 import java.util.Properties;
 
+import javafx.scene.Scene;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+
 import org.fxt.freexmltoolkit.controls.shell.editor.SettingsPanel;
 import org.fxt.freexmltoolkit.service.AdminPolicyTestAccess;
 import org.fxt.freexmltoolkit.service.PropertiesService;
@@ -21,12 +27,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
-
-import javafx.scene.Scene;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 
 /** Settings → AI: saved at once, details disabled while off; the whole group is gone under ai.allowed=false. */
 @ExtendWith(ApplicationExtension.class)

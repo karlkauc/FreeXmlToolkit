@@ -109,7 +109,7 @@ class VerifiersTest {
                   </xs:sequence></xs:complexType></xs:element>
                 </xs:schema>""");
         List<Path> before = files();
-        XsltVerifier verifier = new XsltVerifier(source, null, target, targetXsd, context);
+        XsltVerifier verifier = new XsltVerifier(source, target, targetXsd, context);
         Verification good = verifier.verify("""
                 <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                   <xsl:template match="/"><list><xsl:for-each select="//i"><entry><xsl:value-of select="."/></entry></xsl:for-each></list></xsl:template>

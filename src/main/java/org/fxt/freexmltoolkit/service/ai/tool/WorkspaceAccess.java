@@ -72,7 +72,7 @@ public final class WorkspaceAccess {
         try {
             candidate = Path.of(path.strip());
         } catch (InvalidPathException e) {
-            throw new ToolException("not a valid path: '" + path + "' (" + e.getReason() + ")");
+            throw new ToolException("not a valid path: '" + path + "' (" + e.getReason() + ")", e);
         }
         if (!candidate.isAbsolute()) {
             candidate = roots.getFirst().resolve(candidate);

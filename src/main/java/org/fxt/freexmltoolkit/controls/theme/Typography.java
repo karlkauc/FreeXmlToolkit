@@ -337,7 +337,7 @@ public final class Typography {
 
     private static String num(double value) {
         double rounded = Math.round(value * 10) / 10.0;
-        return rounded == Math.rint(rounded) ? Long.toString((long) rounded) : Double.toString(rounded);
+        return Double.compare(rounded, Math.rint(rounded)) == 0 ? Long.toString((long) rounded) : Double.toString(rounded);
     }
 
     /** @return the texts of {@link #SOURCES}, read once */

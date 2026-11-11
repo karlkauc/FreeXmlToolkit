@@ -156,7 +156,7 @@ public final class SandboxedQuery {
             }
             XdmValue value = selector.evaluate();
             long[] budget = {XsltSandbox.MAX_OUTPUT_CHARS};
-            XsltSandbox.LimitedWriter out = new XsltSandbox.LimitedWriter(budget);
+            XsltSandbox.LimitedWriter out = new XsltSandbox.LimitedWriter(budget); // NOPMD - in-memory writer, nothing to close
             for (XdmItem item : value) {
                 writeItem(processor, item, out);
                 out.write("\n");
@@ -201,7 +201,7 @@ public final class SandboxedQuery {
             }
             XdmValue value = evaluator.evaluate();
             long[] budget = {XsltSandbox.MAX_OUTPUT_CHARS};
-            XsltSandbox.LimitedWriter out = new XsltSandbox.LimitedWriter(budget);
+            XsltSandbox.LimitedWriter out = new XsltSandbox.LimitedWriter(budget); // NOPMD - in-memory writer, nothing to close
             Serializer serializer = processor.newSerializer(out);
             serializer.setOutputProperty(Serializer.Property.METHOD, "xml");
             serializer.setOutputProperty(Serializer.Property.OMIT_XML_DECLARATION, "yes");
@@ -223,7 +223,7 @@ public final class SandboxedQuery {
         } catch (SaxonApiException e) {
             if (XsltSandbox.causedBy(e, XsltSandbox.DeadlineExceeded.class)
                     || XsltSandbox.causedBy(e, XsltSandbox.OutputLimitExceeded.class)) {
-                throw new IllegalStateException(e.getCause() != null ? e.getCause() : e);
+                throw new IllegalStateException(e.getCause() != null ? e.getCause() : e); // NOPMD - the cause is the limit itself
             }
             return failure(e, "runtime");
         }
