@@ -36,6 +36,8 @@ and [Regression checks](projects.md#regression-checks).
   favorites/browse controls and **Change** (long names are shortened in the middle; hover
   for the full path). While no stylesheet is set, the row reads *"No stylesheet — choose or
   drop a file"* - clicking it works like **Change**.
+- **Use current tab** (the arrow-into-box button in the row, also first in the **Change** menu) -
+  makes the XSLT tab you are editing the stylesheet; enabled while an XSLT tab is active.
 - **Change** opens a menu:
     - **Select XSLT file…** - pick an `.xsl` / `.xslt` file from disk (it is also loaded into
       the editor).
@@ -67,6 +69,9 @@ there is none):
 
 - By default the input **follows the active editor document**: switch to another tab and
   the next run transforms that document (the shown input name updates live).
+- **Use current tab** (the arrow-into-box button in the row, also in the **Change** menu) - makes
+  the XML tab you are editing the input; it stays the input when you switch tabs. Enabled while an
+  XML tab is active.
 - **Change** opens a small menu:
     - **Select XML file…** - transform a fixed XML file from disk instead, regardless of
       which editor tab is active.

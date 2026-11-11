@@ -146,6 +146,11 @@ public class TransformPanel extends VBox {
     private final Button prevInputBtn = navButton("bi-chevron-left", this::prevInput);
     private final Button nextInputBtn = navButton("bi-chevron-right", this::nextInput);
     private final Label xsltPos = new Label();
+    /** "Use the current tab" buttons of the STYLESHEET / INPUT rows (enabled while the active tab fits). */
+    private final Button useTabXsltBtn = useTabButton("transform-xslt-use-tab",
+            "TransformPanel.use-current-tab-as-stylesheet", this::useActiveTabAsStylesheet);
+    private final Button useTabInputBtn = useTabButton("transform-input-use-tab",
+            "TransformPanel.use-current-tab-as-input", this::useActiveTabAsInput);
     private final Label inputPos = new Label();
 
     /** Loads the layout from {@code /pages/panels/TransformPanel.fxml} and wires the data-driven parts. */
@@ -167,7 +172,7 @@ public class TransformPanel extends VBox {
         xsltFavMenu.setOnShowing(e -> refreshXsltFavMenu());
         xsltPos.getStyleClass().add("fxt-vp-browse-pos");
         xsltPos.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE); // "2 / 5" never shrinks to "…"
-        xsltRow.addExtras(recentXsltMenu, xsltFavMenu, prevXsltBtn, xsltPos, nextXsltBtn);
+        xsltRow.addExtras(useTabXsltBtn, recentXsltMenu, xsltFavMenu, prevXsltBtn, xsltPos, nextXsltBtn);
         // Drops behave like picking a favorite: record access, sync the browse position, load the
         // file into the editor, auto-run.
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xsltRow,
@@ -181,13 +186,15 @@ public class TransformPanel extends VBox {
         inputFavMenu.setOnShowing(e -> refreshInputFavMenu());
         inputPos.getStyleClass().add("fxt-vp-browse-pos");
         inputPos.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE); // "2 / 5" never shrinks to "…"
-        inputRow.addExtras(inputFavMenu, prevInputBtn, inputPos, nextInputBtn);
+        inputRow.addExtras(useTabInputBtn, inputFavMenu, prevInputBtn, inputPos, nextInputBtn);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(inputRow,
                 org.fxt.freexmltoolkit.service.DragDropService.XML_EXTENSIONS, this::pickInput);
         updateInputPos();
         refreshInputName();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refreshInputName());
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> chooseBoundScenario());
+        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refreshUseTabButtons());
+        refreshUseTabButtons();
         xsltMenuStaticItems = xsltMenu.getItems().size();
         inputMenuStaticItems = inputMenu.getItems().size();
         editorHost.getOpenDocuments().addListener(
@@ -665,6 +672,7 @@ public class TransformPanel extends VBox {
         fillTabEntries(inputMenu, inputMenuStaticItems, "transform-input-tab-",
                 inputTabCandidates(), isOpen(inputDocumentOverride) ? inputDocumentOverride : null,
                 this::useInputDocument, "TransformPanel.no-open-xml-tabs");
+        addCurrentTabItem(inputMenu, inputMenuStaticItems, "transform-input-current-tab", activeInputTab());
         inputMenu.show(inputName, javafx.geometry.Side.BOTTOM, 0, 0);
     }
 
@@ -674,7 +682,68 @@ public class TransformPanel extends VBox {
         fillTabEntries(xsltMenu, xsltMenuStaticItems, "transform-xslt-tab-",
                 xsltTabCandidates(), stylesheetDocument(), this::useStylesheetDocument,
                 "TransformPanel.no-open-xslt-tabs");
+        addCurrentTabItem(xsltMenu, xsltMenuStaticItems, "transform-xslt-current-tab", activeXsltTab());
         xsltMenu.show(xsltName, javafx.geometry.Side.BOTTOM, 0, 0);
+    }
+
+    /**
+     * Puts "Use current tab (name)" right after the menu's FXML items; disabled when the active
+     * tab cannot be used.
+     */
+    private void addCurrentTabItem(ContextMenu menu, int at, String id, Optional<OpenDocument> activeTab) {
+        String label = activeTab.map(d -> I18n.t("TransformPanel.use-current-tab-named", d.getDisplayName()))
+                .orElse(I18n.t("TransformPanel.use-current-tab"));
+        MenuItem item = new MenuItem(label, icon("bi-box-arrow-in-down", 16));
+        item.setId(id);
+        item.setMnemonicParsing(false);
+        item.setDisable(activeTab.isEmpty());
+        item.setOnAction(e -> {
+            if (menu == xsltMenu) {
+                useActiveTabAsStylesheet();
+            } else {
+                useActiveTabAsInput();
+            }
+        });
+        menu.getItems().add(at, item);
+    }
+
+    /** @return the active tab when it is an XSLT document (it can be the stylesheet). */
+    Optional<OpenDocument> activeXsltTab() {
+        return editorHost.getActiveDocument().filter(d -> d.getFileType() == EditorFileType.XSLT);
+    }
+
+    /** @return the active tab when it is an XML document that can be the input. */
+    Optional<OpenDocument> activeInputTab() {
+        return editorHost.getActiveDocument().filter(d -> d.getFileType().isXmlFamily() && isInputCandidate(d));
+    }
+
+    /** Sets the current editor tab as the stylesheet (STYLESHEET row button / menu). */
+    public void useActiveTabAsStylesheet() {
+        activeXsltTab().ifPresent(this::useStylesheetDocument);
+        refreshUseTabButtons();
+    }
+
+    /** Sets the current editor tab as the input (INPUT row button / menu). */
+    public void useActiveTabAsInput() {
+        activeInputTab().ifPresent(this::useInputDocument);
+        refreshUseTabButtons();
+    }
+
+    /** Enables the "Use current tab" buttons only while the active tab fits the row. */
+    private void refreshUseTabButtons() {
+        useTabXsltBtn.setDisable(activeXsltTab().isEmpty());
+        useTabInputBtn.setDisable(activeInputTab().isEmpty());
+    }
+
+    /** A compact icon-only "Use current tab" button for a source row. */
+    private static Button useTabButton(String id, String tooltipKey, Runnable action) {
+        Button button = new Button(null, icon("bi-box-arrow-in-down", 13));
+        button.setId(id);
+        button.getStyleClass().add("fxt-vp-browse-nav");
+        button.setTooltip(new javafx.scene.control.Tooltip(I18n.t(tooltipKey)));
+        button.setAccessibleText(I18n.t(tooltipKey));
+        button.setOnAction(e -> action.run());
+        return button;
     }
 
     /** @return the open XSLT tabs, the active one first (the STYLESHEET menu's entries). */
@@ -840,6 +909,7 @@ public class TransformPanel extends VBox {
 
     /** Updates the INPUT row label: the override file, or the active document (live). */
     private void refreshInputName() {
+        refreshUseTabButtons(); // the stylesheet tab can never be the input
         if (inputOverride != null) {
             inputRow.showFile(inputOverride);
             return;

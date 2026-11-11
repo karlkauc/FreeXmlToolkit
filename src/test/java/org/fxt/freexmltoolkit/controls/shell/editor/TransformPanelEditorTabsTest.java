@@ -160,6 +160,45 @@ class TransformPanelEditorTabsTest {
     }
 
     @Test
+    void theUseCurrentTabButtonsSetStylesheetAndInput(@TempDir Path tmp) throws Exception {
+        OpenDocument xml = open(tmp, "doc.xml", "<greeting>Hello</greeting>");
+        javafx.scene.control.Button xsltButton = fx(() -> (javafx.scene.control.Button) panel.lookup("#transform-xslt-use-tab"));
+        javafx.scene.control.Button inputButton = fx(() -> (javafx.scene.control.Button) panel.lookup("#transform-input-use-tab"));
+        // an XML tab is active: only the input can take it
+        assertTrue(fx(xsltButton::isDisabled));
+        assertFalse(fx(inputButton::isDisabled));
+        fx(() -> {
+            inputButton.fire();
+            return null;
+        });
+        assertSame(xml, panel.currentInputDocumentOverride());
+
+        OpenDocument xslt = open(tmp, "t.xslt", XSLT);
+        assertFalse(fx(xsltButton::isDisabled));
+        assertTrue(fx(inputButton::isDisabled), "an XSLT tab is no input");
+        fx(() -> {
+            xsltButton.fire();
+            panel.transform();
+            return null;
+        });
+        assertSame(xslt, panel.stylesheetDocument());
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> panel.getOutputText().contains("<out>Hello</out>"));
+
+        // the menus offer the same as their first entry
+        fx(() -> {
+            panel.onChangeXslt();
+            return null;
+        });
+        ContextMenu menu = fx(() -> menuWith("transform-xslt-current-tab"));
+        assertEquals(List.of("Use current tab (t.xslt)"), fx(() -> menu.getItems().stream()
+                .filter(i -> "transform-xslt-current-tab".equals(i.getId())).map(MenuItem::getText).toList()));
+        fx(() -> {
+            menu.hide();
+            return null;
+        });
+    }
+
+    @Test
     void aClosedSavedStylesheetTabStaysAsItsFile(@TempDir Path tmp) throws Exception {
         open(tmp, "doc.xml", "<a/>");
         OpenDocument xslt = open(tmp, "t.xslt", XSLT);
