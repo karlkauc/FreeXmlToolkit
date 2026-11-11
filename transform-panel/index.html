@@ -3334,7 +3334,18 @@ and <a href="../projects/#regression-checks">Regression checks</a>.</p>
   favorites/browse controls and <strong>Change</strong> (long names are shortened in the middle; hover
   for the full path). While no stylesheet is set, the row reads <em>"No stylesheet — choose or
   drop a file"</em> - clicking it works like <strong>Change</strong>.</li>
-<li><strong>Change</strong> - pick an <code>.xsl</code> / <code>.xslt</code> file from disk (it is also loaded into the editor).</li>
+<li><strong>Change</strong> opens a menu:<ul>
+<li><strong>Select XSLT file…</strong> - pick an <code>.xsl</code> / <code>.xslt</code> file from disk (it is also loaded into
+  the editor).</li>
+<li><strong>Open tabs</strong> - every XSLT document open in the editor, the active tab first and marked
+  <em>(active)</em>. It does not matter how the tab was opened: File → Open, the Explorer, a new
+  file, or a stylesheet the <a href="../ai-assistant/">AI assistant</a> generated and you opened in a
+  new tab. The transform runs the tab's <strong>editor text</strong>, including unsaved changes; an
+  unsaved tab is marked <em>unsaved</em> (relative <code>xsl:include</code> / <code>xsl:import</code> paths of an unsaved
+  tab resolve against the input's folder). When you close a saved tab, its file stays the
+  stylesheet. <strong>Debug</strong> and <strong>Save scenario</strong> need a saved stylesheet.</li>
+</ul>
+</li>
 <li>The <strong>clock icon</strong> opens the <strong>recent stylesheets</strong> menu: reapply a recently used
   stylesheet in a single click (it is also loaded into the editor), or choose <strong>Clear recent</strong>
   to empty the list.</li>
@@ -3355,10 +3366,14 @@ there is none):</p>
 <ul>
 <li>By default the input <strong>follows the active editor document</strong>: switch to another tab and
   the next run transforms that document (the shown input name updates live).</li>
-<li><strong>Change</strong> opens a small menu with two options:<ul>
+<li><strong>Change</strong> opens a small menu:<ul>
 <li><strong>Select XML file…</strong> - transform a fixed XML file from disk instead, regardless of
   which editor tab is active.</li>
 <li><strong>Use active editor</strong> - go back to following the active tab.</li>
+<li><strong>Open tabs</strong> - every XML document open in the editor (saved or not, the active one
+  first). The chosen tab stays the input while you switch to other tabs - for example to
+  edit the stylesheet - and its current editor text is transformed. The chosen stylesheet tab
+  is never offered as input.</li>
 </ul>
 </li>
 <li>The <strong>star icon</strong> opens your <strong>XML favorites</strong> - see
@@ -3422,7 +3437,8 @@ concrete format to override the detection.</p>
 </ul>
 <h2 id="running-a-transformation">Running a Transformation<a class="headerlink" href="#running-a-transformation" title="Permanent link">¶</a></h2>
 <ol>
-<li>Choose a stylesheet (<strong>STYLESHEET → Change</strong>, or pick one from the recent menu).</li>
+<li>Choose a stylesheet (<strong>STYLESHEET → Change</strong> - a file or an open XSLT tab - or pick one
+   from the recent menu).</li>
 <li>Check the <strong>INPUT</strong> section shows the document you want to transform.</li>
 <li>Click <strong>Run Transform</strong>.</li>
 </ol>
