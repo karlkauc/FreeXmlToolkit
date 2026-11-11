@@ -2710,10 +2710,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#next-release-unreleased" class="md-nav__link">
+  <a href="#310-2026-11-11" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Next release (unreleased)
+        3.1.0 (2026-11-11)
       
     </span>
   </a>
@@ -3180,10 +3180,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#next-release-unreleased" class="md-nav__link">
+  <a href="#310-2026-11-11" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Next release (unreleased)
+        3.1.0 (2026-11-11)
       
     </span>
   </a>
@@ -3346,7 +3346,8 @@
 <p>The highlights of each release. The complete notes and all downloads are on the
 <a href="https://github.com/karlkauc/FreeXmlToolkit/releases">GitHub Releases page</a>; the version you are
 running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
-<h2 id="next-release-unreleased">Next release (unreleased)<a class="headerlink" href="#next-release-unreleased" title="Permanent link">¶</a></h2>
+<h2 id="310-2026-11-11">3.1.0 (2026-11-11)<a class="headerlink" href="#310-2026-11-11" title="Permanent link">¶</a></h2>
+<p><strong>AI</strong></p>
 <ul>
 <li><strong>MCP server for AI agents:</strong> <code>fxt-cli mcp</code> lets Claude Code and other MCP clients validate documents, run and
   test XSLT/XQuery (with XSpec), explore schemas, outline large documents and compare results — read-only and
@@ -3357,10 +3358,60 @@ running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
   choose (OpenAI-compatible, Anthropic). Every answer is checked by the application (compiled, run, validated) and
   repaired up to three times before you see it; nothing is applied without you. Data levels and a request preview
   control what leaves your computer. See <a href="../ai-assistant/">AI Assistant</a>.</li>
+</ul>
+<p><strong>Appearance</strong></p>
+<ul>
+<li><strong>System theme and accent colour:</strong> Settings → Appearance → Theme offers <strong>System</strong>, which follows the light or
+  dark setting of your operating system while the application runs. The <strong>accent colour</strong> (eight presets or your
+  own) colours buttons, selection, focus and links, with readable contrast kept automatically. See
+  <a href="../settings/#accent-colour">Settings</a>.</li>
+<li><strong>Editor font:</strong> font, size and line spacing of every code editor, and a zoom (Ctrl+mouse wheel) that can apply
+  to all editors and be remembered. The grid uses the editor font too. See <a href="../settings/#editor-font">Settings</a>.</li>
+<li><strong>Text size, font and density of the interface:</strong> Small to Extra Large text, your own interface font, and a
+  Compact, Normal or Comfortable density. See <a href="../settings/#text-size-and-font">Settings</a>.</li>
+<li><strong>Syntax colours:</strong> colour schemes for XML, JSON and XPath (Monokai and others, each with a light and a dark
+  variant) and your own colour per role. See <a href="../settings/#syntax-colours">Settings</a>.</li>
+<li><strong>High contrast:</strong> stronger texts, borders and focus rings on top of the light or the dark theme. See
+  <a href="../settings/#high-contrast">Settings</a>.</li>
+</ul>
+<p><strong>Editing and output</strong></p>
+<ul>
+<li><strong>Export views:</strong> the XSD diagram, the XML / JSON grid and the profiler's flame graph can be saved as PNG, SVG or
+  PDF, or copied to the clipboard as an image (File → Export View…, Edit → Copy View as Image, context menu). See
+  <a href="../unified-shell/#export-view">Exporting a Graphical View</a>.</li>
+<li><strong>Switching views keeps your place:</strong> going from Text to Tree, Graphic or Overview selects the node at the caret;
+  going back to Text puts the caret on the node you had selected and tints its lines. See
+  <a href="../unified-shell/#view-modes">View Modes</a>.</li>
 <li><strong>Transform from open tabs:</strong> STYLESHEET → Change and INPUT → Change list every open XSLT / XML tab, saved
   or not, and a <strong>Use current tab</strong> button takes the tab you are editing — a generated stylesheet opened in a new
   tab runs straight away, with its editor text. See
   <a href="../transform-panel/#stylesheet">Transform Panel</a>.</li>
+<li><strong>External XSL-FO processors:</strong> render PDFs with Antenna House Formatter, RenderX XEP, another Apache FOP or a
+  script of your own; the XSLT stage, the intermediate FO and the debugger stay the same. Set them up under
+  Settings → Extensions → XSL-FO Processors, choose one in the PDF/FOP panel, in a PDF scenario or with
+  <code>fxt-cli fop --processor</code>. See <a href="../pdf-generator/#external-xsl-fo-processors">PDF Generator</a>.</li>
+<li><strong>One look for every Excel export:</strong> validation problems, the Schema Analysis report, the Data Dictionary and the
+  XML → Excel conversion share one house style — dark header, striped rows, no gridlines, an info sheet, frozen
+  header and auto-filter, printed one page wide. See <a href="../xsd-validation/">XSD Validation</a>.</li>
+</ul>
+<p><strong>Plugins and FundsXML</strong></p>
+<ul>
+<li><strong>A page per industry plugin:</strong> ISO 20022, ebInterface, FinDatEx and XBRL each have their own guide; the
+  <a href="../industry-plugins/">Industry Plugins</a> page compares them.</li>
+<li><strong>Recognised documents are marked:</strong> while the FundsXML extension is on, a FundsXML document shows a
+  <strong>FundsXML</strong> mark in the status bar; a click opens the FundsXML panel. Plugins can add such marks too. See
+  <a href="../fundsxml-extensions/#recognised-documents-the-fundsxml-mark">FundsXML Extensions</a> and
+  <a href="../plugin-development/#document-badges">Writing Plugins</a>.</li>
+<li><strong>FundsXML data-quality checks</strong> compare position weights, net asset values and portfolio dates with the fund,
+  subfund, segment or share class the portfolio belongs to, so share-class portfolios no longer add up to 300 %.
+  Positions in country-specific data are no longer taken for portfolio positions, and assets used only by an
+  earning no longer count as unused. See
+  <a href="../fundsxml-extensions/#data-quality-checks">FundsXML Extensions</a>.</li>
+</ul>
+<p><strong>Documentation</strong></p>
+<ul>
+<li><strong>Supported standards:</strong> one table lists the XML-related standards and versions FreeXmlToolkit reads, validates,
+  runs or writes, and the engine behind each. See <a href="../#supported-standards">Supported Standards</a>.</li>
 </ul>
 <h2 id="300-2026-11-09">3.0.0 (2026-11-09)<a class="headerlink" href="#300-2026-11-09" title="Permanent link">¶</a></h2>
 <p><strong>Platform and enterprise</strong></p>
