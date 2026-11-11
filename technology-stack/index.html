@@ -3,7 +3,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Universal Toolkit for XML - User Documentation">
+        <meta name="description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
       
       
         <meta name="author" content="Karl Kauc">
@@ -2861,6 +2861,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#ai" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#office-integration" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3626,6 +3637,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#ai" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#office-integration" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4087,6 +4109,11 @@
 <li><strong>BouncyCastle:</strong> 1.86 - Cryptographic operations for XML digital signatures</li>
 <li><strong>Java Cryptography Architecture (JCA):</strong> Native Java crypto support</li>
 </ul>
+<h3 id="ai">AI<a class="headerlink" href="#ai" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>MCP Java SDK:</strong> 2.1.0 - Model Context Protocol server for <code>fxt-cli mcp</code> (stdio)</li>
+<li><strong>Anthropic Java SDK:</strong> 3.8.0 (<code>anthropic-java-core</code>) - Anthropic provider of the optional AI assistant, on the application's own HTTP connection service (OpenAI-compatible providers use plain HTTP)</li>
+</ul>
 <h3 id="office-integration">Office Integration<a class="headerlink" href="#office-integration" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>Apache POI:</strong> 6.0.0 - Excel export for validation results</li>
@@ -4210,19 +4237,23 @@
 <a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="c1">// PDF Generation</span>
 <a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"org.apache.xmlgraphics:fop:2.12"</span><span class="p">)</span>
 <a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">    </span><span class="c1">// UI Components</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"org.fxmisc.richtext:richtextfx:0.11.7"</span><span class="p">)</span>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"org.controlsfx:controlsfx:11.2.6"</span><span class="p">)</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">    </span><span class="c1">// AI (MCP server, Anthropic provider)</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"io.modelcontextprotocol.sdk:mcp-core:2.1.0"</span><span class="p">)</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"com.anthropic:anthropic-java-core:3.8.0"</span><span class="p">)</span>
 <a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>
-<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">    </span><span class="c1">// Security</span>
-<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"org.apache.santuario:xmlsec:4.0.4"</span><span class="p">)</span>
-<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"org.bouncycastle:bcpkix-jdk18on:1.86"</span><span class="p">)</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">    </span><span class="c1">// UI Components</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"org.fxmisc.richtext:richtextfx:0.11.7"</span><span class="p">)</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"org.controlsfx:controlsfx:11.2.6"</span><span class="p">)</span>
 <a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>
-<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">    </span><span class="c1">// Testing</span>
-<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">    </span><span class="n">testImplementation</span><span class="p">(</span><span class="n">platform</span><span class="p">(</span><span class="s">"org.junit:junit-bom:6.1.3"</span><span class="p">))</span>
-<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="w">    </span><span class="n">testImplementation</span><span class="p">(</span><span class="s">"org.junit.jupiter:junit-jupiter"</span><span class="p">)</span>
-<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="w">    </span><span class="n">testImplementation</span><span class="p">(</span><span class="s">"org.testfx:testfx-junit5:4.0.18"</span><span class="p">)</span>
-<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="p">}</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">    </span><span class="c1">// Security</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"org.apache.santuario:xmlsec:4.0.4"</span><span class="p">)</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"org.bouncycastle:bcpkix-jdk18on:1.86"</span><span class="p">)</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="w">    </span><span class="c1">// Testing</span>
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="w">    </span><span class="n">testImplementation</span><span class="p">(</span><span class="n">platform</span><span class="p">(</span><span class="s">"org.junit:junit-bom:6.1.3"</span><span class="p">))</span>
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="w">    </span><span class="n">testImplementation</span><span class="p">(</span><span class="s">"org.junit.jupiter:junit-jupiter"</span><span class="p">)</span>
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="w">    </span><span class="n">testImplementation</span><span class="p">(</span><span class="s">"org.testfx:testfx-junit5:4.0.18"</span><span class="p">)</span>
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="p">}</span>
 </code></pre></div>
 <h2 id="performance-optimizations">Performance Optimizations<a class="headerlink" href="#performance-optimizations" title="Permanent link">¶</a></h2>
 <h3 id="memory-management">Memory Management<a class="headerlink" href="#memory-management" title="Permanent link">¶</a></h3>

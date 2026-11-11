@@ -3,7 +3,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Universal Toolkit for XML - User Documentation">
+        <meta name="description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
       
       
         <meta name="author" content="Karl Kauc">
@@ -3195,6 +3195,11 @@ multi-factor authentication for GitHub and SignPath.</p>
   installed when the user confirms them.</li>
 <li><strong>FundsXML extension</strong> — off by default; when enabled, downloads and updates the FundsXML
   schemas, samples and rules from GitHub.</li>
+<li><strong>AI assistant</strong> — off by default; when the user turns it on and adds a provider, requests go only to the
+  provider the user configured (a model on the same computer or a service the user has an account with), with
+  the content the chosen data level allows. The program has no AI service of its own. The MCP server
+  (<code>fxt-cli mcp</code>) talks to the agent over standard input and output and connects only to load schemas the
+  documents refer to, as described below.</li>
 <li><strong>Schemas and stylesheets</strong> referenced by documents the user opens (e.g. <code>xs:import</code>,
   <code>schemaLocation</code>, catalogs) are downloaded from the locations given in those documents.</li>
 </ul>

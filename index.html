@@ -3,7 +3,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Universal Toolkit for XML - User Documentation">
+        <meta name="description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
       
       
         <meta name="author" content="Karl Kauc">
@@ -774,6 +774,17 @@
     <span class="md-ellipsis">
       
         FundsXML Extensions (Optional)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ai-assistant-and-mcp-server-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AI Assistant and MCP Server (Optional)
       
     </span>
   </a>
@@ -3441,6 +3452,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#ai-assistant-and-mcp-server-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AI Assistant and MCP Server (Optional)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3662,6 +3684,11 @@
 <td>JSON (RFC 8259), <strong>JSON Schema Draft-07, 2019-09 and 2020-12</strong>, YAML 1.2</td>
 <td>networknt json-schema-validator, SnakeYAML Engine</td>
 </tr>
+<tr>
+<td>AI agents</td>
+<td>Model Context Protocol (MCP, revisions up to 2025-11-25, stdio)</td>
+<td>MCP Java SDK</td>
+</tr>
 </tbody>
 </table>
 <h3 id="works-on-all-platforms">Works On All Platforms<a class="headerlink" href="#works-on-all-platforms" title="Permanent link">¶</a></h3>
@@ -3712,7 +3739,7 @@
 </tr>
 <tr>
 <td><strong>Query Console</strong></td>
-<td>Run XPath 3.1, XQuery 3.1 and JSONPath against the open document (Ctrl+K)</td>
+<td>Run XPath 3.1, XQuery 3.1 and JSONPath against the open document (Ctrl+K); <strong>Ask AI</strong> writes the query from a question</td>
 </tr>
 </tbody>
 </table>
@@ -3833,6 +3860,10 @@
 <td><strong>XProc 3.0 Pipelines</strong></td>
 <td>Run multi-step processing pipelines (<code>.xpl</code>) with the built-in XML Calabash engine</td>
 </tr>
+<tr>
+<td><strong>Generate a Stylesheet with AI</strong></td>
+<td>Describe the output with a target sample; the AI assistant writes the XSLT, which is run and compared before you see it</td>
+</tr>
 </tbody>
 </table>
 <p>Learn more: <a href="transform-panel/">Transform Panel</a> | <a href="xslt-developer/">XSLT Developer</a> | <a href="debugger/">Debugger</a> | <a href="xproc/">XProc Pipelines</a></p>
@@ -3948,6 +3979,10 @@
 <td><strong>Quick Fixes (SQF)</strong></td>
 <td>Correct rule violations automatically with one click</td>
 </tr>
+<tr>
+<td><strong>Explain / Fix with AI</strong></td>
+<td>Let the AI assistant explain a validation problem or propose a fix that is checked against the schema and the rules</td>
+</tr>
 </tbody>
 </table>
 <p>Learn more: <a href="schematron-support/">Schematron Guide</a> | <a href="schematron-quick-fixes/">Quick Fixes</a></p>
@@ -3993,6 +4028,46 @@
 </table>
 <p>This feature is <strong>off by default</strong>. Enable it from Settings only if you work with FundsXML files - when you open a FundsXML document, the app offers to enable it once.</p>
 <p>Learn more: <a href="fundsxml-extensions/">FundsXML Extensions Guide</a></p>
+<h3 id="ai-assistant-and-mcp-server-optional">AI Assistant and MCP Server (Optional)<a class="headerlink" href="#ai-assistant-and-mcp-server-optional" title="Permanent link">¶</a></h3>
+<p>Use a language model for the routine parts of XML work - with every answer checked by the application:</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>What It Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Fix or Explain a Problem</strong></td>
+<td>Right-click a validation problem → Fix with AI / Explain with AI; the fix is applied only by you, as one undo step</td>
+</tr>
+<tr>
+<td><strong>Ask AI for a Query</strong></td>
+<td>Turn a question into XPath or XQuery in the Query Console; the query is run before you see it</td>
+</tr>
+<tr>
+<td><strong>Generate a Stylesheet</strong></td>
+<td>Write XSLT from a target sample in the Transform panel; the stylesheet is run and its output compared</td>
+</tr>
+<tr>
+<td><strong>Model of Your Choice</strong></td>
+<td>A model on your computer (Ollama, LM Studio) or a provider you have an account with (OpenAI-compatible, Anthropic) - no subscription</td>
+</tr>
+<tr>
+<td><strong>Your Data, Your Choice</strong></td>
+<td>Data levels (schema only, structure, excerpts), a preview of every request, nothing in telemetry or logs</td>
+</tr>
+<tr>
+<td><strong>MCP Server</strong></td>
+<td><code>fxt-cli mcp</code> gives AI agents such as Claude Code the validation, XSLT/XQuery, XSpec and schema tools - read-only, sandboxed, limited to the folders you name</td>
+</tr>
+</tbody>
+</table>
+<p>The assistant is <strong>off by default</strong>; turn it on under Settings → AI. Administrators can remove both features
+(<code>ai.allowed</code>, <code>ai.mcp.allowed</code>).</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="img/ai-assistant-proposal.png" data-desc-position="bottom"><img alt="AI assistant: a validation problem fixed and verified against the schema" src="img/ai-assistant-proposal.png"></a></p>
+<p>Learn more: <a href="ai-assistant/">AI Assistant</a> | <a href="mcp-server/">MCP Server</a></p>
 <hr>
 <h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">¶</a></h2>
 <p>Download FreeXmlToolkit with the <a href="#download">buttons above</a>; the <a href="installation/">Installation</a> guide covers every package format, Scoop and Homebrew.</p>

@@ -3,7 +3,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Universal Toolkit for XML - User Documentation">
+        <meta name="description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
       
       
         <meta name="author" content="Karl Kauc">
@@ -4392,6 +4392,9 @@
 </tbody>
 </table>
 <p>These protections work automatically in the background - you do not need to configure them for normal use.</p>
+<p>The optional AI features have their own protections - code written by an AI agent runs in a sandbox in the
+<a href="../mcp-server/#safety">MCP Server</a>, and the <a href="../ai-assistant/">AI assistant</a> sends only what its data level allows
+to the provider you configured. The <a href="../threat-model/#threats-and-mitigations">Threat Model</a> lists them.</p>
 <hr>
 <h2 id="xxe-xml-external-entity-protection">XXE (XML External Entity) Protection<a class="headerlink" href="#xxe-xml-external-entity-protection" title="Permanent link">¶</a></h2>
 <h3 id="what-is-xxe">What Is XXE?<a class="headerlink" href="#what-is-xxe" title="Permanent link">¶</a></h3>

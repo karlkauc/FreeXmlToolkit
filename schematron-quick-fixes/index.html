@@ -3,7 +3,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Universal Toolkit for XML - User Documentation">
+        <meta name="description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
       
       
         <meta name="author" content="Karl Kauc">
@@ -3185,6 +3185,9 @@ problems that carry fixes can be corrected from three places:</p>
 </ul>
 <p>If the document was edited after the last validation, the fix refuses to run
 and asks for a re-validation instead of guessing.</p>
+<p>For problems without a quick fix, the optional <a href="../ai-assistant/">AI assistant</a> adds <strong>Fix with AI</strong> and
+<strong>Explain with AI</strong> to the same menu, below the quick fixes. Quick fixes stay first: they are deterministic,
+while an AI fix is a proposal that is validated against the schema and the Schematron before you apply it.</p>
 <h2 id="authoring-fixes">Authoring fixes<a class="headerlink" href="#authoring-fixes" title="Permanent link">¶</a></h2>
 <p>The Schematron editor's IntelliSense completes the SQF vocabulary
 (<code>sqf:fixes</code>, <code>sqf:fix</code>, the four activities, <code>sqf:user-entry</code>, <code>sqf:call-fix</code>,

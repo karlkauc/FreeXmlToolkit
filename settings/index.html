@@ -3,7 +3,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Universal Toolkit for XML - User Documentation">
+        <meta name="description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
       
       
         <meta name="author" content="Karl Kauc">
@@ -3280,14 +3280,14 @@
 <blockquote>
 <p>Settings open as a <strong>full page</strong> (a tab in the main editor
 area) rather than in the narrow left side panel. The options are presented
-as <strong>color-coded cards</strong>, sorted into seven groups.</p>
+as <strong>color-coded cards</strong>, sorted into eight groups.</p>
 </blockquote>
 <p>Click the gear icon at the bottom of the activity bar (or press <strong>Ctrl+,</strong>): the <strong>Settings page
 opens as a tab in the main editor area</strong>, where there is room for all options.</p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-settings.png#only-light" data-desc-position="bottom"><img alt="Settings page" src="../img/unified-shell-settings.png#only-light"></a>
 <a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-settings-dark.png#only-dark" data-desc-position="bottom"><img alt="Settings page" src="../img/unified-shell-settings-dark.png#only-dark"></a>
 <em>The Settings page: groups in the side panel, colour-coded cards in the main area</em></p>
-<p><strong>Finding a setting</strong> - the side panel on the left lists the seven groups. Click a group to
+<p><strong>Finding a setting</strong> - the side panel on the left lists the eight groups. Click a group to
 scroll the page to it; the group you are looking at is highlighted. Type into the <strong>search field</strong> at the top of the side panel to filter both
 the group list and the cards on the page down to the matching settings; if nothing matches, the
 page shows <em>"No settings match the search."</em>.</p>
@@ -3338,6 +3338,10 @@ settings may be greyed out and a notice at the top of the page says so; see
 <tr>
 <td><strong>Privacy</strong></td>
 <td><strong>Usage Statistics</strong> - <strong>Enable usage tracking</strong> (local, anonymous feature-usage counters shown on the Welcome page) and <strong>Clear statistics</strong>. Below them: <strong>Send anonymous usage statistics</strong> and <strong>Send anonymous error reports</strong> (both on by default) and a <strong>What is sent?</strong> link that shows the exact data and your anonymous installation ID. See <a href="../telemetry/">Privacy &amp; Anonymous Telemetry</a>.</td>
+</tr>
+<tr>
+<td><strong>AI</strong></td>
+<td><strong>AI Assistant</strong> - <strong>Use the AI assistant</strong> (off by default); what <strong>may be sent</strong> to local models and to remote providers (<em>Schema only</em>, <em>Structure</em>, <em>Excerpts</em>); <strong>Show every request before it is sent</strong>; the <strong>Providers</strong> list (<strong>Add… / Edit… / Remove</strong>, <strong>Use for AI actions</strong>). Removed entirely when an administrator sets <code>ai.allowed=false</code>. See <a href="#ai">AI</a> below and <a href="../ai-assistant/">AI Assistant</a>.</td>
 </tr>
 <tr>
 <td><strong>Extensions</strong></td>

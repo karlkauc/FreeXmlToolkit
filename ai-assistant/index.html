@@ -3,7 +3,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Universal Toolkit for XML - User Documentation">
+        <meta name="description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
       
       
         <meta name="author" content="Karl Kauc">
@@ -3314,6 +3314,7 @@ the <a href="../mcp-server/">MCP Server</a> instead — that needs no setting he
 <li><strong>Test</strong> sends a one-line request and shows the model, the time it took and whether the host counts as <em>local</em>.</li>
 <li>With several providers, <strong>Use for AI actions</strong> picks the one the actions use.</li>
 </ol>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/ai-assistant-settings.png" data-desc-position="bottom"><img alt="Settings → AI with a local Ollama provider" src="../img/ai-assistant-settings.png"></a></p>
 <h2 id="data-levels">What is sent<a class="headerlink" href="#data-levels" title="Permanent link">¶</a></h2>
 <p>Every request is built for the task, within a size limit, and contains only what the data level allows:</p>
 <table>
@@ -3358,6 +3359,7 @@ the <a href="../mcp-server/">MCP Server</a> instead — that needs no setting he
   removed</strong>. The AI panel at the bottom shows the change side by side and the checks; <strong>Apply</strong> makes it one edit
   (Ctrl+Z undoes it). Quick fixes from the Schematron stay first in the menu: they are deterministic.</li>
 </ul>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/ai-assistant-proposal.png" data-desc-position="bottom"><img alt="A fix proposed by the model, verified against the schema and shown side by side in the AI panel" src="../img/ai-assistant-proposal.png"></a></p>
 <h3 id="a-question-xpath-or-xquery">A question → XPath or XQuery<a class="headerlink" href="#a-question-xpath-or-xquery" title="Permanent link">¶</a></h3>
 <p>In the <strong>Query Console</strong>: <strong>Ask AI…</strong>, describe what you want ("the names of the funds in EUR"). The query is checked
 against the active document — it compiles and runs; the item count and the first results are shown — and

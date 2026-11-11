@@ -3,7 +3,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Universal Toolkit for XML - User Documentation">
+        <meta name="description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
       
       
         <meta name="author" content="Karl Kauc">
@@ -3281,6 +3281,11 @@ editor to copy it: <strong>Copy Message</strong> (just the message text), <stron
 source, message, file and line/column, plus rule and context for Schematron) or <strong>Copy All
 Problems</strong> (one problem per line). <strong>Ctrl+C</strong> (<strong>Cmd+C</strong> on macOS) copies the selected row
 like Copy Problem.</p>
+<p>While the <a href="../ai-assistant/">AI assistant</a> is on, the same menu - in the PROBLEMS panel and in the side panel's
+list - also offers <strong>Fix with AI</strong> and <strong>Explain with AI</strong> (below any quick fixes). A fix is applied to a copy
+and validated against the same schema and Schematron first; the <strong>AI</strong> panel below the editor shows it side by
+side with the result of the checks, and <strong>Apply</strong> makes it one edit (Ctrl+Z undoes it). See
+<a href="../ai-assistant/#fix-or-explain-a-validation-problem">Fix or explain a validation problem</a>.</p>
 <p>Selecting a problem in either list shows it <strong>in the view you are in</strong>:</p>
 <ul>
 <li><strong>Text</strong> - the caret jumps to its line and, for XML and XSD errors, to the reported column.</li>

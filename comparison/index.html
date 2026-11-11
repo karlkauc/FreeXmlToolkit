@@ -3,7 +3,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Universal Toolkit for XML - User Documentation">
+        <meta name="description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
       
       
         <meta name="author" content="Karl Kauc">
@@ -2860,6 +2860,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#ai" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#where-the-others-offer-more" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3202,6 +3213,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#ai" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#where-the-others-offer-more" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3270,7 +3292,7 @@ offer more.</p>
 <tbody>
 <tr>
 <td>FreeXmlToolkit</td>
-<td>2.10</td>
+<td>3.1</td>
 <td>Karl Kauc (open source)</td>
 </tr>
 <tr>
@@ -3616,7 +3638,7 @@ please <a href="https://github.com/karlkauc/FreeXmlToolkit/issues">open an issue
 </tr>
 <tr>
 <td>Command line</td>
-<td>✓ included (<code>fxt-cli</code>)</td>
+<td>✓ included (<code>fxt-cli</code>, also an MCP server for AI agents)</td>
 <td>◐ separate product (Oxygen Scripting)</td>
 <td>◐ separate product (RaptorXML Server) for automation</td>
 <td>✓</td>
@@ -3630,6 +3652,88 @@ please <a href="https://github.com/karlkauc/FreeXmlToolkit/issues">open an issue
 </tr>
 </tbody>
 </table>
+<h2 id="ai">AI<a class="headerlink" href="#ai" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>FreeXmlToolkit</th>
+<th>Oxygen XML Editor</th>
+<th>XMLSpy</th>
+<th>XMLBlueprint</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AI assistant</td>
+<td>✓ included, off by default</td>
+<td>◐ separate add-on (Oxygen AI Positron, subscription)</td>
+<td>◐ separate subscription (Altova AI)</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Explain / fix validation problems</td>
+<td>✓</td>
+<td>✓ AI Positron Fix in the quick fixes</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Natural language → XPath / XQuery</td>
+<td>✓</td>
+<td>◐ through the assistant's chat and code actions</td>
+<td>◐ chat about the open file</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Generate an XSLT stylesheet</td>
+<td>✓ from a target sample</td>
+<td>◐ through the assistant's chat and code actions</td>
+<td>◐ chat about the open file</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Model of your choice (OpenAI-compatible, Anthropic)</td>
+<td>✓</td>
+<td>◐ Enterprise edition of the add-on</td>
+<td>✗ Altova's hosted service</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Local models (Ollama, LM Studio)</td>
+<td>✓</td>
+<td>◐ through an OpenAI-compatible connection, according to the publisher's forum</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>AI answers checked by the application before you see them</td>
+<td>✓ compiled, run and validated, repaired up to three times</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>MCP server for AI agents (Claude Code, Cursor, …)</td>
+<td>✓ <code>fxt-cli mcp</code>, read-only, sandboxed</td>
+<td>◐ in the add-on and, experimental, in the Enterprise edition</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Administrators can switch AI off</td>
+<td>✓ policy <code>ai.allowed</code>, <code>ai.mcp.allowed</code></td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+</tbody>
+</table>
+<p>FreeXmlToolkit's <a href="../ai-assistant/">AI assistant</a> works with a model you choose — on your computer (Ollama, LM
+Studio) or a service you have an account with — and needs no subscription. Data levels and a request preview
+control what leaves your computer, and nothing is applied without you. <code>fxt-cli mcp</code> gives an AI agent of your
+choice the validation, XSLT/XQuery, XSpec and schema tools over the Model Context Protocol, restricted to the
+folders you name. See <a href="../mcp-server/">MCP Server</a>.</p>
 <h2 id="where-the-others-offer-more">Where the Others Offer More<a class="headerlink" href="#where-the-others-offer-more" title="Permanent link">¶</a></h2>
 <p>FreeXmlToolkit focuses on XML, XSD, XSLT and XQuery development. It edits DTD and RELAX NG
 schemas as text only (with validation and auto-completion for documents that use them), and it
@@ -3644,7 +3748,9 @@ read-only). The other products cover areas that FreeXmlToolkit does not:</p>
 <li>an AI assistant (paid add-on).</li>
 </ul>
 </li>
-<li><strong>XMLSpy:</strong><ul>
+<li>
+<p><strong>XMLSpy:</strong></p>
+<ul>
 <li>database connections;</li>
 <li>code generation for Java, C# and C++;</li>
 <li>a WSDL editor and a SOAP client;</li>
@@ -3655,17 +3761,16 @@ read-only). The other products cover areas that FreeXmlToolkit does not:</p>
 <li>an AI chat (separate subscription).</li>
 </ul>
 </li>
+<li>
+<p><strong>XMLBlueprint:</strong></p>
+<ul>
+<li>refactoring (rename or split elements, rename namespace prefixes);</li>
+<li>editing files on FTPS, SFTP and WebDAV servers;</li>
+<li>CSV and Excel to XML conversion;</li>
+<li>a user interface in 21 languages.</li>
 </ul>
-<p>FreeXmlToolkit's <a href="../ai-assistant/">AI assistant</a> works with a model you choose — on your computer (Ollama, LM
-Studio) or a service you have an account with — and checks every answer before you see it (compiles, runs,
-validates); it is off by default and needs no subscription. <code>fxt-cli mcp</code> additionally gives an AI agent of your
-choice (for example Claude Code) the validation, XSLT/XQuery, XSpec and schema tools over the Model Context
-Protocol. See <a href="../mcp-server/">MCP Server</a>.
-- <strong>XMLBlueprint:</strong>
-    - refactoring (rename or split elements, rename namespace prefixes);
-    - editing files on FTPS, SFTP and WebDAV servers;
-    - CSV and Excel to XML conversion;
-    - a user interface in 21 languages.</p>
+</li>
+</ul>
 <h2 id="sources">Sources<a class="headerlink" href="#sources" title="Permanent link">¶</a></h2>
 <p>Publishers' pages, read in November 2026:</p>
 <ul>
@@ -3676,6 +3781,7 @@ Protocol. See <a href="../mcp-server/">MCP Server</a>.
 <li><a href="https://www.oxygenxml.com/xml_editor/download_oxygenxml_editor.html">Download and system requirements</a></li>
 <li><a href="https://www.oxygenxml.com/doc/ug-editor/">User guide</a>, including the pages on <a href="https://www.oxygenxml.com/doc/ug-editor/topics/debugging.html">debugging</a>, <a href="https://www.oxygenxml.com/doc/ug-editor/topics/performance-profiling.html">profiling</a>, <a href="https://www.oxygenxml.com/doc/ug-editor/topics/schematron-unit-test-xspec.html">XSpec</a>, <a href="https://www.oxygenxml.com/doc/ug-editor/topics/editing-schematron-quick-fixes.html">SQF</a> and <a href="https://www.oxygenxml.com/doc/ug-editor/topics/editing-large-documents.html">large documents</a></li>
 <li>Feature pages: <a href="https://www.oxygenxml.com/xml_editor/xml_schema_diagram_editor.html">XSD diagram</a>, <a href="https://www.oxygenxml.com/xml_editor/xml_schema_1_1_support.html">XSD 1.1</a>, <a href="https://www.oxygenxml.com/xml_editor/yaml_validation.html">YAML</a>, <a href="https://www.oxygenxml.com/xml_editor/json_converter.html">JSON converter</a>, <a href="https://www.oxygenxml.com/xml_editor/xml_signature.html">signatures</a>, <a href="https://www.oxygenxml.com/xml_editor/wysiwyg_xml_editor_review_change_tracking.html">change tracking</a></li>
+<li>AI: <a href="https://www.oxygenxml.com/doc/ug-addons/topics/ai_positron_enterprise.html">AI Positron Enterprise</a>, <a href="https://www.oxygenxml.com/doc/ug-positron-desktop/ai/model_context_protocol_preferences.html">MCP preferences</a>, <a href="https://www.oxygenxml.com/forum/post75125.html">forum: Ollama</a></li>
 <li><a href="https://www.oxygenxml.com/buy.html">Shop</a></li>
 </ul>
 </li>
@@ -3686,6 +3792,7 @@ Protocol. See <a href="../mcp-server/">MCP Server</a>.
 <li><a href="https://www.altova.com/xmlspy-xml-editor/download">Download</a></li>
 <li><a href="https://www.altova.com/xmlspy-xml-editor/xslt-debugger">XSLT debugger</a></li>
 <li><a href="https://www.altova.com/manual/XMLSpy/spyenterprise/">Manual</a></li>
+<li>AI: <a href="https://www.altova.com/xmlspy-xml-editor/ai">Altova AI for XML development</a>, <a href="https://www.altova.com/blog/2026/05/new-altova-ai-smart-assistance-for-xmlspy-mapforce-and-databasespy">announcement of the Altova AI subscription</a></li>
 </ul>
 </li>
 <li><strong>XMLBlueprint:</strong><ul>

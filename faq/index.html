@@ -3,7 +3,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Universal Toolkit for XML - User Documentation">
+        <meta name="description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
       
       
         <meta name="author" content="Karl Kauc">
@@ -2866,6 +2866,50 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#does-freexmltoolkit-use-ai-is-my-data-sent-anywhere" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does FreeXmlToolkit use AI? Is my data sent anywhere?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#which-models-work-with-the-ai-assistant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which models work with the AI assistant?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-do-i-use-freexmltoolkit-from-claude-code-or-another-ai-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How do I use FreeXmlToolkit from Claude Code or another AI agent?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#can-administrators-switch-the-ai-features-off" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can administrators switch the AI features off?
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3460,6 +3504,50 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#does-freexmltoolkit-use-ai-is-my-data-sent-anywhere" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does FreeXmlToolkit use AI? Is my data sent anywhere?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#which-models-work-with-the-ai-assistant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which models work with the AI assistant?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-do-i-use-freexmltoolkit-from-claude-code-or-another-ai-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How do I use FreeXmlToolkit from Claude Code or another AI agent?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#can-administrators-switch-the-ai-features-off" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can administrators switch the AI features off?
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3686,10 +3774,27 @@ XProc and HTML previews. See <a href="../settings/">Settings</a>.</p>
 <h3 id="can-i-use-freexmltoolkit-offline">Can I use FreeXmlToolkit offline?<a class="headerlink" href="#can-i-use-freexmltoolkit-offline" title="Permanent link">¶</a></h3>
 <p>Yes. Editing, validation against local schemas, transformations, debugging and PDF output run
 locally. What goes online is optional or comes from your documents: the update check, the
-anonymous telemetry, the FundsXML extension, and schemas a document or import refers to by an
+anonymous telemetry, the FundsXML extension, the AI assistant when you configure a remote provider, and schemas a document or import refers to by an
 <code>http(s)</code> URL that is neither cached nor mapped to a local file. <a href="../offline-operation/">Operation without
 internet</a> lists every connection, how to switch it off and how to prepare
 schemas for an offline machine.</p>
+<h3 id="does-freexmltoolkit-use-ai-is-my-data-sent-anywhere">Does FreeXmlToolkit use AI? Is my data sent anywhere?<a class="headerlink" href="#does-freexmltoolkit-use-ai-is-my-data-sent-anywhere" title="Permanent link">¶</a></h3>
+<p>Only if you turn it on. The <a href="../ai-assistant/">AI assistant</a> is <strong>off by default</strong>; under <strong>Settings → AI</strong> you
+choose the model - one on your computer (Ollama, LM Studio) or a provider you have an account with
+(OpenAI-compatible, Anthropic). FreeXmlToolkit has no model and no AI account of its own. The data level decides
+what a request may contain (schema only, structure without values, or excerpts), <strong>Show every request before it
+is sent</strong> lets you read each one, and prompts and answers never go into telemetry or the logs.</p>
+<h3 id="which-models-work-with-the-ai-assistant">Which models work with the AI assistant?<a class="headerlink" href="#which-models-work-with-the-ai-assistant" title="Permanent link">¶</a></h3>
+<p>Models that are good at code and support tool calls, local or remote. Every answer is checked by the application
+(compiled, run, validated) and repaired up to three times, so a small local model is useful too - see
+<a href="../ai-assistant/#what-to-expect-from-which-model">What to expect from which model</a>.</p>
+<h3 id="how-do-i-use-freexmltoolkit-from-claude-code-or-another-ai-agent">How do I use FreeXmlToolkit from Claude Code or another AI agent?<a class="headerlink" href="#how-do-i-use-freexmltoolkit-from-claude-code-or-another-ai-agent" title="Permanent link">¶</a></h3>
+<p>Register <code>fxt-cli mcp --root &lt;folder&gt;</code> as an MCP server in the agent. The agent then gets the validation,
+XPath/XQuery, XSLT, XSpec, schema and compare tools - read-only, sandboxed and limited to the folders you name.
+No AI setting in the application is needed. See <a href="../mcp-server/">MCP Server</a>.</p>
+<h3 id="can-administrators-switch-the-ai-features-off">Can administrators switch the AI features off?<a class="headerlink" href="#can-administrators-switch-the-ai-features-off" title="Permanent link">¶</a></h3>
+<p>Yes: <code>ai.allowed=false</code> in the machine-wide <code>policy.properties</code> removes the assistant and every AI control,
+<code>ai.mcp.allowed=false</code> refuses <code>fxt-cli mcp</code>. See <a href="../administration/">Administration</a>.</p>
 <h2 id="schemas-and-validation">Schemas and Validation<a class="headerlink" href="#schemas-and-validation" title="Permanent link">¶</a></h2>
 <h3 id="my-xml-document-is-not-bound-to-its-schema">My XML document is not bound to its schema<a class="headerlink" href="#my-xml-document-is-not-bound-to-its-schema" title="Permanent link">¶</a></h3>
 <ul>

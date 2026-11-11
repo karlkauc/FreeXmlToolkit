@@ -3,7 +3,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Universal Toolkit for XML - User Documentation">
+        <meta name="description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
       
       
         <meta name="author" content="Karl Kauc">
@@ -4776,6 +4776,9 @@ collapsed to give the editor more room - the activity bar always stays visible.<
   panel or the Properties inspector more room; the widths are remembered across restarts
   (see <a href="#collapsing-the-side-panels">Resizing and collapsing the side panels</a>)</li>
 <li><strong>Favorites</strong> - Quick access to frequently used files</li>
+<li><strong>Optional AI assistant</strong> - explain or fix validation problems, ask for an XPath/XQuery query or generate a
+  stylesheet, each answer checked by the application before you see it (off by default; see
+  <a href="../ai-assistant/">AI Assistant</a>); AI agents use the application's tools through the <a href="../mcp-server/">MCP Server</a></li>
 </ul>
 <h3 id="colours-workflows-and-actions">Colours: workflows and actions<a class="headerlink" href="#colours-workflows-and-actions" title="Permanent link">¶</a></h3>
 <p>Colour tells you two things at a glance, and the two never mix on one surface:</p>
@@ -5988,7 +5991,7 @@ application menu instead (see <a href="#macos">macOS</a>). To find out which ver
 <p>These buttons are only shown while <strong>Send anonymous error reports</strong> is enabled in
 <a href="../settings/#settings-page">Settings</a>. See <a href="../telemetry/">Privacy &amp; Anonymous Telemetry</a> for details.</p>
 <h2 id="settings-page">Settings Page<a class="headerlink" href="#settings-page" title="Permanent link">¶</a></h2>
-<p>Settings open as a page in the editor area (<strong>Ctrl+,</strong>), grouped into colour-coded cards - see <strong><a href="../settings/">Settings</a></strong> for every option.</p>
+<p>Settings open as a page in the editor area (<strong>Ctrl+,</strong>), grouped into colour-coded cards - see <strong><a href="../settings/">Settings</a></strong> for every option, including the <a href="../settings/#ai">AI</a> group.</p>
 <h2 id="welcome-dashboard">Welcome / Dashboard<a class="headerlink" href="#welcome-dashboard" title="Permanent link">¶</a></h2>
 <blockquote>
 <p>The welcome screen starts from <strong>tasks</strong>, not tools: a short list titled
@@ -6413,7 +6416,8 @@ as in Git.</p>
 <p>On the command line, also as a Git merge driver: <a href="../command-line/#merge"><code>fxt-cli merge</code></a>.</p>
 <h2 id="jump-to-validation-errors">Jump to Validation Errors<a class="headerlink" href="#jump-to-validation-errors" title="Permanent link">¶</a></h2>
 <p>Validation errors appear in the <strong>PROBLEMS</strong> panel below the editor and in the <strong>Validation</strong>
-side panel. <strong>Select</strong> a problem to show it <strong>in the view you are in</strong> - the view does not change:</p>
+side panel. <strong>Select</strong> a problem to show it <strong>in the view you are in</strong> - the view does not change
+(with the <a href="../ai-assistant/">AI assistant</a> on, the right-click menu also offers <strong>Fix with AI</strong> and <strong>Explain with AI</strong>):</p>
 <ul>
 <li>In the <strong>Text</strong> view the caret moves to the problem's line (and, for XML and XSD errors, its column).</li>
 <li>In the <strong>Tree</strong> view the element of that line is selected and scrolled into view.</li>
@@ -6499,7 +6503,7 @@ faster way to reach them.</p>
 latest edits.</p>
 </div>
 <h2 id="query-console">Query Console<a class="headerlink" href="#query-console" title="Permanent link">¶</a></h2>
-<p>The <strong>Query Console</strong> (Ctrl+K) runs XPath, XQuery and JSONPath against the open document; <code>.xq</code> / <code>.xpath</code> documents run against a selectable input - see <strong><a href="../query-console/">Query Console &amp; Query Documents</a></strong>.</p>
+<p>The <strong>Query Console</strong> (Ctrl+K) runs XPath, XQuery and JSONPath against the open document; <code>.xq</code> / <code>.xpath</code> documents run against a selectable input; with the <a href="../ai-assistant/">AI assistant</a> on, <strong>Ask AI…</strong> writes a query from a question - see <strong><a href="../query-console/">Query Console &amp; Query Documents</a></strong>.</p>
 <h2 id="drag-and-drop">Drag and Drop<a class="headerlink" href="#drag-and-drop" title="Permanent link">¶</a></h2>
 <p>Drag files from your file manager directly into the editor to open them. Multiple files can be dropped at once.</p>
 <p>The file <strong>pickers and source rows</strong> across the shell are <strong>drop
