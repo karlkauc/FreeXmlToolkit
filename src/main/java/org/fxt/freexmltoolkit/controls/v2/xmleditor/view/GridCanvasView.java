@@ -534,7 +534,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         for (FlatRow row : allRows) {
             String key = keyOf(row);
             if (row.isExpandable()) {
-                Boolean wasExpanded = viewState.expandedState(key);
+                Boolean wasExpanded = viewState.expandedState(expandKey(row, key));
                 if (wasExpanded != null) {
                     row.setExpanded(wasExpanded);
                 }
@@ -693,6 +693,15 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     /** @return the stable key of a row; sibling-group rows are keyed below their parent */
+    /**
+     * The key a row's expand state is remembered under. A repeating group shown as a table is keyed
+     * by its group (parent path + name), not by its first member: a sort puts another element first,
+     * and the positional key of the old first element then pointed elsewhere — the table collapsed.
+     */
+    private static String expandKey(FlatRow row, String key) {
+        return row.getTableGroupKey() != null ? row.getTableGroupKey() + "/#table" : key;
+    }
+
     String keyOf(FlatRow row) {
         if (row.getType() == FlatRow.RowType.GROUP) {
             return keyOf(row.getParentRow()) + "/#group" + row.getLabel();
@@ -1014,7 +1023,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         if (!blank) {
             viewState.setFilterActive(key, true);
             row.setExpanded(true);
-            viewState.setExpanded(key, true);
+            viewState.setExpanded(expandKey(row, key), true);
         }
         // A filter saved in the document follows: changed there too, removed from it with the filter
         boolean documentChanged = false;
@@ -3341,7 +3350,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     private void saveLiveState(FlatRow row) {
         if (row.isExpandable()) {
-            viewState.setExpanded(keyOf(row), row.isExpanded());
+            viewState.setExpanded(expandKey(row, keyOf(row)), row.isExpanded());
         }
         if (row.getTableGroupKey() == null || !row.isRepeatingTableBuilt()) {
             return;
@@ -3428,7 +3437,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         adapter.attachTables(rows, this::markLayoutDirty);
         for (FlatRow inner : rows) {
             if (inner.isExpandable()) {
-                Boolean expanded = viewState.expandedState(keyOf(inner));
+                Boolean expanded = viewState.expandedState(expandKey(inner, keyOf(inner)));
                 if (expanded != null) {
                     inner.setExpanded(expanded);
                 }
