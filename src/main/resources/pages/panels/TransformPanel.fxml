@@ -36,11 +36,29 @@
 <fx:root type="javafx.scene.layout.VBox" styleClass="fxt-transform-panel"
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <fx:define>
-        <!-- Shown by "Change" in the INPUT row -->
+        <!-- Shown by "Change" in the STYLESHEET row; the open XSLT tabs are appended in code -->
+        <ContextMenu fx:id="xsltMenu">
+            <items>
+                <MenuItem id="transform-xslt-file" text="%TransformPanel.select-xslt-file.text" onAction="#onChooseXslt">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                    </graphic>
+                </MenuItem>
+            </items>
+        </ContextMenu>
+        <!-- Shown by "Change" in the INPUT row; the open XML tabs are appended in code -->
         <ContextMenu fx:id="inputMenu">
             <items>
-                <MenuItem text="%TransformPanel.select-xml-file.text" onAction="#onChooseInputFile"/>
-                <MenuItem text="%TransformPanel.use-active-editor.text" onAction="#onUseActiveEditor"/>
+                <MenuItem id="transform-input-file" text="%TransformPanel.select-xml-file.text" onAction="#onChooseInputFile">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                    </graphic>
+                </MenuItem>
+                <MenuItem id="transform-input-active" text="%TransformPanel.use-active-editor.text" onAction="#onUseActiveEditor">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-cursor" iconSize="16"/>
+                    </graphic>
+                </MenuItem>
             </items>
         </ContextMenu>
     </fx:define>
@@ -170,7 +188,7 @@
                             <children>
                                 <SourceRow fx:id="xsltRow" id="transform-xslt-row" iconLiteral="bi-arrow-repeat"
                                            emptyText="%TransformPanel.xsltRow.emptyText"
-                                           onChange="#onChooseXslt">
+                                           onChange="#onChangeXslt">
                                     <name>
                                         <Label fx:id="xsltName" text="%TransformPanel.xsltName.text"
                                                styleClass="fxt-vp-source-name, fxt-vp-source-none"/>

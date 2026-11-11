@@ -15,6 +15,9 @@ running is shown under **Help → About FreeXmlToolkit**.
   choose (OpenAI-compatible, Anthropic). Every answer is checked by the application (compiled, run, validated) and
   repaired up to three times before you see it; nothing is applied without you. Data levels and a request preview
   control what leaves your computer. See [AI Assistant](ai-assistant.md).
+- **Transform from open tabs:** STYLESHEET → Change and INPUT → Change list every open XSLT / XML tab, saved
+  or not — a generated stylesheet opened in a new tab runs straight away, with its editor text. See
+  [Transform Panel](transform-panel.md#stylesheet).
 
 ## 3.0.0 (2026-11-09)
 

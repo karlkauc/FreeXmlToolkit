@@ -59,6 +59,7 @@ public class TransformPanel extends VBox {
     @FXML private Label xsltName;
     @FXML private Label inputName;
     @FXML private ContextMenu inputMenu;
+    @FXML private ContextMenu xsltMenu;
     @FXML private javafx.scene.control.ComboBox<FormatChoice> formatChoice;
     @FXML private VBox paramsBox;
     @FXML private VBox paramRows;
@@ -82,6 +83,20 @@ public class TransformPanel extends VBox {
             new java.util.concurrent.atomic.AtomicBoolean();
     /** A fixed input file overriding the active editor as the transform source, if set. */
     private File inputOverride;
+    /** An open editor tab chosen as the input (instead of following the active editor), or {@code null}. */
+    private OpenDocument inputDocumentOverride;
+    /**
+     * An open editor tab chosen as the stylesheet, or {@code null}: its editor text runs (saved or not);
+     * {@link #xsltFile} is its path while it has one.
+     */
+    private OpenDocument xsltDocument;
+    /** Number of FXML items at the top of the STYLESHEET / INPUT menus (the open tabs follow them). */
+    private int xsltMenuStaticItems;
+    private int inputMenuStaticItems;
+    /** Drops a closed chosen tab; kept as a field because the editor's list holds it weakly. */
+    private final javafx.collections.ListChangeListener<OpenDocument> openDocumentsListener = change -> onOpenDocumentsChanged();
+    /** Follows Save As of the chosen stylesheet tab (path and name). */
+    private final javafx.beans.value.ChangeListener<String> xsltDocumentNameListener = (obs, oldV, newV) -> syncStylesheetDocument();
     /** The source document of the latest transform (so a re-run from the result tab works). */
     private OpenDocument sourceDocument;
     /** The last active document that can be an input (no stylesheet, no result); the input while a stylesheet tab is in front. */
@@ -173,6 +188,10 @@ public class TransformPanel extends VBox {
         refreshInputName();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refreshInputName());
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> chooseBoundScenario());
+        xsltMenuStaticItems = xsltMenu.getItems().size();
+        inputMenuStaticItems = inputMenu.getItems().size();
+        editorHost.getOpenDocuments().addListener(
+                new javafx.collections.WeakListChangeListener<>(openDocumentsListener));
 
         // --- OUTPUT METHOD -----------------------------------------------------
         fillFormatChoice();
@@ -189,7 +208,7 @@ public class TransformPanel extends VBox {
         // changes (typing / tab switch), when enabled and a stylesheet is set.
         // Never re-transform the transform-result tab itself (feedback loop).
         liveDebounce.setOnFinished(e -> {
-            if (livePreview.isSelected() && xsltFile != null && isTransformableDocumentActive()) {
+            if (livePreview.isSelected() && hasXslt() && isTransformableDocumentActive()) {
                 transform(true);
             }
         });
@@ -388,7 +407,8 @@ public class TransformPanel extends VBox {
         }
         FxtProject project = open.get();
         if (xsltFile == null) {
-            out.showError(I18n.t("TransformPanel.choose-a-stylesheet-before-saving"));
+            out.showError(I18n.t(stylesheetDocument() != null ? "TransformPanel.stylesheet-tab-unsaved"
+                    : "TransformPanel.choose-a-stylesheet-before-saving"));
             return;
         }
         Optional<FxtProject.Scenario> chosen = chosenScenario();
@@ -642,7 +662,76 @@ public class TransformPanel extends VBox {
 
     @FXML
     public void onChangeInput() {
+        fillTabEntries(inputMenu, inputMenuStaticItems, "transform-input-tab-",
+                inputTabCandidates(), isOpen(inputDocumentOverride) ? inputDocumentOverride : null,
+                this::useInputDocument, "TransformPanel.no-open-xml-tabs");
         inputMenu.show(inputName, javafx.geometry.Side.BOTTOM, 0, 0);
+    }
+
+    /** STYLESHEET "Change": choose a file, or one of the open XSLT tabs. */
+    @FXML
+    public void onChangeXslt() {
+        fillTabEntries(xsltMenu, xsltMenuStaticItems, "transform-xslt-tab-",
+                xsltTabCandidates(), stylesheetDocument(), this::useStylesheetDocument,
+                "TransformPanel.no-open-xslt-tabs");
+        xsltMenu.show(xsltName, javafx.geometry.Side.BOTTOM, 0, 0);
+    }
+
+    /** @return the open XSLT tabs, the active one first (the STYLESHEET menu's entries). */
+    List<OpenDocument> xsltTabCandidates() {
+        return activeFirst(editorHost.getOpenDocuments().stream()
+                .filter(d -> d.getFileType() == EditorFileType.XSLT).toList());
+    }
+
+    /** @return the open XML tabs that can be the input, the active one first (the INPUT menu's entries). */
+    List<OpenDocument> inputTabCandidates() {
+        return activeFirst(editorHost.getOpenDocuments().stream()
+                .filter(d -> d.getFileType().isXmlFamily() && isInputCandidate(d)).toList());
+    }
+
+    private List<OpenDocument> activeFirst(List<OpenDocument> documents) {
+        OpenDocument active = editorHost.getActiveDocument().orElse(null);
+        List<OpenDocument> sorted = new java.util.ArrayList<>(documents);
+        if (active != null && sorted.remove(active)) {
+            sorted.addFirst(active);
+        }
+        return sorted;
+    }
+
+    /**
+     * Replaces the dynamic part of a source menu with a header and one entry per open tab (the
+     * current choice checked, the active tab marked).
+     */
+    private void fillTabEntries(ContextMenu menu, int staticItems, String idPrefix, List<OpenDocument> documents,
+                                OpenDocument current, java.util.function.Consumer<OpenDocument> choose,
+                                String emptyKey) {
+        menu.getItems().remove(staticItems, menu.getItems().size());
+        menu.getItems().add(new SeparatorMenuItem());
+        MenuItem header = new MenuItem(I18n.t("TransformPanel.open-tabs"), icon("bi-window", 16));
+        header.setId(idPrefix + "header");
+        header.setDisable(true);
+        menu.getItems().add(header);
+        if (documents.isEmpty()) {
+            MenuItem none = new MenuItem(I18n.t(emptyKey));
+            none.setId(idPrefix + "none");
+            none.setDisable(true);
+            menu.getItems().add(none);
+            return;
+        }
+        OpenDocument active = editorHost.getActiveDocument().orElse(null);
+        for (int i = 0; i < documents.size(); i++) {
+            OpenDocument document = documents.get(i);
+            String label = document.getDisplayName()
+                    + (document.getPath() == null ? " — " + I18n.t("TransformPanel.unsaved") : "")
+                    + (document == active ? " (" + I18n.t("TransformPanel.active-tab") + ")" : "");
+            javafx.scene.control.CheckMenuItem item = new javafx.scene.control.CheckMenuItem(label,
+                    icon(document.getFileType().icon(), 16));
+            item.setId(idPrefix + i);
+            item.setMnemonicParsing(false);
+            item.setSelected(document == current);
+            item.setOnAction(e -> choose.accept(document));
+            menu.getItems().add(item);
+        }
     }
 
     @FXML
@@ -675,9 +764,7 @@ public class TransformPanel extends VBox {
                 }
                 name = input.getDisplayName();
                 file = input.getPath() == null ? null : input.getPath().toFile();
-                boolean active = editorHost.getActiveDocument().map(d -> d == input).orElse(false);
-                source = active ? editorHost.getActiveText().orElse("")
-                        : file != null ? java.nio.file.Files.readString(file.toPath()) : "";
+                source = editorHost.getDocumentText(input).orElse(file != null ? java.nio.file.Files.readString(file.toPath()) : "");
             }
         } catch (java.io.IOException e) {
             org.fxt.freexmltoolkit.util.DialogHelper.showError(I18n.t("GenerateStylesheetDialog.title"), e.getMessage(), "");
@@ -729,13 +816,36 @@ public class TransformPanel extends VBox {
      */
     public void setInputOverride(File file) {
         this.inputOverride = file;
+        this.inputDocumentOverride = null;
         refreshInputName();
+    }
+
+    /**
+     * Uses the open editor tab {@code document} as the input (its current editor text, saved or
+     * not) until another input is chosen or the tab is closed.
+     */
+    public void useInputDocument(OpenDocument document) {
+        this.inputOverride = null;
+        this.inputDocumentOverride = document;
+        refreshInputName();
+        if (readyToAutoRun()) {
+            transform();
+        }
+    }
+
+    /** @return the open tab chosen as the input, or {@code null} (for tests). */
+    OpenDocument currentInputDocumentOverride() {
+        return isOpen(inputDocumentOverride) ? inputDocumentOverride : null;
     }
 
     /** Updates the INPUT row label: the override file, or the active document (live). */
     private void refreshInputName() {
         if (inputOverride != null) {
             inputRow.showFile(inputOverride);
+            return;
+        }
+        if (isOpen(inputDocumentOverride) && !isTheStylesheet(inputDocumentOverride)) {
+            inputRow.showName(inputDocumentOverride.getDisplayName(), editorTabTooltip(inputDocumentOverride));
             return;
         }
         var input = inputDocument();
@@ -750,6 +860,9 @@ public class TransformPanel extends VBox {
      * (picking a stylesheet opens it as a tab, which must not turn it into the input).
      */
     Optional<OpenDocument> inputDocument() {
+        if (isOpen(inputDocumentOverride) && !isTheStylesheet(inputDocumentOverride)) {
+            return Optional.of(inputDocumentOverride);
+        }
         OpenDocument active = editorHost.getActiveDocument().orElse(null);
         if (active != null && isInputCandidate(active)) {
             lastInputDocument = active;
@@ -828,9 +941,12 @@ public class TransformPanel extends VBox {
     @FXML
     public void startDebug() {
         if (xsltFile == null) {
-            out.showError(I18n.t("TransformPanel.select-an-xslt-stylesheet-first"));
+            out.showError(I18n.t(stylesheetDocument() != null ? "TransformPanel.stylesheet-tab-unsaved"
+                    : "TransformPanel.select-an-xslt-stylesheet-first"));
             return;
         }
+        OpenDocument pinnedInput = inputOverride == null && isOpen(inputDocumentOverride)
+                && !isTheStylesheet(inputDocumentOverride) ? inputDocumentOverride : null;
         // Same input as Run Transform: the INPUT override file when one is set (drop, favourite,
         // ◀ / ▶ browsing), otherwise the active document.
         String xml;
@@ -841,6 +957,8 @@ public class TransformPanel extends VBox {
                 out.showFailure(I18n.t("TransformPanel.could-not-read-input-file", e.getMessage()));
                 return;
             }
+        } else if (pinnedInput != null) {
+            xml = editorHost.getDocumentText(pinnedInput).orElse("");
         } else {
             if (editorHost.getActiveDocument().isEmpty()) {
                 out.showError(I18n.t("TransformPanel.no-document-open"));
@@ -850,12 +968,15 @@ public class TransformPanel extends VBox {
         }
         OutputFormat format;
         try {
-            format = resolveXsltFormat(Files.readString(xsltFile.toPath(), StandardCharsets.UTF_8));
+            String text = stylesheetEditorText();
+            format = resolveXsltFormat(text != null ? text : Files.readString(xsltFile.toPath(), StandardCharsets.UTF_8));
         } catch (Exception e) {
             format = chosenFormat(OutputFormat.XML);
         }
         if (inputOverride != null) {
             editorHost.setDebugInputFile(inputOverride.toPath()); // else: matched to the active document
+        } else if (pinnedInput != null && pinnedInput.getPath() != null) {
+            editorHost.setDebugInputFile(pinnedInput.getPath());
         }
         editorHost.startXsltDebug(xsltFile, xml, collectParameters(), format);
     }
@@ -871,16 +992,18 @@ public class TransformPanel extends VBox {
                 .flatMap(d -> editorHost.getActiveText())
                 .orElse(null);
         BatchTransformView view;
-        if (xsltFile != null) {
-            String xsltContent;
+        if (hasXslt()) {
+            String xsltContent = stylesheetEditorText();
             try {
-                xsltContent = Files.readString(xsltFile.toPath(), StandardCharsets.UTF_8);
+                if (xsltContent == null) {
+                    xsltContent = Files.readString(xsltFile.toPath(), StandardCharsets.UTF_8);
+                }
             } catch (Exception e) {
                 out.showFailure(I18n.t("TransformPanel.could-not-read-stylesheet", e.getMessage()));
                 return;
             }
             view = new BatchTransformView(BatchTransformView.Kind.XSLT, xsltContent,
-                    xsltFile.toURI().toString(), collectParameters(), resolveXsltFormat(xsltContent));
+                    stylesheetSystemId(null), collectParameters(), resolveXsltFormat(xsltContent));
         } else if (xqueryText != null && !xqueryText.isBlank()) {
             // the editor text runs, under the query file's location so relative module imports resolve
             String querySystemId = editorHost.getActiveDocument()
@@ -916,17 +1039,137 @@ public class TransformPanel extends VBox {
 
     /** Sets the stylesheet used by {@link #transform()} (also from the file chooser). */
     public void setXsltFile(File file) {
+        releaseStylesheetDocument();
         this.xsltFile = file;
         this.lastXsltModified = file != null ? file.lastModified() : 0L;
         xsltRow.showFile(file);
         refreshInputName(); // the stylesheet is never the input
         if (file != null) {
-            try {
-                org.fxt.freexmltoolkit.di.ServiceRegistry
-                        .get(org.fxt.freexmltoolkit.service.PropertiesService.class).addRecentXsltFile(file);
-            } catch (Throwable ignored) {
-                // properties service unavailable — no recent-files persistence
-            }
+            addRecentXslt(file);
+        }
+    }
+
+    /**
+     * Uses the open editor tab {@code document} as the stylesheet: its current editor text runs,
+     * saved or not (a generated stylesheet, a file opened from the menu or the Explorer).
+     */
+    public void useStylesheetDocument(OpenDocument document) {
+        releaseStylesheetDocument();
+        xsltDocument = document;
+        document.displayNameProperty().addListener(xsltDocumentNameListener);
+        File file = document.getPath() != null ? document.getPath().toFile() : null;
+        this.xsltFile = file;
+        this.lastXsltModified = file != null ? file.lastModified() : 0L;
+        if (file != null) {
+            recordAccess(file);
+            addRecentXslt(file);
+        }
+        refreshXsltName();
+        refreshInputName(); // the stylesheet is never the input
+        if (readyToAutoRun()) {
+            transform();
+        }
+    }
+
+    /** @return the open tab chosen as the stylesheet, or {@code null} (none chosen, or closed). */
+    OpenDocument stylesheetDocument() {
+        return isOpen(xsltDocument) ? xsltDocument : null;
+    }
+
+    /** @return whether a stylesheet is chosen: a file or an open tab. */
+    private boolean hasXslt() {
+        return xsltFile != null || stylesheetDocument() != null;
+    }
+
+    /** @return the chosen stylesheet tab's editor text, or {@code null} when the stylesheet is a file. */
+    private String stylesheetEditorText() {
+        OpenDocument document = stylesheetDocument();
+        return document == null ? null : editorHost.getDocumentText(document).orElse(null);
+    }
+
+    /**
+     * @return the stylesheet's location for relative includes, imports and {@code document()}: its
+     * file, or - for an unsaved tab - a name in the input's folder (else the working directory)
+     */
+    private String stylesheetSystemId(java.nio.file.Path inputPath) {
+        if (xsltFile != null) {
+            return xsltFile.toURI().toString();
+        }
+        java.nio.file.Path dir = inputPath != null ? inputPath.toAbsolutePath().getParent() : null;
+        if (dir == null) {
+            dir = java.nio.file.Path.of(System.getProperty("user.dir")).toAbsolutePath();
+        }
+        return dir.resolve("untitled.xsl").toUri().toString();
+    }
+
+    /** @return the stylesheet's name for statistics and tab titles. */
+    private String stylesheetName() {
+        OpenDocument document = stylesheetDocument();
+        return xsltFile != null ? xsltFile.getName() : document != null ? document.getDisplayName() : "";
+    }
+
+    private void releaseStylesheetDocument() {
+        if (xsltDocument != null) {
+            xsltDocument.displayNameProperty().removeListener(xsltDocumentNameListener);
+            xsltDocument = null;
+        }
+    }
+
+    /** The chosen stylesheet tab was saved (Save As gives an untitled tab its path): follow it. */
+    private void syncStylesheetDocument() {
+        OpenDocument document = stylesheetDocument();
+        if (document == null) {
+            return;
+        }
+        java.nio.file.Path path = document.getPath();
+        File file = path != null ? path.toFile() : null;
+        if (file != null && !file.equals(xsltFile)) {
+            xsltFile = file;
+            lastXsltModified = file.lastModified();
+            addRecentXslt(file);
+        }
+        refreshXsltName();
+    }
+
+    /** A chosen stylesheet / input tab was closed: a saved stylesheet stays as its file, else the choice ends. */
+    private void onOpenDocumentsChanged() {
+        if (xsltDocument != null && !isOpen(xsltDocument)) {
+            releaseStylesheetDocument();
+            refreshXsltName();
+        }
+        if (inputDocumentOverride != null && !isOpen(inputDocumentOverride)) {
+            inputDocumentOverride = null;
+        }
+        refreshInputName();
+    }
+
+    /** Updates the STYLESHEET row: the chosen tab or file. */
+    private void refreshXsltName() {
+        OpenDocument document = stylesheetDocument();
+        if (document != null) {
+            xsltRow.showName(document.getDisplayName(), editorTabTooltip(document));
+        } else {
+            xsltRow.showFile(xsltFile);
+        }
+    }
+
+    /** @return the tooltip of a source row showing an editor tab. */
+    private static String editorTabTooltip(OpenDocument document) {
+        return document.getPath() != null
+                ? I18n.t("TransformPanel.editor-tab-path", document.getPath().toString())
+                : I18n.t("TransformPanel.editor-tab-unsaved");
+    }
+
+    private boolean isOpen(OpenDocument document) {
+        return document != null && editorHost.getOpenDocuments().contains(document);
+    }
+
+    private static void addRecentXslt(File file) {
+        try {
+            org.fxt.freexmltoolkit.di.ServiceRegistry
+                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class).addRecentXsltFile(file);
+        } catch (Throwable ignored) {
+            // properties service unavailable — no recent-files persistence
         }
     }
 
@@ -1138,11 +1381,14 @@ public class TransformPanel extends VBox {
      */
     boolean readyToAutoRun() {
         boolean hasInput = inputOverride != null || inputDocument().isPresent();
-        return runAutomatically.isSelected() && xsltFile != null && hasInput;
+        return runAutomatically.isSelected() && hasXslt() && hasInput;
     }
 
     /** @return whether {@code document} is the selected stylesheet itself (it cannot be its own input). */
     private boolean isTheStylesheet(OpenDocument document) {
+        if (document == xsltDocument && document != null) {
+            return true;
+        }
         return xsltFile != null && document.getPath() != null
                 && document.getPath().toAbsolutePath().normalize().equals(xsltFile.toPath().toAbsolutePath().normalize());
     }
@@ -1232,7 +1478,7 @@ public class TransformPanel extends VBox {
 
     /** @return whether a stylesheet is set (the toolbar's Transform asks for one otherwise). */
     public boolean hasStylesheet() {
-        return xsltFile != null && xsltFile.isFile();
+        return xsltFile != null && xsltFile.isFile() || stylesheetDocument() != null;
     }
 
     /** @return the currently selected stylesheet file (for tests). */
@@ -1278,7 +1524,7 @@ public class TransformPanel extends VBox {
 
     /** Schedules a debounced live re-transform when live preview is on and a stylesheet is set. */
     private void scheduleLivePreview() {
-        if (livePreview.isSelected() && xsltFile != null) {
+        if (livePreview.isSelected() && hasXslt()) {
             liveDebounce.playFromStart();
         }
     }
@@ -1303,14 +1549,16 @@ public class TransformPanel extends VBox {
             OpenDocument active = editorHost.getActiveDocument().orElse(null);
             input = active != null && active == out.getResultDocument() ? sourceDocument : inputDocument().orElse(null);
         }
-        editorHost.whenDocumentTextCurrent(input).thenRun(() -> transformNow(live)).exceptionally(e -> {
+        editorHost.whenDocumentTextCurrent(input)
+                .thenCompose(v -> editorHost.whenDocumentTextCurrent(stylesheetDocument()))
+                .thenRun(() -> transformNow(live)).exceptionally(e -> {
             org.apache.logging.log4j.LogManager.getLogger(TransformPanel.class).error("Transform failed", e);
             return null;
         });
     }
 
     private void transformNow(boolean live) {
-        if (xsltFile == null) {
+        if (!hasXslt()) {
             out.showError(I18n.t("TransformPanel.select-an-xslt-stylesheet-first"));
             return;
         }
@@ -1341,15 +1589,18 @@ public class TransformPanel extends VBox {
             }
         }
         File xslt = xsltFile;
-        // Locations of stylesheet and input: relative xsl:import/xsl:include/document() hrefs
-        // resolve against the stylesheet's folder, relative URIs in the input against its own
-        String xsltSystemId = xslt.toURI().toString();
+        // A stylesheet chosen as an editor tab runs with its editor text (saved or not)
+        String xsltEditorText = stylesheetEditorText();
+        String xsltName = stylesheetName();
         String xmlBaseUri = inputFile != null ? inputFile.toURI().toString()
                 : sourceDocument != null && sourceDocument.getPath() != null
                         ? sourceDocument.getPath().toUri().toString() : null;
         // The input's location and schema, so the result's own tab can get a schema too
         java.nio.file.Path inputPath = inputFile != null ? inputFile.toPath()
                 : sourceDocument != null ? sourceDocument.getPath() : null;
+        // Locations of stylesheet and input: relative xsl:import/xsl:include/document() hrefs
+        // resolve against the stylesheet's folder, relative URIs in the input against its own
+        String xsltSystemId = stylesheetSystemId(inputPath);
         File openInputSchema = inputFile != null ? editorHost.schemaFileOf(inputFile)
                 : sourceDocument != null ? editorHost.schemaFileOf(sourceDocument) : null;
         Map<String, Object> params = collectParameters();
@@ -1392,7 +1643,7 @@ public class TransformPanel extends VBox {
             }
             long t0 = System.nanoTime();
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance()
-                    .begin(org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XSLT, xslt.getName());
+                    .begin(org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XSLT, xsltName);
             String result;
             OutputFormat format = chosen != null ? chosen : OutputFormat.XML;
             org.fxt.freexmltoolkit.service.XsltTransformationResult fullResult = null;
@@ -1400,7 +1651,8 @@ public class TransformPanel extends VBox {
             org.fxt.freexmltoolkit.service.XsltProfile profile = null;
             String profiledXslt = null;
             try {
-                String xsltContent = Files.readString(xslt.toPath(), StandardCharsets.UTF_8);
+                String xsltContent = xsltEditorText != null ? xsltEditorText
+                        : Files.readString(xslt.toPath(), StandardCharsets.UTF_8);
                 // Auto: detect the format from the stylesheet's xsl:output declaration.
                 format = chosen != null ? chosen : TransformRunner.detectXsltOutputFormat(xsltContent);
                 // One single run: the full result feeds the output view, the statistics
@@ -1467,7 +1719,7 @@ public class TransformPanel extends VBox {
                 if (report != null && report.isSuccess()) {
                     if (wantProfile && finalProfile != null) {
                         showProfile(finalProfile, report, xmlForProfile, xmlBaseUri, xsltForProfile, xsltSystemId,
-                                params, finalFormat, xslt.getName(), null);
+                                params, finalFormat, xsltName, null);
                     }
                     if (wantTrace && trace != null && trace.isSuccess()) {
                         editorHost.openToolTab(I18n.t("TransformPanel.trace"), "bi-list-columns",

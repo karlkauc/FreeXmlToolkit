@@ -36,7 +36,16 @@ and [Regression checks](projects.md#regression-checks).
   favorites/browse controls and **Change** (long names are shortened in the middle; hover
   for the full path). While no stylesheet is set, the row reads *"No stylesheet — choose or
   drop a file"* - clicking it works like **Change**.
-- **Change** - pick an `.xsl` / `.xslt` file from disk (it is also loaded into the editor).
+- **Change** opens a menu:
+    - **Select XSLT file…** - pick an `.xsl` / `.xslt` file from disk (it is also loaded into
+      the editor).
+    - **Open tabs** - every XSLT document open in the editor, the active tab first and marked
+      *(active)*. It does not matter how the tab was opened: File → Open, the Explorer, a new
+      file, or a stylesheet the [AI assistant](ai-assistant.md) generated and you opened in a
+      new tab. The transform runs the tab's **editor text**, including unsaved changes; an
+      unsaved tab is marked *unsaved* (relative `xsl:include` / `xsl:import` paths of an unsaved
+      tab resolve against the input's folder). When you close a saved tab, its file stays the
+      stylesheet. **Debug** and **Save scenario** need a saved stylesheet.
 - The **clock icon** opens the **recent stylesheets** menu: reapply a recently used
   stylesheet in a single click (it is also loaded into the editor), or choose **Clear recent**
   to empty the list.
@@ -58,10 +67,14 @@ there is none):
 
 - By default the input **follows the active editor document**: switch to another tab and
   the next run transforms that document (the shown input name updates live).
-- **Change** opens a small menu with two options:
+- **Change** opens a small menu:
     - **Select XML file…** - transform a fixed XML file from disk instead, regardless of
       which editor tab is active.
     - **Use active editor** - go back to following the active tab.
+    - **Open tabs** - every XML document open in the editor (saved or not, the active one
+      first). The chosen tab stays the input while you switch to other tabs - for example to
+      edit the stylesheet - and its current editor text is transformed. The chosen stylesheet tab
+      is never offered as input.
 - The **star icon** opens your **XML favorites** - see
   [Browsing favorites with ◀ / ▶](#browsing-favorites) below. A picked input is also opened
   in the editor and becomes the active tab.
@@ -128,7 +141,8 @@ Define XSLT parameters as **name = value** rows:
 
 ## Running a Transformation
 
-1. Choose a stylesheet (**STYLESHEET → Change**, or pick one from the recent menu).
+1. Choose a stylesheet (**STYLESHEET → Change** - a file or an open XSLT tab - or pick one
+   from the recent menu).
 2. Check the **INPUT** section shows the document you want to transform.
 3. Click **Run Transform**.
 
