@@ -942,6 +942,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ai-assistant/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Assistant
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -3412,6 +3440,11 @@ skipped one <code>cancelled</code> with <code>meta.reason</code>), <code>replace
 <code>debug_run</code> (<code>meta.language</code> = <code>xslt</code>/<code>xquery</code>/<code>schematron</code>, <code>meta.stage</code> = <code>start</code>/<code>run</code>, a stopped
 run is <code>cancelled</code>), <code>xsd_flatten</code>, <code>type_usages</code>, <code>schema_library</code> (<code>meta.action</code>), <code>template_insert</code>
 and <code>update_apply</code>. A dialog that belongs to such an action is not counted a second time.</p>
+<p>An <strong>AI action</strong> (<code>ai_action</code>, see <a href="../ai-assistant/">AI Assistant</a>) carries only fixed values: <code>meta.action</code>
+(<code>explain</code>, <code>fix_problem</code>, <code>ask_xpath</code>, <code>ask_xquery</code>, <code>generate_xslt</code>), <code>meta.provider</code> (<code>local</code>,
+<code>openai_compatible</code>, <code>anthropic</code>), <code>meta.outcome</code> (<code>verified</code>, <code>unverified</code>, <code>refused</code>, <code>failed</code>, <code>cancelled</code>),
+<code>meta.repairs</code> (0–9) and the duration. The request, the answer, the model and host names never leave your computer
+as telemetry — the request itself goes only to the provider you configured.</p>
 <p>A <strong>PDF generation</strong> (<code>fop_pdf</code>) names the stage that ran last in <code>meta.stage</code> (<code>transform</code> = the
 XSLT run that produces the XSL-FO, <code>render</code> = Apache FOP rendering it) and, for a failure, the
 processor's error code or the exception class in <code>error_code</code>. A stylesheet that does not compile
@@ -3474,6 +3507,7 @@ events are sent per session.</p>
 <ul>
 <li>File names, folder names or paths</li>
 <li>Document content, XPath/XQuery expressions, schema or element names</li>
+<li>AI prompts, answers, model names or provider hosts</li>
 <li>Exception <strong>messages</strong> (they often contain paths or content — only class names and code
   locations are used)</li>
 <li>User names, e-mail addresses, the "User Info" from the settings, license or machine identifiers</li>

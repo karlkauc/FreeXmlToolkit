@@ -942,6 +942,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ai-assistant/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Assistant
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -3399,12 +3427,32 @@ forward slashes (<code>C:/Schemas</code>). Characters outside Latin-1 have to be
 <tr>
 <td><code>ai.allowed</code></td>
 <td><code>false</code></td>
-<td><strong>Policy only.</strong> Every AI feature off; today that is the <a href="../mcp-server/">MCP server</a> (<code>fxt-cli mcp</code> refuses to start)</td>
+<td><strong>Policy only.</strong> Every AI feature off: the <a href="../ai-assistant/">AI assistant</a> (no Settings group, no menu items) and the <a href="../mcp-server/">MCP server</a> (<code>fxt-cli mcp</code> refuses to start)</td>
 </tr>
 <tr>
 <td><code>ai.mcp.allowed</code></td>
 <td><code>false</code></td>
 <td><strong>Policy only.</strong> <code>fxt-cli mcp</code> refuses to start, so AI agents cannot use the application's tools</td>
+</tr>
+<tr>
+<td><code>ai.remote.allowed</code></td>
+<td><code>false</code></td>
+<td><strong>Policy only.</strong> The <a href="../ai-assistant/">AI assistant</a> may use only providers on this computer or hosts in <code>ai.localHosts</code></td>
+</tr>
+<tr>
+<td><code>ai.enabled</code>, <code>ai.dataLevel</code>, <code>ai.dataLevel.remote</code>, <code>ai.preview.always</code></td>
+<td><code>true</code>/<code>false</code>; <code>SCHEMA</code> / <code>STRUCTURE</code> / <code>EXCERPTS</code></td>
+<td>AI assistant on/off, what may be sent to local / remote providers, preview every request (Settings → AI)</td>
+</tr>
+<tr>
+<td><code>ai.providers</code>, <code>ai.provider.default</code></td>
+<td>JSON list, provider id</td>
+<td>The AI providers; in <code>policy.properties</code> a fixed list. API keys are never read from the machine-wide files</td>
+</tr>
+<tr>
+<td><code>ai.localHosts</code></td>
+<td>host list</td>
+<td>Hosts that count as local (a company gateway)</td>
 </tr>
 <tr>
 <td><code>plugin.&lt;id&gt;.enabled</code></td>

@@ -942,6 +942,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ai-assistant/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Assistant
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -3265,6 +3293,16 @@ release, see <a href="../licenses/#software-bill-of-materials-sbom">Licenses</a>
 <td><strong>AI agents running code through the MCP server</strong> (<code>fxt-cli mcp</code>): a stylesheet, query or XSpec test written by the agent, or steered by text in a document it read</td>
 <td>The tools only read. Code runs in a sandbox: a Saxon processor per call, <code>xsl:result-document</code> into memory, reads (<code>doc()</code>, <code>unparsed-text()</code>, <code>collection()</code>, includes) only inside the <code>--root</code> folders, no network, no Java extensions, no Java system properties or environment variables, a time limit checked per template/function/instruction, output capped; file arguments are resolved through links and refused outside the roots; downloaded imports are not copied next to schemas. The server sends no telemetry and opens no port (stdio). See <a href="../mcp-server/#safety">MCP Server</a>.</td>
 <td><code>ai.mcp.allowed=false</code>, <code>ai.allowed=false</code> (policy); <code>--root</code>, <code>--tools</code></td>
+</tr>
+<tr>
+<td><strong>AI providers</strong> (the assistant sends parts of a document to a model)</td>
+<td>Off by default; only the provider the user configured is contacted, through the application's connection service (proxy, certificates). Data levels limit what is sent (remote providers: schema only by default; values are removed from outlines and validator messages); every request can be previewed, the first one per provider always; the first use of a remote provider asks, naming the host. API keys are stored encrypted or read from an environment variable, never from the machine-wide files, and never logged.</td>
+<td><code>ai.allowed=false</code>, <code>ai.remote.allowed=false</code> (policy); Settings → AI</td>
+</tr>
+<tr>
+<td><strong>Prompt injection through a document</strong> (text in a file that tries to steer the model)</td>
+<td>Document and schema text reach the model only as marked data, and the model is told it is never an instruction. Every proposal is checked by the application (compile, run in the sandbox, validate) and applied only by the user; the assistant has no tool with side effects and nothing is written to disk.</td>
+<td>–</td>
 </tr>
 <tr>
 <td><strong>Path traversal in file names from documents</strong></td>
