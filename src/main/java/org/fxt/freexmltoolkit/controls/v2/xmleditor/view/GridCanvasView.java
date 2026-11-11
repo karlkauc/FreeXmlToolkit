@@ -502,7 +502,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         rebuildCount++;
         // Remember expand state (at any depth), open cells and selection by stable key
         if (selectedRow != null) {
-            viewState.setSelectedKey(keyOf(selectedRow));
+            viewState.setSelectedKey(stateKey(selectedRow, keyOf(selectedRow)));
         }
         saveCellExpansion();
 
@@ -534,12 +534,12 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         for (FlatRow row : allRows) {
             String key = keyOf(row);
             if (row.isExpandable()) {
-                Boolean wasExpanded = viewState.expandedState(expandKey(row, key));
+                Boolean wasExpanded = viewState.expandedState(stateKey(row, key));
                 if (wasExpanded != null) {
                     row.setExpanded(wasExpanded);
                 }
             }
-            if (restoredSelection == null && selectedKey != null && selectedKey.equals(key)) {
+            if (restoredSelection == null && selectedKey != null && selectedKey.equals(stateKey(row, key))) {
                 restoredSelection = row;
             }
         }
@@ -561,7 +561,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             // The selection was a row inside an opened cell: its grid exists again after the layout
             FlatRow[] nested = new FlatRow[1];
             forEachLiveRow(row -> {
-                if (nested[0] == null && row.getBlock() != null && selectedKey.equals(keyOf(row))) {
+                if (nested[0] == null && row.getBlock() != null && selectedKey.equals(stateKey(row, keyOf(row)))) {
                     nested[0] = row;
                 }
             });
@@ -694,11 +694,12 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /** @return the stable key of a row; sibling-group rows are keyed below their parent */
     /**
-     * The key a row's expand state is remembered under. A repeating group shown as a table is keyed
+     * The key a row's expand state and selection are remembered under. A repeating group shown as a table is keyed
      * by its group (parent path + name), not by its first member: a sort puts another element first,
-     * and the positional key of the old first element then pointed elsewhere — the table collapsed.
+     * and the positional key of the old first element then pointed elsewhere — the table collapsed
+     * and lost its selection.
      */
-    private static String expandKey(FlatRow row, String key) {
+    private static String stateKey(FlatRow row, String key) {
         return row.getTableGroupKey() != null ? row.getTableGroupKey() + "/#table" : key;
     }
 
@@ -1023,7 +1024,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         if (!blank) {
             viewState.setFilterActive(key, true);
             row.setExpanded(true);
-            viewState.setExpanded(expandKey(row, key), true);
+            viewState.setExpanded(stateKey(row, key), true);
         }
         // A filter saved in the document follows: changed there too, removed from it with the filter
         boolean documentChanged = false;
@@ -2606,7 +2607,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         tables.selFocusCol = -1;
     }
 
-    private void selectRow(FlatRow row) {
+    void selectRow(FlatRow row) {
         // Clear any table selection to ensure mutual exclusivity
         clearTableSelection();
 
@@ -3350,7 +3351,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     private void saveLiveState(FlatRow row) {
         if (row.isExpandable()) {
-            viewState.setExpanded(expandKey(row, keyOf(row)), row.isExpanded());
+            viewState.setExpanded(stateKey(row, keyOf(row)), row.isExpanded());
         }
         if (row.getTableGroupKey() == null || !row.isRepeatingTableBuilt()) {
             return;
@@ -3437,7 +3438,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         adapter.attachTables(rows, this::markLayoutDirty);
         for (FlatRow inner : rows) {
             if (inner.isExpandable()) {
-                Boolean expanded = viewState.expandedState(expandKey(inner, keyOf(inner)));
+                Boolean expanded = viewState.expandedState(stateKey(inner, keyOf(inner)));
                 if (expanded != null) {
                     inner.setExpanded(expanded);
                 }

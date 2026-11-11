@@ -20,8 +20,8 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
 /**
- * Sorting a table column in the shell's grid keeps every expanded row expanded, the sorted table
- * too: its expand state was keyed by its first member, which the sort replaced.
+ * Sorting a table column in the shell's grid keeps every expanded row expanded and the selection,
+ * the sorted table's too: its state was keyed by its first member, which the sort replaced.
  */
 @ExtendWith(ApplicationExtension.class)
 class GridSortKeepsExpansionTest {
@@ -64,7 +64,7 @@ class GridSortKeepsExpansionTest {
     }
 
     @Test
-    void sortingAColumnKeepsTheExpandedRows(@TempDir Path tmp) throws Exception {
+    void sortingAColumnKeepsTheExpandedRowsAndTheSelection(@TempDir Path tmp) throws Exception {
         Path xml = Files.writeString(tmp.resolve("doc.xml"), XML);
         fx(() -> { host.openFile(xml); return null; });
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
@@ -81,8 +81,13 @@ class GridSortKeepsExpansionTest {
         });
         List<String> expandedBefore = fx(() -> expanded(before));
 
-        RepeatingElementsTable table = fx(() -> before.visibleRowList().stream().filter(r -> r.getRepeatingTable() != null)
-                .findFirst().orElseThrow().getRepeatingTable());
+        FlatRow tableRow = fx(() -> before.visibleRowList().stream().filter(r -> r.getRepeatingTable() != null)
+                .findFirst().orElseThrow());
+        RepeatingElementsTable table = tableRow.getRepeatingTable();
+        fx(() -> {
+            before.selectRow(tableRow);
+            return null;
+        });
         fx(() -> {
             before.sortTable(table, "id", true);
             return null;
@@ -95,5 +100,8 @@ class GridSortKeepsExpansionTest {
         assertTrue(host.getActiveText().orElseThrow().indexOf("<id>1</id>")
                 < host.getActiveText().orElseThrow().indexOf("<id>3</id>"), "sorted");
         assertEquals(expandedBefore, expandedAfter);
+        FlatRow selected = fx(after::getSelectedRow);
+        assertNotNull(selected, "the selected table row stays selected");
+        assertEquals(tableRow.getTableGroupKey(), selected.getTableGroupKey());
     }
 }
