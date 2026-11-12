@@ -3209,6 +3209,8 @@ as an error instead of silently working in FreeXmlToolkit and failing later on t
 <li>Choose the defaults for XPath, XQuery, XSLT, XSD, XML and Schematron.</li>
 <li><strong>Save settings.</strong></li>
 </ol>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-settings-standards.png" data-desc-position="bottom"><img alt="Settings → Schemas &amp; Validation → Standards (expert mode) with XPath 2.0, XSLT 2.0 and XSD 1.0 as defaults" src="../img/unified-shell-settings-standards.png"></a></p>
+<p><em>The Standards card; the status bar shows the older defaults in use (XPath 2.0 · XSLT 2.0 · XSD 1.0).</em></p>
 <p>With the expert mode on, these tools get a version picker of their own. Its first entry, <strong>Default (…)</strong>, uses the
 default from the settings (or the project's binding, see below); any other entry is remembered per tool.</p>
 <table>
@@ -3238,14 +3240,19 @@ default from the settings (or the project's binding, see below); any other entry
 </tbody>
 </table>
 <p>Running a query or stylesheet from the editor (Run ▾) uses the Query Console's and the Transform panel's choice.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-query-console-xpath-version.png" data-desc-position="bottom"><img alt="The Query Console set to XPath 2.0 refusing head(), an XPath 3.0 function" src="../img/unified-shell-query-console-xpath-version.png"></a></p>
+<p><em>The Query Console in XPath 2.0: <code>head()</code> exists only from XPath 3.0 on.</em></p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-validation-standards.png" data-desc-position="bottom"><img alt="The Validation panel with its STANDARDS row: XSD, XML and Schematron versions" src="../img/unified-shell-validation-standards.png"></a></p>
 <p><strong>Check Compatibility</strong> (Run ▾, shown in expert mode) checks the active XSLT, XQuery, XPath or Schematron document
 against the chosen version without running it: XSLT against the Transform panel's version, XQuery and XPath against
 the Query Console's, Schematron against the Validation panel's binding. Every construct the version does not have is
 listed in the Problems panel with its line. For XSLT 1.0 the stylesheet is compiled strictly by the JDK's XSLT 1.0
 processor; a stylesheet that declares <code>version="2.0"</code> is reported, because an XSLT 1.0 processor would run it in
 forwards-compatible mode and silently skip what it does not know.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-check-compatibility.png" data-desc-position="bottom"><img alt="Check Compatibility on an XSLT 3.0 stylesheet checked as XSLT 2.0: every issue in Problems" src="../img/unified-shell-check-compatibility.png"></a></p>
 <p><strong>Run anyway.</strong> When the XSLT 2.0 check refuses a stylesheet in the Transform panel, the output panel lists the
 issues and offers <strong>Run anyway</strong>: the stylesheet runs once on the XSLT 3.0 processor without the check.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-transform-run-anyway.png" data-desc-position="bottom"><img alt="The refused run in the output panel with the Run anyway button" src="../img/unified-shell-transform-run-anyway.png"></a></p>
 <h2 id="what-each-version-means">What each version means<a class="headerlink" href="#what-each-version-means" title="Permanent link">¶</a></h2>
 <table>
 <thead>
