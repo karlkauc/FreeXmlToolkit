@@ -212,7 +212,10 @@ public final class AnthropicProvider implements ChatProvider {
         JsonObject schema = spec.inputSchema();
         Tool.InputSchema.Builder input = Tool.InputSchema.builder();
         if (schema.has("properties")) {
-            input.properties(JsonValue.from(toJava(schema.get("properties"))));
+            Tool.InputSchema.Properties.Builder properties = Tool.InputSchema.Properties.builder();
+            schema.getAsJsonObject("properties").entrySet().forEach(e ->
+                    properties.putAdditionalProperty(e.getKey(), JsonValue.from(toJava(e.getValue()))));
+            input.properties(properties.build());
         }
         if (schema.has("required") && schema.get("required").isJsonArray()) {
             List<String> required = new ArrayList<>();

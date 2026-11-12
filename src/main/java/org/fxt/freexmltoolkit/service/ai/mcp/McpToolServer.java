@@ -127,10 +127,8 @@ public final class McpToolServer {
 
     private McpServerFeatures.SyncToolSpecification specification(AiTool tool, McpJsonMapper mapper,
                                                                   CompletableFuture<Ending> ending) {
-        McpSchema.Tool definition = McpSchema.Tool.builder()
-                .name(tool.name())
+        McpSchema.Tool definition = McpSchema.Tool.builder(tool.name(), mapper, tool.inputSchema().toString())
                 .description(tool.description())
-                .inputSchema(mapper, tool.inputSchema().toString())
                 .annotations(new McpSchema.ToolAnnotations(null, tool.readOnly(), !tool.readOnly(), true, false, null))
                 .build();
         return McpServerFeatures.SyncToolSpecification.builder()
