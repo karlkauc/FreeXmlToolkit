@@ -3238,6 +3238,14 @@ default from the settings (or the project's binding, see below); any other entry
 </tbody>
 </table>
 <p>Running a query or stylesheet from the editor (Run ▾) uses the Query Console's and the Transform panel's choice.</p>
+<p><strong>Check Compatibility</strong> (Run ▾, shown in expert mode) checks the active XSLT, XQuery, XPath or Schematron document
+against the chosen version without running it: XSLT against the Transform panel's version, XQuery and XPath against
+the Query Console's, Schematron against the Validation panel's binding. Every construct the version does not have is
+listed in the Problems panel with its line. For XSLT 1.0 the stylesheet is compiled strictly by the JDK's XSLT 1.0
+processor; a stylesheet that declares <code>version="2.0"</code> is reported, because an XSLT 1.0 processor would run it in
+forwards-compatible mode and silently skip what it does not know.</p>
+<p><strong>Run anyway.</strong> When the XSLT 2.0 check refuses a stylesheet in the Transform panel, the output panel lists the
+issues and offers <strong>Run anyway</strong>: the stylesheet runs once on the XSLT 3.0 processor without the check.</p>
 <h2 id="what-each-version-means">What each version means<a class="headerlink" href="#what-each-version-means" title="Permanent link">¶</a></h2>
 <table>
 <thead>
