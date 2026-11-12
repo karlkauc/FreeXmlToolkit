@@ -147,8 +147,10 @@ Changes apply at once; **Reset Font** restores JetBrains Mono, 11 pt, single spa
 editors, the Query Console results, the transform output, the compare view and the values of the
 Graphic grid.
 
-- **Scheme** - **FreeXmlToolkit** (the design's colours), **GitHub**, **Solarized**, **Monokai** or
-  **High Contrast**. Each scheme has a light and a dark variant.
+- **Scheme** - **FreeXmlToolkit** (the design's colours), **GitHub**, **Solarized**, **Monokai**, **oXygen**,
+  **XMLSpy-like** or **High Contrast**. Each scheme has a light and a dark variant. oXygen and XMLSpy-like
+  recreate the colours of those editors' text views so a familiar look carries over; they are modelled on
+  them, not supplied by Syncro Soft or Altova.
 - **Own colours** - one colour per role: text, element / JSON key, attribute, value / string,
   brackets, comment, number, keyword (`true`, `false`, `null`) and declaration. A colour you pick
   replaces the scheme's colour for that role in the **current** theme; switch the theme to set the

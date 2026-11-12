@@ -40,6 +40,8 @@ running is shown under **Help → About FreeXmlToolkit**.
   Compact, Normal or Comfortable density. See [Settings](settings.md#text-size-and-font).
 - **Syntax colours:** colour schemes for XML, JSON and XPath (Monokai and others, each with a light and a dark
   variant) and your own colour per role. See [Settings](settings.md#syntax-colours).
+- **oXygen and XMLSpy-like syntax colours:** two more schemes that recreate the text-view colours of those
+  editors, in a light and a dark variant. See [Settings](settings.md#syntax-colours).
 - **High contrast:** stronger texts, borders and focus rings on top of the light or the dark theme. See
   [Settings](settings.md#high-contrast).
 

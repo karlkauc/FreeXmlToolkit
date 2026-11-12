@@ -60,4 +60,14 @@ class SyntaxSchemesTest {
         assertEquals(SyntaxSchemes.DEFAULT_ID, SyntaxSchemes.scheme("nope").id());
         assertEquals("monokai", SyntaxSchemes.scheme("MONOKAI").id());
     }
+
+    @Test
+    void oxygenAndXmlSpySchemesExist() {
+        assertEquals("oxygen", SyntaxSchemes.scheme("oXygen").id());
+        assertEquals("xmlspy", SyntaxSchemes.scheme("XMLSpy").id());
+        assertEquals(javafx.scene.paint.Color.web("#000096"),
+                SyntaxSchemes.scheme("oxygen").light().get(SyntaxSchemes.Role.ELEMENT));
+        assertEquals(javafx.scene.paint.Color.web("#FF0000"),
+                SyntaxSchemes.scheme("xmlspy").light().get(SyntaxSchemes.Role.ATTRIBUTE));
+    }
 }

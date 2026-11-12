@@ -92,6 +92,15 @@ public final class SyntaxSchemes {
             new Scheme("monokai",
                     roles("#272822", "#f92672", "#a6e22e", "#e6db74", "#75715e", "#75715e", "#ae81ff", "#66d9ef", "#fd971f"),
                     roles("#f8f8f2", "#f92672", "#a6e22e", "#e6db74", "#a59f85", "#75715e", "#ae81ff", "#66d9ef", "#fd971f")),
+            // oXygen XML Editor's text mode: light after its defaults (dark-blue tags, orange attribute names,
+            // brown values, green comments, purple prolog), dark after the community oXygen dark theme
+            new Scheme("oxygen",
+                    roles("#000000", "#000096", "#F5844C", "#993300", "#000096", "#006400", "#993300", "#0000FF", "#8B26C9"),
+                    roles("#FFFFFF", "#5FC8FD", "#FF8D54", "#E06A53", "#5FC8FD", "#999999", "#66CCCC", "#9999FF", "#BC79E5")),
+            // modelled on the XMLSpy text view (blue tags, red attribute names, black values, grey comments)
+            new Scheme("xmlspy",
+                    roles("#000000", "#0000FF", "#FF0000", "#000000", "#0000FF", "#808080", "#000000", "#0000FF", "#800080"),
+                    roles("#E6E6E6", "#6CA6FF", "#FF7B7B", "#E6E6E6", "#6CA6FF", "#9A9A9A", "#E6E6E6", "#6CA6FF", "#D08CE0")),
             new Scheme("high-contrast",
                     roles("#000000", "#0030a0", "#8a1c00", "#005a00", "#000000", "#4a4a4a", "#7a0099", "#a00050", "#5a3a00"),
                     roles("#ffffff", "#8cc8ff", "#ffb070", "#8cff9c", "#ffffff", "#c8c8c8", "#e0a0ff", "#ff9cc8", "#ffe08c")));
