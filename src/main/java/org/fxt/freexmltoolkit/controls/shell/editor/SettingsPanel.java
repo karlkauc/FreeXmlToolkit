@@ -126,6 +126,7 @@ public class SettingsPanel extends VBox {
     @FXML private javafx.scene.control.ColorPicker gridFocusColor;
     @FXML private CheckBox xsdPrettyPrint;
     @FXML private CheckBox schematronPretty;
+    @FXML private CheckBox editedWithComment;
     @FXML private Spinner<Integer> recentFilesLimit;
 
     // XSD
@@ -589,6 +590,7 @@ public class SettingsPanel extends VBox {
         fillGridColorPickers(true);
         xsdPrettyPrint.setSelected(true);
         schematronPretty.setSelected(false);
+        editedWithComment.setSelected(true);
         recentFilesLimit.getValueFactory().setValue(20);
         xsdAutoSave.setSelected(false);
         xsdAutoSaveInterval.getValueFactory().setValue(5);
@@ -1291,6 +1293,7 @@ public class SettingsPanel extends VBox {
         keys.put(autoFormat, new String[] {"xml.autoformat.after.loading"});
         keys.put(xsdPrettyPrint, new String[] {"xsd.prettyPrint.onSave"});
         keys.put(schematronPretty, new String[] {"schematron.prettyPrint.onLoad"});
+        keys.put(editedWithComment, new String[] {org.fxt.freexmltoolkit.service.EditedWithComment.KEY});
         keys.put(recentFilesLimit, new String[] {"recentFiles.limit"});
         keys.put(xsdAutoSave, new String[] {"xsd.autoSave.enabled"});
         keys.put(xsdAutoSaveInterval, new String[] {"xsd.autoSave.interval"});
@@ -1759,6 +1762,7 @@ public class SettingsPanel extends VBox {
             loadGridColors(props);
             xsdPrettyPrint.setSelected(props.isXsdPrettyPrintOnSave());
             schematronPretty.setSelected(props.isSchematronPrettyPrintOnLoad());
+            editedWithComment.setSelected(org.fxt.freexmltoolkit.service.EditedWithComment.enabled(props::get));
             recentFilesLimit.getValueFactory().setValue(props.getRecentFilesLimit());
             xsdAutoSave.setSelected(props.isXsdAutoSaveEnabled());
             xsdAutoSaveInterval.getValueFactory().setValue(props.getXsdAutoSaveInterval());
@@ -1850,6 +1854,7 @@ public class SettingsPanel extends VBox {
             saveGridColors(props);
             props.setXsdPrettyPrintOnSave(xsdPrettyPrint.isSelected());
             props.setSchematronPrettyPrintOnLoad(schematronPretty.isSelected());
+            props.set(org.fxt.freexmltoolkit.service.EditedWithComment.KEY, String.valueOf(editedWithComment.isSelected()));
             props.setRecentFilesLimit(recentFilesLimit.getValue());
             props.setXsdAutoSaveEnabled(xsdAutoSave.isSelected());
             props.setXsdAutoSaveInterval(xsdAutoSaveInterval.getValue());

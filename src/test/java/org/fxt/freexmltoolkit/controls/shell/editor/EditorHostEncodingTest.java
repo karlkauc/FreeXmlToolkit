@@ -29,6 +29,19 @@ import org.testfx.util.WaitForAsyncUtils;
 @ExtendWith(ApplicationExtension.class)
 class EditorHostEncodingTest {
 
+    /** Compares saved files byte for byte: without the "Edited with FreeXmlToolkit" comment of the save. */
+    @org.junit.jupiter.api.BeforeEach
+    void noEditedWithComment() {
+        org.fxt.freexmltoolkit.service.PropertiesServiceImpl.getInstance()
+                .set(org.fxt.freexmltoolkit.service.EditedWithComment.KEY, "false");
+    }
+
+    @org.junit.jupiter.api.AfterEach
+    void defaultEditedWithComment() {
+        org.fxt.freexmltoolkit.service.PropertiesServiceImpl.getInstance()
+                .set(org.fxt.freexmltoolkit.service.EditedWithComment.KEY, "");
+    }
+
     private static final Charset LATIN_1 = StandardCharsets.ISO_8859_1;
     private static final String DECLARED = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<a>Grüße</a>\n";
 

@@ -332,7 +332,7 @@ final class EditorFileSync {
             TextEncoding saved = null;
             Throwable failure = null;
             try {
-                saved = encoding.write(target, snapshot.getText(), xml);
+                saved = encoding.write(target, xml ? editedWith(snapshot.getText()) : snapshot.getText(), xml);
                 stamp = DiskStamp.of(target);
             } catch (IOException | RuntimeException | StackOverflowError | OutOfMemoryError e) {
                 failure = e;
@@ -427,8 +427,8 @@ final class EditorFileSync {
     boolean write(EditorTab tab, Path target) {
         try {
             TextEncoding encoding = tab.document.getEncoding();
-            tab.document.setEncoding(encoding.write(target, tab.text(),
-                    tab.document.getFileType().isXmlFamily()));
+            boolean xml = tab.document.getFileType().isXmlFamily();
+            tab.document.setEncoding(encoding.write(target, xml ? editedWith(tab.text()) : tab.text(), xml));
             tab.document.setDirty(false);
             // Our own write must not be reported as an external change.
             tab.document.setDiskStamp(DiskStamp.of(target));
@@ -445,6 +445,15 @@ final class EditorFileSync {
             reportSaveFailure(tab, target, e);
             return false;
         }
+    }
+
+    /**
+     * The saved text of an XML-family document: with the "Edited with FreeXmlToolkit" comment after the XML
+     * declaration, unless switched off in the settings ({@link org.fxt.freexmltoolkit.service.EditedWithComment}).
+     */
+    private static String editedWith(String text) {
+        return org.fxt.freexmltoolkit.service.EditedWithComment.applyIfEnabled(text,
+                org.fxt.freexmltoolkit.service.PropertiesServiceImpl.getInstance()::get);
     }
 
     /** The titled, fully loaded documents whose files are watched for external changes. */

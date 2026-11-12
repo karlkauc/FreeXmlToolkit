@@ -52,6 +52,7 @@ Any key of the user's settings file works. These are the ones most often managed
 | `security.xproc.unrestricted` | `false` | Lock the XProc restrictions on: no `p:os-exec`, `p:run`, `p:http-request`, no network (see [Threat Model](threat-model.md)) |
 | `security.htmlPreview.allowActiveContent` | `false` | Lock JavaScript and remote content in HTML previews off |
 | `security.dtd.allowed` | `false` | No DTD validation and no DTD loading; DOCTYPEs are only checked for well-formedness |
+| `editor.editedWithComment` | `true` / `false` | "Edited with FreeXmlToolkit" comment in saved XML files (Settings → Editor; default on) |
 | `standards.expertMode` | `true` / `false` | Choice of language versions (Settings → Schemas & Validation → Standards); see [Language Versions](language-versions.md) |
 | `standards.xpath`, `standards.xquery`, `standards.xslt` | `1.0` / `2.0` / `3.0` / `3.1` (as the language has them) | Default XPath, XQuery and XSLT version in expert mode |
 | `standards.xsd`, `standards.xml` | `auto` / `1.0` / `1.1` | Default XSD and XML version in expert mode |

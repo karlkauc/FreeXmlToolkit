@@ -253,6 +253,12 @@
                                                 <CheckBox fx:id="autoFormat" text="%SettingsPanel.autoFormat.text"/>
                                                 <CheckBox fx:id="xsdPrettyPrint" text="%SettingsPanel.xsdPrettyPrint.text"/>
                                                 <CheckBox fx:id="schematronPretty" text="%SettingsPanel.schematronPretty.text"/>
+                                                <CheckBox fx:id="editedWithComment" id="settings-edited-with-comment"
+                                                          text="%SettingsPanel.editedWithComment.text" wrapText="true">
+                                                    <tooltip>
+                                                        <Tooltip text="%SettingsPanel.editedWithComment.tooltip"/>
+                                                    </tooltip>
+                                                </CheckBox>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
                                                         <Label text="%SettingsPanel.recent-files-to-remember.text"/>

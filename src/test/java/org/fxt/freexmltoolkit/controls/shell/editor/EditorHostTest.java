@@ -22,6 +22,19 @@ import org.testfx.util.WaitForAsyncUtils;
 @ExtendWith(ApplicationExtension.class)
 class EditorHostTest {
 
+    /** Compares saved files byte for byte: without the "Edited with FreeXmlToolkit" comment of the save. */
+    @org.junit.jupiter.api.BeforeEach
+    void noEditedWithComment() {
+        org.fxt.freexmltoolkit.service.PropertiesServiceImpl.getInstance()
+                .set(org.fxt.freexmltoolkit.service.EditedWithComment.KEY, "false");
+    }
+
+    @org.junit.jupiter.api.AfterEach
+    void defaultEditedWithComment() {
+        org.fxt.freexmltoolkit.service.PropertiesServiceImpl.getInstance()
+                .set(org.fxt.freexmltoolkit.service.EditedWithComment.KEY, "");
+    }
+
     private EditorHost host;
 
     @Start

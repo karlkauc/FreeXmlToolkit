@@ -6,6 +6,13 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## 3.1.0 (2026-11-11)
 
+**Editing**
+
+- **"Edited with FreeXmlToolkit" comment:** saved XML, XSD, XSLT, Schematron and XProc files carry a comment after
+  the XML declaration with the version and the user from Settings → User Info, as other XML editors do. It is
+  updated on every save, not repeated, and can be switched off (Settings → Editor → Mark saved XML files). See
+  [Settings](settings.md).
+
 **Standards**
 
 - **Older language versions (expert mode):** XPath 1.0 / 2.0 / 3.0, XSLT 1.0 / 2.0, XQuery 1.0 / 3.0, XSD 1.0 and
