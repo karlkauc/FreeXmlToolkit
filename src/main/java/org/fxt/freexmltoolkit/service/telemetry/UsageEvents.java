@@ -1093,6 +1093,22 @@ public final class UsageEvents {
             java.util.Set.of("verified", "unverified", "refused", "failed", "cancelled");
 
     /**
+     * The kind of an AI provider as telemetry reports it ({@code ai_action}'s {@code meta.provider} and
+     * {@code app_start}'s {@code set_ai_provider}): never its name, host or model.
+     *
+     * @param config the provider
+     * @param local  whether it runs on this computer (or a host the settings count as local)
+     * @return {@code local | openai_compatible | anthropic}
+     */
+    public static String aiProviderKind(org.fxt.freexmltoolkit.service.ai.provider.ProviderConfig config, boolean local) {
+        if (local) {
+            return "local";
+        }
+        return config.kind() == org.fxt.freexmltoolkit.service.ai.provider.ProviderKind.ANTHROPIC ? "anthropic"
+                : "openai_compatible";
+    }
+
+    /**
      * An AI action ended. Only fixed values are sent — never a prompt, an answer, a model or host name, or anything of
      * the document (see docs/telemetry.md).
      *

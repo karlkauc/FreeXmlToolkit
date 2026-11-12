@@ -8,6 +8,9 @@ import java.util.function.Consumer;
 
 import org.fxt.freexmltoolkit.service.ApplicationLauncherLocator;
 import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.ai.AiPolicy;
+import org.fxt.freexmltoolkit.service.ai.AiSettings;
+import org.fxt.freexmltoolkit.service.ai.provider.ProviderStore;
 import org.fxt.freexmltoolkit.service.update.InstallSource;
 import org.fxt.freexmltoolkit.service.update.InstallSourceDetector;
 
@@ -176,7 +179,31 @@ public final class LaunchContext {
         put(m, "set_xml_autoformat", props::isXmlAutoFormatAfterLoading);
         put(m, "set_xsd_autosave", props::isXsdAutoSaveEnabled);
         put(m, "set_schema_autobind", props::isSchemaLibraryAutoBindEnabled);
+        putAi(m, props::get);
         return m;
+    }
+
+    /**
+     * {@code set_ai}: whether the AI assistant is on (and allowed by the policy); {@code set_ai_provider}, only when it
+     * is on: the kind of the default provider ({@code local | openai_compatible | anthropic}, {@code none} without
+     * one) — never its name, host or model.
+     *
+     * @param m      the snapshot to fill
+     * @param getter reads one setting
+     */
+    static void putAi(Map<String, Object> m, java.util.function.Function<String, String> getter) {
+        put(m, "set_ai", () -> new AiSettings(getter).enabled());
+        if (!Boolean.TRUE.equals(m.get("set_ai"))) {
+            return;
+        }
+        put(m, "set_ai_provider", () -> {
+            AiSettings settings = new AiSettings(getter);
+            ProviderStore store = new ProviderStore(getter, (key, value) -> { }, AiPolicy::remoteAllowed,
+                    key -> false, settings::localHosts);
+            return store.defaultProvider()
+                    .map(p -> UsageEvents.aiProviderKind(p, p.isLocal(settings.localHosts())))
+                    .orElse("none");
+        });
     }
 
     private static void put(Map<String, Object> m, String key, java.util.function.Supplier<Object> value) {

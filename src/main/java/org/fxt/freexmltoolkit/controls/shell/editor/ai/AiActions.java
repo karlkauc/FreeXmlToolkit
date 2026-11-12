@@ -377,11 +377,7 @@ public final class AiActions {
     }
 
     private static String kindOf(ProviderConfig config, boolean local) {
-        if (local) {
-            return "local";
-        }
-        return config.kind() == org.fxt.freexmltoolkit.service.ai.provider.ProviderKind.ANTHROPIC ? "anthropic"
-                : "openai_compatible";
+        return UsageEvents.aiProviderKind(config, local);
     }
 
     /** The lines around an edit, three before and after, in {@code text} (the edit ends {@code delta} later). */
