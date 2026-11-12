@@ -109,6 +109,7 @@ public class UnifiedShellView extends BorderPane {
     @FXML private javafx.scene.control.MenuItem actionDebugTransform;
     @FXML private javafx.scene.control.MenuItem actionDebugQuery;
     @FXML private javafx.scene.control.MenuItem actionProfileQuery;
+    @FXML private javafx.scene.control.MenuItem actionCheckCompatibility;
     @FXML private javafx.scene.control.MenuItem actionDebugSchematron;
     @FXML private javafx.scene.control.MenuItem actionRunPipeline;
     /** Target dropdown for query/XSLT documents; visible only when one is active. */
@@ -1771,6 +1772,12 @@ public class UnifiedShellView extends BorderPane {
         editorActions.debugActiveQuery();
     }
 
+    /** Run menu → Check Compatibility: checks the active stylesheet / query against the chosen language version. */
+    @FXML public void onCheckCompatibility() {
+        toolbar("check_compatibility");
+        editorActions.checkActiveCompatibility();
+    }
+
     /** Run menu → Profile Query: runs the active XQuery under the profiler against the Run target. */
     @FXML public void onProfileQuery() {
         toolbar("profile_query");
@@ -2076,6 +2083,10 @@ public class UnifiedShellView extends BorderPane {
         actionDebugTransform.setDisable(actionRunTransform.isDisable());
         actionDebugQuery.setDisable(type != org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XQUERY);
         actionProfileQuery.setDisable(actionDebugQuery.isDisable());
+        actionCheckCompatibility.setDisable(
+                org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.compatibilityKind(type) == null);
+        actionCheckCompatibility.setVisible(
+                org.fxt.freexmltoolkit.controls.shell.editor.standards.StandardsUi.expertModeProperty().get());
         boolean schematron = type == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.SCHEMATRON;
         actionDebugSchematron.setDisable(!schematron);
         actionRunPipeline.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions

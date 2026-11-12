@@ -80,6 +80,77 @@ public final class EditorActions {
     }
 
     // ---------------------------------------------------------------------------------------------
+    // Check compatibility (language versions, expert mode)
+    // ---------------------------------------------------------------------------------------------
+
+    /** @return the compatibility check's kind of a file type, or {@code null} when it has none */
+    public static org.fxt.freexmltoolkit.service.standards.CompatibilityChecker.Kind compatibilityKind(
+            EditorFileType type) {
+        if (type == null) {
+            return null;
+        }
+        return switch (type) {
+            case XSLT -> org.fxt.freexmltoolkit.service.standards.CompatibilityChecker.Kind.XSLT;
+            case XQUERY -> org.fxt.freexmltoolkit.service.standards.CompatibilityChecker.Kind.XQUERY;
+            case XPATH -> org.fxt.freexmltoolkit.service.standards.CompatibilityChecker.Kind.XPATH;
+            case SCHEMATRON -> org.fxt.freexmltoolkit.service.standards.CompatibilityChecker.Kind.SCHEMATRON;
+            default -> null;
+        };
+    }
+
+    /**
+     * Run ▾ → Check Compatibility: checks the active stylesheet / query / XPath / Schematron against the version the
+     * matching tool uses (Transform panel, Query Console, Validation panel) without running it. Issues go to the
+     * Problems panel; the outcome is summarised in the output panel.
+     */
+    public void checkActiveCompatibility() {
+        var kind = compatibilityKind(activeFileType());
+        TransformOutputPanel out = editorHost.transformOutputPanel();
+        if (kind == null) {
+            out.showError(I18n.t("EditorActions.compatibility-unsupported"));
+            return;
+        }
+        String text = editorHost.getActiveText().orElse("");
+        java.nio.file.Path path = editorHost.getActiveDocument().map(OpenDocument::getPath).orElse(null);
+        String systemId = path == null ? null : path.toUri().toString();
+        var settings = org.fxt.freexmltoolkit.service.standards.StandardsSettings.current();
+        var profile = switch (kind) {
+            case XSLT -> settings.forTool(org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_TRANSFORM, null);
+            case XQUERY, XPATH -> settings.forTool(
+                    org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_QUERY_CONSOLE, null);
+            case SCHEMATRON -> org.fxt.freexmltoolkit.service.standards.StandardsProfile.LATEST.withSchematron(
+                    ValidationPanel.standardsFor(path).schematron());
+        };
+        out.showPending(I18n.t("EditorActions.compatibility") + " …");
+        FxtGui.executorService.submit(() -> {
+            var report = org.fxt.freexmltoolkit.service.standards.CompatibilityChecker.check(kind, text, systemId,
+                    profile);
+            List<ValidationProblem> problems = new java.util.ArrayList<>();
+            for (var issue : report.issues()) {
+                String message = issue.module() == null ? issue.message() : issue.module() + ": " + issue.message();
+                problems.add(new ValidationProblem(I18n.t("EditorActions.compatibility"), "error",
+                        issue.module() == null ? issue.line() : 0, message).withColumn(issue.column()));
+            }
+            Platform.runLater(() -> {
+                editorHost.setActiveProblems(problems);
+                if (report.latest()) {
+                    out.showMessages(I18n.t("EditorActions.compatibility"),
+                            I18n.t("EditorActions.compatibility-latest", report.target()));
+                } else if (report.compatible()) {
+                    out.showMessages(I18n.t("EditorActions.compatibility"),
+                            I18n.t("EditorActions.compatibility-ok", report.target()));
+                } else {
+                    out.showError(I18n.t("EditorActions.compatibility-found", report.target(), problems.size())
+                            + System.lineSeparator() + System.lineSeparator()
+                            + String.join(System.lineSeparator(), report.issues().stream()
+                                    .map(org.fxt.freexmltoolkit.service.standards.CompatibilityIssue::describe).toList()));
+                    editorHost.revealProblems();
+                }
+            });
+        });
+    }
+
+    // ---------------------------------------------------------------------------------------------
     // Validate
     // ---------------------------------------------------------------------------------------------
 

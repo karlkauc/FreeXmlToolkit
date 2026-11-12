@@ -29,6 +29,16 @@ default from the settings (or the project's binding, see below); any other entry
 
 Running a query or stylesheet from the editor (Run ▾) uses the Query Console's and the Transform panel's choice.
 
+**Check Compatibility** (Run ▾, shown in expert mode) checks the active XSLT, XQuery, XPath or Schematron document
+against the chosen version without running it: XSLT against the Transform panel's version, XQuery and XPath against
+the Query Console's, Schematron against the Validation panel's binding. Every construct the version does not have is
+listed in the Problems panel with its line. For XSLT 1.0 the stylesheet is compiled strictly by the JDK's XSLT 1.0
+processor; a stylesheet that declares `version="2.0"` is reported, because an XSLT 1.0 processor would run it in
+forwards-compatible mode and silently skip what it does not know.
+
+**Run anyway.** When the XSLT 2.0 check refuses a stylesheet in the Transform panel, the output panel lists the
+issues and offers **Run anyway**: the stylesheet runs once on the XSLT 3.0 processor without the check.
+
 ## What each version means
 
 | Choice | How it runs | What is reported |

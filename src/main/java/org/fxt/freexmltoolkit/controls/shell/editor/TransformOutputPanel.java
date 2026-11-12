@@ -54,6 +54,9 @@ public class TransformOutputPanel extends VBox {
     @FXML private Label badge;
     @FXML private IconifyIcon statusIcon;
     @FXML private Label statusLabel;
+    /** Shown after a compatibility check blocked a run: runs it once without the check. */
+    @FXML private javafx.scene.control.Button runAnywayButton;
+    private Runnable runAnyway;
     @FXML private ToggleButton previewToggle;
     @FXML private ToggleButton textToggle;
     @FXML private ToggleButton tableToggle;
@@ -113,6 +116,7 @@ public class TransformOutputPanel extends VBox {
 
     /** Shows a progress message ("Transforming…" / "Running…") while a run is in flight. */
     public void showPending(String message) {
+        hideRunAnyway();
         reveal();
         statusIcon.setVisible(false);
         statusLabel.setText(message);
@@ -177,6 +181,7 @@ public class TransformOutputPanel extends VBox {
      * under {@code title} — neither a result nor an error, so no badge and no dialog.
      */
     public void showMessages(String title, String text) {
+        hideRunAnyway();
         reveal();
         statsText = "";
         statusIcon.setIconLiteral("bi-info-circle");
@@ -192,8 +197,38 @@ public class TransformOutputPanel extends VBox {
         setOutputText(text, OutputFormat.TEXT);
     }
 
+    /**
+     * Shows a run the language-version check refused (code {@code FXT-COMPAT}): the issues as an error, without a
+     * modal dialog, and a "Run anyway" button that calls {@code runAnyway} (the same run without the check).
+     */
+    public void showIncompatible(String message, Runnable runAnyway) {
+        showError(message);
+        this.runAnyway = runAnyway;
+        runAnywayButton.setVisible(runAnyway != null);
+        runAnywayButton.setManaged(runAnyway != null);
+    }
+
+    /** "Run anyway": the refused run once more, without the compatibility check. */
+    @FXML
+    public void onRunAnyway() {
+        Runnable action = runAnyway;
+        hideRunAnyway();
+        if (action != null) {
+            action.run();
+        }
+    }
+
+    private void hideRunAnyway() {
+        runAnyway = null;
+        if (runAnywayButton != null) {
+            runAnywayButton.setVisible(false);
+            runAnywayButton.setManaged(false);
+        }
+    }
+
     /** Shows an error or guard message (e.g. "No document open."). */
     public void showError(String message) {
+        hideRunAnyway();
         reveal();
         statsText = "error";
         statusIcon.setIconLiteral("bi-x-circle");
@@ -213,6 +248,7 @@ public class TransformOutputPanel extends VBox {
 
     private void showRun(String verb, String text, OutputFormat format, long elapsedMs,
                          XQueryTableRunner.XQueryTable table) {
+        hideRunAnyway();
         if (text != null && text.startsWith("ERROR")) {
             showFailure(text, false);
             return;

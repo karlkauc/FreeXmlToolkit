@@ -32,6 +32,15 @@
                 <Label fx:id="badge" visible="false" styleClass="fxt-output-badge"/>
                 <IconifyIcon fx:id="statusIcon" iconLiteral="bi-check-circle-fill" iconSize="12" visible="false"/>
                 <Label fx:id="statusLabel" styleClass="fxt-output-status"/>
+                <Button fx:id="runAnywayButton" id="transform-output-run-anyway" text="%TransformOutputPanel.runAnyway.text"
+                        visible="false" managed="false" styleClass="fxt-tool-button" onAction="#onRunAnyway">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-play-circle" iconSize="14"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="%TransformOutputPanel.runAnyway.tooltip"/>
+                    </tooltip>
+                </Button>
                 <Region HBox.hgrow="ALWAYS"/>
                 <HBox spacing="2" styleClass="fxt-seg-group">
                     <children>

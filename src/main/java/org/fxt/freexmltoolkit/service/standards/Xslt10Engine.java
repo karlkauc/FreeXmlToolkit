@@ -123,6 +123,88 @@ public final class Xslt10Engine {
         }
     }
 
+    /**
+     * Compiles {@code xslt} on the XSLT 1.0 processor without running it: every compile error as an issue with its
+     * line (empty = the stylesheet is valid XSLT 1.0).
+     */
+    public static List<CompatibilityIssue> compileIssues(String xslt, String xsltSystemId) {
+        // An XSLT 1.0 processor compiles a stylesheet declaring a higher version in forwards-compatible mode and
+        // silently ignores what it does not know; the check reports the version and compiles strictly as 1.0.
+        List<CompatibilityIssue> versionIssues = new ArrayList<>();
+        java.util.regex.Matcher root = ROOT_VERSION.matcher(xslt == null ? "" : xslt);
+        String strict = xslt;
+        if (root.find()) {
+            String declared = root.group(3);
+            if (!"1.0".equals(declared.strip())) {
+                int line = 1;
+                for (int i = 0; i < root.start(3); i++) {
+                    if (xslt.charAt(i) == '\n') {
+                        line++;
+                    }
+                }
+                versionIssues.add(new CompatibilityIssue(line, 0, "FXT-COMPAT-VERSION", "The stylesheet declares "
+                        + "version=\"" + declared + "\" but XSLT 1.0 is selected (an XSLT 1.0 processor would run it in "
+                        + "forwards-compatible mode and skip what it does not know)."));
+                strict = xslt.substring(0, root.start(3)) + "1.0" + xslt.substring(root.end(3));
+            }
+        }
+        List<CompatibilityIssue> compiled = compileStrict(strict, xsltSystemId);
+        if (versionIssues.isEmpty()) {
+            return compiled;
+        }
+        versionIssues.addAll(compiled);
+        return versionIssues;
+    }
+
+    /** {@code <xsl:stylesheet … version="…">} / {@code xsl:transform}, any prefix: group 3 = the version. */
+    private static final java.util.regex.Pattern ROOT_VERSION = java.util.regex.Pattern.compile(
+            "<\\s*([\\w.-]+:)?(stylesheet|transform)\\b[^>]*?\\bversion\\s*=\\s*[\"']([^\"']*)[\"']");
+
+    private static List<CompatibilityIssue> compileStrict(String xslt, String xsltSystemId) {
+        Collector errors = new Collector();
+        TransformerFactory factory = TransformerFactory.newDefaultInstance();
+        try {
+            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "file");
+        } catch (Exception e) {
+            // the JDK factory supports all of these
+        }
+        factory.setErrorListener(errors);
+        factory.setURIResolver(new LocalResolver(null));
+        TransformerException thrown = null;
+        try {
+            StreamSource stylesheet = new StreamSource(new StringReader(xslt));
+            if (xsltSystemId != null) {
+                stylesheet.setSystemId(xsltSystemId);
+            }
+            if (factory.newTemplates(stylesheet) != null && errors.errors.isEmpty()) {
+                return List.of();
+            }
+        } catch (TransformerException e) {
+            thrown = e;
+        }
+        List<CompatibilityIssue> issues = new ArrayList<>();
+        List<TransformerException> all = new ArrayList<>(errors.errors);
+        TransformerException last = thrown;
+        if (last != null && all.stream().noneMatch(e -> e == last)) {
+            all.add(last);
+        }
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (TransformerException e : all) {
+            String message = describe(e);
+            int line = e.getLocator() != null ? e.getLocator().getLineNumber() : 0;
+            if (!message.isBlank() && seen.add(message)) {
+                issues.add(new CompatibilityIssue(Math.max(0, line), 0, "XTSE", message
+                        + " (XSLT 1.0)"));
+            }
+        }
+        if (issues.isEmpty()) {
+            issues.add(new CompatibilityIssue(0, 0, "XTSE", "The stylesheet does not compile as XSLT 1.0."));
+        }
+        return issues;
+    }
+
     /** Collects the processor's reports: XSLTC tells the details through the listener, not the exception. */
     private static final class Collector implements ErrorListener {
         private final List<TransformerException> errors = new ArrayList<>();

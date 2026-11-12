@@ -153,6 +153,9 @@ public class TransformPanel extends VBox {
             "TransformPanel.use-current-tab-as-input", this::useActiveTabAsInput);
     private final Label inputPos = new Label();
 
+    /** Set by "Run anyway": the next run skips the XSLT 2.0 check (FX thread only). */
+    private boolean skipCompatibilityCheckOnce;
+
     /** XSLT version of the panel's runs (expert mode only). */
     private final org.fxt.freexmltoolkit.controls.shell.editor.standards.VersionChoice xsltVersionChoice =
             new org.fxt.freexmltoolkit.controls.shell.editor.standards.VersionChoice(
@@ -1708,7 +1711,9 @@ public class TransformPanel extends VBox {
             out.showPending(I18n.t("TransformPanel.cancelled"));
         });
         String editorXml = xml;
-        var xsltVersion = xsltVersion();
+        var xsltVersion = skipCompatibilityCheckOnce ? org.fxt.freexmltoolkit.service.standards.XsltVersion.V3_0
+                : xsltVersion();
+        skipCompatibilityCheckOnce = false;
         task[0] = FxtGui.executorService.submit(() -> {
             String xmlInput;
             if (inputFile != null) {
@@ -1785,6 +1790,7 @@ public class TransformPanel extends VBox {
             long elapsedMs = probe.finish(xmlInput.length(), ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             String finalResult = result;
+            boolean compatibilityRefused = fullResult != null && "FXT-COMPAT".equals(fullResult.getErrorCode());
             OutputFormat finalFormat = format;
             TransformOutputPanel.ResultSource resultSource = ok
                     ? resultSource(inputPath, openInputSchema, inputFile != null ? xmlInput : null) : null;
@@ -1800,7 +1806,13 @@ public class TransformPanel extends VBox {
                 }
                 progress.finish();
                 transformButton.setDisable(false);
-                if (live && finalResult.startsWith("ERROR")) {
+                if (!live && compatibilityRefused) {
+                    // the XSLT 2.0 check refused the stylesheet: list the issues, offer to run it anyway
+                    out.showIncompatible(finalResult, () -> {
+                        skipCompatibilityCheckOnce = true;
+                        transform(false);
+                    });
+                } else if (live && finalResult.startsWith("ERROR")) {
                     // Automatic re-runs (live preview while typing, stylesheet watch) fail
                     // routinely on half-edited input: show the error inline, never a modal dialog.
                     out.showError(finalResult);
