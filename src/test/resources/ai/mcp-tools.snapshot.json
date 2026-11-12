@@ -181,7 +181,7 @@
   {
     "name": "schematron_check",
     "read_only": true,
-    "description": "Check a Schematron schema without running it: XML well-formedness, structure (schema, pattern, rule, assert/report), the XPath syntax of every context and test, and common mistakes. Returns the issues with severity, line and message; 'ok' is true when there is no error. Use it after writing or changing a Schematron, then validate a document with it.",
+    "description": "Check a Schematron schema without running it: XML well-formedness, structure (schema, pattern, rule, assert/report), the XPath syntax of every context and test, and common mistakes. Returns the issues with severity, line and message; 'ok' is true when there is no error. Use it after writing or changing a Schematron, then validate a document with it. With schematron_binding (the default binding when the schema declares no @queryBinding) every context and test is also compiled in the binding's XPath version: xslt = XPath 1.0, xslt2 = XPath 2.0.",
     "input_schema": {
       "type": "object",
       "properties": {
@@ -192,6 +192,17 @@
         "schematron_content": {
           "type": "string",
           "description": "The Schematron schema as text. Give this or schematron_path, not both."
+        },
+        "schematron_binding": {
+          "type": "string",
+          "description": "Query binding to check the expressions against (the schema's own @queryBinding wins).",
+          "enum": [
+            "default",
+            "xslt",
+            "xslt2",
+            "xslt3"
+          ],
+          "default": "default"
         }
       },
       "additionalProperties": false
@@ -200,7 +211,7 @@
   {
     "name": "validate",
     "read_only": true,
-    "description": "Validate an XML document: well-formedness, then the schema (XSD 1.0/1.1, DTD or RELAX NG), then an optional Schematron, then the checks of enabled plugins (e.g. FundsXML, ISO 20022). The schema is xsd_path if given, else the one the document declares (xsi:schemaLocation, DOCTYPE, Schema Library) unless declared_schema is false. Returns every problem with source, severity, line, column and message; 'valid' is true when the run had no errors (warnings allowed). 'not_run' means the schema or Schematron itself could not be loaded, so the document was not checked. Use it after every change to a document.",
+    "description": "Validate an XML document: well-formedness, then the schema (XSD 1.0/1.1, DTD or RELAX NG), then an optional Schematron, then the checks of enabled plugins (e.g. FundsXML, ISO 20022). The schema is xsd_path if given, else the one the document declares (xsi:schemaLocation, DOCTYPE, Schema Library) unless declared_schema is false. Returns every problem with source, severity, line, column and message; 'valid' is true when the run had no errors (warnings allowed). 'not_run' means the schema or Schematron itself could not be loaded, so the document was not checked. Use it after every change to a document. xsd_version forces XSD 1.0 or 1.1 (default: detected from the schema), xml_version 1.0 rejects documents declared as XML 1.1, schematron_binding sets the query binding of a Schematron without @queryBinding (default xslt2).",
     "input_schema": {
       "type": "object",
       "properties": {
@@ -224,6 +235,37 @@
           "type": "boolean",
           "description": "Use the schema the document declares when xsd_path is not given.",
           "default": true
+        },
+        "xsd_version": {
+          "type": "string",
+          "description": "XSD version: auto (detected), 1.0 or 1.1.",
+          "enum": [
+            "auto",
+            "1.0",
+            "1.1"
+          ],
+          "default": "auto"
+        },
+        "xml_version": {
+          "type": "string",
+          "description": "XML version: auto (as declared), 1.0 or 1.1.",
+          "enum": [
+            "auto",
+            "1.0",
+            "1.1"
+          ],
+          "default": "auto"
+        },
+        "schematron_binding": {
+          "type": "string",
+          "description": "Query binding of a Schematron without its own @queryBinding.",
+          "enum": [
+            "default",
+            "xslt",
+            "xslt2",
+            "xslt3"
+          ],
+          "default": "default"
         }
       },
       "additionalProperties": false
@@ -232,7 +274,7 @@
   {
     "name": "xpath",
     "read_only": true,
-    "description": "Evaluate an XPath 3.1 expression against an XML document and return the items, one per line: atomic values as text, attributes as name=\"value\", elements serialized as XML. The prefixes declared on the root element are available; pass 'namespaces' for others, with the key \"\" for the default element namespace (or use *:name). Errors come back with code and phase. Reads only inside the allowed folders. Use it to inspect large documents instead of reading them whole.",
+    "description": "Evaluate an XPath expression (3.1 unless xpath_version says otherwise) against an XML document and return the items, one per line: atomic values as text, attributes as name=\"value\", elements serialized as XML. The prefixes declared on the root element are available; pass 'namespaces' for others, with the key \"\" for the default element namespace (or use *:name). Errors come back with code and phase. Reads only inside the allowed folders. Use it to inspect large documents instead of reading them whole. xpath_version 1.0 runs on a real XPath 1.0 engine, 2.0 and 3.0 reject newer syntax and functions - use it to write expressions for older processors.",
     "input_schema": {
       "type": "object",
       "properties": {
@@ -246,7 +288,7 @@
         },
         "expression": {
           "type": "string",
-          "description": "The XPath 3.1 expression; the document node is the context item."
+          "description": "The XPath expression; the document node is the context item."
         },
         "namespaces": {
           "type": "object",
@@ -254,6 +296,17 @@
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "xpath_version": {
+          "type": "string",
+          "description": "XPath version the expression must conform to (default 3.1).",
+          "enum": [
+            "1.0",
+            "2.0",
+            "3.0",
+            "3.1"
+          ],
+          "default": "3.1"
         }
       },
       "required": [
@@ -265,7 +318,7 @@
   {
     "name": "xquery",
     "read_only": true,
-    "description": "Run an XQuery 3.1 query, with an XML document as the context item when one is given. The result sequence is serialized as XML (maps, arrays and attributes adaptively); 'item_count' says how many items it has. External variables are passed as strings in 'variables' (declare them with 'declare variable $name external;'). Static and dynamic errors come back with code, phase and line. Reads only inside the allowed folders; stops at the time limit.",
+    "description": "Run an XQuery query (3.1 unless xquery_version says otherwise), with an XML document as the context item when one is given. The result sequence is serialized as XML (maps, arrays and attributes adaptively); 'item_count' says how many items it has. External variables are passed as strings in 'variables' (declare them with 'declare variable $name external;'). Static and dynamic errors come back with code, phase and line. Reads only inside the allowed folders; stops at the time limit. With xquery_version 1.0 or 3.0 the query is first checked for newer syntax and functions (code FXT-COMPAT, phase compile).",
     "input_schema": {
       "type": "object",
       "properties": {
@@ -291,6 +344,16 @@
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "xquery_version": {
+          "type": "string",
+          "description": "XQuery version the query must conform to (default 3.1).",
+          "enum": [
+            "1.0",
+            "3.0",
+            "3.1"
+          ],
+          "default": "3.1"
         }
       },
       "additionalProperties": false
@@ -299,7 +362,7 @@
   {
     "name": "xslt_transform",
     "read_only": true,
-    "description": "Run an XSLT stylesheet (1.0, 2.0 or 3.0, Saxon) on an XML document and return the output. Pass the stylesheet you just wrote as xslt_content to check it without saving it. Nothing is written to disk: xsl:result-document output comes back in 'result_documents'. xsl:message output is in 'messages'. A stylesheet that does not compile or fails at run time returns 'error' with code, phase (compile, input, runtime) and line — fix the stylesheet and call again. No Java extensions, no network, reads only inside the allowed folders, stops at the time limit.",
+    "description": "Run an XSLT stylesheet (1.0, 2.0 or 3.0, Saxon) on an XML document and return the output. Pass the stylesheet you just wrote as xslt_content to check it without saving it. Nothing is written to disk: xsl:result-document output comes back in 'result_documents'. xsl:message output is in 'messages'. A stylesheet that does not compile or fails at run time returns 'error' with code, phase (compile, input, runtime) and line — fix the stylesheet and call again. No Java extensions, no network, reads only inside the allowed folders, stops at the time limit. xslt_version 1.0 runs the stylesheet on a real XSLT 1.0 processor (the JDK's XSLTC); 2.0 first rejects XSLT 3.0 instructions and XPath 3.x syntax and functions (code FXT-COMPAT) - use it to write stylesheets for older processors.",
     "input_schema": {
       "type": "object",
       "properties": {
@@ -336,6 +399,16 @@
             "text",
             "json"
           ]
+        },
+        "xslt_version": {
+          "type": "string",
+          "description": "XSLT version the stylesheet must run in (default 3.0).",
+          "enum": [
+            "1.0",
+            "2.0",
+            "3.0"
+          ],
+          "default": "3.0"
         }
       },
       "additionalProperties": false

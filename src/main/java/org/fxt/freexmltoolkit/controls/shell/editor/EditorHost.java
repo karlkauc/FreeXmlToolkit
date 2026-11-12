@@ -1966,7 +1966,9 @@ public class EditorHost extends BorderPane {
                 String xsltContent = Files.readString(xsltFile.toPath(), StandardCharsets.UTF_8);
                 format = TransformRunner.detectXsltOutputFormat(xsltContent);
                 fullResult = TransformRunner.xsltTransformResult(xml, xmlFile.toURI().toString(),
-                        xsltContent, xsltFile.toURI().toString(), java.util.Map.of(), format);
+                        xsltContent, xsltFile.toURI().toString(), java.util.Map.of(), format,
+                        org.fxt.freexmltoolkit.service.standards.StandardsSettings.current().forTool(
+                                org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_TRANSFORM, null).xslt());
                 result = fullResult.isSuccess()
                         ? fullResult.getOutputContent()
                         : "ERROR: " + fullResult.getErrorMessage();

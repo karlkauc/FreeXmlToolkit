@@ -95,6 +95,7 @@ public class ValidationPanel extends VBox {
     public ValidationPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
         FxmlViews.load(this, "/pages/panels/ValidationPanel.fxml");
+        installStandardsRow();
 
         // --- SOURCES ------------------------------------------------------
         xsdFavoritesMenu.setGraphic(icon("bi-star", 13));
@@ -427,7 +428,8 @@ public class ValidationPanel extends VBox {
             ValidationRunner.RunResult runResult = json
                     ? new ValidationRunner.RunResult(
                             ValidationRunner.validateJson(content, schema), null)
-                    : ValidationRunner.runWithReport(content, schema, schematron, documentName, documentPath);
+                    : ValidationRunner.runWithReport(content, schema, schematron, documentName, documentPath, true,
+                            standardsFor(documentPath));
             List<ValidationProblem> result = runResult.problems();
             UsageEvents.validated(UsageEvents.schemaKind(json, schema != null, !json && schematron != null),
                     docKind, content, result.size(), t0, runResult.failure(), live);
@@ -576,7 +578,7 @@ public class ValidationPanel extends VBox {
             long t0 = System.nanoTime();
             List<ValidationRunner.FileValidationResult> results = ValidationRunner.batch(files, xsd, schematron,
                     done -> javafx.application.Platform.runLater(() -> progress.setProgress(done)),
-                    cancelled::get);
+                    cancelled::get, standardsFor(null));
             UsageEvents.batchValidated(UsageEvents.schemaKind(false, xsd != null, schematron != null),
                     results.size(), (int) results.stream().mapToLong(ValidationRunner.FileValidationResult::errorCount).sum(), t0,
                     cancelled.get());
@@ -630,7 +632,8 @@ public class ValidationPanel extends VBox {
         });
         FxtGui.executorService.submit(() -> {
             List<ValidationRunner.FileValidationResult> results = ValidationRunner.batchProject(project, files,
-                    done -> javafx.application.Platform.runLater(() -> progress.setProgress(done)), cancelled::get);
+                    done -> javafx.application.Platform.runLater(() -> progress.setProgress(done)), cancelled::get,
+                    file -> standardsFor(file.toPath()));
             String report = ValidationRunner.report(results, null, null)
                     .replaceFirst("Batch Validation Report\n=======================",
                             "Project Validation Report: " + java.util.regex.Matcher.quoteReplacement(project.name())
@@ -1070,5 +1073,53 @@ public class ValidationPanel extends VBox {
             setText(null);
             setGraphic(row);
         }
+    }
+
+    /**
+     * The STANDARDS row under the sources: XSD version, XML version and Schematron binding of this panel's
+     * runs (expert mode only).
+     */
+    private void installStandardsRow() {
+        String tool = org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_VALIDATION;
+        var xsd = new org.fxt.freexmltoolkit.controls.shell.editor.standards.VersionChoice(tool,
+                org.fxt.freexmltoolkit.service.standards.XsdVersionMode.class, "xsd",
+                () -> org.fxt.freexmltoolkit.service.standards.StandardsSettings.current().global().xsd());
+        var xml = new org.fxt.freexmltoolkit.controls.shell.editor.standards.VersionChoice(tool,
+                org.fxt.freexmltoolkit.service.standards.XmlVersionMode.class, "xml",
+                () -> org.fxt.freexmltoolkit.service.standards.StandardsSettings.current().global().xml());
+        var sch = new org.fxt.freexmltoolkit.controls.shell.editor.standards.VersionChoice(tool,
+                org.fxt.freexmltoolkit.service.standards.SchematronBinding.class, "schematron",
+                () -> org.fxt.freexmltoolkit.service.standards.StandardsSettings.current().global().schematron());
+        xsd.setId("validation-xsd-version");
+        xml.setId("validation-xml-version");
+        sch.setId("validation-schematron-binding");
+        for (var choice : List.of(xsd, xml, sch)) {
+            choice.setMaxWidth(Double.MAX_VALUE);
+        }
+        javafx.scene.control.Label title = new javafx.scene.control.Label(I18n.t("ValidationPanel.standards.title"));
+        title.getStyleClass().add("fxt-sp-section-label");
+        javafx.scene.layout.VBox box = new javafx.scene.layout.VBox(4, title, xsd, xml, sch);
+        box.setId("validation-standards");
+        org.fxt.freexmltoolkit.controls.shell.editor.standards.StandardsUi.showInExpertMode(box);
+        if (jsonSchemaRow.getParent() instanceof javafx.scene.layout.Pane parent) {
+            parent.getChildren().add(parent.getChildren().indexOf(jsonSchemaRow) + 1, box);
+        }
+    }
+
+    /**
+     * The standards a validation of {@code file} uses: global default, the open project's binding for the file,
+     * this panel's choice; today's behaviour while the expert mode is off.
+     */
+    static org.fxt.freexmltoolkit.service.standards.ValidationStandards standardsFor(java.nio.file.Path file) {
+        var settings = org.fxt.freexmltoolkit.service.standards.StandardsSettings.current();
+        if (!settings.expertMode()) {
+            return org.fxt.freexmltoolkit.service.standards.ValidationStandards.DEFAULT;
+        }
+        var project = file == null ? null : org.fxt.freexmltoolkit.service.project.ProjectService.getInstance()
+                .current().map(p -> p.standardsFor(file)).orElse(null);
+        return org.fxt.freexmltoolkit.service.standards.ValidationStandards.of(
+                org.fxt.freexmltoolkit.service.standards.StandardsProfile.resolve(settings.global(), project,
+                        settings.toolChoice(org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_VALIDATION),
+                        null));
     }
 }

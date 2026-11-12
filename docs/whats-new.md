@@ -6,6 +6,16 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## 3.1.0 (2026-11-11)
 
+**Standards**
+
+- **Older language versions (expert mode):** XPath 1.0 / 2.0 / 3.0, XSLT 1.0 / 2.0, XQuery 1.0 / 3.0, XSD 1.0 and
+  XML 1.0 can be chosen, and the Schematron query binding of schemas without one. XPath 1.0 and XSLT 1.0 run on the
+  JDK's real 1.0 processors; newer syntax, functions and instructions are reported as errors, so code written in
+  FreeXmlToolkit runs on older processors too. Version pickers in the Query Console, XPath search, Transform and
+  Validation panels, per project binding and scenario, `--lang-version` / `--xsd-version` / `--xml-version` /
+  `--schematron-binding` on the command line and version arguments for the MCP tools. Off by default. See
+  [Language Versions](language-versions.md).
+
 **AI**
 
 - **MCP server for AI agents:** `fxt-cli mcp` lets Claude Code and other MCP clients validate documents, run and

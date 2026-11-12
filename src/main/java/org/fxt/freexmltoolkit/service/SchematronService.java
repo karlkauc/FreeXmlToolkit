@@ -162,4 +162,14 @@ public interface SchematronService {
             throws SchematronLoadException {
         return new SchematronReport(validateXml(xmlContent, schematronFile), null);
     }
+
+    /**
+     * As {@link #validateXmlWithSvrl(String, File)}; a Schematron without its own {@code @queryBinding} is
+     * compiled with {@code binding}. The default implementation ignores the binding.
+     */
+    default SchematronReport validateXmlWithSvrl(String xmlContent, File schematronFile,
+                                                 org.fxt.freexmltoolkit.service.standards.SchematronBinding binding)
+            throws SchematronLoadException {
+        return validateXmlWithSvrl(xmlContent, schematronFile);
+    }
 }

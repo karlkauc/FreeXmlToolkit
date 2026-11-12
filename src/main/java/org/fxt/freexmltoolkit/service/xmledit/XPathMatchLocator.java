@@ -41,8 +41,15 @@ public final class XPathMatchLocator {
     private XPathMatchLocator() {
     }
 
-    /** The user's XPath with its namespace bindings ({@code ""} = default element namespace). */
-    public record XPathQuery(String xpath, Map<String, String> namespaces) {
+    /**
+     * The user's XPath with its namespace bindings ({@code ""} = default element namespace) and the XPath version
+     * it is written in ({@code null} = 3.1).
+     */
+    public record XPathQuery(String xpath, Map<String, String> namespaces,
+                             org.fxt.freexmltoolkit.service.standards.XPathVersion version) {
+        public XPathQuery(String xpath, Map<String, String> namespaces) {
+            this(xpath, namespaces, null);
+        }
     }
 
     /**
@@ -92,7 +99,7 @@ public final class XPathMatchLocator {
         }
         XdmValue result;
         try {
-            XPathSelector selector = newCompiler(query.namespaces()).compile(query.xpath()).load();
+            XPathSelector selector = compile(query).load();
             selector.setContextItem(document);
             result = selector.evaluate();
         } catch (SaxonApiException e) {
@@ -140,7 +147,7 @@ public final class XPathMatchLocator {
         XdmNode document = parseLineNumbered(xml);
         XdmValue result;
         try {
-            XPathSelector selector = newCompiler(query.namespaces()).compile(query.xpath()).load();
+            XPathSelector selector = compile(query).load();
             selector.setContextItem(document);
             result = selector.evaluate();
         } catch (SaxonApiException e) {
@@ -209,10 +216,39 @@ public final class XPathMatchLocator {
         }
     }
 
+    /**
+     * Compiles the query in its XPath version. XPath 1.0 is first checked by the JDK's XPath 1.0 engine (so only
+     * valid 1.0 passes), then evaluated by Saxon in XPath 1.0 compatibility mode to locate the nodes.
+     */
+    private static net.sf.saxon.s9api.XPathExecutable compile(XPathQuery query) throws SaxonApiException,
+            XPathEditException {
+        var version = query.version() == null ? org.fxt.freexmltoolkit.service.standards.XPathVersion.V3_1
+                : query.version();
+        if (version == org.fxt.freexmltoolkit.service.standards.XPathVersion.V1_0) {
+            try {
+                org.fxt.freexmltoolkit.service.standards.Xpath10Engine.check(query.xpath(), query.namespaces());
+            } catch (org.fxt.freexmltoolkit.service.standards.Xpath10Engine.Xpath10Exception e) {
+                throw new XPathEditException("XPath error: " + e.getMessage(), e);
+            }
+        }
+        return newCompiler(query.namespaces(), version).compile(query.xpath());
+    }
+
     /** Builds an XPath 3.1 compiler with the app's standard prefixes plus user bindings. */
     public static XPathCompiler newCompiler(Map<String, String> namespaces) {
+        return newCompiler(namespaces, org.fxt.freexmltoolkit.service.standards.XPathVersion.V3_1);
+    }
+
+    /**
+     * Builds an XPath compiler of {@code version} (Saxon's parser level and function library; 1.0 = 2.0 in
+     * backwards-compatible mode) with the app's standard prefixes plus user bindings.
+     */
+    public static XPathCompiler newCompiler(Map<String, String> namespaces,
+                                            org.fxt.freexmltoolkit.service.standards.XPathVersion version) {
         XPathCompiler compiler = SaxonXPathHelper.getProcessor().newXPathCompiler();
-        compiler.setLanguageVersion("3.1");
+        var v = version == null ? org.fxt.freexmltoolkit.service.standards.XPathVersion.V3_1 : version;
+        compiler.setLanguageVersion(v == org.fxt.freexmltoolkit.service.standards.XPathVersion.V1_0 ? "1.0"
+                : v.saxonLanguageVersion());
         // Standard function-namespace prefixes, as in XmlServiceImpl.newXPathCompiler.
         compiler.declareNamespace("map", "http://www.w3.org/2005/xpath-functions/map");
         compiler.declareNamespace("array", "http://www.w3.org/2005/xpath-functions/array");

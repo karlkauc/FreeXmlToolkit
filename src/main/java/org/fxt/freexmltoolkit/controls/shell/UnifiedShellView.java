@@ -329,6 +329,7 @@ public class UnifiedShellView extends BorderPane {
         });
         statusBadges.managedProperty().bind(javafx.beans.binding.Bindings.isNotEmpty(statusBadges.getChildren()));
         statusBadges.visibleProperty().bind(statusBadges.managedProperty());
+        installStandardsBadge();
         watchActiveEncoding();
         updateStatusBar();
 
@@ -3007,5 +3008,35 @@ public class UnifiedShellView extends BorderPane {
     /** @return the shell's activity selection model (for future host wiring). */
     public ActivitySelectionModel getSelectionModel() {
         return selectionModel;
+    }
+
+    /**
+     * The status bar's standards badge: the older language versions chosen as defaults (expert mode), e.g.
+     * "XPath 2.0 · XSD 1.0"; hidden while every default is the newest.
+     */
+    private void installStandardsBadge() {
+        Label badge = new Label();
+        badge.setId("status-standards");
+        badge.getStyleClass().add("fxt-status-item");
+        badge.setTooltip(new javafx.scene.control.Tooltip(org.fxt.freexmltoolkit.i18n.I18n.t("Standards.badge.tooltip")));
+        Runnable refresh = () -> {
+            var profile = org.fxt.freexmltoolkit.service.standards.StandardsSettings.current().global();
+            java.util.List<String> parts = new java.util.ArrayList<>();
+            for (org.fxt.freexmltoolkit.service.standards.StandardVersion v : java.util.List.of(profile.xpath(),
+                    profile.xquery(), profile.xslt(), profile.xsd(), profile.xml(), profile.schematron())) {
+                if (v != null && !v.isDefault()) {
+                    parts.add(v.label());
+                }
+            }
+            badge.setText(String.join(" · ", parts));
+            badge.setVisible(!parts.isEmpty());
+            badge.setManaged(!parts.isEmpty());
+        };
+        org.fxt.freexmltoolkit.controls.shell.editor.standards.StandardsUi.revisionProperty()
+                .addListener((obs, o, n) -> refresh.run());
+        refresh.run();
+        if (statusLastRun.getParent() instanceof javafx.scene.layout.Pane bar) {
+            bar.getChildren().add(bar.getChildren().indexOf(statusLastRun), badge);
+        }
     }
 }

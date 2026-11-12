@@ -70,6 +70,12 @@ public class QueryConsole extends Region {
     @FXML private ToggleButton xpathToggle;
     @FXML private ToggleButton xqueryToggle;
     @FXML private Label target;
+    /** XPath / XQuery version of the console (expert mode only). */
+    private final org.fxt.freexmltoolkit.controls.shell.editor.standards.VersionChoice versionChoice =
+            new org.fxt.freexmltoolkit.controls.shell.editor.standards.VersionChoice(
+                    org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_QUERY_CONSOLE,
+                    org.fxt.freexmltoolkit.service.standards.XPathVersion.class, "xpath",
+                    () -> org.fxt.freexmltoolkit.service.standards.StandardsSettings.current().global().xpath());
     // RichTextFX CodeAreas so the XPath/XQuery IntelliSense engine can attach (autocomplete).
     private final CodeArea xpathField = new PlainTextCodeArea();
     private final CodeArea xqueryArea = new PlainTextCodeArea();
@@ -158,8 +164,14 @@ public class QueryConsole extends Region {
                 oldT.setSelected(true); // keep one mode always selected
             } else {
                 updateMode();
+                configureVersionChoice();
             }
         });
+        versionChoice.setId("query-version");
+        if (target.getParent() instanceof javafx.scene.layout.Pane row) {
+            row.getChildren().add(row.getChildren().indexOf(target), versionChoice);
+        }
+        configureVersionChoice();
 
         inputStack.getChildren().addAll(xpathField, xqueryArea);
         xpathField.setPlaceholder(xpathPlaceholder);
@@ -372,6 +384,31 @@ public class QueryConsole extends Region {
                         question.strip(), xquery, expression -> setText(xquery ? xqueryArea : xpathField, expression)));
     }
 
+    /** Points the version picker at XPath or XQuery, following the mode switch. */
+    private void configureVersionChoice() {
+        if (xqueryToggle.isSelected()) {
+            versionChoice.configure(org.fxt.freexmltoolkit.service.standards.XQueryVersion.class, "xquery",
+                    () -> org.fxt.freexmltoolkit.service.standards.StandardsSettings.current().global().xquery());
+        } else {
+            versionChoice.configure(org.fxt.freexmltoolkit.service.standards.XPathVersion.class, "xpath",
+                    () -> org.fxt.freexmltoolkit.service.standards.StandardsSettings.current().global().xpath());
+        }
+    }
+
+    /** The XPath version a console run uses (tool choice, else the global default; 3.1 without expert mode). */
+    org.fxt.freexmltoolkit.service.standards.XPathVersion xpathVersion() {
+        var tool = org.fxt.freexmltoolkit.service.standards.StandardsSettings.current().forTool(
+                org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_QUERY_CONSOLE, null);
+        return tool.xpath();
+    }
+
+    /** The XQuery version a console run uses. */
+    org.fxt.freexmltoolkit.service.standards.XQueryVersion xqueryVersion() {
+        var tool = org.fxt.freexmltoolkit.service.standards.StandardsSettings.current().forTool(
+                org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_QUERY_CONSOLE, null);
+        return tool.xquery();
+    }
+
     /** Runs the current query (XPath or XQuery) against the active document. */
     @FXML
     public void run() {
@@ -397,6 +434,7 @@ public class QueryConsole extends Region {
             return;
         }
         boolean json = isJsonActive();
+        var version = xpathVersion();
         setResultsText("Running…");
         hits.clear();
         String revision = editorHost.activeRevisionKey();
@@ -408,7 +446,7 @@ public class QueryConsole extends Region {
                             : org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XPATH,
                     path.length() > 60 ? path.substring(0, 57) + "…" : path);
             TransformRunner.QueryRun run = json ? TransformRunner.jsonPath(content, path)
-                    : TransformRunner.xpath(content, path);
+                    : TransformRunner.xpath(content, path, version);
             String result = run.text();
             boolean ok = !result.startsWith("ERROR");
             if (json) {
@@ -420,7 +458,7 @@ public class QueryConsole extends Region {
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             List<org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.ResultItem> items = ok && !json
                     ? locateItems(() -> org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.locateItems(content,
-                            new org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.XPathQuery(path, Map.of())))
+                            new org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.XPathQuery(path, Map.of(), version)))
                     : List.of();
             Platform.runLater(() -> {
                 if (gen == runGeneration) {
@@ -447,6 +485,7 @@ public class QueryConsole extends Region {
             return;
         }
         String xml = editorHost.getActiveText().orElse("");
+        var version = xqueryVersion();
         setResultsText("Running…");
         hits.clear();
         String revision = editorHost.activeRevisionKey();
@@ -455,7 +494,8 @@ public class QueryConsole extends Region {
             long t0 = System.nanoTime();
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
                     org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XQUERY, "Query console");
-            TransformRunner.QueryRun run = TransformRunner.xquery(xml, xquery, Map.of(), OutputFormat.XML);
+            TransformRunner.QueryRun run = TransformRunner.xquery(xml, xquery, Map.of(), OutputFormat.XML,
+                    version);
             String result = run.text();
             boolean ok = !result.startsWith("ERROR");
             UsageEvents.xqueryExecuted(t0, run.failure());

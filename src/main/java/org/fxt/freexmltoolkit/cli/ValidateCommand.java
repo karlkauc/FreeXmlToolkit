@@ -41,7 +41,10 @@ import picocli.CommandLine.Spec;
                 "  fxt-cli validate data/ --json-schema order.schema.json --include \"*.json\"",
                 "",
                 "  # Files of a project, with its schema bindings",
-                "  fxt-cli validate data/ --project shop.fxtproj"
+                "  fxt-cli validate data/ --project shop.fxtproj",
+                "",
+                "  # Strictly as XSD 1.0 and XML 1.0 (for processors without XSD 1.1)",
+                "  fxt-cli validate orders/ --xsd order.xsd --xsd-version 1.0 --xml-version 1.0"
         },
         description = {
                 "Validate XML against XML Schema and/or Schematron, JSON against JSON Schema.",
@@ -98,6 +101,22 @@ final class ValidateCommand implements Callable<Integer> {
     /** The loaded {@link #projectFile}, or {@code null}. */
     private org.fxt.freexmltoolkit.service.project.FxtProject project;
 
+    @Option(names = "--xsd-version", paramLabel = "VERSION",
+            description = "XSD version: auto (default: XSD 1.1 when the schema uses it), 1.0 or 1.1.")
+    String xsdVersion;
+
+    @Option(names = "--xml-version", paramLabel = "VERSION",
+            description = "XML version: auto (default: as declared), 1.0 (a document declared as 1.1 is an error) or 1.1.")
+    String xmlVersion;
+
+    @Option(names = "--schematron-binding", paramLabel = "BINDING",
+            description = "Query binding of a Schematron without @queryBinding: xslt, xslt2 (default) or xslt3.")
+    String schematronBinding;
+
+    /** The standards chosen on the command line (components not given are {@code null}). */
+    private org.fxt.freexmltoolkit.service.standards.StandardsProfile cliStandards =
+            org.fxt.freexmltoolkit.service.standards.StandardsProfile.EMPTY;
+
     @Option(names = "--fail-on-warning",
             description = "Warnings make a file invalid too (exit code 1).")
     boolean failOnWarning;
@@ -108,6 +127,19 @@ final class ValidateCommand implements Callable<Integer> {
         CliSupport.requireFile(commandLine, xsd, "XML Schema");
         CliSupport.requireFile(commandLine, schematron, "Schematron");
         CliSupport.requireFile(commandLine, jsonSchema, "JSON Schema");
+        if (xsdVersion != null) {
+            cliStandards = cliStandards.withXsd(CliSupport.version(commandLine,
+                    org.fxt.freexmltoolkit.service.standards.XsdVersionMode.class, xsdVersion, "XSD"));
+        }
+        if (xmlVersion != null) {
+            cliStandards = cliStandards.withXml(CliSupport.version(commandLine,
+                    org.fxt.freexmltoolkit.service.standards.XmlVersionMode.class, xmlVersion, "XML"));
+        }
+        if (schematronBinding != null) {
+            cliStandards = cliStandards.withSchematron(CliSupport.version(commandLine,
+                    org.fxt.freexmltoolkit.service.standards.SchematronBinding.class, schematronBinding,
+                    "Schematron query binding"));
+        }
         List<Path> files = CliSupport.expand(commandLine, inputs, include);
         if (files.isEmpty()) {
             throw new CommandLine.ParameterException(commandLine,
@@ -188,10 +220,17 @@ final class ValidateCommand implements Callable<Integer> {
         ValidationRunner.RunResult run = ValidationRunner.runWithReport(content,
                 schema != null ? schema.toFile() : null,
                 schematron != null ? schematron.toFile() : null,
-                file.getFileName().toString(), file, !noSchemaLookup);
+                file.getFileName().toString(), file, !noSchemaLookup, standardsFor(file));
         List<Finding> findings = findings(run.problems());
         String notRun = run.failed() ? FxtCli.messageOf(run.error()) : schemaNotLoaded(findings);
         return new FileResult(file, schema, findings, notRun, millisSince(start));
+    }
+
+    /** The standards of one file: the project's binding for it, then the command-line options. */
+    private org.fxt.freexmltoolkit.service.standards.ValidationStandards standardsFor(Path file) {
+        return org.fxt.freexmltoolkit.service.standards.ValidationStandards.of(
+                org.fxt.freexmltoolkit.service.standards.StandardsProfile.resolve(null,
+                        project == null ? null : project.standardsFor(file), null, cliStandards));
     }
 
     /** @return the schema the project binds to {@code file}, or {@code null} */
@@ -216,7 +255,7 @@ final class ValidateCommand implements Callable<Integer> {
         }
         try {
             var result = org.fxt.freexmltoolkit.service.largefile.LargeFileValidation.validate(file,
-                    schema != null ? schema.toFile() : null, 10_000, null, null);
+                    schema != null ? schema.toFile() : null, 10_000, null, null, standardsFor(file));
             if (result.schemaError() != null) {
                 return new FileResult(file, schema, List.of(new Finding("XSD", Severity.ERROR, 0, 0,
                         result.schemaError(), null, null)), result.schemaError(), millisSince(start));

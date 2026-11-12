@@ -139,6 +139,15 @@ public class SettingsPanel extends VBox {
     // Parser
     @FXML private ComboBox<XmlParserType> parserType;
     @FXML private CheckBox xsltExtensions;
+    @FXML private CheckBox standardsExpertMode;
+    @FXML private javafx.scene.layout.GridPane standardsGrid;
+    @FXML private ComboBox<org.fxt.freexmltoolkit.service.standards.StandardVersion> standardsXpath;
+    @FXML private ComboBox<org.fxt.freexmltoolkit.service.standards.StandardVersion> standardsXquery;
+    @FXML private ComboBox<org.fxt.freexmltoolkit.service.standards.StandardVersion> standardsXslt;
+    @FXML private ComboBox<org.fxt.freexmltoolkit.service.standards.StandardVersion> standardsXsd;
+    @FXML private ComboBox<org.fxt.freexmltoolkit.service.standards.StandardVersion> standardsXml;
+    @FXML private ComboBox<org.fxt.freexmltoolkit.service.standards.StandardVersion> standardsSchematron;
+    private org.fxt.freexmltoolkit.controls.shell.editor.standards.StandardsSettingsControls standardsControls;
     @FXML private CheckBox htmlActiveContent;
     @FXML private CheckBox xprocUnrestricted;
     @FXML private CheckBox dtdAllowed;
@@ -270,7 +279,13 @@ public class SettingsPanel extends VBox {
         initSyntaxControls();
 
         parserType.getItems().setAll(XmlParserType.values());
+        standardsControls = new org.fxt.freexmltoolkit.controls.shell.editor.standards.StandardsSettingsControls(
+                standardsExpertMode, standardsXpath, standardsXquery, standardsXslt, standardsXsd, standardsXml,
+                standardsSchematron);
         collectPolicyLocks();
+        for (var picker : standardsControls.pickers()) {
+            bindDisable(picker, standardsExpertMode.selectedProperty().not());
+        }
         bindDisable(backupDir, backupSeparateDir.selectedProperty().not());
         bindDisable(customTempDir, useSystemTemp.selectedProperty());
         bindDisable(logMaxAge, logCleanup.selectedProperty().not());
@@ -582,6 +597,7 @@ public class SettingsPanel extends VBox {
         backupSeparateDir.setSelected(false);
         parserType.setValue(XmlParserType.XERCES);
         xsltExtensions.setSelected(false);
+        standardsControls.restoreDefaults();
         htmlActiveContent.setSelected(false);
         xprocUnrestricted.setSelected(false);
         dtdAllowed.setSelected(true);
@@ -1284,6 +1300,9 @@ public class SettingsPanel extends VBox {
         keys.put(backupDir, new String[] {"backup.directory"});
         keys.put(parserType, new String[] {"xml.parser.type"});
         keys.put(xsltExtensions, new String[] {"security.xslt.allow.extensions"});
+        if (standardsControls != null) {
+            standardsControls.putPolicyKeys(keys);
+        }
         keys.put(htmlActiveContent, new String[] {org.fxt.freexmltoolkit.controls.shell.SafeWebView.ALLOW_ACTIVE_CONTENT});
         keys.put(xprocUnrestricted, new String[] {XProcSecurity.UNRESTRICTED});
         keys.put(dtdAllowed, new String[] {org.fxt.freexmltoolkit.service.grammar.GrammarPolicy.DTD_ALLOWED});
@@ -1749,6 +1768,7 @@ public class SettingsPanel extends VBox {
             backupDir.setText(orEmpty(props.getBackupDirectory()));
             parserType.setValue(props.getXmlParserType());
             xsltExtensions.setSelected(props.isXsltExtensionsAllowed());
+            standardsControls.load(props::get);
             htmlActiveContent.setSelected(Boolean.parseBoolean(
                     props.get(org.fxt.freexmltoolkit.controls.shell.SafeWebView.ALLOW_ACTIVE_CONTENT)));
             xprocUnrestricted.setSelected(Boolean.parseBoolean(props.get(XProcSecurity.UNRESTRICTED)));
@@ -1841,6 +1861,7 @@ public class SettingsPanel extends VBox {
                 props.setXmlParserType(parserType.getValue());
             }
             props.setXsltExtensionsAllowed(xsltExtensions.isSelected());
+            standardsControls.save(props::set);
             props.set(org.fxt.freexmltoolkit.controls.shell.SafeWebView.ALLOW_ACTIVE_CONTENT,
                     String.valueOf(htmlActiveContent.isSelected()));
             props.set(XProcSecurity.UNRESTRICTED, String.valueOf(xprocUnrestricted.isSelected()));

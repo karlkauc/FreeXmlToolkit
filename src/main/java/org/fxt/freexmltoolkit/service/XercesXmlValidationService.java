@@ -211,6 +211,16 @@ public class XercesXmlValidationService implements XmlValidationService {
      */
     @Override
     public synchronized List<SAXParseException> validateText(String xmlString, File schemaFile) {
+        return validateText(xmlString, schemaFile, org.fxt.freexmltoolkit.service.standards.XsdVersionMode.AUTO);
+    }
+
+    /**
+     * As {@link #validateText(String, File)} with the XSD version chosen: {@code AUTO} detects XSD 1.1 from the
+     * schema (as before), {@code V1_0} / {@code V1_1} force the version. A schema that uses XSD 1.1 constructs
+     * under a forced 1.0 gets an explicit error before the 1.0 compile reports the constructs themselves.
+     */
+    public synchronized List<SAXParseException> validateText(String xmlString, File schemaFile,
+            org.fxt.freexmltoolkit.service.standards.XsdVersionMode mode) {
         final List<SAXParseException> exceptions = new LinkedList<>();
 
         // Reset circular detection for new validation
@@ -224,7 +234,7 @@ public class XercesXmlValidationService implements XmlValidationService {
         try {
             // Check if this is an XSD 1.1 schema
             String schemaContent = Files.readString(schemaFile.toPath());
-            boolean isXsd11 = isXsd11Schema(schemaContent);
+            boolean isXsd11 = chooseXsd11(schemaContent, mode, exceptions);
 
             // Check if XSD 1.1 is requested but not supported
             if (isXsd11 && !supportsXsd11()) {
@@ -406,6 +416,14 @@ public class XercesXmlValidationService implements XmlValidationService {
      */
     public synchronized void validateStream(java.io.InputStream xml, String systemId, File schemaFile,
                                             ErrorHandler handler) throws IOException, SAXException {
+        validateStream(xml, systemId, schemaFile, handler, org.fxt.freexmltoolkit.service.standards.XsdVersionMode.AUTO);
+    }
+
+    /** As {@link #validateStream(java.io.InputStream, String, File, ErrorHandler)} with the XSD version chosen. */
+    public synchronized void validateStream(java.io.InputStream xml, String systemId, File schemaFile,
+                                            ErrorHandler handler,
+                                            org.fxt.freexmltoolkit.service.standards.XsdVersionMode mode)
+            throws IOException, SAXException {
         resourceResolver.resetCircularDetection();
         org.xml.sax.InputSource input = new org.xml.sax.InputSource(xml);
         input.setSystemId(systemId);
@@ -421,7 +439,11 @@ public class XercesXmlValidationService implements XmlValidationService {
             return;
         }
         String schemaContent = Files.readString(schemaFile.toPath());
-        boolean isXsd11 = isXsd11Schema(schemaContent) && supportsXsd11();
+        List<SAXParseException> notes = new LinkedList<>();
+        boolean isXsd11 = chooseXsd11(schemaContent, mode, notes) && supportsXsd11();
+        for (SAXParseException note : notes) {
+            handler.error(note);
+        }
         SchemaFactory factory = isXsd11 ? schemaFactory11 : schemaFactory10;
         StreamSource schemaSource = new StreamSource(schemaFile);
         schemaSource.setSystemId(schemaFile.toURI().toString());
@@ -435,6 +457,26 @@ public class XercesXmlValidationService implements XmlValidationService {
         validator.setErrorHandler(handler);
         StreamSource source = new StreamSource(xml, systemId);
         validator.validate(source);
+    }
+
+    /**
+     * Whether to validate as XSD 1.1: detected for {@code AUTO}, else as chosen. Under a forced 1.0 a schema with
+     * XSD 1.1 constructs gets an error in {@code problems}.
+     */
+    private boolean chooseXsd11(String schemaContent,
+                                org.fxt.freexmltoolkit.service.standards.XsdVersionMode mode,
+                                List<SAXParseException> problems) {
+        if (mode == null || mode == org.fxt.freexmltoolkit.service.standards.XsdVersionMode.AUTO) {
+            return isXsd11Schema(schemaContent);
+        }
+        if (mode == org.fxt.freexmltoolkit.service.standards.XsdVersionMode.V1_0) {
+            if (isXsd11Schema(schemaContent)) {
+                problems.add(new SAXParseException("The schema uses XSD 1.1 constructs (assertions, alternatives, "
+                        + "open content, vc:minVersion=\"1.1\" …) but XSD 1.0 is selected.", null));
+            }
+            return false;
+        }
+        return true;
     }
 
     private List<SAXParseException> checkWellFormednessOnly(String xmlString) {

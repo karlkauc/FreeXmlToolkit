@@ -50,6 +50,12 @@ public final class FxtProject {
         public String schema;
         public String schematron;
         public String scenario;
+        /** Optional XSD version for these files: auto, 1.0, 1.1 (expert mode, CLI). */
+        public String xsdVersion;
+        /** Optional XML version for these files: auto, 1.0, 1.1. */
+        public String xmlVersion;
+        /** Optional query binding of a Schematron without its own: xslt, xslt2, xslt3. */
+        public String schematronBinding;
 
         public SchemaBinding() {
         }
@@ -68,12 +74,18 @@ public final class FxtProject {
 
         /** @return a copy (the dialogs edit copies) */
         public SchemaBinding copy() {
-            return new SchemaBinding(files, schema, schematron, scenario);
+            SchemaBinding copy = new SchemaBinding(files, schema, schematron, scenario);
+            copy.xsdVersion = blankToNull(xsdVersion);
+            copy.xmlVersion = blankToNull(xmlVersion);
+            copy.schematronBinding = blankToNull(schematronBinding);
+            return copy;
         }
 
         /** @return whether the binding assigns anything */
         public boolean isEmpty() {
-            return blankToNull(schema) == null && blankToNull(schematron) == null && blankToNull(scenario) == null;
+            return blankToNull(schema) == null && blankToNull(schematron) == null && blankToNull(scenario) == null
+                    && blankToNull(xsdVersion) == null && blankToNull(xmlVersion) == null
+                    && blankToNull(schematronBinding) == null;
         }
     }
 
@@ -125,6 +137,8 @@ public final class FxtProject {
         public String expected;
         public CompareSettings compare;
         public String processor;
+        /** Optional language version of the stylesheet / query (XSLT 1.0/2.0/3.0, XQuery 1.0/3.0/3.1). */
+        public String languageVersion;
 
         public Scenario() {
         }
@@ -145,6 +159,7 @@ public final class FxtProject {
             copy.expected = expected;
             copy.compare = compare == null ? null : compare.copy();
             copy.processor = processor;
+            copy.languageVersion = languageVersion;
             return copy;
         }
 
@@ -463,6 +478,40 @@ public final class FxtProject {
     public Optional<Scenario> scenarioFor(Path file) {
         String name = assignmentFor(file).scenario();
         return name == null ? Optional.empty() : scenario(name);
+    }
+
+    /**
+     * The validation standards the project chooses for a file (XSD version, XML version, Schematron binding),
+     * each from the first matching binding that names one; unnamed components stay {@code null}.
+     */
+    public org.fxt.freexmltoolkit.service.standards.StandardsProfile standardsFor(Path file) {
+        var profile = org.fxt.freexmltoolkit.service.standards.StandardsProfile.EMPTY;
+        if (file == null) {
+            return profile;
+        }
+        Path absolute = file.toAbsolutePath().normalize();
+        if (!absolute.startsWith(root())) {
+            return profile;
+        }
+        Path relative = root().relativize(absolute);
+        for (SchemaBinding binding : data.schemaBindings) {
+            if (!matchesFile(binding.files, relative)) {
+                continue;
+            }
+            if (profile.xsd() == null) {
+                profile = profile.withXsd(org.fxt.freexmltoolkit.service.standards.StandardVersion.parseStrict(
+                        org.fxt.freexmltoolkit.service.standards.XsdVersionMode.class, binding.xsdVersion));
+            }
+            if (profile.xml() == null) {
+                profile = profile.withXml(org.fxt.freexmltoolkit.service.standards.StandardVersion.parseStrict(
+                        org.fxt.freexmltoolkit.service.standards.XmlVersionMode.class, binding.xmlVersion));
+            }
+            if (profile.schematron() == null) {
+                profile = profile.withSchematron(org.fxt.freexmltoolkit.service.standards.StandardVersion.parseStrict(
+                        org.fxt.freexmltoolkit.service.standards.SchematronBinding.class, binding.schematronBinding));
+            }
+        }
+        return profile;
     }
 
     /**

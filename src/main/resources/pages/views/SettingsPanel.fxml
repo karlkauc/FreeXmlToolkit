@@ -485,6 +485,30 @@
                                                 <CheckBox fx:id="xsltExtensions" text="%SettingsPanel.xsltExtensions.text"/>
                                             </children>
                                         </SettingsCard>
+                                        <SettingsCard title="%SettingsPanel.standards.title" iconLiteral="bi-sliders">
+                                            <children>
+                                                <CheckBox fx:id="standardsExpertMode" id="settings-standards-expert"
+                                                          text="%SettingsPanel.standardsExpertMode.text" wrapText="true"/>
+                                                <Label text="%SettingsPanel.standards.hint.text" wrapText="true"
+                                                       styleClass="fxt-text-xs"/>
+                                                <GridPane fx:id="standardsGrid" hgap="8" vgap="6">
+                                                    <children>
+                                                        <Label text="XPath" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                                                        <ComboBox fx:id="standardsXpath" id="settings-standards-xpath" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                                                        <Label text="XQuery" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                                                        <ComboBox fx:id="standardsXquery" id="settings-standards-xquery" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                                                        <Label text="XSLT" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                                                        <ComboBox fx:id="standardsXslt" id="settings-standards-xslt" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                                                        <Label text="XSD" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                                                        <ComboBox fx:id="standardsXsd" id="settings-standards-xsd" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                                                        <Label text="XML" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                                                        <ComboBox fx:id="standardsXml" id="settings-standards-xml" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+                                                        <Label text="Schematron" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                                                        <ComboBox fx:id="standardsSchematron" id="settings-standards-schematron" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+                                                    </children>
+                                                </GridPane>
+                                            </children>
+                                        </SettingsCard>
                                             </children>
                                         </SettingsCardGrid>
                                     </children>

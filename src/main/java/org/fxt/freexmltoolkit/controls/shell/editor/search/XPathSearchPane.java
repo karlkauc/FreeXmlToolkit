@@ -84,12 +84,20 @@ public class XPathSearchPane extends VBox {
     private String docSnapshot;
     private List<FileXPathResult> batchResults;
     private XPathQuery lastQuery;
+    /** XPath version of the search (expert mode only). */
+    private final org.fxt.freexmltoolkit.controls.shell.editor.standards.VersionChoice versionChoice =
+            new org.fxt.freexmltoolkit.controls.shell.editor.standards.VersionChoice(
+                    org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_XPATH_SEARCH,
+                    org.fxt.freexmltoolkit.service.standards.XPathVersion.class, "xpath",
+                    () -> org.fxt.freexmltoolkit.service.standards.StandardsSettings.current().global().xpath());
 
     public XPathSearchPane(EditorHost editorHost, Supplier<Path> workspaceRoot) {
         this.editorHost = editorHost;
         this.workspaceRoot = workspaceRoot;
         FxmlViews.load(this, "/pages/panels/XPathSearchPane.fxml");
 
+        versionChoice.setId("xpath-search-version");
+        getChildren().add(getChildren().indexOf(xpathArea) + 1, versionChoice);
         nsArea.setText(loadPref("search.xpath.namespaces", ""));
         globField.setText(loadPref("search.xpath.glob", "*.xml"));
         scope.selectedToggleProperty().addListener((obs, oldV, newV) -> {
@@ -220,7 +228,9 @@ public class XPathSearchPane extends VBox {
             PanelStatus.precondition(status, I18n.t("XPathSearchPane.enter-an-xpath-expression"));
             return;
         }
-        XPathQuery query = new XPathQuery(xpath.strip(), parseNamespaces());
+        XPathQuery query = new XPathQuery(xpath.strip(), parseNamespaces(),
+                org.fxt.freexmltoolkit.service.standards.StandardsSettings.current().forTool(
+                        org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_XPATH_SEARCH, null).xpath());
         savePref("search.xpath.namespaces", nsArea.getText() == null ? "" : nsArea.getText());
         savePref("search.xpath.glob", globField.getText() == null ? "*.xml" : globField.getText());
         generation++;

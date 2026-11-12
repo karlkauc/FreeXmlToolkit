@@ -93,6 +93,20 @@ final class CliSupport {
     }
 
     /** @throws CommandLine.ParameterException when {@code file} is given but is not a file */
+    /**
+     * Parses a {@code --*-version} option value of a standard; an unknown value is a usage error listing the
+     * accepted values.
+     */
+    static <E extends Enum<E> & org.fxt.freexmltoolkit.service.standards.StandardVersion> E version(
+            CommandLine commandLine, Class<E> type, String value, String what) {
+        E parsed = org.fxt.freexmltoolkit.service.standards.StandardVersion.parseStrict(type, value);
+        if (parsed == null) {
+            throw new CommandLine.ParameterException(commandLine, "Unknown " + what + " version '" + value
+                    + "' (use " + org.fxt.freexmltoolkit.service.standards.StandardVersion.acceptedValues(type) + ")");
+        }
+        return parsed;
+    }
+
     static void requireFile(CommandLine commandLine, Path file, String what) {
         if (file != null && !Files.isRegularFile(file)) {
             throw new CommandLine.ParameterException(commandLine, what + " not found: " + file);

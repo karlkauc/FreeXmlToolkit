@@ -36,7 +36,7 @@ public class SchematronServiceImpl implements SchematronService {
      */
     private static final Map<String, CachedResource> COMPILED_CACHE = new ConcurrentHashMap<>();
 
-    private record CachedResource(long lastModified, ISchematronResource resource) {
+    private record CachedResource(long lastModified, String binding, ISchematronResource resource) {
     }
 
     /**
@@ -88,10 +88,21 @@ public class SchematronServiceImpl implements SchematronService {
     }
 
     private static ISchematronResource resource(File schematronFile) {
+        return resource(schematronFile, org.fxt.freexmltoolkit.service.standards.SchematronBinding.DEFAULT);
+    }
+
+    /**
+     * The compiled Schematron; {@code binding} is the query binding of a schema without its own
+     * {@code @queryBinding} (a schema's own binding always wins).
+     */
+    private static ISchematronResource resource(File schematronFile,
+                                                org.fxt.freexmltoolkit.service.standards.SchematronBinding binding) {
         String key = schematronFile.getAbsolutePath();
         long lastModified = schematronFile.lastModified();
+        String queryBinding = (binding == null
+                ? org.fxt.freexmltoolkit.service.standards.SchematronBinding.DEFAULT : binding).queryBinding();
         CachedResource cached = COMPILED_CACHE.compute(key, (k, old) -> {
-            if (old != null && old.lastModified() == lastModified) {
+            if (old != null && old.lastModified() == lastModified && old.binding().equals(queryBinding)) {
                 return old;
             }
             if (old != null) {
@@ -103,7 +114,7 @@ public class SchematronServiceImpl implements SchematronService {
                     .useCache(true)
                     // Schematrons without @queryBinding must compile like the previous
                     // Saxon/XSLT2 skeleton pipeline did, not fail with SchXslt's E0002.
-                    .parameter("schxslt.compile.default-query-binding", "xslt2")
+                    .parameter("schxslt.compile.default-query-binding", queryBinding)
                     // Custom parameters would otherwise disable caching of the compiled XSLT
                     .forceCacheResult(true)
                     // SchXslt emits svrl:metadata, which the strict SVRL schema check of
@@ -115,7 +126,7 @@ public class SchematronServiceImpl implements SchematronService {
                     .entityResolver(NO_EXTERNAL_ENTITIES)
                     .transformerFactoryCustomizer(SchematronServiceImpl::secure)
                     .build();
-            return new CachedResource(lastModified, r);
+            return new CachedResource(lastModified, queryBinding, r);
         });
         return cached.resource();
     }
@@ -159,13 +170,21 @@ public class SchematronServiceImpl implements SchematronService {
     @Override
     public SchematronReport validateXmlWithSvrl(String xmlContent, File schematronFile)
             throws SchematronLoadException {
+        return validateXmlWithSvrl(xmlContent, schematronFile,
+                org.fxt.freexmltoolkit.service.standards.SchematronBinding.DEFAULT);
+    }
+
+    @Override
+    public SchematronReport validateXmlWithSvrl(String xmlContent, File schematronFile,
+                                                org.fxt.freexmltoolkit.service.standards.SchematronBinding binding)
+            throws SchematronLoadException {
         if (xmlContent == null || xmlContent.trim().isEmpty()) {
             return new SchematronReport(List.of(new SchematronValidationError(
                     "XML content is null or empty", null, null, 0, 0, "error")), null);
         }
         requireExistingSchematron(schematronFile);
         try {
-            return performValidationWithSvrl(secureSource(xmlContent), schematronFile);
+            return performValidationWithSvrl(secureSource(xmlContent), schematronFile, binding);
         } catch (SchematronLoadException e) {
             throw e;
         } catch (Exception e) {
@@ -183,9 +202,15 @@ public class SchematronServiceImpl implements SchematronService {
     }
 
     private SchematronReport performValidationWithSvrl(Source xmlSource, File schematronFile) throws SchematronLoadException {
+        return performValidationWithSvrl(xmlSource, schematronFile,
+                org.fxt.freexmltoolkit.service.standards.SchematronBinding.DEFAULT);
+    }
+
+    private SchematronReport performValidationWithSvrl(Source xmlSource, File schematronFile,
+            org.fxt.freexmltoolkit.service.standards.SchematronBinding binding) throws SchematronLoadException {
         SchematronOutputType svrl;
         try {
-            svrl = resource(schematronFile).applySchematronValidationToSVRL(xmlSource);
+            svrl = resource(schematronFile, binding).applySchematronValidationToSVRL(xmlSource);
         } catch (Exception e) {
             throw new SchematronLoadException("Failed to run Schematron validation with "
                     + schematronFile.getAbsolutePath() + ". Reason: " + e.getMessage(), e);

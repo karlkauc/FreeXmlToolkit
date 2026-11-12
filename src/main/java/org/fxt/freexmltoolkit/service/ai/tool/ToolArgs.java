@@ -102,6 +102,24 @@ public final class ToolArgs {
         return value.getAsBoolean();
     }
 
+    /**
+     * An optional language-version argument ({@link org.fxt.freexmltoolkit.service.standards.StandardVersion}),
+     * {@code null} when absent; an unknown value is a misuse of the tool.
+     */
+    public <E extends Enum<E> & org.fxt.freexmltoolkit.service.standards.StandardVersion> E version(String name,
+            Class<E> type) throws ToolException {
+        Optional<String> value = optionalString(name);
+        if (value.isEmpty() || value.get().isBlank()) {
+            return null;
+        }
+        E parsed = org.fxt.freexmltoolkit.service.standards.StandardVersion.parseStrict(type, value.get());
+        if (parsed == null) {
+            throw new ToolException("Unknown " + name + " '" + value.get() + "' (use "
+                    + org.fxt.freexmltoolkit.service.standards.StandardVersion.acceptedValues(type) + ")");
+        }
+        return parsed;
+    }
+
     /** An object whose values are strings, in the given order; empty when absent. */
     public Map<String, String> stringMap(String name) throws ToolException {
         Map<String, String> map = new LinkedHashMap<>();

@@ -44,6 +44,38 @@ public final class TransformRunner {
     }
 
     /**
+     * As {@link #xsltTransformSandboxed(String, String, String, String, java.util.Map,
+     * XsltTransformationEngine.OutputFormat, java.time.Duration, java.util.List)} in an XSLT version: 2.0 is checked
+     * by {@link org.fxt.freexmltoolkit.service.standards.XsltCompatibilityCheck} first (issues are a compile error,
+     * code {@code FXT-COMPAT}); 1.0 runs on the JDK's XSLT 1.0 processor with secure processing, reads only inside
+     * {@code readableRoots} and has no {@code xsl:result-document}. {@code null} = 3.0.
+     */
+    public static XsltTransformationEngine.SandboxedTransformation xsltTransformSandboxed(String xml,
+            String xmlBaseUri, String xsltContent, String xsltSystemId, java.util.Map<String, Object> parameters,
+            XsltTransformationEngine.OutputFormat outputFormat, java.time.Duration timeout,
+            java.util.List<java.nio.file.Path> readableRoots,
+            org.fxt.freexmltoolkit.service.standards.XsltVersion version) {
+        XsltTransformationResult incompatible = xsltIncompatibility(xsltContent, xsltSystemId, version);
+        if (incompatible != null) {
+            return new XsltTransformationEngine.SandboxedTransformation(incompatible, java.util.Map.of(), false);
+        }
+        if (version == org.fxt.freexmltoolkit.service.standards.XsltVersion.V1_0) {
+            java.util.List<java.nio.file.Path> roots;
+            try {
+                roots = org.fxt.freexmltoolkit.util.RootedPaths.toRealPaths(readableRoots);
+            } catch (java.io.IOException e) {
+                return new XsltTransformationEngine.SandboxedTransformation(XsltTransformationResult.error(
+                        "A readable folder does not exist: " + e.getMessage()), java.util.Map.of(), false);
+            }
+            return new XsltTransformationEngine.SandboxedTransformation(
+                    org.fxt.freexmltoolkit.service.standards.Xslt10Engine.transform(xml, xmlBaseUri, xsltContent,
+                            xsltSystemId, parameters, outputFormat, roots), java.util.Map.of(), false);
+        }
+        return xsltTransformSandboxed(xml, xmlBaseUri, xsltContent, xsltSystemId, parameters, outputFormat, timeout,
+                readableRoots);
+    }
+
+    /**
      * Transforms {@code xml} with {@code xsltContent}, passing the given stylesheet
      * parameters and producing the chosen output format.
      *
@@ -94,6 +126,48 @@ public final class TransformRunner {
     }
 
     /**
+     * As {@link #xsltTransformResult(String, String, String, String, java.util.Map,
+     * XsltTransformationEngine.OutputFormat)} in an XSLT version: 3.0 ({@code null}) on Saxon as before;
+     * 2.0 on Saxon after {@link org.fxt.freexmltoolkit.service.standards.XsltCompatibilityCheck} found no XSLT 3.0 /
+     * XPath 3.x construct (else a compile error listing them); 1.0 on the JDK's XSLT 1.0 processor.
+     */
+    public static XsltTransformationResult xsltTransformResult(String xml, String xmlBaseUri,
+            String xsltContent, String xsltSystemId,
+            java.util.Map<String, Object> parameters,
+            XsltTransformationEngine.OutputFormat outputFormat,
+            org.fxt.freexmltoolkit.service.standards.XsltVersion version) {
+        if (version == org.fxt.freexmltoolkit.service.standards.XsltVersion.V1_0) {
+            return org.fxt.freexmltoolkit.service.standards.Xslt10Engine.transform(xml, xmlBaseUri, xsltContent,
+                    xsltSystemId, parameters, outputFormat, null);
+        }
+        XsltTransformationResult incompatible = xsltIncompatibility(xsltContent, xsltSystemId, version);
+        if (incompatible != null) {
+            return incompatible;
+        }
+        return xsltTransformResult(xml, xmlBaseUri, xsltContent, xsltSystemId, parameters, outputFormat);
+    }
+
+    /**
+     * The XSLT 2.0 compatibility report as a compile-error result ({@code FXT-COMPAT}, the first issue's line), or
+     * {@code null} when the stylesheet fits {@code version} (always for 3.0, 1.0 and {@code null}).
+     */
+    public static XsltTransformationResult xsltIncompatibility(String xsltContent, String xsltSystemId,
+            org.fxt.freexmltoolkit.service.standards.XsltVersion version) {
+        if (version != org.fxt.freexmltoolkit.service.standards.XsltVersion.V2_0) {
+            return null;
+        }
+        var issues = org.fxt.freexmltoolkit.service.standards.XsltCompatibilityCheck.check(xsltContent,
+                xsltSystemId, version);
+        if (issues.isEmpty()) {
+            return null;
+        }
+        var first = issues.stream().filter(i -> i.module() == null).findFirst().orElse(issues.getFirst());
+        return XsltTransformationResult.error(
+                org.fxt.freexmltoolkit.service.standards.XsltCompatibilityCheck.format(issues), "FXT-COMPAT",
+                XsltTransformationResult.PHASE_COMPILE, first.module() == null ? first.line() : -1);
+    }
+
+    /**
      * Classifies a transformation result for telemetry: the processor's error code when there is
      * one, otherwise the exception behind the failure (class + stack signature).
      *
@@ -137,6 +211,22 @@ public final class TransformRunner {
     public static QueryRun xquery(String xml, String xqueryContent,
                                   java.util.Map<String, Object> externalVariables,
                                   XsltTransformationEngine.OutputFormat outputFormat) {
+        return xquery(xml, xqueryContent, externalVariables, outputFormat, null);
+    }
+
+    /**
+     * As {@link #xquery(String, String, java.util.Map, XsltTransformationEngine.OutputFormat)} for an XQuery
+     * version: below 3.1 the query is first checked by {@link org.fxt.freexmltoolkit.service.standards.XQueryCompatibilityCheck}; issues fail the run
+     * (code {@code FXT-COMPAT}) before anything is evaluated.
+     */
+    public static QueryRun xquery(String xml, String xqueryContent,
+                                  java.util.Map<String, Object> externalVariables,
+                                  XsltTransformationEngine.OutputFormat outputFormat,
+                                  org.fxt.freexmltoolkit.service.standards.XQueryVersion version) {
+        String incompatible = xqueryIncompatibility(xqueryContent, version);
+        if (incompatible != null) {
+            return new QueryRun("ERROR: " + incompatible, QueryFailure.invalidInput("compat.xquery"));
+        }
         try {
             XsltTransformationResult result = XsltTransformationEngine.getInstance()
                     .transformXQuery(xml, xqueryContent, externalVariables, outputFormat);
@@ -256,12 +346,32 @@ public final class TransformRunner {
 
     /** As {@link #runXPath}, additionally reporting why a failed run failed. */
     public static QueryRun xpath(String xml, String xpath) {
+        return xpath(xml, xpath, org.fxt.freexmltoolkit.service.standards.XPathVersion.V3_1);
+    }
+
+    /** As {@link #xpath(String, String)} in an XPath version (1.0 runs on the JDK's XPath 1.0 engine). */
+    public static QueryRun xpath(String xml, String xpath, org.fxt.freexmltoolkit.service.standards.XPathVersion version) {
         try {
-            String result = ServiceRegistry.get(XmlService.class).getXmlFromXpath(xml, xpath);
+            String result = ServiceRegistry.get(XmlService.class).getXmlFromXpath(xml, xpath,
+                    version == null ? org.fxt.freexmltoolkit.service.standards.XPathVersion.V3_1 : version);
             return new QueryRun(result != null ? result : "", null);
         } catch (Throwable t) {
             return new QueryRun("ERROR: " + t.getMessage(), QueryFailure.of(t));
         }
+    }
+
+    /**
+     * The compatibility report of an XQuery for {@code version} as one message, or {@code null} when the query
+     * fits (always for 3.1 / {@code null}).
+     */
+    public static String xqueryIncompatibility(String query,
+                                               org.fxt.freexmltoolkit.service.standards.XQueryVersion version) {
+        if (version == null || version == org.fxt.freexmltoolkit.service.standards.XQueryVersion.V3_1) {
+            return null;
+        }
+        var issues = org.fxt.freexmltoolkit.service.standards.XQueryCompatibilityCheck.check(query, version);
+        return issues.isEmpty() ? null
+                : org.fxt.freexmltoolkit.service.standards.XQueryCompatibilityCheck.format(issues, version.label());
     }
 
     /** Evaluates a JSONPath expression against {@code json}; returns the result or an error message. */

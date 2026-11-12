@@ -94,6 +94,36 @@ public final class SandboxedQuery {
     public static Outcome run(Language language, String xml, String xmlBaseUri, String query, String queryBaseUri,
                               Map<String, String> variables, Map<String, String> namespaces, Duration timeout,
                               List<Path> readableRoots, boolean declareDocumentPrefixes) {
+        return run(language, xml, xmlBaseUri, query, queryBaseUri, variables, namespaces, timeout, readableRoots,
+                declareDocumentPrefixes, null);
+    }
+
+    /**
+     * As {@link #run(Language, String, String, String, String, Map, Map, Duration, List, boolean)} in a language
+     * version: an {@link org.fxt.freexmltoolkit.service.standards.XPathVersion} for XPath (1.0 on the JDK's XPath
+     * 1.0 engine, 2.0/3.0 on Saxon at that level) or an {@link org.fxt.freexmltoolkit.service.standards.XQueryVersion}
+     * for XQuery (1.0/3.0 checked by {@link org.fxt.freexmltoolkit.service.standards.XQueryCompatibilityCheck}
+     * first: issues are a compile failure with code {@code FXT-COMPAT}). {@code null} = the newest.
+     */
+    public static Outcome run(Language language, String xml, String xmlBaseUri, String query, String queryBaseUri,
+                              Map<String, String> variables, Map<String, String> namespaces, Duration timeout,
+                              List<Path> readableRoots, boolean declareDocumentPrefixes,
+                              org.fxt.freexmltoolkit.service.standards.StandardVersion version) {
+        if (language == Language.XQUERY
+                && version instanceof org.fxt.freexmltoolkit.service.standards.XQueryVersion xq) {
+            var issues = org.fxt.freexmltoolkit.service.standards.XQueryCompatibilityCheck.check(query, xq);
+            if (!issues.isEmpty()) {
+                return Outcome.failure("FXT-COMPAT", "compile", issues.getFirst().line(),
+                        org.fxt.freexmltoolkit.service.standards.XQueryCompatibilityCheck.format(issues, xq.label()));
+            }
+        }
+        if (language == Language.XPATH
+                && version == org.fxt.freexmltoolkit.service.standards.XPathVersion.V1_0) {
+            return xpath10(xml, query, namespaces);
+        }
+        String xpathLevel = language == Language.XPATH
+                && version instanceof org.fxt.freexmltoolkit.service.standards.XPathVersion xp
+                ? xp.saxonLanguageVersion() : "3.1";
         long deadline = System.nanoTime() + timeout.toNanos();
         try {
             List<Path> roots = XsltSandbox.realRoots(readableRoots);
@@ -110,7 +140,7 @@ public final class SandboxedQuery {
                 }
             }
             return language == Language.XPATH
-                    ? xpath(processor, document, query, namespaces, declareDocumentPrefixes)
+                    ? xpath(processor, document, query, namespaces, declareDocumentPrefixes, xpathLevel)
                     : xquery(processor, document, query, queryBaseUri, variables, deadline);
         } catch (IOException e) {
             return Outcome.failure(null, null, -1, "A readable folder does not exist: " + e.getMessage());
@@ -131,10 +161,35 @@ public final class SandboxedQuery {
         }
     }
 
+    /** XPath 1.0 on the JDK's engine: no document access beyond the given text, so nothing to sandbox. */
+    private static Outcome xpath10(String xml, String expression, Map<String, String> namespaces) {
+        try {
+            org.fxt.freexmltoolkit.service.standards.Xpath10Engine.check(expression, namespaces);
+        } catch (org.fxt.freexmltoolkit.service.standards.Xpath10Engine.Xpath10Exception e) {
+            return Outcome.failure("XPST0003", "compile", -1, e.getMessage());
+        }
+        try {
+            List<String> items = org.fxt.freexmltoolkit.service.standards.Xpath10Engine.evaluateItems(xml, expression,
+                    namespaces);
+            StringBuilder out = new StringBuilder();
+            for (String item : items) {
+                if (out.length() + item.length() > XsltSandbox.MAX_OUTPUT_CHARS) {
+                    return Outcome.failure(null, "runtime", -1, "The query produced more than "
+                            + XsltSandbox.MAX_OUTPUT_CHARS + " characters of output and was stopped");
+                }
+                out.append(item).append('\n');
+            }
+            return Outcome.success(out.toString(), items.size());
+        } catch (org.fxt.freexmltoolkit.service.standards.Xpath10Engine.Xpath10Exception e) {
+            boolean input = e.getMessage() != null && e.getMessage().startsWith("The document is not well-formed");
+            return Outcome.failure(null, input ? "input" : "runtime", -1, e.getMessage());
+        }
+    }
+
     private static Outcome xpath(Processor processor, XdmNode document, String expression,
-                                 Map<String, String> namespaces, boolean declareDocumentPrefixes) {
+                                 Map<String, String> namespaces, boolean declareDocumentPrefixes, String level) {
         XPathCompiler compiler = processor.newXPathCompiler();
-        compiler.setLanguageVersion("3.1");
+        compiler.setLanguageVersion(level);
         compiler.declareNamespace("map", "http://www.w3.org/2005/xpath-functions/map");
         compiler.declareNamespace("array", "http://www.w3.org/2005/xpath-functions/array");
         compiler.declareNamespace("math", "http://www.w3.org/2005/xpath-functions/math");

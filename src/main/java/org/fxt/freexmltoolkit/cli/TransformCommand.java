@@ -40,7 +40,12 @@ import picocli.CommandLine.Spec;
                 "  # XQuery to standard output; profile an XSLT run and an XQuery",
                 "  fxt-cli transform catalog.xml -s report.xq",
                 "  fxt-cli transform big.xml -s slow.xsl -o out.xml --profile profile.json",
-                "  fxt-cli transform big.xml -s report.xq -o out.xml --profile -"
+                "  fxt-cli transform big.xml -s report.xq -o out.xml --profile -",
+                "",
+                "  # Develop for an older processor: XSLT 1.0 runs on the JDK's XSLT 1.0 processor,",
+                "  # XSLT 2.0 / XQuery 1.0 fail on any newer construct before running",
+                "  fxt-cli transform order.xml -s invoice.xsl --lang-version 1.0",
+                "  fxt-cli transform catalog.xml -s report.xq --lang-version 1.0"
         },
         description = {
                 "Run an XSLT stylesheet, an XQuery or an XProc pipeline.",
@@ -87,6 +92,10 @@ final class TransformCommand implements Callable<Integer> {
             description = "Language: xslt, xquery or xproc (default: from the file extension).")
     Language language;
 
+    @Option(names = "--lang-version", paramLabel = "VERSION",
+            description = "Language version: XSLT 1.0, 2.0, 3.0 (default) or XQuery 1.0, 3.0, 3.1 (default).")
+    String langVersion;
+
     @Option(names = "--profile", paramLabel = "REPORT",
             description = "XSLT or XQuery: profile the run and write the report to REPORT (.json: JSON, otherwise "
                     + "text; '-' for standard error). One input (an XQuery may have none).")
@@ -122,6 +131,20 @@ final class TransformCommand implements Callable<Integer> {
                 || lang == Language.XSLT && inputs.size() != 1)) {
             throw new CommandLine.ParameterException(commandLine,
                     "--profile works for XSLT with one input or XQuery with at most one");
+        }
+        if (langVersion != null) {
+            switch (lang) {
+                case XSLT -> xsltVersion = CliSupport.version(commandLine,
+                        org.fxt.freexmltoolkit.service.standards.XsltVersion.class, langVersion, "XSLT");
+                case XQUERY -> xqueryVersion = CliSupport.version(commandLine,
+                        org.fxt.freexmltoolkit.service.standards.XQueryVersion.class, langVersion, "XQuery");
+                default -> throw new CommandLine.ParameterException(commandLine,
+                        "--lang-version is for XSLT and XQuery only");
+            }
+            if (profileReport != null && xsltVersion == org.fxt.freexmltoolkit.service.standards.XsltVersion.V1_0) {
+                throw new CommandLine.ParameterException(commandLine,
+                        "--profile is not available for XSLT 1.0 (it runs on the JDK's XSLT 1.0 processor)");
+            }
         }
         PrintWriter err = commandLine.getErr(); // NOPMD - picocli's stream, owned by CommandLine
         if (lang == Language.XPROC && (!parameters.isEmpty() || method != null)) {
@@ -178,6 +201,10 @@ final class TransformCommand implements Callable<Integer> {
     private record Outcome(String text, OutputFormat format, String error, List<String> messages) {
     }
 
+    /** The chosen versions ({@code null} = the newest). */
+    private org.fxt.freexmltoolkit.service.standards.XsltVersion xsltVersion;
+    private org.fxt.freexmltoolkit.service.standards.XQueryVersion xqueryVersion;
+
     private Outcome run(Language lang, String code, Path input) throws Exception {
         String xml = input != null ? CliSupport.read(input) : null;
         String inputUri = input != null ? input.toAbsolutePath().toUri().toString() : null;
@@ -186,6 +213,11 @@ final class TransformCommand implements Callable<Integer> {
         switch (lang) {
             case XSLT -> {
                 OutputFormat format = method != null ? method : TransformRunner.detectXsltOutputFormat(code);
+                XsltTransformationResult incompatible = TransformRunner.xsltIncompatibility(code, codeUri,
+                        xsltVersion);
+                if (incompatible != null) {
+                    return outcome(incompatible, format);
+                }
                 if (profileReport != null) {
                     var profiled = TransformRunner.profile(xml, inputUri, code, codeUri, params, format, warmupRuns);
                     if (profiled.profile() != null) {
@@ -194,11 +226,15 @@ final class TransformCommand implements Callable<Integer> {
                     return outcome(profiled.result(), format);
                 }
                 XsltTransformationResult result = TransformRunner.xsltTransformResult(
-                        xml, inputUri, code, codeUri, params, format);
+                        xml, inputUri, code, codeUri, params, format, xsltVersion);
                 return outcome(result, format);
             }
             case XQUERY -> {
                 OutputFormat format = method != null ? method : OutputFormat.XML;
+                String incompatible = TransformRunner.xqueryIncompatibility(code, xqueryVersion);
+                if (incompatible != null) {
+                    return new Outcome(null, null, incompatible, List.of());
+                }
                 if (profileReport != null) {
                     var profiled = TransformRunner.profileXQuery(xml, inputUri, code, codeUri, params, format,
                             warmupRuns);

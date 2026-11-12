@@ -153,11 +153,29 @@ public class TransformPanel extends VBox {
             "TransformPanel.use-current-tab-as-input", this::useActiveTabAsInput);
     private final Label inputPos = new Label();
 
+    /** XSLT version of the panel's runs (expert mode only). */
+    private final org.fxt.freexmltoolkit.controls.shell.editor.standards.VersionChoice xsltVersionChoice =
+            new org.fxt.freexmltoolkit.controls.shell.editor.standards.VersionChoice(
+                    org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_TRANSFORM,
+                    org.fxt.freexmltoolkit.service.standards.XsltVersion.class, "xslt",
+                    () -> org.fxt.freexmltoolkit.service.standards.StandardsSettings.current().global().xslt());
+
+    /** The XSLT version a run of this panel uses (tool choice, else the global default; 3.0 without expert mode). */
+    org.fxt.freexmltoolkit.service.standards.XsltVersion xsltVersion() {
+        return org.fxt.freexmltoolkit.service.standards.StandardsSettings.current().forTool(
+                org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_TRANSFORM, null).xslt();
+    }
+
     /** Loads the layout from {@code /pages/panels/TransformPanel.fxml} and wires the data-driven parts. */
     public TransformPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
         this.out = editorHost.transformOutputPanel();
         FxmlViews.load(this, "/pages/panels/TransformPanel.fxml");
+        xsltVersionChoice.setId("transform-xslt-version");
+        xsltVersionChoice.setMaxWidth(Double.MAX_VALUE);
+        if (formatChoice.getParent() instanceof javafx.scene.layout.Pane formatBox) {
+            formatBox.getChildren().add(xsltVersionChoice);
+        }
         generateStylesheetButton.visibleProperty().bind(org.fxt.freexmltoolkit.controls.shell.editor.ai.AiState.availableProperty());
         generateStylesheetButton.managedProperty().bind(generateStylesheetButton.visibleProperty());
 
@@ -1690,6 +1708,7 @@ public class TransformPanel extends VBox {
             out.showPending(I18n.t("TransformPanel.cancelled"));
         });
         String editorXml = xml;
+        var xsltVersion = xsltVersion();
         task[0] = FxtGui.executorService.submit(() -> {
             String xmlInput;
             if (inputFile != null) {
@@ -1722,9 +1741,17 @@ public class TransformPanel extends VBox {
                         : Files.readString(xslt.toPath(), StandardCharsets.UTF_8);
                 // Auto: detect the format from the stylesheet's xsl:output declaration.
                 format = chosen != null ? chosen : TransformRunner.detectXsltOutputFormat(xsltContent);
+                org.fxt.freexmltoolkit.service.XsltTransformationResult incompatible =
+                        TransformRunner.xsltIncompatibility(xsltContent, xsltSystemId, xsltVersion);
                 // One single run: the full result feeds the output view, the statistics
                 // probe, and (when requested) the Profile/Trace report tabs.
-                if (wantProfile) {
+                if (incompatible != null) {
+                    fullResult = incompatible;
+                } else if (xsltVersion == org.fxt.freexmltoolkit.service.standards.XsltVersion.V1_0) {
+                    // the JDK's XSLT 1.0 processor: no profile or trace (those need Saxon)
+                    fullResult = TransformRunner.xsltTransformResult(xmlInput, xmlBaseUri, xsltContent,
+                            xsltSystemId, params, format, xsltVersion);
+                } else if (wantProfile) {
                     // the profiler's run delivers the output too; a trace needs its own run
                     var profiled = TransformRunner.profile(xmlInput, xmlBaseUri, xsltContent, xsltSystemId, params,
                             format, 0);

@@ -252,9 +252,9 @@ is saved.
 |---|---|
 | `name` | Shown in the Explorer and the Transform panel; default: the file name |
 | `folders` | The project's folders; the first one is the Explorer workspace (default `.`) |
-| `schemaBindings` | `files` (pattern) → `schema`, `schematron`, `scenario` (each optional); first match per part |
+| `schemaBindings` | `files` (pattern) → `schema`, `schematron`, `scenario`, `xsdVersion` (`auto`, `1.0`, `1.1`), `xmlVersion` (`auto`, `1.0`, `1.1`), `schematronBinding` (`xslt`, `xslt2`, `xslt3`) (each optional); first match per part — the versions see [Language Versions](language-versions.md) |
 | `catalogs` | OASIS XML catalogs |
-| `scenarios` | `name`, `stylesheet`, optional `input` (`${file}` = the file it runs for), `parameters`, `outputFormat` (`XML`, `HTML`, `XHTML`, `TEXT`, `JSON`, `PDF`; default from `xsl:output`), `output` (`${name}`, `${dir}`), `processor` (PDF only: `builtin` or the name of an [external XSL-FO processor](pdf-generator.md#external-xsl-fo-processors) from the settings; default: the default processor), `expected` (like `output`), `compare` (optional: `ignore` list of XPaths, `tolerance`, `ignoreOrder`, `keys`, `placeholders`, `ignoreComments`, `exactWhitespace`) |
+| `scenarios` | `name`, `stylesheet`, optional `input` (`${file}` = the file it runs for), `parameters`, `outputFormat` (`XML`, `HTML`, `XHTML`, `TEXT`, `JSON`, `PDF`; default from `xsl:output`), `output` (`${name}`, `${dir}`), `processor` (PDF only: `builtin` or the name of an [external XSL-FO processor](pdf-generator.md#external-xsl-fo-processors) from the settings; default: the default processor), `expected` (like `output`), `compare` (optional: `ignore` list of XPaths, `tolerance`, `ignoreOrder`, `keys`, `placeholders`, `ignoreComments`, `exactWhitespace`), `languageVersion` (optional: XSLT `1.0`/`2.0`/`3.0` or XQuery `1.0`/`3.0`/`3.1`, see [Language Versions](language-versions.md)) |
 
 Project files from before these additions keep working unchanged.
 

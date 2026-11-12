@@ -111,7 +111,7 @@ public class XmlServiceImpl implements XmlService {
 
     // Validation services for different parsers
     private final XmlValidationService saxonValidationService = new SaxonXmlValidationService();
-    private final XmlValidationService xercesValidationService = new XercesXmlValidationService();
+    private final XercesXmlValidationService xercesValidationService = new XercesXmlValidationService();
 
     private static final String CACHE_DIR = FileUtils.getUserDirectory().getAbsolutePath() + File.separator + ".freeXmlToolkit" + File.separator + "cache";
     private static final java.util.regex.Pattern MD5_DIR = java.util.regex.Pattern.compile("[0-9A-Fa-f]{32}");
@@ -555,6 +555,16 @@ public class XmlServiceImpl implements XmlService {
         return validationService.validateText(xmlString, schemaFile);
     }
 
+    @Override
+    public List<SAXParseException> validateText(String xmlString, File schemaFile,
+                                                org.fxt.freexmltoolkit.service.standards.XsdVersionMode mode) {
+        if (schemaFile == null || mode == null || mode == org.fxt.freexmltoolkit.service.standards.XsdVersionMode.AUTO) {
+            return validateText(xmlString, schemaFile);
+        }
+        // a forced XSD version: Xerces knows both versions
+        return xercesValidationService.validateText(xmlString, schemaFile, mode);
+    }
+
     /**
      * Gets the appropriate validation service based on user settings and schema content.
      *
@@ -728,7 +738,22 @@ public class XmlServiceImpl implements XmlService {
      * {@code map:merge(...)} without a prolog.
      */
     private XPathCompiler newXPathCompiler() {
+        return newXPathCompiler(org.fxt.freexmltoolkit.service.standards.XPathVersion.V3_1);
+    }
+
+    /**
+     * As {@link #newXPathCompiler()} for an XPath version: 2.0 and 3.0 set Saxon's parser level and function
+     * library to the version (the map/array/math prefixes are only declared from 3.0 on).
+     */
+    private XPathCompiler newXPathCompiler(org.fxt.freexmltoolkit.service.standards.XPathVersion version) {
         XPathCompiler xpathCompiler = processor.newXPathCompiler();
+        if (version != org.fxt.freexmltoolkit.service.standards.XPathVersion.V3_1) {
+            xpathCompiler.setLanguageVersion(version.saxonLanguageVersion());
+            if (version == org.fxt.freexmltoolkit.service.standards.XPathVersion.V2_0
+                    || version == org.fxt.freexmltoolkit.service.standards.XPathVersion.V1_0) {
+                return xpathCompiler;
+            }
+        }
         xpathCompiler.declareNamespace("map", "http://www.w3.org/2005/xpath-functions/map");
         xpathCompiler.declareNamespace("array", "http://www.w3.org/2005/xpath-functions/array");
         xpathCompiler.declareNamespace("math", "http://www.w3.org/2005/xpath-functions/math");
@@ -771,6 +796,16 @@ public class XmlServiceImpl implements XmlService {
 
     @Override
     public String getXmlFromXpath(String xml, String xPath) {
+        return getXmlFromXpath(xml, xPath, org.fxt.freexmltoolkit.service.standards.XPathVersion.V3_1);
+    }
+
+    @Override
+    public String getXmlFromXpath(String xml, String xPath,
+                                  org.fxt.freexmltoolkit.service.standards.XPathVersion version) {
+        if (version == org.fxt.freexmltoolkit.service.standards.XPathVersion.V1_0) {
+            return org.fxt.freexmltoolkit.service.standards.Xpath10Engine.evaluate(xml, xPath, java.util.Map.of(),
+                    java.util.Map.of());
+        }
         try {
             // Use Saxon's native XPath API for full XPath 3.1 support
             // This supports XPath 2.0/3.0/3.1 functions like format-number(), current-date(), etc.
@@ -781,7 +816,7 @@ public class XmlServiceImpl implements XmlService {
             XdmNode doc = docBuilder.build(source);
 
             // Compile and evaluate XPath expression
-            XPathCompiler xpathCompiler = newXPathCompiler();
+            XPathCompiler xpathCompiler = newXPathCompiler(version);
             XPathExecutable xpathExecutable = xpathCompiler.compile(xPath);
             XPathSelector xpathSelector = xpathExecutable.load();
             xpathSelector.setContextItem(doc);

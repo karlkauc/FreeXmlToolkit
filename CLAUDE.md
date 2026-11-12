@@ -63,6 +63,27 @@ components, root "(query body)"); UI `controls/shell/editor/debug/ProfileView` +
 `XmlDiffPanel`), `MergeView` + `MergeFilesDialog`, `controls/shell/editor/FolderCompareView`,
 `DataConversionAction`. CLI: `compare`, `merge`, `convert`. Diff colours: `-fxt-diff-*` tokens.
 
+## Language Versions (Standards, expert mode)
+
+`service/standards/`: enums `XPathVersion` / `XQueryVersion` / `XsltVersion` / `XsdVersionMode` / `XmlVersionMode` /
+`SchematronBinding` (`StandardVersion`: `label`, `cliValue`, `isDefault`, `parse`), `StandardsProfile` (nullable
+components, `overlay`, `resolve(global, project, tool, cli)`, `LATEST` = today's behaviour), `StandardsSettings`
+(`standards.expertMode` off → always `LATEST`; defaults `standards.xpath|xquery|xslt|xsd|xml|schematronBinding`; per-tool
+choice `standards.tool.<tool>.<component>`). Engines: XPath 2.0/3.0 = Saxon `setLanguageVersion` (real level +
+function library), XPath 1.0 = JDK `Xpath10Engine` (`XPathFactory.newDefaultInstance`), XSLT 1.0 = JDK `Xslt10Engine`
+(XSLTC, secure, `file:` resolver, optional roots), XSLT 2.0 = `XsltCompatibilityCheck` then Saxon, XQuery 1.0/3.0 =
+`XQueryCompatibilityCheck` (Saxon `XQueryParser` subclass pinned to level 10/30 + construct scan + `FunctionCatalog`
+from `Configuration.getXPathFunctionSet(level)`) then Saxon; issues = `CompatibilityIssue`, error code `FXT-COMPAT`.
+Validation: `ValidationStandards` → `ValidationRunner.runWithReport(…, standards)` (`XmlVersionCheck`, Xerces
+`validateText(…, XsdVersionMode)`, Schematron binding parameter + `SchematronCompatibilityCheck`), `LargeFileValidation`.
+Entry points take a version overload (`TransformRunner.xpath/xquery/xsltTransformResult/xsltTransformSandboxed`,
+`XPathMatchLocator.XPathQuery.version`, `SandboxedQuery.run(…, version)`). UI (`controls/shell/editor/standards/`):
+`StandardsUi` (observable expert mode), `VersionChoice` (per-tool picker, "Default (…)" = no choice), Settings card
+`StandardsSettingsControls`. Projects: `SchemaBinding.xsdVersion/xmlVersion/schematronBinding`, `Scenario.languageVersion`,
+`FxtProject.standardsFor`. CLI `--lang-version` (query, transform), `--xsd-version/--xml-version/--schematron-binding`
+(validate) — the CLI ignores GUI settings. MCP args `xpath_version`, `xquery_version`, `xslt_version`, `xsd_version`,
+`xml_version`, `schematron_binding`. Docs: `docs/language-versions.md`.
+
 ## External XSL-FO Processors
 
 `service/fo/`: `FoProcessorConfig` (program + argument template, preset `FoProcessorPreset` APACHE_FOP /

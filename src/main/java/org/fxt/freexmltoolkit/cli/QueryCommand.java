@@ -25,7 +25,7 @@ import picocli.CommandLine.Parameters;
 import picocli.CommandLine.Spec;
 
 /**
- * {@code fxt-cli query}: evaluates an XPath 3.1, XQuery 3.1 or JSONPath expression against files,
+ * {@code fxt-cli query}: evaluates an XPath, XQuery (3.1 or an older version) or JSONPath expression against files,
  * like the Query Console of the application ({@link TransformRunner}). Exits like grep: 0 when a
  * result was found, 1 when all results are empty.
  */
@@ -43,6 +43,9 @@ import picocli.CommandLine.Spec;
                 "  fxt-cli query --query-file report.xq --var year=2026 orders.xml",
                 "  fxt-cli query -l xquery -e 'string-join((1 to 5) ! string(), \",\")'",
                 "",
+                "  # Develop for an XPath 2.0 engine: XPath 3.x syntax and functions are errors",
+                "  fxt-cli query --lang-version 2.0 -e 'string-join(//ISIN, \",\")' fund.xml",
+                "",
                 "  # JSONPath (chosen for .json files); input from a pipe",
                 "  fxt-cli query -e '$.items[*].name' data.json",
                 "  curl -s https://example.org/feed.xml | fxt-cli query -e '//title/string()' -"
@@ -50,6 +53,8 @@ import picocli.CommandLine.Spec;
         description = {
                 "Evaluates an expression with Saxon (XPath and XQuery 3.1; map:, array: and math: are declared) "
                         + "or JSONPath, against each file, a folder's files or standard input (-).",
+                "--lang-version picks an older XPath (1.0 on the JDK's XPath 1.0 engine, 2.0, 3.0) or XQuery "
+                        + "(1.0, 3.0: checked for newer constructs before running).",
                 "Exit code 0 when at least one result is not empty, 1 when all are empty, 3 when the expression "
                         + "or an input fails (the other inputs still run)."
         },
@@ -76,6 +81,10 @@ final class QueryCommand implements Callable<Integer> {
             description = "xpath, xquery or jsonpath. Default: from --query-file's extension, jsonpath for "
                     + ".json inputs, else xpath.")
     Language language;
+
+    @Option(names = "--lang-version", paramLabel = "VERSION",
+            description = "Language version: XPath 1.0, 2.0, 3.0, 3.1 (default) or XQuery 1.0, 3.0, 3.1 (default).")
+    String langVersion;
 
     @Option(names = "--var", paramLabel = "NAME=VALUE",
             description = "An external XQuery variable (string value); repeatable.")
@@ -131,6 +140,18 @@ final class QueryCommand implements Callable<Integer> {
         if (!variables.isEmpty() && lang != Language.xquery) {
             throw new CommandLine.ParameterException(commandLine, "--var is for XQuery only");
         }
+        org.fxt.freexmltoolkit.service.standards.XPathVersion xpathVersion = null;
+        org.fxt.freexmltoolkit.service.standards.XQueryVersion xqueryVersion = null;
+        if (langVersion != null) {
+            switch (lang) {
+                case xpath -> xpathVersion = CliSupport.version(commandLine,
+                        org.fxt.freexmltoolkit.service.standards.XPathVersion.class, langVersion, "XPath");
+                case xquery -> xqueryVersion = CliSupport.version(commandLine,
+                        org.fxt.freexmltoolkit.service.standards.XQueryVersion.class, langVersion, "XQuery");
+                case jsonpath -> throw new CommandLine.ParameterException(commandLine,
+                        "--lang-version is for XPath and XQuery only");
+            }
+        }
         CliSupport.initServices();
 
         boolean prefix = withFilename != null ? withFilename : sources.size() > 1;
@@ -159,10 +180,10 @@ final class QueryCommand implements Callable<Integer> {
             }
             if (error == null) {
                 TransformRunner.QueryRun run = switch (lang) {
-                    case xpath -> TransformRunner.xpath(content, query);
+                    case xpath -> TransformRunner.xpath(content, query, xpathVersion);
                     case jsonpath -> TransformRunner.jsonPath(content, query);
                     case xquery -> TransformRunner.xquery(content, query, new LinkedHashMap<>(variables),
-                            XsltTransformationEngine.OutputFormat.XML);
+                            XsltTransformationEngine.OutputFormat.XML, xqueryVersion);
                 };
                 if (run.failure() != null) {
                     error = run.text().startsWith("ERROR: ") ? run.text().substring(7) : run.text();

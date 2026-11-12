@@ -46,6 +46,8 @@ public class ScenarioEditDialog extends Dialog<FxtProject.Scenario> {
     @FXML private javafx.scene.control.CheckBox ignoreOrderBox;
     @FXML private TextField keysField;
     @FXML private Label error;
+    /** Optional language version of the scenario's stylesheet / query (expert mode only). */
+    private javafx.scene.control.ComboBox<String> languageVersionChoice;
 
     private final FxtProject project;
     private final Set<String> otherNames;
@@ -63,7 +65,14 @@ public class ScenarioEditDialog extends Dialog<FxtProject.Scenario> {
         setTitle(I18n.t("ScenarioEditDialog.title"));
         setHeaderText(I18n.t("ScenarioEditDialog.header", project.name()));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/ScenarioEditDialog.fxml"));
+        javafx.scene.Node content = FxmlViews.loadContent(this, "/pages/dialogs/ScenarioEditDialog.fxml");
+        getDialogPane().setContent(content);
+        languageVersionChoice = org.fxt.freexmltoolkit.controls.shell.editor.standards.OptionalVersionRows.combo(
+                List.of("1.0", "2.0", "3.0", "3.1"), scenario.languageVersion);
+        if (content instanceof javafx.scene.layout.GridPane grid) {
+            org.fxt.freexmltoolkit.controls.shell.editor.standards.OptionalVersionRows.addRow(grid,
+                    I18n.t("ScenarioEditDialog.languageVersion"), languageVersionChoice, "scenario-language-version");
+        }
         formatChoice.getItems().setAll(FORMATS);
         formatChoice.setConverter(new javafx.util.StringConverter<>() {
             @Override
@@ -120,6 +129,8 @@ public class ScenarioEditDialog extends Dialog<FxtProject.Scenario> {
         compare.ignoreOrder = ignoreOrderBox.isSelected() ? Boolean.TRUE : null;
         compare.keys = new java.util.ArrayList<>(XmlStructuralDiff.Options.parseKeys(keysField.getText()));
         scenario.compare = compare.isDefault() ? null : compare;
+        scenario.languageVersion = org.fxt.freexmltoolkit.controls.shell.editor.standards.OptionalVersionRows.value(
+                languageVersionChoice);
         return scenario;
     }
 

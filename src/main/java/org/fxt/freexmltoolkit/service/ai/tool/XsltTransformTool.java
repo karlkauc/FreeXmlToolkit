@@ -21,7 +21,7 @@ import com.google.gson.JsonObject;
 public final class XsltTransformTool implements AiTool {
 
     private static final Set<String> ARGUMENTS =
-            Set.of("xml_path", "xml_content", "xslt_path", "xslt_content", "parameters", "output");
+            Set.of("xml_path", "xml_content", "xslt_path", "xslt_content", "parameters", "output", "xslt_version");
 
     private static final Map<String, OutputFormat> OUTPUTS = Map.of(
             "xml", OutputFormat.XML, "html", OutputFormat.HTML, "xhtml", OutputFormat.XHTML,
@@ -39,7 +39,10 @@ public final class XsltTransformTool implements AiTool {
                 + "disk: xsl:result-document output comes back in 'result_documents'. xsl:message output is in "
                 + "'messages'. A stylesheet that does not compile or fails at run time returns 'error' with code, "
                 + "phase (compile, input, runtime) and line — fix the stylesheet and call again. No Java "
-                + "extensions, no network, reads only inside the allowed folders, stops at the time limit.";
+                + "extensions, no network, reads only inside the allowed folders, stops at the time limit. "
+                + "xslt_version 1.0 runs the stylesheet on a real XSLT 1.0 processor (the JDK's XSLTC); 2.0 first "
+                + "rejects XSLT 3.0 instructions and XPath 3.x syntax and functions (code FXT-COMPAT) - use it to write "
+                + "stylesheets for older processors.";
     }
 
     @Override
@@ -50,6 +53,8 @@ public final class XsltTransformTool implements AiTool {
                 .stringMap("parameters", "Stylesheet parameters: name → string value.")
                 .enumeration("output", "Output method; by default the one xsl:output declares.",
                         List.of("xml", "html", "xhtml", "text", "json"), null)
+                .version("xslt_version", "XSLT version the stylesheet must run in (default 3.0).",
+                        org.fxt.freexmltoolkit.service.standards.XsltVersion.class)
                 .build();
     }
 
@@ -59,6 +64,7 @@ public final class XsltTransformTool implements AiTool {
         ToolInput xml = ToolInput.required(args, "xml", context);
         ToolInput xslt = ToolInput.required(args, "xslt", context);
         Map<String, Object> parameters = new LinkedHashMap<>(args.stringMap("parameters"));
+        var version = args.version("xslt_version", org.fxt.freexmltoolkit.service.standards.XsltVersion.class);
         OutputFormat format;
         String requested = args.optionalString("output").orElse(null);
         if (requested == null) {
@@ -71,7 +77,7 @@ public final class XsltTransformTool implements AiTool {
         }
         XsltTransformationEngine.SandboxedTransformation run = TransformRunner.xsltTransformSandboxed(xml.text(),
                 QueryResults.uriOf(xml), xslt.text(), QueryResults.uriOf(xslt), parameters, format,
-                QueryResults.engineDeadline(context.limits()), context.files().roots());
+                QueryResults.engineDeadline(context.limits()), context.files().roots(), version);
         XsltTransformationResult r = run.result();
         ToolLimits limits = context.limits();
 

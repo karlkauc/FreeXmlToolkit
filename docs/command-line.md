@@ -60,6 +60,14 @@ fxt-cli validate [options] FILE|FOLDER...
 | `-r`, `--report FILE` | Write the report to a file; the text summary still goes to standard output |
 | `-p`, `--project FXTPROJ` | Use a [project's](projects.md) bindings (schema, Schematron, JSON Schema) and catalogs |
 | `--fail-on-warning` | Warnings make a file invalid too |
+| `--xsd-version VERSION` | `auto` (default: XSD 1.1 when the schema uses it), `1.0` or `1.1` |
+| `--xml-version VERSION` | `auto` (default: as declared), `1.0` (a document declared as XML 1.1 is an error) or `1.1` |
+| `--schematron-binding BINDING` | Query binding of a Schematron without `@queryBinding`: `xslt`, `xslt2` (default) or `xslt3`; with `xslt` / `xslt2` every context and test must be XPath 1.0 / 2.0 |
+
+**Standards.** Without the three version options a run behaves as before. With them it checks against an older
+standard, for example for a processor without XSD 1.1: `--xsd-version 1.0` compiles the schema as XSD 1.0 and
+reports assertions and other XSD 1.1 constructs. A [project](projects.md) can name the versions per file pattern;
+the options win. See [Language Versions](language-versions.md).
 
 **Which schema is used.** With `--xsd` / `--schema`, that schema (or DTD, or RELAX NG schema) for every XML file. With `--project`, the
 schema the project binds to the file (first matching pattern), and the Schematron it binds (unless
@@ -102,7 +110,9 @@ Paths in reports are relative to the working directory when the files lie below 
 
 ## transform
 
-Runs an XSLT 3.0 stylesheet, an XQuery 3.1 or an XProc 3.0 pipeline.
+Runs an XSLT 3.0 stylesheet, an XQuery 3.1 or an XProc 3.0 pipeline. With `--lang-version` an older XSLT or
+XQuery: XSLT 1.0 runs on the JDK's XSLT 1.0 processor (no `--profile`), XSLT 2.0 and XQuery 1.0 / 3.0 fail with
+every newer construct listed (exit code 1) before anything runs.
 
 ```bash
 fxt-cli transform -s STYLESHEET [options] [INPUT...]
@@ -118,6 +128,7 @@ fxt-cli transform -s STYLESHEET [options] [INPUT...]
 | `-d`, `--output-dir DIR` | Output folder for several inputs; each result is named after its input with the extension of the output method |
 | `--profile REPORT` | XSLT with one input, or XQuery with at most one: profile the run and write the report, as JSON when REPORT ends in `.json`, else as text (`-` for standard error) |
 | `--warmup N` | With `--profile`: runs before the measured one (default 1), so Java's JIT compiler has warmed up |
+| `--lang-version VERSION` | XSLT `1.0`, `2.0`, `3.0` (default) or XQuery `1.0`, `3.0`, `3.1` (default); see [Language Versions](language-versions.md) |
 
 Without `-o` and `-d` the result goes to standard output. `xsl:message` output goes to standard
 error. XSLT needs an input document; XQuery and XProc can run without one. Relative
@@ -130,7 +141,7 @@ the settings (see [Threat Model](threat-model.md)).
 
 ## query
 
-Evaluates an XPath 3.1, XQuery 3.1 or JSONPath expression against files, like the
+Evaluates an XPath, XQuery (3.1, or an older version with `--lang-version`) or JSONPath expression against files, like the
 [Query Console](query-console.md) of the application. Made for scripts: one result per input, and
 an exit code like `grep`.
 
@@ -145,6 +156,7 @@ fxt-cli query --query-file QUERY.xq [options] [FILE|FOLDER|-]...
 | `--query-file FILE` | Read the expression from a file instead (`.xq`, `.xquery`, `.xqy`, `.xql`, `.xqm`: XQuery) |
 | `-l`, `--language LANG` | `xpath`, `xquery` or `jsonpath`. Default: from `--query-file`'s extension, `jsonpath` when all inputs are `.json`, else `xpath` |
 | `--var NAME=VALUE` | An external XQuery variable (string value); repeatable |
+| `--lang-version VERSION` | XPath `1.0`, `2.0`, `3.0`, `3.1` (default) or XQuery `1.0`, `3.0`, `3.1` (default); see [Language Versions](language-versions.md) |
 | `--include GLOB,...` | File names to query inside folders; default `*.xml,*.json` |
 | `--[no-]with-filename` | Prefix each result line with its file; default: when there is more than one input |
 | `-f`, `--format FORMAT` | `text` (default) or `json`: one object per input with `file`, `result`, `error` |
@@ -166,6 +178,8 @@ fxt-cli query -l xquery -e 'current-date()'
 fxt-cli query -e '$.items[*].name' data.json
 curl -s https://example.org/feed.xml | fxt-cli query -e '//title/string()' -
 if fxt-cli query -e '//error' log.xml > /dev/null; then echo "errors found"; fi
+fxt-cli query --lang-version 2.0 -e 'string-join(//ISIN, ",")' fund.xml        # fails with XPath 3.x
+fxt-cli query --lang-version 1.0 -e 'count(//Position)' fund.xml               # the JDK's XPath 1.0 engine
 ```
 
 ## xsd-doc

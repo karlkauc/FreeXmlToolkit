@@ -144,13 +144,21 @@ public final class ScenarioRunner {
                         format = TransformRunner.detectXsltOutputFormat(codeText);
                     }
                     XsltTransformationResult result = TransformRunner.xsltTransformResult(xml,
-                            input.toUri().toString(), codeText, code.toUri().toString(), parameters, format);
+                            input.toUri().toString(), codeText, code.toUri().toString(), parameters, format,
+                            org.fxt.freexmltoolkit.service.standards.StandardVersion.parseStrict(
+                                    org.fxt.freexmltoolkit.service.standards.XsltVersion.class, scenario.languageVersion));
                     text = result.isSuccess() ? result.getOutputContent() : null;
                     error = result.isSuccess() ? null : result.getErrorMessage();
                 }
                 case XQUERY -> {
                     if (format == null) {
                         format = OutputFormat.XML;
+                    }
+                    String incompatible = TransformRunner.xqueryIncompatibility(codeText,
+                            org.fxt.freexmltoolkit.service.standards.StandardVersion.parseStrict(
+                                    org.fxt.freexmltoolkit.service.standards.XQueryVersion.class, scenario.languageVersion));
+                    if (incompatible != null) {
+                        return new Result(null, format, null, incompatible);
                     }
                     XsltTransformationResult result = XsltTransformationEngine.getInstance().transformXQuery(xml,
                             input == null ? null : input.toUri().toString(), codeText, code.toUri().toString(),
@@ -208,7 +216,9 @@ public final class ScenarioRunner {
             Map<String, Object> parameters = new LinkedHashMap<>(scenario.parameters == null ? Map.of() : scenario.parameters);
             XsltTransformationResult fo = TransformRunner.xsltTransformResult(
                     Files.readString(input, StandardCharsets.UTF_8), input.toUri().toString(),
-                    Files.readString(code, StandardCharsets.UTF_8), code.toUri().toString(), parameters, OutputFormat.XML);
+                    Files.readString(code, StandardCharsets.UTF_8), code.toUri().toString(), parameters, OutputFormat.XML,
+                    org.fxt.freexmltoolkit.service.standards.StandardVersion.parseStrict(
+                            org.fxt.freexmltoolkit.service.standards.XsltVersion.class, scenario.languageVersion));
             if (!fo.isSuccess()) {
                 return new Result(null, null, null, fo.getErrorMessage());
             }

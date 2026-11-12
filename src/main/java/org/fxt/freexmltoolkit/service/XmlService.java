@@ -82,6 +82,15 @@ public interface XmlService {
 
     List<SAXParseException> validateText(String xmlString, File schemaFile);
 
+    /**
+     * As {@link #validateText(String, File)} with the XSD version chosen ({@code AUTO} = detected from the
+     * schema, as before). Implementations without version support ignore the mode.
+     */
+    default List<SAXParseException> validateText(String xmlString, File schemaFile,
+                                                 org.fxt.freexmltoolkit.service.standards.XsdVersionMode mode) {
+        return validateText(xmlString, schemaFile);
+    }
+
     List<SAXParseException> validateFile(File xml);
 
     List<SAXParseException> validateFile(File xml, File schemaFile);
@@ -131,6 +140,15 @@ public interface XmlService {
 
     // XML Path Operations
     String getXmlFromXpath(String xml, String xPath);
+
+    /**
+     * Evaluates {@code xPath} on {@code xml} in the given XPath version (1.0 on the JDK's XPath 1.0 engine,
+     * 2.0/3.0/3.1 on Saxon with that language level). Implementations without version support evaluate 3.1.
+     */
+    default String getXmlFromXpath(String xml, String xPath,
+                                   org.fxt.freexmltoolkit.service.standards.XPathVersion version) {
+        return getXmlFromXpath(xml, xPath);
+    }
 
     String getXmlFromXpath(String xPath, Node node);
 

@@ -37,15 +37,29 @@ public class BindSchemaDialog extends Dialog<BindSchemaDialog.Request> {
      * @param schematron the Schematron, or {@code null}
      * @param scenario   the scenario's name, or {@code null}
      */
-    public record Request(String files, Path schema, Path schematron, String scenario) {
+    public record Request(String files, Path schema, Path schematron, String scenario, String xsdVersion,
+                          String xmlVersion, String schematronBinding) {
+
+        public Request(String files, Path schema, Path schematron, String scenario) {
+            this(files, schema, schematron, scenario, null, null, null);
+        }
 
         /** @return the binding as stored in the project file (paths relative to it) */
         public FxtProject.SchemaBinding toBinding(FxtProject project) {
-            return new FxtProject.SchemaBinding(files,
+            FxtProject.SchemaBinding binding = new FxtProject.SchemaBinding(files,
                     schema == null ? null : project.relativize(schema),
                     schematron == null ? null : project.relativize(schematron), scenario);
+            binding.xsdVersion = xsdVersion;
+            binding.xmlVersion = xmlVersion;
+            binding.schematronBinding = schematronBinding;
+            return binding;
         }
     }
+
+    /** The optional standards of the binding (expert mode only). */
+    private javafx.scene.control.ComboBox<String> xsdVersionChoice;
+    private javafx.scene.control.ComboBox<String> xmlVersionChoice;
+    private javafx.scene.control.ComboBox<String> schematronBindingChoice;
 
     @FXML private TextField filesField;
     @FXML private TextField schemaField;
@@ -80,7 +94,28 @@ public class BindSchemaDialog extends Dialog<BindSchemaDialog.Request> {
         setTitle(I18n.t("BindSchemaDialog.bind-schema-in-project"));
         setHeaderText(I18n.t("BindSchemaDialog.validate-xml-files-of-with", project.name()));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/BindSchemaDialog.fxml"));
+        javafx.scene.Node content = FxmlViews.loadContent(this, "/pages/dialogs/BindSchemaDialog.fxml");
+        getDialogPane().setContent(content);
+        xsdVersionChoice = org.fxt.freexmltoolkit.controls.shell.editor.standards.OptionalVersionRows.combo(
+                org.fxt.freexmltoolkit.controls.shell.editor.standards.OptionalVersionRows.values(
+                        org.fxt.freexmltoolkit.service.standards.XsdVersionMode.class), binding.xsdVersion);
+        xmlVersionChoice = org.fxt.freexmltoolkit.controls.shell.editor.standards.OptionalVersionRows.combo(
+                org.fxt.freexmltoolkit.controls.shell.editor.standards.OptionalVersionRows.values(
+                        org.fxt.freexmltoolkit.service.standards.XmlVersionMode.class), binding.xmlVersion);
+        schematronBindingChoice = org.fxt.freexmltoolkit.controls.shell.editor.standards.OptionalVersionRows.combo(
+                List.of("xslt", "xslt2", "xslt3"), binding.schematronBinding);
+        if (content instanceof javafx.scene.layout.GridPane grid) {
+            org.fxt.freexmltoolkit.controls.shell.editor.standards.OptionalVersionRows.addRow(grid,
+                    I18n.t("BindSchemaDialog.xsdVersion"), xsdVersionChoice, "bind-schema-xsd-version");
+            org.fxt.freexmltoolkit.controls.shell.editor.standards.OptionalVersionRows.addRow(grid,
+                    I18n.t("BindSchemaDialog.xmlVersion"), xmlVersionChoice, "bind-schema-xml-version");
+            org.fxt.freexmltoolkit.controls.shell.editor.standards.OptionalVersionRows.addRow(grid,
+                    I18n.t("BindSchemaDialog.schematronBinding"), schematronBindingChoice,
+                    "bind-schema-schematron-binding");
+        }
+        for (var choice : List.of(xsdVersionChoice, xmlVersionChoice, schematronBindingChoice)) {
+            choice.valueProperty().addListener((obs, o, n) -> validate());
+        }
         List<String> scenarios = new ArrayList<>();
         scenarios.add("");
         scenarioNames.stream().filter(n -> n != null && !n.isBlank()).forEach(scenarios::add);
@@ -104,7 +139,18 @@ public class BindSchemaDialog extends Dialog<BindSchemaDialog.Request> {
     private Request request() {
         String scenario = scenarioChoice.getValue();
         return new Request(filesField.getText().strip(), path(schemaField), path(schematronField),
-                scenario == null || scenario.isBlank() ? null : scenario);
+                scenario == null || scenario.isBlank() ? null : scenario,
+                org.fxt.freexmltoolkit.controls.shell.editor.standards.OptionalVersionRows.value(xsdVersionChoice),
+                org.fxt.freexmltoolkit.controls.shell.editor.standards.OptionalVersionRows.value(xmlVersionChoice),
+                org.fxt.freexmltoolkit.controls.shell.editor.standards.OptionalVersionRows.value(schematronBindingChoice));
+    }
+
+    /** Whether a version is chosen (a binding may name only versions). */
+    private boolean hasVersions() {
+        return xsdVersionChoice != null
+                && (org.fxt.freexmltoolkit.controls.shell.editor.standards.OptionalVersionRows.value(xsdVersionChoice) != null
+                || org.fxt.freexmltoolkit.controls.shell.editor.standards.OptionalVersionRows.value(xmlVersionChoice) != null
+                || org.fxt.freexmltoolkit.controls.shell.editor.standards.OptionalVersionRows.value(schematronBindingChoice) != null);
     }
 
     /** @return the problem with the input, or {@code null} */
@@ -112,7 +158,8 @@ public class BindSchemaDialog extends Dialog<BindSchemaDialog.Request> {
         String problem = null;
         Path schema = path(schemaField);
         Path schematron = path(schematronField);
-        boolean noScenario = scenarioChoice.getValue() == null || scenarioChoice.getValue().isBlank();
+        boolean noScenario = (scenarioChoice.getValue() == null || scenarioChoice.getValue().isBlank())
+                && !hasVersions();
         if (filesField.getText() == null || filesField.getText().isBlank()) {
             problem = "Enter the files (a path or pattern).";
         } else if (!FxtProject.isValidPattern(filesField.getText().strip())) {

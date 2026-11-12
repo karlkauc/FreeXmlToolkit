@@ -175,7 +175,24 @@ public final class ValidationRunner {
     /** @param declaredGrammars whether a DTD or RELAX NG schema the document declares is used without a bound schema */
     public static RunResult runWithReport(String xml, File xsd, File schematron, String documentName,
                                           java.nio.file.Path documentPath, boolean declaredGrammars) {
+        return runWithReport(xml, xsd, schematron, documentName, documentPath, declaredGrammars,
+                org.fxt.freexmltoolkit.service.standards.ValidationStandards.DEFAULT);
+    }
+
+    /**
+     * As {@link #runWithReport(String, File, File, String, java.nio.file.Path, boolean)} with the standards chosen:
+     * the XML version is checked against the declaration (source "XML"), the XSD version forced or detected,
+     * and a Schematron without {@code @queryBinding} compiled with the chosen binding.
+     */
+    public static RunResult runWithReport(String xml, File xsd, File schematron, String documentName,
+                                          java.nio.file.Path documentPath, boolean declaredGrammars,
+                                          org.fxt.freexmltoolkit.service.standards.ValidationStandards standards) {
+        var std = standards == null ? org.fxt.freexmltoolkit.service.standards.ValidationStandards.DEFAULT
+                : standards;
         List<ValidationProblem> problems = new ArrayList<>();
+        for (var finding : org.fxt.freexmltoolkit.service.standards.XmlVersionCheck.check(xml, std.xml())) {
+            problems.add(new ValidationProblem("XML", finding.severity(), 1, finding.message()));
+        }
         SchematronReportData reportData = null;
         // Without an XSD this is a well-formedness (structural) check; with one it also
         // validates against the schema. Label problems by their actual source.
@@ -189,7 +206,7 @@ public final class ValidationRunner {
             if (grammar != null) {
                 problems.addAll(grammar);
             } else
-            for (SAXParseException e : ServiceRegistry.get(XmlService.class).validateText(xml, xsd)) {
+            for (SAXParseException e : ServiceRegistry.get(XmlService.class).validateText(xml, xsd, std.xsd())) {
                 problems.add(new ValidationProblem(source, "error", e.getLineNumber(), e.getMessage())
                         .withColumn(e.getColumnNumber()));
             }
@@ -206,8 +223,17 @@ public final class ValidationRunner {
         if (schematron != null) {
             long schematronStart = System.nanoTime();
             try {
+                if (!std.schematron().isDefault()) {
+                    // the engine runs every binding on XSLT 3.0: enforce the binding's XPath version here
+                    for (var issue : org.fxt.freexmltoolkit.service.standards.SchematronCompatibilityCheck.check(
+                            java.nio.file.Files.readString(schematron.toPath()), std.schematron())) {
+                        problems.add(new ValidationProblem("Schematron", "error", 0,
+                                schematron.getName() + " line " + issue.line() + ": " + issue.message()));
+                    }
+                }
                 SchematronService service = new SchematronServiceImpl();
-                SchematronService.SchematronReport report = service.validateXmlWithSvrl(xml, schematron);
+                SchematronService.SchematronReport report = service.validateXmlWithSvrl(xml, schematron,
+                        std.schematron());
                 List<SchematronService.SchematronValidationError> errors = report.errors();
                 // SVRL carries the failing node's XPath (context) but no line number;
                 // resolve it against the document so problems navigate to their line.
@@ -340,6 +366,15 @@ public final class ValidationRunner {
     public static List<FileValidationResult> batch(List<File> xmlFiles, File xsd, File schematron,
                                                    java.util.function.IntConsumer onFileDone,
                                                    java.util.function.BooleanSupplier cancelled) {
+        return batch(xmlFiles, xsd, schematron, onFileDone, cancelled,
+                org.fxt.freexmltoolkit.service.standards.ValidationStandards.DEFAULT);
+    }
+
+    /** As {@link #batch(List, File, File, java.util.function.IntConsumer, java.util.function.BooleanSupplier)} with the standards chosen. */
+    public static List<FileValidationResult> batch(List<File> xmlFiles, File xsd, File schematron,
+                                                   java.util.function.IntConsumer onFileDone,
+                                                   java.util.function.BooleanSupplier cancelled,
+                                                   org.fxt.freexmltoolkit.service.standards.ValidationStandards standards) {
         List<FileValidationResult> results = new ArrayList<>();
         int done = 0;
         for (File file : xmlFiles) {
@@ -352,7 +387,8 @@ public final class ValidationRunner {
                 // main sizing scenario for server/cloud offloading).
                 var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
                         org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.VALIDATION, file.getName());
-                RunResult runResult = runWithReport(content, xsd, schematron, file.getName(), file.toPath());
+                RunResult runResult = runWithReport(content, xsd, schematron, file.getName(), file.toPath(), true,
+                        standards);
                 probe.phase("XSD", runResult.xsdMillis());
                 probe.phase("Schematron", runResult.schematronMillis());
                 probe.finish(content.length(), -1, runResult.problems().isEmpty(),
@@ -381,6 +417,18 @@ public final class ValidationRunner {
                                                           List<File> files,
                                                           java.util.function.IntConsumer onFileDone,
                                                           java.util.function.BooleanSupplier cancelled) {
+        return batchProject(project, files, onFileDone, cancelled, file -> org.fxt.freexmltoolkit.service.standards
+                .ValidationStandards.of(project.standardsFor(file.toPath())));
+    }
+
+    /**
+     * As {@link #batchProject(org.fxt.freexmltoolkit.service.project.FxtProject, List,
+     * java.util.function.IntConsumer, java.util.function.BooleanSupplier)} with the standards of each file
+     * decided by {@code standardsFor} (layers: global, project binding, tool, command line).
+     */
+    public static List<FileValidationResult> batchProject(org.fxt.freexmltoolkit.service.project.FxtProject project,
+            List<File> files, java.util.function.IntConsumer onFileDone, java.util.function.BooleanSupplier cancelled,
+            java.util.function.Function<File, org.fxt.freexmltoolkit.service.standards.ValidationStandards> standardsFor) {
         List<FileValidationResult> results = new ArrayList<>();
         for (File file : files) {
             if (cancelled != null && cancelled.getAsBoolean()) {
@@ -400,7 +448,8 @@ public final class ValidationRunner {
                         File baseDir = file.getAbsoluteFile().getParentFile();
                         schema = declaredSchema(content, baseDir).orElse(null);
                     }
-                    problems = runWithReport(content, schema, schematron, file.getName(), file.toPath()).problems();
+                    problems = runWithReport(content, schema, schematron, file.getName(), file.toPath(), true,
+                            standardsFor.apply(file)).problems();
                 }
                 results.add(new FileValidationResult(file, problems, null));
             } catch (Exception e) {

@@ -65,6 +65,23 @@ public final class ToolSchemas {
         return this;
     }
 
+    /**
+     * An optional language-version argument: the standard's values ({@code "1.0"}, {@code "2.0"}, …), default
+     * the newest (today's behaviour).
+     */
+    public <E extends Enum<E> & org.fxt.freexmltoolkit.service.standards.StandardVersion> ToolSchemas version(
+            String name, String description, Class<E> type) {
+        List<String> values = new java.util.ArrayList<>();
+        String defaultValue = null;
+        for (E constant : type.getEnumConstants()) {
+            values.add(constant.cliValue());
+            if (constant.isDefault()) {
+                defaultValue = constant.cliValue();
+            }
+        }
+        return enumeration(name, description, values, defaultValue);
+    }
+
     /** An object whose values are strings. */
     public ToolSchemas stringMap(String name, String description) {
         JsonObject p = typed("object", description);

@@ -19,6 +19,11 @@ and talks to it over standard input and output — there is no network port.
 - An agent works with a schema it does not know: `schema_outline` and `schema_describe` answer what an element may
   contain, its type, facets, enumeration values and documentation.
 - A document is too large to paste: `document_outline` and `xpath` explore it without loading it into the agent.
+- An agent writes for an older processor (XPath 1.0/2.0, XSLT 1.0/2.0, XQuery 1.0/3.0, XSD 1.0): the
+  `xpath_version`, `xslt_version`, `xquery_version`, `xsd_version`, `xml_version` and `schematron_binding` arguments
+  run or check the code in that version, so newer syntax and functions come back as errors. This also makes the
+  server useful for producing verified training or evaluation data per language version. See
+  [Language Versions](language-versions.md).
 
 ## Set-up
 
@@ -129,7 +134,7 @@ argument.
 
 ### `validate`
 
-Validate an XML document: well-formedness, then the schema (XSD 1.0/1.1, DTD or RELAX NG), then an optional Schematron, then the checks of enabled plugins (e.g. FundsXML, ISO 20022). The schema is xsd_path if given, else the one the document declares (xsi:schemaLocation, DOCTYPE, Schema Library) unless declared_schema is false. Returns every problem with source, severity, line, column and message; 'valid' is true when the run had no errors (warnings allowed). 'not_run' means the schema or Schematron itself could not be loaded, so the document was not checked. Use it after every change to a document.
+Validate an XML document: well-formedness, then the schema (XSD 1.0/1.1, DTD or RELAX NG), then an optional Schematron, then the checks of enabled plugins (e.g. FundsXML, ISO 20022). The schema is xsd_path if given, else the one the document declares (xsi:schemaLocation, DOCTYPE, Schema Library) unless declared_schema is false. Returns every problem with source, severity, line, column and message; 'valid' is true when the run had no errors (warnings allowed). 'not_run' means the schema or Schematron itself could not be loaded, so the document was not checked. Use it after every change to a document. xsd_version forces XSD 1.0 or 1.1 (default: detected from the schema), xml_version 1.0 rejects documents declared as XML 1.1, schematron_binding sets the query binding of a Schematron without @queryBinding (default xslt2).
 
 | Argument | Type | Meaning |
 |---|---|---|
@@ -138,25 +143,29 @@ Validate an XML document: well-formedness, then the schema (XSD 1.0/1.1, DTD or 
 | `xsd_path` | string | Path of the schema (XSD, DTD, .rng or .rnc) to validate against. |
 | `schematron_path` | string | Path of a Schematron (.sch) to check after the schema. |
 | `declared_schema` | boolean | Use the schema the document declares when xsd_path is not given. (default `true`) |
+| `xsd_version` | `auto` \| `1.0` \| `1.1` | XSD version: auto (detected), 1.0 or 1.1. (default `auto`) |
+| `xml_version` | `auto` \| `1.0` \| `1.1` | XML version: auto (as declared), 1.0 or 1.1. (default `auto`) |
+| `schematron_binding` | `default` \| `xslt` \| `xslt2` \| `xslt3` | Query binding of a Schematron without its own @queryBinding. (default `default`) |
 
 **Result:** `valid`, `not_run` (the schema or Schematron itself did not load) and `not_run_reason`, `schema` (the XSD used), `error_count`, `warning_count`, `total`, `truncated`, `problems[]` = `{source, severity, line, column, message, rule, context}` — `source` is `Well-formed`, `XSD`, `Schematron` or a plugin's name; at most 200 problems are listed, `total` counts all.
 
 ### `xpath`
 
-Evaluate an XPath 3.1 expression against an XML document and return the items, one per line: atomic values as text, attributes as name="value", elements serialized as XML. The prefixes declared on the root element are available; pass 'namespaces' for others, with the key "" for the default element namespace (or use *:name). Errors come back with code and phase. Reads only inside the allowed folders. Use it to inspect large documents instead of reading them whole.
+Evaluate an XPath expression (3.1 unless xpath_version says otherwise) against an XML document and return the items, one per line: atomic values as text, attributes as name="value", elements serialized as XML. The prefixes declared on the root element are available; pass 'namespaces' for others, with the key "" for the default element namespace (or use *:name). Errors come back with code and phase. Reads only inside the allowed folders. Use it to inspect large documents instead of reading them whole. xpath_version 1.0 runs on a real XPath 1.0 engine, 2.0 and 3.0 reject newer syntax and functions - use it to write expressions for older processors.
 
 | Argument | Type | Meaning |
 |---|---|---|
 | `xml_path` | string | Path of the XML document (inside the allowed folders). Give this or xml_content, not both. |
 | `xml_content` | string | The XML document as text. Give this or xml_path, not both. |
-| `expression` | string | The XPath 3.1 expression; the document node is the context item. (required) |
+| `expression` | string | The XPath expression; the document node is the context item. (required) |
 | `namespaces` | object of strings | Prefix → namespace URI; the key "" sets the default element namespace. |
+| `xpath_version` | `1.0` \| `2.0` \| `3.0` \| `3.1` | XPath version the expression must conform to (default 3.1). (default `3.1`) |
 
 **Result:** `ok`, `result` (the items, one per line; cut at 64 KB with the full length), `truncated`, `item_count`, `timed_out`, `error` = `{code, phase, line, message}` with phase `compile`, `input` or `runtime`.
 
 ### `xquery`
 
-Run an XQuery 3.1 query, with an XML document as the context item when one is given. The result sequence is serialized as XML (maps, arrays and attributes adaptively); 'item_count' says how many items it has. External variables are passed as strings in 'variables' (declare them with 'declare variable $name external;'). Static and dynamic errors come back with code, phase and line. Reads only inside the allowed folders; stops at the time limit.
+Run an XQuery query (3.1 unless xquery_version says otherwise), with an XML document as the context item when one is given. The result sequence is serialized as XML (maps, arrays and attributes adaptively); 'item_count' says how many items it has. External variables are passed as strings in 'variables' (declare them with 'declare variable $name external;'). Static and dynamic errors come back with code, phase and line. Reads only inside the allowed folders; stops at the time limit. With xquery_version 1.0 or 3.0 the query is first checked for newer syntax and functions (code FXT-COMPAT, phase compile).
 
 | Argument | Type | Meaning |
 |---|---|---|
@@ -165,12 +174,13 @@ Run an XQuery 3.1 query, with an XML document as the context item when one is gi
 | `query_path` | string | Path of the XQuery (inside the allowed folders). Give this or query_content, not both. |
 | `query_content` | string | The XQuery as text. Give this or query_path, not both. |
 | `variables` | object of strings | External variables: name → string value. |
+| `xquery_version` | `1.0` \| `3.0` \| `3.1` | XQuery version the query must conform to (default 3.1). (default `3.1`) |
 
 **Result:** as `xpath`.
 
 ### `xslt_transform`
 
-Run an XSLT stylesheet (1.0, 2.0 or 3.0, Saxon) on an XML document and return the output. Pass the stylesheet you just wrote as xslt_content to check it without saving it. Nothing is written to disk: xsl:result-document output comes back in 'result_documents'. xsl:message output is in 'messages'. A stylesheet that does not compile or fails at run time returns 'error' with code, phase (compile, input, runtime) and line — fix the stylesheet and call again. No Java extensions, no network, reads only inside the allowed folders, stops at the time limit.
+Run an XSLT stylesheet (1.0, 2.0 or 3.0, Saxon) on an XML document and return the output. Pass the stylesheet you just wrote as xslt_content to check it without saving it. Nothing is written to disk: xsl:result-document output comes back in 'result_documents'. xsl:message output is in 'messages'. A stylesheet that does not compile or fails at run time returns 'error' with code, phase (compile, input, runtime) and line — fix the stylesheet and call again. No Java extensions, no network, reads only inside the allowed folders, stops at the time limit. xslt_version 1.0 runs the stylesheet on a real XSLT 1.0 processor (the JDK's XSLTC); 2.0 first rejects XSLT 3.0 instructions and XPath 3.x syntax and functions (code FXT-COMPAT) - use it to write stylesheets for older processors.
 
 | Argument | Type | Meaning |
 |---|---|---|
@@ -180,6 +190,7 @@ Run an XSLT stylesheet (1.0, 2.0 or 3.0, Saxon) on an XML document and return th
 | `xslt_content` | string | The XSLT stylesheet as text. Give this or xslt_path, not both. |
 | `parameters` | object of strings | Stylesheet parameters: name → string value. |
 | `output` | `xml` \| `html` \| `xhtml` \| `text` \| `json` | Output method; by default the one xsl:output declares. |
+| `xslt_version` | `1.0` \| `2.0` \| `3.0` | XSLT version the stylesheet must run in (default 3.0). (default `3.0`) |
 
 **Result:** `ok`, `output_method`, `output`, `truncated`, `result_documents` (resolved URI → text; nothing is written), `messages[]` = `{level, text, line}` (`xsl:message`), `timed_out`, `error` = `{code, phase, line, message}`.
 
@@ -248,12 +259,13 @@ Generate a sample XML instance from an XSD, for its first global element: all el
 
 ### `schematron_check`
 
-Check a Schematron schema without running it: XML well-formedness, structure (schema, pattern, rule, assert/report), the XPath syntax of every context and test, and common mistakes. Returns the issues with severity, line and message; 'ok' is true when there is no error. Use it after writing or changing a Schematron, then validate a document with it.
+Check a Schematron schema without running it: XML well-formedness, structure (schema, pattern, rule, assert/report), the XPath syntax of every context and test, and common mistakes. Returns the issues with severity, line and message; 'ok' is true when there is no error. Use it after writing or changing a Schematron, then validate a document with it. With schematron_binding (the default binding when the schema declares no @queryBinding) every context and test is also compiled in the binding's XPath version: xslt = XPath 1.0, xslt2 = XPath 2.0.
 
 | Argument | Type | Meaning |
 |---|---|---|
 | `schematron_path` | string | Path of the Schematron schema (inside the allowed folders). Give this or schematron_content, not both. |
 | `schematron_content` | string | The Schematron schema as text. Give this or schematron_path, not both. |
+| `schematron_binding` | `default` \| `xslt` \| `xslt2` \| `xslt3` | Query binding to check the expressions against (the schema's own @queryBinding wins). (default `default`) |
 
 **Result:** `ok` (no error), `total`, `issues[]` = `{severity, line, message}`, `error` (the check could not run).
 

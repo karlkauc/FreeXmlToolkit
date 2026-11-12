@@ -115,7 +115,8 @@ public final class EditorActions {
             File schema = schemaSupplier.get();
             ValidationRunner.RunResult runResult = json
                     ? new ValidationRunner.RunResult(ValidationRunner.validateJson(content, schema), null)
-                    : ValidationRunner.runWithReport(content, schema, schematron, null, documentPath);
+                    : ValidationRunner.runWithReport(content, schema, schematron, null, documentPath, true,
+                            ValidationPanel.standardsFor(documentPath));
             List<ValidationProblem> result = runResult.problems();
             boolean hasSchema = json ? schema != null : (schema != null || schematron != null);
             UsageEvents.validated(UsageEvents.schemaKind(json, schema != null, !json && schematron != null),
@@ -211,7 +212,8 @@ public final class EditorActions {
             }
             if (xquery) {
                 TransformRunner.QueryRun run = TransformRunner.xquery(xml, query, Map.of(),
-                        XsltTransformationEngine.OutputFormat.XML);
+                        XsltTransformationEngine.OutputFormat.XML, standards(
+                                org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_QUERY_CONSOLE).xquery());
                 String result = run.text();
                 XQueryTableRunner.XQueryTable table = XQueryTableRunner.run(xml, query);
                 boolean ok = !result.startsWith("ERROR");
@@ -225,7 +227,8 @@ public final class EditorActions {
                     }
                 });
             } else {
-                TransformRunner.QueryRun run = TransformRunner.xpath(xml, query);
+                TransformRunner.QueryRun run = TransformRunner.xpath(xml, query, standards(
+                        org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_QUERY_CONSOLE).xpath());
                 String result = run.text();
                 boolean ok = !result.startsWith("ERROR");
                 UsageEvents.xpathExecuted(t0, run.failure());
@@ -295,7 +298,8 @@ public final class EditorActions {
                 });
                 return;
             }
-            var fullResult = TransformRunner.xsltTransformResult(xml, xmlBaseUri, xslt, xsltSystemId, Map.of(), format);
+            var fullResult = TransformRunner.xsltTransformResult(xml, xmlBaseUri, xslt, xsltSystemId, Map.of(), format,
+                    standards(org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_TRANSFORM).xslt());
             String result = fullResult.isSuccess()
                     ? fullResult.getOutputContent()
                     : "ERROR: " + fullResult.getErrorMessage();
@@ -659,5 +663,10 @@ public final class EditorActions {
             org.apache.logging.log4j.LogManager.getLogger(EditorActions.class).error("Run action failed", e);
             return null;
         });
+    }
+
+    /** The language versions a run from the editor uses: the tool's choice, else the global default. */
+    private static org.fxt.freexmltoolkit.service.standards.StandardsProfile standards(String tool) {
+        return org.fxt.freexmltoolkit.service.standards.StandardsSettings.current().forTool(tool, null);
     }
 }

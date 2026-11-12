@@ -24,7 +24,8 @@ import com.google.gson.JsonObject;
 public final class ValidateTool implements AiTool {
 
     private static final Set<String> ARGUMENTS =
-            Set.of("xml_path", "xml_content", "xsd_path", "schematron_path", "declared_schema");
+            Set.of("xml_path", "xml_content", "xsd_path", "schematron_path", "declared_schema", "xsd_version",
+                    "xml_version", "schematron_binding");
 
     @Override
     public String name() {
@@ -39,7 +40,9 @@ public final class ValidateTool implements AiTool {
                 + "unless declared_schema is false. Returns every problem with source, severity, line, column and "
                 + "message; 'valid' is true when the run had no errors (warnings allowed). 'not_run' means the "
                 + "schema or Schematron itself could not be loaded, so the document was not checked. Use it after "
-                + "every change to a document.";
+                + "every change to a document. xsd_version forces XSD 1.0 or 1.1 (default: detected from the schema), "
+                + "xml_version 1.0 rejects documents declared as XML 1.1, schematron_binding sets the query binding of a "
+                + "Schematron without @queryBinding (default xslt2).";
     }
 
     @Override
@@ -49,6 +52,12 @@ public final class ValidateTool implements AiTool {
                 .string("xsd_path", "Path of the schema (XSD, DTD, .rng or .rnc) to validate against.", false)
                 .string("schematron_path", "Path of a Schematron (.sch) to check after the schema.", false)
                 .bool("declared_schema", "Use the schema the document declares when xsd_path is not given.", true)
+                .version("xsd_version", "XSD version: auto (detected), 1.0 or 1.1.",
+                        org.fxt.freexmltoolkit.service.standards.XsdVersionMode.class)
+                .version("xml_version", "XML version: auto (as declared), 1.0 or 1.1.",
+                        org.fxt.freexmltoolkit.service.standards.XmlVersionMode.class)
+                .version("schematron_binding", "Query binding of a Schematron without its own @queryBinding.",
+                        org.fxt.freexmltoolkit.service.standards.SchematronBinding.class)
                 .build();
     }
 
@@ -59,13 +68,17 @@ public final class ValidateTool implements AiTool {
         File xsd = existingFile(args, "xsd_path", context);
         File schematron = existingFile(args, "schematron_path", context);
         boolean declared = args.optionalBoolean("declared_schema", true);
+        var standards = new org.fxt.freexmltoolkit.service.standards.ValidationStandards(
+                args.version("xsd_version", org.fxt.freexmltoolkit.service.standards.XsdVersionMode.class),
+                args.version("xml_version", org.fxt.freexmltoolkit.service.standards.XmlVersionMode.class),
+                args.version("schematron_binding", org.fxt.freexmltoolkit.service.standards.SchematronBinding.class));
         if (xsd == null && declared) {
             Path baseDir = xml.file().map(Path::getParent).orElse(context.files().roots().getFirst());
             xsd = ValidationRunner.declaredSchema(xml.text(), baseDir.toFile()).orElse(null);
         }
         String name = xml.file().map(f -> f.getFileName().toString()).orElse("inline.xml");
         ValidationRunner.RunResult run = ValidationRunner.runWithReport(xml.text(), xsd, schematron, name,
-                xml.file().orElse(null), declared);
+                xml.file().orElse(null), declared, standards);
 
         List<ValidationProblem> problems = new ArrayList<>(new LinkedHashSet<>(run.problems()));
         String notRunReason = run.failed() ? describeFailure(run) : schemaNotLoaded(problems);

@@ -64,6 +64,20 @@ public final class LargeFileValidation {
      */
     public static Result validate(Path xml, File schema, int maxErrors, LongConsumer progress, BooleanSupplier cancelled)
             throws IOException {
+        return validate(xml, schema, maxErrors, progress, cancelled,
+                org.fxt.freexmltoolkit.service.standards.ValidationStandards.DEFAULT);
+    }
+
+    /**
+     * As {@link #validate(Path, File, int, LongConsumer, BooleanSupplier)} with the standards chosen: the XSD
+     * version (forced or detected) and the XML version (checked against the declaration in the first bytes).
+     */
+    public static Result validate(Path xml, File schema, int maxErrors, LongConsumer progress,
+                                  BooleanSupplier cancelled,
+                                  org.fxt.freexmltoolkit.service.standards.ValidationStandards standards)
+            throws IOException {
+        var std = standards == null ? org.fxt.freexmltoolkit.service.standards.ValidationStandards.DEFAULT
+                : standards;
         List<Problem> problems = new ArrayList<>();
         boolean[] fatal = {false};
         ErrorHandler handler = new ErrorHandler() {
@@ -91,9 +105,18 @@ public final class LargeFileValidation {
                 }
             }
         };
+        if (std.xml() != org.fxt.freexmltoolkit.service.standards.XmlVersionMode.AUTO) {
+            String head;
+            try (InputStream in = Files.newInputStream(xml)) {
+                head = new String(in.readNBytes(256), java.nio.charset.StandardCharsets.UTF_8);
+            }
+            for (var finding : org.fxt.freexmltoolkit.service.standards.XmlVersionCheck.check(head, std.xml())) {
+                problems.add(new Problem("Error", 1, 0, finding.message()));
+            }
+        }
         XercesXmlValidationService service = new XercesXmlValidationService();
         try (InputStream in = new Progress(Files.newInputStream(xml), progress, cancelled)) {
-            service.validateStream(in, xml.toUri().toString(), schema, handler);
+            service.validateStream(in, xml.toUri().toString(), schema, handler, std.xsd());
         } catch (Stop stop) {
             return new Result(problems, true, null, fatal[0]);
         } catch (SAXParseException e) {
