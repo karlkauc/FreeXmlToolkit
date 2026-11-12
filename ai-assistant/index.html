@@ -1079,6 +1079,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#follow-ups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Follow-ups: refine step by step
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#when-the-checks-do-not-pass" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3248,6 +3259,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#follow-ups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Follow-ups: refine step by step
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#when-the-checks-do-not-pass" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3393,12 +3415,32 @@ the <a href="../mcp-server/">MCP Server</a> instead — that needs no setting he
 against the active document — it compiles and runs; the item count and the first results are shown — and
 <strong>Insert into the console</strong> puts it into the input field. Running it stays your action. The query uses <code>*:name</code>
 instead of namespace prefixes, so it runs in the console as it was checked.</p>
+<p>When the console already holds a query, <strong>Ask AI…</strong> sends it along and the AI <strong>refines</strong> it ("only the first
+three", "also the currency") instead of starting over — this includes queries you wrote or changed yourself.</p>
 <h3 id="a-stylesheet-from-a-target-sample">A stylesheet from a target sample<a class="headerlink" href="#a-stylesheet-from-a-target-sample" title="Permanent link">¶</a></h3>
 <p><strong>Transform panel → Generate stylesheet…</strong>: the source is the panel's input document; choose a <strong>target sample</strong> (a
 document with the structure you want), optionally its <strong>schema</strong>, the XSLT version and notes in your own words. The
 stylesheet is compiled, run on the source in a sandbox (nothing is written), and the output is checked to be
 well-formed — and valid, when you gave a schema; the differences to the sample are reported. A verified stylesheet
 opens as a new, unsaved document.</p>
+<p>When the Transform panel already has a stylesheet, the dialog offers <strong>Refine the current stylesheet</strong> (on by
+default): the stylesheet is sent along and revised as your notes say; the target sample is then optional. If the
+stylesheet is open in a tab, <strong>Apply to <em>name</em></strong> replaces its text as one edit (Ctrl+Z undoes it) — refused when you
+changed the stylesheet while the AI was working. <strong>Open as new document</strong> stays available.</p>
+<h3 id="follow-ups">Follow-ups: refine step by step<a class="headerlink" href="#follow-ups" title="Permanent link">¶</a></h3>
+<p>Below every answer the AI panel has a field <strong>Refine or ask a follow-up</strong>. What you type there continues the same
+conversation — the model sees your earlier question and its earlier answer — and the new result is checked exactly
+like the first one:</p>
+<ul>
+<li><em>Query</em>: "only the ones in EUR", "sort them by date", "why is the result empty?"</li>
+<li><em>Stylesheet</em>: "keep the dates as they are", "also copy the comments"</li>
+<li><em>Explain</em>: further questions about the problem</li>
+<li><em>Fix</em>: "use 0 instead of removing the element" — as long as the document is unchanged; after you applied a fix or
+  edited the document, start a new <strong>Fix with AI</strong>.</li>
+</ul>
+<p>If you inserted or applied a result and then <strong>changed it yourself</strong>, the follow-up sends your current version, and the
+model continues from it rather than from its own last answer. A follow-up goes through the same data level and request
+preview as the first request; only the new message is added.</p>
 <h3 id="when-the-checks-do-not-pass">When the checks do not pass<a class="headerlink" href="#when-the-checks-do-not-pass" title="Permanent link">¶</a></h3>
 <p>After three repair rounds the panel shows the last proposal as <strong>not verified</strong> with the report. <strong>Apply
 unverified…</strong> asks once more; use it only after checking the proposal yourself.</p>

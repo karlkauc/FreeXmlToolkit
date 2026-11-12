@@ -3471,7 +3471,7 @@ and <code>update_apply</code>. A dialog that belongs to such an action is not co
 <p>An <strong>AI action</strong> (<code>ai_action</code>, see <a href="../ai-assistant/">AI Assistant</a>) carries only fixed values: <code>meta.action</code>
 (<code>explain</code>, <code>fix_problem</code>, <code>ask_xpath</code>, <code>ask_xquery</code>, <code>generate_xslt</code>), <code>meta.provider</code> (<code>local</code>,
 <code>openai_compatible</code>, <code>anthropic</code>), <code>meta.outcome</code> (<code>verified</code>, <code>unverified</code>, <code>refused</code>, <code>failed</code>, <code>cancelled</code>),
-<code>meta.repairs</code> (0–9) and the duration. The request, the answer, the model and host names never leave your computer
+<code>meta.repairs</code> (0–9), <code>meta.turn</code> (1 = the first request, 2–9 = a follow-up in the AI panel) and the duration. The request, the answer, the model and host names never leave your computer
 as telemetry — the request itself goes only to the provider you configured.</p>
 <p>A <strong>PDF generation</strong> (<code>fop_pdf</code>) names the stage that ran last in <code>meta.stage</code> (<code>transform</code> = the
 XSLT run that produces the XSL-FO, <code>render</code> = Apache FOP rendering it) and, for a failure, the
