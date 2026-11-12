@@ -643,6 +643,22 @@ public class EditorHost extends BorderPane {
         return false;
     }
 
+    /**
+     * Replaces the whole text of an open document (saved or not) with {@code text} — one native undo entry in its
+     * editor; the document need not be the active one.
+     *
+     * @return {@code true} when an open editor tab for {@code document} accepted the edit
+     */
+    public boolean replaceDocumentText(OpenDocument document, String text) {
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && et.document == document) {
+                et.view.replaceTextRegion(0, et.text().length(), text);
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** @return the buffer text of the open document at {@code path}, or empty if not open. */
     public Optional<String> getOpenDocumentText(java.nio.file.Path path) {
         for (Tab tab : tabPane.getTabs()) {

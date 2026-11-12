@@ -9,14 +9,17 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
+import org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument;
 import org.fxt.freexmltoolkit.controls.shell.editor.ValidationProblem;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
@@ -144,6 +147,101 @@ class AiActionsUiTest {
         WaitForAsyncUtils.waitForFxEvents();
         assertTrue(host.getActiveText().orElseThrow().contains("<n>x</n>"), "not applied");
         assertTrue(lookupText("#ai-proposal-status").contains("changed"), lookupText("#ai-proposal-status"));
+    }
+
+    private static FakeChatServer.Reply answer(String content) {
+        return FakeChatServer.Reply.json("{\"choices\":[{\"message\":{\"content\":\"" + content + "\"},"
+                + "\"finish_reason\":\"stop\"}]}");
+    }
+
+    @Test
+    void askingWithAFilledConsoleRefinesTheCurrentQuery() throws Exception {
+        configure();
+        openDocument();
+        server.reply(answer("```xpath\\n//n[1]\\n```\\nThe first n."));
+        AtomicReference<String> console = new AtomicReference<>("//n");
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> AiActions.askQuery(host, "only the first one", false, "//n",
+                console::get, console::set));
+        Button insert = waitForVisible("#ai-proposal-apply");
+        String body = server.last().body();
+        assertTrue(body.contains("The current expression"), body);
+        assertTrue(body.contains("only the first one"), body);
+        WaitForAsyncUtils.waitForAsyncFx(5000, insert::fire);
+        assertEquals("//n[1]", console.get());
+    }
+
+    @Test
+    void aFollowUpContinuesTheConversationWithTheUsersEdits() throws Exception {
+        configure();
+        openDocument();
+        server.reply(answer("```xpath\\n//n[1]\\n```\\nThe first n."));
+        AtomicReference<String> console = new AtomicReference<>("");
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> AiActions.askQuery(host, "all n", false, null, console::get,
+                console::set));
+        Button insert = waitForVisible("#ai-proposal-apply");
+        assertFalse(server.last().body().contains("The current expression"), "an empty console starts over");
+        WaitForAsyncUtils.waitForAsyncFx(5000, insert::fire);
+        assertEquals("//n[1]", console.get());
+        console.set("//n[last()]");                       // the user edits the inserted query
+        server.reply(answer("```xpath\\n//n[last()]/text()\\n```\\nIts text."));
+        TextField field = (TextField) stage.getScene().lookup("#ai-proposal-followup");
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            assertTrue(field.isVisible(), "the follow-up field is offered after an answer");
+            field.setText("only the text");
+            ((Button) stage.getScene().lookup("#ai-proposal-followup-send")).fire();
+        });
+        waitFor(() -> server.requests().size() == 2 && lookupText("#ai-proposal-status").startsWith("Answer 2"));
+        String body = server.last().body();
+        assertTrue(body.contains("all n"), "the first question is replayed: " + body);
+        assertTrue(body.contains("The first n."), "the first answer is replayed: " + body);
+        assertTrue(body.contains("only the text"), body);
+        assertTrue(body.contains("//n[last()]") && body.contains("edited your last result"),
+                "the user's edit goes along: " + body);
+        WaitForAsyncUtils.waitForAsyncFx(5000, ((Button) stage.getScene().lookup("#ai-proposal-apply"))::fire);
+        assertEquals("//n[last()]/text()", console.get());
+    }
+
+    @Test
+    void aFixFollowUpIsRefusedOnceTheDocumentChanged() throws Exception {
+        configure();
+        openDocument();
+        server.reply(answer(FIX));
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> AiActions.fixProblem(host, problem()));
+        waitForVisible("#ai-proposal-apply");
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.replaceActiveTextRegion(0, 0, "<!-- edited -->"));
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            ((TextField) stage.getScene().lookup("#ai-proposal-followup")).setText("use 3 instead");
+            ((Button) stage.getScene().lookup("#ai-proposal-followup-send")).fire();
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(1, server.requests().size(), "nothing sent");
+        assertTrue(lookupText("#ai-proposal-status").contains("changed"), lookupText("#ai-proposal-status"));
+    }
+
+    @Test
+    void aRefinedStylesheetIsAppliedToItsTabAsOneEdit() throws Exception {
+        configure();
+        Path xml = openDocument();
+        String before = "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n"
+                + "  <xsl:template match=\"/\"><out/></xsl:template>\n</xsl:stylesheet>";
+        Path xsl = Files.writeString(temp.resolve("t.xsl"), before);
+        WaitForAsyncUtils.waitForAsyncFx(10_000, () -> host.openFile(xsl));
+        waitFor(() -> host.getActiveText().map(t -> t.contains("<out/>")).orElse(false));
+        OpenDocument tab = WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.getActiveDocument().orElseThrow());
+        String after = "<xsl:stylesheet version=\\\"3.0\\\" xmlns:xsl=\\\"http://www.w3.org/1999/XSL/Transform\\\">"
+                + "<xsl:template match=\\\"/\\\"><out><xsl:value-of select=\\\"count(//n)\\\"/></out></xsl:template>"
+                + "</xsl:stylesheet>";
+        server.reply(answer("```xml\\n" + after + "\\n```\\nCounts n."));
+        AiActions.StylesheetRequest request = new AiActions.StylesheetRequest(XML, "doc.xml", xml.toFile(), null, null,
+                null, "output the count of n", "3.0", before, "t.xsl", tab);
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> AiActions.generateStylesheet(host, request));
+        Button apply = waitForVisible("#ai-proposal-apply");
+        assertTrue(apply.getText().contains("t.xsl"), apply.getText());
+        assertTrue(server.last().body().contains("The current stylesheet"), server.last().body());
+        WaitForAsyncUtils.waitForAsyncFx(5000, apply::fire);
+        waitFor(() -> host.getDocumentText(tab).map(t -> t.contains("count(//n)")).orElse(false));
+        assertEquals(1, host.getOpenDocuments().stream().filter(d -> d.getDisplayName().endsWith(".xsl")).count(),
+                "no new document when refining a tab");
     }
 
     @Test

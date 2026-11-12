@@ -860,9 +860,39 @@ public class TransformPanel extends VBox {
             org.fxt.freexmltoolkit.util.DialogHelper.showError(I18n.t("GenerateStylesheetDialog.title"), e.getMessage(), "");
             return;
         }
-        new org.fxt.freexmltoolkit.controls.shell.editor.ai.GenerateStylesheetDialog(source, name, file).showAndWait()
+        OpenDocument stylesheetTab = openStylesheetDocument();
+        String stylesheet = currentStylesheetText(stylesheetTab);
+        new org.fxt.freexmltoolkit.controls.shell.editor.ai.GenerateStylesheetDialog(source, name, file, stylesheet,
+                stylesheetName(), stylesheetTab).showAndWait()
                 .ifPresent(request -> org.fxt.freexmltoolkit.controls.shell.editor.ai.AiActions.generateStylesheet(
                         editorHost, request));
+    }
+
+    /** @return the chosen stylesheet's open tab: the chosen tab, or a tab holding the chosen file; else {@code null} */
+    private OpenDocument openStylesheetDocument() {
+        OpenDocument document = stylesheetDocument();
+        if (document != null || xsltFile == null) {
+            return document;
+        }
+        java.nio.file.Path path = xsltFile.toPath().toAbsolutePath().normalize();
+        return editorHost.getOpenDocuments().stream()
+                .filter(d -> d.getPath() != null && d.getPath().toAbsolutePath().normalize().equals(path))
+                .findFirst().orElse(null);
+    }
+
+    /** @return the chosen stylesheet's text (its tab's editor text, else the file), or {@code null} when none / unreadable */
+    private String currentStylesheetText(OpenDocument tab) {
+        if (tab != null) {
+            return editorHost.getDocumentText(tab).orElse(null);
+        }
+        if (xsltFile != null && xsltFile.isFile()) {
+            try {
+                return java.nio.file.Files.readString(xsltFile.toPath());
+            } catch (java.io.IOException | java.io.UncheckedIOException e) {
+                return null;
+            }
+        }
+        return null;
     }
 
     @FXML

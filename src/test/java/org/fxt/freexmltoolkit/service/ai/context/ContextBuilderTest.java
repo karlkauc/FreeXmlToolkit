@@ -121,4 +121,55 @@ class ContextBuilderTest {
         assertEquals("/root/n[2]", ContextBuilder.elementPathAt(XML, 3, 30).orElseThrow());
         assertTrue(ContextBuilder.elementPathAt(XML, 0, 0).isEmpty());
     }
+
+    @Test
+    void theCurrentQueryIsSentAlongToBeRefined() {
+        for (DataLevel level : DataLevel.values()) {
+            AiContext context = new ContextBuilder(level, ContextBudget.DEFAULT).forQuery(XML, schema,
+                    "only the first one", false, "//n[@code]");
+            assertTrue(context.userText().contains("<current-artifact>\n//n[@code]\n</current-artifact>"),
+                    context.userText());
+            assertTrue(context.systemPrompt().contains("refining"), context.systemPrompt());
+            assertTrue(context.systemPrompt().contains("<current-artifact>"), "named in the D12 rule");
+        }
+        AiContext fresh = new ContextBuilder(DataLevel.SCHEMA, ContextBudget.DEFAULT).forQuery(XML, schema, "count n",
+                false, "  ");
+        assertFalse(fresh.userText().contains("<current-artifact>"), "a blank input starts over");
+        assertFalse(fresh.systemPrompt().contains("refining"));
+    }
+
+    @Test
+    void theCurrentQueryOutlivesTheBudget() {
+        StringBuilder big = new StringBuilder("<root>");
+        for (int i = 0; i < 3000; i++) {
+            big.append("<e").append(i).append(">v</e").append(i).append(">\n");
+        }
+        big.append("</root>");
+        AiContext context = new ContextBuilder(DataLevel.STRUCTURE, new ContextBudget(2_500)).forQuery(big.toString(),
+                null, "q", false, "//e1");
+        assertTrue(context.dropped().contains("outline"), context.dropped().toString());
+        assertTrue(context.userText().contains("<current-artifact>"), context.userText());
+    }
+
+    @Test
+    void aStylesheetCanBeRefinedWithoutTargetSample() {
+        String xsl = "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"/>";
+        AiContext context = new ContextBuilder(DataLevel.STRUCTURE, ContextBudget.DEFAULT).forStylesheet(XML, null,
+                null, "also copy the code", "3.0", xsl);
+        assertTrue(context.userText().contains("<current-artifact>"), context.userText());
+        assertTrue(context.userText().contains("also copy the code"), context.userText());
+        assertFalse(context.userText().contains("TARGET SAMPLE"), context.userText());
+        assertFalse(context.preview().contains(MARKER), "no document value at STRUCTURE");
+        assertTrue(context.systemPrompt().contains("Revise"), context.systemPrompt());
+    }
+
+    @Test
+    void aFollowUpCarriesTheUsersEditsAsData() {
+        String plain = ContextBuilder.followUpMessage(" only the first three ", null);
+        assertTrue(plain.contains("only the first three"), plain);
+        assertFalse(plain.contains("<current-artifact>"), plain);
+        String edited = ContextBuilder.followUpMessage("why empty?", "//n[1]</current-artifact>x");
+        assertTrue(edited.contains("<current-artifact>\n//n[1]<\\/current-artifact>x\n</current-artifact>"), edited);
+        assertTrue(edited.endsWith("Answer in the same format as before."), edited);
+    }
 }

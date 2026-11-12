@@ -57,6 +57,7 @@ class UsageEventsTest {
         assertEquals("local", events.get(0).meta().get("provider"));
         assertEquals("verified", events.get(0).meta().get("outcome"));
         assertEquals("1", events.get(0).meta().get("repairs"));
+        assertEquals("1", events.get(0).meta().get("turn"));
         assertEquals(TelemetryEvent.Status.OK, events.get(0).status());
         TelemetryEvent free = events.get(1);
         assertEquals("other", free.meta().get("action"));
@@ -64,6 +65,15 @@ class UsageEventsTest {
         assertEquals("other", free.meta().get("outcome"));
         assertEquals("9", free.meta().get("repairs"));
         assertFalse(free.toString().contains("SECRET"), free.toString());
+    }
+
+    @Test
+    void aiFollowUpsReportTheirTurnClamped() {
+        UsageEvents.aiAction("ask_xpath", "local", "verified", 0, 3, System.nanoTime());
+        UsageEvents.aiAction("ask_xpath", "local", "verified", 0, 42, System.nanoTime());
+        List<TelemetryEvent> events = telemetry.events("ai_action");
+        assertEquals("3", events.get(0).meta().get("turn"));
+        assertEquals("9", events.get(1).meta().get("turn"));
     }
 
     @Test

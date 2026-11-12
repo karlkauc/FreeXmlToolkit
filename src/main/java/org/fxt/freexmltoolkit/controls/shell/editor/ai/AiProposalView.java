@@ -9,6 +9,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.HBox;
@@ -31,7 +32,8 @@ import org.fxt.freexmltoolkit.util.DialogHelper;
  * The AI panel in the editor's bottom dock (like the Transform output and the debugger): progress while the model
  * works and the checks run, then the proposal — the model's explanation, the change (a diff or the generated text),
  * the verification report — and the actions. Apply is refused when the document changed since the request; an
- * unverified proposal can only be applied after a second, explicit confirmation (D8).
+ * unverified proposal can only be applied after a second, explicit confirmation (D8). Below the proposal a follow-up
+ * field continues the {@link AiConversation} ("only the first three", "why?", "keep the dates as they are").
  */
 public class AiProposalView extends VBox {
 
@@ -66,15 +68,37 @@ public class AiProposalView extends VBox {
     @FXML private Button openButton;
     @FXML private Button copyButton;
     @FXML private Button discardButton;
+    @FXML private HBox followUpRow;
+    @FXML private TextField followUpField;
+    @FXML private Button followUpButton;
 
     private Runnable onCancel = () -> { };
     private Proposal proposal;
+    private AiConversation conversation;
     private final EditorHost host;
 
     public AiProposalView(EditorHost host) {
         this.host = host;
         FxmlViews.load(this, "/pages/views/AiProposalView.fxml");
+        followUpButton.disableProperty().bind(followUpField.textProperty().isEmpty());
         reset("");
+    }
+
+    /** The conversation the follow-up field continues ({@code null} = none). */
+    void setConversation(AiConversation conversation) {
+        this.conversation = conversation;
+        syncFollowUp();
+    }
+
+    AiConversation conversation() {
+        return conversation;
+    }
+
+    /** Shows the follow-up row when the conversation can be continued. */
+    private void syncFollowUp() {
+        boolean visible = conversation != null && conversation.canFollowUp();
+        followUpRow.setVisible(visible);
+        followUpRow.setManaged(visible);
     }
 
     /** The view in the bottom dock of {@code host}, created on first use, shown and selected. */
@@ -93,6 +117,9 @@ public class AiProposalView extends VBox {
 
     /** Clears the view for a new run. */
     public void reset(String heading) {
+        if (conversation != null && conversation.isRunning()) {
+            onCancel.run();
+        }
         proposal = null;
         title.setText(heading);
         status.setText("");
@@ -107,6 +134,28 @@ public class AiProposalView extends VBox {
             b.setVisible(false);
             b.setManaged(false);
         }
+        conversation = null;
+        followUpField.clear();
+        syncFollowUp();
+    }
+
+    /** A follow-up was sent: the previous proposal makes room for the next answer. */
+    void followUpStarted(String question) {
+        proposal = null;
+        answer.clear();
+        answer.setVisible(false);
+        answer.setManaged(false);
+        contentHost.getChildren().clear();
+        checks.getChildren().clear();
+        for (Button b : List.of(applyButton, applyUnverifiedButton, openButton, copyButton)) {
+            show(b, false);
+        }
+        followUpField.clear();
+    }
+
+    /** A message in the status line that leaves the proposal as it is. */
+    void notice(String message) {
+        status.setText(message);
     }
 
     /** The run is going on: a status line and Cancel. */
@@ -115,6 +164,8 @@ public class AiProposalView extends VBox {
         progress.setVisible(true);
         cancelButton.setVisible(true);
         onCancel = cancel == null ? () -> { } : cancel;
+        followUpRow.setVisible(false);
+        followUpRow.setManaged(false);
     }
 
     /** Text the model streams while it answers. */
@@ -131,6 +182,7 @@ public class AiProposalView extends VBox {
         progress.setVisible(false);
         cancelButton.setVisible(false);
         status.setText(message);
+        syncFollowUp();
     }
 
     /** The run ended with a proposal. */
@@ -170,6 +222,7 @@ public class AiProposalView extends VBox {
         }
         show(openButton, p.openAsNew() != null);
         show(copyButton, p.copyText() != null);
+        syncFollowUp();
     }
 
     private static void show(Button button, boolean visible) {
@@ -210,6 +263,15 @@ public class AiProposalView extends VBox {
         status.setText(I18n.t(unverified ? "AiProposalView.appliedUnverified" : "AiProposalView.applied"));
         show(applyButton, false);
         show(applyUnverifiedButton, false);
+    }
+
+    /** Sends the follow-up field's text to the conversation. */
+    @FXML
+    public void onFollowUp() {
+        String text = followUpField.getText();
+        if (conversation != null && text != null && !text.isBlank()) {
+            conversation.followUp(text.strip());
+        }
     }
 
     @FXML

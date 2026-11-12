@@ -377,11 +377,20 @@ public class QueryConsole extends Region {
             return;
         }
         boolean xquery = isXQueryMode();
+        CodeArea input = xquery ? xqueryArea : xpathField;
+        String current = input.getText();
+        boolean refine = current != null && !current.isBlank();
+        String header = org.fxt.freexmltoolkit.i18n.I18n.t(xquery ? "QueryConsole.ask.headerXQuery"
+                : "QueryConsole.ask.headerXPath");
+        if (refine) {
+            header = header + "\n" + org.fxt.freexmltoolkit.i18n.I18n.t(xquery ? "QueryConsole.ask.refineXQuery"
+                    : "QueryConsole.ask.refineXPath");
+        }
         org.fxt.freexmltoolkit.util.DialogHelper.promptText(org.fxt.freexmltoolkit.i18n.I18n.t("QueryConsole.ask.title"),
-                org.fxt.freexmltoolkit.i18n.I18n.t(xquery ? "QueryConsole.ask.headerXQuery" : "QueryConsole.ask.headerXPath"),
-                org.fxt.freexmltoolkit.i18n.I18n.t("QueryConsole.ask.label"), "").filter(q -> !q.isBlank())
+                header, org.fxt.freexmltoolkit.i18n.I18n.t("QueryConsole.ask.label"), "").filter(q -> !q.isBlank())
                 .ifPresent(question -> org.fxt.freexmltoolkit.controls.shell.editor.ai.AiActions.askQuery(editorHost,
-                        question.strip(), xquery, expression -> setText(xquery ? xqueryArea : xpathField, expression)));
+                        question.strip(), xquery, refine ? current : null, input::getText,
+                        expression -> setText(input, expression)));
     }
 
     /** Points the version picker at XPath or XQuery, following the mode switch. */

@@ -1118,12 +1118,22 @@ public final class UsageEvents {
      * @param repairRounds repair rounds used (0–9)
      */
     public static void aiAction(String actionId, String providerKind, String outcome, int repairRounds, long startNanos) {
+        aiAction(actionId, providerKind, outcome, repairRounds, 1, startNanos);
+    }
+
+    /**
+     * An AI action ended; {@code turn} is the request's place in its conversation (1 = the first request, 2+ = a
+     * follow-up in the AI panel), clamped to 1–9.
+     */
+    public static void aiAction(String actionId, String providerKind, String outcome, int repairRounds, int turn,
+                                long startNanos) {
         String action = AI_ACTIONS.contains(actionId) ? actionId : "other";
         String kind = AI_PROVIDER_KINDS.contains(providerKind) ? providerKind : "other";
         String result = AI_OUTCOMES.contains(outcome) ? outcome : "other";
         action("ai_action", b -> {
             b.meta("action", action).meta("provider", kind).meta("outcome", result)
-                    .meta("repairs", String.valueOf(Math.max(0, Math.min(repairRounds, 9))));
+                    .meta("repairs", String.valueOf(Math.max(0, Math.min(repairRounds, 9))))
+                    .meta("turn", String.valueOf(Math.max(1, Math.min(turn, 9))));
             b.status(switch (result) {
                 case "failed" -> TelemetryEvent.Status.ERROR;
                 case "cancelled" -> TelemetryEvent.Status.CANCELLED;

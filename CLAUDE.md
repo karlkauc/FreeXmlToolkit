@@ -261,7 +261,10 @@ Docs: `docs/mcp-server.md`.
 max 3 repairs, refusal ends), `CandidateExtractor`, verifiers `QueryVerifier` (`SandboxedQuery`, document prefixes
 NOT declared — like the Query Console), `XsltVerifier` (tools xslt_transform/validate/compare), `ProblemFixVerifier`
 (FixProposal JSON → `XPathMatchLocator`/`XPathReplacePlanner`/`EditPlan`, problem gone + no new + no content removed),
-`InAppToolContext`. `AiSettings` (`ai.*`), `AiPolicy.remoteAllowed`. UI `controls/shell/editor/ai/`: `AiState`
+`InAppToolContext`. Every action is an `AiConversation` (UI: transcript replayed append-only, follow-ups from the
+AI panel's field re-verified with the same extractor/verifier; `placed(text, now)` tracks a taken-over result so a
+follow-up sends the user's edits as `<current-artifact>`; `ContextBuilder.forQuery/forStylesheet(…, current)` refine
+what the console / Transform panel holds, `followUpMessage`; telemetry `meta.turn`). `AiSettings` (`ai.*`), `AiPolicy.remoteAllowed`. UI `controls/shell/editor/ai/`: `AiState`
 (availability property the entry points bind to), `AiSettingsPane` (Settings → AI group, removed under
 `ai.allowed=false`, saves at once), `AiProviderDialog`, `AiSendPreviewDialog` + `AiConsent`, `AiProposalView`
 (bottom dock "AI", stale check = document identity + revision + text), `AiActions` (explain/fix from

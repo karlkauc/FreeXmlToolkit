@@ -70,6 +70,9 @@ against the active document — it compiles and runs; the item count and the fir
 **Insert into the console** puts it into the input field. Running it stays your action. The query uses `*:name`
 instead of namespace prefixes, so it runs in the console as it was checked.
 
+When the console already holds a query, **Ask AI…** sends it along and the AI **refines** it ("only the first
+three", "also the currency") instead of starting over — this includes queries you wrote or changed yourself.
+
 ### A stylesheet from a target sample
 
 **Transform panel → Generate stylesheet…**: the source is the panel's input document; choose a **target sample** (a
@@ -77,6 +80,27 @@ document with the structure you want), optionally its **schema**, the XSLT versi
 stylesheet is compiled, run on the source in a sandbox (nothing is written), and the output is checked to be
 well-formed — and valid, when you gave a schema; the differences to the sample are reported. A verified stylesheet
 opens as a new, unsaved document.
+
+When the Transform panel already has a stylesheet, the dialog offers **Refine the current stylesheet** (on by
+default): the stylesheet is sent along and revised as your notes say; the target sample is then optional. If the
+stylesheet is open in a tab, **Apply to *name*** replaces its text as one edit (Ctrl+Z undoes it) — refused when you
+changed the stylesheet while the AI was working. **Open as new document** stays available.
+
+### Follow-ups: refine step by step {#follow-ups}
+
+Below every answer the AI panel has a field **Refine or ask a follow-up**. What you type there continues the same
+conversation — the model sees your earlier question and its earlier answer — and the new result is checked exactly
+like the first one:
+
+- *Query*: "only the ones in EUR", "sort them by date", "why is the result empty?"
+- *Stylesheet*: "keep the dates as they are", "also copy the comments"
+- *Explain*: further questions about the problem
+- *Fix*: "use 0 instead of removing the element" — as long as the document is unchanged; after you applied a fix or
+  edited the document, start a new **Fix with AI**.
+
+If you inserted or applied a result and then **changed it yourself**, the follow-up sends your current version, and the
+model continues from it rather than from its own last answer. A follow-up goes through the same data level and request
+preview as the first request; only the new message is added.
 
 ### When the checks do not pass
 

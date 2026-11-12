@@ -34,6 +34,11 @@ running is shown under **Help → About FreeXmlToolkit**.
   choose (OpenAI-compatible, Anthropic). Every answer is checked by the application (compiled, run, validated) and
   repaired up to three times before you see it; nothing is applied without you. Data levels and a request preview
   control what leaves your computer. See [AI Assistant](ai-assistant.md).
+- **Refine AI results step by step:** Ask AI in the Query Console refines the query already in the console, Generate
+  stylesheet can revise the Transform panel's stylesheet (and apply the result to its tab as one edit), and the AI
+  panel has a follow-up field for every action — explain, fix, query and stylesheet — that continues the
+  conversation and sends your own edits of an inserted result along. See
+  [AI Assistant → Follow-ups](ai-assistant.md#follow-ups).
 
 **Appearance**
 

@@ -6,6 +6,8 @@
 <?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -45,6 +47,20 @@
                 </VBox>
             </content>
         </ScrollPane>
+        <HBox fx:id="followUpRow" id="ai-proposal-followup-row" spacing="6" alignment="CENTER_LEFT">
+            <children>
+                <TextField fx:id="followUpField" id="ai-proposal-followup" HBox.hgrow="ALWAYS"
+                           promptText="%AiProposalView.followUpField.promptText" onAction="#onFollowUp"/>
+                <Button fx:id="followUpButton" id="ai-proposal-followup-send" text="%AiProposalView.followUp.text" styleClass="fxt-tool-button" onAction="#onFollowUp">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-send" iconSize="16"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="%AiProposalView.followUp.tooltip"/>
+                    </tooltip>
+                </Button>
+            </children>
+        </HBox>
         <FlowPane hgap="6" vgap="6">
             <children>
                 <Button fx:id="applyButton" id="ai-proposal-apply" text="%AiProposalView.apply.text" styleClass="fxt-tool-button" onAction="#onApply">
