@@ -55,6 +55,10 @@ class EditorHostEditedWithCommentTest {
         assertTrue(saved.startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- Edited with FreeXmlToolkit"),
                 saved);
         assertTrue(saved.endsWith("-->\n<a>2</a>\n"), saved);
+        assertEquals(saved, WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveText().orElse("")),
+                "the editor shows the comment right away");
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.getActiveDocument().map(OpenDocument::isDirty).orElse(true)), "clean after the save");
 
         edit("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<a>3</a>\n");
         save();

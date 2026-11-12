@@ -318,6 +318,7 @@ final class EditorFileSync {
             // thread first (doing it inside text() blocked the UI for most of a minute at 150 MB).
             return tab.xmlTextCurrentAsync().thenCompose(ignored -> writeAsync(tab, target));
         }
+        markEdited(tab);
         // Immutable document state: the text is built on the worker (copying 150 MB took seconds on the FX thread)
         var snapshot = tab.view.getCodeArea().getContent().snapshot();
         TextEncoding encoding = tab.document.getEncoding();
@@ -428,6 +429,8 @@ final class EditorFileSync {
         try {
             TextEncoding encoding = tab.document.getEncoding();
             boolean xml = tab.document.getFileType().isXmlFamily();
+            tab.text(); // deferred model edits into the text first
+            markEdited(tab);
             tab.document.setEncoding(encoding.write(target, xml ? editedWith(tab.text()) : tab.text(), xml));
             tab.document.setDirty(false);
             // Our own write must not be reported as an external change.
@@ -445,6 +448,38 @@ final class EditorFileSync {
             reportSaveFailure(tab, target, e);
             return false;
         }
+    }
+
+    /** Characters at the start of a document the editor looks at for the prolog (the comment goes there). */
+    static final int EDITED_WITH_HEAD = 64 * 1024;
+
+    /**
+     * Puts the "Edited with FreeXmlToolkit" comment into the editor's text before a save, so the editor shows what
+     * the file gets: only the changed span at the start is replaced (one edit, caret and the rest untouched), and
+     * nothing happens when the comment is already up to date, the setting is off or the prolog is not within the
+     * first {@value #EDITED_WITH_HEAD} characters (then only the file gets it, see {@link #editedWith}). FX thread.
+     */
+    private static void markEdited(EditorTab tab) {
+        if (!tab.document.getFileType().isXmlFamily()) {
+            return;
+        }
+        var area = tab.view.getCodeArea();
+        String head = area.getText(0, Math.min(area.getLength(), EDITED_WITH_HEAD));
+        String updated = editedWith(head);
+        if (updated.equals(head)) {
+            return;
+        }
+        int prefix = 0;
+        int max = Math.min(head.length(), updated.length());
+        while (prefix < max && head.charAt(prefix) == updated.charAt(prefix)) {
+            prefix++;
+        }
+        int suffix = 0;
+        while (suffix < head.length() - prefix && suffix < updated.length() - prefix
+                && head.charAt(head.length() - 1 - suffix) == updated.charAt(updated.length() - 1 - suffix)) {
+            suffix++;
+        }
+        area.replaceText(prefix, head.length() - suffix, updated.substring(prefix, updated.length() - suffix));
     }
 
     /**
