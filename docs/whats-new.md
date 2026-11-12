@@ -13,6 +13,12 @@ running is shown under **Help → About FreeXmlToolkit**.
   updated on every save, not repeated, and can be switched off (Settings → Editor → Mark saved XML files). See
   [Settings](settings.md).
 
+**Querying**
+
+- **XPath results as a table:** the Query Console's **Table** button now works for XPath too, not only for XQuery —
+  `/order/item` shows one row per item with its child elements as columns. See
+  [Query Console](query-console.md).
+
 **Standards**
 
 - **Older language versions (expert mode):** XPath 1.0 / 2.0 / 3.0, XSLT 1.0 / 2.0, XQuery 1.0 / 3.0, XSD 1.0 and

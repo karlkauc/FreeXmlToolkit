@@ -10,9 +10,11 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
+import org.fxt.freexmltoolkit.service.standards.XPathVersion;
 
 import net.sf.saxon.s9api.Axis;
 import net.sf.saxon.s9api.Processor;
+import net.sf.saxon.s9api.XPathCompiler;
 import net.sf.saxon.s9api.XQueryEvaluator;
 import net.sf.saxon.s9api.XdmItem;
 import net.sf.saxon.s9api.XdmNode;
@@ -21,7 +23,7 @@ import net.sf.saxon.s9api.XdmSequenceIterator;
 import net.sf.saxon.s9api.XdmValue;
 
 /**
- * UI-free execution of an XQuery into a tabular model for the shell's XQuery console. A sequence of
+ * UI-free execution of an XQuery (or an XPath expression) into a tabular model for the shell's XQuery console. A sequence of
  * element items becomes rows with columns taken from their child elements (or, if there are none,
  * their attributes); a sequence of atomic values becomes a single {@code "value"} column. The column
  * shape is decided from the first item. Reuses the shared Saxon {@link Processor}.
@@ -69,6 +71,43 @@ public final class XQueryTableRunner {
             evaluator.setContextItem(context);
             XdmValue result = evaluator.evaluate();
             return toTable(result);
+        } catch (Exception e) {
+            return XQueryTable.error(e.getMessage() == null ? e.toString() : e.getMessage());
+        }
+    }
+
+    /**
+     * Evaluates the XPath {@code expression} against {@code xml} and projects the result like {@link #run}. The
+     * expression is compiled at the {@code version}'s level, as the console runs it (no namespace prefixes of the
+     * document declared); XPath 1.0, which the console runs on the JDK engine, is evaluated by Saxon in 1.0
+     * compatibility mode, so the rows are the nodes the run found.
+     *
+     * @return the tabular result, or a table carrying an {@code error}
+     */
+    public static XQueryTable xpath(String xml, String expression, XPathVersion version) {
+        if (xml == null || xml.isBlank()) {
+            return XQueryTable.error(I18n.t("XQueryTableRunner.no-xml-to-query"));
+        }
+        if (expression == null || expression.isBlank()) {
+            return XQueryTable.error(I18n.t("XQueryTableRunner.no-xquery-expression"));
+        }
+        XPathVersion level = version == null ? XPathVersion.V3_1 : version;
+        try {
+            Processor processor = XsltTransformationEngine.getInstance().getSaxonProcessor();
+            XdmNode context = processor.newDocumentBuilder().build(new StreamSource(new StringReader(xml)));
+            XPathCompiler compiler = processor.newXPathCompiler();
+            if (level != XPathVersion.V3_1) {
+                compiler.setLanguageVersion(level.saxonLanguageVersion());
+            }
+            if (level == XPathVersion.V1_0) {
+                compiler.setBackwardsCompatible(true);
+            }
+            if (level == XPathVersion.V3_0 || level == XPathVersion.V3_1) {
+                compiler.declareNamespace("map", "http://www.w3.org/2005/xpath-functions/map");
+                compiler.declareNamespace("array", "http://www.w3.org/2005/xpath-functions/array");
+                compiler.declareNamespace("math", "http://www.w3.org/2005/xpath-functions/math");
+            }
+            return toTable(compiler.evaluate(expression, context));
         } catch (Exception e) {
             return XQueryTable.error(e.getMessage() == null ? e.toString() : e.getMessage());
         }

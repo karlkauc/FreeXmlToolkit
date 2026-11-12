@@ -54,9 +54,11 @@ pane shows the previous run's XML result with syntax highlighting.*
     syntax-highlighted** (tags, attributes, values, comments), and **JSON results** (e.g. from
     JSONPath queries) get JSON highlighting; scalar results and messages stay plain.
   - **Copy** - Copy the full result to the clipboard.
-  - **Table** - Shows the last XQuery result as a table in the
-    [OUTPUT panel](transform-panel.md#the-output-panel-results) (enabled after an XQuery run whose result can be
-    shown as a table).
+  - **Table** - Shows the last XPath or XQuery result as a table in the
+    [OUTPUT panel](transform-panel.md#the-output-panel-results): each result item is a row, its child elements
+    (or, without any, its attributes) are the columns; plain values fill a single **value** column. Enabled after
+    a run on an XML document whose result has at least one item (not for JSONPath). An XPath result is projected
+    at the console's [XPath version](language-versions.md).
 
 Like the text editor, every console area zooms with the mouse: hold **Ctrl** and scroll the
 **mouse wheel** over the query input or the results to change that area's font size

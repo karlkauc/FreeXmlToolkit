@@ -55,4 +55,26 @@ class XQueryTableRunnerTest {
         assertTrue(t.isError(), "a malformed query must surface an error");
         assertTrue(t.rows().isEmpty());
     }
+
+    @Test
+    void anXPathResultIsProjectedLikeAnXQueryResult() {
+        XQueryTableRunner.XQueryTable t = XQueryTableRunner.xpath(XML, "/order/item",
+                org.fxt.freexmltoolkit.service.standards.XPathVersion.V3_1);
+        assertFalse(t.isError(), t.error());
+        assertEquals(List.of("sku", "qty"), t.columns());
+        assertEquals(List.of(List.of("A", "2"), List.of("B", "5")), t.rows());
+    }
+
+    @Test
+    void anXPathRunsAtItsVersion() {
+        var v20 = org.fxt.freexmltoolkit.service.standards.XPathVersion.V2_0;
+        var v10 = org.fxt.freexmltoolkit.service.standards.XPathVersion.V1_0;
+        assertEquals(List.of(List.of("A"), List.of("B")),
+                XQueryTableRunner.xpath(XML, "/order/item/sku", v10).rows(), "1.0 node set");
+        assertEquals(List.of(List.of("7")), XQueryTableRunner.xpath(XML, "sum(//qty)", v10).rows());
+        // a map constructor is XPath 3.1 only
+        assertTrue(XQueryTableRunner.xpath(XML, "map{'a':1}?a", v20).isError());
+        assertFalse(XQueryTableRunner.xpath(XML, "map{'a':1}?a", null).isError());
+        assertTrue(XQueryTableRunner.xpath(XML, "/order/item[", null).isError());
+    }
 }

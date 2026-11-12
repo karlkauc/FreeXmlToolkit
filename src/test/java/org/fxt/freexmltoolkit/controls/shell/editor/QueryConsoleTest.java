@@ -143,6 +143,13 @@ class QueryConsoleTest {
             String r = console.getResultsText();
             return r != null && r.contains("item") && !"Running…".equals(r);
         });
+        // the results are highlighted off the FX thread, after the text is shown
+        try {
+            WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                    console::resultsStyleClassesForTest).contains("anytag"));
+        } catch (java.util.concurrent.TimeoutException ignored) {
+            // asserted below with the classes found
+        }
         Set<String> xmlClasses = WaitForAsyncUtils.waitForAsyncFx(2000, console::resultsStyleClassesForTest);
         assertTrue(xmlClasses.contains("tagmark") && xmlClasses.contains("anytag"),
                 "XML results should carry XML highlight classes, got: " + xmlClasses);
@@ -541,6 +548,34 @@ class QueryConsoleTest {
             return null;
         });
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.transformOutputPanel().getResultRowCount() == 2);
+    }
+
+    @Test
+    void xpathResultCanBeShownAsATable(@TempDir Path tmp) throws Exception {
+        Path file = tmp.resolve("order.xml");
+        Files.writeString(file, "<order><item><sku>A</sku><qty>2</qty></item><item><sku>B</sku><qty>5</qty></item></order>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(file));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("order")).orElse(false));
+        QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXPath("/order/item");
+            console.runForTest();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, console::isTableAvailableForTest);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.onShowTable();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.transformOutputPanel().getResultRowCount() == 2);
+        // an expression with no rows disables it again
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXPath("/order/none");
+            console.runForTest();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> !console.isTableAvailableForTest());
     }
 
     @Test

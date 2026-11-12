@@ -147,6 +147,11 @@ public class TransformOutputPanel extends VBox {
         showRun("Query", text, null, elapsedMs, null);
     }
 
+    /** Shows an XPath query result with its tabular projection (Table view selected). */
+    public void showXPathResult(String text, XQueryTableRunner.XQueryTable table, long elapsedMs) {
+        showRun("Query", text, null, elapsedMs, table);
+    }
+
     /** Shows an XQuery result, with its tabular projection when available. */
     public void showXQueryResult(String text, XQueryTableRunner.XQueryTable table,
                                  OutputFormat format, long elapsedMs) {

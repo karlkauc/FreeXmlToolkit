@@ -106,10 +106,11 @@ public class QueryConsole extends Region {
     @FXML private MenuButton snippetsMenu;
     @FXML private MenuButton examplesMenu;
     @FXML private Button tableButton;
-    /** The last XQuery run's text, tabular projection and duration (for "Table"). */
+    /** The last XPath/XQuery run's text, tabular projection and duration (for "Table"). */
     private String lastXQueryResult;
     private XQueryTableRunner.XQueryTable lastXQueryTable;
     private long lastXQueryElapsedMs;
+    private boolean lastTableFromXPath;
     /** The run's result items that are nodes of the document: list, navigation, highlights. */
     private QueryHits hits;
 
@@ -296,13 +297,27 @@ public class QueryConsole extends Region {
         };
     }
 
-    /** "Table": shows the last XQuery result with its tabular projection in the OUTPUT panel. */
+    /** "Table": shows the last XPath/XQuery result with its tabular projection in the OUTPUT panel. */
     @FXML
     public void onShowTable() {
-        if (lastXQueryTable != null && !lastXQueryTable.isEmpty()) {
+        if (lastXQueryTable == null || lastXQueryTable.isEmpty()) {
+            return;
+        }
+        if (lastTableFromXPath) {
+            editorHost.transformOutputPanel().showXPathResult(lastXQueryResult, lastXQueryTable, lastXQueryElapsedMs);
+        } else {
             editorHost.transformOutputPanel().showXQueryResult(lastXQueryResult, lastXQueryTable,
                     OutputFormat.XML, lastXQueryElapsedMs);
         }
+    }
+
+    /** Remembers a run's result for "Table" and enables it when the result has rows. */
+    private void rememberTable(String result, XQueryTableRunner.XQueryTable table, long elapsedMs, boolean xpath) {
+        lastXQueryResult = result;
+        lastXQueryTable = table;
+        lastXQueryElapsedMs = elapsedMs;
+        lastTableFromXPath = xpath;
+        tableButton.setDisable(table == null || table.isError() || table.isEmpty());
     }
 
     /** Shows the XPath field in XPath mode and the XQuery area in XQuery mode. */
@@ -469,11 +484,14 @@ public class QueryConsole extends Region {
                     ? locateItems(() -> org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.locateItems(content,
                             new org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.XPathQuery(path, Map.of(), version)))
                     : List.of();
+            // the run checked the expression at its version; the table projects the same result (XML only)
+            XQueryTableRunner.XQueryTable table = ok && !json ? XQueryTableRunner.xpath(content, path, version) : null;
             Platform.runLater(() -> {
                 if (gen == runGeneration) {
                     setResultsText(result);
                     updateStatsLabel(result, elapsedMs);
                     hits.setItems(items, revision);
+                    rememberTable(result, table, elapsedMs, true);
                 }
             });
         });
@@ -520,10 +538,7 @@ public class QueryConsole extends Region {
                     setResultsText(result);
                     hits.setItems(items, revision);
                     updateStatsLabel(result, elapsedMs);
-                    lastXQueryResult = result;
-                    lastXQueryTable = table;
-                    lastXQueryElapsedMs = elapsedMs;
-                    tableButton.setDisable(table == null || table.isEmpty());
+                    rememberTable(result, table, elapsedMs, false);
                 }
             });
         });
@@ -975,7 +990,7 @@ public class QueryConsole extends Region {
         area.replaceText(text == null ? "" : text);
     }
 
-    /** Test seam: whether the last XQuery result can be shown as a table. */
+    /** Test seam: whether the last XPath/XQuery result can be shown as a table. */
     boolean isTableAvailableForTest() {
         return !tableButton.isDisable();
     }

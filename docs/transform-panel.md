@@ -268,7 +268,7 @@ The OUTPUT panel header shows:
       **Open as Tab**, **Browser** and **Save…** use the whole result.
     - **Preview** - the result rendered as a web page; available for **HTML/XHTML**
       results only.
-    - **Table** - available for **XQuery** results that return a **sequence** of items
+    - **Table** - available for **XQuery** results (and Query Console **XPath** results) that return a **sequence** of items
       (auto-selected when applicable). Each item becomes a row, and the columns are taken
       from each item's child elements (or, if an item has no child elements, its
       attributes). A sequence of plain values is shown in a single **value** column.

@@ -65,7 +65,7 @@ toggles:
 |-------------|--------------------------------------------------------------------------|
 | **Text**    | The result in a read-only code editor with line numbers and syntax highlighting (the default) |
 | **Preview** | For HTML/XHTML output: the result rendered as a web page                 |
-| **Table**   | For XQuery results that return a sequence: the items shown as a table    |
+| **Table**   | For XQuery (and Query Console XPath) results that return a sequence: the items shown as a table |
 
 The **OUTPUT METHOD** defaults to **Auto**: the format (XML, HTML, XHTML, Text, JSON) is
 detected from the stylesheet's `xsl:output` declaration. Pick a concrete format in the

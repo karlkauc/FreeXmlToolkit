@@ -2,10 +2,12 @@ package org.fxt.freexmltoolkit.service.ai.agent;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.fxt.freexmltoolkit.service.SandboxedQuery;
@@ -99,6 +101,37 @@ class VerifiedGenerationTest {
         ProviderException e = assertThrows(ProviderException.class, () -> new VerifiedGeneration().run(provider, first(),
                 CandidateExtractor.xpath(), xpathVerifier(), 3, listener, cancel));
         assertEquals(ProviderException.Kind.CANCELLED, e.kind());
+    }
+
+    @Test
+    void aFollowUpReplaysTheTranscriptUnchangedAndIsVerifiedAgain() throws Exception {
+        ScriptedProvider provider = new ScriptedProvider("```xpath\ncount(//fund[\n```", "```xpath\ncount(//*:fund)\n```",
+                "```xpath\n//*:fund[position() le 1\n```", "```xpath\n//*:fund[1]\n```");
+        VerifiedGeneration.Outcome firstOutcome = new VerifiedGeneration().run(provider, first(),
+                CandidateExtractor.xpath(), xpathVerifier(), 3, null, CancelToken.none());
+        List<ChatMessage> transcript = firstOutcome.transcript();
+        assertEquals(4, transcript.size(), "question, broken answer, repair, verified answer");
+
+        List<ChatMessage> continued = new ArrayList<>(transcript);
+        continued.add(ChatMessage.user("Follow-up from the user: only the first fund"));
+        ChatRequest followUp = new ChatRequest("system", continued, List.of(), 0, null);
+        VerifiedGeneration.Outcome second = new VerifiedGeneration().run(provider, followUp,
+                CandidateExtractor.xpath(), xpathVerifier(), 3, null, CancelToken.none());
+
+        assertEquals(VerifiedGeneration.Status.VERIFIED, second.status());
+        assertEquals("//*:fund[1]", second.candidate());
+        assertEquals(1, second.repairRounds(), "the follow-up's broken answer was repaired");
+        // the follow-up request replays every earlier message as the same object (provider state included)
+        List<ChatMessage> sent = provider.requests().get(2).messages();
+        for (int i = 0; i < transcript.size(); i++) {
+            assertSame(transcript.get(i), sent.get(i), "message " + i);
+        }
+        assertTrue(sent.getLast().text().contains("only the first fund"));
+        // and the follow-up's own transcript continues it append-only
+        for (int i = 0; i < continued.size(); i++) {
+            assertSame(continued.get(i), second.transcript().get(i), "message " + i);
+        }
+        assertEquals(continued.size() + 3, second.transcript().size());
     }
 
     @Test
