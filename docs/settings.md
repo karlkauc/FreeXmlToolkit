@@ -168,6 +168,14 @@ at once.
 ![An XML document in Monokai, dark theme](img/unified-shell-syntax-monokai-dark.png)
 *The same scheme in the dark theme*
 
+![An XML document in the oXygen scheme, light theme](img/unified-shell-syntax-oxygen.png)
+
+*oXygen, light: dark-blue tags, orange attribute names, brown values, green comments.*
+
+![An XML document in the XMLSpy-like scheme, light theme](img/unified-shell-syntax-xmlspy.png)
+
+*XMLSpy-like, light: blue tags, red attribute names, black values.*
+
 ## AI {#ai}
 
 **Settings → AI** switches the [AI assistant](ai-assistant.md) on (it is off by default), sets what may be sent

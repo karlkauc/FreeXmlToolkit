@@ -84,6 +84,14 @@ class XsltVersionsTest {
     }
 
     @Test
+    void syntaxAfterAnUnknownFunctionIsStillReported() {
+        var issues = XsltCompatibilityCheck.check(stylesheet("2.0",
+                "<xsl:value-of select=\"head(//a) || 'x'\"/>"), null, XsltVersion.V2_0);
+        assertTrue(issues.stream().anyMatch(i -> i.message().contains("||")), issues.toString());
+        assertTrue(issues.stream().anyMatch(i -> i.message().contains("head#1")), issues.toString());
+    }
+
+    @Test
     void xslt20ReportsAVersion30Declaration() {
         var issues = XsltCompatibilityCheck.check(stylesheet("3.0", "<xsl:value-of select=\"1\"/>"), null,
                 XsltVersion.V2_0);

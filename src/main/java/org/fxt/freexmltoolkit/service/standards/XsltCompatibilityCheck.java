@@ -66,6 +66,15 @@ public final class XsltCompatibilityCheck {
             "accumulator-before", "accumulator-after", "copy-of", "snapshot", "stream-available",
             "current-output-uri", "available-system-properties");
 
+    /** XPath 3.x syntax, scanned when the 2.0 compile stopped early (string literals masked). */
+    private static final Map<java.util.regex.Pattern, String> XPATH3_SYNTAX = Map.of(
+            java.util.regex.Pattern.compile("\\|\\|"), "The || operator",
+            java.util.regex.Pattern.compile("=>"), "The arrow operator =>",
+            java.util.regex.Pattern.compile("(?<![!=<>])!(?!=)"), "The simple map operator !",
+            java.util.regex.Pattern.compile("\\blet\\s+\\$"), "let",
+            java.util.regex.Pattern.compile("\\b(?:map|array)\\s*\\{"), "A map / array constructor",
+            java.util.regex.Pattern.compile("\\bfunction\\s*\\("), "An inline function");
+
     /** Attributes that hold an XPath expression or pattern, per XSLT element ({@code *} = any). */
     private static final Map<String, Set<String>> EXPRESSION_ATTRIBUTES = Map.ofEntries(
             Map.entry("*", Set.of("select", "test", "match", "group-by", "group-adjacent", "group-starting-with",
@@ -282,10 +291,14 @@ public final class XsltCompatibilityCheck {
                 compiler.declareNamespace(prefix, uri);
             }
         });
+        boolean syntaxChecked = true;
         try {
             compiler.compile(expression);
         } catch (SaxonApiException e) {
             String code = e.getErrorCode() == null ? "" : e.getErrorCode().getLocalName();
+            // Saxon binds function calls while parsing: an unknown (e.g. 3.x) function stops the parse before
+            // later 3.x syntax is seen, so that syntax is scanned for below
+            syntaxChecked = !"XPST0017".equals(code);
             // unknown prefixes / functions: the function scan below decides about functions
             if (!"XPST0081".equals(code) && !"XPST0017".equals(code) && !"XPST0008".equals(code)
                     && !"XPDY0002".equals(code)) {
@@ -295,6 +308,14 @@ public final class XsltCompatibilityCheck {
             }
         }
         SourceMask mask = SourceMask.ofQuery(expression);
+        if (!syntaxChecked) {
+            for (var construct : XPATH3_SYNTAX.entrySet()) {
+                if (construct.getKey().matcher(mask.masked()).find()) {
+                    issues.add(issue(line, "XPST0003", where + ": " + construct.getValue()
+                            + " is not available in XPath 2.0 (as used by XSLT 2.0).", module));
+                }
+            }
+        }
         for (CompatibilityIssue found : FunctionCatalog.findNewerCalls(mask, XPathVersion.V2_0, "XSLT 2.0")) {
             if (XSLT20_FUNCTIONS.stream().anyMatch(f -> found.message().contains(" " + f + "#")
                     || found.message().contains(" fn:" + f + "#"))) {
