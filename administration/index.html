@@ -1178,6 +1178,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../language-versions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Language Versions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../template-management/" class="md-nav__link">
         
   
@@ -3323,6 +3351,26 @@ forward slashes (<code>C:/Schemas</code>). Characters outside Latin-1 have to be
 <td><code>security.dtd.allowed</code></td>
 <td><code>false</code></td>
 <td>No DTD validation and no DTD loading; DOCTYPEs are only checked for well-formedness</td>
+</tr>
+<tr>
+<td><code>standards.expertMode</code></td>
+<td><code>true</code> / <code>false</code></td>
+<td>Choice of language versions (Settings → Schemas &amp; Validation → Standards); see <a href="../language-versions/">Language Versions</a></td>
+</tr>
+<tr>
+<td><code>standards.xpath</code>, <code>standards.xquery</code>, <code>standards.xslt</code></td>
+<td><code>1.0</code> / <code>2.0</code> / <code>3.0</code> / <code>3.1</code> (as the language has them)</td>
+<td>Default XPath, XQuery and XSLT version in expert mode</td>
+</tr>
+<tr>
+<td><code>standards.xsd</code>, <code>standards.xml</code></td>
+<td><code>auto</code> / <code>1.0</code> / <code>1.1</code></td>
+<td>Default XSD and XML version in expert mode</td>
+</tr>
+<tr>
+<td><code>standards.schematronBinding</code></td>
+<td><code>default</code> / <code>xslt</code> / <code>xslt2</code> / <code>xslt3</code></td>
+<td>Default query binding of a Schematron without <code>@queryBinding</code> in expert mode</td>
 </tr>
 <tr>
 <td><code>fundsxml.enabled</code></td>

@@ -1178,6 +1178,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../language-versions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Language Versions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../template-management/" class="md-nav__link">
         
   
@@ -3638,7 +3666,7 @@ is saved.</p>
 </tr>
 <tr>
 <td><code>schemaBindings</code></td>
-<td><code>files</code> (pattern) → <code>schema</code>, <code>schematron</code>, <code>scenario</code> (each optional); first match per part</td>
+<td><code>files</code> (pattern) → <code>schema</code>, <code>schematron</code>, <code>scenario</code>, <code>xsdVersion</code> (<code>auto</code>, <code>1.0</code>, <code>1.1</code>), <code>xmlVersion</code> (<code>auto</code>, <code>1.0</code>, <code>1.1</code>), <code>schematronBinding</code> (<code>xslt</code>, <code>xslt2</code>, <code>xslt3</code>) (each optional); first match per part — the versions see <a href="../language-versions/">Language Versions</a></td>
 </tr>
 <tr>
 <td><code>catalogs</code></td>
@@ -3646,7 +3674,7 @@ is saved.</p>
 </tr>
 <tr>
 <td><code>scenarios</code></td>
-<td><code>name</code>, <code>stylesheet</code>, optional <code>input</code> (<code>${file}</code> = the file it runs for), <code>parameters</code>, <code>outputFormat</code> (<code>XML</code>, <code>HTML</code>, <code>XHTML</code>, <code>TEXT</code>, <code>JSON</code>, <code>PDF</code>; default from <code>xsl:output</code>), <code>output</code> (<code>${name}</code>, <code>${dir}</code>), <code>processor</code> (PDF only: <code>builtin</code> or the name of an <a href="../pdf-generator/#external-xsl-fo-processors">external XSL-FO processor</a> from the settings; default: the default processor), <code>expected</code> (like <code>output</code>), <code>compare</code> (optional: <code>ignore</code> list of XPaths, <code>tolerance</code>, <code>ignoreOrder</code>, <code>keys</code>, <code>placeholders</code>, <code>ignoreComments</code>, <code>exactWhitespace</code>)</td>
+<td><code>name</code>, <code>stylesheet</code>, optional <code>input</code> (<code>${file}</code> = the file it runs for), <code>parameters</code>, <code>outputFormat</code> (<code>XML</code>, <code>HTML</code>, <code>XHTML</code>, <code>TEXT</code>, <code>JSON</code>, <code>PDF</code>; default from <code>xsl:output</code>), <code>output</code> (<code>${name}</code>, <code>${dir}</code>), <code>processor</code> (PDF only: <code>builtin</code> or the name of an <a href="../pdf-generator/#external-xsl-fo-processors">external XSL-FO processor</a> from the settings; default: the default processor), <code>expected</code> (like <code>output</code>), <code>compare</code> (optional: <code>ignore</code> list of XPaths, <code>tolerance</code>, <code>ignoreOrder</code>, <code>keys</code>, <code>placeholders</code>, <code>ignoreComments</code>, <code>exactWhitespace</code>), <code>languageVersion</code> (optional: XSLT <code>1.0</code>/<code>2.0</code>/<code>3.0</code> or XQuery <code>1.0</code>/<code>3.0</code>/<code>3.1</code>, see <a href="../language-versions/">Language Versions</a>)</td>
 </tr>
 </tbody>
 </table>

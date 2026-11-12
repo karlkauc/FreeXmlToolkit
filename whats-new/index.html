@@ -1178,6 +1178,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../language-versions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Language Versions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../template-management/" class="md-nav__link">
         
   
@@ -3347,6 +3375,16 @@
 <a href="https://github.com/karlkauc/FreeXmlToolkit/releases">GitHub Releases page</a>; the version you are
 running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
 <h2 id="310-2026-11-11">3.1.0 (2026-11-11)<a class="headerlink" href="#310-2026-11-11" title="Permanent link">¶</a></h2>
+<p><strong>Standards</strong></p>
+<ul>
+<li><strong>Older language versions (expert mode):</strong> XPath 1.0 / 2.0 / 3.0, XSLT 1.0 / 2.0, XQuery 1.0 / 3.0, XSD 1.0 and
+  XML 1.0 can be chosen, and the Schematron query binding of schemas without one. XPath 1.0 and XSLT 1.0 run on the
+  JDK's real 1.0 processors; newer syntax, functions and instructions are reported as errors, so code written in
+  FreeXmlToolkit runs on older processors too. Version pickers in the Query Console, XPath search, Transform and
+  Validation panels, per project binding and scenario, <code>--lang-version</code> / <code>--xsd-version</code> / <code>--xml-version</code> /
+  <code>--schematron-binding</code> on the command line and version arguments for the MCP tools. Off by default. See
+  <a href="../language-versions/">Language Versions</a>.</li>
+</ul>
 <p><strong>AI</strong></p>
 <ul>
 <li><strong>MCP server for AI agents:</strong> <code>fxt-cli mcp</code> lets Claude Code and other MCP clients validate documents, run and

@@ -1454,6 +1454,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../language-versions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Language Versions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../template-management/" class="md-nav__link">
         
   
@@ -3610,8 +3638,24 @@ a JSON Schema, with the validators of the <a href="../validation-panel/">Validat
 <td><code>--fail-on-warning</code></td>
 <td>Warnings make a file invalid too</td>
 </tr>
+<tr>
+<td><code>--xsd-version VERSION</code></td>
+<td><code>auto</code> (default: XSD 1.1 when the schema uses it), <code>1.0</code> or <code>1.1</code></td>
+</tr>
+<tr>
+<td><code>--xml-version VERSION</code></td>
+<td><code>auto</code> (default: as declared), <code>1.0</code> (a document declared as XML 1.1 is an error) or <code>1.1</code></td>
+</tr>
+<tr>
+<td><code>--schematron-binding BINDING</code></td>
+<td>Query binding of a Schematron without <code>@queryBinding</code>: <code>xslt</code>, <code>xslt2</code> (default) or <code>xslt3</code>; with <code>xslt</code> / <code>xslt2</code> every context and test must be XPath 1.0 / 2.0</td>
+</tr>
 </tbody>
 </table>
+<p><strong>Standards.</strong> Without the three version options a run behaves as before. With them it checks against an older
+standard, for example for a processor without XSD 1.1: <code>--xsd-version 1.0</code> compiles the schema as XSD 1.0 and
+reports assertions and other XSD 1.1 constructs. A <a href="../projects/">project</a> can name the versions per file pattern;
+the options win. See <a href="../language-versions/">Language Versions</a>.</p>
 <p><strong>Which schema is used.</strong> With <code>--xsd</code> / <code>--schema</code>, that schema (or DTD, or RELAX NG schema) for every XML file. With <code>--project</code>, the
 schema the project binds to the file (first matching pattern), and the Schematron it binds (unless
 <code>--schematron</code> is given); JSON files get the JSON Schema the project binds to them (unless
@@ -3660,7 +3704,9 @@ treated as JSON, everything else as XML.</p>
 </table>
 <p>Paths in reports are relative to the working directory when the files lie below it.</p>
 <h2 id="transform">transform<a class="headerlink" href="#transform" title="Permanent link">¶</a></h2>
-<p>Runs an XSLT 3.0 stylesheet, an XQuery 3.1 or an XProc 3.0 pipeline.</p>
+<p>Runs an XSLT 3.0 stylesheet, an XQuery 3.1 or an XProc 3.0 pipeline. With <code>--lang-version</code> an older XSLT or
+XQuery: XSLT 1.0 runs on the JDK's XSLT 1.0 processor (no <code>--profile</code>), XSLT 2.0 and XQuery 1.0 / 3.0 fail with
+every newer construct listed (exit code 1) before anything runs.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>fxt-cli<span class="w"> </span>transform<span class="w"> </span>-s<span class="w"> </span>STYLESHEET<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span><span class="o">[</span>INPUT...<span class="o">]</span>
 </code></pre></div>
 <table>
@@ -3703,6 +3749,10 @@ treated as JSON, everything else as XML.</p>
 <td><code>--warmup N</code></td>
 <td>With <code>--profile</code>: runs before the measured one (default 1), so Java's JIT compiler has warmed up</td>
 </tr>
+<tr>
+<td><code>--lang-version VERSION</code></td>
+<td>XSLT <code>1.0</code>, <code>2.0</code>, <code>3.0</code> (default) or XQuery <code>1.0</code>, <code>3.0</code>, <code>3.1</code> (default); see <a href="../language-versions/">Language Versions</a></td>
+</tr>
 </tbody>
 </table>
 <p>Without <code>-o</code> and <code>-d</code> the result goes to standard output. <code>xsl:message</code> output goes to standard
@@ -3714,7 +3764,7 @@ XProc pipelines may not run programs (<code>p:os-exec</code>), run computed pipe
 requests or load documents from the network, unless <code>security.xproc.unrestricted=true</code> is set in
 the settings (see <a href="../threat-model/">Threat Model</a>).</p>
 <h2 id="query">query<a class="headerlink" href="#query" title="Permanent link">¶</a></h2>
-<p>Evaluates an XPath 3.1, XQuery 3.1 or JSONPath expression against files, like the
+<p>Evaluates an XPath, XQuery (3.1, or an older version with <code>--lang-version</code>) or JSONPath expression against files, like the
 <a href="../query-console/">Query Console</a> of the application. Made for scripts: one result per input, and
 an exit code like <code>grep</code>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>-e<span class="w"> </span>EXPR<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span><span class="o">[</span>FILE<span class="p">|</span>FOLDER<span class="p">|</span>-<span class="o">]</span>...
@@ -3743,6 +3793,10 @@ an exit code like <code>grep</code>.</p>
 <tr>
 <td><code>--var NAME=VALUE</code></td>
 <td>An external XQuery variable (string value); repeatable</td>
+</tr>
+<tr>
+<td><code>--lang-version VERSION</code></td>
+<td>XPath <code>1.0</code>, <code>2.0</code>, <code>3.0</code>, <code>3.1</code> (default) or XQuery <code>1.0</code>, <code>3.0</code>, <code>3.1</code> (default); see <a href="../language-versions/">Language Versions</a></td>
 </tr>
 <tr>
 <td><code>--include GLOB,...</code></td>
@@ -3775,6 +3829,8 @@ errors go to standard error).</p>
 <a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>-e<span class="w"> </span><span class="s1">'$.items[*].name'</span><span class="w"> </span>data.json
 <a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>curl<span class="w"> </span>-s<span class="w"> </span>https://example.org/feed.xml<span class="w"> </span><span class="p">|</span><span class="w"> </span>fxt-cli<span class="w"> </span>query<span class="w"> </span>-e<span class="w"> </span><span class="s1">'//title/string()'</span><span class="w"> </span>-
 <a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="k">if</span><span class="w"> </span>fxt-cli<span class="w"> </span>query<span class="w"> </span>-e<span class="w"> </span><span class="s1">'//error'</span><span class="w"> </span>log.xml<span class="w"> </span>&gt;<span class="w"> </span>/dev/null<span class="p">;</span><span class="w"> </span><span class="k">then</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"errors found"</span><span class="p">;</span><span class="w"> </span><span class="k">fi</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>--lang-version<span class="w"> </span><span class="m">2</span>.0<span class="w"> </span>-e<span class="w"> </span><span class="s1">'string-join(//ISIN, ",")'</span><span class="w"> </span>fund.xml<span class="w">        </span><span class="c1"># fails with XPath 3.x</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>--lang-version<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span>-e<span class="w"> </span><span class="s1">'count(//Position)'</span><span class="w"> </span>fund.xml<span class="w">               </span><span class="c1"># the JDK's XPath 1.0 engine</span>
 </code></pre></div>
 <h2 id="xsd-doc">xsd-doc<a class="headerlink" href="#xsd-doc" title="Permanent link">¶</a></h2>
 <p>Generates the documentation of an XML Schema, like <strong>Generate Documentation</strong> in the
