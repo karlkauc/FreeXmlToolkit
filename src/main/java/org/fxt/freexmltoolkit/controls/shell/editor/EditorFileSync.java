@@ -716,6 +716,14 @@ final class EditorFileSync {
      * @return whether the application may close now
      */
     boolean confirmExit(java.util.function.Function<java.util.List<OpenDocument>, ExitChoice> prompter) {
+        for (Tab tab : host.tabPane.getTabs()) {
+            if (tab.getContent() instanceof LargeFileView viewer && viewer.hasPendingChanges()) {
+                host.tabPane.getSelectionModel().select(tab);
+                if (!viewer.confirmDiscard()) {
+                    return false;
+                }
+            }
+        }
         java.util.List<EditorTab> dirty = new java.util.ArrayList<>();
         for (Tab tab : host.tabPane.getTabs()) {
             if (tab instanceof EditorTab et && et.document.isDirty()) {

@@ -333,6 +333,8 @@
         <Or>
             <Field name="saveWithConflictsAnswer"/>
             <Field name="largeFileAnswer"/>
+            <Field name="exportTarget"/>
+            <Field name="pendingAnswer"/>
         </Or>
     </Match>
 

@@ -112,14 +112,14 @@ class LargeFileViewTest {
         assertEquals(List.of("#", "Element", "@id", "amount"),
                 WaitForAsyncUtils.waitForAsyncFx(2000, view::recordColumnsForTesting));
         assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, view::recordsLabelForTesting)
-                .startsWith("Children of /orders[1]: 1,000 loaded, more available"));
+                .startsWith("Children of /orders[1]: 1–1,000 loaded, more available"));
         var root = WaitForAsyncUtils.waitForAsyncFx(2000, () -> view.treeForTesting().getRoot());
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> root.getChildren().size() == LargeFileView.PAGE + 1);
-        assertEquals("order id=\"1\"", LargeFileView.label(
+        assertEquals("order id=\"1\"", LargeFileStructurePane.label(
                 (org.fxt.freexmltoolkit.service.largefile.LargeXmlStructure.Node) root.getChildren().get(0).getValue()));
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            view.onLoadMore();
+            view.structurePaneForTesting().onLoadMore();
             return null;
         });
         WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
@@ -135,7 +135,7 @@ class LargeFileViewTest {
         assertEquals(10, WaitForAsyncUtils.waitForAsyncFx(2000, view::selectionForTesting)[0], "line 11, row 10");
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            view.extract(tenth);
+            view.structurePaneForTesting().extract(tenth);
             return null;
         });
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Structure tab of the Large File Viewer: element tree (paged), records table of the selected element,
+  Go to XPath / child number, Show in Graphic, export. Loaded by LargeFileStructurePane (fx:root).
+-->
+<fx:root type="javafx.scene.layout.VBox" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <HBox spacing="8" alignment="CENTER_LEFT">
+            <padding>
+                <Insets top="4" right="8" bottom="2" left="8"/>
+            </padding>
+            <children>
+                <Label text="%LargeFileStructurePane.path.text"/>
+                <TextField fx:id="pathField" id="large-file-path" HBox.hgrow="ALWAYS"
+                           promptText="%LargeFileStructurePane.pathField.promptText" onAction="#onGoToPath"/>
+                <Button text="%LargeFileStructurePane.go.text" id="large-file-path-go" onAction="#onGoToPath">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-signpost" iconSize="16"/>
+                    </graphic>
+                </Button>
+            </children>
+        </HBox>
+        <SplitPane dividerPositions="0.35" VBox.vgrow="ALWAYS">
+            <items>
+                <TreeView fx:id="tree" id="large-file-tree"/>
+                <VBox spacing="4">
+                    <children>
+                        <Label fx:id="recordsLabel" id="large-file-records-label" text="%LargeFileView.recordsLabel.text">
+                            <padding>
+                                <Insets top="4" right="8" bottom="0" left="8"/>
+                            </padding>
+                        </Label>
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <padding>
+                                <Insets top="2" right="8" bottom="2" left="8"/>
+                            </padding>
+                            <children>
+                                <TextField fx:id="childField" id="large-file-child" prefColumnCount="8"
+                                           promptText="%LargeFileStructurePane.childField.promptText" onAction="#onGoToChild"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button fx:id="loadMoreButton" text="%LargeFileView.loadMoreButton.text" id="large-file-load-more"
+                                        onAction="#onLoadMore" disable="true" minWidth="-Infinity">
+                                    <graphic>
+                                        <IconifyIcon iconLiteral="bi-chevron-double-down" iconSize="16"/>
+                                    </graphic>
+                                </Button>
+                                <Button fx:id="graphicButton" text="%LargeFileStructurePane.graphicButton.text" id="large-file-show-graphic"
+                                        onAction="#onShowInGraphic" minWidth="-Infinity">
+                                    <graphic>
+                                        <IconifyIcon iconLiteral="bi-grid-3x3" iconSize="16"/>
+                                    </graphic>
+                                    <tooltip>
+                                        <Tooltip text="%LargeFileStructurePane.graphicButton.tooltip"/>
+                                    </tooltip>
+                                </Button>
+                                <MenuButton fx:id="exportButton" text="%LargeFileStructurePane.exportButton.text" id="large-file-export"
+                                            minWidth="-Infinity">
+                                    <graphic>
+                                        <IconifyIcon iconLiteral="bi-download" iconSize="16"/>
+                                    </graphic>
+                                    <items>
+                                        <MenuItem text="%LargeFileStructurePane.export-csv.text" id="large-file-export-csv" onAction="#onExportCsv">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-filetype-csv" iconSize="16"/>
+                                            </graphic>
+                                        </MenuItem>
+                                        <MenuItem text="%LargeFileStructurePane.export-excel.text" id="large-file-export-excel" onAction="#onExportExcel">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-file-earmark-spreadsheet" iconSize="16"/>
+                                            </graphic>
+                                        </MenuItem>
+                                    </items>
+                                </MenuButton>
+                            </children>
+                        </HBox>
+                        <TableView fx:id="records" id="large-file-records" VBox.vgrow="ALWAYS">
+                            <placeholder>
+                                <Label text="%LargeFileView.no-child-elements.text"/>
+                            </placeholder>
+                        </TableView>
+                    </children>
+                </VBox>
+            </items>
+        </SplitPane>
+    </children>
+</fx:root>

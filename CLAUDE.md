@@ -175,11 +175,26 @@ bundled fonts registered for every weight 100–900 (FOP re-maps CSS weights), c
 
 `service/largefile/`: `LargeFileIndex` (sparse row index, every 1024th row's offset; rows ≤ 4 KB, read
 from disk on demand; UTF-8/single-byte only), `LargeXmlStructure` (byte-level scanner: children of one
-element a page at a time, byte ranges, XPaths, fields), `LargeFileValidation` (streaming XSD/well-formedness
-via `XercesXmlValidationService.validateStream`). UI `controls/shell/editor/LargeFileView` (Text | Problems |
-Structure; `ListView` over `RowNumbers`, a list that stores nothing — a standalone `VirtualFlow` rendered no
-cells), opened by `EditorHost.openLargeFileViewer`, offered by `EditorFileSync` for files ≥ 50 MB / too large.
-`fxt-cli validate` streams XML files ≥ 64 MB. Docs: `docs/large-files.md`.
+element a page at a time from a `Cursor` (offset + same-name counters), byte ranges incl. `contentStart`,
+sibling `index`, XPaths, fields; `pageIndex` (page cursors + total), `resolve(path)` / `pathAt(offset)` →
+`Step`s with the page cursor that lists each, `firstOffsetOf(namePath)`, `forEachChild` with a value limit),
+`LargeXmlWindow` (a run of consecutive children ≤ 20 MB as a document of its own: parent's start tag + the
+ancestors' xmlns, `patch(edited)` strips the wrapper, refuses changed parent attributes, char refs for
+unencodable chars), `LargeFilePatcher` (byte-range splice into a temp file next to it + atomic replace, refuses
+when size/mtime changed), `LargeXmlStatistics` (one pass, per name path; per-parent min/max from contiguous runs,
+no per-element maps), `LargeRecordExport` (CSV / SXSSF XLSX in `FxtExcelTheme`, two passes),
+`LargeFileValidation` (streaming XSD/well-formedness via `XercesXmlValidationService.validateStream`). UI
+`controls/shell/editor/LargeFileView` (Text | Problems | Structure | Graphic | Statistics; `ListView` over
+`RowNumbers`, a list that stores nothing — a standalone `VirtualFlow` rendered no cells; jobs via
+`background(label, Job, done, failed)` with one shared progress bar; `DiskStamp` polled every 2 s while focused →
+changed bar + Reload) with the panes `LargeFileStructurePane` (tree + records, pages identity-keyed by `Node`,
+Go to XPath / child #, export), `LargeFileWindowPane` (an `XmlGridView` over the window's `XmlEditorContext`,
+undo/redo, Apply/Discard) and `LargeFileStatisticsPane`. Apply = `applyWindow`: release the index, patch,
+re-index, show the same `WindowSpec` again (its start cursor stays valid: bytes before the window are
+unchanged). Unapplied edits ask on window switch / reload / tab close (`confirmClose`, `setCloser`) and on exit
+(`EditorFileSync.confirmExit` → `confirmDiscard`); test hook `LargeFileView.pendingAnswer`. Opened by
+`EditorHost.openLargeFileViewer`, offered by `EditorFileSync` for files ≥ 50 MB / too large. `fxt-cli validate`
+streams XML files ≥ 64 MB. Docs: `docs/large-files.md`.
 
 ## Projects
 

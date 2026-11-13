@@ -4,6 +4,22 @@ The highlights of each release. The complete notes and all downloads are on the
 [GitHub Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases); the version you are
 running is shown under **Help → About FreeXmlToolkit**.
 
+## Unreleased
+
+**Large files**
+
+- **Edit large files:** the Large File Viewer's new **Graphic** tab shows a part of the file — an element, or a page
+  of up to 1,000 children of a huge element — in the grid, where it can be edited with undo/redo. **Apply to File**
+  writes only that part back into the file in one streaming pass (the rest stays byte for byte as it was, the
+  original is untouched if writing fails). See [Large File Viewer](large-files.md#graphic-view-and-edit-a-part-of-the-file-xml).
+- **Jump anywhere:** **Go to** an XPath such as `/orders/order[1500000]` (Ctrl+L) or a child number, **Previous
+  page…** in the tree, and **Show in Structure** from a text row or a search match.
+- **Statistics:** one pass over the file lists every element path with counts, occurrences per parent, attributes
+  and a sample value.
+- **Export all records:** all children of an element — not only the loaded 1,000 — to CSV or Excel.
+- The viewer notices when the file changes on disk and offers to reload it; character references such as `&#233;`
+  are decoded in the tree and table.
+
 ## 3.2.0 (2026-11-13)
 
 **Editing**

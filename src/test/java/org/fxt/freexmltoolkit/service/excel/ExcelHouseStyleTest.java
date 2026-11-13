@@ -144,6 +144,21 @@ class ExcelHouseStyleTest {
 
     // ------------------------------------------------------------------ shared assertions
 
+    @Test
+    void largeFileRecords() throws Exception {
+        Path xml = Files.writeString(dir.resolve("records.xml"),
+                "<r><row id=\"1\"><name>A</name></row><row id=\"2\"><name>B</name></row><row id=\"3\"/></r>");
+        var structure = new org.fxt.freexmltoolkit.service.largefile.LargeXmlStructure(
+                org.fxt.freexmltoolkit.service.largefile.LargeFileIndex.build(xml, null, null));
+        Path target = dir.resolve("records.xlsx");
+        org.fxt.freexmltoolkit.service.largefile.LargeRecordExport.export(structure, structure.root(),
+                org.fxt.freexmltoolkit.service.largefile.LargeRecordExport.Format.XLSX, target, null, null);
+        try (XSSFWorkbook workbook = open(target)) {
+            assertInfoSheet(workbook.getSheet("Summary"));
+            assertTableSheet(workbook.getSheet("Records"), 0);
+        }
+    }
+
     private static XSSFWorkbook open(Path file) throws Exception {
         try (InputStream in = Files.newInputStream(file)) {
             return new XSSFWorkbook(in);

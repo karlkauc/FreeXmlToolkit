@@ -1070,8 +1070,9 @@ public class EditorHost extends BorderPane {
     }
 
     /**
-     * Opens a file in the read-only Large File Viewer (any size; read from disk on demand), or
-     * focuses the viewer already showing it. The viewer releases the file when its tab closes.
+     * Opens a file in the Large File Viewer (any size; read from disk on demand), or focuses the
+     * viewer already showing it. The viewer releases the file when its tab closes; a window with edits
+     * that are not written yet asks first.
      */
     public LargeFileView openLargeFileViewer(Path path) {
         for (Tab tab : tabPane.getTabs()) {
@@ -1083,7 +1084,17 @@ public class EditorHost extends BorderPane {
         LargeFileView view = new LargeFileView(path);
         view.setDocumentOpener((name, text) -> openGeneratedDocument(text, EditorFileType.XML, name));
         Tab tab = openToolTab(path.getFileName() + " (viewer)", "bi-eye", view);
-        tab.setTooltip(new javafx.scene.control.Tooltip(path + " - Large File Viewer (read-only)"));
+        tab.setTooltip(new javafx.scene.control.Tooltip(path + " - Large File Viewer"));
+        tab.setOnCloseRequest(e -> {
+            if (!view.confirmClose()) {
+                e.consume();
+            }
+        });
+        view.setCloser(() -> {
+            if (tabPane.getTabs().remove(tab)) {
+                view.close();
+            }
+        });
         tab.setOnClosed(e -> view.close());
         UsageEvents.command("large_file_viewer", UsageEvents.VIA_TOOLBAR);
         return view;

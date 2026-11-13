@@ -4821,6 +4821,17 @@
     -fx-fill: -fxt-text-muted;
 }
 
+.fxt-large-file-dirty {
+    -fx-text-fill: -fxt-warning-text;
+    -fx-font-weight: bold;
+}
+
+.fxt-large-file-changed {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 0 1 0;
+}
+
 /* XSpec results (XSpecView) */
 .fxt-xspec-failed {
     -fx-text-fill: -fxt-danger;

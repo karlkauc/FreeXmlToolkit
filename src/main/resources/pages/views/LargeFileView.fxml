@@ -13,7 +13,6 @@
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TreeView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -22,7 +21,7 @@
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 
 <!--
-  Large File Viewer: a read-only view of a file of any size, read from disk on demand (LargeFileIndex).
+  Large File Viewer: a view of a file of any size, read from disk on demand (LargeFileIndex).
   Loaded by LargeFileView (fx:root), which puts the virtual row list into rowsSlot.
 -->
 <fx:root type="javafx.scene.layout.VBox" styleClass="fxt-large-file-view"
@@ -83,6 +82,21 @@
                 <Button text="%LargeFileView.large-file-cancel.text" id="large-file-cancel" onAction="#onCancel"/>
             </children>
         </HBox>
+        <HBox fx:id="changedBar" id="large-file-changed" spacing="8" alignment="CENTER_LEFT" visible="false" managed="false"
+              styleClass="fxt-large-file-changed">
+            <padding>
+                <Insets top="4" right="8" bottom="4" left="8"/>
+            </padding>
+            <children>
+                <IconifyIcon iconLiteral="bi-exclamation-triangle" iconSize="16"/>
+                <Label fx:id="changedLabel" id="large-file-changed-label"/>
+                <Button text="%LargeFileView.reloadButton.text" id="large-file-reload" onAction="#onReload">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-arrow-repeat" iconSize="16"/>
+                    </graphic>
+                </Button>
+            </children>
+        </HBox>
         <TabPane fx:id="views" id="large-file-views" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
             <tabs>
                 <Tab fx:id="textTab" text="%LargeFileView.textTab.text" id="large-file-tab-text">
@@ -114,40 +128,9 @@
                         </VBox>
                     </content>
                 </Tab>
-                <Tab fx:id="structureTab" text="%LargeFileView.structureTab.text" id="large-file-tab-structure">
-                    <content>
-                        <SplitPane dividerPositions="0.35">
-                            <items>
-                                <TreeView fx:id="tree" id="large-file-tree"/>
-                                <VBox spacing="4">
-                                    <children>
-                                        <HBox spacing="8" alignment="CENTER_LEFT">
-                                            <padding>
-                                                <Insets top="4" right="8" bottom="2" left="8"/>
-                                            </padding>
-                                            <children>
-                                                <Label fx:id="recordsLabel" id="large-file-records-label"
-                                                       text="%LargeFileView.recordsLabel.text"/>
-                                                <Region HBox.hgrow="ALWAYS"/>
-                                                <Button fx:id="loadMoreButton" text="%LargeFileView.loadMoreButton.text" id="large-file-load-more"
-                                                        onAction="#onLoadMore" disable="true">
-                                                    <graphic>
-                                                        <IconifyIcon iconLiteral="bi-chevron-double-down" iconSize="16"/>
-                                                    </graphic>
-                                                </Button>
-                                            </children>
-                                        </HBox>
-                                        <TableView fx:id="records" id="large-file-records" VBox.vgrow="ALWAYS">
-                                            <placeholder>
-                                                <Label text="%LargeFileView.no-child-elements.text"/>
-                                            </placeholder>
-                                        </TableView>
-                                    </children>
-                                </VBox>
-                            </items>
-                        </SplitPane>
-                    </content>
-                </Tab>
+                <Tab fx:id="structureTab" text="%LargeFileView.structureTab.text" id="large-file-tab-structure"/>
+                <Tab fx:id="graphicTab" text="%LargeFileView.graphicTab.text" id="large-file-tab-graphic"/>
+                <Tab fx:id="statisticsTab" text="%LargeFileView.statisticsTab.text" id="large-file-tab-statistics"/>
             </tabs>
         </TabPane>
         <ListView fx:id="results" id="large-file-results" visible="false" managed="false"/>

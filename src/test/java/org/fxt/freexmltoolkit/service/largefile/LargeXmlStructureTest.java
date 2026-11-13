@@ -123,4 +123,98 @@ class LargeXmlStructureTest {
             s.children(s.root(), 0, null, 1_000_000, () -> true, null);
         });
     }
+
+    @Test
+    @DisplayName("character references are decoded; a value cut inside a UTF-8 character stays readable")
+    void characterReferencesAndCuts() throws Exception {
+        LargeXmlStructure structure = structure("<r><e a=\"caf&#233; &#x1F600; &#99999999999;\">x&#xE9;&amp;</e>"
+                + "<l>" + "ä".repeat(LargeXmlStructure.MAX_VALUE * 3) + "</l></r>");
+        Node root = structure.root();
+        List<Node> children = structure.children(root, root.start(), null, 10, null, null).children();
+        assertEquals("café 😀 &#99999999999;", children.get(0).fields().get("@a"));
+        assertEquals("xé&", children.get(0).text());
+        String cut = children.get(1).text();
+        assertFalse(cut.contains("�"), "no replacement character");
+        assertTrue(cut.endsWith("…"));
+        byte[] bytes = "aä".getBytes(StandardCharsets.UTF_8);
+        assertEquals(1, LargeXmlStructure.completeUtf8(bytes, 2), "a lead byte without its continuation is dropped");
+        assertEquals(3, LargeXmlStructure.completeUtf8(bytes, 3));
+    }
+
+    @Test
+    @DisplayName("content start, the root's real end, indexes, cursors and page index")
+    void cursorsAndPageIndex() throws Exception {
+        StringBuilder xml = new StringBuilder("<?xml version=\"1.0\"?>\n<r a=\"1\">\n");
+        for (int i = 1; i <= 25; i++) {
+            xml.append(i % 5 == 0 ? "  <m/>\n" : "  <row n=\"" + i + "\"/>\n");
+        }
+        xml.append("</r>\n<!-- trailing -->\n");
+        LargeXmlStructure structure = structure(xml.toString());
+        Node root = structure.root();
+        String text = xml.toString();
+        assertEquals(text.indexOf("</r>") + 4, root.end(), "the root's end is read from the end of the file");
+        assertEquals(text.indexOf("<r a=\"1\">") + 9, root.contentStart());
+        LargeXmlStructure.PageIndex pages = structure.pageIndex(root, 10, null, null);
+        assertEquals(25, pages.total());
+        assertEquals(3, pages.pages().size());
+        LargeXmlStructure.Cursor third = pages.pageOf(21);
+        assertEquals(20, third.index());
+        Page page = structure.children(root, third, 10, null, null);
+        assertEquals(5, page.children().size());
+        assertEquals(20, page.children().get(0).index());
+        assertEquals("/r[1]/row[17]", page.children().get(0).xpath(), "positions continue from the cursor");
+        assertEquals("/r[1]/m[5]", page.children().get(4).xpath());
+        Node self = page.children().get(4);
+        assertEquals(self.end(), self.contentStart(), "an empty element has no content");
+    }
+
+    @Test
+    @DisplayName("pathAt finds the ancestors of an offset with the page that lists each one")
+    void pathAt() throws Exception {
+        StringBuilder xml = new StringBuilder("<r>");
+        for (int i = 1; i <= 30; i++) {
+            xml.append("<o id=\"").append(i).append("\"><c>v").append(i).append("</c></o>");
+        }
+        xml.append("</r>");
+        LargeXmlStructure structure = structure(xml.toString());
+        long offset = xml.indexOf("v23");
+        List<LargeXmlStructure.Step> steps = structure.pathAt(offset, 10, null, null);
+        assertEquals(List.of("r", "o", "c"), steps.stream().map(LargeXmlStructure.Step::name).toList());
+        assertEquals(23, steps.get(1).position());
+        assertEquals(22, steps.get(1).index());
+        assertEquals(20, steps.get(1).page().index(), "the page of 10 that lists o[23]");
+        Node root = structure.root();
+        Node o23 = structure.childAt(root, steps.get(1));
+        assertEquals("/r[1]/o[23]", o23.xpath());
+        assertEquals("v23", o23.fields().get("c"));
+        assertTrue(structure.pathAt(0, 10, null, null).size() == 1, "the root's start tag is in the root");
+        assertTrue(structure.pathAt(xml.length() + 5, 10, null, null).isEmpty(), "after the root");
+    }
+
+    @Test
+    @DisplayName("resolve: names, positions, * and errors naming the step")
+    void resolve() throws Exception {
+        LargeXmlStructure structure = structure("<p:r xmlns:p=\"urn:p\"><a/><b/><a><x/><x/></a></p:r>");
+        List<LargeXmlStructure.Step> steps = structure.resolve("/p:r/a[2]/x[2]", 1000, null, null);
+        assertEquals(List.of("p:r", "a", "x"), steps.stream().map(LargeXmlStructure.Step::name).toList());
+        assertEquals(2, steps.get(1).index());
+        assertEquals(1, steps.get(2).index());
+        assertEquals("b", structure.resolve("*/*[2]", 1000, null, null).get(1).name());
+        assertEquals("a", structure.resolve("p:r/a", 1000, null, null).get(1).name());
+        IOException missing = assertThrows(IOException.class, () -> structure.resolve("/p:r/a[3]", 1000, null, null));
+        assertTrue(missing.getMessage().contains("a[3]"), missing.getMessage());
+        assertThrows(IOException.class, () -> structure.resolve("/other", 1000, null, null));
+        assertThrows(IOException.class, () -> structure.resolve("", 1000, null, null));
+    }
+
+    @Test
+    @DisplayName("firstOffsetOf finds the first element with a name path, also under a later parent")
+    void firstOffsetOf() throws Exception {
+        String xml = "<r><a><x/></a><b/><a><c/><c><d>1</d></c></a></r>";
+        LargeXmlStructure structure = structure(xml);
+        assertEquals(xml.indexOf("<d>"), structure.firstOffsetOf("/r/a/c/d", null, null));
+        assertEquals(xml.indexOf("<c/>"), structure.firstOffsetOf("r/a/c", null, null));
+        assertEquals(-1, structure.firstOffsetOf("/r/b/x", null, null));
+        assertEquals(0, structure.firstOffsetOf("/r", null, null));
+    }
 }
