@@ -238,9 +238,12 @@ Below the options, the advanced **tools** are labelled rows (icon + name):
 | **Generate stylesheet…** | Shown while the [AI assistant](ai-assistant.md) is on: writes an XSLT stylesheet from the panel's input document and a **target sample** you choose (optionally its schema and notes). The stylesheet is compiled and run in a sandbox and its output checked before it opens as a new, unsaved tab - choose it there with **Use current tab** in the STYLESHEET row. See [A stylesheet from a target sample](ai-assistant.md#a-stylesheet-from-a-target-sample). |
 | **Execution Statistics** | Opens the **Execution Statistics** tool tab (duration, CPU and memory per XSLT/XQuery/validation run). Runs are only recorded while **Record execution statistics** is enabled in the Settings page's **DEVELOPER** card. |
 
-> XSLT version selection (1.0/2.0/3.0) is intentionally not offered: Saxon HE
-> auto-detects the version from the stylesheet's `version` attribute, so an
-> explicit selector would be cosmetic.
+> By default the stylesheet runs on Saxon's XSLT 3.0 processor, whatever its `version`
+> attribute says. With **expert mode** on (Settings → Schemas & Validation → Standards), an **XSLT version** picker
+> appears under the output method: XSLT 1.0 runs on the JDK's own XSLT 1.0 processor, and
+> XSLT 2.0 is checked for newer constructs first. When that check refuses a stylesheet,
+> the OUTPUT panel lists the issues and offers **Run anyway**. See
+> [Language Versions](language-versions.md).
 
 ## The OUTPUT Panel (Results)
 

@@ -14,8 +14,8 @@ back to its cache; the application is never blocked.
 
 | Feature | Contacts | When | Default | Switch off | Without network |
 |---|---|---|---|---|---|
-| Update check | `api.github.com` (latest release) | 2 s after start; Help → About | On | Settings → Updates (`update.check.enabled=false`) | Logged only, checked again next start |
-| Update download | `github.com` release assets, `api.github.com` (digest) | Only when you start an update | – | Switch off the update check | Error in the update dialog |
+| Update check | `api.github.com` (latest release); `github.com/…/releases/latest` when the API's rate limit is reached | 2 s after start; Help → About | On | Settings → Updates (`update.check.enabled=false`) | Logged only, checked again next start |
+| Update download | `github.com` release assets, `api.github.com` (digest; the release's `SHA256SUMS.txt` when the API does not answer) | Only when you start an update | – | Switch off the update check | Error in the update dialog |
 | Telemetry | `telemetry.status20.net` | First send 60 s after start, then every 5 min; only after the first-start notice | On | `FXT_TELEMETRY_DISABLED=1` or `DO_NOT_TRACK=1` (machine-wide), Settings → Privacy, see [Privacy & Telemetry](telemetry.md) | Queued locally (at most 5000 events / 14 days), retried with growing pauses |
 | Error report | `telemetry.status20.net` | Only when you click **Send** | – | As telemetry | Error shown in the dialog |
 | FundsXML extension | `api.github.com`, `codeload.github.com` (repositories `fundsxml/schema`, `fundsxml/examples`) | 5 s after start when enabled; update check at most every 24 h | **Off** | Settings → FundsXML; `fundsxml.update.check.enabled=false` | The cached copy is used |

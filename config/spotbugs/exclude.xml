@@ -4,6 +4,11 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="https://github.com/spotbugs/spotbugs/blob/master/spotbugs/etc/findbugsfilter.xsd">
 
+    <!-- Patched third-party Flowless sources (src/flowless, PATCHES.md): upstream's findings -->
+    <Match>
+        <Package name="~org\.fxmisc\.flowless.*"/>
+    </Match>
+
     <!-- Exclude demo package entirely -->
     <Match>
         <Package name="~org\.fxt\.freexmltoolkit\.demo.*"/>
@@ -264,6 +269,13 @@
     <!-- Uncalled private methods - may be kept for future use or API completeness -->
     <Match>
         <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD"/>
+    </Match>
+
+    <!-- Saxon's XQueryParser constructor calls setLanguage; the override deliberately checks whether the
+         pinned level is assigned yet and passes the requested version through until it is. -->
+    <Match>
+        <Bug pattern="UR_UNINIT_READ_CALLED_FROM_SUPER_CONSTRUCTOR"/>
+        <Class name="org.fxt.freexmltoolkit.service.standards.XQueryCompatibilityCheck$LevelParser"/>
     </Match>
 
     <!-- getClassCssMetaData "hides" the inherited static method by the standard JavaFX

@@ -2,7 +2,6 @@ package org.fxt.freexmltoolkit.controls.v2.editor.managers;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -101,19 +100,23 @@ final class XmlFoldScanner {
     /** Ends the innermost open element of that name; elements opened inside it end without a region. */
     private static void close(Map<Integer, FoldingRegion> regions, Deque<Open> open, String name, int line,
                               String text, int minLines) {
-        for (Iterator<Open> it = open.iterator(); it.hasNext(); ) {
-            if (it.next().name.equals(name)) {
-                Open o;
-                do {
-                    o = open.pop();
-                } while (!o.name.equals(name));
-                if (line - o.line >= minLines && !regions.containsKey(o.line)) {
-                    regions.put(o.line, new FoldingRegion(o.line, line, o.name, indentLevel(text, o.lineStart)));
-                }
-                return;
+        boolean opened = false;
+        for (Open candidate : open) {
+            if (candidate.name.equals(name)) {
+                opened = true;
+                break;
             }
         }
-        // an end tag without a start tag: ignored
+        if (!opened) {
+            return; // an end tag without a start tag: ignored
+        }
+        Open o;
+        do {
+            o = open.pop();
+        } while (!o.name.equals(name));
+        if (line - o.line >= minLines && !regions.containsKey(o.line)) {
+            regions.put(o.line, new FoldingRegion(o.line, line, o.name, indentLevel(text, o.lineStart)));
+        }
     }
 
     /** @return the index after the end of a tag starting with a name ending at {@code from}: after its {@code >} */

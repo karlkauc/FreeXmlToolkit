@@ -254,10 +254,10 @@ public class FoldingManagerV2 {
         // Add tooltip
         FoldingRegion region = foldingRegions.get(lineIndex);
         boolean tooLarge = !isFolded && region != null && isTooLargeToFold(region);
-        Tooltip tooltip = new Tooltip(isFolded ? "Unfold region"
-                : tooLarge ? "Too large to fold here (" + (region.endLine() - region.startLine())
-                        + " lines) - use the Tree or Graphic view"
-                : "Fold region");
+        Tooltip tooltip = new Tooltip(isFolded ? org.fxt.freexmltoolkit.i18n.I18n.t("FoldingManagerV2.unfold-region")
+                : tooLarge ? org.fxt.freexmltoolkit.i18n.I18n.t("FoldingManagerV2.too-large-to-fold",
+                        region.endLine() - region.startLine())
+                : org.fxt.freexmltoolkit.i18n.I18n.t("FoldingManagerV2.fold-region"));
         Tooltip.install(button, tooltip);
 
         return button;

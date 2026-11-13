@@ -42,7 +42,8 @@ shows the editable grid, laid out as follows:
   **embedded table beside the group's name cell**: one row per element (numbered in the
   first column), one column per attribute (`=`) and child element (`<>`). Click the small
   **arrow at the right of a column header** to **sort** the group (also: **Sort Column** in the
-  context menu); numbers, dates and text are recognised, and one **Undo** restores the order. A
+  context menu); numbers, dates and text are recognised, and one **Undo** restores the order.
+  After a sort the table stays expanded, and stays selected if it was. A
   table of 20,000 rows or more is sorted in the background: the grid stays usable (wait cursor),
   and an edit made meanwhile makes the sort start again from the new state. Cells with nested
   structure expand inline. **Right-click a cell** that is an

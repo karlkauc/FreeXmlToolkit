@@ -74,7 +74,9 @@ public final class Xpath10Engine {
                 Object value = compiled.evaluate(doc, XPathConstants.STRING);
                 return String.valueOf(value);
             } catch (XPathExpressionException e) {
-                throw failure(e);
+                Xpath10Exception failure = failure(e);
+                failure.addSuppressed(notNodes); // the node-set attempt failed first
+                throw failure;
             }
         }
     }
@@ -108,7 +110,9 @@ public final class Xpath10Engine {
                 items.add(String.valueOf(compiled.evaluate(doc, XPathConstants.STRING)));
                 return items;
             } catch (XPathExpressionException e) {
-                throw failure(e);
+                Xpath10Exception failure = failure(e);
+                failure.addSuppressed(notNodes); // the node-set attempt failed first
+                throw failure;
             }
         }
     }

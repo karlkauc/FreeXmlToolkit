@@ -128,7 +128,8 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         }
         String notes = updateInfo.releaseNotes();
         if (notes == null || notes.isBlank()) {
-            notes = "No release notes available for this version.";
+            // e.g. a check through the release page (GitHub's API refused): the notes are on that page
+            notes = I18n.t("UpdateNotificationDialog.notes-on-release-page");
         }
         releaseNotes.setText(notes);
 

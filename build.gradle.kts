@@ -1904,8 +1904,14 @@ tasks.named<Checkstyle>("checkstyleTest") { isIgnoreFailures = true }
 tasks.named<Pmd>("pmdTest") { ignoreFailures = true }
 tasks.named<com.github.spotbugs.snom.SpotBugsTask>("spotbugsTest") { ignoreFailures = true }
 
+// The patched third-party Flowless sources (src/flowless, see PATCHES.md) stay as close to the original as
+// possible: no reformatting, no style or bug-pattern gates (their findings are upstream's).
+tasks.named<Checkstyle>("checkstyleMain") { exclude("org/fxmisc/flowless/**") }
+tasks.named<Pmd>("pmdMain") { exclude("org/fxmisc/flowless/**") }
+
 spotless {
     java {
+        targetExclude("src/flowless/**")
         importOrder("java", "javax", "jakarta", "javafx", "org", "com", "")
         removeUnusedImports()
     }

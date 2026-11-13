@@ -9,8 +9,9 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
-import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.Test;
+
+import com.sun.net.httpserver.HttpServer;
 
 /**
  * A URL that answers with an error status (or not at all) fails with a {@link ConnectionService.FetchFailedException}

@@ -22,7 +22,6 @@ import org.fxt.freexmltoolkit.service.ai.provider.ChatMessage;
 import org.fxt.freexmltoolkit.service.ai.provider.ChatProvider;
 import org.fxt.freexmltoolkit.service.ai.provider.ChatRequest;
 import org.fxt.freexmltoolkit.service.ai.provider.ChatResponse;
-import org.fxt.freexmltoolkit.service.ai.provider.ProviderConfig;
 import org.fxt.freexmltoolkit.service.ai.provider.ProviderException;
 import org.fxt.freexmltoolkit.service.ai.provider.StopReason;
 import org.fxt.freexmltoolkit.service.ai.tool.ToolContext;
@@ -219,7 +218,6 @@ final class AiConversation {
     }
 
     private void generate(ChatRequest request, CancelToken token, int thisTurn, long started) {
-        ProviderConfig config = setup.config();
         ChatProvider provider = setup.provider();
         try {
             VerifiedGeneration.Outcome outcome;

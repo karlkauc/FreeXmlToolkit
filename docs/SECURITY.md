@@ -302,7 +302,7 @@ When FreeXmlToolkit downloads an application update, it verifies that the downlo
 
 1. The update package (a ZIP) is downloaded from the official GitHub release over HTTPS.
 2. Before the package is extracted or launched, its **SHA-256 checksum** is computed locally.
-3. That checksum is compared against the SHA-256 **digest that GitHub publishes for the release asset**, fetched over a separate TLS-protected connection to the GitHub API.
+3. That checksum is compared against the SHA-256 **digest that GitHub publishes for the release asset**, fetched over a separate TLS-protected connection to the GitHub API. If the GitHub API does not answer (for example because its hourly limit for anonymous requests is used up behind a shared company address), the digest is taken from the release's `SHA256SUMS.txt` file instead, downloaded from the same release over HTTPS.
 4. **If the checksums do not match, the update is aborted** and the downloaded file is deleted. Nothing is installed.
 
 This means that even if an attacker could intercept or replace the download, the mismatch would be detected and the update refused.

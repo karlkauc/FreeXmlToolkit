@@ -4,7 +4,7 @@ The highlights of each release. The complete notes and all downloads are on the
 [GitHub Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases); the version you are
 running is shown under **Help → About FreeXmlToolkit**.
 
-## 3.1.0 (2026-11-11)
+## 3.2.0 (2026-11-13)
 
 **Editing**
 
@@ -34,6 +34,42 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 **AI**
 
+- **Refine AI results step by step:** Ask AI in the Query Console refines the query already in the console, Generate
+  stylesheet can revise the Transform panel's stylesheet (and apply the result to its tab as one edit), and the AI
+  panel has a follow-up field for every action — explain, fix, query and stylesheet — that continues the
+  conversation and sends your own edits of an inserted result along. See
+  [AI Assistant → Follow-ups](ai-assistant.md#follow-ups).
+
+**Appearance**
+
+- **oXygen and XMLSpy-like syntax colours:** two more schemes that recreate the text-view colours of those
+  editors, in a light and a dark variant. See [Settings](settings.md#syntax-colours).
+
+**Fixes**
+
+- **Undo after repeated edits:** two text edits or renames in a row on the same node are one undo step again —
+  Ctrl+Z did nothing for them before.
+- **Query Console `doc()`:** an XQuery on a saved document resolves relative `doc()` and `unparsed-text()` next to
+  the document.
+- **Folding large elements:** folding a large element in the text view — e.g. `<Funds>` of a FundsXML file with
+  24,000 lines — froze the application. It now takes well under a second, and so do Collapse all and Expand all;
+  the caret jumps over a folded block. The fold toggles in the gutter are chevrons in the theme colours; a folded
+  block shows as a highlighted chip. Elements whose start tag spans several lines (attributes on their own lines,
+  such as the FundsXML root) can be folded too; tags inside comments and CDATA no longer count.
+- **Update check behind corporate networks:** when GitHub's API refuses (rate limit on a shared address), the check
+  reads the release page instead. The downloaded update is then verified against the release's `SHA256SUMS.txt`
+  instead of being installed without a checksum check.
+- **Clearer messages:** Open from URL names the HTTP status; Copy View as Image copies the visible area when the
+  whole view is too large for the clipboard; file associations blocked by an administrator policy say so; an
+  unreachable remote schema is not fetched again on every open for ten minutes; stopping the debugger is no
+  longer treated as a failure.
+- **Grid tables after sorting:** sorting a table column no longer collapses the table, and the selected row stays
+  selected.
+
+## 3.1.0 (2026-11-11)
+
+**AI**
+
 - **MCP server for AI agents:** `fxt-cli mcp` lets Claude Code and other MCP clients validate documents, run and
   test XSLT/XQuery (with XSpec), explore schemas, outline large documents and compare results — read-only and
   sandboxed, restricted to the folders you name. Eleven tools; administrators can switch it off with
@@ -43,11 +79,6 @@ running is shown under **Help → About FreeXmlToolkit**.
   choose (OpenAI-compatible, Anthropic). Every answer is checked by the application (compiled, run, validated) and
   repaired up to three times before you see it; nothing is applied without you. Data levels and a request preview
   control what leaves your computer. See [AI Assistant](ai-assistant.md).
-- **Refine AI results step by step:** Ask AI in the Query Console refines the query already in the console, Generate
-  stylesheet can revise the Transform panel's stylesheet (and apply the result to its tab as one edit), and the AI
-  panel has a follow-up field for every action — explain, fix, query and stylesheet — that continues the
-  conversation and sends your own edits of an inserted result along. See
-  [AI Assistant → Follow-ups](ai-assistant.md#follow-ups).
 
 **Appearance**
 
@@ -61,8 +92,6 @@ running is shown under **Help → About FreeXmlToolkit**.
   Compact, Normal or Comfortable density. See [Settings](settings.md#text-size-and-font).
 - **Syntax colours:** colour schemes for XML, JSON and XPath (Monokai and others, each with a light and a dark
   variant) and your own colour per role. See [Settings](settings.md#syntax-colours).
-- **oXygen and XMLSpy-like syntax colours:** two more schemes that recreate the text-view colours of those
-  editors, in a light and a dark variant. See [Settings](settings.md#syntax-colours).
 - **High contrast:** stronger texts, borders and focus rings on top of the light or the dark theme. See
   [Settings](settings.md#high-contrast).
 
@@ -104,25 +133,6 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 - **Supported standards:** one table lists the XML-related standards and versions FreeXmlToolkit reads, validates,
   runs or writes, and the engine behind each. See [Supported Standards](index.md#supported-standards).
-
-**Fixes**
-
-- **Undo after repeated edits:** two text edits or renames in a row on the same node are one undo step again —
-  Ctrl+Z did nothing for them before.
-- **Query Console `doc()`:** an XQuery on a saved document resolves relative `doc()` and `unparsed-text()` next to
-  the document.
-- **Folding large elements:** folding a large element in the text view — e.g. `<Funds>` of a FundsXML file with
-  24,000 lines — froze the application. It now takes well under a second, and so do Collapse all and Expand all;
-  the caret jumps over a folded block. The fold toggles in the gutter are chevrons in the theme colours; a folded
-  block shows as a highlighted chip. Elements whose start tag spans several lines (attributes on their own lines,
-  such as the FundsXML root) can be folded too; tags inside comments and CDATA no longer count.
-- **Update check behind corporate networks:** when GitHub's API refuses (rate limit on a shared address), the check
-  reads the release page instead. The downloaded update is then verified against the release's `SHA256SUMS.txt`
-  instead of being installed without a checksum check.
-- **Clearer messages:** Open from URL names the HTTP status; Copy View as Image copies the visible area when the
-  whole view is too large for the clipboard; file associations blocked by an administrator policy say so; an
-  unreachable remote schema is not fetched again on every open for ten minutes; stopping the debugger is no
-  longer treated as a failure.
 
 ## 3.0.0 (2026-11-09)
 

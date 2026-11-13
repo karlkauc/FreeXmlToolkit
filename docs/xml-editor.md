@@ -56,6 +56,7 @@ is active - see [Query Documents](query-console.md#query-documents-the-target-se
 - **Save Files**: Click "Save" or use `Ctrl+S` to save changes to the current file
 - **Save As**: Use `Ctrl+Shift+S` (or the **Save ▾** arrow menu) to save the current file with a new name
 - **Save All**: Pick **Save All** from the **Save ▾** arrow menu to save every open document tab at once (untitled tabs prompt you for a file name)
+- **"Edited with" comment**: Saving an XML, XSD, XSLT, Schematron or XProc file adds a short comment after the XML declaration, such as `<!-- Edited with FreeXmlToolkit 3.2.0 (https://github.com/karlkauc/FreeXmlToolkit) by Name (Company) -->`. The editor shows the comment as soon as you save, so the text you see matches the file. An existing comment of this kind is updated, never repeated. Turn it off with **Mark saved XML files** in [Settings → Editor](settings.md)
 - **Create New**: Click "New" (Ctrl+N) to open the guided [New File dialog](unified-shell.md#new-file-dialog) - pick a file type, an optional template or schema, and start editing
 - **Drag & Drop**: Drag files from your file explorer into the editor
 - **Recent Files**: Reopen recently used files from the Explorer panel's **RECENT** section or the Welcome page
@@ -77,7 +78,7 @@ The text editor provides:
 
 - **Syntax Highlighting**: XML elements, attributes, and values are color-coded
 - **Line Numbers**: Every line is numbered for easy reference
-- **Code Folding**: Click arrows to collapse or expand sections
+- **Code Folding**: Click the chevrons in the gutter to collapse or expand elements - see [Code Folding](#code-folding)
 - **Auto-Completion**: Type `<` to see suggestions for valid elements
 - **Error Highlighting**: Invalid XML is highlighted in red
 - **Edit Properties**: Move the text cursor into an element and edit its properties in the
@@ -120,9 +121,25 @@ See the **[Grid View](grid.md)** page for every grid feature.
 
 For large XML files, you can collapse sections to focus on what you're working on:
 
-- **Collapse**: Click the minus (-) icon next to an element
-- **Expand**: Click the plus (+) icon to show the content again
-- **Nested Folding**: Collapse parent elements to hide all children
+- **Fold**: Click the downward chevron in the gutter next to an element whose end tag is at
+  least two lines below its start tag. Its content is hidden; the gutter shows the folded block as a highlighted chip
+  with a right-pointing chevron.
+- **Unfold**: Click the chip to show the content again.
+- **Fold or unfold everything**: Right-click in the text and choose **Collapse All** or
+  **Expand All**.
+- **Nested Folding**: Collapse parent elements to hide all children; unfolding the parent
+  shows its whole content again.
+- **Start tags over several lines**: An element whose start tag is spread over several
+  lines (for example a root element with many namespace declarations) folds from the line
+  of its `<`.
+- **Comments and CDATA**: Tags inside comments, CDATA sections and processing
+  instructions are ignored and do not create fold regions.
+
+Folding only hides lines - the document text is unchanged, so saving, validation and
+XPath always see the complete XML. The text cursor never lands inside a folded block:
+moving down jumps to the line after it, moving up to its first line. Even very large
+regions (for example a `<Funds>` element with 24,000 lines) fold and unfold in well
+under a second.
 
 
 ---

@@ -126,9 +126,34 @@ class PagesDocScreenshotGenerator {
         });
 
         scene("xml-editor-folding", () -> {
-            // Text view of a large, deeply nested document: fold gutter markers visible.
+            // Text view of a large, deeply nested document: fold chevrons in the gutter, and two folded
+            // blocks (ControlData and the fund's DataSupplier) shown as accent chips.
             openAndWait(fundsXml, "FundsXML4");
             onFx(() -> host.setActiveViewMode(ViewMode.TEXT));
+            settle(1500); // the background region computation lands first
+            org.fxmisc.richtext.CodeArea area = robot.lookup(".code-area")
+                    .match((Node n) -> n instanceof org.fxmisc.richtext.CodeArea ca
+                            && ca.getText().contains("<ControlData>") && ca.getText().contains("<Funds>"))
+                    .queryAs(org.fxmisc.richtext.CodeArea.class);
+            Node parent = area;
+            while (parent != null
+                    && !(parent instanceof org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2)) {
+                parent = parent.getParent();
+            }
+            var folding = ((org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2) parent).getFoldingManager();
+            onFx(() -> {
+                var regions = folding.getFoldableRegions();
+                regions.values().stream().filter(r -> "ControlData".equals(r.elementName()))
+                        .findFirst().ifPresent(r -> folding.fold(r.startLine()));
+                int funds = regions.values().stream().filter(r -> "Funds".equals(r.elementName()))
+                        .mapToInt(org.fxt.freexmltoolkit.controls.v2.editor.managers.FoldingRegion::startLine)
+                        .findFirst().orElse(-1);
+                regions.values().stream()
+                        .filter(r -> "DataSupplier".equals(r.elementName()) && r.startLine() > funds)
+                        .findFirst().ifPresent(r -> folding.fold(r.startLine()));
+                area.moveTo(0);
+                area.showParagraphAtTop(0);
+            });
             settle();
             shot("xml-editor-folding");
         });

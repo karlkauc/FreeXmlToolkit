@@ -155,7 +155,9 @@ public final class XQueryCompatibilityCheck {
 
         @Override
         protected void setLanguage(XPathParser.ParsedLanguage language, int version) {
-            super.setLanguage(language, level);
+            // Called from the super constructor too, before level is assigned: pass the requested version
+            // through then; once constructed, every parse runs at the pinned level
+            super.setLanguage(language, level > 0 ? level : version);
         }
     }
 }
