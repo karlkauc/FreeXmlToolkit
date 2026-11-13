@@ -714,7 +714,13 @@ final class EditorSchemaBinding {
             } else {
                 // From here on, every failure is an ERROR (the user expects IntelliSense
                 // but won't get it), not a silent "No XSD".
-                if (!service.loadSchemaFromLocation(declared.get())) {
+                // A remote location that just failed is not fetched again (it waited for the timeout each time)
+                boolean skipped = UnreachableSchemas.recentlyFailed(declared.get());
+                boolean reached = !skipped && service.loadSchemaFromLocation(declared.get());
+                if (!skipped) {
+                    UnreachableSchemas.record(declared.get(), reached);
+                }
+                if (!reached) {
                     // Unreachable location: the Schema Library may still know the
                     // document's namespace (user mapping, catalog `uri`, bundled entry).
                     LibraryHit fallback = schemaFromLibrary(content);

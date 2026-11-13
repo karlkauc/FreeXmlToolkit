@@ -58,6 +58,14 @@ public final class XQueryTableRunner {
      * @return the tabular result, or a table carrying an {@code error}
      */
     public static XQueryTable run(String xml, String xquery) {
+        return run(xml, xquery, null);
+    }
+
+    /**
+     * As {@link #run(String, String)} with {@code baseUri} (the document's {@code file:} URI, or {@code null})
+     * as the query's static base URI and the document's base URI.
+     */
+    public static XQueryTable run(String xml, String xquery, String baseUri) {
         if (xml == null || xml.isBlank()) {
             return XQueryTable.error(I18n.t("XQueryTableRunner.no-xml-to-query"));
         }
@@ -66,8 +74,12 @@ public final class XQueryTableRunner {
         }
         try {
             Processor processor = XsltTransformationEngine.getInstance().getSaxonProcessor();
-            XdmNode context = processor.newDocumentBuilder().build(new StreamSource(new StringReader(xml)));
-            XQueryEvaluator evaluator = processor.newXQueryCompiler().compile(xquery).load();
+            XdmNode context = processor.newDocumentBuilder().build(new StreamSource(new StringReader(xml), baseUri));
+            var compiler = processor.newXQueryCompiler();
+            if (baseUri != null) {
+                compiler.setBaseURI(java.net.URI.create(baseUri));
+            }
+            XQueryEvaluator evaluator = compiler.compile(xquery).load();
             evaluator.setContextItem(context);
             XdmValue result = evaluator.evaluate();
             return toTable(result);

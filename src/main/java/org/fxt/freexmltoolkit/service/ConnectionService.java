@@ -58,8 +58,29 @@ public interface ConnectionService {
      *
      * @param uri the URI of the target URL
      * @return a String containing the text content of the URL
+     * @throws FetchFailedException when the server answered with an error status or no answer arrived
      */
     String getTextContentFromURL(URI uri);
+
+    /**
+     * A URL could not be fetched: the server answered with an error status ({@link #status()} &ge; 400),
+     * or no answer arrived ({@link #status()} {@code 0}: DNS, proxy, TLS, timeout). The URL or the network
+     * is at fault, not the application - callers show it without reporting an error.
+     */
+    final class FetchFailedException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+        private final int status;
+
+        public FetchFailedException(int status, String message) {
+            super(message);
+            this.status = status;
+        }
+
+        /** @return the HTTP status, {@code 0} when no answer arrived */
+        public int status() {
+            return status;
+        }
+    }
 
     /**
      * Executes an HTTP request using a transient set of properties, for testing purposes.

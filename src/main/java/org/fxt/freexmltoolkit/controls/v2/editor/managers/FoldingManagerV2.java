@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
@@ -53,6 +54,12 @@ public class FoldingManagerV2 {
     private static final int MAX_SAFE_LINE_LENGTH_FOR_FOLDING = 100 * 1024; // 100KB
 
     // Maps line numbers to folding regions (TreeMap for sorted iteration)
+    /**
+     * Largest region (in hidden lines) that "fold all" folds as a whole; larger ones are opened up into
+     * their inner regions (folding costs about 0.5 ms per hidden line, see {@link #foldAll()}).
+     */
+    static final int MAX_FOLD_ALL_LINES = 1_000;
+
     private final Map<Integer, FoldingRegion> foldingRegions = new TreeMap<>();
 
     // Tracks which regions are currently folded
@@ -434,24 +441,147 @@ public class FoldingManagerV2 {
      * Folds all foldable regions.
      */
     public void foldAll() {
-        // Outermost first (TreeMap order): folding a parent also hides nested
-        // regions; folding the nested ones afterwards is a harmless style add.
-        for (Integer line : new ArrayList<>(foldingRegions.keySet())) {
-            if (!foldedRegions.contains(line)) {
-                fold(line);
+        // Outermost first (TreeMap order). Folding a region makes RichTextFX build a cell for every
+        // hidden paragraph (a folded line has no height, so filling the viewport walks through all of
+        // them), so regions with more than MAX_FOLD_ALL_LINES lines are not folded themselves - the
+        // regions inside them are. A region inside a chosen one is skipped: it is hidden with its parent
+        // and stays open, so unfolding the parent shows its content as it was.
+        List<FoldingRegion> chosen = new ArrayList<>();
+        int lastParagraph = codeArea.getParagraphs().size() - 1;
+        int coveredUntil = -1;
+        for (var entry : foldingRegions.entrySet()) {
+            int line = entry.getKey();
+            FoldingRegion region = entry.getValue();
+            int endLine = Math.min(region.endLine(), lastParagraph);
+            if (line <= coveredUntil || endLine <= line) {
+                continue;
+            }
+            if (foldedRegions.contains(line)) {
+                coveredUntil = Math.max(coveredUntil, endLine);
+                continue;
+            }
+            if (endLine - line > MAX_FOLD_ALL_LINES) {
+                continue; // too large to fold cheaply: its inner regions are folded instead
+            }
+            chosen.add(region);
+            coveredUntil = endLine;
+        }
+        if (chosen.isEmpty()) {
+            return;
+        }
+        // One RichTextFX fold per region cost one document replace + caret/cell updates each - quadratic:
+        // 1,000 regions took 15 s, 2,000 took 71 s, a 6.8 MB document froze (telemetry). The first region is
+        // folded the normal way (it also switches on RichTextFX's skipping of folded lines for the caret),
+        // all others get their fold style in a single replace.
+        moveCaretOutOf(chosen);
+        fold(chosen.getFirst().startLine());
+        if (chosen.size() > 1) {
+            List<FoldingRegion> rest = chosen.subList(1, chosen.size());
+            restyleParagraphs(rest, true);
+            for (FoldingRegion region : rest) {
+                foldedRegions.add(region.startLine());
             }
         }
-        logger.debug("Folded all regions");
+        logger.debug("Folded {} regions", chosen.size());
     }
 
     /**
      * Unfolds all folded regions.
      */
     public void unfoldAll() {
-        for (Integer line : new ArrayList<>(foldedRegions)) {
-            unfold(line);
+        if (foldedRegions.size() <= 1) {
+            for (Integer line : new ArrayList<>(foldedRegions)) {
+                unfold(line);
+            }
+            return;
         }
+        // All at once, for the same reason as foldAll
+        List<FoldingRegion> folded = new ArrayList<>();
+        for (Integer line : new java.util.TreeSet<>(foldedRegions)) {
+            FoldingRegion region = foldingRegions.get(line);
+            folded.add(region != null ? region : new FoldingRegion(line, line, "", 0));
+        }
+        restyleParagraphs(folded, false);
+        foldedRegions.clear();
         logger.debug("Unfolded all regions");
+    }
+
+    /** Moves the caret to the end of a region's first line when it sits in a line that is about to be hidden. */
+    private void moveCaretOutOf(List<FoldingRegion> regions) {
+        int caretLine = codeArea.getCurrentParagraph();
+        for (FoldingRegion region : regions) {
+            if (caretLine > region.startLine() && caretLine <= region.endLine()) {
+                codeArea.moveTo(region.startLine(), codeArea.getParagraphLength(region.startLine()));
+                return;
+            }
+        }
+    }
+
+    /**
+     * Adds (or removes) RichTextFX's fold style on the hidden lines of every region with one document
+     * replace: the paragraphs from the first region's start to the last region's end are restyled in a
+     * copy and put back at once. The text is unchanged (RichTextFX emits no plain-text change for it).
+     */
+    private void restyleParagraphs(List<FoldingRegion> regions, boolean fold) {
+        int lastParagraph = codeArea.getParagraphs().size() - 1;
+        int from = Integer.MAX_VALUE;
+        int to = -1;
+        java.util.BitSet hidden = new java.util.BitSet();
+        for (FoldingRegion region : regions) {
+            int endLine = Math.min(region.endLine(), lastParagraph);
+            if (region.startLine() > lastParagraph) {
+                continue;
+            }
+            from = Math.min(from, region.startLine());
+            to = Math.max(to, endLine);
+            if (endLine > region.startLine()) {
+                hidden.set(region.startLine() + 1, endLine + 1);
+            }
+        }
+        if (to < from) {
+            return;
+        }
+        if (!fold) {
+            // Every collapsed line in the span opens, also one of a region that changed since
+            for (int i = from; i <= to; i++) {
+                if (codeArea.getParagraph(i).getParagraphStyle().contains(FOLD_STYLE)) {
+                    hidden.set(i);
+                }
+            }
+        }
+        if (hidden.isEmpty()) {
+            return;
+        }
+        int startOffset = codeArea.getAbsolutePosition(from, 0);
+        int endOffset = codeArea.getAbsolutePosition(to, codeArea.getParagraphLength(to));
+        var document = (org.fxmisc.richtext.model.ReadOnlyStyledDocument<java.util.Collection<String>, String,
+                java.util.Collection<String>>) codeArea.subDocument(startOffset, endOffset);
+        // mapParagraphs visits the paragraphs in order and builds the tree once; replaceParagraph per line
+        // split the document each time (48,000 regions: most of 21 s)
+        int[] index = {from};
+        final int first = from;
+        document = document.mapParagraphs(p -> {
+            int line = index[0]++;
+            return line >= first && hidden.get(line)
+                    ? p.setParagraphStyle(withFoldStyle(p.getParagraphStyle(), fold)) : p;
+        });
+        // A replace moves the caret to its end: keep the caret and selection where they were
+        int anchor = codeArea.getAnchor();
+        int caret = codeArea.getCaretPosition();
+        codeArea.replace(startOffset, endOffset, document);
+        codeArea.selectRange(anchor, caret);
+    }
+
+    /** RichTextFX's fold style class ({@code StyleClassedTextArea} adds / checks "collapse"). */
+    private static final String FOLD_STYLE = "collapse";
+
+    private static java.util.Collection<String> withFoldStyle(java.util.Collection<String> style, boolean fold) {
+        List<String> result = new ArrayList<>(style);
+        result.remove(FOLD_STYLE);
+        if (fold) {
+            result.add(FOLD_STYLE);
+        }
+        return result;
     }
 
     /**

@@ -136,6 +136,11 @@ public record DiagramExportOptions(Format format, Area area, double scale, Theme
         return new DiagramExportOptions(newFormat, area, scale, theme, background, padding, embedFonts, pageSize, title);
     }
 
+    /** @return a copy with another area */
+    public DiagramExportOptions withArea(Area newArea) {
+        return new DiagramExportOptions(format, newArea, scale, theme, background, padding, embedFonts, pageSize, title);
+    }
+
     /** @return a copy with another title */
     public DiagramExportOptions withTitle(String newTitle) {
         return new DiagramExportOptions(format, area, scale, theme, background, padding, embedFonts, pageSize, newTitle);

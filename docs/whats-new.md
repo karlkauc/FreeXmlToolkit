@@ -105,6 +105,20 @@ running is shown under **Help → About FreeXmlToolkit**.
 - **Supported standards:** one table lists the XML-related standards and versions FreeXmlToolkit reads, validates,
   runs or writes, and the engine behind each. See [Supported Standards](index.md#supported-standards).
 
+**Fixes**
+
+- **Undo after repeated edits:** two text edits or renames in a row on the same node are one undo step again —
+  Ctrl+Z did nothing for them before.
+- **Query Console `doc()`:** an XQuery on a saved document resolves relative `doc()` and `unparsed-text()` next to
+  the document.
+- **Collapse all** folds only the outermost regions, so it no longer freezes the editor on large documents.
+- **Update check behind corporate networks:** when GitHub's API refuses (rate limit on a shared address), the check
+  reads the release page instead.
+- **Clearer messages:** Open from URL names the HTTP status; Copy View as Image copies the visible area when the
+  whole view is too large for the clipboard; file associations blocked by an administrator policy say so; an
+  unreachable remote schema is not fetched again on every open for ten minutes; stopping the debugger is no
+  longer treated as a failure.
+
 ## 3.0.0 (2026-11-09)
 
 **Platform and enterprise**

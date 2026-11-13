@@ -2042,11 +2042,15 @@ public class SettingsPanel extends VBox {
                 // Keep the result message visible — it may carry follow-up instructions
                 // (e.g. the Windows Settings confirmation step).
                 assocStatus.setText(result.message());
+                // One usage event with a fixed reason: a policy block / missing launcher is the environment's,
+                // explained in the message; only other failures count as errors
+                org.fxt.freexmltoolkit.service.telemetry.UsageEvents.fileAssociations(
+                        register ? "register" : "unregister", result.success(), result.failureKind());
                 if (!result.success()) {
                     org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("SettingsPanel.file-associations"),
                             result.message(),
                             I18n.t("SettingsPanel.check-the-details-below-and"),
-                            String.join("\n", result.errors()));
+                            String.join("\n", result.errors()), false);
                 }
             });
         });

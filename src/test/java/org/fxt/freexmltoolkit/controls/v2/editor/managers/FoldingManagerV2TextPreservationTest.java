@@ -127,4 +127,67 @@ class FoldingManagerV2TextPreservationTest {
                 () -> codeArea.isFolded(foldLine + 1));
         assertTrue(hidden, "the paragraph after the fold start must be hidden");
     }
+
+    @Test
+    @DisplayName("Fold all folds only the outermost regions; nested ones stay open inside")
+    void foldAllFoldsOnlyTheOutermostRegions() {
+        WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
+            codeArea.replaceText(XML);
+            foldingManager.updateFoldingRegions(XML);
+            foldingManager.foldAll();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        var regions = WaitForAsyncUtils.waitForAsyncFx(3000, foldingManager::getFoldableRegions);
+        int root = regions.keySet().iterator().next();
+        assertEquals(java.util.Set.of(root), WaitForAsyncUtils.waitForAsyncFx(3000, foldingManager::getFoldedLines),
+                "only the root region is folded; the regions inside it are hidden with it");
+
+        WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
+            foldingManager.unfold(root);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(3000, foldingManager::getFoldedLines).isEmpty(),
+                "after unfolding the root nothing is folded");
+        assertEquals(XML, WaitForAsyncUtils.waitForAsyncFx(3000, () -> codeArea.getText()));
+    }
+
+    @Test
+    @DisplayName("Fold all on a large document opens up regions above the limit and folds the ones inside at once")
+    void foldAllOnALargeDocumentFoldsTheInnerRegionsInOneStep() {
+        StringBuilder sb = new StringBuilder("<root>\n");
+        for (int i = 0; i < 400; i++) {
+            sb.append("  <item>\n    <a>").append(i).append("</a>\n    <b>x</b>\n  </item>\n");
+        }
+        String big = sb.append("</root>").toString(); // root spans 1,601 lines > MAX_FOLD_ALL_LINES
+        WaitForAsyncUtils.waitForAsyncFx(10_000, () -> {
+            codeArea.replaceText(big);
+            foldingManager.updateFoldingRegions(big);
+            codeArea.moveTo(2, 2); // inside the first item
+            foldingManager.foldAll();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+
+        var folded = WaitForAsyncUtils.waitForAsyncFx(3000, foldingManager::getFoldedLines);
+        assertFalse(folded.contains(0), "the root is too large to fold as a whole");
+        assertEquals(400, folded.size(), "every item is folded");
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(3000, () -> codeArea.isFolded(2)), "item content is hidden");
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(3000, () -> codeArea.isFolded(1)), "item start lines stay visible");
+        assertEquals(1, WaitForAsyncUtils.waitForAsyncFx(3000, () -> codeArea.getCurrentParagraph()),
+                "the caret left the hidden lines");
+        assertEquals(big, WaitForAsyncUtils.waitForAsyncFx(3000, () -> codeArea.getText()));
+
+        WaitForAsyncUtils.waitForAsyncFx(10_000, () -> {
+            foldingManager.unfoldAll();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(3000, foldingManager::getFoldedLines).isEmpty());
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(3000, () -> java.util.stream.IntStream
+                .range(0, codeArea.getParagraphs().size()).anyMatch(codeArea::isFolded)), "no line stays hidden");
+        assertEquals(big, WaitForAsyncUtils.waitForAsyncFx(3000, () -> codeArea.getText()));
+    }
 }

@@ -138,10 +138,10 @@ public class FileAssociationServiceImpl implements FileAssociationService {
     @Override
     public synchronized FileAssociationResult register(Set<UnifiedEditorFileType> types) {
         if (!isSupported()) {
-            return FileAssociationResult.failure(getUnsupportedReason(), List.of());
+            return FileAssociationResult.failure(getUnsupportedReason(), List.of(), FileAssociationResult.UNSUPPORTED);
         }
         if (types.isEmpty()) {
-            return FileAssociationResult.failure("No file types selected.", List.of());
+            return FileAssociationResult.failure("No file types selected.", List.of(), FileAssociationResult.NO_TYPES);
         }
         logger.info("Registering file associations for {}", types);
         return strategy.register(descriptorsFor(types), DESCRIPTORS.values());
@@ -150,10 +150,10 @@ public class FileAssociationServiceImpl implements FileAssociationService {
     @Override
     public synchronized FileAssociationResult unregister(Set<UnifiedEditorFileType> types) {
         if (!isSupported()) {
-            return FileAssociationResult.failure(getUnsupportedReason(), List.of());
+            return FileAssociationResult.failure(getUnsupportedReason(), List.of(), FileAssociationResult.UNSUPPORTED);
         }
         if (types.isEmpty()) {
-            return FileAssociationResult.failure("No file types selected.", List.of());
+            return FileAssociationResult.failure("No file types selected.", List.of(), FileAssociationResult.NO_TYPES);
         }
         logger.info("Unregistering file associations for {}", types);
         return strategy.unregister(descriptorsFor(types), types.containsAll(DESCRIPTORS.keySet()));

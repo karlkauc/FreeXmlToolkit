@@ -150,4 +150,36 @@ class WindowsAssociationStrategyTest {
         assertTrue(runner.flatCommands().contains(
                 "reg delete HKCU\\Software\\RegisteredApplications /v FreeXmlToolkit /f"));
     }
+
+    @Test
+    void aRegistryLockedByPolicyIsReportedAsSuch() {
+        runner.responder = c -> c.contains("add")
+                ? new CommandRunner.CommandResult(1, "", "ERROR: Registry editing has been disabled by your administrator.")
+                : new CommandRunner.CommandResult(0, "", "");
+
+        FileAssociationResult result = strategy.register(List.of(XML), List.of(XML));
+
+        assertFalse(result.success());
+        assertEquals(FileAssociationResult.POLICY_BLOCKED, result.failureKind());
+        assertTrue(result.message().contains("administrator policy"), result.message());
+    }
+
+    @Test
+    void otherRegistryFailuresStayFailures() {
+        runner.responder = c -> c.contains("add")
+                ? new CommandRunner.CommandResult(1, "", "ERROR: Access is denied.")
+                : new CommandRunner.CommandResult(0, "", "");
+
+        FileAssociationResult result = strategy.register(List.of(XML), List.of(XML));
+
+        assertFalse(result.success());
+        assertEquals(FileAssociationResult.FAILED, result.failureKind());
+    }
+
+    @Test
+    void localizedPolicyMessagesAreRecognized() {
+        assertTrue(WindowsAssociationStrategy.blockedByPolicy(List.of(
+                "reg add X failed: FEHLER: Die Bearbeitung der Registrierung wurde durch den Administrator deaktiviert.")));
+        assertFalse(WindowsAssociationStrategy.blockedByPolicy(List.of()));
+    }
 }

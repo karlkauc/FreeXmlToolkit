@@ -1304,6 +1304,31 @@ public final class UsageEvents {
                     .status(failed ? TelemetryEvent.Status.ERROR : TelemetryEvent.Status.OK);
             if (failed && reason != null) {
                 b.meta("reason", reason);
+            } else if (!failed && reason != null && reason.startsWith("via_")) {
+                b.meta("via", reason.substring(4)); // e.g. via=page: the API refused, the release page told
+            }
+        });
+    }
+
+    /**
+     * File types were registered with / removed from the operating system (Settings → Files).
+     *
+     * @param operation   {@code register | unregister}
+     * @param ok          whether it worked
+     * @param failureKind fixed failure identifier ({@code failed}, {@code policy_blocked}, {@code unsupported},
+     *                    {@code no_types}); only {@code failed} counts as an error - a policy block or a
+     *                    missing launcher is the environment's ({@code unsupported}), nothing selected the
+     *                    user's ({@code invalid_input})
+     */
+    public static void fileAssociations(String operation, boolean ok, String failureKind) {
+        action("file_associations", b -> {
+            TelemetryEvent.Status status = ok ? TelemetryEvent.Status.OK
+                    : "no_types".equals(failureKind) ? TelemetryEvent.Status.INVALID_INPUT
+                    : "policy_blocked".equals(failureKind) || "unsupported".equals(failureKind)
+                    ? TelemetryEvent.Status.UNSUPPORTED : TelemetryEvent.Status.ERROR;
+            b.meta("op", operation).status(status);
+            if (!ok && failureKind != null) {
+                b.meta("reason", failureKind);
             }
         });
     }

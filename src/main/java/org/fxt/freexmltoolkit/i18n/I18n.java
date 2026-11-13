@@ -88,6 +88,35 @@ public final class I18n {
     public static synchronized void setLocale(Locale newLocale) {
         locale = newLocale;
         bundle = load(newLocale);
+        englishByText = null;
+    }
+
+    /** Translated text → English text of the same key, built on first use for the current bundle. */
+    private static volatile java.util.Map<String, String> englishByText;
+
+    /**
+     * @return the English source text of a text shown in the interface language - for identifiers that must
+     *         not depend on the language (telemetry keys); the text itself when it is no bundle value (plain
+     *         English text built in code) or the language is English
+     */
+    public static String english(String text) {
+        if (text == null || Locale.ENGLISH.getLanguage().equals(locale.getLanguage())) {
+            return text;
+        }
+        java.util.Map<String, String> map = englishByText;
+        if (map == null) {
+            map = new java.util.HashMap<>();
+            ResourceBundle current = bundle;
+            ResourceBundle english = load(Locale.ENGLISH);
+            for (String key : java.util.Collections.list(current.getKeys())) {
+                if (english.containsKey(key)) {
+                    // Two keys with the same translation: the first one wins, both are the same dialog anyway
+                    map.putIfAbsent(current.getString(key), english.getString(key));
+                }
+            }
+            englishByText = map;
+        }
+        return map.getOrDefault(text, text);
     }
 
     private static ResourceBundle load(Locale target) {

@@ -101,6 +101,13 @@ class UpdateCheckServiceTest {
             }
         });
 
+        // The release page: /releases/latest redirects to the tag (API rate-limit fallback)
+        testServer.createContext("/page/latest", exchange -> {
+            exchange.getResponseHeaders().add("Location", "/karlkauc/FreeXmlToolkit/releases/tag/v99.1.0");
+            exchange.sendResponseHeaders(302, -1);
+            exchange.close();
+        });
+
         testServer.setExecutor(null);
         testServer.start();
     }
@@ -948,6 +955,16 @@ class UpdateCheckServiceTest {
      */
     private static class MockConnectionService implements ConnectionService {
         private ConnectionResult mockResponse;
+        /** Where {@link #openVerifiedConnection} goes (the release page), or null = unsupported. */
+        private URI pageUri;
+
+        @Override
+        public java.net.HttpURLConnection openVerifiedConnection(URI uri) throws java.io.IOException {
+            if (pageUri == null) {
+                throw new java.io.IOException("no page");
+            }
+            return (java.net.HttpURLConnection) pageUri.toURL().openConnection(java.net.Proxy.NO_PROXY);
+        }
 
         void setMockResponse(ConnectionResult response) {
             this.mockResponse = response;
@@ -985,5 +1002,38 @@ class UpdateCheckServiceTest {
                 new org.fxt.freexmltoolkit.domain.ConnectionResult(uri, 0, 5L, new String[0], "Connection refused")));
         assertEquals("http_403", UpdateCheckServiceImpl.failureReason(
                 new org.fxt.freexmltoolkit.domain.ConnectionResult(uri, 403, 5L, new String[0], "rate limit")));
+    }
+
+    @org.junit.jupiter.api.Test
+    void aRateLimitedApiFallsBackToTheReleasePage() throws Exception {
+        mockConnectionService.setMockResponse(new ConnectionResult(URI.create("https://api.github.com/x"), 403,
+                5L, new String[0], "{\"message\": \"API rate limit exceeded\"}"));
+        mockConnectionService.pageUri = URI.create("http://localhost:" + testPort + "/page/latest");
+
+        UpdateInfo info = updateCheckService.checkForUpdates().get(5, TimeUnit.SECONDS);
+
+        assertEquals("99.1.0", info.latestVersion());
+        assertTrue(info.updateAvailable());
+        assertEquals(UpdateCheckServiceImpl.VIA_RELEASE_PAGE, info.failureReason());
+        assertTrue(info.downloadUrl().endsWith("/releases/tag/v99.1.0"), info.downloadUrl());
+    }
+
+    @org.junit.jupiter.api.Test
+    void aRateLimitWithoutAReachablePageStaysAnError() throws Exception {
+        mockConnectionService.setMockResponse(new ConnectionResult(URI.create("https://api.github.com/x"), 403,
+                5L, new String[0], "limit"));
+
+        UpdateInfo info = updateCheckService.checkForUpdates().get(5, TimeUnit.SECONDS);
+
+        assertFalse(info.updateAvailable());
+        assertEquals("http_403", info.failureReason());
+    }
+
+    @org.junit.jupiter.api.Test
+    void tagsAreReadFromTheRedirect() {
+        assertEquals("v3.2.0", UpdateCheckServiceImpl.tagFromLocation(
+                "https://github.com/karlkauc/FreeXmlToolkit/releases/tag/v3.2.0"));
+        assertNull(UpdateCheckServiceImpl.tagFromLocation("https://github.com/karlkauc/FreeXmlToolkit/releases"));
+        assertNull(UpdateCheckServiceImpl.tagFromLocation(null));
     }
 }

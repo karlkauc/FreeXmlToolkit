@@ -34,6 +34,14 @@ public class RenameNodeCommand implements XmlCommand {
         this.oldName = element.getName();
     }
 
+    /** A merged command: already applied, spanning the first command's old name to the last's new name. */
+    private RenameNodeCommand(XmlElement element, String oldName, String newName, boolean executed) {
+        this.element = element;
+        this.newName = newName;
+        this.oldName = oldName;
+        this.executed = executed;
+    }
+
     @Override
     public boolean execute() {
         element.setName(newName);
@@ -74,37 +82,12 @@ public class RenameNodeCommand implements XmlCommand {
         }
 
         RenameNodeCommand otherCmd = (RenameNodeCommand) other;
-        // Create new command that remembers original old name
-        return new MergedRenameCommand(element, otherCmd.newName, this.oldName);
+        // Both renames are already applied: the merged step is itself "executed", or undo would refuse it
+        return new RenameNodeCommand(element, this.oldName, otherCmd.newName, true);
     }
 
     @Override
     public String toString() {
         return getDescription() + " ('" + oldName + "' -> '" + newName + "')";
-    }
-
-    /**
-     * Merged version that preserves the original old name.
-     */
-    private static class MergedRenameCommand extends RenameNodeCommand {
-        private final XmlElement mergedElement;
-        private final String originalOldName;
-
-        MergedRenameCommand(XmlElement element, String newName, String originalOldName) {
-            super(element, newName);
-            this.mergedElement = element;
-            this.originalOldName = originalOldName;
-        }
-
-        @Override
-        public boolean undo() {
-            if (!super.executed) {
-                return false;
-            }
-
-            mergedElement.setName(originalOldName);
-            super.executed = false;
-            return true;
-        }
     }
 }

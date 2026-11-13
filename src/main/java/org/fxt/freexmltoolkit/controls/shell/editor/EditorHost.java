@@ -1732,6 +1732,13 @@ public class EditorHost extends BorderPane {
                 String name = urlFileName(url);
                 EditorFileType type = EditorFileType.fromFileName(name);
                 Platform.runLater(() -> openGeneratedDocument(body, type, name, UsageEvents.SOURCE_URL));
+            } catch (org.fxt.freexmltoolkit.service.ConnectionService.FetchFailedException
+                     | IllegalArgumentException e) {
+                // An unreachable URL / an error page / a malformed URL: the user's input or the network,
+                // shown with its reason but not reported as an application error
+                Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showActionError(
+                        I18n.t("EditorHost.open-from-url"), I18n.t("EditorHost.could-not-fetch", url),
+                        org.fxt.freexmltoolkit.util.DialogHelper.Remedies.URL_FETCH, e.getMessage(), false));
             } catch (Exception e) {
                 Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showActionError(
                         I18n.t("EditorHost.open-from-url"), I18n.t("EditorHost.could-not-fetch", url),

@@ -528,8 +528,9 @@ public class XsltTransformationEngine {
                 stopped.setExecutionTime(System.currentTimeMillis() - startTime);
                 stopped.setTransformationContext(context);
                 return stopped;
-            } catch (SaxonApiException e) {
-                if (e.getCause() instanceof XsltDebugStopException) {
+            } catch (SaxonApiException | RuntimeException e) {
+                // Saxon may hand the stop back wrapped (also in a plain RuntimeException)
+                if (isDebugStop(e)) {
                     logger.debug("Debug session stopped by user (wrapped)");
                     XsltTransformationResult stopped = XsltTransformationResult.error(
                             "Debug session stopped");
@@ -570,6 +571,19 @@ public class XsltTransformationEngine {
                 session.close();
             }
         }
+    }
+
+    /**
+     * @return whether {@code e} is the debugger's Stop - itself or anywhere in its cause chain (Saxon
+     *         wraps exceptions thrown from a trace listener, also in a plain {@code RuntimeException})
+     */
+    static boolean isDebugStop(Throwable e) {
+        for (Throwable t = e; t != null; t = t.getCause() == t ? null : t.getCause()) {
+            if (t instanceof XsltDebugStopException) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -951,7 +965,7 @@ public class XsltTransformationEngine {
             } catch (XsltDebugStopException stop) {
                 return XsltTransformationResult.error("Debug session stopped");
             } catch (SaxonApiException e) {
-                if (e.getCause() instanceof XsltDebugStopException) {
+                if (isDebugStop(e)) {
                     return XsltTransformationResult.error("Debug session stopped");
                 }
                 XsltTransformationResult failure = runtimeFailure(e);
@@ -966,7 +980,7 @@ public class XsltTransformationEngine {
             result.setMessages(messageListener.getMessages());
             return result;
         } catch (RuntimeException e) {
-            if (e instanceof XsltDebugStopException || e.getCause() instanceof XsltDebugStopException) {
+            if (isDebugStop(e)) {
                 return XsltTransformationResult.error("Debug session stopped");
             }
             logger.error("Unexpected error during debug XQuery run", e);

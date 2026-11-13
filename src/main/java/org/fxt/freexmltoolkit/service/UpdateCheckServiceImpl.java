@@ -193,6 +193,16 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
                 // Fetch latest release from GitHub API
                 var connectionResult = getConnectionService().executeVerifiedHttpRequest(new URI(GITHUB_RELEASES_API_URL));
 
+                if (connectionResult != null && isRateLimited(connectionResult.httpStatus())) {
+                    // GitHub's anonymous API limit (60/h per IP) is quickly used up behind a shared
+                    // corporate address; the release page itself is not limited
+                    UpdateInfo fromPage = latestFromReleasePage(currentVersion);
+                    if (fromPage != null) {
+                        cachedUpdateInfo = fromPage;
+                        updateCheckPerformed = true;
+                        return cachedUpdateInfo;
+                    }
+                }
                 if (connectionResult == null || connectionResult.httpStatus() != 200) {
                     logger.warn("Failed to fetch update info. HTTP Status: {}",
                             connectionResult != null ? connectionResult.httpStatus() : "null");
@@ -271,6 +281,70 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
             return "network";
         }
         return "http_" + result.httpStatus();
+    }
+
+    /** The release page that redirects to the latest release's tag (not subject to the API rate limit). */
+    static final String GITHUB_LATEST_RELEASE_PAGE = "https://github.com/karlkauc/FreeXmlToolkit/releases/latest";
+
+    /**
+     * {@link UpdateInfo#failureReason()} of a <em>successful</em> check that read the release page
+     * because the API refused (rate limit); usage statistics send it as {@code via=page}.
+     */
+    public static final String VIA_RELEASE_PAGE = "via_page";
+
+    private static final java.util.regex.Pattern TAG_IN_LOCATION =
+            java.util.regex.Pattern.compile("/releases/tag/([^/?#]+)");
+
+    /** @return whether an API status means "limited", not "no release": 403 / 429 */
+    static boolean isRateLimited(Integer status) {
+        return status != null && (status == 403 || status == 429);
+    }
+
+    /**
+     * Asks the release page instead of the API: {@code /releases/latest} answers with a redirect to
+     * {@code /releases/tag/vX.Y.Z}. Only the redirect's {@code Location} is read (HEAD, no body).
+     *
+     * @return the check's result (without release notes), or {@code null} when the page did not tell
+     */
+    UpdateInfo latestFromReleasePage(String currentVersion) {
+        java.net.HttpURLConnection connection = null;
+        try {
+            connection = getConnectionService().openVerifiedConnection(new URI(GITHUB_LATEST_RELEASE_PAGE));
+            connection.setRequestMethod("HEAD");
+            connection.setInstanceFollowRedirects(false);
+            int status = connection.getResponseCode();
+            String location = connection.getHeaderField("Location");
+            String tag = tagFromLocation(location);
+            if (status < 300 || status >= 400 || tag == null) {
+                logger.warn("Release page gave no release tag (HTTP {})", status);
+                return null;
+            }
+            String latestVersion = normalizeVersion(tag);
+            boolean updateAvailable = isNewerVersion(latestVersion, currentVersion)
+                    && !latestVersion.equals(getSkippedVersion());
+            String htmlUrl = location.startsWith("http") ? location
+                    : "https://github.com" + (location.startsWith("/") ? "" : "/") + location;
+            logger.info("Update check via release page. Latest version: {}, Update available: {}",
+                    latestVersion, updateAvailable);
+            return new UpdateInfo(currentVersion, latestVersion, "FreeXmlToolkit " + latestVersion, "",
+                    htmlUrl, null, updateAvailable, VIA_RELEASE_PAGE);
+        } catch (Exception e) {
+            logger.warn("Release page fallback failed: {}", e.getMessage());
+            return null;
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+    }
+
+    /** @return the tag of a {@code …/releases/tag/<tag>} location, or {@code null} */
+    static String tagFromLocation(String location) {
+        if (location == null) {
+            return null;
+        }
+        java.util.regex.Matcher m = TAG_IN_LOCATION.matcher(location);
+        return m.find() ? java.net.URLDecoder.decode(m.group(1), java.nio.charset.StandardCharsets.UTF_8) : null;
     }
 
     /** {@link UpdateInfo#failureReason()} of a check the administrator's policy refused. */

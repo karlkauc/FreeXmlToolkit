@@ -512,6 +512,10 @@ public class QueryConsole extends Region {
             return;
         }
         String xml = editorHost.getActiveText().orElse("");
+        // A saved document's location is the query's base URI: relative doc() / unparsed-text() resolve
+        // next to it (without one, Saxon fails with FODC0005 / XTDE1162)
+        String baseUri = editorHost.getActiveDocument().filter(d -> !d.isUntitled() && d.getPath() != null)
+                .map(d -> d.getPath().toUri().toString()).orElse(null);
         var version = xqueryVersion();
         setResultsText("Running…");
         hits.clear();
@@ -522,16 +526,16 @@ public class QueryConsole extends Region {
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
                     org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XQUERY, "Query console");
             TransformRunner.QueryRun run = TransformRunner.xquery(xml, xquery, Map.of(), OutputFormat.XML,
-                    version);
+                    version, baseUri);
             String result = run.text();
             boolean ok = !result.startsWith("ERROR");
             UsageEvents.xqueryExecuted(t0, run.failure());
             long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
-            XQueryTableRunner.XQueryTable table = ok ? XQueryTableRunner.run(xml, xquery) : null;
+            XQueryTableRunner.XQueryTable table = ok ? XQueryTableRunner.run(xml, xquery, baseUri) : null;
             List<org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.ResultItem> items = ok
                     ? locateItems(() -> org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.locateXQueryItems(
-                            xml, xquery, Map.of()))
+                            xml, xquery, Map.of(), baseUri))
                     : List.of();
             Platform.runLater(() -> {
                 if (gen == runGeneration) {

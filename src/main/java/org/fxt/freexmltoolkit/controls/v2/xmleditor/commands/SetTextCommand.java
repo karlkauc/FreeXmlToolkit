@@ -34,6 +34,14 @@ public class SetTextCommand implements XmlCommand {
         this.oldText = textNode.getText();
     }
 
+    /** A merged command: already applied, spanning the first command's old text to the last's new text. */
+    private SetTextCommand(XmlText textNode, String oldText, String newText, boolean executed) {
+        this.textNode = textNode;
+        this.newText = newText;
+        this.oldText = oldText;
+        this.executed = executed;
+    }
+
     @Override
     public boolean execute() {
         textNode.setText(newText);
@@ -74,23 +82,13 @@ public class SetTextCommand implements XmlCommand {
         }
 
         SetTextCommand otherCmd = (SetTextCommand) other;
-        // Create merged command that remembers original old text
-        return new MergedSetTextCommand(textNode, otherCmd.newText, this.oldText);
+        // Both edits are already applied: the merged step goes from the first old text to the last new
+        // text and is itself "executed", or undo would refuse it
+        return new SetTextCommand(textNode, this.oldText, otherCmd.newText, true);
     }
 
     @Override
     public String toString() {
         return getDescription() + " ('" + oldText + "' -> '" + newText + "')";
-    }
-
-    /**
-     * Merged version of SetTextCommand that remembers the original old text.
-     */
-    private static class MergedSetTextCommand extends SetTextCommand {
-        MergedSetTextCommand(XmlText textNode, String newText, String originalOldText) {
-            super(textNode, newText);
-            // Override oldText field via reflection would be needed here,
-            // or we could redesign to accept oldText in constructor
-        }
     }
 }

@@ -30,7 +30,8 @@ package org.fxt.freexmltoolkit.domain;
  * @param updateAvailable True if a newer version is available, false otherwise
  * @param failureReason   why a failed check failed, a fixed identifier for usage statistics
  *                        ({@code network}, {@code http_<status>}, {@code empty}, {@code parse});
- *                        null for a successful check
+ *                        null for a successful check, or {@code via_page} for one that read the
+ *                        release page because the API refused (rate limit)
  */
 public record UpdateInfo(
         String currentVersion,

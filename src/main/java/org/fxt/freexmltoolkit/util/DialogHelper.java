@@ -341,9 +341,9 @@ public class DialogHelper {
      */
     public static void showError(String title, String header, String content, Throwable cause) {
         if (cause != null) {
-            Telemetry.reportError(cause, "dialog." + title);
+            Telemetry.reportError(cause, "dialog." + I18n.english(title));
         } else {
-            Telemetry.reportError(ERROR_DIALOG_CODE, "dialog." + title);
+            Telemetry.reportError(ERROR_DIALOG_CODE, "dialog." + I18n.english(title));
         }
         if (Boolean.getBoolean("fxt.suppressErrorDialogs")) {
             return;
@@ -384,7 +384,7 @@ public class DialogHelper {
     public static void notifyActionFailure(String title, String message, boolean reportError) {
         if (reportError) {
             // Anonymous error telemetry: only a fixed code + the dialog title slug, never the message.
-            Telemetry.reportError(ACTION_FAILED_CODE, "dialog." + title);
+            Telemetry.reportError(ACTION_FAILED_CODE, "dialog." + I18n.english(title));
         }
         if (Boolean.getBoolean("fxt.suppressErrorDialogs")) {
             return;
@@ -497,9 +497,9 @@ public class DialogHelper {
         // skipped when the action's own usage event already recorded the failure.
         if (reportError) {
             if (cause != null) {
-                Telemetry.reportError(cause, "dialog." + title);
+                Telemetry.reportError(cause, "dialog." + I18n.english(title));
             } else {
-                Telemetry.reportError(ACTION_FAILED_CODE, "dialog." + title);
+                Telemetry.reportError(ACTION_FAILED_CODE, "dialog." + I18n.english(title));
             }
         }
         if (Boolean.getBoolean("fxt.suppressErrorDialogs")) {
@@ -624,7 +624,7 @@ public class DialogHelper {
         String iconLiteral = iconFor(type);
         if (type == Alert.AlertType.ERROR) {
             // An error the user is shown counts as an error, wherever the alert is built.
-            Telemetry.reportError(ERROR_DIALOG_CODE, "dialog." + title);
+            Telemetry.reportError(ERROR_DIALOG_CODE, "dialog." + I18n.english(title));
         }
         return createAlert(type, title, header, content, iconLiteral);
     }
@@ -677,7 +677,7 @@ public class DialogHelper {
      * @param exception the exception to display
      */
     public static void showException(String title, String header, Exception exception) {
-        Telemetry.reportError(exception, "dialog." + title);
+        Telemetry.reportError(exception, "dialog." + I18n.english(title));
         Alert alert = createAlert(Alert.AlertType.ERROR, title, header,
                                   exception.getMessage(), "bi-bug");
 

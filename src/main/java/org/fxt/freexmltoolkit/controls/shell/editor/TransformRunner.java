@@ -223,13 +223,28 @@ public final class TransformRunner {
                                   java.util.Map<String, Object> externalVariables,
                                   XsltTransformationEngine.OutputFormat outputFormat,
                                   org.fxt.freexmltoolkit.service.standards.XQueryVersion version) {
+        return xquery(xml, xqueryContent, externalVariables, outputFormat, version, null);
+    }
+
+    /**
+     * As {@link #xquery(String, String, java.util.Map, XsltTransformationEngine.OutputFormat,
+     * org.fxt.freexmltoolkit.service.standards.XQueryVersion)} for a document that has a location:
+     * {@code baseUri} (the document's {@code file:} URI, or {@code null}) is the query's static base URI and
+     * the context document's base URI, so relative {@code doc()} / {@code unparsed-text()} calls resolve
+     * next to the document.
+     */
+    public static QueryRun xquery(String xml, String xqueryContent,
+                                  java.util.Map<String, Object> externalVariables,
+                                  XsltTransformationEngine.OutputFormat outputFormat,
+                                  org.fxt.freexmltoolkit.service.standards.XQueryVersion version,
+                                  String baseUri) {
         String incompatible = xqueryIncompatibility(xqueryContent, version);
         if (incompatible != null) {
             return new QueryRun("ERROR: " + incompatible, QueryFailure.invalidInput("compat.xquery"));
         }
         try {
             XsltTransformationResult result = XsltTransformationEngine.getInstance()
-                    .transformXQuery(xml, xqueryContent, externalVariables, outputFormat);
+                    .transformXQuery(xml, baseUri, xqueryContent, baseUri, externalVariables, outputFormat);
             return result.isSuccess()
                     ? new QueryRun(result.getOutputContent(), null)
                     : new QueryRun("ERROR: " + result.getErrorMessage(), QueryFailure.ofCode(result.getErrorCode()));

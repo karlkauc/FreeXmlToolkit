@@ -150,6 +150,11 @@ public class WindowsAssociationStrategy implements AssociationStrategy {
         boolean settingsOpened = openDefaultAppsSettings();
 
         if (!errors.isEmpty()) {
+            if (blockedByPolicy(errors)) {
+                return FileAssociationResult.failure("Windows did not allow the registration: editing the "
+                        + "registry is disabled by an administrator policy. Ask your IT department to register "
+                        + "FreeXmlToolkit for these file types.", errors, FileAssociationResult.POLICY_BLOCKED);
+            }
             return FileAssociationResult.failure(
                     "Registration finished with errors — see details.", errors);
         }
@@ -214,6 +219,16 @@ public class WindowsAssociationStrategy implements AssociationStrategy {
             }
         }
         return false;
+    }
+
+    /**
+     * @return whether the failures name an administrator - {@code reg.exe} says "Registry editing has been
+     *         disabled by your administrator" (localized: Administrator, administrateur, amministratore, …)
+     *         under the {@code DisableRegistryTools} policy
+     */
+    static boolean blockedByPolicy(List<String> errors) {
+        return !errors.isEmpty() && errors.stream()
+                .allMatch(e -> e.toLowerCase(java.util.Locale.ROOT).contains("administr"));
     }
 
     private List<String> runAll(List<List<String>> commands, boolean ignoreFailures) {

@@ -243,21 +243,37 @@ public final class ViewExport {
      */
     public static CompletableFuture<javafx.scene.image.Image> copy(ExportableDiagram diagram, Window owner) {
         DiagramExportOptions options = loadOptions().withFormat(DiagramExportOptions.Format.PNG);
-        return DiagramExporter.copyToClipboard(diagram, options, null)
+        // The whole content of a large grid or diagram exceeds what the clipboard takes: copy the
+        // visible area instead and say so, rather than failing
+        boolean visibleOnly = options.area() == DiagramExportOptions.Area.WHOLE && !fitsClipboard(diagram, options);
+        DiagramExportOptions used = visibleOnly ? options.withArea(DiagramExportOptions.Area.VISIBLE) : options;
+        return DiagramExporter.copyToClipboard(diagram, used, null)
                 .whenComplete((image, error) -> Platform.runLater(() -> {
                     if (error != null) {
                         reportError(I18n.t("ViewExport.copy.title"), error);
                     } else {
-                        ToastNotification.success(owner, I18n.t("ViewExport.copied"));
+                        ToastNotification.success(owner,
+                                I18n.t(visibleOnly ? "ViewExport.copied-visible" : "ViewExport.copied"));
                     }
                 }));
+    }
+
+    /** @return whether the view's image in these options fits the clipboard (an unknown size counts as fitting) */
+    static boolean fitsClipboard(ExportableDiagram diagram, DiagramExportOptions options) {
+        try {
+            int[] size = DiagramExporter.pixelSize(DiagramExporter.exportRegion(diagram, options), options.scale());
+            return (long) size[0] * size[1] <= DiagramExporter.MAX_CLIPBOARD_PIXELS;
+        } catch (RuntimeException e) {
+            return true; // the copy itself reports why it cannot export
+        }
     }
 
     private static void reportError(String title, Throwable error) {
         Throwable cause = error instanceof java.util.concurrent.CompletionException && error.getCause() != null
                 ? error.getCause() : error;
         if (cause instanceof DiagramExporter.DiagramExportException) {
-            DialogHelper.showError(title, I18n.t("ViewExport.failed"), cause.getMessage());
+            // An expected limit (empty view, too large, no memory) explained to the user, not an app error
+            DialogHelper.showErrorAlert(title, I18n.t("ViewExport.failed"), cause.getMessage());
         } else {
             logger.error("View export failed", cause);
             DialogHelper.showError(title, I18n.t("ViewExport.failed"), String.valueOf(cause.getMessage()), cause);

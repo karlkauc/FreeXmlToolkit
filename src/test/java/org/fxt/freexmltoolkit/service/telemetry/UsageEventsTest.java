@@ -632,6 +632,30 @@ class UsageEventsTest {
     }
 
     @Test
+    void anUpdateCheckThroughTheReleasePageSaysSo() {
+        UsageEvents.updateCheck("startup", UsageEvents.UPDATE_UP_TO_DATE, "via_page");
+        TelemetryEvent e = single("update_check");
+        assertEquals(TelemetryEvent.Status.OK, e.status());
+        assertEquals("page", e.meta().get("via"));
+        assertFalse(e.meta().containsKey("reason"));
+    }
+
+    @Test
+    void fileAssociationFailuresCountOnlyWhenTheyAreTheApplications() {
+        UsageEvents.fileAssociations("register", false, "policy_blocked");
+        TelemetryEvent blocked = single("file_associations");
+        assertEquals(TelemetryEvent.Status.UNSUPPORTED, blocked.status());
+        assertEquals("policy_blocked", blocked.meta().get("reason"));
+        assertEquals("register", blocked.meta().get("op"));
+    }
+
+    @Test
+    void anOtherFileAssociationFailureIsAnError() {
+        UsageEvents.fileAssociations("register", false, "failed");
+        assertEquals(TelemetryEvent.Status.ERROR, single("file_associations").status());
+    }
+
+    @Test
     void failedXsdGenerationCarriesItsCode() {
         UsageEvents.xsdGenerated(1, 0, "NullPointerException", false);
         TelemetryEvent e = single("xsd_generate");

@@ -84,7 +84,19 @@ public class ConnectionServiceImpl implements ConnectionService {
         if (result.httpStatus() >= 200 && result.httpStatus() < 400) {
             return result.resultBody();
         }
-        throw new RuntimeException("Failed to retrieve content: HTTP " + result.httpStatus() + " - " + result.resultBody());
+        int status = result.httpStatus() == null ? 0 : result.httpStatus();
+        String body = result.resultBody() == null ? "" : result.resultBody().strip();
+        if (status <= 0) {
+            // The connection service reports a failed connection as status 0 with the cause as body
+            throw new FetchFailedException(0, "No connection: " + abbreviate(body));
+        }
+        // The body of an error page is HTML: only its start, as a hint
+        throw new FetchFailedException(status, "Failed to retrieve content: HTTP " + status
+                + (body.isEmpty() ? "" : " - " + abbreviate(body)));
+    }
+
+    private static String abbreviate(String text) {
+        return text.length() <= 200 ? text : text.substring(0, 200) + "…";
     }
 
     /**

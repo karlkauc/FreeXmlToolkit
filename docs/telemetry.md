@@ -37,7 +37,7 @@ Each **error event** additionally contains:
 | `error_code` | The exception class, e.g. `java.lang.NullPointerException`. |
 | `error_detail` | A *stack signature*: the chain of exception classes plus up to 20 code locations (`class#method:line`), mainly from FreeXmlToolkit's own code. If the stack contains no FreeXmlToolkit code at all, its first and last locations are kept (where it failed and what triggered it). |
 | `error_hash` | A 16-character fingerprint of that signature, used to group identical problems. |
-| `meta.where` | Where in the app it happened, e.g. `uncaught` (an exception no code handled), `executor` (a background task), `dialog.<title>` (an error dialog was shown; a dialog without a known cause carries the fixed code `ui.error_dialog` or `ui.action_failed`), or `log.<class>` / `logwarn.<class>` (the application logged an exception as an error / warning; the log message itself is never sent). The same exception is counted once, however many of these paths it passes. |
+| `meta.where` | Where in the app it happened, e.g. `uncaught` (an exception no code handled), `executor` (a background task), `dialog.<title>` (an error dialog was shown — the dialog's English title in every interface language; a dialog without a known cause carries the fixed code `ui.error_dialog` or `ui.action_failed`), or `log.<class>` / `logwarn.<class>` (the application logged an exception as an error / warning; the log message itself is never sent). The same exception is counted once, however many of these paths it passes. |
 
 A failed **XSLT transformation** event (`xslt_transform`) carries only the
 processor's standard error code in `error_code` (e.g. `XTSE0010` = invalid stylesheet element,
@@ -52,7 +52,12 @@ support); only other `runtime` failures have status `error`. The error dialog of
 A failed **XSD generation** (`xsd_generate`) carries the exception class in `error_code`, or
 `not_well_formed` with status `invalid_input` when the sample XML is not well-formed. A failed
 **update check** (`update_check`) names a fixed reason in `meta.reason`: `network` (no response),
-`http_<status>` (e.g. `http_403`), `empty`, `parse`, `no_version` or `exception`.
+`http_<status>` (e.g. `http_403`), `empty`, `parse`, `no_version` or `exception`. When GitHub's API
+refused because of its rate limit and the release page answered instead, the successful check carries
+`meta.via=page`. Registering or removing **file associations** (`file_associations`, Settings → Files)
+names the operation in `meta.op` (`register`/`unregister`) and a failure's fixed reason in `meta.reason`:
+`failed` (status `error`), `policy_blocked` (an administrator policy disabled registry editing) or
+`unsupported` (no installed launcher; both status `unsupported`), `no_types` (status `invalid_input`).
 
 Every feature action records *why* it failed the same way: the processor's error code or the
 exception class in `error_code`, a stack signature (`error_detail`, `error_hash`) for an app failure,

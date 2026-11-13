@@ -125,6 +125,10 @@ public class SetElementTextCommand implements XmlCommand {
         merged.oldTextNodes.addAll(this.oldTextNodes);
         merged.oldTextIndices.clear();
         merged.oldTextIndices.addAll(this.oldTextIndices);
+        // Both edits are already applied: the merged step owns the newer command's text node and is
+        // itself "executed", or undo would refuse it (and leave the newer node behind)
+        merged.newTextNode = otherCmd.newTextNode;
+        merged.executed = otherCmd.executed;
         return merged;
     }
 

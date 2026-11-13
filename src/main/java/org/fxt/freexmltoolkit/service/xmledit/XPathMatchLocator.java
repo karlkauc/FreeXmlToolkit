@@ -165,10 +165,22 @@ public final class XPathMatchLocator {
      */
     public static List<ResultItem> locateXQueryItems(String xml, String xquery, Map<String, String> variables)
             throws XPathEditException {
-        XdmNode document = parseLineNumbered(xml);
+        return locateXQueryItems(xml, xquery, variables, null);
+    }
+
+    /**
+     * As {@link #locateXQueryItems(String, String, Map)} with {@code baseUri} (the document's {@code file:}
+     * URI, or {@code null}) as the query's static base URI and the document's base URI.
+     */
+    public static List<ResultItem> locateXQueryItems(String xml, String xquery, Map<String, String> variables,
+                                                     String baseUri) throws XPathEditException {
+        XdmNode document = parseLineNumbered(xml, baseUri);
         XdmValue result;
         try {
             var compiler = SaxonXPathHelper.getProcessor().newXQueryCompiler();
+            if (baseUri != null) {
+                compiler.setBaseURI(java.net.URI.create(baseUri));
+            }
             var evaluator = compiler.compile(xquery).load();
             evaluator.setContextItem(document);
             if (variables != null) {
@@ -207,10 +219,14 @@ public final class XPathMatchLocator {
     }
 
     private static XdmNode parseLineNumbered(String xml) throws XPathEditException {
+        return parseLineNumbered(xml, null);
+    }
+
+    private static XdmNode parseLineNumbered(String xml, String baseUri) throws XPathEditException {
         try {
             DocumentBuilder builder = SaxonXPathHelper.getProcessor().newDocumentBuilder();
             builder.setLineNumbering(true);
-            return builder.build(new StreamSource(new StringReader(xml)));
+            return builder.build(new StreamSource(new StringReader(xml), baseUri));
         } catch (SaxonApiException e) {
             throw new XPathEditException("Document is not well-formed XML: " + rootMessage(e), e);
         }
