@@ -4765,7 +4765,7 @@ URL in a document or an import is still fetched. See
 <ol>
 <li>The update package (a ZIP) is downloaded from the official GitHub release over HTTPS.</li>
 <li>Before the package is extracted or launched, its <strong>SHA-256 checksum</strong> is computed locally.</li>
-<li>That checksum is compared against the SHA-256 <strong>digest that GitHub publishes for the release asset</strong>, fetched over a separate TLS-protected connection to the GitHub API.</li>
+<li>That checksum is compared against the SHA-256 <strong>digest that GitHub publishes for the release asset</strong>, fetched over a separate TLS-protected connection to the GitHub API. If the GitHub API does not answer (for example because its hourly limit for anonymous requests is used up behind a shared company address), the digest is taken from the release's <code>SHA256SUMS.txt</code> file instead, downloaded from the same release over HTTPS.</li>
 <li><strong>If the checksums do not match, the update is aborted</strong> and the downloaded file is deleted. Nothing is installed.</li>
 </ol>
 <p>This means that even if an attacker could intercept or replace the download, the mismatch would be detected and the update refused.</p>

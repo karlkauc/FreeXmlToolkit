@@ -3218,7 +3218,7 @@ back to its cache; the application is never blocked.</p>
 <tbody>
 <tr>
 <td>Update check</td>
-<td><code>api.github.com</code> (latest release)</td>
+<td><code>api.github.com</code> (latest release); <code>github.com/…/releases/latest</code> when the API's rate limit is reached</td>
 <td>2 s after start; Help → About</td>
 <td>On</td>
 <td>Settings → Updates (<code>update.check.enabled=false</code>)</td>
@@ -3226,7 +3226,7 @@ back to its cache; the application is never blocked.</p>
 </tr>
 <tr>
 <td>Update download</td>
-<td><code>github.com</code> release assets, <code>api.github.com</code> (digest)</td>
+<td><code>github.com</code> release assets, <code>api.github.com</code> (digest; the release's <code>SHA256SUMS.txt</code> when the API does not answer)</td>
 <td>Only when you start an update</td>
 <td>–</td>
 <td>Switch off the update check</td>

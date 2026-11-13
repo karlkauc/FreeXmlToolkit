@@ -3618,9 +3618,12 @@ its header to collapse it) holds everything secondary. First the run
 </tbody>
 </table>
 <blockquote>
-<p>XSLT version selection (1.0/2.0/3.0) is intentionally not offered: Saxon HE
-auto-detects the version from the stylesheet's <code>version</code> attribute, so an
-explicit selector would be cosmetic.</p>
+<p>By default the stylesheet runs on Saxon's XSLT 3.0 processor, whatever its <code>version</code>
+attribute says. With <strong>expert mode</strong> on (Settings → Schemas &amp; Validation → Standards), an <strong>XSLT version</strong> picker
+appears under the output method: XSLT 1.0 runs on the JDK's own XSLT 1.0 processor, and
+XSLT 2.0 is checked for newer constructs first. When that check refuses a stylesheet,
+the OUTPUT panel lists the issues and offers <strong>Run anyway</strong>. See
+<a href="../language-versions/">Language Versions</a>.</p>
 </blockquote>
 <h2 id="the-output-panel-results">The OUTPUT Panel (Results)<a class="headerlink" href="#the-output-panel-results" title="Permanent link">¶</a></h2>
 <blockquote>
