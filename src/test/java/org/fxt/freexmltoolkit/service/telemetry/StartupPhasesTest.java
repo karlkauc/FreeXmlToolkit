@@ -42,6 +42,38 @@ class StartupPhasesTest {
     }
 
     @Test
+    void staticSetupIsSplitFromJvmBoot() {
+        long main = 10_000 * MS;
+        StartupPhases.set(main, 1_500, 0, 0, 0);
+        StartupPhases.setClinit(main - 1_300 * MS, 900);
+        TelemetryEvent.Builder b = apply(StartupPhases.meta());
+        assertEquals(1_500L, b.metaValue("phase_main_ms"));
+        assertEquals(200L, b.metaValue("phase_clinit_ms"), "JVM start -> static setup = main - setup");
+        assertEquals(900L, b.metaValue("phase_cp_open_ms"));
+    }
+
+    @Test
+    void probeOpensTheClassPathAndRecordsItsDuration() {
+        StartupPhases.markMain();
+        StartupPhases.probeClasspath(getClass().getClassLoader());
+        TelemetryEvent.Builder b = apply(StartupPhases.meta());
+        assertTrue((Long) b.metaValue("phase_cp_open_ms") >= 0);
+    }
+
+    @Test
+    void failingProbeReportsNothing() {
+        StartupPhases.markMain();
+        StartupPhases.probeClasspath(new ClassLoader(null) {
+            @Override
+            public java.util.Enumeration<java.net.URL> getResources(String name) throws java.io.IOException {
+                throw new java.io.IOException("unreadable JAR");
+            }
+        });
+        StartupPhases.probeClasspath(null);
+        assertEquals(null, apply(StartupPhases.meta()).metaValue("phase_cp_open_ms"));
+    }
+
+    @Test
     void unmarkedPhasesAreOmitted() {
         long main = 5 * MS;
         StartupPhases.set(main, -1, main + 10 * MS, 0, 0);
@@ -75,6 +107,7 @@ class StartupPhasesTest {
     void appStartKeepsChannelFirstAndStaysUnderTheMetaLimit() {
         long main = System.nanoTime() - 3_000 * MS;
         StartupPhases.set(main, 400, main + 300 * MS, main + 1_500 * MS, main + 2_500 * MS);
+        StartupPhases.setClinit(main - 250 * MS, 123_456);
         TelemetryQueue queue = new TelemetryQueue(null, 5000, Duration.ofDays(14), Clock.systemUTC());
         TelemetryServiceImpl service = new TelemetryServiceImpl(new TelemetrySettings.InMemory(), queue,
                 (uri, body, timeout) -> new ConnectionService.HttpPostResult(202, "{}"),
@@ -90,6 +123,8 @@ class StartupPhasesTest {
             assertEquals(300L, ((Number) e.meta().get("phase_splash_ms")).longValue());
             assertEquals(1_500L, ((Number) e.meta().get("phase_fxml_ms")).longValue());
             assertEquals(2_500L, ((Number) e.meta().get("phase_ready_ms")).longValue());
+            assertEquals(150L, ((Number) e.meta().get("phase_clinit_ms")).longValue());
+            assertEquals(123_456L, ((Number) e.meta().get("phase_cp_open_ms")).longValue());
             assertTrue(e.meta().containsKey("package"));
             int metaBytes = e.toJson().get("meta").toString().getBytes(StandardCharsets.UTF_8).length;
             assertTrue(metaBytes < 1024, "app_start meta is " + metaBytes + " bytes (ingest limit 4096)");

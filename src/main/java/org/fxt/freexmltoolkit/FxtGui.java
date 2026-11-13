@@ -84,6 +84,14 @@ public class FxtGui extends Application {
         // Default constructor
     }
 
+    // Must stay the first static initializer: it runs before Log4j's (the logger below). Marks where
+    // the JVM handed over and times opening every class-path JAR, the step suspected behind starts of
+    // up to 40 s at the first start of a new version on some Windows machines (app_start phase_* meta).
+    static {
+        org.fxt.freexmltoolkit.service.telemetry.StartupPhases.markClinit();
+        org.fxt.freexmltoolkit.service.telemetry.StartupPhases.probeClasspath(FxtGui.class.getClassLoader());
+    }
+
     private static final Logger logger = LogManager.getLogger(FxtGui.class);
 
     /** Primary-instance listener; {@code null} in development runs or when another instance owns it. */
