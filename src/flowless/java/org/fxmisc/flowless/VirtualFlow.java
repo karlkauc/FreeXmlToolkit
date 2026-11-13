@@ -440,7 +440,13 @@ public class VirtualFlow<T, C extends Cell<T, ?>> extends Region implements Virt
             return orientation.hitAfterCells(bOff, lOff - orientation.maxY(lastCell));
         } else {
             for(int i = firstVisible; i <= lastVisible; ++i) {
-                C cell = cellPositioner.getVisibleCell(i);
+                // FreeXmlToolkit patch: hidden items between the visible cells have no cell (without this
+                // every click or arrow key below a folded block failed and the caret stayed where it was)
+                Optional<C> present = cellPositioner.getCellIfVisible(i);
+                if (present.isEmpty()) {
+                    continue;
+                }
+                C cell = present.get();
                 if(lOff < orientation.maxY(cell)) {
                     return orientation.cellHit(i, cell, bOff, lOff - orientation.minY(cell));
                 }
@@ -620,7 +626,8 @@ public class VirtualFlow<T, C extends Cell<T, ?>> extends Region implements Virt
     }
 
     @SuppressWarnings("unchecked") // Because of the cast we have to perform, below
-    private static final CssMetaData<VirtualFlow, Gravity> GRAVITY = new CssMetaData<VirtualFlow, Gravity>(
+    // FreeXmlToolkit patch: VirtualFlow<?, ?> instead of the raw type (rawtypes warnings)
+    private static final CssMetaData<VirtualFlow<?, ?>, Gravity> GRAVITY = new CssMetaData<VirtualFlow<?, ?>, Gravity>(
             "-flowless-gravity",
             // JavaFX seems to have an odd return type on getEnumConverter: "? extends Enum<?>", not E as the second generic type.
             // Even though if you look at the source, the EnumConverter type it uses does have the type E.
@@ -629,12 +636,12 @@ public class VirtualFlow<T, C extends Cell<T, ?>> extends Region implements Virt
             Gravity.FRONT) {
 
         @Override
-        public boolean isSettable(VirtualFlow virtualFlow) {
+        public boolean isSettable(VirtualFlow<?, ?> virtualFlow) {
             return !virtualFlow.gravity.isBound();
         }
 
         @Override
-        public StyleableProperty<Gravity> getStyleableProperty(VirtualFlow virtualFlow) {
+        public StyleableProperty<Gravity> getStyleableProperty(VirtualFlow<?, ?> virtualFlow) {
             return virtualFlow.gravity;
         }
     };

@@ -25,9 +25,12 @@ highlighted text) and froze the application for minutes; `CellListManager.presen
    a cell (jumping over a whole hidden run) and return the last item that got a cell; the anchor of a layout
    (`visit(StartOffStart|EndOffEnd|MinDistanceTo)`) is moved to the nearest shown item; the crop and shift
    loops in `fillViewportFrom` / `shiftCellsTowardsGround` tolerate items without a cell.
+   **`VirtualFlow.hit`** skips them too (a click or arrow key below a folded block hit a hidden item and failed).
 5. **`SizeTracker`**: the total length and the offset estimate leave hidden items out; `avoidFalseInvalidations`
    uses `Val.create(…, EventStreams.changesOf(src))` instead of an anonymous `ValBase`, which no longer compiles
    against JavaFX ≥ 19 (`Val.flatMap` and `ObservableValue.flatMap` clash) - same behaviour.
+6. **Warnings**: `VirtualFlow`'s `-flowless-gravity` `CssMetaData` uses `VirtualFlow<?, ?>` instead of the raw
+   type (`rawtypes`); `SizeTracker` no longer imports the unused `ValBase`.
 
 The user is `controls/v2/editor/managers/FoldingManagerV2` (installs the hidden items of a code area and keeps
 the caret out of folded blocks). Tests: `FoldingLargeRegionTest`, `FoldingManagerV2TextPreservationTest`.

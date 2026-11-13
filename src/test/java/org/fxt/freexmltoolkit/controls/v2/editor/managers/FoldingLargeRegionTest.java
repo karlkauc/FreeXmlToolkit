@@ -155,4 +155,100 @@ class FoldingLargeRegionTest {
         assertTrue(ms < 20_000, "unfolding took " + ms + " ms");
         assertEquals(text, fx(area::getText));
     }
+
+    @Test
+    void aClickBelowTheFoldedBlockMovesTheCaretThere() {
+        loadAndFoldFunds();
+        fxRun(() -> area.showParagraphAtTop(Math.max(0, funds - 2)));
+        // the line right after the block is drawn a few lines below the fold line: hit a point there
+        var target = fx(() -> {
+            var bounds = area.getParagraphBoundsOnScreen(fundsEnd + 3).orElseThrow();
+            var local = area.screenToLocal(bounds.getMinX() + 5, bounds.getMinY() + bounds.getHeight() / 2);
+            return area.hit(local.getX(), local.getY());
+        });
+        int line = fx(() -> area.offsetToPosition(target.getInsertionIndex(),
+                org.fxmisc.richtext.model.TwoDimensional.Bias.Forward).getMajor());
+        assertEquals(fundsEnd + 3, line, "the hit lands on the clicked line below the block");
+
+        fxRun(() -> area.moveTo(target.getInsertionIndex()));
+        assertEquals(fundsEnd + 3, (int) fx(area::getCurrentParagraph), "the caret moved there");
+    }
+
+    @Test
+    void arrowKeysMoveTheCaretAcrossTheFoldedBlock(org.testfx.api.FxRobot robot) {
+        loadAndFoldFunds();
+        fxRun(() -> {
+            area.requestFocus();
+            area.moveTo(funds, 0);
+        });
+        robot.type(javafx.scene.input.KeyCode.DOWN);
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(fundsEnd + 1, (int) fx(area::getCurrentParagraph), "Down from the fold line passes the block");
+        robot.type(javafx.scene.input.KeyCode.DOWN);
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(fundsEnd + 2, (int) fx(area::getCurrentParagraph), "and keeps moving");
+        robot.type(javafx.scene.input.KeyCode.UP, 2);
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(funds, (int) fx(area::getCurrentParagraph), "Up comes back to the fold line");
+        robot.type(javafx.scene.input.KeyCode.UP);
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(funds - 1, (int) fx(area::getCurrentParagraph), "and above it");
+    }
+
+    @Test
+    void aRealMouseClickBelowAndAboveTheFoldedBlockMovesTheCaret(org.testfx.api.FxRobot robot) {
+        loadAndFoldFunds();
+        fxRun(() -> area.showParagraphAtTop(Math.max(0, funds - 5)));
+        for (int line : new int[]{fundsEnd + 4, funds - 2, fundsEnd + 1, funds}) {
+            var point = fx(() -> {
+                // a character of the line's text (the paragraph bounds include the gutter)
+                int offset = area.getAbsolutePosition(line, Math.min(3, area.getParagraphLength(line)));
+                var bounds = area.getCharacterBoundsOnScreen(offset, offset + 1).orElseThrow();
+                return new javafx.geometry.Point2D(bounds.getCenterX(), bounds.getCenterY());
+            });
+            int hitLine = fx(() -> {
+                var local = area.screenToLocal(point);
+                var hit = area.hit(local.getX(), local.getY());
+                return area.offsetToPosition(hit.getInsertionIndex(),
+                        org.fxmisc.richtext.model.TwoDimensional.Bias.Forward).getMajor();
+            });
+            System.out.println("PROBE click line " + line + " hit line " + hitLine + " caret before "
+                    + fx(area::getCurrentParagraph));
+            robot.clickOn(point, javafx.scene.input.MouseButton.PRIMARY);
+            WaitForAsyncUtils.waitForFxEvents();
+            assertEquals(line, (int) fx(area::getCurrentParagraph), "a click on line " + line + " puts the caret there");
+        }
+    }
+
+    @Test
+    void theFoldArrowFollowsTheFoldState() {
+        loadAndFoldFunds();
+        assertEquals("Unfold region", fx(() -> arrowTooltip(funds)), "folded: the arrow offers to unfold");
+        fxRun(() -> folding.unfold(funds));
+        assertEquals("Fold region", fx(() -> arrowTooltip(funds)), "unfolded: the arrow offers to fold");
+        fxRun(() -> folding.fold(funds));
+        assertEquals("Unfold region", fx(() -> arrowTooltip(funds)));
+    }
+
+    /** @return the tooltip of the fold arrow drawn in the line (by screen position; on the FX thread) */
+    private String arrowTooltip(int line) {
+        area.showParagraphAtTop(Math.max(0, line - 2));
+        area.layout();
+        var lineBounds = area.getParagraphBoundsOnScreen(line);
+        if (lineBounds.isEmpty()) {
+            return "line not shown";
+        }
+        for (javafx.scene.Node button : area.lookupAll(".fold-button")) {
+            if (!button.isVisible() || button.getScene() == null) {
+                continue;
+            }
+            var b = button.localToScreen(button.getBoundsInLocal());
+            double centerY = (b.getMinY() + b.getMaxY()) / 2;
+            if (centerY >= lineBounds.get().getMinY() && centerY <= lineBounds.get().getMaxY()) {
+                Object tooltip = button.getProperties().get("javafx.scene.control.Tooltip");
+                return tooltip instanceof javafx.scene.control.Tooltip t ? t.getText() : "arrow without tooltip";
+            }
+        }
+        return "no arrow";
+    }
 }

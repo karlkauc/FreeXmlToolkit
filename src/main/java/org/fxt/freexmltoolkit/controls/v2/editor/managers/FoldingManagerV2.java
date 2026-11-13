@@ -489,11 +489,13 @@ public class FoldingManagerV2 {
         }
         try {
             moveCaretOutOf(regions);
-            restyleParagraphs(regions, true);
+            // The state first: the replace rebuilds the lines' cells, and their fold arrows read it
             for (FoldingRegion region : regions) {
                 foldedRegions.add(region.startLine());
             }
+            restyleParagraphs(regions, true);
             hiddenLinesChanged();
+            refreshFoldArrows();
         } catch (RuntimeException e) {
             logger.error("Error folding {} region(s): {}", regions.size(), e.getMessage(), e);
         } finally {
@@ -506,16 +508,30 @@ public class FoldingManagerV2 {
             return;
         }
         try {
-            restyleParagraphs(regions, false);
+            // The state first: the replace rebuilds the lines' cells, and their fold arrows read it
             for (FoldingRegion region : regions) {
                 // Regions folded inside an unfolded one are open now as well
                 foldedRegions.removeIf(l -> l >= region.startLine() && l <= region.endLine());
             }
+            restyleParagraphs(regions, false);
             hiddenLinesChanged();
+            refreshFoldArrows();
         } catch (RuntimeException e) {
             logger.error("Error unfolding {} region(s): {}", regions.size(), e.getMessage(), e);
         } finally {
             isFoldingInProgress.set(false);
+        }
+    }
+
+    /**
+     * Redraws the fold arrows of the visible lines (the paragraph graphics): a cell built during the
+     * replace, or one RichTextFX kept, would otherwise show the arrow of the state before.
+     */
+    private void refreshFoldArrows() {
+        var factory = codeArea.getParagraphGraphicFactory();
+        if (factory != null) {
+            codeArea.setParagraphGraphicFactory(null);
+            codeArea.setParagraphGraphicFactory(factory);
         }
     }
 
