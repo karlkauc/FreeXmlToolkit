@@ -3474,6 +3474,20 @@ running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
 <li><strong>Supported standards:</strong> one table lists the XML-related standards and versions FreeXmlToolkit reads, validates,
   runs or writes, and the engine behind each. See <a href="../#supported-standards">Supported Standards</a>.</li>
 </ul>
+<p><strong>Fixes</strong></p>
+<ul>
+<li><strong>Undo after repeated edits:</strong> two text edits or renames in a row on the same node are one undo step again —
+  Ctrl+Z did nothing for them before.</li>
+<li><strong>Query Console <code>doc()</code>:</strong> an XQuery on a saved document resolves relative <code>doc()</code> and <code>unparsed-text()</code> next to
+  the document.</li>
+<li><strong>Collapse all</strong> folds only the outermost regions, so it no longer freezes the editor on large documents.</li>
+<li><strong>Update check behind corporate networks:</strong> when GitHub's API refuses (rate limit on a shared address), the check
+  reads the release page instead.</li>
+<li><strong>Clearer messages:</strong> Open from URL names the HTTP status; Copy View as Image copies the visible area when the
+  whole view is too large for the clipboard; file associations blocked by an administrator policy say so; an
+  unreachable remote schema is not fetched again on every open for ten minutes; stopping the debugger is no
+  longer treated as a failure.</li>
+</ul>
 <h2 id="300-2026-11-09">3.0.0 (2026-11-09)<a class="headerlink" href="#300-2026-11-09" title="Permanent link">¶</a></h2>
 <p><strong>Platform and enterprise</strong></p>
 <ul>

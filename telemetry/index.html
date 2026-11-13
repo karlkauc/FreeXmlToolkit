@@ -3439,7 +3439,7 @@ first start.</p>
 </tr>
 <tr>
 <td><code>meta.where</code></td>
-<td>Where in the app it happened, e.g. <code>uncaught</code> (an exception no code handled), <code>executor</code> (a background task), <code>dialog.&lt;title&gt;</code> (an error dialog was shown; a dialog without a known cause carries the fixed code <code>ui.error_dialog</code> or <code>ui.action_failed</code>), or <code>log.&lt;class&gt;</code> / <code>logwarn.&lt;class&gt;</code> (the application logged an exception as an error / warning; the log message itself is never sent). The same exception is counted once, however many of these paths it passes.</td>
+<td>Where in the app it happened, e.g. <code>uncaught</code> (an exception no code handled), <code>executor</code> (a background task), <code>dialog.&lt;title&gt;</code> (an error dialog was shown — the dialog's English title in every interface language; a dialog without a known cause carries the fixed code <code>ui.error_dialog</code> or <code>ui.action_failed</code>), or <code>log.&lt;class&gt;</code> / <code>logwarn.&lt;class&gt;</code> (the application logged an exception as an error / warning; the log message itself is never sent). The same exception is counted once, however many of these paths it passes.</td>
 </tr>
 </tbody>
 </table>
@@ -3455,7 +3455,12 @@ support); only other <code>runtime</code> failures have status <code>error</code
 <p>A failed <strong>XSD generation</strong> (<code>xsd_generate</code>) carries the exception class in <code>error_code</code>, or
 <code>not_well_formed</code> with status <code>invalid_input</code> when the sample XML is not well-formed. A failed
 <strong>update check</strong> (<code>update_check</code>) names a fixed reason in <code>meta.reason</code>: <code>network</code> (no response),
-<code>http_&lt;status&gt;</code> (e.g. <code>http_403</code>), <code>empty</code>, <code>parse</code>, <code>no_version</code> or <code>exception</code>.</p>
+<code>http_&lt;status&gt;</code> (e.g. <code>http_403</code>), <code>empty</code>, <code>parse</code>, <code>no_version</code> or <code>exception</code>. When GitHub's API
+refused because of its rate limit and the release page answered instead, the successful check carries
+<code>meta.via=page</code>. Registering or removing <strong>file associations</strong> (<code>file_associations</code>, Settings → Files)
+names the operation in <code>meta.op</code> (<code>register</code>/<code>unregister</code>) and a failure's fixed reason in <code>meta.reason</code>:
+<code>failed</code> (status <code>error</code>), <code>policy_blocked</code> (an administrator policy disabled registry editing) or
+<code>unsupported</code> (no installed launcher; both status <code>unsupported</code>), <code>no_types</code> (status <code>invalid_input</code>).</p>
 <p>Every feature action records <em>why</em> it failed the same way: the processor's error code or the
 exception class in <code>error_code</code>, a stack signature (<code>error_detail</code>, <code>error_hash</code>) for an app failure,
 and status <code>invalid_input</code> when the user's document, stylesheet, schema or environment was the cause
