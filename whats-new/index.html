@@ -3483,7 +3483,8 @@ running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
 <li><strong>Folding large elements:</strong> folding a large element in the text view — e.g. <code>&lt;Funds&gt;</code> of a FundsXML file with
   24,000 lines — froze the application. It now takes well under a second, and so do Collapse all and Expand all;
   the caret jumps over a folded block. The fold toggles in the gutter are chevrons in the theme colours; a folded
-  block shows as a highlighted chip.</li>
+  block shows as a highlighted chip. Elements whose start tag spans several lines (attributes on their own lines,
+  such as the FundsXML root) can be folded too; tags inside comments and CDATA no longer count.</li>
 <li><strong>Update check behind corporate networks:</strong> when GitHub's API refuses (rate limit on a shared address), the check
   reads the release page instead.</li>
 <li><strong>Clearer messages:</strong> Open from URL names the HTTP status; Copy View as Image copies the visible area when the
