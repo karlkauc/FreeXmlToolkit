@@ -1067,6 +1067,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             if (selectedRow.getType() == FlatRow.RowType.FILTER) {
                 return selectedRow.getParentRow(); // a filter line stands for its container
             }
+            FlatRow leafTarget = leafFilterTarget(selectedRow);
+            if (leafTarget != null) {
+                return leafTarget; // a value row filters its parent's siblings, e.g. Position[Country='AT']
+            }
             // A repeating group stands for its members: the filter goes to the element holding it
             return selectedRow.isTableGroupOwner() ? selectedRow.getParentRow() : selectedRow;
         }
@@ -1085,6 +1089,65 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         FlatRow target = filterTargetRow();
         return target != null && !target.isVirtual() && !target.isTableGroupOwner()
                 && (target.isExpandable() || isCellAnchor(target)) && filterSupported(target);
+    }
+
+    /**
+     * @return for a value row (an attribute, or an element without children of its own) the
+     *         container holding its parent element - the filter there keeps the parents with this
+     *         value; {@code null} for any other row
+     */
+    private FlatRow leafFilterTarget(FlatRow row) {
+        boolean valueRow = row.getType() == FlatRow.RowType.ATTRIBUTE
+                || (row.getType() == FlatRow.RowType.ELEMENT && !row.isExpandable() && !row.isVirtual()
+                        && !row.isTableGroupOwner() && !isCellAnchor(row));
+        FlatRow parent = valueRow ? row.getParentRow() : null;
+        if (parent == null || parent.getType() != FlatRow.RowType.ELEMENT || parent.isVirtual()
+                || parent.isTableGroupOwner()) {
+            return null;
+        }
+        FlatRow holder = parent.getParentRow();
+        return holder != null && holder.getType() == FlatRow.RowType.ELEMENT ? holder : null;
+    }
+
+    /**
+     * Suggests the filter for {@code target} from the value "Filter…" was started on: the
+     * selected value row ({@code Position[Country='AT']} on the container of the Positions) or the
+     * simple cell of an embedded table the context menu was opened on.
+     *
+     * @return the expression, or {@code null} when the selection names no value
+     */
+    String suggestedFilterExpression(FlatRow target) {
+        if (target == null) {
+            return null;
+        }
+        if (selectedRow != null) {
+            if (leafFilterTarget(selectedRow) != target) {
+                return null;
+            }
+            String key = selectedRow.getType() == FlatRow.RowType.ATTRIBUTE
+                    ? "@" + selectedRow.getLabel() : selectedRow.getLabel();
+            return adapter.valueFilterExpression(selectedRow.getParentRow().getModelNode(), key,
+                    selectedRow.getValue());
+        }
+        RepeatingElementsTable table = contextTable;
+        if (table == null || table != tables.selectedTable || contextTableColumn == null
+                || contextTableRow < 0 || contextTableRow >= table.getRows().size()) {
+            return null;
+        }
+        RepeatingElementsTable.TableRow tableRow = table.getRows().get(contextTableRow);
+        if (table.getSelectedRow() != tableRow || tableRow.hasComplexChild(contextTableColumn)
+                || table.getOwnerRow() == null || table.getOwnerRow().getParentRow() != target) {
+            return null;
+        }
+        RepeatingElementsTable.TableColumn column = table.getColumn(contextTableColumn);
+        if (column == null) {
+            return null;
+        }
+        String key = RepeatingElementsTable.columnKey(column);
+        // Row values are keyed by the plain name (attributes too) or #text
+        String valueKey = column.getType() == RepeatingElementsTable.ColumnType.TEXT_CONTENT
+                ? key : column.getName();
+        return adapter.valueFilterExpression(tableRow.getNode(), key, tableRow.getValue(valueKey));
     }
 
     /** @return whether the row is the virtual anchor of an opened cell's rows */
@@ -1289,13 +1352,25 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     /** Asks for the filter expression of a container row (empty removes the filter). */
     private void editFilter(FlatRow row) {
         javafx.scene.control.TextInputDialog dialog = org.fxt.freexmltoolkit.util.DialogHelper.createTextInputDialog(
-                viewState.filter(keyOf(row)) != null ? viewState.filter(keyOf(row)) : "");
+                initialFilterText(row));
+        // A prefilled expression is selected: Enter takes it, typing replaces it
+        dialog.setOnShown(e -> javafx.application.Platform.runLater(dialog.getEditor()::selectAll));
         dialog.setTitle("Filter");
         dialog.setHeaderText("XQuery filter on <" + row.getLabel() + ">\n"
                 + "Shows only the matching nodes below it, e.g. Month[Min > 10]. Empty removes the filter.");
         dialog.setContentText("Expression:");
         dialog.getEditor().setPrefColumnCount(40);
         dialog.showAndWait().ifPresent(expression -> setFilter(row, expression));
+    }
+
+    /** @return the text "Filter…" opens with: the row's filter, else a suggestion from the selected value */
+    String initialFilterText(FlatRow row) {
+        String existing = viewState.filter(keyOf(row));
+        if (existing != null) {
+            return existing;
+        }
+        String suggestion = suggestedFilterExpression(row);
+        return suggestion != null ? suggestion : "";
     }
 
     /** Filters the root so that only the selected row and its subtree remain ("Filter to Focus"). */

@@ -438,6 +438,33 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
         return path.substring(rootPath.length() + 1);
     }
 
+    @Override
+    public String valueFilterExpression(Object member, String columnKey, String value) {
+        if (!(member instanceof XmlElement element) || columnKey == null || columnKey.isBlank()) {
+            return null;
+        }
+        String step;
+        if (XmlGridRecord.TEXT_KEY.equals(columnKey)) {
+            step = ".";
+        } else if (columnKey.startsWith("@")) {
+            step = columnKey;
+        } else {
+            // The child as written (prefix included), so prefixed documents match too
+            List<XmlElement> children = element.getChildElements(columnKey);
+            step = children.isEmpty() ? columnKey : children.getFirst().getQualifiedName();
+        }
+        String text = value != null ? value : "";
+        String stripped = text.strip();
+        // Surrounding whitespace (indented text) would make an exact comparison fail
+        String operand = stripped.equals(text) ? step : "normalize-space(" + step + ")";
+        return element.getQualifiedName() + "[" + operand + "=" + stringLiteral(stripped) + "]";
+    }
+
+    /** @return {@code text} as an XQuery string literal (apostrophes doubled) */
+    static String stringLiteral(String text) {
+        return "'" + text.replace("'", "''") + "'";
+    }
+
     // ==================== Validation markers ====================
 
     @Override

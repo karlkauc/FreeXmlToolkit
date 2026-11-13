@@ -12,6 +12,9 @@ running is shown under **Help → About FreeXmlToolkit**.
   the XML declaration with the version and the user from Settings → User Info, as other XML editors do. It is
   updated on every save, not repeated, and can be switched off (Settings → Editor → Mark saved XML files). See
   [Settings](settings.md).
+- **Filter from a value:** in the Graphic view, **Filter…** on a simple cell or leaf row opens with a matching
+  expression already filled in — `Country` = `AT` in a `Position` row gives `Position[Country='AT']`; Enter applies
+  it. See [Grid](grid.md).
 
 **Querying**
 

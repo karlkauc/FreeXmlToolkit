@@ -171,7 +171,7 @@ shows the editable grid, laid out as follows:
   filter, right-click its funnel line (or the element / the table cell it was set on) →
   **Remove Filter**; **Remove All Filters** clears every filter of the view. **Filter to Focus** filters the root down to the selected node - on a row
   of an embedded table, the table keeps only that row. Right-clicked inside a table, **Filter…**
-  filters the element that holds the table (on a group row too). On a cell with nested content
+  filters the element that holds the table (on a group row too). Started on a simple value - a table cell such as `Country` = `AT` in a `Position` row, or a leaf row / attribute outside a table - the dialog opens with a matching expression already filled in and selected, e.g. `Position[Country='AT']` (`Position[@id='p1']` for an attribute), set on the element holding the `Position`s; press Enter to apply it or type to replace it. An existing filter is shown instead. On a cell with nested content
   (e.g. `22 × <Datenpunkt>`) it filters that cell's content only: the cell opens and the filter
   goes to its record, every other node stays complete. Inside an opened cell the target is
   the cell's record: in the `Datenpunkt` table of a `PK.006…` row, **Filter…** with

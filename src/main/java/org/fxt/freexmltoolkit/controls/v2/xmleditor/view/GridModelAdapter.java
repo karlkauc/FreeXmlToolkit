@@ -236,6 +236,20 @@ public interface GridModelAdapter<N> {
         return null;
     }
 
+    /**
+     * Suggests the filter expression that keeps the members whose value equals the one the user
+     * started "Filter…" on (e.g. {@code Position[Country='AT']}); evaluated on the member's parent.
+     *
+     * @param member    the repeating member (a table row's node, or the parent of a leaf row)
+     * @param columnKey the value's key below the member: an element name, {@code @attribute} or
+     *                  {@code #text} for the member's own text
+     * @param value     the value as shown
+     * @return the expression, or {@code null} when the model cannot suggest one
+     */
+    default String valueFilterExpression(Object member, String columnKey, String value) {
+        return null;
+    }
+
     /** @return the text put on the clipboard of a drag (the node serialized), or {@code null} */
     default String dragText(FlatRow row) {
         return null;
