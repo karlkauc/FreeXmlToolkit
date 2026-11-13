@@ -65,6 +65,10 @@ class FoldingLargeRegionTest {
             editor.setText(text);
             folding.updateFoldingRegions(text);
         });
+        // setText also starts the background region computation; let it land (and refresh the gutter)
+        // before folding, so it does not swap the line graphics in the middle of a test step
+        WaitForAsyncUtils.sleep(800, java.util.concurrent.TimeUnit.MILLISECONDS);
+        WaitForAsyncUtils.waitForFxEvents();
         var region = fx(() -> folding.getFoldableRegions().values().stream()
                 .filter(r -> "Funds".equals(r.elementName())).findFirst().orElseThrow());
         funds = region.startLine();
@@ -214,6 +218,7 @@ class FoldingLargeRegionTest {
             });
             System.out.println("PROBE click line " + line + " hit line " + hitLine + " caret before "
                     + fx(area::getCurrentParagraph));
+            robot.sleep(600); // more than a double-click interval: every click is a single click
             robot.clickOn(point, javafx.scene.input.MouseButton.PRIMARY);
             WaitForAsyncUtils.waitForFxEvents();
             assertEquals(line, (int) fx(area::getCurrentParagraph), "a click on line " + line + " puts the caret there");

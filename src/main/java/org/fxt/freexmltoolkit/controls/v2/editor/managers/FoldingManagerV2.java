@@ -2,16 +2,12 @@ package org.fxt.freexmltoolkit.controls.v2.editor.managers;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
@@ -48,7 +44,7 @@ public class FoldingManagerV2 {
 
     private final CodeArea codeArea;
 
-    // Maximum line length before folding is skipped (prevents O(n^2) regex behavior)
+    // Maximum line length before folding is skipped: a minified document has nothing to fold
     private static final int MAX_SAFE_LINE_LENGTH_FOR_FOLDING = 100 * 1024; // 100KB
 
     // Maps line numbers to folding regions (TreeMap for sorted iteration)
@@ -57,12 +53,6 @@ public class FoldingManagerV2 {
 
     // Tracks which regions are currently folded
     private final Set<Integer> foldedRegions = new HashSet<>();
-
-    // Pattern to match XML opening tags. Lines containing "/>" contribute no opening tags at all (see
-    // calculateFoldingRegions), so the former "(?!.*/>)" lookahead - which rescanned the rest of the line
-    // for every match - is checked once per line instead.
-    private static final Pattern OPEN_TAG_PATTERN = Pattern.compile(
-            "<([a-zA-Z][\\w:.-]*)(?:\\s+[^>]*)?>", Pattern.MULTILINE);
 
     /** Computes folding regions off the FX thread; one daemon thread shared by all editors. */
     private static final java.util.concurrent.ExecutorService FOLDING_EXECUTOR =
@@ -74,10 +64,6 @@ public class FoldingManagerV2 {
 
     /** Bumped per async request (FX thread); a result for an older request is dropped. */
     private long asyncRequest;
-
-    // Pattern to match XML closing tags
-    private static final Pattern CLOSE_TAG_PATTERN = Pattern.compile(
-            "</([a-zA-Z][\\w:.-]*)>", Pattern.MULTILINE);
 
     // Minimum lines required for a foldable region
     private static final int MIN_FOLDABLE_LINES = 2;
@@ -108,7 +94,7 @@ public class FoldingManagerV2 {
             return;
         }
 
-        // Guard: skip folding if any line is extremely long (prevents O(n^2) regex)
+        // Guard: skip folding if any line is extremely long (minified XML: nothing to fold)
         if (hasExtremelyLongLine(text)) {
             logger.info("Skipping folding - text contains line exceeding {}KB",
                     MAX_SAFE_LINE_LENGTH_FOR_FOLDING / 1024);
@@ -219,66 +205,8 @@ public class FoldingManagerV2 {
      * @return map of line number to FoldingRegion
      */
     private Map<Integer, FoldingRegion> calculateFoldingRegions(String text) {
-        Map<Integer, FoldingRegion> regions = new TreeMap<>();
-        String[] lines = text.split("\n");
-
-        // Stack to track open elements (per tag name for nested same-name elements)
-        Map<String, Stack<ElementPosition>> elementStacks = new HashMap<>();
-
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i];
-            final int lineNumber = i;
-
-            // Opening tags; a line with a self-closing tag contributes none (as before)
-            if (line.indexOf("/>") < 0) {
-                Matcher openMatcher = OPEN_TAG_PATTERN.matcher(line);
-                while (openMatcher.find()) {
-                    String tagName = openMatcher.group(1);
-                    ElementPosition pos = new ElementPosition(tagName, lineNumber, openMatcher.start());
-                    elementStacks.computeIfAbsent(tagName, k -> new Stack<>()).push(pos);
-                }
-            }
-
-            // Check for closing tags
-            Matcher closeMatcher = CLOSE_TAG_PATTERN.matcher(line);
-            while (closeMatcher.find()) {
-                String tagName = closeMatcher.group(1);
-
-                Stack<ElementPosition> tagStack = elementStacks.get(tagName);
-                if (tagStack != null && !tagStack.isEmpty()) {
-                    ElementPosition openPos = tagStack.pop();
-
-                    // Create folding region if it spans multiple lines
-                    if (lineNumber - openPos.line >= MIN_FOLDABLE_LINES) {
-                        FoldingRegion region = new FoldingRegion(
-                                openPos.line,
-                                lineNumber,
-                                tagName,
-                                calculateIndentLevel(lines[openPos.line])
-                        );
-                        regions.put(openPos.line, region);
-                    }
-                }
-            }
-        }
-
-        // Handle unclosed elements (partial/incomplete documents)
-        for (Stack<ElementPosition> stack : elementStacks.values()) {
-            while (!stack.isEmpty()) {
-                ElementPosition openPos = stack.pop();
-                if (lines.length - 1 - openPos.line >= MIN_FOLDABLE_LINES) {
-                    FoldingRegion region = new FoldingRegion(
-                            openPos.line,
-                            lines.length - 1,
-                            openPos.tagName,
-                            calculateIndentLevel(lines[openPos.line])
-                    );
-                    regions.put(openPos.line, region);
-                }
-            }
-        }
-
-        return regions;
+        // One character scan: also start tags spread over several lines, nothing inside comments/CDATA
+        return XmlFoldScanner.scan(text, MIN_FOLDABLE_LINES);
     }
 
     /** Width and height of a fold toggle in the gutter (the spacer of lines without one matches it). */
@@ -807,26 +735,6 @@ public class FoldingManagerV2 {
 
     // Helper methods
 
-    /**
-     * Calculates the indentation level of a line.
-     * Assumes 4 spaces or 1 tab per indent level.
-     *
-     * @param line the line text
-     * @return indentation level (0 for no indent)
-     */
-    private int calculateIndentLevel(String line) {
-        int spaces = 0;
-        for (char c : line.toCharArray()) {
-            if (c == ' ') {
-                spaces++;
-            } else if (c == '\t') {
-                spaces += 4;
-            } else {
-                break;
-            }
-        }
-        return spaces / 4; // 4 spaces per indent level
-    }
 
     /**
      * Checks if any line in the text exceeds the safe length threshold.
@@ -848,11 +756,5 @@ public class FoldingManagerV2 {
             }
         }
         return lineLength > MAX_SAFE_LINE_LENGTH_FOR_FOLDING;
-    }
-
-    /**
-     * Helper record to track XML element positions during parsing.
-     */
-    private record ElementPosition(String tagName, int line, int column) {
     }
 }
