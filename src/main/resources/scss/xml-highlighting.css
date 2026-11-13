@@ -25,6 +25,12 @@
 .text {
     -fx-fill: -fxt-code-text;
 }
+/* A tooltip shown for a node of the code area (the hover help, the fold arrows' tooltips) is a CSS
+   descendant of the area, so the rule above coloured its text like code: dark text on the dark tooltip
+   in the light theme. Tooltip text keeps the tooltip's colour (more specific than .text). */
+.tooltip .text {
+    -fx-fill: -fxt-tooltip-text;
+}
 .tagmark {
     -fx-fill: -fxt-code-punct;
 }

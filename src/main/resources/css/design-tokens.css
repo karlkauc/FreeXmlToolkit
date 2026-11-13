@@ -21,6 +21,8 @@
     /* Brand — primary follows the Thunderbird-Supernova-style saturated blue
        (user decision 2026-08-06); the previous indigo #3b5bdb is retired. */
     -fxt-on-primary: #ffffff;
+    /* Text of a tooltip (its background is dark in both themes, app-theme / dark-theme .tooltip) */
+    -fxt-tooltip-text: #ffffff;
     -fxt-primary: #1373d9;
     /* Accessible variants (WCAG AA 4.5:1): primary as text on light backgrounds, the fill of
        buttons with -fxt-on-primary text, warning as text */
@@ -118,6 +120,7 @@
 .root.fxt-theme-dark {
     /* Brand */
     -fxt-on-primary: #ffffff;
+    -fxt-tooltip-text: #d4d4d4;
     -fxt-primary: #4c9bf5;
     -fxt-primary-text: #4c9bf5;
     -fxt-primary-fill: #1f6fd1;   /* white text 4.9:1 (the light #4c9bf5 gave 2.9:1) */
