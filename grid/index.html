@@ -3296,7 +3296,7 @@ shows the editable grid, laid out as follows:</p>
   filter, right-click its funnel line (or the element / the table cell it was set on) →
   <strong>Remove Filter</strong>; <strong>Remove All Filters</strong> clears every filter of the view. <strong>Filter to Focus</strong> filters the root down to the selected node - on a row
   of an embedded table, the table keeps only that row. Right-clicked inside a table, <strong>Filter…</strong>
-  filters the element that holds the table (on a group row too). On a cell with nested content
+  filters the element that holds the table (on a group row too). Started on a simple value - a table cell such as <code>Country</code> = <code>AT</code> in a <code>Position</code> row, or a leaf row / attribute outside a table - the dialog opens with a matching expression already filled in and selected, e.g. <code>Position[Country='AT']</code> (<code>Position[@id='p1']</code> for an attribute), set on the element holding the <code>Position</code>s; press Enter to apply it or type to replace it. An existing filter is shown instead. On a cell with nested content
   (e.g. <code>22 × &lt;Datenpunkt&gt;</code>) it filters that cell's content only: the cell opens and the filter
   goes to its record, every other node stays complete. Inside an opened cell the target is
   the cell's record: in the <code>Datenpunkt</code> table of a <code>PK.006…</code> row, <strong>Filter…</strong> with
