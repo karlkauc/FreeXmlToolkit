@@ -155,13 +155,9 @@ class FoldingManagerV2TextPreservationTest {
     }
 
     @Test
-    @DisplayName("Fold all on a large document opens up regions above the limit and folds the ones inside at once")
-    void foldAllOnALargeDocumentFoldsTheInnerRegionsInOneStep() {
-        StringBuilder sb = new StringBuilder("<root>\n");
-        for (int i = 0; i < 400; i++) {
-            sb.append("  <item>\n    <a>").append(i).append("</a>\n    <b>x</b>\n  </item>\n");
-        }
-        String big = sb.append("</root>").toString(); // root spans 1,601 lines > MAX_FOLD_ALL_LINES
+    @DisplayName("Fold all folds the outermost region as a whole and unfold all opens every line")
+    void foldAllFoldsTheOutermostRegionAndUnfoldAllOpensEverything() {
+        String big = items(400);
         WaitForAsyncUtils.waitForAsyncFx(10_000, () -> {
             codeArea.replaceText(big);
             foldingManager.updateFoldingRegions(big);
@@ -171,12 +167,10 @@ class FoldingManagerV2TextPreservationTest {
         });
         WaitForAsyncUtils.waitForFxEvents();
 
-        var folded = WaitForAsyncUtils.waitForAsyncFx(3000, foldingManager::getFoldedLines);
-        assertFalse(folded.contains(0), "the root is too large to fold as a whole");
-        assertEquals(400, folded.size(), "every item is folded");
-        assertTrue(WaitForAsyncUtils.waitForAsyncFx(3000, () -> codeArea.isFolded(2)), "item content is hidden");
-        assertFalse(WaitForAsyncUtils.waitForAsyncFx(3000, () -> codeArea.isFolded(1)), "item start lines stay visible");
-        assertEquals(1, WaitForAsyncUtils.waitForAsyncFx(3000, () -> codeArea.getCurrentParagraph()),
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(3000, foldingManager::hasHiddenLineSupport));
+        assertEquals(java.util.Set.of(0), WaitForAsyncUtils.waitForAsyncFx(3000, foldingManager::getFoldedLines),
+                "the root is folded as a whole");
+        assertEquals(0, WaitForAsyncUtils.waitForAsyncFx(3000, () -> codeArea.getCurrentParagraph()),
                 "the caret left the hidden lines");
         assertEquals(big, WaitForAsyncUtils.waitForAsyncFx(3000, () -> codeArea.getText()));
 
@@ -188,6 +182,40 @@ class FoldingManagerV2TextPreservationTest {
         assertTrue(WaitForAsyncUtils.waitForAsyncFx(3000, foldingManager::getFoldedLines).isEmpty());
         assertFalse(WaitForAsyncUtils.waitForAsyncFx(3000, () -> java.util.stream.IntStream
                 .range(0, codeArea.getParagraphs().size()).anyMatch(codeArea::isFolded)), "no line stays hidden");
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(3000, foldingManager::hiddenLinesForTest).isEmpty());
         assertEquals(big, WaitForAsyncUtils.waitForAsyncFx(3000, () -> codeArea.getText()));
+    }
+
+    @Test
+    @DisplayName("Without hidden-line support, large regions are not folded (no freeze); fold all folds inside them")
+    void withoutHiddenLineSupportLargeRegionsAreNotFolded() {
+        String big = items(600); // root: 2,401 lines > MAX_UNSUPPORTED_FOLD_LINES
+        WaitForAsyncUtils.waitForAsyncFx(10_000, () -> {
+            foldingManager.disableHiddenLineSupportForTest();
+            codeArea.replaceText(big);
+            foldingManager.updateFoldingRegions(big);
+            foldingManager.fold(0);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(3000, () -> foldingManager.isFolded(0)),
+                "the root is refused instead of freezing the view");
+
+        WaitForAsyncUtils.waitForAsyncFx(10_000, () -> {
+            foldingManager.foldAll();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        var folded = WaitForAsyncUtils.waitForAsyncFx(3000, foldingManager::getFoldedLines);
+        assertFalse(folded.contains(0));
+        assertEquals(600, folded.size(), "every item inside is folded");
+    }
+
+    private static String items(int count) {
+        StringBuilder sb = new StringBuilder("<root>\n");
+        for (int i = 0; i < count; i++) {
+            sb.append("  <item>\n    <a>").append(i).append("</a>\n    <b>x</b>\n  </item>\n");
+        }
+        return sb.append("</root>").toString();
     }
 }

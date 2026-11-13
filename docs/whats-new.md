@@ -111,7 +111,9 @@ running is shown under **Help → About FreeXmlToolkit**.
   Ctrl+Z did nothing for them before.
 - **Query Console `doc()`:** an XQuery on a saved document resolves relative `doc()` and `unparsed-text()` next to
   the document.
-- **Collapse all** folds only the outermost regions, so it no longer freezes the editor on large documents.
+- **Folding large elements:** folding a large element in the text view — e.g. `<Funds>` of a FundsXML file with
+  24,000 lines — froze the application. It now takes well under a second, and so do Collapse all and Expand all;
+  the caret jumps over a folded block.
 - **Update check behind corporate networks:** when GitHub's API refuses (rate limit on a shared address), the check
   reads the release page instead.
 - **Clearer messages:** Open from URL names the HTTP status; Copy View as Image copies the visible area when the

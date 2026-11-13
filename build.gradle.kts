@@ -70,6 +70,14 @@ application {
     // mainClass.set("org.fxt.freexmltoolkit.demo.IntelliSenseDemo")
 }
 
+// Patched third-party sources (own license, see src/flowless/PATCHES.md); kept out of src/main/java so the
+// project's guard tests do not scan them
+sourceSets {
+    main {
+        java.srcDir("src/flowless/java")
+    }
+}
+
 dependencies {
     // Pinned to 12.10: XML Calabash 3 is compiled against Saxon 12.10 internals.
     // Move back to 13.x once Calabash supports it.
@@ -131,7 +139,11 @@ dependencies {
     // Icons are rendered by the in-house IconifyIcon control (controls/icons) using bundled
     // Iconify SVG data under resources/icons/iconify/. Ikonli was removed in favour of it.
 
-    implementation("org.fxmisc.richtext:richtextfx:0.11.7")
+    implementation("org.fxmisc.richtext:richtextfx:0.11.7") {
+        // Flowless 0.7.4 is compiled from src/flowless/java with a patch: folded (hidden) lines get no cell
+        // (folding <Funds> in a FundsXML file built 24,000 cells and froze the app). See src/flowless/PATCHES.md.
+        exclude(group = "org.fxmisc.flowless", module = "flowless")
+    }
 
     // Side-by-side diff/merge for XML & XSD text editors
     implementation("io.github.java-diff-utils:java-diff-utils:4.18")
@@ -360,6 +372,11 @@ tasks.processResources {
 }
 
 tasks.jar {
+    // The patched Flowless sources are compiled into this jar: ship their BSD-2 license and the patch notes
+    from("src/flowless") {
+        include("LICENSE", "PATCHES.md")
+        into("META-INF/flowless")
+    }
     archiveBaseName.set("FreeXmlToolkit")
     archiveClassifier.set("")
     archiveVersion.set("")

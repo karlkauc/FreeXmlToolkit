@@ -100,6 +100,7 @@ use it. FreeXmlToolkit uses that artifact:
 |---------|---------|---------|
 | **Java runtime with JavaFX** (BellSoft Liberica Full JDK, see [below](#bundled-java-runtime-and-javafx)) | 25 | [GPL v2 with Classpath Exception](https://openjdk.org/legal/gplv2+ce.html) |
 | **RichTextFX** (org.fxmisc.richtext:richtextfx) | 0.11.7 | [BSD-2-Clause License](https://opensource.org/licenses/BSD-2-Clause) |
+| **Flowless** (org.fxmisc.flowless, RichTextFX's virtual list; compiled into the application with a patch so folded lines get no cell, license and patch notes in the application jar under `META-INF/flowless/`) | 0.7.4 | [BSD-2-Clause License](https://opensource.org/licenses/BSD-2-Clause) |
 | **ControlsFX** (org.controlsfx:controlsfx) | 11.2.6 | [BSD 3-Clause License](https://opensource.org/licenses/BSD-3-Clause) |
 | **CSSFX** (fr.brouillard.oss:cssfx) | 11.5.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **NSMenuFX** (de.jangassen:nsmenufx, macOS menu bar) | 3.1.0 | [BSD 3-Clause License](https://opensource.org/licenses/BSD-3-Clause) |

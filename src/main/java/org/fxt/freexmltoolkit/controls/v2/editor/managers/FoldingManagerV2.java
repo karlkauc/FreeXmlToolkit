@@ -54,11 +54,6 @@ public class FoldingManagerV2 {
     private static final int MAX_SAFE_LINE_LENGTH_FOR_FOLDING = 100 * 1024; // 100KB
 
     // Maps line numbers to folding regions (TreeMap for sorted iteration)
-    /**
-     * Largest region (in hidden lines) that "fold all" folds as a whole; larger ones are opened up into
-     * their inner regions (folding costs about 0.5 ms per hidden line, see {@link #foldAll()}).
-     */
-    static final int MAX_FOLD_ALL_LINES = 1_000;
 
     private final Map<Integer, FoldingRegion> foldingRegions = new TreeMap<>();
 
@@ -99,6 +94,7 @@ public class FoldingManagerV2 {
      */
     public FoldingManagerV2(CodeArea codeArea) {
         this.codeArea = codeArea;
+        installHiddenLineSupport();
         logger.info("FoldingManagerV2 created");
     }
 
@@ -198,6 +194,7 @@ public class FoldingManagerV2 {
 
             logger.debug("Updated folding regions: {} foldable, {} folded",
                         foldingRegions.size(), foldedRegions.size());
+            hiddenLinesChanged();
 
             // Force CodeArea to recreate paragraph graphics with new folding regions
             Platform.runLater(() -> {
@@ -338,7 +335,12 @@ public class FoldingManagerV2 {
         button.setOnAction(event -> toggleFold(lineIndex));
 
         // Add tooltip
-        Tooltip tooltip = new Tooltip(isFolded ? "Unfold region" : "Fold region");
+        FoldingRegion region = foldingRegions.get(lineIndex);
+        boolean tooLarge = !isFolded && region != null && isTooLargeToFold(region);
+        Tooltip tooltip = new Tooltip(isFolded ? "Unfold region"
+                : tooLarge ? "Too large to fold here (" + (region.endLine() - region.startLine())
+                        + " lines) - use the Tree or Graphic view"
+                : "Fold region");
         Tooltip.install(button, tooltip);
 
         return button;
@@ -363,14 +365,15 @@ public class FoldingManagerV2 {
     }
 
     /**
-     * Folds a region at the specified line — PURELY VISUALLY, via RichTextFX
-     * paragraph folding ({@code foldParagraphs}): the paragraphs after the
-     * region's start line get the "collapse" paragraph style (hidden by the
-     * library's built-in {@code .styled-text-area .collapse} CSS). The document
-     * text is NOT modified, so validation, XPath and save always see the
-     * complete XML. (The previous implementation replaced the folded lines with
-     * a {@code <name.../>} placeholder in the real text, which made the
-     * document schema-invalid and broke XPath while folded.)
+     * Folds a region at the specified line — PURELY VISUALLY: the paragraphs after the region's start line
+     * get RichTextFX's "collapse" paragraph style (hidden by the library's {@code .styled-text-area .collapse}
+     * CSS, a collapsed paragraph has no height). The document text is NOT modified, so validation, XPath and
+     * save always see the complete XML.
+     * <p>
+     * RichTextFX's own {@code foldParagraphs} is not used: it builds the view's cell of every hidden line
+     * and, once used, walks all hidden lines whenever the caret enters a folded block - folding
+     * {@code <Funds>} (24,000 lines) froze the application. The styles are set in one document replace, the
+     * patched Flowless view skips hidden lines ({@link #hiddenItems}), and the caret skips folded blocks here.
      *
      * @param line 0-based line number of the region start
      */
@@ -379,39 +382,21 @@ public class FoldingManagerV2 {
         if (region == null || foldedRegions.contains(line)) {
             return;
         }
-
-        if (!isFoldingInProgress.compareAndSet(false, true)) {
-            return; // Already folding
+        int endLine = Math.min(region.endLine(), codeArea.getParagraphs().size() - 1);
+        if (endLine <= line) {
+            return;
         }
-
-        try {
-            int endLine = Math.min(region.endLine(), codeArea.getParagraphs().size() - 1);
-            if (endLine <= line) {
-                return;
-            }
-            // Move the caret out of the range that is about to be hidden.
-            int caret = codeArea.getCaretPosition();
-            int hideStart = codeArea.getAbsolutePosition(line, codeArea.getParagraphLength(line));
-            int hideEnd = codeArea.getAbsolutePosition(endLine, codeArea.getParagraphLength(endLine));
-            if (caret > hideStart && caret <= hideEnd) {
-                codeArea.moveTo(hideStart);
-            }
-
-            // Hides paragraphs line+1..endLine "into" the (still visible) start line.
-            codeArea.foldParagraphs(line, endLine);
-            foldedRegions.add(line);
-
-            logger.debug("Folded region at line {}: {}", line, region);
-        } catch (Exception e) {
-            logger.error("Error folding region at line {}: {}", line, e.getMessage(), e);
-        } finally {
-            isFoldingInProgress.set(false);
+        if (isTooLargeToFold(region)) {
+            logger.info("Not folding line {}: {} lines are too many without the view's hidden-line support",
+                    line, endLine - line);
+            return;
         }
+        foldRegions(List.of(region));
     }
 
     /**
-     * Unfolds a region at the specified line by removing the "collapse"
-     * paragraph style from the hidden block. The document text is untouched.
+     * Unfolds a region at the specified line by removing the "collapse" paragraph style from its hidden
+     * lines (regions folded inside it open too). The document text is untouched.
      *
      * @param line 0-based line number of the region start
      */
@@ -419,33 +404,16 @@ public class FoldingManagerV2 {
         if (!foldedRegions.contains(line)) {
             return;
         }
-
-        if (!isFoldingInProgress.compareAndSet(false, true)) {
-            return; // Already folding/unfolding
-        }
-
-        try {
-            // Unfolds the folded block following the (visible) start paragraph.
-            codeArea.unfoldParagraphs(line);
-            foldedRegions.remove(line);
-
-            logger.debug("Unfolded region at line {}", line);
-        } catch (Exception e) {
-            logger.error("Error unfolding region at line {}: {}", line, e.getMessage(), e);
-        } finally {
-            isFoldingInProgress.set(false);
-        }
+        FoldingRegion region = foldingRegions.get(line);
+        unfoldRegions(List.of(region != null ? region : new FoldingRegion(line, line, "", 0)));
     }
 
     /**
-     * Folds all foldable regions.
+     * Folds all foldable regions: the outermost ones (TreeMap order), each as a whole. A region inside a
+     * chosen one is skipped: it is hidden with its parent and stays open, so unfolding the parent shows its
+     * content as it was. All of them are folded in one document replace.
      */
     public void foldAll() {
-        // Outermost first (TreeMap order). Folding a region makes RichTextFX build a cell for every
-        // hidden paragraph (a folded line has no height, so filling the viewport walks through all of
-        // them), so regions with more than MAX_FOLD_ALL_LINES lines are not folded themselves - the
-        // regions inside them are. A region inside a chosen one is skipped: it is hidden with its parent
-        // and stays open, so unfolding the parent shows its content as it was.
         List<FoldingRegion> chosen = new ArrayList<>();
         int lastParagraph = codeArea.getParagraphs().size() - 1;
         int coveredUntil = -1;
@@ -460,50 +428,95 @@ public class FoldingManagerV2 {
                 coveredUntil = Math.max(coveredUntil, endLine);
                 continue;
             }
-            if (endLine - line > MAX_FOLD_ALL_LINES) {
-                continue; // too large to fold cheaply: its inner regions are folded instead
+            if (isTooLargeToFold(region)) {
+                continue; // without hidden-line support: its inner regions are folded instead
             }
             chosen.add(region);
             coveredUntil = endLine;
         }
-        if (chosen.isEmpty()) {
-            return;
-        }
-        // One RichTextFX fold per region cost one document replace + caret/cell updates each - quadratic:
-        // 1,000 regions took 15 s, 2,000 took 71 s, a 6.8 MB document froze (telemetry). The first region is
-        // folded the normal way (it also switches on RichTextFX's skipping of folded lines for the caret),
-        // all others get their fold style in a single replace.
-        moveCaretOutOf(chosen);
-        fold(chosen.getFirst().startLine());
-        if (chosen.size() > 1) {
-            List<FoldingRegion> rest = chosen.subList(1, chosen.size());
-            restyleParagraphs(rest, true);
-            for (FoldingRegion region : rest) {
-                foldedRegions.add(region.startLine());
-            }
-        }
+        foldRegions(chosen);
         logger.debug("Folded {} regions", chosen.size());
     }
 
     /**
-     * Unfolds all folded regions.
+     * Unfolds all folded regions (in one document replace).
      */
     public void unfoldAll() {
-        if (foldedRegions.size() <= 1) {
-            for (Integer line : new ArrayList<>(foldedRegions)) {
-                unfold(line);
-            }
-            return;
-        }
-        // All at once, for the same reason as foldAll
         List<FoldingRegion> folded = new ArrayList<>();
         for (Integer line : new java.util.TreeSet<>(foldedRegions)) {
             FoldingRegion region = foldingRegions.get(line);
             folded.add(region != null ? region : new FoldingRegion(line, line, "", 0));
         }
-        restyleParagraphs(folded, false);
-        foldedRegions.clear();
+        unfoldRegions(folded);
         logger.debug("Unfolded all regions");
+    }
+
+    /**
+     * Folds all regions at a specific indentation level (in one document replace).
+     *
+     * @param level the indentation level (0 for root)
+     */
+    public void foldLevel(int level) {
+        List<FoldingRegion> chosen = new ArrayList<>();
+        for (Map.Entry<Integer, FoldingRegion> entry : foldingRegions.entrySet()) {
+            FoldingRegion region = entry.getValue();
+            if (region.indentLevel() == level && !foldedRegions.contains(entry.getKey())
+                    && !isTooLargeToFold(region)) {
+                chosen.add(region);
+            }
+        }
+        foldRegions(chosen);
+        logger.debug("Folded all regions at level {}", level);
+    }
+
+    // ==================== Folding in one replace ====================
+
+    /**
+     * Largest region (in hidden lines) that is folded while the view cannot skip hidden lines (no
+     * {@link #hasHiddenLineSupport() hidden-line support}): such a view builds a cell per hidden line,
+     * about 0.5 ms each, plus line numbers and fold arrows.
+     */
+    static final int MAX_UNSUPPORTED_FOLD_LINES = 2_000;
+
+    /** @return whether folding the region would freeze a view without hidden-line support */
+    boolean isTooLargeToFold(FoldingRegion region) {
+        return !hasHiddenLineSupport() && region.endLine() - region.startLine() > MAX_UNSUPPORTED_FOLD_LINES;
+    }
+
+    private void foldRegions(List<FoldingRegion> regions) {
+        if (regions.isEmpty() || !isFoldingInProgress.compareAndSet(false, true)) {
+            return;
+        }
+        try {
+            moveCaretOutOf(regions);
+            restyleParagraphs(regions, true);
+            for (FoldingRegion region : regions) {
+                foldedRegions.add(region.startLine());
+            }
+            hiddenLinesChanged();
+        } catch (RuntimeException e) {
+            logger.error("Error folding {} region(s): {}", regions.size(), e.getMessage(), e);
+        } finally {
+            isFoldingInProgress.set(false);
+        }
+    }
+
+    private void unfoldRegions(List<FoldingRegion> regions) {
+        if (regions.isEmpty() || !isFoldingInProgress.compareAndSet(false, true)) {
+            return;
+        }
+        try {
+            restyleParagraphs(regions, false);
+            for (FoldingRegion region : regions) {
+                // Regions folded inside an unfolded one are open now as well
+                foldedRegions.removeIf(l -> l >= region.startLine() && l <= region.endLine());
+            }
+            hiddenLinesChanged();
+        } catch (RuntimeException e) {
+            logger.error("Error unfolding {} region(s): {}", regions.size(), e.getMessage(), e);
+        } finally {
+            isFoldingInProgress.set(false);
+        }
     }
 
     /** Moves the caret to the end of a region's first line when it sits in a line that is about to be hidden. */
@@ -520,7 +533,8 @@ public class FoldingManagerV2 {
     /**
      * Adds (or removes) RichTextFX's fold style on the hidden lines of every region with one document
      * replace: the paragraphs from the first region's start to the last region's end are restyled in a
-     * copy and put back at once. The text is unchanged (RichTextFX emits no plain-text change for it).
+     * copy and put back at once. The text is unchanged (RichTextFX emits no plain-text change for it,
+     * {@code TextEdits} ignores it, the plain-text undo manager records nothing).
      */
     private void restyleParagraphs(List<FoldingRegion> regions, boolean fold) {
         int lastParagraph = codeArea.getParagraphs().size() - 1;
@@ -584,19 +598,168 @@ public class FoldingManagerV2 {
         return result;
     }
 
+    // ==================== Hidden lines (view + caret) ====================
+
+    /** The area's view, patched to skip hidden lines; {@code null} when the area has none. */
+    private org.fxmisc.flowless.VirtualFlow<?, ?> virtualFlow;
+
     /**
-     * Folds all regions at a specific indentation level.
-     *
-     * @param level the indentation level (0 for root)
+     * The collapsed lines, exactly: a bit per paragraph that carries the fold style. Kept in step with every
+     * paragraph change of the area (shifted, the changed paragraphs re-read), so the view and the caret ask
+     * it in O(1) and jump over a whole hidden block with {@code nextClearBit}.
      */
-    public void foldLevel(int level) {
-        for (Map.Entry<Integer, FoldingRegion> entry : foldingRegions.entrySet()) {
-            if (entry.getValue().indentLevel() == level && !foldedRegions.contains(entry.getKey())) {
-                fold(entry.getKey());
+    private final java.util.BitSet hiddenLines = new java.util.BitSet();
+
+    /** Guards the caret listener against its own moves. */
+    private boolean skippingCaret;
+
+    /** @return whether the view skips hidden lines (the patched Flowless view was found) */
+    public boolean hasHiddenLineSupport() {
+        return virtualFlow != null;
+    }
+
+    /**
+     * Tells the area's view which lines are hidden (the patched Flowless {@code VirtualFlow}, a child of the
+     * code area) and installs the caret skipping.
+     */
+    private void installHiddenLineSupport() {
+        for (Node child : codeArea.getChildrenUnmodifiable()) {
+            if (child instanceof org.fxmisc.flowless.VirtualFlow<?, ?> flow) {
+                virtualFlow = flow;
+                break;
             }
         }
+        if (virtualFlow == null) {
+            logger.warn("No VirtualFlow in the code area: large regions are not folded");
+            return;
+        }
+        org.reactfx.collection.LiveList.observeQuasiChanges(codeArea.getParagraphs(), change -> {
+            for (var modification : change) {
+                paragraphsChanged(modification.getFrom(), modification.getRemovedSize(),
+                        modification.getAddedSize());
+            }
+        });
+        virtualFlow.setHiddenItems(new org.fxmisc.flowless.HiddenItems() {
+            @Override
+            public boolean isHidden(int itemIndex) {
+                return itemIndex >= 0 && hiddenLines.get(itemIndex);
+            }
 
-        logger.debug("Folded all regions at level {}", level);
+            @Override
+            public int hiddenRunEnd(int itemIndex) {
+                return hiddenLines.nextClearBit(itemIndex) - 1;
+            }
+
+            @Override
+            public int hiddenRunStart(int itemIndex) {
+                return hiddenLines.previousClearBit(itemIndex) + 1;
+            }
+
+            @Override
+            public int hiddenBefore(int itemIndex) {
+                return itemIndex <= 0 ? 0 : hiddenLines.get(0, itemIndex).cardinality();
+            }
+
+            @Override
+            public int hiddenCount() {
+                return hiddenLines.cardinality();
+            }
+
+            @Override
+            public int itemIndexOfShown(int shownIndex) {
+                return FoldingManagerV2.this.itemIndexOfShown(shownIndex);
+            }
+        });
+        codeArea.currentParagraphProperty().addListener((obs, oldLine, newLine) ->
+                skipFoldedBlock(oldLine, newLine));
+    }
+
+    /**
+     * Keeps {@link #hiddenLines} in step with a change of the area's paragraphs: the bits after the
+     * change move by the change in size, the changed paragraphs' styles are read again.
+     */
+    private void paragraphsChanged(int from, int removed, int added) {
+        int delta = added - removed;
+        if (delta != 0) {
+            int tailStart = from + removed;
+            if (hiddenLines.nextSetBit(tailStart) >= 0) {
+                java.util.BitSet tail = hiddenLines.get(tailStart, Math.max(tailStart, hiddenLines.length()));
+                hiddenLines.clear(from, Math.max(from, hiddenLines.length()));
+                for (int bit = tail.nextSetBit(0); bit >= 0; bit = tail.nextSetBit(bit + 1)) {
+                    hiddenLines.set(tailStart + delta + bit);
+                }
+            } else {
+                hiddenLines.clear(from, Math.max(from, hiddenLines.length()));
+            }
+        }
+        var paragraphs = codeArea.getParagraphs();
+        int end = Math.min(from + added, paragraphs.size());
+        for (int i = from; i < end; i++) {
+            hiddenLines.set(i, paragraphs.get(i).getParagraphStyle().contains(FOLD_STYLE));
+        }
+    }
+
+    /** Tells the view that the hidden lines changed (the bits follow the paragraph changes themselves). */
+    private void hiddenLinesChanged() {
+        if (virtualFlow != null) {
+            virtualFlow.hiddenItemsChanged();
+        }
+    }
+
+    /** @return the line that is the {@code shownIndex}-th shown line (for jumps to a scroll position) */
+    int itemIndexOfShown(int shownIndex) {
+        int line = -1;
+        for (int shown = 0; shown <= shownIndex; shown++) {
+            line = hiddenLines.nextClearBit(line + 1);
+        }
+        return Math.max(0, line);
+    }
+
+    /** Test hook: behaves like a view without hidden-line support (the guard for large regions applies). */
+    void disableHiddenLineSupportForTest() {
+        if (virtualFlow != null) {
+            virtualFlow.setHiddenItems(org.fxmisc.flowless.HiddenItems.NONE);
+            virtualFlow = null;
+        }
+    }
+
+    /** @return the collapsed lines (tests) */
+    java.util.BitSet hiddenLinesForTest() {
+        return (java.util.BitSet) hiddenLines.clone();
+    }
+
+    /**
+     * Keeps the caret out of folded blocks: moving down onto a hidden line puts it on the line after the
+     * block, moving up on the block's start line (the visible line that holds the fold). A selection is
+     * extended the same way.
+     */
+    private void skipFoldedBlock(Number oldLine, Number newLine) {
+        if (skippingCaret || newLine == null || !hiddenLines.get(newLine.intValue())) {
+            return;
+        }
+        int line = newLine.intValue();
+        boolean down = oldLine == null || line > oldLine.intValue();
+        int lastParagraph = codeArea.getParagraphs().size() - 1;
+        int after = hiddenLines.nextClearBit(line);
+        int before = hiddenLines.previousClearBit(line);
+        int target = down && after <= lastParagraph ? after : before;
+        if (target < 0) {
+            target = after <= lastParagraph ? after : -1;
+        }
+        if (target < 0) {
+            return;
+        }
+        int column = Math.min(codeArea.getCaretColumn(), codeArea.getParagraphLength(target));
+        skippingCaret = true;
+        try {
+            if (codeArea.getSelection().getLength() > 0) {
+                codeArea.moveTo(target, column, org.fxmisc.richtext.NavigationActions.SelectionPolicy.EXTEND);
+            } else {
+                codeArea.moveTo(target, column);
+            }
+        } finally {
+            skippingCaret = false;
+        }
     }
 
     /**
