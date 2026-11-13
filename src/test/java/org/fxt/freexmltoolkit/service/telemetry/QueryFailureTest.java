@@ -30,6 +30,19 @@ class QueryFailureTest {
     }
 
     @Test
+    void aFileThatIsNoSchemaIsTheUsersInput() {
+        // telemetry: a file bound as schema whose root is not xs:schema was counted as an app error
+        var factory = new org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory();
+        Exception failure = assertThrows(Exception.class, () -> factory.fromString("<root><a/></root>"));
+        assertInstanceOf(org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory.NotASchemaException.class, failure);
+        assertTrue(failure.getMessage().contains("<root>"), failure.getMessage());
+
+        assertEquals(TelemetryEvent.Status.INVALID_INPUT, QueryFailure.classify(failure).status());
+        Telemetry.reportUnlessUserInput(failure, "editor.parse_bound_xsd");
+        assertTrue(telemetry.errorReports().isEmpty(), "not reported as an error");
+    }
+
+    @Test
     void foRejectedByFopIsInvalidInput() {
         Throwable chain = new RuntimeException("FOP processing error",
                 new javax.xml.transform.TransformerException(

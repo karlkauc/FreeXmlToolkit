@@ -314,6 +314,20 @@ public class XsdNodeFactory {
     }
 
     /**
+     * The document is not an XML Schema: its root is not {@code xs:schema} (another XML file bound as a
+     * schema, or a schema in the wrong namespace). The user's file, not an application error.
+     */
+    public static final class NotASchemaException extends IllegalArgumentException
+            implements org.fxt.freexmltoolkit.service.telemetry.UserInputFailure {
+        private static final long serialVersionUID = 1L;
+
+        NotASchemaException(String namespace, String localName) {
+            super("Root element must be xs:schema, found <" + localName + ">"
+                    + (namespace == null || namespace.isEmpty() ? "" : " in namespace " + namespace));
+        }
+    }
+
+    /**
      * Creates an XSD model directly from an XML Document.
      *
      * @param document        the XSD XML document
@@ -334,7 +348,7 @@ public class XsdNodeFactory {
 
         Element schemaElement = document.getDocumentElement();
         if (!isXsdElement(schemaElement, "schema")) {
-            throw new IllegalArgumentException("Root element must be xs:schema");
+            throw new NotASchemaException(schemaElement.getNamespaceURI(), schemaElement.getNodeName());
         }
 
         includeStack.clear();

@@ -1363,6 +1363,34 @@
     -fx-font-family: "JetBrains Mono", monospace;
 }
 
+/* Fold toggles in the XML editor gutter (FoldingManagerV2.createFoldIndicator): a chevron, muted while
+   the region is open, accent on a tinted chip while it is folded so a folded block stands out. */
+.fold-button.fxt-fold-toggle {
+    -fx-background-color: transparent;
+    -fx-background-radius: 3;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+.fold-button.fxt-fold-toggle .iconify-icon {
+    -fx-icon-color: -fxt-text-muted;
+}
+.fold-button.fxt-fold-toggle:hover {
+    -fx-background-color: -fxt-bg-subtle;
+}
+.fold-button.fxt-fold-toggle:hover .iconify-icon {
+    -fx-icon-color: -fxt-primary-text;
+}
+.fold-button.fxt-fold-toggle.fxt-fold-toggle-folded {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-border-color: -fxt-primary-text;
+    -fx-border-width: 1;
+    -fx-border-radius: 3;
+}
+.fold-button.fxt-fold-toggle.fxt-fold-toggle-folded .iconify-icon {
+    -fx-icon-color: -fxt-primary-text;
+}
+
 /* ----- Transform panel ------------------------------------------------- */
 .fxt-transform-output {
     -fx-font-family: "JetBrains Mono", monospace;

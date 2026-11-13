@@ -399,7 +399,7 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
             } else {
                 // Add spacer to maintain alignment
                 javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
-                spacer.setPrefSize(12, 12);
+                spacer.setPrefSize(FoldingManagerV2.FOLD_TOGGLE_SIZE, FoldingManagerV2.FOLD_TOGGLE_SIZE);
                 hbox.getChildren().add(spacer);
             }
 

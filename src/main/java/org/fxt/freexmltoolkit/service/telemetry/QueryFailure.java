@@ -114,7 +114,8 @@ public record QueryFailure(String errorCode, TelemetryEvent.Status status, Error
     }
 
     private static boolean isEnvironmentFailure(Throwable t) {
-        return t instanceof java.nio.file.FileSystemException
+        return t instanceof UserInputFailure
+                || t instanceof java.nio.file.FileSystemException
                 || t instanceof com.google.gson.JsonParseException
                 || t instanceof java.io.FileNotFoundException
                 || t instanceof java.nio.charset.CharacterCodingException

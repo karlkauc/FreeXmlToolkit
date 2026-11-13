@@ -17,8 +17,6 @@ import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Polygon;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -283,6 +281,9 @@ public class FoldingManagerV2 {
         return regions;
     }
 
+    /** Width and height of a fold toggle in the gutter (the spacer of lines without one matches it). */
+    public static final double FOLD_TOGGLE_SIZE = 14;
+
     /**
      * Creates a fold indicator button for a specific line.
      * Returns null if the line is not foldable and not currently folded.
@@ -302,34 +303,22 @@ public class FoldingManagerV2 {
             return null;
         }
 
-        logger.debug("Creating fold button for line {}", lineIndex);
+        // A chevron from the bundled icon set; colours come from the theme tokens (unified-shell.css,
+        // .fxt-fold-toggle): muted while open, accent on a tinted chip while folded, so a folded block
+        // stands out in the gutter
         Button button = new Button();
-        button.setPrefSize(12, 12);
-        button.setMinSize(12, 12);
-        button.setMaxSize(12, 12);
-        button.getStyleClass().add("fold-button");
-
-        // Create triangle indicator
-        Polygon triangle = new Polygon();
-
+        button.setPrefSize(FOLD_TOGGLE_SIZE, FOLD_TOGGLE_SIZE);
+        button.setMinSize(FOLD_TOGGLE_SIZE, FOLD_TOGGLE_SIZE);
+        button.setMaxSize(FOLD_TOGGLE_SIZE, FOLD_TOGGLE_SIZE);
+        button.setFocusTraversable(false);
+        button.getStyleClass().addAll("fold-button", "fxt-fold-toggle");
         if (isFolded) {
-            // Right-pointing triangle: ▶ (folded state)
-            triangle.getPoints().addAll(
-                    2.0, 2.0,
-                    2.0, 10.0,
-                    10.0, 6.0
-            );
-        } else {
-            // Down-pointing triangle: ▼ (unfolded state)
-            triangle.getPoints().addAll(
-                    2.0, 2.0,
-                    10.0, 2.0,
-                    6.0, 10.0
-            );
+            button.getStyleClass().add("fxt-fold-toggle-folded");
         }
-
-        triangle.setFill(Color.GRAY);
-        button.setGraphic(triangle);
+        var chevron = new org.fxt.freexmltoolkit.controls.icons.IconifyIcon(
+                isFolded ? "bi-chevron-right" : "bi-chevron-down");
+        chevron.setIconSize(10);
+        button.setGraphic(chevron);
 
         // Handle click to toggle fold
         button.setOnAction(event -> toggleFold(lineIndex));
