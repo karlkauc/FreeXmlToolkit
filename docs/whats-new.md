@@ -117,7 +117,8 @@ running is shown under **Help → About FreeXmlToolkit**.
   block shows as a highlighted chip. Elements whose start tag spans several lines (attributes on their own lines,
   such as the FundsXML root) can be folded too; tags inside comments and CDATA no longer count.
 - **Update check behind corporate networks:** when GitHub's API refuses (rate limit on a shared address), the check
-  reads the release page instead.
+  reads the release page instead. The downloaded update is then verified against the release's `SHA256SUMS.txt`
+  instead of being installed without a checksum check.
 - **Clearer messages:** Open from URL names the HTTP status; Copy View as Image copies the visible area when the
   whole view is too large for the clipboard; file associations blocked by an administrator policy say so; an
   unreachable remote schema is not fetched again on every open for ten minutes; stopping the debugger is no

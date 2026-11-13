@@ -421,4 +421,37 @@ class AutoUpdateServiceTest {
                     "No unescaped apostrophe may survive: " + ps);
         }
     }
+
+    @Nested
+    @DisplayName("SHA256SUMS.txt fallback (API rate limit)")
+    class Sha256SumsTests {
+
+        private static final String A = "a".repeat(64);
+        private static final String B = "B".repeat(64);
+
+        @Test
+        @DisplayName("finds the asset's digest in sha256sum output")
+        void findsDigest() {
+            String sums = A + "  FreeXmlToolkit-linux-x64-app-image-3.1.0.zip\n"
+                    + B + "  FreeXmlToolkit-windows-x64-app-image-3.1.0.zip\r\n";
+            assertEquals("b".repeat(64), AutoUpdateServiceImpl.digestFromSums(sums,
+                    "FreeXmlToolkit-windows-x64-app-image-3.1.0.zip"));
+        }
+
+        @Test
+        @DisplayName("accepts binary-mode lines and ignores junk")
+        void binaryModeAndJunk() {
+            String sums = "not a digest  x.zip\n\n" + A + " *x.zip\n";
+            assertEquals(A, AutoUpdateServiceImpl.digestFromSums(sums, "x.zip"));
+        }
+
+        @Test
+        @DisplayName("no partial name matches, missing asset gives null")
+        void exactNameOnly() {
+            String sums = A + "  FreeXmlToolkit-x64-3.1.0.msi\n";
+            assertNull(AutoUpdateServiceImpl.digestFromSums(sums, "x64-3.1.0.msi"));
+            assertNull(AutoUpdateServiceImpl.digestFromSums(sums, "other.zip"));
+            assertNull(AutoUpdateServiceImpl.digestFromSums(null, "other.zip"));
+        }
+    }
 }

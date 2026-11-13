@@ -976,8 +976,11 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             if (result == null || result.httpStatus() == null || result.httpStatus() != 200
                     || result.resultBody() == null || result.resultBody().isBlank()) {
                 writeDebugLog(debugLog, "Could not fetch release metadata for digest lookup (status: "
-                        + (result != null ? result.httpStatus() : "null") + ")");
-                return null;
+                        + (result != null ? result.httpStatus() : "null") + "), trying SHA256SUMS.txt");
+                // GitHub's anonymous API limit (60/h per IP) is quickly used up behind a shared
+                // corporate address. Every release carries SHA256SUMS.txt (built from the same
+                // GitHub digests); it is served like the update ZIP itself, without that limit.
+                return digestFromSumsFile(connectionService, version, assetName, debugLog);
             }
 
             com.google.gson.JsonObject release =
@@ -1009,6 +1012,58 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             writeDebugLog(debugLog, "ERROR fetching digest: " + e.getMessage());
             return null;
         }
+    }
+
+    /**
+     * Reads the expected digest from the release's {@code SHA256SUMS.txt} asset.
+     *
+     * @return the lower-case hex SHA-256 digest, or {@code null} if unavailable
+     */
+    private String digestFromSumsFile(ConnectionService connectionService, String version, String assetName,
+                                      Path debugLog) {
+        String sumsUrl = String.format("https://github.com/%s/%s/releases/download/v%s/%s",
+                GITHUB_OWNER, GITHUB_REPO, version, SHA256SUMS_ASSET);
+        var result = connectionService.executeVerifiedHttpRequest(URI.create(sumsUrl));
+        if (result == null || result.httpStatus() == null || result.httpStatus() != 200) {
+            writeDebugLog(debugLog, "Could not fetch " + SHA256SUMS_ASSET + " (status: "
+                    + (result != null ? result.httpStatus() : "null") + ")");
+            return null;
+        }
+        String digest = digestFromSums(result.resultBody(), assetName);
+        if (digest == null) {
+            writeDebugLog(debugLog, "Asset '" + assetName + "' not listed in " + SHA256SUMS_ASSET);
+        } else {
+            writeDebugLog(debugLog, "Digest taken from " + SHA256SUMS_ASSET);
+        }
+        return digest;
+    }
+
+    /** Name of the checksum asset every release carries (build-packages-on-new-release.yml). */
+    static final String SHA256SUMS_ASSET = "SHA256SUMS.txt";
+
+    private static final java.util.regex.Pattern SHA256_HEX = java.util.regex.Pattern.compile("[0-9a-fA-F]{64}");
+
+    /**
+     * Finds an asset's digest in {@code sha256sum} output ({@code <hex>  <name>}, or
+     * {@code <hex> *<name>} in binary mode).
+     *
+     * @return the lower-case hex digest, or {@code null} when the asset is not listed
+     */
+    static String digestFromSums(String sums, String assetName) {
+        if (sums == null || assetName == null) {
+            return null;
+        }
+        for (String line : sums.split("\\R")) {
+            String[] parts = line.trim().split("\\s+", 2);
+            if (parts.length != 2 || !SHA256_HEX.matcher(parts[0]).matches()) {
+                continue;
+            }
+            String name = parts[1].startsWith("*") ? parts[1].substring(1) : parts[1];
+            if (name.equals(assetName)) {
+                return parts[0].toLowerCase();
+            }
+        }
+        return null;
     }
 
     /**
