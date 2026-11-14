@@ -3275,7 +3275,9 @@ which counterparties (also management companies for their funds) send to a trade
   business application header head.001) is bound to a driver schema that validates envelope, header
   and report together. The same driver is used for ESMA's money market fund report of the
   <a href="../plugin-kag-meldewesen/">KAG-Meldewesen</a> extension.</li>
-<li><strong>ESMA's validation rules:</strong> with every validation (<strong>F8</strong>, Validation panel, <code>fxt-cli validate</code>):<ul>
+<li>
+<p><strong>ESMA's validation rules:</strong> with every validation (<strong>F8</strong>, Validation panel, <code>fxt-cli validate</code>):</p>
+<ul>
 <li><strong>per action type and level</strong> - for each report (<code>New</code> = NEWT, <code>Mod</code> = MODI, <code>ValtnUpd</code> = VALU,
   <code>Crrctn</code> = CORR, <code>Termntn</code> = TERM, <code>Err</code> = EROR, <code>Rvv</code> = REVI, <code>PosCmpnt</code> = POSC; level from
   <code>Lvl</code>, trade or position) the fields ESMA marks <em>mandatory</em> must be reported and those marked
@@ -3283,12 +3285,25 @@ which counterparties (also management companies for their funds) send to a trade
   type VALU</code>. The table comes from ESMA's <em>EMIR Refit validation rules</em> (esma74-362-2683);</li>
 <li>the number of records in the header against the reports;</li>
 <li>the UTI (an LEI followed by up to 32 letters or digits);</li>
-<li>LEI and ISIN check digits, ISO 3166 country codes.</li>
+<li>
+<p>LEI and ISIN check digits, ISO 3166 country codes.</p>
+</li>
+<li>
+<p><strong>conditional fields</strong> (<em>C</em> in ESMA's table): whether they must or must not be reported depends
+  on other fields, and ESMA's rules say how - <code>EMIR-1.7 Field 1.7 · Clearing threshold of
+  counterparty 1 must be reported when 1.5 Nature of the counterparty 1 is N</code>, <code>EMIR-2.33 Field
+  2.33 · Central counterparty must not be reported when 2.31 Cleared is N</code>. Codes the schema
+  expresses by a choice of elements are read as ESMA's codes (<code>NFI</code> = N, <code>Clrd</code> = Y). Values within a
+  schedule period or another payment are compared with that period or payment only; also "at
+  least one of" and "only one of" groups (2.13 / 2.79 / 2.85 for interest rates) and codes that must
+  differ (report tracking number, prior and subsequent UTI).</p>
+</li>
 </ul>
 </li>
 </ul>
-<p>Conditional fields (<em>C</em> in ESMA's table) depend on other fields' values and are not checked yet;
-  ESMA's full rules text is in the Inspector.
+<p>Not checked are the conditions that need reference data - the kind of venue behind a MIC (regulated
+  market, systematic internaliser), GLEIF, the UPI database, the EIC code lists - and comparisons of
+  dates. ESMA's full rules text is in the Inspector.
 - <strong>Field labels:</strong> every element shows its EMIR field number and name, the obligation per action
   type, ESMA's rules text and the details to be reported in the Inspector's DOCUMENTATION and as grid
   tooltip - also inside the envelope.
@@ -3303,7 +3318,10 @@ action type (<code>New</code> = NEWT, <code>Mod</code> = MODI, <code>Err</code> 
 <code>CollUpd</code> = COLU, <code>Crrctn</code> = CORR, <code>ValtnUpd</code> = VALU), the level (<code>LvlTp</code>: TCTN or PSTN) and the type
 of SFT, read from the loan data (<code>RpTrad</code> repo, <code>BuySellBck</code> buy-sell back, <code>SctiesLndg</code> securities
 lending, <code>MrgnLndg</code> margin lending) - <code>SFTR-2.3 Field 2.3 · Event date is mandatory for action type
-COLU</code>. UTI, LEI and ISIN are checked too; <strong>New SFTR Error Report (Example)</strong> opens a fictitious report.</p>
+COLU</code>. The conditional fields are checked as for EMIR, the collateral fields per collateral component
+(<code>SFTR-2.78 Field 2.78 · Identification of a security used as collateral must be reported when 2.75 Type of
+collateral component is SECU</code>); ESMA's "should" rules (lending fee, collateral or basket identifier) are
+warnings. UTI, LEI and ISIN are checked too; <strong>New SFTR Error Report (Example)</strong> opens a fictitious report.</p>
 <h2 id="mifir">MiFIR<a class="headerlink" href="#mifir" title="Permanent link">¶</a></h2>
 <p>MiFIR transaction reports (<code>Document</code> in the <code>auth.016.001.01</code> namespace or in the envelope) are
 checked with the content rules of ESMA's <em>MiFIR transaction reporting validation rules</em>
