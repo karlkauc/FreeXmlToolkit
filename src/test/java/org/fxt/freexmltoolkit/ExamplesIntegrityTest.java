@@ -38,7 +38,7 @@ class ExamplesIntegrityTest {
     @ValueSource(strings = {
             "xml/FundsXML4_Equity_Fund.xml",
             "xml/FundsXML_422_Bond_Fund.xml",
-            "schematron/eam_rules.xml"
+            "schematron/example_rules.xml"
     })
     void bundledInstances_areValidAgainstBundledSchema(String relativePath) {
         File xml = EXAMPLES.resolve(relativePath).toFile();
@@ -123,7 +123,7 @@ class ExamplesIntegrityTest {
                 Map.of(), XsltTransformationEngine.OutputFormat.HTML);
 
         assertTrue(result.isSuccess(), () -> "Look-through XQuery failed: " + result.getErrorMessage());
-        // the equity example holds exactly one target-fund position (Erste Euro Bázis)
+        // the equity example holds exactly one target-fund position (Example Euro Bázis)
         assertTrue(result.getOutputContent().contains("HU0000706007"),
                 "Look-through report should list the fund-investment candidate");
     }

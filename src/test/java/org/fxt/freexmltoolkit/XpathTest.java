@@ -130,16 +130,16 @@ public class XpathTest {
 
         String expectedOutput = """
                 <ControlData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-                   <UniqueDocumentID>EAM_FUND_001</UniqueDocumentID>
+                   <UniqueDocumentID>XAM_FUND_001</UniqueDocumentID>
                    <DocumentGenerated>2021-11-30T16:14:04</DocumentGenerated>
                    <ContentDate>2021-11-30</ContentDate>
                    <DataSupplier>
                       <SystemCountry>AT</SystemCountry>
-                      <Short>EAM</Short>
-                      <Name>Erste Asset Management GmbH</Name>
+                      <Short>XAM</Short>
+                      <Name>Example Asset Management GmbH</Name>
                       <Type>Asset Manager</Type>
                       <Contact>
-                         <Email>datamanagement@erste-am.com</Email>
+                         <Email>datamanagement@example.com</Email>
                       </Contact>
                    </DataSupplier>
                    <DataOperation>INITIAL</DataOperation>
@@ -158,16 +158,16 @@ public class XpathTest {
         String input = """
                 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                 <ControlData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-                   <UniqueDocumentID>EAM_FUND_001</UniqueDocumentID>
+                   <UniqueDocumentID>XAM_FUND_001</UniqueDocumentID>
                    <DocumentGenerated>2021-11-30T16:14:04</DocumentGenerated>
                    <ContentDate>2021-11-30</ContentDate>
                    <DataSupplier>
                       <SystemCountry>AT</SystemCountry>
-                      <Short>EAM</Short>
-                      <Name>Erste Asset Management GmbH</Name>
+                      <Short>XAM</Short>
+                      <Name>Example Asset Management GmbH</Name>
                       <Type>Asset Manager</Type>
                       <Contact>
-                         <Email>datamanagement@erste-am.com</Email>
+                         <Email>datamanagement@example.com</Email>
                       </Contact>
                    </DataSupplier>
                    <DataOperation>INITIAL</DataOperation>

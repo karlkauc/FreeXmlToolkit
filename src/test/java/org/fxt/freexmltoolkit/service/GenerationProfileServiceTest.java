@@ -274,20 +274,20 @@ class GenerationProfileServiceTest {
     class ExampleProfileTests {
 
         @Test
-        @DisplayName("FundsXML Bond Fund EAM Demo profile is importable and well-formed")
+        @DisplayName("FundsXML Bond Fund Demo profile is importable and well-formed")
         void bondFundProfileImportable() throws IOException {
-            File profileFile = new File("release/examples/profiles/FundsXML_Bond_Fund_EAM_Demo.json");
+            File profileFile = new File("release/examples/profiles/FundsXML_Bond_Fund_Demo.json");
             assertTrue(profileFile.exists(),
                     "Example profile must exist at " + profileFile.getAbsolutePath());
 
             GenerationProfile loaded = service.importFromFile(profileFile);
             assertNotNull(loaded, "Profile must deserialize successfully");
-            assertEquals("FundsXML Bond Fund EAM Demo", loaded.getName());
+            assertEquals("FundsXML Bond Fund Demo", loaded.getName());
             assertEquals("FundsXML4.xsd", loaded.getSchemaFile());
             assertFalse(loaded.getRules().isEmpty(), "Profile must contain rules");
 
-            // Verify the key Erste Asset Management fingerprint rules are present
-            assertRulePresent(loaded.getRules(), "//DataSupplier/Name", "Erste Asset Management GmbH");
+            // Verify the key Example Asset Management fingerprint rules are present
+            assertRulePresent(loaded.getRules(), "//DataSupplier/Name", "Example Asset Management GmbH");
             assertRulePresent(loaded.getRules(), "/FundsXML4/Funds/Fund/Identifiers/LEI", "PQOH26KWDF7CG10L6792");
             assertRulePresent(loaded.getRules(), "/FundsXML4/ControlData/ContentDate", "2021-11-30");
             assertRulePresent(loaded.getRules(), "/FundsXML4/Funds/Fund/Names/OfficialName", "DEMO BOND FUND");

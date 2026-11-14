@@ -34,8 +34,8 @@ class TransformRunnerTest {
 
     @Test
     void evaluatesJsonPath() {
-        String result = TransformRunner.runJsonPath("{\"fund\":{\"id\":\"EAM_2024\"}}", "$.fund.id");
-        assertTrue(result.contains("EAM_2024"), result);
+        String result = TransformRunner.runJsonPath("{\"fund\":{\"id\":\"XAM_2024\"}}", "$.fund.id");
+        assertTrue(result.contains("XAM_2024"), result);
     }
 
     private static final String PARAM_XSLT = """

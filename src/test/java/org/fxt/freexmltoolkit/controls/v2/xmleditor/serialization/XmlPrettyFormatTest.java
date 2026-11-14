@@ -22,7 +22,7 @@ class XmlPrettyFormatTest {
                 <FundsXML4 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                            xsi:noNamespaceSchemaLocation="https://fdp-service.oekb.at/FundsXML_4.1.10_AI.xsd">
                    <ControlData>
-                      <UniqueDocumentID>EAM_7511019_20260130_FUND_1056</UniqueDocumentID>
+                      <UniqueDocumentID>XAM_7511019_20260130_FUND_1056</UniqueDocumentID>
                       <DocumentGenerated>2026-03-10T14:31:45</DocumentGenerated>
                       <ContentDate>2026-01-30</ContentDate>
                    </ControlData>

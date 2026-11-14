@@ -1,6 +1,6 @@
 {
-  "name": "FundsXML Bond Fund EAM Demo",
-  "description": "Generates a schema-valid FundsXML4 instance modelled on release/examples/xml/FundsXML_422_Bond_Fund.xml. Produces ControlData with the Erste Asset Management identifiers, a Funds/Fund entry with LEI/name/currency, a Portfolio with one Position, and an AssetMasterData entry whose UniqueID matches the Position's IDREF. Uses mandatoryOnly=true and maxOccurrences=1 to keep the output minimal and deterministic.",
+  "name": "FundsXML Bond Fund Demo",
+  "description": "Generates a schema-valid FundsXML4 instance modelled on release/examples/xml/FundsXML_422_Bond_Fund.xml. Produces ControlData with the Example Asset Management identifiers, a Funds/Fund entry with LEI/name/currency, a Portfolio with one Position, and an AssetMasterData entry whose UniqueID matches the Position's IDREF. Uses mandatoryOnly=true and maxOccurrences=1 to keep the output minimal and deterministic.",
   "schemaFile": "FundsXML4.xsd",
   "batchCount": 1,
   "fileNamePattern": "FundsXML_Bond_Fund_{seq:3}.xml",
@@ -10,7 +10,7 @@
     {
       "xpath": "/FundsXML4/ControlData/UniqueDocumentID",
       "strategy": "FIXED",
-      "config": {"value": "EAM_FUND_003"},
+      "config": {"value": "XAM_FUND_003"},
       "priority": 10,
       "enabled": true
     },
@@ -45,14 +45,14 @@
     {
       "xpath": "//DataSupplier/Short",
       "strategy": "FIXED",
-      "config": {"value": "EAM"},
+      "config": {"value": "XAM"},
       "priority": 5,
       "enabled": true
     },
     {
       "xpath": "//DataSupplier/Name",
       "strategy": "FIXED",
-      "config": {"value": "Erste Asset Management GmbH"},
+      "config": {"value": "Example Asset Management GmbH"},
       "priority": 5,
       "enabled": true
     },

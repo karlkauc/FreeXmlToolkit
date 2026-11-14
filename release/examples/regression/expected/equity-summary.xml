@@ -5,7 +5,7 @@
 -->
 <fund-summary created="${xmlunit.isDateTime}" run="${xmlunit.matchesRegex(^d\w+-\d+$)}">
    <fund isin="HU0000704200" currency="HUF">
-      <name>Erste Stock Hungary Indexkövető Befektetési Alap</name>
+      <name>Example Stock Hungary Indexkövető Befektetési Alap</name>
       <nav>29411334597</nav>
       <positions count="27">
          <weights-total>100</weights-total>

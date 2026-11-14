@@ -504,7 +504,7 @@ class UnifiedShellViewTest {
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                         + "<FundsXML4 xmlns=\"http://www.fundsxml.org\">\n"
                         + "    <ControlData>\n"
-                        + "        <UniqueDocumentID>EAM_FUND_2024_0926</UniqueDocumentID>\n"
+                        + "        <UniqueDocumentID>XAM_FUND_2024_0926</UniqueDocumentID>\n"
                         + "        <DocumentGenerated>2024-09-26T18:37:12</DocumentGenerated>\n"
                         + "    </ControlData>\n"
                         + "</FundsXML4>\n");
@@ -512,7 +512,7 @@ class UnifiedShellViewTest {
         WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
                 () -> shell.getEditorHost().getActiveText().map(t -> t.contains("FundsXML4")).orElse(false));
         // Place the caret inside <UniqueDocumentID> so the inspector is populated.
-        int caret = shell.getEditorHost().getActiveText().orElse("").indexOf("EAM_FUND");
+        int caret = shell.getEditorHost().getActiveText().orElse("").indexOf("XAM_FUND");
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.getEditorHost().moveActiveCaretTo(caret));
         WaitForAsyncUtils.sleep(400, java.util.concurrent.TimeUnit.MILLISECONDS);
         WaitForAsyncUtils.waitForFxEvents();
@@ -521,7 +521,7 @@ class UnifiedShellViewTest {
         // Open a JSON document to show the JSON editor (file-type polymorphism).
         File json = File.createTempFile("fxt_shell_sample", ".json");
         java.nio.file.Files.writeString(json.toPath(),
-                "{\n  \"fund\": {\n    \"id\": \"EAM_FUND_2024\",\n    \"items\": [1, 2, 3]\n  }\n}\n");
+                "{\n  \"fund\": {\n    \"id\": \"XAM_FUND_2024\",\n    \"items\": [1, 2, 3]\n  }\n}\n");
         WaitForAsyncUtils.waitForAsyncFx(3000, () -> shell.getEditorHost().openFile(json.toPath()));
         WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
                 () -> shell.getEditorHost().getActiveText().map(t -> t.contains("fund")).orElse(false));

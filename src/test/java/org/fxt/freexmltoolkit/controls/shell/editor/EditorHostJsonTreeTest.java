@@ -73,7 +73,7 @@ class EditorHostJsonTreeTest {
 
     private void openJson(Path tmp) throws Exception {
         Path json = tmp.resolve("data.json");
-        Files.writeString(json, "{\"fund\":{\"id\":\"EAM\",\"items\":[1,2,3]}}");
+        Files.writeString(json, "{\"fund\":{\"id\":\"XAM\",\"items\":[1,2,3]}}");
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(json));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("fund")).orElse(false));

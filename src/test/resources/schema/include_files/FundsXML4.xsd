@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Mit XMLSpy v2015 (x64) (http://www.altova.com) von Kauc Karl (Erste Asset Management GmbH) bearbeitet -->
+<!-- Mit XMLSpy v2015 (x64) (http://www.altova.com) von Kauc Karl bearbeitet -->
 <xs:schema xmlns:altova="http://www.altova.com/xml-schema-extensions"
            xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
            xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"

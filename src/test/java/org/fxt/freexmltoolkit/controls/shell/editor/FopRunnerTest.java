@@ -59,7 +59,7 @@ class FopRunnerTest {
         Path pdf = tmp.resolve("out.pdf");
 
         String result = FopRunner.generate(xml.toFile(), xsl.toFile(), pdf.toFile(),
-                new FopRunner.PdfOptions("Fact Sheet 2026", "Erste AM", "Monthly Factsheet",
+                new FopRunner.PdfOptions("Fact Sheet 2026", "Example AM", "Monthly Factsheet",
                         false, "A4", "Portrait"));
 
         assertTrue(result.startsWith("OK:"), result);

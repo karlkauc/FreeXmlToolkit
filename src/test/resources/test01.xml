@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Mit XMLSpy v2015 (x64) (http://www.altova.com) von Kauc Karl (Erste Asset Management GmbH) bearbeitet -->
+<!-- Mit XMLSpy v2015 (x64) (http://www.altova.com) von Kauc Karl bearbeitet -->
 <FundsXML4 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://fdp-service.oekb.at/FundsXML_4.1.7_AI.xsd">
 	<ControlData>
-		<UniqueDocumentID>EAM_7290691_20211029_FUND_102</UniqueDocumentID>
+		<UniqueDocumentID>XAM_7290691_20211029_FUND_102</UniqueDocumentID>
 		<DocumentGenerated>2021-11-04T17:02:15</DocumentGenerated>
 		<ContentDate>2021-10-29</ContentDate>
 		<DataSupplier>
 			<SystemCountry>AT</SystemCountry>
-			<Short>EAM</Short>
-			<Name>Erste Asset Management GmbH</Name>
+			<Short>XAM</Short>
+			<Name>Example Asset Management GmbH</Name>
 			<Type>IC</Type>
 			<Contact>
-				<Email>datamanagement@erste-am.com</Email>
+				<Email>datamanagement@example.com</Email>
 			</Contact>
 		</DataSupplier>
 		<DataOperation>AMEND</DataOperation>
 		<RelatedDocumentIDs>
-			<RelatedDocumentID>EAM_7290691_20211029_FUND_101</RelatedDocumentID>
+			<RelatedDocumentID>XAM_7290691_20211029_FUND_101</RelatedDocumentID>
 		</RelatedDocumentIDs>
 		<Language>DE</Language>
 		<CountrySpecificData>
@@ -39,11 +39,11 @@
 			<SingleFundFlag>true</SingleFundFlag>
 			<DataSupplier>
 				<SystemCountry>AT</SystemCountry>
-				<Short>EAM</Short>
-				<Name>Erste Asset Management GmbH</Name>
+				<Short>XAM</Short>
+				<Name>Example Asset Management GmbH</Name>
 				<Type>IC</Type>
 				<Contact>
-					<Email>datamanagement@erste-am.com</Email>
+					<Email>datamanagement@example.com</Email>
 				</Contact>
 			</DataSupplier>
 			<FundStaticData>
@@ -22601,7 +22601,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<ProfitLoss>
 									<Amount ccy="EUR">82766.93</Amount>
@@ -22651,7 +22651,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<ProfitLoss>
 									<Amount ccy="EUR">42404.9</Amount>
@@ -24123,7 +24123,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<Derivatives>
 									<HedgingFlag>true</HedgingFlag>
@@ -24165,7 +24165,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<Derivatives>
 									<HedgingFlag>true</HedgingFlag>
@@ -24207,7 +24207,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<Derivatives>
 									<HedgingFlag>true</HedgingFlag>
@@ -24249,7 +24249,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<Derivatives>
 									<HedgingFlag>true</HedgingFlag>
@@ -24291,7 +24291,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<Derivatives>
 									<HedgingFlag>true</HedgingFlag>
@@ -24321,7 +24321,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<ProfitLoss>
 									<Amount ccy="EUR">0</Amount>
@@ -24350,7 +24350,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<ProfitLoss>
 									<Amount ccy="EUR">0</Amount>
@@ -24379,7 +24379,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<ProfitLoss>
 									<Amount ccy="EUR">0</Amount>
@@ -24408,7 +24408,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<ProfitLoss>
 									<Amount ccy="EUR">0</Amount>
@@ -24437,7 +24437,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<ProfitLoss>
 									<Amount ccy="EUR">0</Amount>
@@ -24466,7 +24466,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<ProfitLoss>
 									<Amount ccy="EUR">0</Amount>
@@ -24495,7 +24495,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<ProfitLoss>
 									<Amount ccy="EUR">0</Amount>
@@ -24524,7 +24524,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<ProfitLoss>
 									<Amount ccy="EUR">0</Amount>
@@ -24553,7 +24553,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<ProfitLoss>
 									<Amount ccy="EUR">0</Amount>
@@ -24582,7 +24582,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<ProfitLoss>
 									<Amount ccy="EUR">0</Amount>
@@ -24611,7 +24611,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<ProfitLoss>
 									<Amount ccy="EUR">0</Amount>
@@ -24640,7 +24640,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<ProfitLoss>
 									<Amount ccy="EUR">12244.61</Amount>
@@ -24669,7 +24669,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<ProfitLoss>
 									<Amount ccy="EUR">-187245.9</Amount>
@@ -24698,7 +24698,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<ProfitLoss>
 									<Amount ccy="EUR">-4074.58</Amount>
@@ -24727,7 +24727,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<ProfitLoss>
 									<Amount ccy="EUR">-3670.79</Amount>
@@ -24756,7 +24756,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<ProfitLoss>
 									<Amount ccy="EUR">35396.51</Amount>
@@ -24785,7 +24785,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<ProfitLoss>
 									<Amount ccy="EUR">-36771.2</Amount>
@@ -24814,7 +24814,7 @@
 										<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 										<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 									</Identifiers>
-									<Name>Erste Group Bank AG</Name>
+									<Name>Example Bank AG</Name>
 								</Counterparty>
 								<ProfitLoss>
 									<Amount ccy="EUR">790.27</Amount>
@@ -59695,7 +59695,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<Derivatives>
 												<HedgingFlag>true</HedgingFlag>
@@ -59737,7 +59737,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<Derivatives>
 												<HedgingFlag>true</HedgingFlag>
@@ -59779,7 +59779,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<Derivatives>
 												<HedgingFlag>true</HedgingFlag>
@@ -59821,7 +59821,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<Derivatives>
 												<HedgingFlag>true</HedgingFlag>
@@ -59863,7 +59863,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<Derivatives>
 												<HedgingFlag>true</HedgingFlag>
@@ -59893,7 +59893,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<ProfitLoss>
 												<Amount ccy="EUR">0</Amount>
@@ -59922,7 +59922,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<ProfitLoss>
 												<Amount ccy="EUR">0</Amount>
@@ -59951,7 +59951,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<ProfitLoss>
 												<Amount ccy="EUR">0</Amount>
@@ -59980,7 +59980,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<ProfitLoss>
 												<Amount ccy="EUR">0</Amount>
@@ -73800,7 +73800,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<ProfitLoss>
 												<Amount ccy="EUR">82766.93</Amount>
@@ -73850,7 +73850,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<ProfitLoss>
 												<Amount ccy="EUR">42404.9</Amount>
@@ -74009,7 +74009,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<ProfitLoss>
 												<Amount ccy="EUR">0</Amount>
@@ -74038,7 +74038,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<ProfitLoss>
 												<Amount ccy="EUR">0</Amount>
@@ -74067,7 +74067,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<ProfitLoss>
 												<Amount ccy="EUR">0</Amount>
@@ -74096,7 +74096,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<ProfitLoss>
 												<Amount ccy="EUR">0</Amount>
@@ -74125,7 +74125,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<ProfitLoss>
 												<Amount ccy="EUR">0</Amount>
@@ -74154,7 +74154,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<ProfitLoss>
 												<Amount ccy="EUR">0</Amount>
@@ -74183,7 +74183,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<ProfitLoss>
 												<Amount ccy="EUR">12244.61</Amount>
@@ -74212,7 +74212,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<ProfitLoss>
 												<Amount ccy="EUR">-187245.9</Amount>
@@ -74241,7 +74241,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<ProfitLoss>
 												<Amount ccy="EUR">-4074.58</Amount>
@@ -74270,7 +74270,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<ProfitLoss>
 												<Amount ccy="EUR">-3670.79</Amount>
@@ -74299,7 +74299,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<ProfitLoss>
 												<Amount ccy="EUR">35396.51</Amount>
@@ -74328,7 +74328,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<ProfitLoss>
 												<Amount ccy="EUR">-36771.2</Amount>
@@ -74357,7 +74357,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<ProfitLoss>
 												<Amount ccy="EUR">790.27</Amount>
@@ -94161,7 +94161,7 @@
 													<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 													<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 												</Identifiers>
-												<Name>Erste Group Bank AG</Name>
+												<Name>Example Bank AG</Name>
 											</Counterparty>
 											<ProfitLoss>
 												<Amount ccy="EUR">0</Amount>
@@ -115513,7 +115513,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -115542,7 +115542,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -115571,7 +115571,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -115600,7 +115600,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -115629,7 +115629,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -115658,7 +115658,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -115687,7 +115687,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -115716,7 +115716,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -115745,7 +115745,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -115774,7 +115774,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -115803,7 +115803,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -115832,7 +115832,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -115861,7 +115861,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -115890,7 +115890,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -115919,7 +115919,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -115948,7 +115948,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -115977,7 +115977,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -116006,7 +116006,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -116035,7 +116035,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -116064,7 +116064,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -116093,7 +116093,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -116122,7 +116122,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -116151,7 +116151,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -116180,7 +116180,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -116209,7 +116209,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -116238,7 +116238,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -116267,7 +116267,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -116296,7 +116296,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -116325,7 +116325,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -116354,7 +116354,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -116383,7 +116383,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -116412,7 +116412,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -116441,7 +116441,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -116470,7 +116470,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -116689,7 +116689,7 @@
 			</Identifiers>
 			<Currency>EUR</Currency>
 			<Country>AT</Country>
-			<Name>ERSTE GR.BK. 20/25 MTN</Name>
+			<Name>EXAMPLE BK. 20/25 MTN</Name>
 			<AssetType>BO</AssetType>
 			<AssetDetails>
 				<Bond>
@@ -116700,7 +116700,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -132863,7 +132863,7 @@
 			</Identifiers>
 			<Currency>EUR</Currency>
 			<Country>AT</Country>
-			<Name>ERSTE GR.BK. 19/26 MTN</Name>
+			<Name>EXAMPLE BK. 19/26 MTN</Name>
 			<AssetType>BO</AssetType>
 			<AssetDetails>
 				<Bond>
@@ -132874,7 +132874,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -142955,7 +142955,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -142984,7 +142984,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -143013,7 +143013,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -143042,7 +143042,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -143071,7 +143071,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -143100,7 +143100,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -143379,7 +143379,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -143413,7 +143413,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -143447,7 +143447,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -143481,7 +143481,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -143515,7 +143515,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -143549,7 +143549,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -143583,7 +143583,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -143617,7 +143617,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -143651,7 +143651,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -143685,7 +143685,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -143719,7 +143719,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -143753,7 +143753,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -143787,7 +143787,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -143821,7 +143821,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>
@@ -143855,7 +143855,7 @@
 							<SwiftBIC>GIBAATWGXXX</SwiftBIC>
 							<OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
 						</Identifiers>
-						<Name>Erste Group Bank AG</Name>
+						<Name>Example Bank AG</Name>
 						<Address>
 							<StreetName>Am Belvedere 1</StreetName>
 							<CityName>Wien</CityName>

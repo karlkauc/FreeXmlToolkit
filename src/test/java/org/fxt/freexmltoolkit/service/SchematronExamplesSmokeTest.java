@@ -17,8 +17,8 @@ class SchematronExamplesSmokeTest {
 
     @Test
     void eamExampleValidates() throws Exception {
-        File sch = new File("release/examples/schematron/eam-rules.sch");
-        File xml = new File("release/examples/schematron/eam_rules.xml");
+        File sch = new File("release/examples/schematron/example-rules.sch");
+        File xml = new File("release/examples/schematron/example_rules.xml");
         assertTrue(sch.exists() && xml.exists(), "example files must ship with the repo");
 
         SchematronService service = new SchematronServiceImpl();

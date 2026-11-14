@@ -1,0 +1,72 @@
+# XML Template Definition
+# Generated at: 2026-11-14T18:50:28.199571602
+
+id=pk-meldewesen-template-pfq
+name=PK-QMV (pfq) – Quartalsmeldung
+description=FMA Quartalsmeldung: root element and the master data of the total VRG (PK.000.01)
+category=PK-Meldewesen
+
+CONTENT_START
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Quartalsmeldung (PK-QMV): Gerüst mit den Stammdaten der Summen-VRG (PK.000.01). PK-Nummer, GJ, LEI, Stichtag und DB ausfüllen,
+     die weiteren VRG und Templates ergänzen. Die Beschriftung jedes Codes zeigt der Inspector. -->
+<Nationale_Meldung_pfq PK-Nummer="" GJ="" LEI="LEI/" Stichtag="Q1" Typ_der_Meldung="Testmeldung" Taxonomie="2.9.0" DB="">
+    <PK.000.01_Stammdaten_zur_VRG VRG="0">
+        <Datenpunkt_non_negative_integer>
+            <TemplateCode>PK.000.01</TemplateCode>
+            <RowCode>R000-100</RowCode>
+            <ColumnCode>C000-100</ColumnCode>
+            <Wert>0</Wert>
+        </Datenpunkt_non_negative_integer>
+        <Datenpunkt_string>
+            <TemplateCode>PK.000.01</TemplateCode>
+            <RowCode>R000-110</RowCode>
+            <ColumnCode>C000-100</ColumnCode>
+            <Wert></Wert>
+        </Datenpunkt_string>
+        <Datenpunkt_PK_JN_1>
+            <TemplateCode>PK.000.01</TemplateCode>
+            <RowCode>R000-160</RowCode>
+            <ColumnCode>C000-100</ColumnCode>
+            <Wert></Wert>
+        </Datenpunkt_PK_JN_1>
+        <Datenpunkt_PK_JN_1>
+            <TemplateCode>PK.000.01</TemplateCode>
+            <RowCode>R000-200</RowCode>
+            <ColumnCode>C000-100</ColumnCode>
+            <Wert>N</Wert>
+        </Datenpunkt_PK_JN_1>
+        <Datenpunkt_PK_VA_1>
+            <TemplateCode>PK.000.01</TemplateCode>
+            <RowCode>R000-120</RowCode>
+            <ColumnCode>C000-100</ColumnCode>
+            <Wert>0</Wert>
+        </Datenpunkt_PK_VA_1>
+        <Datenpunkt_PK_PZ_1>
+            <TemplateCode>PK.000.01</TemplateCode>
+            <RowCode>R000-140</RowCode>
+            <ColumnCode>C000-100</ColumnCode>
+            <Wert></Wert>
+        </Datenpunkt_PK_PZ_1>
+        <Datenpunkt_PK_ME_1>
+            <TemplateCode>PK.000.01</TemplateCode>
+            <RowCode>R000-150</RowCode>
+            <ColumnCode>C000-100</ColumnCode>
+            <Wert></Wert>
+        </Datenpunkt_PK_ME_1>
+        <Datenpunkt_PK_RG_1>
+            <TemplateCode>PK.000.01</TemplateCode>
+            <RowCode>R000-170</RowCode>
+            <ColumnCode>C000-100</ColumnCode>
+            <Wert></Wert>
+        </Datenpunkt_PK_RG_1>
+        <Datenpunkt_PK_SR_1>
+            <TemplateCode>PK.000.01</TemplateCode>
+            <RowCode>R000-180</RowCode>
+            <ColumnCode>C000-100</ColumnCode>
+            <Wert></Wert>
+        </Datenpunkt_PK_SR_1>
+    </PK.000.01_Stammdaten_zur_VRG>
+</Nationale_Meldung_pfq>
+
+CONTENT_END

@@ -572,7 +572,7 @@ class ProfiledXmlGeneratorServiceTest {
         @DisplayName("Bond Fund profile generates schema-valid XML against FundsXML4.xsd in reasonable time")
         void bondFundProfileGeneratesAgainstFundsXML4() throws Exception {
             File xsdFile = new File("release/examples/xsd/FundsXML4.xsd");
-            File profileFile = new File("release/examples/profiles/FundsXML_Bond_Fund_EAM_Demo.json");
+            File profileFile = new File("release/examples/profiles/FundsXML_Bond_Fund_Demo.json");
             assertTrue(xsdFile.exists(), "FundsXML4.xsd must exist at " + xsdFile.getAbsolutePath());
             assertTrue(profileFile.exists(), "Profile must exist at " + profileFile.getAbsolutePath());
 
@@ -640,9 +640,9 @@ class ProfiledXmlGeneratorServiceTest {
 
             // Profile fingerprint values must appear in the output
             assertTrue(xml.contains("PQOH26KWDF7CG10L6792"), "LEI from profile must appear in XML");
-            assertTrue(xml.contains("Erste Asset Management GmbH"),
+            assertTrue(xml.contains("Example Asset Management GmbH"),
                     "DataSupplier name from profile must appear in XML");
-            assertTrue(xml.contains("EAM_FUND_003"), "UniqueDocumentID from profile must appear");
+            assertTrue(xml.contains("XAM_FUND_003"), "UniqueDocumentID from profile must appear");
             assertTrue(xml.contains("2021-11-30"), "ContentDate from profile must appear");
             assertTrue(xml.contains("DEMO BOND FUND"), "Fund name from profile must appear");
 

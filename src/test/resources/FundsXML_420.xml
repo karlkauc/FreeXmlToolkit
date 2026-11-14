@@ -16,20 +16,20 @@
   ~  limitations under the License.
   ~
   -->
-<!-- Mit XMLSpy v2015 (x64) (http://www.altova.com) von Kauc Karl (Erste Asset Management GmbH) bearbeitet -->
+<!-- Mit XMLSpy v2015 (x64) (http://www.altova.com) von Kauc Karl bearbeitet -->
 <FundsXML4 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:noNamespaceSchemaLocation="https://github.com/fundsxml/schema/releases/download/4.2.2/FundsXML.xsd">
    <ControlData>
-      <UniqueDocumentID>EAM_FUND_001</UniqueDocumentID>
+      <UniqueDocumentID>XAM_FUND_001</UniqueDocumentID>
       <DocumentGenerated>2021-11-30T16:14:04</DocumentGenerated>
       <ContentDate>2021-11-30</ContentDate>
       <DataSupplier>
          <SystemCountry>AT</SystemCountry>
-         <Short>EAM</Short>
-         <Name>Erste Asset Management GmbH</Name>
+         <Short>XAM</Short>
+         <Name>Example Asset Management GmbH</Name>
          <Type>Asset Manager</Type>
          <Contact>
-            <Email>datamanagement@erste-am.com</Email>
+            <Email>datamanagement@example.com</Email>
          </Contact>
       </DataSupplier>
       <DataOperation>INITIAL</DataOperation>
@@ -47,11 +47,11 @@
          <SingleFundFlag>true</SingleFundFlag>
          <DataSupplier>
             <SystemCountry>AT</SystemCountry>
-            <Short>EAM</Short>
-            <Name>Erste Asset Management GmbH</Name>
+            <Short>XAM</Short>
+            <Name>Example Asset Management GmbH</Name>
             <Type>Asset Manager</Type>
             <Contact>
-               <Email>datamanagement@erste-am.com</Email>
+               <Email>datamanagement@example.com</Email>
             </Contact>
          </DataSupplier>
          <FundStaticData>
@@ -8096,7 +8096,7 @@
                               <SwiftBIC>GIBAATWG</SwiftBIC>
                               <OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
                            </Identifiers>
-                           <Name>Erste Group Bank AG</Name>
+                           <Name>Example Bank AG</Name>
                         </Counterparty>
                         <Bonds>
                            <UnitInterestsDays>0</UnitInterestsDays>
@@ -24501,7 +24501,7 @@
                      <LEI>PQOH26KWDF7CG10L6792</LEI>
                      <SwiftBIC>GIBAATWG</SwiftBIC>
                   </Identifiers>
-                  <Name>Erste Group Bank AG</Name>
+                  <Name>Example Bank AG</Name>
                   <Address>
                      <StreetName>Am Belvedere 1</StreetName>
                      <CityName>Vienna</CityName>
@@ -31698,7 +31698,7 @@
          </Identifiers>
          <Currency>EUR</Currency>
          <Country>AT</Country>
-         <Name>ERSTE GR.BK. 19/26 MTN</Name>
+         <Name>EXAMPLE BK. 19/26 MTN</Name>
          <AssetType>BO</AssetType>
          <AssetDetails>
             <Bond>
@@ -31709,7 +31709,7 @@
                      <SwiftBIC>GIBAATWG</SwiftBIC>
                      <OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
                   </Identifiers>
-                  <Name>Erste Group Bank AG</Name>
+                  <Name>Example Bank AG</Name>
                   <Address>
                      <StreetName>Am Belvedere 1</StreetName>
                      <CityName>Vienna</CityName>
@@ -32553,7 +32553,7 @@
          </Identifiers>
          <Currency>EUR</Currency>
          <Country>AT</Country>
-         <Name>ERSTE GR.BK. 19/30 MTN</Name>
+         <Name>EXAMPLE BK. 19/30 MTN</Name>
          <AssetType>BO</AssetType>
          <AssetDetails>
             <Bond>
@@ -32564,7 +32564,7 @@
                      <SwiftBIC>GIBAATWG</SwiftBIC>
                      <OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
                   </Identifiers>
-                  <Name>Erste Group Bank AG</Name>
+                  <Name>Example Bank AG</Name>
                   <Address>
                      <StreetName>Am Belvedere 1</StreetName>
                      <CityName>Vienna</CityName>
@@ -35520,7 +35520,7 @@
                      <SwiftBIC>GIBAATWG</SwiftBIC>
                      <OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
                   </Identifiers>
-                  <Name>Erste Group Bank AG</Name>
+                  <Name>Example Bank AG</Name>
                   <Address>
                      <StreetName>Am Belvedere 1</StreetName>
                      <CityName>Vienna</CityName>
@@ -35549,7 +35549,7 @@
                      <SwiftBIC>GIBAATWG</SwiftBIC>
                      <OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
                   </Identifiers>
-                  <Name>Erste Group Bank AG</Name>
+                  <Name>Example Bank AG</Name>
                   <Address>
                      <StreetName>Am Belvedere 1</StreetName>
                      <CityName>Vienna</CityName>
@@ -35578,7 +35578,7 @@
                      <SwiftBIC>GIBAATWG</SwiftBIC>
                      <OtherID ListedType="AUSTRIAN OENB CODE">1955446</OtherID>
                   </Identifiers>
-                  <Name>Erste Group Bank AG</Name>
+                  <Name>Example Bank AG</Name>
                   <Address>
                      <StreetName>Am Belvedere 1</StreetName>
                      <CityName>Vienna</CityName>

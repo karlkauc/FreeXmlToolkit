@@ -4,7 +4,7 @@
   Date: 2026-01-30T13:00:41.32674
 -->
 
-<!-- Mit XMLSpy v2015 (x64) (http://www.altova.com) von Kauc Karl (Erste Asset Management GmbH) bearbeitet -->
+<!-- Mit XMLSpy v2015 (x64) (http://www.altova.com) von Kauc Karl bearbeitet -->
 <!--Mit XMLSpy v2015 (x64) (http://www.altova.com) generiertes W3C XML-Schema-->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" xmlns:xml="http://www.w3.org/XML/1998/namespace" xmlns:altova="http://www.altova.com/xml-schema-extensions" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" attributeFormDefault="unqualified" elementFormDefault="qualified" version="4.2.11" vc:minVersion="1.1">
     <xs:import namespace="http://www.w3.org/2000/09/xmldsig#" schemaLocation="xmldsig-core-schema.xsd"/>

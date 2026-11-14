@@ -18,7 +18,7 @@ class XmlBlankLinesTest {
                 <FundsXML4 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                            xsi:noNamespaceSchemaLocation="https://fdp-service.oekb.at/FundsXML_4.1.10_AI.xsd">
                    <ControlData>
-                      <UniqueDocumentID>EAM_7511019_20260130_FUND_1056</UniqueDocumentID>
+                      <UniqueDocumentID>XAM_7511019_20260130_FUND_1056</UniqueDocumentID>
                       <DocumentGenerated>2026-03-10T14:31:45</DocumentGenerated>
                       <ContentDate>2026-01-30</ContentDate>
                    </ControlData>
@@ -42,7 +42,7 @@ class XmlBlankLinesTest {
                 <FundsXML4 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                            xsi:noNamespaceSchemaLocation="https://fdp-service.oekb.at/FundsXML_4.1.10_AI.xsd">
                    <ControlData>
-                      <UniqueDocumentID>EAM_7511019_20260130_FUND_1056</UniqueDocumentID>
+                      <UniqueDocumentID>XAM_7511019_20260130_FUND_1056</UniqueDocumentID>
                       <DocumentGenerated>2026-03-10T14:31:45</DocumentGenerated>
                       <ContentDate>2026-01-30</ContentDate>
                    </ControlData>
@@ -63,13 +63,13 @@ class XmlBlankLinesTest {
         for (XmlNode t : oldTextNodes) {
             uniqueDocId.removeChild(t);
         }
-        uniqueDocId.addChild(new XmlText("EAM_7511019_20260130_FUND_105"));
+        uniqueDocId.addChild(new XmlText("XAM_7511019_20260130_FUND_105"));
 
         String serialized = serializer.serialize(doc);
 
         assertFalse(serialized.contains("\n\n"),
                 "After edit, serialized XML should not contain consecutive blank lines. Output:\n" + serialized);
-        assertTrue(serialized.contains("EAM_7511019_20260130_FUND_105"),
+        assertTrue(serialized.contains("XAM_7511019_20260130_FUND_105"),
                 "Edited value should appear in output");
     }
 
@@ -107,7 +107,7 @@ class XmlBlankLinesTest {
                 "<FundsXML4 xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
                 "           xsi:noNamespaceSchemaLocation=\"https://fdp-service.oekb.at/FundsXML_4.1.10_AI.xsd\">\n" +
                 "   <ControlData>\n" +
-                "      <UniqueDocumentID>EAM_7511019_20260130_FUND_1056</UniqueDocumentID>\n" +
+                "      <UniqueDocumentID>XAM_7511019_20260130_FUND_1056</UniqueDocumentID>\n" +
                 "      <DocumentGenerated>2026-03-10T14:31:45</DocumentGenerated>\n" +
                 "      <ContentDate>2026-01-30</ContentDate>\n" +
                 "   </ControlData>\n" +

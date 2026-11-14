@@ -108,12 +108,12 @@ class FopPanelTest {
     @Test
     void metadataFieldsFlowIntoTheGenerationOptions() {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            panel.setMetadata("Fact Sheet", "Erste AM", "Monthly");
+            panel.setMetadata("Fact Sheet", "Example AM", "Monthly");
             return null;
         });
         FopRunner.PdfOptions options = panel.currentOptions();
         assertEquals("Fact Sheet", options.title());
-        assertEquals("Erste AM", options.author());
+        assertEquals("Example AM", options.author());
         assertEquals("Monthly", options.subject());
         assertFalse(options.pdfACompliant(), "PDF/A must be off by default");
         assertEquals("A4", options.pageSize());

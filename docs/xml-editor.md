@@ -605,7 +605,7 @@ Values that are valid for their type are written without quotes; all text fields
 ```
 "XPath";"Value";"Type";"Data Type"
 "/FundsXML4/ControlData/ContentDate";2021-11-30;"element";"date"
-"/FundsXML4/ControlData/DataSupplier/Name";"Erste Asset Management";"element";"string"
+"/FundsXML4/ControlData/DataSupplier/Name";"Example Asset Management";"element";"string"
 ```
 
 Values are written exactly as in the XML. A timezone or a leading zero stays as it is.

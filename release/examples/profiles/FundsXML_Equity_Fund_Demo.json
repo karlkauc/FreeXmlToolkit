@@ -1,6 +1,6 @@
 {
   "name": "FundsXML Equity Fund Demo",
-  "description": "Generates a schema-valid FundsXML4 instance modelled on release/examples/xml/FundsXML4_Equity_Fund.xml. Produces ControlData with the Erste Asset Management Hungary identifiers, a HUF equity Funds/Fund entry, a Portfolio with equity Positions, and AssetMasterData entries whose UniqueID matches the Positions' IDREF. Uses mandatoryOnly=true and maxOccurrences=1 to keep the output minimal and deterministic. Manual-import sample: copy into ~/.freeXmlToolkit/generation-profiles/ (GenerationProfileService does not scan this folder).",
+  "description": "Generates a schema-valid FundsXML4 instance modelled on release/examples/xml/FundsXML4_Equity_Fund.xml. Produces ControlData with the Example Asset Management Hungary identifiers, a HUF equity Funds/Fund entry, a Portfolio with equity Positions, and AssetMasterData entries whose UniqueID matches the Positions' IDREF. Uses mandatoryOnly=true and maxOccurrences=1 to keep the output minimal and deterministic. Manual-import sample: copy into ~/.freeXmlToolkit/generation-profiles/ (GenerationProfileService does not scan this folder).",
   "schemaFile": "FundsXML4.xsd",
   "batchCount": 1,
   "fileNamePattern": "FundsXML_Equity_Fund_{seq:3}.xml",
@@ -45,14 +45,14 @@
     {
       "xpath": "//DataSupplier/Short",
       "strategy": "FIXED",
-      "config": {"value": "EAMHU"},
+      "config": {"value": "XAMHU"},
       "priority": 5,
       "enabled": true
     },
     {
       "xpath": "//DataSupplier/Name",
       "strategy": "FIXED",
-      "config": {"value": "Erste Asset Management Hungary"},
+      "config": {"value": "Example Asset Management Hungary"},
       "priority": 5,
       "enabled": true
     },

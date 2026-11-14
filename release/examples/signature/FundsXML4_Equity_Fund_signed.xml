@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?><!--
     FundsXML4 Equity Fund Example (FreeXmlToolkit)
 
-    A compact, real-world equity fund report (Erste Stock Hungary index tracker,
+    A compact, real-world equity fund report (Example Stock Hungary index tracker,
     HUF, single fund with two share classes) that is VALID against the bundled
     schema xsd/FundsXML4.xsd (FundsXML 4.2.11).
 
     Use it to try out:
       - XSD validation           (Validation panel; schema resolves offline via the relative reference below)
-      - Schematron rules         (schematron/funds-*.sch, schematron/eam-rules.sch)
+      - Schematron rules         (schematron/funds-*.sch, schematron/example-rules.sch)
       - XQuery data-quality set  (xquery/01...10)
       - XPath 3.1 snippets       (xpath/)
       - XSLT reports             (xslt/ for HTML, xsl/ for PDF via XSL-FO)
@@ -20,11 +20,11 @@
 		<ContentDate>2025-08-26</ContentDate>
 		<DataSupplier>
 			<SystemCountry>HU</SystemCountry>
-			<Short>EAMHU</Short>
-			<Name>Erste Asset Management Hungary</Name>
+			<Short>XAMHU</Short>
+			<Name>Example Asset Management Hungary</Name>
 			<Type>IC</Type>
 			<Contact>
-				<Email>risk@erstealapkezelo.hu</Email>
+				<Email>risk@example.com</Email>
 			</Contact>
 		</DataSupplier>
 		<DataOperation>INITIAL</DataOperation>
@@ -36,7 +36,7 @@
 				<LEI>529900TQDPMSEVGAGY74</LEI>
 			</Identifiers>
 			<Names>
-				<OfficialName>Erste Stock Hungary Indexkövető Befektetési Alap</OfficialName>
+				<OfficialName>Example Stock Hungary Indexkövető Befektetési Alap</OfficialName>
 				<ShortName>ALPDINAMIK</ShortName>
 			</Names>
 			<Currency>HUF</Currency>
@@ -188,7 +188,7 @@
 								<UniqueID>HU0000706007</UniqueID>
 								<Identifiers>
 									<ISIN>HU0000706007</ISIN>
-									<OtherID FreeType="Name">Erste Nyíltvégű Euro Bázis Befektetési Alap</OtherID>
+									<OtherID FreeType="Name">Example Nyíltvégű Euro Bázis Befektetési Alap</OtherID>
 								</Identifiers>
 								<Currency>EUR</Currency>
 								<TotalValue>
@@ -420,9 +420,9 @@
 								<Fee/>
 							</Position>
 							<Position>
-								<UniqueID>FORGALM_ERSTE_ALPDINAMIK</UniqueID>
+								<UniqueID>FORGALM_EXAMPLE_ALPDINAMIK</UniqueID>
 								<Identifiers>
-									<OtherID FreeType="Name">Forgalmazási díj - ERSTE-ERSTE-ALPDINAMIK</OtherID>
+									<OtherID FreeType="Name">Forgalmazási díj - EXAMPLE-EXAMPLE-ALPDINAMIK</OtherID>
 								</Identifiers>
 								<Currency>HUF</Currency>
 								<TotalValue>
@@ -576,9 +576,9 @@
 								</Bond>
 							</Position>
 							<Position>
-								<UniqueID>LETKEZDIJ_ERSTEH_ALPDINAMIK</UniqueID>
+								<UniqueID>LETKEZDIJ_EXAMPLEH_ALPDINAMIK</UniqueID>
 								<Identifiers>
-									<OtherID FreeType="Name">Letétkezelési díj - ERSTEH-ERSTEH-ALPDINAMIK</OtherID>
+									<OtherID FreeType="Name">Letétkezelési díj - EXAMPLEH-EXAMPLEH-ALPDINAMIK</OtherID>
 								</Identifiers>
 								<Currency>HUF</Currency>
 								<TotalValue>
@@ -744,7 +744,7 @@
 							<ISIN>HU0000704200</ISIN>
 						</Identifiers>
 						<Names>
-							<OfficialName>Erste Stock Hungary Indexkövető Befektetési Alap A sorozat</OfficialName>
+							<OfficialName>Example Stock Hungary Indexkövető Befektetési Alap A sorozat</OfficialName>
 						</Names>
 						<Currency>HUF</Currency>
 						<ShareClassType>
@@ -776,7 +776,7 @@
 							<ISIN>HU0000723457</ISIN>
 						</Identifiers>
 						<Names>
-							<OfficialName>Erste Stock Hungary Indexkövető Befektetési Alap D sorozat</OfficialName>
+							<OfficialName>Example Stock Hungary Indexkövető Befektetési Alap D sorozat</OfficialName>
 						</Names>
 						<Currency>HUF</Currency>
 						<ShareClassType>
@@ -1104,9 +1104,9 @@
 					<Issuer>
 						<Identifiers>
 							<LEI>529900S4G4W2K5EO0X04</LEI>
-							<OtherID FreeType="Name">Erste Alapkezelő Zrt.</OtherID>
+							<OtherID FreeType="Name">Example Alapkezelő Zrt.</OtherID>
 						</Identifiers>
-						<Name>Erste Alapkezelő Zrt.</Name>
+						<Name>Example Alapkezelő Zrt.</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>
@@ -1158,7 +1158,7 @@
 			</Identifiers>
 			<Currency>EUR</Currency>
 			<Country>HU</Country>
-			<Name>FX forward eladási pozíció nyitása - ALPDINAMIK - ERSTEH - 2025-01-31 - 2026-02-03 - 1,170,000 - EURHUF [txId=1473954]</Name>
+			<Name>FX forward eladási pozíció nyitása - ALPDINAMIK - EXAMPLEH - 2025-01-31 - 2026-02-03 - 1,170,000 - EURHUF [txId=1473954]</Name>
 			<AssetType>FX</AssetType>
 			<AssetDetails>
 				<FXForward>
@@ -1172,9 +1172,9 @@
 						<Identifiers>
 							<LEI>549300XWJHRKLHU2PS28</LEI>
 							<SwiftBIC>GIBAHUHBXXX</SwiftBIC>
-							<OtherID FreeType="Name">ERSTE Bank Hungary Zrt</OtherID>
+							<OtherID FreeType="Name">EXAMPLE Bank Hungary Zrt</OtherID>
 						</Identifiers>
-						<Name>ERSTE Bank Hungary Zrt</Name>
+						<Name>EXAMPLE Bank Hungary Zrt</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>
@@ -1197,9 +1197,9 @@
 						<Identifiers>
 							<LEI>549300XWJHRKLHU2PS28</LEI>
 							<SwiftBIC>GIBAHUHBXXX</SwiftBIC>
-							<OtherID FreeType="Name">ERSTE Bank Hungary Zrt</OtherID>
+							<OtherID FreeType="Name">EXAMPLE Bank Hungary Zrt</OtherID>
 						</Identifiers>
-						<Name>ERSTE Bank Hungary Zrt</Name>
+						<Name>EXAMPLE Bank Hungary Zrt</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>
@@ -1222,9 +1222,9 @@
 						<Identifiers>
 							<LEI>549300S5161J3XIURT65</LEI>
 							<SwiftBIC>ERSKHUH1XXX</SwiftBIC>
-							<OtherID FreeType="Name">Erste Befektetési Zrt</OtherID>
+							<OtherID FreeType="Name">Example Befektetési Zrt</OtherID>
 						</Identifiers>
-						<Name>Erste Befektetési Zrt</Name>
+						<Name>Example Befektetési Zrt</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>
@@ -1247,9 +1247,9 @@
 						<Identifiers>
 							<LEI>549300XWJHRKLHU2PS28</LEI>
 							<SwiftBIC>GIBAHUHBXXX</SwiftBIC>
-							<OtherID FreeType="Name">ERSTE Bank Hungary Zrt</OtherID>
+							<OtherID FreeType="Name">EXAMPLE Bank Hungary Zrt</OtherID>
 						</Identifiers>
-						<Name>ERSTE Bank Hungary Zrt</Name>
+						<Name>EXAMPLE Bank Hungary Zrt</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>
@@ -1272,9 +1272,9 @@
 						<Identifiers>
 							<LEI>549300S5161J3XIURT65</LEI>
 							<SwiftBIC>ERSKHUH1XXX</SwiftBIC>
-							<OtherID FreeType="Name">Erste Befektetési Zrt</OtherID>
+							<OtherID FreeType="Name">Example Befektetési Zrt</OtherID>
 						</Identifiers>
-						<Name>Erste Befektetési Zrt</Name>
+						<Name>Example Befektetési Zrt</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>
@@ -1297,9 +1297,9 @@
 						<Identifiers>
 							<LEI>549300S5161J3XIURT65</LEI>
 							<SwiftBIC>ERSKHUH1XXX</SwiftBIC>
-							<OtherID FreeType="Name">Erste Befektetési Zrt</OtherID>
+							<OtherID FreeType="Name">Example Befektetési Zrt</OtherID>
 						</Identifiers>
-						<Name>Erste Befektetési Zrt</Name>
+						<Name>Example Befektetési Zrt</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>
@@ -1322,9 +1322,9 @@
 						<Identifiers>
 							<LEI>549300XWJHRKLHU2PS28</LEI>
 							<SwiftBIC>GIBAHUHBXXX</SwiftBIC>
-							<OtherID FreeType="Name">ERSTE Bank Hungary Zrt</OtherID>
+							<OtherID FreeType="Name">EXAMPLE Bank Hungary Zrt</OtherID>
 						</Identifiers>
-						<Name>ERSTE Bank Hungary Zrt</Name>
+						<Name>EXAMPLE Bank Hungary Zrt</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>
@@ -1359,24 +1359,24 @@
 			</AssetDetails>
 		</Asset>
 		<Asset>
-			<UniqueID>FORGALM_ERSTE_ALPDINAMIK</UniqueID>
+			<UniqueID>FORGALM_EXAMPLE_ALPDINAMIK</UniqueID>
 			<Identifiers>
-				<OtherID FreeType="Name">FORGALM_ERSTE_ALPDINAMIK</OtherID>
+				<OtherID FreeType="Name">FORGALM_EXAMPLE_ALPDINAMIK</OtherID>
 			</Identifiers>
 			<Currency>HUF</Currency>
 			<Country>HU</Country>
-			<Name>FORGALM_ERSTE_ALPDINAMIK</Name>
+			<Name>FORGALM_EXAMPLE_ALPDINAMIK</Name>
 			<AssetType>FE</AssetType>
 			<AssetDetails>
 				<Fee>
-					<Type>Forgalmazási díj - ERSTE</Type>
+					<Type>Forgalmazási díj - EXAMPLE</Type>
 					<Counterparty>
 						<Identifiers>
 							<LEI>549300S5161J3XIURT65</LEI>
 							<SwiftBIC>ERSKHUH1XXX</SwiftBIC>
-							<OtherID FreeType="Name">Erste Befektetési Zrt</OtherID>
+							<OtherID FreeType="Name">Example Befektetési Zrt</OtherID>
 						</Identifiers>
-						<Name>Erste Befektetési Zrt</Name>
+						<Name>Example Befektetési Zrt</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>
@@ -1399,9 +1399,9 @@
 					<Counterparty>
 						<Identifiers>
 							<LEI>529900S4G4W2K5EO0X04</LEI>
-							<OtherID FreeType="Name">Erste Alapkezelő Zrt.</OtherID>
+							<OtherID FreeType="Name">Example Alapkezelő Zrt.</OtherID>
 						</Identifiers>
-						<Name>Erste Alapkezelő Zrt.</Name>
+						<Name>Example Alapkezelő Zrt.</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>
@@ -1485,24 +1485,24 @@
 			</AssetDetails>
 		</Asset>
 		<Asset>
-			<UniqueID>LETKEZDIJ_ERSTEH_ALPDINAMIK</UniqueID>
+			<UniqueID>LETKEZDIJ_EXAMPLEH_ALPDINAMIK</UniqueID>
 			<Identifiers>
-				<OtherID FreeType="Name">LETKEZDIJ_ERSTEH_ALPDINAMIK</OtherID>
+				<OtherID FreeType="Name">LETKEZDIJ_EXAMPLEH_ALPDINAMIK</OtherID>
 			</Identifiers>
 			<Currency>HUF</Currency>
 			<Country>HU</Country>
-			<Name>LETKEZDIJ_ERSTEH_ALPDINAMIK</Name>
+			<Name>LETKEZDIJ_EXAMPLEH_ALPDINAMIK</Name>
 			<AssetType>FE</AssetType>
 			<AssetDetails>
 				<Fee>
-					<Type>Letétkezelési díj - ERSTEH</Type>
+					<Type>Letétkezelési díj - EXAMPLEH</Type>
 					<Counterparty>
 						<Identifiers>
 							<LEI>549300XWJHRKLHU2PS28</LEI>
 							<SwiftBIC>GIBAHUHBXXX</SwiftBIC>
-							<OtherID FreeType="Name">ERSTE Bank Hungary Zrt</OtherID>
+							<OtherID FreeType="Name">EXAMPLE Bank Hungary Zrt</OtherID>
 						</Identifiers>
-						<Name>ERSTE Bank Hungary Zrt</Name>
+						<Name>EXAMPLE Bank Hungary Zrt</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>
@@ -1511,11 +1511,11 @@
 			</AssetDetails>
 		</Asset>
 	</AssetMasterData>
-<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/><SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/></Transforms><DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/><DigestValue>kPaY4Oig+HTW6RhDJWe9mFueLQM3k1xSfSFsgtj9gjM=</DigestValue></Reference></SignedInfo><SignatureValue>ByD8jai5N4REjxdjU/s4pzgfGox37ZhO8Iy8S9AFo04gC3NkwD2Q8yr84wgg3KdWjNdtce1STDVg&#xD;
-Bhyy3fGl1JpntNKzOAWAQX3Gzz6K26grqUIpFyjwHsw7V366m68vAsUbtz4e/agBBlnZ5VmFaJO0&#xD;
-sG2pQPg0TaMXBitULkneMJgI86Q7YAJMla8ikrHdm5x49pZiaoPLNGmUzGGdsryEROohIxJDDnWo&#xD;
-ocIcTQqBPZA9YtR+8Du06dH5BiETmrwziHiObMCHaHNzCVi5nBoX8CERYcj7KVOgVVN00infLzeH&#xD;
-6LPUHParrGfoHZMDt5utAhwE+hiERqybku1d/g==</SignatureValue><KeyInfo><KeyValue><RSAKeyValue><Modulus>s5yof5TTfYj3nqdErhYQ4uVZHn1wG01L7Wflw6e1tEpDD431fg5RZAOOuxsfmkMfmQzzpCxB+ncL&#xD;
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/><SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/></Transforms><DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/><DigestValue>Wc/4tSfQvsb45s8e2QUX4aI0KXGdJ2VFPKi99SNgNDQ=</DigestValue></Reference></SignedInfo><SignatureValue>YXYG2Y0bzXVdly50H4glLNBPsOZFvwluQm9MO7tZ6/9cVhqXfRKDyUbc6OYCgXgkXWVkiz43yy48&#xD;
+4LGxFSH10LPCyxSPehL0L8YeDpvt9WBVEuF9HUJmzrMv493PLzfxgDHK1jeJXQZ3BpALrAE2Psrr&#xD;
+QQjuYyjtfFTpJmXhzMhqYYr3DlkllFOj5VOOxu5s93h5Mzn/1/U/fzQh4rwHvhy9Z2QHznX2lLnW&#xD;
+RyZ5r23vTFnfQZkzlpw/dDDI4dI59LielfnvrVP+UEdF7VTgLTPQ3g6HDFeDrKGFM7NOwg/ESTuD&#xD;
+qyza/ZcSMvyPB9Kim6DfOEtjzv19K8r27R5yzw==</SignatureValue><KeyInfo><KeyValue><RSAKeyValue><Modulus>s5yof5TTfYj3nqdErhYQ4uVZHn1wG01L7Wflw6e1tEpDD431fg5RZAOOuxsfmkMfmQzzpCxB+ncL&#xD;
 XljtnOOS9Wr7VQPKniTT/6G4aG6YG4Wwx+lehZZ4XrBACR5G32vSu68opmgsKT39Jl3UcoHVYKZb&#xD;
 JEx2fKjv7MHz5AJhIUQEOr57oWEQbxBpp7Tl1tsqOCB39QuAiD39o2Igf0V1jpBcV3VvU4CQtDXW&#xD;
 NSn7B5RXwXVtNqAKORV2sjuV6QGaJXzknYnxp7rUxYMP+6sYEEwJxpGimtvZp/0TYxOrrMaTklJt&#xD;

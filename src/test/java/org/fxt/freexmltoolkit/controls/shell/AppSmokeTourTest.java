@@ -90,7 +90,7 @@ class AppSmokeTourTest {
 
         // JSON document + JSON Tree.
         Path json = OUT.resolve("sample.json");
-        Files.writeString(json, "{\"fund\":{\"id\":\"EAM\",\"items\":[1,2,3],\"active\":true}}");
+        Files.writeString(json, "{\"fund\":{\"id\":\"XAM\",\"items\":[1,2,3],\"active\":true}}");
         onFx(() -> host.openFile(json));
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("fund")).orElse(false));

@@ -30,11 +30,11 @@
 		<ContentDate>2025-08-26</ContentDate>
 		<DataSupplier>
 			<SystemCountry>HU</SystemCountry>
-			<Short>EAMHU</Short>
-			<Name>Erste Asset Management Hungary</Name>
+			<Short>XAMHU</Short>
+			<Name>Example Asset Management Hungary</Name>
 			<Type>IC</Type>
 			<Contact>
-				<Email>risk@erstealapkezelo.hu</Email>
+				<Email>risk@example.com</Email>
 			</Contact>
 		</DataSupplier>
 		<!-- ERROR 3: SOMETHING is not a valid DataOperation enumeration value (INITIAL/AMEND/DELETE) -->
@@ -47,7 +47,7 @@
 				<LEI>529900TQDPMSEVGAGY74</LEI>
 			</Identifiers>
 			<Names>
-				<OfficialName>Erste Stock Hungary Indexkövető Befektetési Alap</OfficialName>
+				<OfficialName>Example Stock Hungary Indexkövető Befektetési Alap</OfficialName>
 				<ShortName>ALPDINAMIK</ShortName>
 			</Names>
 			<Currency>HUF</Currency>
@@ -203,7 +203,7 @@
 								<UniqueID>HU0000706007</UniqueID>
 								<Identifiers>
 									<ISIN>HU0000706007</ISIN>
-									<OtherID FreeType="Name">Erste Nyíltvégű Euro Bázis Befektetési Alap</OtherID>
+									<OtherID FreeType="Name">Example Nyíltvégű Euro Bázis Befektetési Alap</OtherID>
 								</Identifiers>
 								<Currency>EUR</Currency>
 								<TotalValue>
@@ -436,9 +436,9 @@
 								<Fee/>
 							</Position>
 							<Position>
-								<UniqueID>FORGALM_ERSTE_ALPDINAMIK</UniqueID>
+								<UniqueID>FORGALM_EXAMPLE_ALPDINAMIK</UniqueID>
 								<Identifiers>
-									<OtherID FreeType="Name">Forgalmazási díj - ERSTE-ERSTE-ALPDINAMIK</OtherID>
+									<OtherID FreeType="Name">Forgalmazási díj - EXAMPLE-EXAMPLE-ALPDINAMIK</OtherID>
 								</Identifiers>
 								<Currency>HUF</Currency>
 								<TotalValue>
@@ -593,9 +593,9 @@
 								</Bond>
 							</Position>
 							<Position>
-								<UniqueID>LETKEZDIJ_ERSTEH_ALPDINAMIK</UniqueID>
+								<UniqueID>LETKEZDIJ_EXAMPLEH_ALPDINAMIK</UniqueID>
 								<Identifiers>
-									<OtherID FreeType="Name">Letétkezelési díj - ERSTEH-ERSTEH-ALPDINAMIK</OtherID>
+									<OtherID FreeType="Name">Letétkezelési díj - EXAMPLEH-EXAMPLEH-ALPDINAMIK</OtherID>
 								</Identifiers>
 								<Currency>HUF</Currency>
 								<TotalValue>
@@ -761,7 +761,7 @@
 							<ISIN>HU0000704200</ISIN>
 						</Identifiers>
 						<Names>
-							<OfficialName>Erste Stock Hungary Indexkövető Befektetési Alap A sorozat</OfficialName>
+							<OfficialName>Example Stock Hungary Indexkövető Befektetési Alap A sorozat</OfficialName>
 						</Names>
 						<Currency>HUF</Currency>
 						<ShareClassType>
@@ -793,7 +793,7 @@
 							<ISIN>HU0000723457</ISIN>
 						</Identifiers>
 						<Names>
-							<OfficialName>Erste Stock Hungary Indexkövető Befektetési Alap D sorozat</OfficialName>
+							<OfficialName>Example Stock Hungary Indexkövető Befektetési Alap D sorozat</OfficialName>
 						</Names>
 						<Currency>HUF</Currency>
 						<ShareClassType>
@@ -1121,9 +1121,9 @@
 					<Issuer>
 						<Identifiers>
 							<LEI>529900S4G4W2K5EO0X04</LEI>
-							<OtherID FreeType="Name">Erste Alapkezelő Zrt.</OtherID>
+							<OtherID FreeType="Name">Example Alapkezelő Zrt.</OtherID>
 						</Identifiers>
-						<Name>Erste Alapkezelő Zrt.</Name>
+						<Name>Example Alapkezelő Zrt.</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>
@@ -1175,7 +1175,7 @@
 			</Identifiers>
 			<Currency>EUR</Currency>
 			<Country>HU</Country>
-			<Name>FX forward eladási pozíció nyitása - ALPDINAMIK - ERSTEH - 2025-01-31 - 2026-02-03 - 1,170,000 - EURHUF [txId=1473954]</Name>
+			<Name>FX forward eladási pozíció nyitása - ALPDINAMIK - EXAMPLEH - 2025-01-31 - 2026-02-03 - 1,170,000 - EURHUF [txId=1473954]</Name>
 			<AssetType>FX</AssetType>
 			<AssetDetails>
 				<FXForward>
@@ -1189,9 +1189,9 @@
 						<Identifiers>
 							<LEI>549300XWJHRKLHU2PS28</LEI>
 							<SwiftBIC>GIBAHUHBXXX</SwiftBIC>
-							<OtherID FreeType="Name">ERSTE Bank Hungary Zrt</OtherID>
+							<OtherID FreeType="Name">EXAMPLE Bank Hungary Zrt</OtherID>
 						</Identifiers>
-						<Name>ERSTE Bank Hungary Zrt</Name>
+						<Name>EXAMPLE Bank Hungary Zrt</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>
@@ -1214,9 +1214,9 @@
 						<Identifiers>
 							<LEI>549300XWJHRKLHU2PS28</LEI>
 							<SwiftBIC>GIBAHUHBXXX</SwiftBIC>
-							<OtherID FreeType="Name">ERSTE Bank Hungary Zrt</OtherID>
+							<OtherID FreeType="Name">EXAMPLE Bank Hungary Zrt</OtherID>
 						</Identifiers>
-						<Name>ERSTE Bank Hungary Zrt</Name>
+						<Name>EXAMPLE Bank Hungary Zrt</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>
@@ -1239,9 +1239,9 @@
 						<Identifiers>
 							<LEI>549300S5161J3XIURT65</LEI>
 							<SwiftBIC>ERSKHUH1XXX</SwiftBIC>
-							<OtherID FreeType="Name">Erste Befektetési Zrt</OtherID>
+							<OtherID FreeType="Name">Example Befektetési Zrt</OtherID>
 						</Identifiers>
-						<Name>Erste Befektetési Zrt</Name>
+						<Name>Example Befektetési Zrt</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>
@@ -1264,9 +1264,9 @@
 						<Identifiers>
 							<LEI>549300XWJHRKLHU2PS28</LEI>
 							<SwiftBIC>GIBAHUHBXXX</SwiftBIC>
-							<OtherID FreeType="Name">ERSTE Bank Hungary Zrt</OtherID>
+							<OtherID FreeType="Name">EXAMPLE Bank Hungary Zrt</OtherID>
 						</Identifiers>
-						<Name>ERSTE Bank Hungary Zrt</Name>
+						<Name>EXAMPLE Bank Hungary Zrt</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>
@@ -1289,9 +1289,9 @@
 						<Identifiers>
 							<LEI>549300S5161J3XIURT65</LEI>
 							<SwiftBIC>ERSKHUH1XXX</SwiftBIC>
-							<OtherID FreeType="Name">Erste Befektetési Zrt</OtherID>
+							<OtherID FreeType="Name">Example Befektetési Zrt</OtherID>
 						</Identifiers>
-						<Name>Erste Befektetési Zrt</Name>
+						<Name>Example Befektetési Zrt</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>
@@ -1314,9 +1314,9 @@
 						<Identifiers>
 							<LEI>549300S5161J3XIURT65</LEI>
 							<SwiftBIC>ERSKHUH1XXX</SwiftBIC>
-							<OtherID FreeType="Name">Erste Befektetési Zrt</OtherID>
+							<OtherID FreeType="Name">Example Befektetési Zrt</OtherID>
 						</Identifiers>
-						<Name>Erste Befektetési Zrt</Name>
+						<Name>Example Befektetési Zrt</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>
@@ -1339,9 +1339,9 @@
 						<Identifiers>
 							<LEI>549300XWJHRKLHU2PS28</LEI>
 							<SwiftBIC>GIBAHUHBXXX</SwiftBIC>
-							<OtherID FreeType="Name">ERSTE Bank Hungary Zrt</OtherID>
+							<OtherID FreeType="Name">EXAMPLE Bank Hungary Zrt</OtherID>
 						</Identifiers>
-						<Name>ERSTE Bank Hungary Zrt</Name>
+						<Name>EXAMPLE Bank Hungary Zrt</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>
@@ -1376,24 +1376,24 @@
 			</AssetDetails>
 		</Asset>
 		<Asset>
-			<UniqueID>FORGALM_ERSTE_ALPDINAMIK</UniqueID>
+			<UniqueID>FORGALM_EXAMPLE_ALPDINAMIK</UniqueID>
 			<Identifiers>
-				<OtherID FreeType="Name">FORGALM_ERSTE_ALPDINAMIK</OtherID>
+				<OtherID FreeType="Name">FORGALM_EXAMPLE_ALPDINAMIK</OtherID>
 			</Identifiers>
 			<Currency>HUF</Currency>
 			<Country>HU</Country>
-			<Name>FORGALM_ERSTE_ALPDINAMIK</Name>
+			<Name>FORGALM_EXAMPLE_ALPDINAMIK</Name>
 			<AssetType>FE</AssetType>
 			<AssetDetails>
 				<Fee>
-					<Type>Forgalmazási díj - ERSTE</Type>
+					<Type>Forgalmazási díj - EXAMPLE</Type>
 					<Counterparty>
 						<Identifiers>
 							<LEI>549300S5161J3XIURT65</LEI>
 							<SwiftBIC>ERSKHUH1XXX</SwiftBIC>
-							<OtherID FreeType="Name">Erste Befektetési Zrt</OtherID>
+							<OtherID FreeType="Name">Example Befektetési Zrt</OtherID>
 						</Identifiers>
-						<Name>Erste Befektetési Zrt</Name>
+						<Name>Example Befektetési Zrt</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>
@@ -1416,9 +1416,9 @@
 					<Counterparty>
 						<Identifiers>
 							<LEI>529900S4G4W2K5EO0X04</LEI>
-							<OtherID FreeType="Name">Erste Alapkezelő Zrt.</OtherID>
+							<OtherID FreeType="Name">Example Alapkezelő Zrt.</OtherID>
 						</Identifiers>
-						<Name>Erste Alapkezelő Zrt.</Name>
+						<Name>Example Alapkezelő Zrt.</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>
@@ -1502,24 +1502,24 @@
 			</AssetDetails>
 		</Asset>
 		<Asset>
-			<UniqueID>LETKEZDIJ_ERSTEH_ALPDINAMIK</UniqueID>
+			<UniqueID>LETKEZDIJ_EXAMPLEH_ALPDINAMIK</UniqueID>
 			<Identifiers>
-				<OtherID FreeType="Name">LETKEZDIJ_ERSTEH_ALPDINAMIK</OtherID>
+				<OtherID FreeType="Name">LETKEZDIJ_EXAMPLEH_ALPDINAMIK</OtherID>
 			</Identifiers>
 			<Currency>HUF</Currency>
 			<Country>HU</Country>
-			<Name>LETKEZDIJ_ERSTEH_ALPDINAMIK</Name>
+			<Name>LETKEZDIJ_EXAMPLEH_ALPDINAMIK</Name>
 			<AssetType>FE</AssetType>
 			<AssetDetails>
 				<Fee>
-					<Type>Letétkezelési díj - ERSTEH</Type>
+					<Type>Letétkezelési díj - EXAMPLEH</Type>
 					<Counterparty>
 						<Identifiers>
 							<LEI>549300XWJHRKLHU2PS28</LEI>
 							<SwiftBIC>GIBAHUHBXXX</SwiftBIC>
-							<OtherID FreeType="Name">ERSTE Bank Hungary Zrt</OtherID>
+							<OtherID FreeType="Name">EXAMPLE Bank Hungary Zrt</OtherID>
 						</Identifiers>
-						<Name>ERSTE Bank Hungary Zrt</Name>
+						<Name>EXAMPLE Bank Hungary Zrt</Name>
 						<Address>
 							<Country>HU</Country>
 						</Address>

@@ -60,7 +60,7 @@ class FopPanelSnapshotTest {
         WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
             panel.setXmlOverride(xml);
             panel.setXslFile(xsl);
-            panel.setMetadata("DEMO FUND 01 — Factsheet", "Erste Asset Management GmbH",
+            panel.setMetadata("DEMO FUND 01 — Factsheet", "Example Asset Management GmbH",
                     "Monthly Factsheet 2024-09");
             return null;
         });
