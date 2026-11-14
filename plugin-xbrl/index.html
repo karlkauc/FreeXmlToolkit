@@ -2053,7 +2053,7 @@
   <span class="md-ellipsis">
     
   
-    FundsXML Extensions
+    FundsXML Extension
   
 
     
@@ -2410,7 +2410,7 @@
   <span class="md-ellipsis">
     
   
-    Plugins
+    Extensions
   
 
     
@@ -2438,7 +2438,7 @@
   <span class="md-ellipsis">
     
   
-    Writing Plugins
+    Writing Extensions (Plugins)
   
 
     
@@ -3244,9 +3244,9 @@
 <h1 id="xbrl-with-arelle">XBRL (with Arelle)<a class="headerlink" href="#xbrl-with-arelle" title="Permanent link">¶</a></h1>
 <p>XBRL (eXtensible Business Reporting Language) is the XML standard for financial and regulatory
 reports — annual reports in ESEF, supervisory reports (COREP, FINREP, Solvency II QRTs) and many
-more. The <strong>XBRL</strong> plugin recognises XBRL instances and inline XBRL reports, shows what they contain
+more. The <strong>XBRL</strong> extension recognises XBRL instances and inline XBRL reports, shows what they contain
 and validates them with <a href="https://arelle.org">Arelle</a>, the open-source XBRL processor.</p>
-<p>It is one of the <a href="../industry-plugins/">industry plugins</a> and <strong>off by default</strong>.</p>
+<p>It is one of the <a href="../industry-plugins/">industry extensions</a> and <strong>off by default</strong>.</p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/plugin-xbrl.png" data-desc-position="bottom"><img alt="XBRL side panel with an instance, before Arelle is installed" src="../img/plugin-xbrl.png"></a></p>
 <h2 id="why-arelle">Why Arelle?<a class="headerlink" href="#why-arelle" title="Permanent link">¶</a></h2>
 <p>An XBRL document is only meaningful together with its <strong>taxonomy</strong>: the schemas and linkbases it
@@ -3256,7 +3256,7 @@ what Arelle does, and what a plain XML Schema validation cannot do. FreeXmlToolk
 Arelle as a separate program. Arelle is <strong>not bundled</strong>; you install it once.</p>
 <h2 id="setting-it-up">Setting it up<a class="headerlink" href="#setting-it-up" title="Permanent link">¶</a></h2>
 <ol>
-<li><strong>Switch the plugin on:</strong> <strong>Settings → Extensions → PLUGINS</strong>, tick <strong>XBRL (with Arelle)</strong>,
+<li><strong>Switch the extension on:</strong> <strong>Settings → Extensions → INSTALLED EXTENSIONS</strong>, tick <strong>XBRL (with Arelle)</strong>,
    save, restart. A chart icon (<strong>XBRL</strong>) appears in the Activity Bar.</li>
 <li>
 <p><strong>Install Arelle</strong> (Python 3.11 or later):</p>
@@ -3330,7 +3330,7 @@ take a while on the first run because Arelle downloads them; later runs use Arel
 caches them, with its <strong>own</strong> network settings. The proxy settings of FreeXmlToolkit do not apply
 to it; configure a proxy for Arelle with its <code>--proxy</code> option in a wrapper script, or through the
 <code>HTTP_PROXY</code> / <code>HTTPS_PROXY</code> environment variables. For offline machines, prepare Arelle's cache or
-taxonomy packages (<code>--packages</code>) and point the plugin to a wrapper script that adds these options.</p>
+taxonomy packages (<code>--packages</code>) and point the extension to a wrapper script that adds these options.</p>
 <h2 id="in-scripts">In scripts<a class="headerlink" href="#in-scripts" title="Permanent link">¶</a></h2>
 <p>XBRL documents are not checked by the <a href="../validation-panel/">Validation panel</a> or <code>fxt-cli validate</code>
 (those see them as plain XML). Run Arelle directly in scripts and pipelines:</p>
@@ -3425,13 +3425,13 @@ taxonomy packages (<code>--packages</code>) and point the plugin to a wrapper sc
         
         
           
-          <a href="../plugins/" class="md-footer__link md-footer__link--next" aria-label="Next: Plugins">
+          <a href="../plugins/" class="md-footer__link md-footer__link--next" aria-label="Next: Extensions">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Plugins
+                Extensions
               </div>
             </div>
             <div class="md-footer__button md-icon">

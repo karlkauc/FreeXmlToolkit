@@ -2053,7 +2053,7 @@
   <span class="md-ellipsis">
     
   
-    FundsXML Extensions
+    FundsXML Extension
   
 
     
@@ -2466,7 +2466,7 @@
   <span class="md-ellipsis">
     
   
-    Plugins
+    Extensions
   
 
     
@@ -2494,7 +2494,7 @@
   <span class="md-ellipsis">
     
   
-    Writing Plugins
+    Writing Extensions (Plugins)
   
 
     
@@ -3356,9 +3356,9 @@
 <h1 id="findatex-templates-emt-eet-ept-tpt">FinDatEx Templates (EMT, EET, EPT, TPT)<a class="headerlink" href="#findatex-templates-emt-eet-ept-tpt" title="Permanent link">¶</a></h1>
 <p><a href="https://findatex.eu">FinDatEx</a> (Financial Data Exchange Templates) publishes the data templates
 with which fund manufacturers pass product data to distributors and insurers. The <strong>FinDatEx</strong>
-plugin checks such template files against the field definitions of the official specifications,
+extension checks such template files against the field definitions of the official specifications,
 opens Excel template files and creates new, empty template files.</p>
-<p>It is one of the <a href="../industry-plugins/">industry plugins</a> and <strong>off by default</strong>.</p>
+<p>It is one of the <a href="../industry-plugins/">industry extensions</a> and <strong>off by default</strong>.</p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/plugin-findatex.png" data-desc-position="bottom"><img alt="FinDatEx side panel with a TPT file" src="../img/plugin-findatex.png"></a></p>
 <h2 id="supported-templates">Supported templates<a class="headerlink" href="#supported-templates" title="Permanent link">¶</a></h2>
 <table>
@@ -3397,24 +3397,24 @@ opens Excel template files and creates new, empty template files.</p>
 </tr>
 </tbody>
 </table>
-<p>FinDatEx publishes no XML Schema: the templates are exchanged as CSV or Excel files. The plugin
+<p>FinDatEx publishes no XML Schema: the templates are exchanged as CSV or Excel files. The extension
 carries, for every field, its code, definition, codification, the flag M(andatory) / O(ptional) /
 C(onditional) / I(ndicative) / N(o longer maintained) and — for TPT — the CIC categories the field
 applies to. The definitions are part of the application and are updated with it.</p>
 <p><strong>TPT V7 and V8:</strong> TPT V7 is required for the production of December 2026, V8 becomes mandatory
-for the end-March 2027 production, and both may be used in the transition. The plugin checks a file
+for the end-March 2027 production, and both may be used in the transition. The extension checks a file
 against the version its <code>1000_TPT_Version</code> field names (<code>V7.0</code> or <code>V8.0</code>). A file naming another
 version is checked against V8, and the version is reported.</p>
 <h2 id="switching-it-on">Switching it on<a class="headerlink" href="#switching-it-on" title="Permanent link">¶</a></h2>
 <ol>
-<li>Open <strong>Settings → Extensions → PLUGINS</strong>.</li>
+<li>Open <strong>Settings → Extensions → INSTALLED EXTENSIONS</strong>.</li>
 <li>Tick <strong>FinDatEx Templates (EMT, EET, EPT, TPT)</strong> and save the settings.</li>
 <li>Restart FreeXmlToolkit.</li>
 </ol>
 <p>A table icon (<strong>FinDatEx</strong>) then appears in the Activity Bar. Administrators can keep it off with
 <code>plugin.findatex.enabled=false</code>.</p>
 <h2 id="opening-a-file">Opening a file<a class="headerlink" href="#opening-a-file" title="Permanent link">¶</a></h2>
-<p><strong>CSV files</strong> open like any other file (File → Open, Explorer, drag &amp; drop). The plugin recognises a
+<p><strong>CSV files</strong> open like any other file (File → Open, Explorer, drag &amp; drop). The extension recognises a
 template file by its version field anywhere in the first 200 000 characters:</p>
 <table>
 <thead>
@@ -3649,7 +3649,7 @@ value problems; the rest is not listed."</p>
 </thead>
 <tbody>
 <tr>
-<td>"The active document is not one this plugin checks."</td>
+<td>"The active document is not one this extension checks."</td>
 <td>The version field (e.g. <code>1000_TPT_Version</code>) is missing or spelled differently. Check the header row / the first column.</td>
 </tr>
 <tr>

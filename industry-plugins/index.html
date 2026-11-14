@@ -89,7 +89,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#industry-plugins" class="md-skip">
+        <a href="#industry-extensions" class="md-skip">
           Skip to content
         </a>
       
@@ -2053,7 +2053,7 @@
   <span class="md-ellipsis">
     
   
-    FundsXML Extensions
+    FundsXML Extension
   
 
     
@@ -2202,10 +2202,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-every-industry-plugin-adds" class="md-nav__link">
+  <a href="#what-every-industry-extension-adds" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What every industry plugin adds
+        What every industry extension adds
       
     </span>
   </a>
@@ -2355,7 +2355,7 @@
   <span class="md-ellipsis">
     
   
-    Plugins
+    Extensions
   
 
     
@@ -2383,7 +2383,7 @@
   <span class="md-ellipsis">
     
   
-    Writing Plugins
+    Writing Extensions (Plugins)
   
 
     
@@ -3101,10 +3101,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-every-industry-plugin-adds" class="md-nav__link">
+  <a href="#what-every-industry-extension-adds" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What every industry plugin adds
+        What every industry extension adds
       
     </span>
   </a>
@@ -3131,13 +3131,13 @@
   
 
 
-<h1 id="industry-plugins">Industry Plugins<a class="headerlink" href="#industry-plugins" title="Permanent link">¶</a></h1>
-<p>FreeXmlToolkit ships optional <a href="../plugins/">plugins</a> for industry standards. Each one has its own
+<h1 id="industry-extensions">Industry Extensions<a class="headerlink" href="#industry-extensions" title="Permanent link">¶</a></h1>
+<p>FreeXmlToolkit ships optional <a href="../plugins/">extensions</a> for industry standards. Each one has its own
 page that explains its functions in detail:</p>
 <table>
 <thead>
 <tr>
-<th>Plugin</th>
+<th>Extension</th>
 <th>For</th>
 <th>Page</th>
 </tr>
@@ -3165,28 +3165,28 @@ page that explains its functions in detail:</p>
 </tr>
 </tbody>
 </table>
-<p>The <a href="../fundsxml-extensions/">FundsXML extension</a> is a plugin as well, with its own page.</p>
+<p>The <a href="../fundsxml-extensions/">FundsXML extension</a> is an extension as well, with its own page.</p>
 <h2 id="switching-them-on">Switching them on<a class="headerlink" href="#switching-them-on" title="Permanent link">¶</a></h2>
-<p>The industry plugins are <strong>off by default</strong>: switch them on in <strong>Settings → Extensions → PLUGINS</strong>
-and restart. Administrators can keep a plugin off for everyone with <code>plugin.&lt;id&gt;.enabled=false</code>
+<p>The industry extensions are <strong>off by default</strong>: switch them on in <strong>Settings → Extensions → INSTALLED EXTENSIONS</strong>
+and restart. Administrators can keep an extension off for everyone with <code>plugin.&lt;id&gt;.enabled=false</code>
 (<code>iso20022</code>, <code>ebinterface</code>, <code>findatex</code>, <code>xbrl</code>), see <a href="../administration/">Administration</a>.</p>
-<h2 id="what-every-industry-plugin-adds">What every industry plugin adds<a class="headerlink" href="#what-every-industry-plugin-adds" title="Permanent link">¶</a></h2>
+<h2 id="what-every-industry-extension-adds">What every industry extension adds<a class="headerlink" href="#what-every-industry-extension-adds" title="Permanent link">¶</a></h2>
 <ul>
 <li>an <strong>activity</strong> in the Activity Bar with a side panel:<ul>
-<li><strong>ABOUT</strong> — what the plugin checks;</li>
+<li><strong>ABOUT</strong> — what the extension checks;</li>
 <li><strong>ACTIVE DOCUMENT</strong> — what the open document is (message type, invoice number, template,
   number of facts …), updated when you switch tabs;</li>
-<li><strong>Check Active Document</strong> — runs the plugin's checks; the first ten problems are shown,
+<li><strong>Check Active Document</strong> — runs the extension's checks; the first ten problems are shown,
   <strong>Show All Problems</strong> opens the full list;</li>
-<li>the plugin's own actions (sample documents, new template files, Excel import, Arelle command);</li>
+<li>the extension's own actions (sample documents, new template files, Excel import, Arelle command);</li>
 <li><strong>CHECK AN IDENTIFIER</strong> — checks a pasted IBAN (ISO 13616: country length and check digits),
-  BIC (ISO 9362), LEI (ISO 17442), ISIN (ISO 6166) or Austrian VAT id (UID), depending on the plugin;</li>
+  BIC (ISO 9362), LEI (ISO 17442), ISIN (ISO 6166) or Austrian VAT id (UID), depending on the extension;</li>
 </ul>
 </li>
 <li><strong>checks</strong> that run with every validation (Validation panel, <strong>F8</strong>, <code>fxt-cli validate</code>) and appear
-  with the plugin's name as source — ISO 20022 and ebInterface; FinDatEx and XBRL files are checked
+  with the extension's name as source — ISO 20022 and ebInterface; FinDatEx and XBRL files are checked
   from their side panel;</li>
-<li>where the standard has official XML Schemas, <strong>Schema Library entries</strong> (source <em>Plugin</em>), so
+<li>where the standard has official XML Schemas, <strong>Schema Library entries</strong> (source <em>Extension</em>), so
   documents get their schema bound automatically. Remote schemas are downloaded once and cached.</li>
 </ul>
 <table>
@@ -3267,7 +3267,7 @@ and restart. Administrators can keep a plugin off for everyone with <code>plugin
       <nav class="md-footer__inner md-grid" aria-label="Footer">
         
           
-          <a href="../fundsxml-extensions/" class="md-footer__link md-footer__link--prev" aria-label="Previous: FundsXML Extensions">
+          <a href="../fundsxml-extensions/" class="md-footer__link md-footer__link--prev" aria-label="Previous: FundsXML Extension">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
@@ -3277,7 +3277,7 @@ and restart. Administrators can keep a plugin off for everyone with <code>plugin
                 Previous
               </span>
               <div class="md-ellipsis">
-                FundsXML Extensions
+                FundsXML Extension
               </div>
             </div>
           </a>

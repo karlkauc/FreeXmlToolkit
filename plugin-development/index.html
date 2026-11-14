@@ -26,7 +26,7 @@
     
     
       
-        <title>Writing Plugins - FreeXmlToolkit Documentation</title>
+        <title>Writing Extensions (Plugins) - FreeXmlToolkit Documentation</title>
       
     
     
@@ -145,7 +145,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Writing Plugins
+              Writing Extensions (Plugins)
             
           </span>
         </div>
@@ -2053,7 +2053,7 @@
   <span class="md-ellipsis">
     
   
-    FundsXML Extensions
+    FundsXML Extension
   
 
     
@@ -2286,7 +2286,7 @@
   <span class="md-ellipsis">
     
   
-    Plugins
+    Extensions
   
 
     
@@ -2323,7 +2323,7 @@
   <span class="md-ellipsis">
     
   
-    Writing Plugins
+    Writing Extensions (Plugins)
   
 
     
@@ -2341,7 +2341,7 @@
   <span class="md-ellipsis">
     
   
-    Writing Plugins
+    Writing Extensions (Plugins)
   
 
     
@@ -3975,7 +3975,7 @@ plugin activity, menu item and editor bar inside the real shell.</p>
 <li>The log (<code>~/.freeXmlToolkit/logs</code>, also <strong>Settings → Files &amp; Cache → Open log folder</strong>) lists every
   plugin and its state at start (<code>Plugins: [fundsxml=ACTIVE, com.example.orders=FAILED]</code>) and the stack
   trace of a failed <code>register</code>, panel or validator.</li>
-<li><strong>Settings → Extensions → PLUGINS</strong> shows why a plugin failed.</li>
+<li><strong>Settings → Extensions → INSTALLED EXTENSIONS</strong> shows why a plugin failed.</li>
 </ul>
 <h2 id="security-and-administration">Security and administration<a class="headerlink" href="#security-and-administration" title="Permanent link">¶</a></h2>
 <p>A plugin is code with the full rights of the application. Keep that in mind when you write one:</p>
@@ -3990,7 +3990,7 @@ and <code>plugin.&lt;id&gt;.enabled=false</code> (a single plugin), and can move
 <code>fxt.plugins.dir</code>; see <a href="../plugins/#administration">Plugins → Administration</a>.</p>
 <h2 id="updates">Updates<a class="headerlink" href="#updates" title="Permanent link">¶</a></h2>
 <p>FreeXmlToolkit has no update channel for plugins: users replace the jar in the plugins folder and
-restart. <strong>Settings → Extensions → PLUGINS</strong> shows <code>version()</code>, so raise it with every release.</p>
+restart. <strong>Settings → Extensions → INSTALLED EXTENSIONS</strong> shows <code>version()</code>, so raise it with every release.</p>
 <p>Data that changes more often than your plugin can be fetched at run time, as the FundsXML plugin does:</p>
 <ul>
 <li>Use a startup task (<code>addStartupTask</code>) and <code>ConnectionService</code>; the latter applies the proxy and
@@ -4039,7 +4039,7 @@ support and state it in your plugin's description or README.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer">
         
           
-          <a href="../plugins/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Plugins">
+          <a href="../plugins/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Extensions">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
@@ -4049,7 +4049,7 @@ support and state it in your plugin's description or README.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Plugins
+                Extensions
               </div>
             </div>
           </a>

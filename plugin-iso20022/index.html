@@ -2053,7 +2053,7 @@
   <span class="md-ellipsis">
     
   
-    FundsXML Extensions
+    FundsXML Extension
   
 
     
@@ -2460,7 +2460,7 @@
   <span class="md-ellipsis">
     
   
-    Plugins
+    Extensions
   
 
     
@@ -2488,7 +2488,7 @@
   <span class="md-ellipsis">
     
   
-    Writing Plugins
+    Writing Extensions (Plugins)
   
 
     
@@ -3342,26 +3342,26 @@
 
 
 <h1 id="iso-20022-payments-sepa">ISO 20022 Payments (SEPA)<a class="headerlink" href="#iso-20022-payments-sepa" title="Permanent link">¶</a></h1>
-<p>The <strong>ISO 20022</strong> plugin helps with payment messages of the ISO 20022 standard — payment
+<p>The <strong>ISO 20022</strong> extension helps with payment messages of the ISO 20022 standard — payment
 initiations (<code>pain</code>), interbank messages (<code>pacs</code>) and account reports (<code>camt</code>). It binds the
 official XML Schemas automatically, checks what a schema cannot check (check digits, control
 sums, the SEPA rules of the European Payments Council) and gives you SEPA sample messages to start
 from.</p>
-<p>It is one of the <a href="../industry-plugins/">industry plugins</a> and <strong>off by default</strong>.</p>
+<p>It is one of the <a href="../industry-plugins/">industry extensions</a> and <strong>off by default</strong>.</p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/plugin-iso20022.png" data-desc-position="bottom"><img alt="ISO 20022 side panel with a SEPA credit transfer" src="../img/plugin-iso20022.png"></a></p>
 <h2 id="switching-it-on">Switching it on<a class="headerlink" href="#switching-it-on" title="Permanent link">¶</a></h2>
 <ol>
-<li>Open <strong>Settings → Extensions → PLUGINS</strong>.</li>
+<li>Open <strong>Settings → Extensions → INSTALLED EXTENSIONS</strong>.</li>
 <li>Tick <strong>ISO 20022 Payments (SEPA)</strong> and save the settings.</li>
 <li>Restart FreeXmlToolkit.</li>
 </ol>
 <p>A bank icon (<strong>ISO 20022</strong>) then appears in the Activity Bar, above Settings. Administrators can
-keep the plugin off for everyone with <code>plugin.iso20022.enabled=false</code> in <code>policy.properties</code>
+keep the extension off for everyone with <code>plugin.iso20022.enabled=false</code> in <code>policy.properties</code>
 (see <a href="../administration/">Administration</a>).</p>
 <h2 id="which-documents-it-handles">Which documents it handles<a class="headerlink" href="#which-documents-it-handles" title="Permanent link">¶</a></h2>
 <p>Every XML document whose root element is in a namespace starting with
 <code>urn:iso:std:iso:20022:tech:xsd:</code> — the rest of the namespace is the message id, for example
-<code>urn:iso:std:iso:20022:tech:xsd:pain.001.001.09</code>. The plugin knows the names of these message
+<code>urn:iso:std:iso:20022:tech:xsd:pain.001.001.09</code>. The extension knows the names of these message
 families:</p>
 <table>
 <thead>
@@ -3420,8 +3420,8 @@ families:</p>
 <p>Other ISO 20022 messages (e.g. <code>acmt</code>, <code>reda</code>) are recognised as well; the identifier checks below
 run on them, the control-sum and SEPA checks do not.</p>
 <h2 id="schemas">Schemas<a class="headerlink" href="#schemas" title="Permanent link">¶</a></h2>
-<p>While the plugin is on, the <a href="../schema-library/">Schema Library</a> contains an entry (source
-<em>Plugin</em>) for each of these message versions:</p>
+<p>While the extension is on, the <a href="../schema-library/">Schema Library</a> contains an entry (source
+<em>Extension</em>) for each of these message versions:</p>
 <table>
 <thead>
 <tr>
@@ -3451,10 +3451,10 @@ first time it is needed and cached; afterwards it works offline. You get validat
 <a href="../context-sensitive-intellisense/">auto-completion</a> and the schema facts in the
 <a href="../inspector/">Inspector</a> as with any other schema.</p>
 <p>For other versions add the schema to the Schema Library yourself (namespace → file). The entries
-of the plugin are never written to your own library; they disappear when the plugin is switched off.</p>
+of the extension are never written to your own library; they disappear when the extension is switched off.</p>
 <h2 id="the-side-panel">The side panel<a class="headerlink" href="#the-side-panel" title="Permanent link">¶</a></h2>
 <p>The panel has four parts.</p>
-<p><strong>ABOUT</strong> — a short description of what the plugin checks.</p>
+<p><strong>ABOUT</strong> — a short description of what the extension checks.</p>
 <p><strong>ACTIVE DOCUMENT</strong> — what the open document is, updated when you switch tabs:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pain.001.001.09 · Customer Credit Transfer Initiation
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>1 payment group · 2 transactions · 1234.50 EUR · SEPA
@@ -3467,7 +3467,7 @@ of the plugin are never written to your own library; they disappear when the plu
 <li><strong>SEPA</strong> when a service level <code>SvcLvl/Cd</code> is <code>SEPA</code>;</li>
 <li>"(not well-formed)" when the XML cannot be read.</li>
 </ul>
-<p>A document that is no ISO 20022 message shows "The active document is not one this plugin checks."
+<p>A document that is no ISO 20022 message shows "The active document is not one this extension checks."
 and the check button is disabled.</p>
 <p><strong>Check Active Document</strong> runs the checks below on the editor's text — also on an unsaved
 document — in the background. The result lists the number of problems and the first ten with their
@@ -3604,7 +3604,7 @@ Transfer and SEPA Direct Debit Core (customer-to-PSP):</p>
 <ol>
 <li>Click <strong>New SEPA Credit Transfer (pain.001)</strong> — the sample opens with its schema bound.</li>
 <li>Fill in debtor, creditors and amounts. Auto-completion offers the elements the schema allows.</li>
-<li>Press <strong>F8</strong> (or <strong>Check Active Document</strong>): schema errors and the plugin's checks appear
+<li>Press <strong>F8</strong> (or <strong>Check Active Document</strong>): schema errors and the extension's checks appear
    together; a click on a problem jumps to the line.</li>
 <li>Correct <code>NbOfTxs</code> and <code>CtrlSum</code> when you add or remove transactions — the check tells you the
    right values.</li>
@@ -3612,7 +3612,7 @@ Transfer and SEPA Direct Debit Core (customer-to-PSP):</p>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>fxt-cli<span class="w"> </span>validate<span class="w"> </span>payments/2025-11-salaries.xml
 </code></pre></div>
-<p><code>fxt-cli validate</code> loads the switched-on plugins, so the same checks run there (exit code 1 on
+<p><code>fxt-cli validate</code> loads the switched-on extensions, so the same checks run there (exit code 1 on
 errors, see <a href="../command-line/">Command Line</a>).</p>
 <h2 id="what-is-not-checked">What is not checked<a class="headerlink" href="#what-is-not-checked" title="Permanent link">¶</a></h2>
 <ul>
@@ -3642,7 +3642,7 @@ errors, see <a href="../command-line/">Command Line</a>).</p>
 </tr>
 <tr>
 <td>The ISO 20022 activity is missing</td>
-<td>The plugin is off, or your administrator disabled it. Check <strong>Settings → Extensions → PLUGINS</strong>.</td>
+<td>The extension is off, or your administrator disabled it. Check <strong>Settings → Extensions → INSTALLED EXTENSIONS</strong>.</td>
 </tr>
 <tr>
 <td>The check button is disabled</td>

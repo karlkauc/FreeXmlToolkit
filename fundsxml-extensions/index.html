@@ -26,7 +26,7 @@
     
     
       
-        <title>FundsXML Extensions - FreeXmlToolkit Documentation</title>
+        <title>FundsXML Extension - FreeXmlToolkit Documentation</title>
       
     
     
@@ -89,7 +89,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#fundsxml-extensions" class="md-skip">
+        <a href="#fundsxml-extension" class="md-skip">
           Skip to content
         </a>
       
@@ -145,7 +145,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              FundsXML Extensions
+              FundsXML Extension
             
           </span>
         </div>
@@ -2062,7 +2062,7 @@
   <span class="md-ellipsis">
     
   
-    FundsXML Extensions
+    FundsXML Extension
   
 
     
@@ -2080,7 +2080,7 @@
   <span class="md-ellipsis">
     
   
-    FundsXML Extensions
+    FundsXML Extension
   
 
     
@@ -2582,7 +2582,7 @@
   <span class="md-ellipsis">
     
   
-    Plugins
+    Extensions
   
 
     
@@ -2610,7 +2610,7 @@
   <span class="md-ellipsis">
     
   
-    Writing Plugins
+    Writing Extensions (Plugins)
   
 
     
@@ -3585,12 +3585,12 @@
   
 
 
-<h1 id="fundsxml-extensions">FundsXML Extensions<a class="headerlink" href="#fundsxml-extensions" title="Permanent link">¶</a></h1>
+<h1 id="fundsxml-extension">FundsXML Extension<a class="headerlink" href="#fundsxml-extension" title="Permanent link">¶</a></h1>
 <p>Optional integration with the <a href="https://fundsxml.org/">FundsXML</a> standard for the fund management industry. When enabled, FreeXmlToolkit automatically downloads and keeps up to date the official FundsXML schemas, sample documents, Schematron rules, and XPath/XQuery snippets - and uses them for quick validation of your own files.</p>
 <p>This feature is <strong>off by default</strong>. Enable it only if you work with FundsXML documents.</p>
-<p>The FundsXML integration is a built-in <a href="../plugins/">plugin</a>: <strong>Settings → Extensions → PLUGINS</strong>
-can switch it off completely (no FundsXML activity, Help links, update check or hint), and
-administrators can do the same with <code>plugin.fundsxml.enabled=false</code>.</p>
+<p>The FundsXML integration is a built-in <a href="../plugins/">extension</a>. Its switch is the <strong>FundsXML</strong>
+row in <strong>Settings → Extensions → INSTALLED EXTENSIONS</strong>; administrators can remove it completely with
+<code>plugin.fundsxml.enabled=false</code> (no FundsXML activity, Help links, update check or hint).</p>
 <hr>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
 <p>FundsXML is an open XML standard used to exchange fund data between asset managers, fund administrators, depositaries, and regulators. The FundsXML community publishes:</p>
@@ -3610,8 +3610,8 @@ administrators can do the same with <code>plugin.fundsxml.enabled=false</code>.<
 one-time hint when you open a FundsXML document (see <a href="#the-fundsxml-hint-bar">The FundsXML hint bar</a>).</p>
 <ol>
 <li>Open <strong>Settings</strong> (the gear icon at the bottom of the activity bar).</li>
-<li>Select the <strong>Extensions</strong> group in the side panel (or type <em>FundsXML</em> into the settings search field) to reach the <strong>FUNDSXML</strong> card.</li>
-<li>Check <strong>Enable FundsXML extensions</strong>.</li>
+<li>Select the <strong>Extensions</strong> group in the side panel (or type <em>FundsXML</em> into the settings search field) to reach the <strong>INSTALLED EXTENSIONS</strong> card.</li>
+<li>Tick <strong>FundsXML</strong>.</li>
 <li>Click <strong>Save Settings</strong> in the save bar at the bottom of the page.</li>
 </ol>
 <blockquote>
@@ -3662,7 +3662,7 @@ appears above the editor:</p>
 quality checks.</em></p>
 </blockquote>
 <ul>
-<li><strong>Enable FundsXML extensions</strong> - does the same as checking the box on the <strong>FUNDSXML</strong> Settings card
+<li><strong>Enable the FundsXML extension</strong> - does the same as ticking <strong>FundsXML</strong> under <strong>INSTALLED EXTENSIONS</strong> in Settings
   and saving: the <strong>FundsXML</strong> activity appears in the activity bar and the content is
   downloaded in the background (or, if it was downloaded before, the cached content is used
   right away).</li>
@@ -4022,8 +4022,8 @@ sections:</p>
 </thead>
 <tbody>
 <tr>
-<td><strong>Enable FundsXML extensions</strong></td>
-<td>Settings page, FUNDSXML card</td>
+<td><strong>FundsXML</strong></td>
+<td>Settings page, INSTALLED EXTENSIONS card</td>
 <td>Master switch; enabling it starts the initial background download</td>
 <td>Off</td>
 </tr>
@@ -4060,7 +4060,7 @@ sections:</p>
 <h3 id="quick-validate-reports-no-active-schema">Quick-validate reports "No active schema"<a class="headerlink" href="#quick-validate-reports-no-active-schema" title="Permanent link">¶</a></h3>
 <p>The automatic background download has not finished yet (or it failed - for example without a network connection). Watch the progress bar in the <strong>FundsXML</strong> side panel and wait for the completion toast, or click <strong>Download / Update Content</strong> there to retry.</p>
 <h3 id="the-fundsxml-activity-disappeared">The FundsXML activity disappeared<a class="headerlink" href="#the-fundsxml-activity-disappeared" title="Permanent link">¶</a></h3>
-<p>The feature was disabled. Re-enable it under <strong>Settings → Extensions → FUNDSXML → Enable FundsXML extensions</strong>. Your downloaded content is still on disk and will reappear immediately.</p>
+<p>The feature was disabled. Re-enable it by ticking <strong>FundsXML</strong> under <strong>Settings → Extensions → INSTALLED EXTENSIONS</strong>. Your downloaded content is still on disk and will reappear immediately.</p>
 <h3 id="i-want-to-remove-everything">I want to remove everything<a class="headerlink" href="#i-want-to-remove-everything" title="Permanent link">¶</a></h3>
 <ol>
 <li>Disable the feature in Settings (otherwise the content is re-downloaded automatically on the next start).</li>

@@ -2053,7 +2053,7 @@
   <span class="md-ellipsis">
     
   
-    FundsXML Extensions
+    FundsXML Extension
   
 
     
@@ -2449,7 +2449,7 @@
   <span class="md-ellipsis">
     
   
-    Plugins
+    Extensions
   
 
     
@@ -2477,7 +2477,7 @@
   <span class="md-ellipsis">
     
   
-    Writing Plugins
+    Writing Extensions (Plugins)
   
 
     
@@ -3322,32 +3322,32 @@
 <h1 id="ebinterface-austrian-e-invoice">ebInterface (Austrian e-invoice)<a class="headerlink" href="#ebinterface-austrian-e-invoice" title="Permanent link">¶</a></h1>
 <p><a href="https://www.ebinterface.at">ebInterface</a> is the Austrian XML standard for electronic invoices,
 accepted by the federal e-invoicing portal (e-Rechnung.gv.at) and many companies. The
-<strong>ebInterface</strong> plugin binds its schemas automatically, recalculates the invoice — line amounts,
+<strong>ebInterface</strong> extension binds its schemas automatically, recalculates the invoice — line amounts,
 taxes, totals, payable amount — checks VAT ids and bank details and gives you a sample invoice to
 start from.</p>
-<p>It is one of the <a href="../industry-plugins/">industry plugins</a> and <strong>off by default</strong>.</p>
+<p>It is one of the <a href="../industry-plugins/">industry extensions</a> and <strong>off by default</strong>.</p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/plugin-ebinterface.png" data-desc-position="bottom"><img alt="ebInterface side panel with the sample invoice" src="../img/plugin-ebinterface.png"></a></p>
 <h2 id="switching-it-on">Switching it on<a class="headerlink" href="#switching-it-on" title="Permanent link">¶</a></h2>
 <ol>
-<li>Open <strong>Settings → Extensions → PLUGINS</strong>.</li>
+<li>Open <strong>Settings → Extensions → INSTALLED EXTENSIONS</strong>.</li>
 <li>Tick <strong>ebInterface (Austrian e-invoice)</strong> and save the settings.</li>
 <li>Restart FreeXmlToolkit.</li>
 </ol>
 <p>A receipt icon (<strong>ebInterface</strong>) then appears in the Activity Bar. Administrators can keep the
-plugin off with <code>plugin.ebinterface.enabled=false</code> (see <a href="../administration/">Administration</a>).</p>
+extension off with <code>plugin.ebinterface.enabled=false</code> (see <a href="../administration/">Administration</a>).</p>
 <h2 id="which-documents-it-handles">Which documents it handles<a class="headerlink" href="#which-documents-it-handles" title="Permanent link">¶</a></h2>
 <p>XML documents whose root element is <code>Invoice</code> in a namespace
 <code>http://www.ebinterface.at/schema/&lt;version&gt;/</code>, for example <code>http://www.ebinterface.at/schema/6p1/</code>.
 The version is taken from the namespace (<code>6p1</code> → 6.1). All document types share the root <code>Invoice</code>
 — the <code>DocumentType</code> attribute says whether it is an invoice, credit memo, final settlement and so on.</p>
 <h2 id="schemas">Schemas<a class="headerlink" href="#schemas" title="Permanent link">¶</a></h2>
-<p>While the plugin is on, the <a href="../schema-library/">Schema Library</a> contains entries (source <em>Plugin</em>)
+<p>While the extension is on, the <a href="../schema-library/">Schema Library</a> contains entries (source <em>Extension</em>)
 for the versions <strong>4.1, 4.2, 4.3, 5.0, 6.0 and 6.1</strong>. Opening an invoice binds the schema of its
 version by namespace. The schemas are downloaded from the standard's repository on GitHub
 (<code>austriapro/ebinterface-standards</code>, file <code>schemas/ebInterface&lt;version&gt;/Invoice.xsd</code>) the first time
 they are needed and cached; the schemas they import (e.g. XML Signature) are resolved the same way.</p>
 <h2 id="the-side-panel">The side panel<a class="headerlink" href="#the-side-panel" title="Permanent link">¶</a></h2>
-<p><strong>ABOUT</strong> — what the plugin checks.</p>
+<p><strong>ABOUT</strong> — what the extension checks.</p>
 <p><strong>ACTIVE DOCUMENT</strong> — a summary of the open invoice:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ebInterface 6.1 · Invoice 2026-0042 of 2026-11-08
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>Biller: Beispiel Handels GmbH · 2 lines · payable 147.50 EUR
