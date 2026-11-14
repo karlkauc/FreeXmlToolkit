@@ -486,14 +486,14 @@ public final class PkMeldewesenPanel extends VBox {
     }
 
     /** The bundled example report (a fictitious pension fund with a few rule violations). */
-    static final String EXAMPLE = "/plugins/pkmeldewesen/examples/99.pfq.20260331.00001.test.xml";
+    static final String EXAMPLE = "/plugins/pkmeldewesen/examples/01.pfq.20260331.00001.test.xml";
 
     /** Opens the example quarterly report as a new document. */
     @FXML
     public void onOpenExample() {
         try (var in = PkMeldewesenPanel.class.getResourceAsStream(EXAMPLE)) {
             String xml = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
-            ui.editorHost().openGeneratedDocument(xml, EditorFileType.XML, "99.pfq.20260331.00001.test.xml");
+            ui.editorHost().openGeneratedDocument(xml, EditorFileType.XML, "01.pfq.20260331.00001.test.xml");
         } catch (java.io.IOException | RuntimeException e) {
             PanelStatus.info(status, String.valueOf(e.getMessage()));
         }

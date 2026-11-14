@@ -40,8 +40,8 @@ class PkExtrasTest {
             XQueryEvaluator eval = processor.newXQueryCompiler().compile(s.query).load();
             eval.setContextItem(doc);
             XdmValue result = eval.evaluate();
-            // the example has no derivatives and no look-through (PK.006.03); those queries only have to run
-            if (!s.key.equals("derivatives") && !s.key.equals("look-through-ratio")) {
+            // the example has no derivatives; that query only has to run
+            if (!s.key.equals("derivatives")) {
                 assertTrue(result.size() > 0, s.key + " finds something in the example");
             }
         }

@@ -57,6 +57,7 @@ loaded, every contribution type, threads, translations, building, testing and de
 | ebInterface (Austrian e-invoice) | no | [ebInterface](plugin-ebinterface.md) |
 | FinDatEx Templates (EMT, EET, EPT, TPT) | no | [FinDatEx Templates](plugin-findatex.md) |
 | XBRL (with Arelle) | no | [XBRL](plugin-xbrl.md) |
+| PK-Meldewesen (FMA pension fund reports) | yes (its activity appears once the extension is enabled) | [PK-Meldewesen](plugin-pk-meldewesen.md) |
 
 A plugin can say it is off until the user switches it on (`enabledByDefault()`), and it can add
 XML Schemas to the Schema Library (`context.addSchema(new PluginSchema(namespace, url, description, null))`).
@@ -67,9 +68,10 @@ Plugins have no update channel of their own. What keeps each part current:
 
 | Part | How it stays current |
 |---|---|
-| Built-in plugins (FundsXML, ISO 20022, ebInterface, FinDatEx, XBRL) and their data (FinDatEx field definitions, ISO 20022 schemas) | With the application: **Help → Check for Updates…** or the automatic update check, see [Installation](installation.md#updates) |
+| Built-in plugins (FundsXML, ISO 20022, ebInterface, FinDatEx, XBRL, PK-Meldewesen) and their data (FinDatEx field definitions, ISO 20022 schemas, the bundled FMA taxonomy) | With the application: **Help → Check for Updates…** or the automatic update check, see [Installation](installation.md#updates) |
 | FundsXML schemas, samples, Schematron rules and snippets | In addition, the FundsXML plugin checks GitHub once a day and installs a new release in the background, see [FundsXML Extensions](fundsxml-extensions.md#automatic-update-checks) (`fundsxml.update.check.enabled=false` turns it off) |
 | Plugins from the plugins folder (`.jar`) | By hand: put the new jar into the folder, remove the old one, restart. **Settings → Extensions → INSTALLED EXTENSIONS** shows the version that is loaded. |
+| FMA taxonomies (PK-Meldewesen) | Imported from the FMA's ZIP in the PK-Meldewesen panel, see [PK-Meldewesen](plugin-pk-meldewesen.md#newer-taxonomies) |
 | Arelle (used by the XBRL plugin) | It is a separate program: `pip install -U arelle-release` |
 
 With the policy `update.allowed=false`, application updates, and with them the built-in plugins and

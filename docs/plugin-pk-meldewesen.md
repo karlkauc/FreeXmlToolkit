@@ -48,6 +48,8 @@ Administrators can remove it completely with `plugin.pk-meldewesen.enabled=false
 
 The taxonomy is installed under `~/.freeXmlToolkit/pk-meldewesen/<version>/`.
 
+![The PK-Meldewesen panel with the example report: the FMA rule findings below the editor](img/plugin-pk-meldewesen.png)
+
 ## Newer taxonomies
 
 The FMA publishes each taxonomy as a ZIP file on its PK-Meldewesen page (an automatic download is not
@@ -88,6 +90,8 @@ run on every quarterly report while the extension is on:
   and the rule catalogue with a comment and an XPath query per rule. It opens in the preview as
   `<name>-pruefbericht.html`; save it with **File → Save As**. The report is in German, like the
   FMA's rule texts.
+
+![The rule report: result per VRG and rule group](img/plugin-pk-meldewesen-report.png)
 
 **CHECK OPTIONS** in the side panel (stored at once, used by validation and report):
 

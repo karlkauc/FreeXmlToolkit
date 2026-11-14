@@ -239,7 +239,11 @@ Extensions → PLUGINS lists them. Docs: `docs/plugins.md`.
 Industry plugins (`plugins/`, off by default via `enabledByDefault()`): `iso20022` (schemas via
 `PluginContext.addSchema` → Schema Library source PLUGIN, control sums, EPC SEPA rules), `ebinterface`,
 `findatex` (EMT/EET/EPT/TPT V7+V8 CSV against `plugins/findatex/templates.json` from `scripts/findatex-fields.py NAME=xlsx…`; versions sharing a version field are picked by its value, `FinDatExTemplates.forVersion`; TPT mandatory fields per CIC category, `Field.isMandatoryFor`),
-`xbrl` (runs the user's Arelle, `ArelleRunner`). Shared: `IndustryPanel` (FXML), `IdentifierKind`,
+`xbrl` (runs the user's Arelle, `ArelleRunner`). `pkmeldewesen` (FMA pension fund reports pfq/pfa/pfe, own switch `pk.enabled` like FundsXML; `PkTaxonomy`
+store `~/.freeXmlToolkit/pk-meldewesen/<version>/` + stable `_active/` schema copies, ZIP import; `PkRuleCheck` runs the
+bundled `rules/pk-pfq-rules.xslt` (`resultsOnly`, `internal` = INT_* checks) → `PkLocator` lines → `PkRuleValidator`;
+`PkDictionary` labels from the workbooks (`labels.json`) → `PkDescriber` / `PkCodeHover`; `PkGridSetup`, `PkSubmission`
+(FMA file name, ZIP); real reports are never in the repo — fixtures are synthetic). Shared: `IndustryPanel` (FXML), `IdentifierKind`,
 `service/finance/FinancialIdentifiers` (IBAN, BIC, LEI, ISIN, AT UID), `plugin/XmlScan`. Docs: `docs/industry-plugins.md` (overview) + one page per plugin `docs/plugin-<id>.md`; screenshots `PluginsDocScreenshotGenerator`.
 
 ## AI and MCP
