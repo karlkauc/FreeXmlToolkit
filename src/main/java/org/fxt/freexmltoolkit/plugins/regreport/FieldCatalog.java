@@ -38,7 +38,7 @@ import com.google.gson.Gson;
  * workbooks by a script under {@code scripts/} and bundled as JSON:
  *
  * <pre>{"format": "…", "source": "…", "fields": [{"id": "48", "name": "…", "path": "Root/Record/…",
- *   "obligation": "M", "guidance": "…", "rule": "…"}]}</pre>
+ *   "obligation": "M", "guidance": "…", "rule": "…", "check": "currency"}]}</pre>
  *
  * Paths are local names from the root element, separated by {@code /}.
  */
@@ -52,6 +52,7 @@ public final class FieldCatalog {
         String obligation;
         String guidance;
         String rule;
+        String check;
 
         public String id() { return id == null ? "" : id; }
         public String name() { return name == null ? "" : name; }
@@ -61,6 +62,12 @@ public final class FieldCatalog {
         public String guidance() { return guidance == null ? "" : guidance; }
         /** @return the national rule of the supervisor (e.g. the FMA's), empty when there is none */
         public String rule() { return rule == null ? "" : rule; }
+
+        /**
+         * @return a plain code check derived from the rule ({@code currency}, {@code country},
+         *         {@code eu-country}, {@code isin}, {@code lei}), empty for none ({@link CatalogChecks})
+         */
+        public String check() { return check == null ? "" : check; }
 
         /** @return {@code Field 48 · Total AuM amount} */
         public String label() {

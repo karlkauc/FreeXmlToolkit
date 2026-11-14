@@ -48,8 +48,11 @@ public final class RegRuleSet {
     public record Finding(String ruleId, String severity, int line, String message) {
     }
 
-    /** What a rule sees besides the record: the root element and the document's name. */
-    public record Context(RecordNode root, String documentName) {
+    /**
+     * What a rule sees besides the record: the root element, the document's name and a state shared
+     * by all rules of one run (for checks across records: duplicates, header values).
+     */
+    public record Context(RecordNode root, String documentName, java.util.Map<String, Object> state) {
     }
 
     /** A rule on one record (or on the header). */
@@ -111,14 +114,15 @@ public final class RegRuleSet {
     public List<Finding> run(String xml, String documentName) throws XMLStreamException {
         Findings out = new Findings();
         RecordNode[] root = new RecordNode[1];
+        java.util.Map<String, Object> state = new java.util.HashMap<>();
         RecordReader.read(xml, recordPaths, header -> {
             root[0] = header;
-            Context context = new Context(header, documentName);
+            Context context = new Context(header, documentName, state);
             for (Rule rule : headerRules) {
                 rule.check(header, context, out);
             }
         }, record -> {
-            Context context = new Context(root[0], documentName);
+            Context context = new Context(root[0], documentName, state);
             for (Rule rule : recordRules) {
                 rule.check(record, context, out);
             }

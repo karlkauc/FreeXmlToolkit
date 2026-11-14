@@ -1,13 +1,18 @@
 # KAG-Meldewesen (FMA)
 
 The **KAG-Meldewesen** extension supports reports of Austrian management companies (KAG, AIFM) to the
-Austrian Financial Market Authority (FMA). It starts with the **AIFMD reporting** (Annex IV of
-Regulation (EU) 231/2013, § 22 AIFMG): the **AIFM file** and the **AIF file** in ESMA's XML format.
+Austrian Financial Market Authority (FMA):
+
+- the **AIFMD reporting** (Annex IV of Regulation (EU) 231/2013, § 22 AIFMG): the **AIFM file** and
+  the **AIF file** in ESMA's XML format;
+- the **money market fund report** (Article 37 of Regulation (EU) 2017/1131, quarterly via the FMA
+  to ESMA) in ESMA's ISO 20022 format.
 
 | Report | Root element | Schema |
 |---|---|---|
 | AIFM file | `AIFMReportingInfo` | ESMA `AIFMD_DATMAN_V1.2.xsd` |
 | AIF file | `AIFReportingInfo` | ESMA `AIFMD_DATAIF_V1.2.xsd` |
+| Money market fund report | `BizData` (head.003) with `Document` (auth.093), or `Document` alone | ESMA MMF schemas v04.1 |
 
 The extension is **off by default**: switch it on in **Settings → Extensions → INSTALLED EXTENSIONS**
 (`plugin.kag-meldewesen.enabled`) and restart.
@@ -49,13 +54,37 @@ The extension is **off by default**: switch it on in **Settings → Extensions �
 Submit the files on the FMA Incoming Platform. The schemas are installed under
 `~/.freeXmlToolkit/kag-meldewesen/aifmd-1.2/`.
 
+## Money market fund report
+
+The report is bound to ESMA's schemas v04.1 - the envelope (`BizData`, head.003), the business
+application header (head.001) and the report (auth.093) together - and checked with the application
+rules of ESMA's *MMF validation rules v07* that need only the file (`ESMA-MMF-<field code>`):
+
+- header: sender `AT` (the FMA), recipient `EU`, message definition `auth.093.001.01`, creation date
+  after the reporting end date;
+- reporting year from 2020, period ranges (from/to quarter), start and end date inside the quarters,
+  the authorising country equal to the sender, no two reports of one MMF and period in a file;
+- share classes (one flagged with the highest NAV), inception, merger and liquidation dates;
+- daily and weekly maturing assets below 100 %, the liquidity profile (four ranges, each once,
+  adding up to 100 %), the yield breakdowns (each range type once), the input factor of the
+  macro-economic stress scenarios;
+- assets: counterparty name without LEI, no accrued interest for the valuation methods `MTMO` and
+  `AMCS`, reset dates after the reporting end date, amounts in the base currency next to the EUR
+  amounts;
+- ISO 4217 currencies, ISO 3166 and EU countries, ISIN and LEI check digits.
+
+Checks against ESMA's register (authorised MMFs, earlier reports) only run at ESMA. **New Money
+Market Fund Report (Example)** opens a fictitious report.
+
 ## Sources
 
 ESMA: AIFMD reporting XML documents v1.2 (2013-1361) and IT technical guidance rev 6 (2013-1358).
 FMA: *Informationen zum Inhalt und zur Übermittlung des AIFMD-Reportings* (December 2023) and the
-*Prüfregeln* (29.01.2024). The field catalogue is generated with `scripts/aifmd-fields.py`.
+*Prüfregeln* (29.01.2024). ESMA: MMF reporting XML schemas v04.1 and validation rules v07
+(esma65-8-6480). The field catalogues are generated with `scripts/aifmd-fields.py` and
+`scripts/esma-mmf-fields.py`.
 
 ## Planned
 
-The UCITS derivative risk report under the 4. DeRiMV (its XSD is only available on the Incoming
-Platform) and the money market fund report follow.
+The UCITS derivative risk report under the 4. DeRiMV follows once its XSD (published on the Incoming
+Platform only) is available.

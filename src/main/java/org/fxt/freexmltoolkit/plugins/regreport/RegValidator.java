@@ -39,7 +39,7 @@ public final class RegValidator implements DocumentValidator {
 
     private final String name;
     private final BooleanSupplier enabled;
-    private final Function<Root, RegRuleSet> rulesByRoot;
+    private final java.util.function.BiFunction<Root, String, RegRuleSet> rulesByRoot;
 
     /** The root element of a document: local name and namespace (empty for none). */
     public record Root(String localName, String namespace) {
@@ -51,9 +51,17 @@ public final class RegValidator implements DocumentValidator {
      * @param rulesByRoot the rule set of a root element, {@code null} for foreign documents
      */
     public RegValidator(String name, BooleanSupplier enabled, Function<Root, RegRuleSet> rulesByRoot) {
+        this(name, enabled, (root, content) -> rulesByRoot.apply(root));
+    }
+
+    /**
+     * @param rules the rule set of a document by its root element and content (for formats that share a
+     *              root element, such as ISO 20022 envelopes), {@code null} for foreign documents
+     */
+    public RegValidator(String name, BooleanSupplier enabled, java.util.function.BiFunction<Root, String, RegRuleSet> rules) {
         this.name = name;
         this.enabled = enabled;
-        this.rulesByRoot = rulesByRoot;
+        this.rulesByRoot = rules;
     }
 
     @Override
@@ -75,14 +83,14 @@ public final class RegValidator implements DocumentValidator {
             return false;
         }
         Root root = rootOf(content);
-        return root != null && rulesByRoot.apply(root) != null;
+        return root != null && rulesByRoot.apply(root, content) != null;
     }
 
     @Override
     public List<Problem> validate(String content, String documentName) {
         List<Problem> problems = new ArrayList<>();
         Root root = rootOf(content);
-        RegRuleSet rules = root == null ? null : rulesByRoot.apply(root);
+        RegRuleSet rules = root == null ? null : rulesByRoot.apply(root, content);
         if (rules == null) {
             return problems;
         }

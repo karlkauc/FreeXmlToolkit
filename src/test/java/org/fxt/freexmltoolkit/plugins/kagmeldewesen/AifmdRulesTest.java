@@ -29,7 +29,7 @@ class AifmdRulesTest {
     }
 
     private static List<RegRuleSet.Finding> run(String xml) throws Exception {
-        return KagMeldewesenPlugin.rulesFor(RegValidator.rootOf(xml)).run(xml, "report.xml");
+        return KagMeldewesenPlugin.rulesFor(RegValidator.rootOf(xml), xml).run(xml, "report.xml");
     }
 
     private static int lineOf(String xml, String marker) {
@@ -118,7 +118,7 @@ class AifmdRulesTest {
         assertEquals("AIFMD AIF Y1/2025", KagMeldewesenPlugin.label(aif));
         assertTrue(KagMeldewesenPlugin.describe(aif).contains("INIT · Y1/2025 · 1 record"), KagMeldewesenPlugin.describe(aif));
         assertNull(KagMeldewesenPlugin.label("<Document xmlns='urn:x'/>"));
-        assertNull(KagMeldewesenPlugin.rulesFor(new RegValidator.Root("AIFReportingInfo", "urn:other")));
+        assertNull(KagMeldewesenPlugin.rulesFor(new RegValidator.Root("AIFReportingInfo", "urn:other"), "<x/>"));
 
         FieldCatalog fields = KagMeldewesenPlugin.AIF_FIELDS.get();
         assertTrue(fields.fields().size() > 250);
