@@ -182,6 +182,15 @@ public interface GridModelAdapter<N> {
     }
 
     /**
+     * @param label the filtered row's label
+     * @return the header of the filter dialog: the expression language and an example
+     */
+    default String filterHint(String label) {
+        return "XQuery filter on <" + label + ">\n"
+                + "Shows only the matching nodes below it, e.g. Month[Min > 10]. Empty removes the filter.";
+    }
+
+    /**
      * @return whether the filter is still being evaluated in the background (its predicate is
      *         the previous result, or none); the filter line says so
      */

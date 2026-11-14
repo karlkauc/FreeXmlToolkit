@@ -42,6 +42,7 @@ import org.fxt.freexmltoolkit.controls.jsoneditor.commands.MoveNodeCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.RenameKeyCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.ReplaceNodeCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.SortArrayCommand;
+import org.fxt.freexmltoolkit.controls.jsoneditor.commands.SortObjectKeysCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonArray;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonDocument;
@@ -101,6 +102,13 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
     private MenuItem copyNodeItem;
     private Menu changeTypeMenu;
     private MenuItem moveUpItem;
+    private MenuItem sortKeysItem;
+    private MenuItem filterItem;
+    private MenuItem filterToFocusItem;
+    private MenuItem removeFilterItem;
+    private MenuItem removeAllFiltersItem;
+    private CheckMenuItem filterActiveItem;
+    private MenuItem sortKeysRecursiveItem;
     private MenuItem moveDownItem;
     private MenuItem deleteItem;
     private MenuItem expandAllItem;
@@ -241,6 +249,31 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         moveDownItem.setOnAction(e -> moveNode(1));
         moveDownItem.setAccelerator(new KeyCodeCombination(KeyCode.DOWN, KeyCombination.ALT_DOWN));
 
+        // === Sort object keys ===
+        sortKeysItem = new MenuItem(I18n.t("JsonContextMenuManager.sort-keys"));
+        sortKeysItem.setGraphic(createColoredIcon("bi-sort-alpha-down", ActionColor.MODIFY));
+        sortKeysItem.setOnAction(e -> sortKeys(false));
+        sortKeysRecursiveItem = new MenuItem(I18n.t("JsonContextMenuManager.sort-keys-recursive"));
+        sortKeysRecursiveItem.setGraphic(createColoredIcon("bi-sort-alpha-down-alt", ActionColor.MODIFY));
+        sortKeysRecursiveItem.setOnAction(e -> sortKeys(true));
+
+        // === Filters (JSONPath, canvas state) ===
+        filterItem = new MenuItem(I18n.t("XmlGridContextMenu.filter"));
+        filterItem.setGraphic(createColoredIcon("bi-funnel", ActionColor.TOOL));
+        filterItem.setOnAction(e -> viewActions.editFilter().run());
+        filterToFocusItem = new MenuItem(I18n.t("XmlGridContextMenu.filter-to-focus"));
+        filterToFocusItem.setGraphic(createColoredIcon("bi-bullseye", ActionColor.TOOL));
+        filterToFocusItem.setOnAction(e -> viewActions.filterToFocus().run());
+        removeFilterItem = new MenuItem(I18n.t("XmlGridContextMenu.remove-filter"));
+        removeFilterItem.setGraphic(createColoredIcon("bi-x-circle", ActionColor.DELETE));
+        removeFilterItem.setOnAction(e -> viewActions.removeFilter().run());
+        removeAllFiltersItem = new MenuItem(I18n.t("XmlGridContextMenu.remove-all-filters"));
+        removeAllFiltersItem.setGraphic(createColoredIcon("bi-x-circle", ActionColor.DELETE));
+        removeAllFiltersItem.setOnAction(e -> viewActions.removeAllFilters().run());
+        filterActiveItem = new CheckMenuItem(I18n.t("XmlGridContextMenu.filter-active"));
+        filterActiveItem.setGraphic(createColoredIcon("bi-funnel-fill", ActionColor.TOOL));
+        filterActiveItem.setOnAction(e -> viewActions.toggleFilterActive().run());
+
         // === Expand/Collapse (canvas actions) ===
         expandFullyItem = new MenuItem(I18n.t("JsonGridContextMenu.expand-fully"));
         expandFullyItem.setGraphic(createColoredIcon("bi-chevron-double-down", ActionColor.NEUTRAL));
@@ -341,13 +374,15 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
                 new SeparatorMenuItem(),
                 changeTypeMenu,
                 new SeparatorMenuItem(),
-                moveUpItem, moveDownItem,
+                moveUpItem, moveDownItem, sortKeysItem, sortKeysRecursiveItem,
                 new SeparatorMenuItem(),
                 expandFullyItem, collapseUnselectedItem, expandAllItem, collapseAllItem,
                 new SeparatorMenuItem(),
                 displayAsTableItem, flipTableItem, copyTableTsvItem, tableMenu,
                 new SeparatorMenuItem(),
                 sortMenu,
+                new SeparatorMenuItem(),
+                filterItem, filterToFocusItem, filterActiveItem, removeFilterItem, removeAllFiltersItem,
                 new SeparatorMenuItem(),
                 deleteItem
         );
@@ -463,7 +498,19 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         changeTypeMenu.setDisable(!hasSelection || isRoot);
         moveUpItem.setDisable(!hasParent || isFirstChild(node));
         moveDownItem.setDisable(!hasParent || isLastChild(node));
+        // the object itself, or the object a member belongs to
+        JsonObject sortTarget = sortTarget(node);
+        sortKeysItem.setVisible(sortTarget != null);
+        sortKeysRecursiveItem.setVisible(sortTarget != null);
         deleteItem.setDisable(!hasSelection || isRoot);
+
+        filterItem.setDisable(!viewActions.filterSupported().getAsBoolean());
+        filterToFocusItem.setDisable(!hasSelection || isRoot);
+        removeFilterItem.setDisable(!viewActions.hasFilter().getAsBoolean());
+        removeAllFiltersItem.setDisable(!viewActions.hasAnyFilter().getAsBoolean());
+        java.util.Optional<Boolean> filterActive = viewActions.filterActiveState().get();
+        filterActiveItem.setDisable(filterActive.isEmpty());
+        filterActiveItem.setSelected(filterActive.orElse(false));
 
         boolean isInTableColumn = clickedTable != null && clickedColumnName != null;
         boolean canSort = isInTableColumn && clickedTable.isColumnSortable(clickedColumnName);
@@ -886,6 +933,21 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
             return label + " = " + (text.length() > 20 ? text.substring(0, 20) + "..." : text);
         }
         return label;
+    }
+
+    /** @return the object whose keys Sort Keys sorts: the selected object, else the selected member's object */
+    private static JsonObject sortTarget(JsonNode node) {
+        if (node instanceof JsonObject object) {
+            return object;
+        }
+        return node != null && node.getParent() instanceof JsonObject parent ? parent : null;
+    }
+
+    private void sortKeys(boolean recursive) {
+        JsonObject target = sortTarget(selected());
+        if (target != null) {
+            execute(new SortObjectKeysCommand(target, recursive));
+        }
     }
 
     private void execute(JsonCommand command) {

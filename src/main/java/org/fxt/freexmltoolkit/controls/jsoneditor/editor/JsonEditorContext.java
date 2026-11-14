@@ -33,7 +33,6 @@ public class JsonEditorContext {
 
     private static final Logger logger = LogManager.getLogger(JsonEditorContext.class);
 
-    private static final int DEFAULT_INDENT = 2;
 
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private final JsonCommandManager commandManager = new JsonCommandManager();
@@ -114,20 +113,7 @@ public class JsonEditorContext {
     }
 
     private static int resolveIndent() {
-        try {
-            var properties = org.fxt.freexmltoolkit.di.ServiceRegistry.get(
-                    org.fxt.freexmltoolkit.service.PropertiesService.class);
-            if (properties != null) {
-                int indent = properties.getJsonIndentSpaces();
-                if (indent > 0) {
-                    return indent;
-                }
-            }
-        } catch (Exception e) {
-            // Fall back to the default if the registry is unavailable (e.g. in tests)
-            logger.debug("JSON indent setting unavailable, using default", e);
-        }
-        return DEFAULT_INDENT;
+        return org.fxt.freexmltoolkit.service.JsonService.configuredIndent();
     }
 
     // ==================== Commands ====================

@@ -817,7 +817,7 @@ final class EditorDebugSupport {
      */
     void installInputNodeBreakpointMenu(EditorTab tab) {
         javafx.scene.control.ContextMenu menu = tab.view.getEditorContextMenu();
-        if (menu == null) {
+        if (menu == null || !tab.document.getFileType().isXmlFamily()) {
             return;
         }
         javafx.scene.control.MenuItem item = new javafx.scene.control.MenuItem(I18n.t("EditorDebugSupport.break-when-processed"));

@@ -202,6 +202,22 @@
     -fx-background-color: #e2f4e6;
 }
 
+/* Validation problems (CombinedStyleManager.ERROR_STYLE) and search matches (MATCH_STYLE) */
+.code-area .text.validation-error {
+    -rtfx-underline-color: -fxt-danger;
+    -rtfx-underline-width: 1.5;
+    -rtfx-underline-dash-array: 2 2;
+    -rtfx-underline-wave: true;
+}
+
+.code-area .text.search-match {
+    -rtfx-background-color: rgba(250, 176, 5, 0.35);
+}
+
+.json-gutter-problem {
+    -fx-icon-color: -fxt-danger;
+}
+
 /* ========== JSON Tree View ========== */
 
 .json-tree-view {

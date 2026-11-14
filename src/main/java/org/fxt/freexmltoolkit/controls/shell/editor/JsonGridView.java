@@ -118,6 +118,76 @@ public class JsonGridView extends GridViewShell {
             }
         });
         installCanvas(view);
+        if (problems != null) {
+            view.getJsonAdapter().setSourceText(problemsText);
+            view.setProblems(problems);
+        }
+        if (entryHelpers != null) {
+            entryHelpers.bind(ctx, view, schemaSupplier);
+        }
+    }
+
+    /** The document's bound JSON Schema (entry helpers), a supplier of {@code null} while none. */
+    private java.util.function.Supplier<org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaResolver> schemaSupplier =
+            () -> null;
+    /** The entry helpers beside the grid, created on first use. */
+    private GridEntryHelpersPanel entryHelpers;
+
+    /**
+     * @param supplier the document's bound JSON Schema (the entry helpers' suggestions)
+     */
+    public void setSchemaSupplier(
+            java.util.function.Supplier<org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaResolver> supplier) {
+        this.schemaSupplier = supplier != null ? supplier : () -> null;
+        if (entryHelpers != null) {
+            entryHelpers.bind(context, canvasView, schemaSupplier);
+        }
+    }
+
+    @Override
+    protected boolean hasSidePanel() {
+        return true;
+    }
+
+    @Override
+    protected javafx.scene.Node sidePanel() {
+        if (entryHelpers == null) {
+            entryHelpers = new GridEntryHelpersPanel();
+            entryHelpers.bind(context, canvasView, schemaSupplier);
+        }
+        return entryHelpers;
+    }
+
+    /** @return the entry helpers (created on first use) */
+    GridEntryHelpersPanel getEntryHelpers() {
+        return (GridEntryHelpersPanel) sidePanel();
+    }
+
+    /** The last validation problems by line and the text they refer to, re-applied on a rebuild. */
+    private java.util.Map<Integer, java.util.List<String>> problems;
+    private String problemsText;
+
+    /**
+     * Shows the document's validation problems as markers in the grid.
+     *
+     * @param list the problems of the document (an empty list clears the markers)
+     * @param text the text the problems were found in (their lines refer to it)
+     */
+    public void setProblems(java.util.List<ValidationProblem> list, String text) {
+        java.util.Map<Integer, java.util.List<String>> byLine = new java.util.HashMap<>();
+        if (list != null) {
+            for (ValidationProblem problem : list) {
+                if (problem.line() > 0) {
+                    byLine.computeIfAbsent(problem.line(), l -> new java.util.ArrayList<>()).add(problem.message());
+                }
+            }
+        }
+        problems = byLine.isEmpty() ? null : byLine;
+        problemsText = problems == null ? null : text;
+        if (canvasView != null) {
+            canvasView.getJsonAdapter().setSourceText(problemsText);
+            canvasView.setProblems(problems);
+        }
     }
 
     /** Shows the parse-error placeholder (the text is not valid JSON). */

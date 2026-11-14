@@ -33,7 +33,9 @@ import org.fxt.freexmltoolkit.util.DialogHelper;
 public final class EditorActions {
 
     /** The editor-level actions; used by the toolbar to drive enable/disable gating. */
-    public enum EditorAction { VALIDATE, TRANSFORM, GENERATE_DOCS, TYPE_EDITOR, RUN_QUERY, RUN_TRANSFORM, RUN_PIPELINE }
+    public enum EditorAction { VALIDATE, TRANSFORM, GENERATE_DOCS, TYPE_EDITOR, RUN_QUERY, RUN_TRANSFORM, RUN_PIPELINE,
+        /** Generate a sample instance: from an XSD, or from a JSON Schema (the document or its bound one). */
+        GENERATE_SAMPLE }
 
     private final EditorHost editorHost;
 
@@ -71,6 +73,7 @@ public final class EditorActions {
             case RUN_QUERY -> type == EditorFileType.XQUERY || type == EditorFileType.XPATH;
             case RUN_TRANSFORM -> type == EditorFileType.XSLT;
             case RUN_PIPELINE -> type == EditorFileType.XPROC;
+            case GENERATE_SAMPLE -> type == EditorFileType.XSD || type == EditorFileType.JSON;
         };
     }
 

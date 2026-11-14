@@ -20,6 +20,34 @@ running is shown under **Help → About FreeXmlToolkit**.
 - The viewer notices when the file changes on disk and offers to reload it; character references such as `&#233;`
   are decoded in the tree and table.
 
+**JSON**
+
+- **Format detection fixed:** a plain JSON file with a URL or a time such as `10:30` in a string was taken for
+  JSON5 (and warned about lost comments in the grid); the flavor is now read from the tokens, not guessed by
+  patterns. JSON5 strings with apostrophes, hex numbers and `.5` / `5.` numbers are read correctly.
+- **Format** uses the JSON indentation from Settings; **Minify** keeps `null` members.
+- Parse errors carry the column; JSONC and JSON5 files are validated against their JSON Schema (the
+  violations point at the original lines).
+- **Schema help while typing:** with a JSON Schema bound, Ctrl+Space (or typing `"` / `:`) proposes the missing
+  properties - required ones first - and the allowed values; hovering shows the schema's description, type and
+  limits, and the inspector has a **JSON Schema** section for the selected value. `$schema` is also found while the
+  document is incomplete.
+- **Problems in place:** validation problems are underlined in the text (with a gutter badge and the message on
+  hover) and marked in the grid.
+- **Format keeps comments:** formatting changes only whitespace - comments, quote style, JSON5 numbers and trailing
+  commas stay.
+- **Sort Keys** (top level or recursive) in the text editor's and the grid's context menu; comments move with their
+  members.
+- **Folding** of objects, arrays and block comments in the text editor; the context menu's Format / Minify /
+  Validate entries work again.
+- Ctrl+Z right after opening a file no longer empties the editor.
+- **Quick fixes for schema violations:** add a missing required property, replace a value with an allowed one,
+  remove a property the schema does not allow - one undo step, formatting kept.
+- **Generate a sample JSON** from a JSON Schema (the open schema or the bound one), required properties only or
+  all.
+- **Grid:** JSONPath **filters**, validation markers, the **entry helpers** panel with the schema's properties and
+  values, and pasting tab-separated cells into a table as one undo step.
+
 ## 3.2.0 (2026-11-13)
 
 **Editing**

@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "description": "A customer",
+  "required": ["name"],
+  "properties": {
+    "name": {"type": "string", "title": "Name"},
+    "email": {"type": "string", "format": "email"},
+    "address": {"$ref": "#/definitions/address"}
+  },
+  "definitions": {
+    "address": {
+      "type": "object",
+      "allOf": [{"properties": {"city": {"type": "string"}}}, {"properties": {"zip": {"type": ["string", "null"]}}}]
+    }
+  }
+}

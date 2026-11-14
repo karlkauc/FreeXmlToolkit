@@ -8,6 +8,7 @@ import org.fxt.freexmltoolkit.controls.jsoneditor.commands.AddPropertyCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.CompositeJsonCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.JsonCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.RenameKeyCommand;
+import org.fxt.freexmltoolkit.controls.jsoneditor.commands.SetPrimitiveValueCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonArray;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonObject;
@@ -112,5 +113,68 @@ public final class JsonTableEditOps {
             }
         }
         return new CompositeJsonCommand("Rename column " + oldKey + " to " + newKey, parts);
+    }
+
+    /**
+     * Writes a pasted block of cells (e.g. TSV from a spreadsheet) into the table starting at a
+     * cell: an existing scalar keeps its type (a value that does not parse as that type is
+     * skipped), a missing property is added as a string, object/array cells are left alone, and
+     * rows beyond the table become new objects appended to the array.
+     *
+     * @param table    the table
+     * @param startRow the target cell's row
+     * @param startCol the target cell's column
+     * @param values   the pasted values, row by row
+     * @return one undoable step for the whole paste (empty when nothing is to do)
+     */
+    public static CompositeJsonCommand pasteCells(RepeatingElementsTable table, int startRow, int startCol,
+                                                  List<List<String>> values) {
+        List<JsonCommand> parts = new ArrayList<>();
+        List<JsonObject> members = members(table);
+        List<RepeatingElementsTable.TableColumn> columns = table.getColumns();
+        if (members.isEmpty() || startRow < 0 || startCol < 0 || values == null
+                || !(members.get(members.size() - 1).getParent() instanceof JsonArray array)) {
+            return new CompositeJsonCommand("Paste cells", parts);
+        }
+        int appendAt = array.indexOf(members.get(members.size() - 1)) + 1;
+        for (int i = 0; i < values.size(); i++) {
+            int r = startRow + i;
+            List<String> rowValues = values.get(i);
+            if (r >= members.size()) {
+                // a new row: every column, the pasted ones filled in
+                JsonObject fresh = new JsonObject();
+                for (int c = 0; c < columns.size(); c++) {
+                    int j = c - startCol;
+                    JsonPrimitive value = new JsonPrimitive(j >= 0 && j < rowValues.size() ? rowValues.get(j) : "");
+                    value.setKey(columns.get(c).getName());
+                    fresh.addChild(value);
+                }
+                parts.add(new AddArrayItemCommand(array, appendAt++, fresh));
+                continue;
+            }
+            JsonObject member = members.get(r);
+            for (int j = 0; j < rowValues.size(); j++) {
+                int c = startCol + j;
+                if (c >= columns.size()) {
+                    break;
+                }
+                String key = columns.get(c).getName();
+                String text = rowValues.get(j);
+                JsonNode property = member.getProperty(key);
+                if (property == null) {
+                    parts.add(new AddPropertyCommand(member, key, new JsonPrimitive(text), -1));
+                } else if (property instanceof JsonPrimitive primitive) {
+                    try {
+                        Object value = JsonValueParser.parse(text, primitive.getNodeType());
+                        if (!java.util.Objects.equals(value, primitive.getValue())) {
+                            parts.add(new SetPrimitiveValueCommand(primitive, value));
+                        }
+                    } catch (IllegalArgumentException e) {
+                        // not a number / boolean for a typed cell: left as it was
+                    }
+                }
+            }
+        }
+        return new CompositeJsonCommand("Paste cells", parts);
     }
 }

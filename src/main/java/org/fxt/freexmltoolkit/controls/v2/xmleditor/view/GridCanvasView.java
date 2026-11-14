@@ -1098,15 +1098,20 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      */
     private FlatRow leafFilterTarget(FlatRow row) {
         boolean valueRow = row.getType() == FlatRow.RowType.ATTRIBUTE
+                || row.getType().getCategory() == FlatRow.RowType.Category.LEAF // JSON scalars
                 || (row.getType() == FlatRow.RowType.ELEMENT && !row.isExpandable() && !row.isVirtual()
                         && !row.isTableGroupOwner() && !isCellAnchor(row));
         FlatRow parent = valueRow ? row.getParentRow() : null;
-        if (parent == null || parent.getType() != FlatRow.RowType.ELEMENT || parent.isVirtual()
-                || parent.isTableGroupOwner()) {
+        if (parent == null || !filterableType(parent) || parent.isVirtual() || parent.isTableGroupOwner()) {
             return null;
         }
         FlatRow holder = parent.getParentRow();
-        return holder != null && holder.getType() == FlatRow.RowType.ELEMENT ? holder : null;
+        return holder != null && filterableType(holder) ? holder : null;
+    }
+
+    /** @return whether rows of this type can carry a filter: an XML element, a JSON object or array */
+    private static boolean filterableType(FlatRow row) {
+        return row.getType().isContainer() && row.getType() != FlatRow.RowType.GROUP;
     }
 
     /**
@@ -1156,7 +1161,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     private boolean filterSupported(FlatRow row) {
-        return adapter.supportsFilters() && row.getType() == FlatRow.RowType.ELEMENT;
+        return adapter.supportsFilters() && filterableType(row);
     }
 
     /** Asks for the filter expression of the selected container (empty removes the filter). */
@@ -1356,8 +1361,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         // A prefilled expression is selected: Enter takes it, typing replaces it
         dialog.setOnShown(e -> javafx.application.Platform.runLater(dialog.getEditor()::selectAll));
         dialog.setTitle("Filter");
-        dialog.setHeaderText("XQuery filter on <" + row.getLabel() + ">\n"
-                + "Shows only the matching nodes below it, e.g. Month[Min > 10]. Empty removes the filter.");
+        dialog.setHeaderText(adapter.filterHint(row.getLabel()));
         dialog.setContentText("Expression:");
         dialog.getEditor().setPrefColumnCount(40);
         dialog.showAndWait().ifPresent(expression -> setFilter(row, expression));

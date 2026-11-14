@@ -57,5 +57,10 @@ public enum CompletionItemType {
     /**
      * XSD type (e.g., complexType, simpleType definitions).
      */
-    TYPE
+    TYPE,
+
+    /**
+     * JSON object member (a property a JSON Schema declares).
+     */
+    PROPERTY
 }

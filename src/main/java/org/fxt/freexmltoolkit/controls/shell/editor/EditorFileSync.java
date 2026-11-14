@@ -240,6 +240,8 @@ final class EditorFileSync {
                 tab.view.setText(prepared);
             } else {
                 tab.view.setText(content);
+                // Loading is no edit: Ctrl+Z right after opening emptied the editor
+                tab.view.getCodeArea().getUndoManager().forgetHistory();
             }
             tab.refreshPreviewIfActive();
             tab.endLoading();

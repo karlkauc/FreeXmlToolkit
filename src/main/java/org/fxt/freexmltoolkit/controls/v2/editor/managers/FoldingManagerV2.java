@@ -44,6 +44,9 @@ public class FoldingManagerV2 {
 
     private final CodeArea codeArea;
 
+    /** Finds the foldable regions of a text (XML elements by default). */
+    private final java.util.function.BiFunction<String, Integer, Map<Integer, FoldingRegion>> scanner;
+
     // Maximum line length before folding is skipped: a minified document has nothing to fold
     private static final int MAX_SAFE_LINE_LENGTH_FOR_FOLDING = 100 * 1024; // 100KB
 
@@ -77,7 +80,19 @@ public class FoldingManagerV2 {
      * @param codeArea the code area to manage folding for
      */
     public FoldingManagerV2(CodeArea codeArea) {
+        this(codeArea, XmlFoldScanner::scan);
+    }
+
+    /**
+     * Creates a folding manager with its own region scanner (e.g. bracket pairs for JSON).
+     *
+     * @param codeArea the code area to manage folding for
+     * @param scanner  text + minimum line distance → regions by 0-based start line; runs off the FX thread
+     */
+    public FoldingManagerV2(CodeArea codeArea,
+                            java.util.function.BiFunction<String, Integer, Map<Integer, FoldingRegion>> scanner) {
         this.codeArea = codeArea;
+        this.scanner = scanner;
         installHiddenLineSupport();
         logger.info("FoldingManagerV2 created");
     }
@@ -206,7 +221,7 @@ public class FoldingManagerV2 {
      */
     private Map<Integer, FoldingRegion> calculateFoldingRegions(String text) {
         // One character scan: also start tags spread over several lines, nothing inside comments/CDATA
-        return XmlFoldScanner.scan(text, MIN_FOLDABLE_LINES);
+        return scanner.apply(text, MIN_FOLDABLE_LINES);
     }
 
     /** Width and height of a fold toggle in the gutter (the spacer of lines without one matches it). */

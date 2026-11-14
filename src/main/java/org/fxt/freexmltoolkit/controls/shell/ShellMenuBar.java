@@ -75,7 +75,7 @@ public final class ShellMenuBar extends MenuBar {
             "menu-tools-transform", EditorAction.TRANSFORM,
             "menu-tools-debug-xslt", EditorAction.TRANSFORM,
             "menu-tools-generate-docs", EditorAction.GENERATE_DOCS,
-            "menu-tools-generate-sample", EditorAction.TYPE_EDITOR,
+            "menu-tools-generate-sample", EditorAction.GENERATE_SAMPLE,
             "menu-tools-type-editor", EditorAction.TYPE_EDITOR);
 
     private final UnifiedShellView shell;

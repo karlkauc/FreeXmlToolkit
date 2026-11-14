@@ -47,9 +47,35 @@ public final class GridEntryHelpersPanel extends VBox {
     @FXML private Button appendButton;
     @FXML private Button addChildButton;
 
-    private XmlEditorContext context;
-    private XmlCanvasView canvas;
-    private Focus focus = Focus.of(null, null);
+    /** Where the lists come from and what the buttons do: XML (XSD) or JSON (JSON Schema). */
+    private Backend backend;
+
+    /** The source of the lists and the actions of one grid. */
+    interface Backend {
+        /** @return the hint shown while no schema is bound, or {@code null} when one is */
+        String missingSchemaHint();
+
+        /** Reads the focus from the grid's selection. */
+        void updateFocus();
+
+        List<Entry> siblings();
+
+        List<Entry> children();
+
+        List<Entry> values();
+
+        /** @return whether the selected sibling can be inserted ({@code positional}: before/after the selection) */
+        boolean canInsertSibling(Entry entry, boolean positional);
+
+        boolean canAddChild(Entry entry);
+
+        /** @return whether the model changed */
+        boolean insertSibling(Entry entry, Placement placement);
+
+        boolean addChild(Entry entry);
+
+        boolean setValue(Entry entry);
+    }
 
     public GridEntryHelpersPanel() {
         FxmlViews.load(this, "/pages/views/GridEntryHelpersPanel.fxml");
@@ -73,7 +99,7 @@ public final class GridEntryHelpersPanel extends VBox {
         });
         valuesList.setOnMouseClicked(e -> {
             if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) {
-                apply(EntryHelperModel.setValue(focus, valuesList.getSelectionModel().getSelectedItem()));
+                applyValue(valuesList.getSelectionModel().getSelectedItem());
             }
         });
         updateButtons();
@@ -90,62 +116,72 @@ public final class GridEntryHelpersPanel extends VBox {
      * binding: binding again replaces it).
      */
     public void bind(XmlEditorContext context, XmlCanvasView canvas) {
-        if (context != this.context && context != null) {
+        XmlBackend xml = new XmlBackend(context, canvas);
+        this.backend = xml;
+        if (context != null) {
             // The schema is bound off-thread after the document opens
             context.addPropertyChangeListener("schemaProvider", evt -> javafx.application.Platform.runLater(() -> {
-                if (this.context == context) {
+                if (this.backend == xml) {
                     refresh();
                 }
             }));
         }
-        if (canvas != this.canvas && canvas != null) {
+        if (canvas != null) {
             canvas.addSelectionListener(() -> {
-                if (this.canvas == canvas) {
+                if (this.backend == xml) {
                     refresh();
                 }
             });
         }
-        this.context = context;
-        this.canvas = canvas;
+        refresh();
+    }
+
+    /**
+     * Follows the selection of a JSON grid; the lists come from the document's JSON Schema.
+     *
+     * @param context the shared JSON context
+     * @param canvas  the grid
+     * @param schema  the bound schema, or a supplier of {@code null} while none is bound
+     */
+    public void bind(org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext context,
+                     org.fxt.freexmltoolkit.controls.jsoneditor.grid.JsonCanvasView canvas,
+                     java.util.function.Supplier<org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaResolver> schema) {
+        JsonBackend json = new JsonBackend(context, canvas, schema);
+        this.backend = json;
+        if (canvas != null) {
+            canvas.addSelectionListener(() -> {
+                if (this.backend == json) {
+                    refresh();
+                }
+            });
+        }
         refresh();
     }
 
     /** Re-reads the lists for the current selection. */
     public void refresh() {
-        XmlSchemaProvider schema = context != null ? context.getSchemaProvider() : null;
-        boolean hasSchema = schema != null && schema.hasSchema();
-        hintLabel.setText(hasSchema ? "" : "Bind an XSD schema to the document to get suggestions here.");
-        hintLabel.setManaged(!hasSchema);
-        hintLabel.setVisible(!hasSchema);
-
-        focus = currentFocus();
-        siblingsList.getItems().setAll(EntryHelperModel.siblings(schema, focus));
-        childrenList.getItems().setAll(EntryHelperModel.children(schema, focus));
-        valuesList.getItems().setAll(EntryHelperModel.values(schema, focus));
+        String hint = backend != null ? backend.missingSchemaHint() : I18n.t("GridEntryHelpersPanel.bind-xsd");
+        hintLabel.setText(hint != null ? hint : "");
+        hintLabel.setManaged(hint != null);
+        hintLabel.setVisible(hint != null);
+        if (backend != null) {
+            backend.updateFocus();
+        }
+        siblingsList.getItems().setAll(backend != null ? backend.siblings() : List.of());
+        childrenList.getItems().setAll(backend != null ? backend.children() : List.of());
+        valuesList.getItems().setAll(backend != null ? backend.values() : List.of());
         updateButtons();
-    }
-
-    /** The focus of the canvas selection: an attribute row passes its element and name. */
-    private Focus currentFocus() {
-        if (canvas == null) {
-            return Focus.of(null, null);
-        }
-        FlatRow row = canvas.getSelectedRow();
-        if (row != null && row.getType() == FlatRow.RowType.ATTRIBUTE && row.getModelNode() instanceof XmlNode node) {
-            return Focus.of(node, row.getLabel());
-        }
-        return Focus.of(canvas.getSelectedNode(), null);
     }
 
     private void updateButtons() {
         Entry sibling = siblingsList.getSelectionModel().getSelectedItem();
-        boolean canInsert = sibling != null && sibling.available() && focus.siblingParent() != null;
-        boolean positional = canInsert && sibling.kind() == EntryHelperModel.Kind.ELEMENT && focus.reference() != null;
+        boolean canInsert = backend != null && sibling != null && backend.canInsertSibling(sibling, false);
+        boolean positional = canInsert && backend.canInsertSibling(sibling, true);
         insertBeforeButton.setDisable(!positional);
         insertAfterButton.setDisable(!canInsert);
         appendButton.setDisable(!canInsert);
         Entry child = childrenList.getSelectionModel().getSelectedItem();
-        addChildButton.setDisable(child == null || !child.available() || focus.owner() == null);
+        addChildButton.setDisable(backend == null || child == null || !backend.canAddChild(child));
     }
 
     @FXML
@@ -165,27 +201,193 @@ public final class GridEntryHelpersPanel extends VBox {
 
     @FXML
     public void onAddChild() {
-        apply(EntryHelperModel.addChild(schema(), focus, childrenList.getSelectionModel().getSelectedItem()));
+        Entry entry = childrenList.getSelectionModel().getSelectedItem();
+        if (backend != null && entry != null && backend.addChild(entry)) {
+            refresh();
+        }
     }
 
     private void insertSibling(Placement placement) {
-        apply(EntryHelperModel.insertSibling(schema(), focus, siblingsList.getSelectionModel().getSelectedItem(),
-                placement));
+        Entry entry = siblingsList.getSelectionModel().getSelectedItem();
+        if (backend != null && entry != null && backend.insertSibling(entry, placement)) {
+            refresh();
+        }
     }
 
-    private XmlSchemaProvider schema() {
-        return context != null ? context.getSchemaProvider() : null;
+    private void applyValue(Entry entry) {
+        if (backend != null && entry != null && backend.setValue(entry)) {
+            refresh();
+        }
     }
 
-    /** Runs the command through the context and lets the grid rebuild and write back the text. */
-    private void apply(XmlCommand command) {
-        if (command == null || context == null || !context.executeCommand(command)) {
-            return;
+    /** The XML grid: lists from the bound XSD ({@link EntryHelperModel}). */
+    private static final class XmlBackend implements Backend {
+        private final XmlEditorContext context;
+        private final XmlCanvasView canvas;
+        private Focus focus = Focus.of(null, null);
+
+        XmlBackend(XmlEditorContext context, XmlCanvasView canvas) {
+            this.context = context;
+            this.canvas = canvas;
         }
-        if (canvas != null) {
-            canvas.refresh();
+
+        private XmlSchemaProvider schema() {
+            return context != null ? context.getSchemaProvider() : null;
         }
-        refresh();
+
+        @Override
+        public String missingSchemaHint() {
+            XmlSchemaProvider schema = schema();
+            return schema != null && schema.hasSchema() ? null : I18n.t("GridEntryHelpersPanel.bind-xsd");
+        }
+
+        /** The focus of the canvas selection: an attribute row passes its element and name. */
+        @Override
+        public void updateFocus() {
+            if (canvas == null) {
+                focus = Focus.of(null, null);
+                return;
+            }
+            FlatRow row = canvas.getSelectedRow();
+            if (row != null && row.getType() == FlatRow.RowType.ATTRIBUTE && row.getModelNode() instanceof XmlNode node) {
+                focus = Focus.of(node, row.getLabel());
+            } else {
+                focus = Focus.of(canvas.getSelectedNode(), null);
+            }
+        }
+
+        @Override
+        public List<Entry> siblings() {
+            return EntryHelperModel.siblings(schema(), focus);
+        }
+
+        @Override
+        public List<Entry> children() {
+            return EntryHelperModel.children(schema(), focus);
+        }
+
+        @Override
+        public List<Entry> values() {
+            return EntryHelperModel.values(schema(), focus);
+        }
+
+        @Override
+        public boolean canInsertSibling(Entry entry, boolean positional) {
+            boolean can = entry.available() && focus.siblingParent() != null;
+            return positional ? can && entry.kind() == EntryHelperModel.Kind.ELEMENT && focus.reference() != null : can;
+        }
+
+        @Override
+        public boolean canAddChild(Entry entry) {
+            return entry.available() && focus.owner() != null;
+        }
+
+        @Override
+        public boolean insertSibling(Entry entry, Placement placement) {
+            return apply(EntryHelperModel.insertSibling(schema(), focus, entry, placement));
+        }
+
+        @Override
+        public boolean addChild(Entry entry) {
+            return apply(EntryHelperModel.addChild(schema(), focus, entry));
+        }
+
+        @Override
+        public boolean setValue(Entry entry) {
+            return apply(EntryHelperModel.setValue(focus, entry));
+        }
+
+        /** Runs the command through the context and lets the grid rebuild and write back the text. */
+        private boolean apply(XmlCommand command) {
+            if (command == null || context == null || !context.executeCommand(command)) {
+                return false;
+            }
+            if (canvas != null) {
+                canvas.refresh();
+            }
+            return true;
+        }
+    }
+
+    /** The JSON grid: lists from the bound JSON Schema ({@code JsonEntryHelperModel}). */
+    private static final class JsonBackend implements Backend {
+        private final org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext context;
+        private final org.fxt.freexmltoolkit.controls.jsoneditor.grid.JsonCanvasView canvas;
+        private final java.util.function.Supplier<org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaResolver> schema;
+        private org.fxt.freexmltoolkit.controls.jsoneditor.grid.JsonEntryHelperModel.Focus focus =
+                org.fxt.freexmltoolkit.controls.jsoneditor.grid.JsonEntryHelperModel.Focus.of(null);
+
+        JsonBackend(org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext context,
+                    org.fxt.freexmltoolkit.controls.jsoneditor.grid.JsonCanvasView canvas,
+                    java.util.function.Supplier<org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaResolver> schema) {
+            this.context = context;
+            this.canvas = canvas;
+            this.schema = schema;
+        }
+
+        @Override
+        public String missingSchemaHint() {
+            return schema.get() != null ? null : I18n.t("GridEntryHelpersPanel.bind-json-schema");
+        }
+
+        @Override
+        public void updateFocus() {
+            Object node = canvas != null ? canvas.getSelectedNode() : null;
+            focus = org.fxt.freexmltoolkit.controls.jsoneditor.grid.JsonEntryHelperModel.Focus.of(
+                    node instanceof org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode json ? json : null);
+        }
+
+        @Override
+        public List<Entry> siblings() {
+            return org.fxt.freexmltoolkit.controls.jsoneditor.grid.JsonEntryHelperModel.siblings(schema.get(), focus);
+        }
+
+        @Override
+        public List<Entry> children() {
+            return org.fxt.freexmltoolkit.controls.jsoneditor.grid.JsonEntryHelperModel.children(schema.get(), focus);
+        }
+
+        @Override
+        public List<Entry> values() {
+            return org.fxt.freexmltoolkit.controls.jsoneditor.grid.JsonEntryHelperModel.values(schema.get(), focus);
+        }
+
+        @Override
+        public boolean canInsertSibling(Entry entry, boolean positional) {
+            return entry.available() && focus.siblingParent() != null;
+        }
+
+        @Override
+        public boolean canAddChild(Entry entry) {
+            return entry.available() && focus.owner() != null;
+        }
+
+        @Override
+        public boolean insertSibling(Entry entry, Placement placement) {
+            return apply(org.fxt.freexmltoolkit.controls.jsoneditor.grid.JsonEntryHelperModel.insertSibling(
+                    schema.get(), focus, entry, placement));
+        }
+
+        @Override
+        public boolean addChild(Entry entry) {
+            return apply(org.fxt.freexmltoolkit.controls.jsoneditor.grid.JsonEntryHelperModel.addChild(
+                    schema.get(), focus, entry));
+        }
+
+        @Override
+        public boolean setValue(Entry entry) {
+            return apply(org.fxt.freexmltoolkit.controls.jsoneditor.grid.JsonEntryHelperModel.setValue(focus, entry));
+        }
+
+        private boolean apply(org.fxt.freexmltoolkit.controls.jsoneditor.commands.JsonCommand command) {
+            if (command == null || context == null || !context.executeCommand(command)) {
+                return false;
+            }
+            if (canvas != null) {
+                canvas.refresh();
+            }
+            return true;
+        }
     }
 
     // ==================== Test hooks ====================
@@ -231,10 +433,11 @@ public final class GridEntryHelpersPanel extends VBox {
                 case ELEMENT -> "<>";
                 case ATTRIBUTE -> "=";
                 case VALUE -> "Abc";
+                case PROPERTY -> "\"\"";
             });
             name.setText(entry.name());
             mandatory.setVisible(entry.mandatory());
-            if (entry.kind() != EntryHelperModel.Kind.ELEMENT) {
+            if (entry.kind() == EntryHelperModel.Kind.ATTRIBUTE || entry.kind() == EntryHelperModel.Kind.VALUE) {
                 getStyleClass().add(entry.kind() == EntryHelperModel.Kind.ATTRIBUTE
                         ? "fxt-grid-entry-attribute" : "fxt-grid-entry-value");
             }

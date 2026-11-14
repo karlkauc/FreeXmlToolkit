@@ -240,6 +240,13 @@ class JsonServiceTest {
         void returnsNullForNullInput() {
             assertNull(jsonService.compactJson(null));
         }
+
+        @Test
+        @DisplayName("Keeps null members and does not escape HTML characters")
+        void keepsNullMembers() {
+            assertEquals("{\"a\":null,\"b\":\"<&>\"}",
+                    jsonService.compactJson("{ \"a\": null, \"b\": \"<&>\" }"));
+        }
     }
 
     @Nested
@@ -738,5 +745,35 @@ class JsonServiceTest {
             assertNotNull(result);
             assertTrue(result instanceof java.util.Map);
         }
+    }
+
+    @Test
+    @DisplayName("formatJson5 honours the indent")
+    void formatJson5HonoursIndent() {
+        String formatted = jsonService.formatJson5("{a: 1, // c\n b: [2,],}", 4);
+        assertTrue(formatted.contains("\n    \"a\": 1"), formatted);
+    }
+
+    @Test
+    @DisplayName("validateJson accepts JSONC and JSON5 syntax")
+    void validateJsonAcceptsJsoncAndJson5() {
+        assertNull(jsonService.validateJson("{\n  // c\n  \"a\": 1,\n}"));
+        assertNull(jsonService.validateJson("{a: 'x', b: [1, 2,],}"));
+    }
+
+    @Test
+    @DisplayName("configuredIndent falls back to 2")
+    void configuredIndentIsPositive() {
+        assertTrue(JsonService.configuredIndent() > 0);
+    }
+
+    @Test
+    @DisplayName("$schema is found in incomplete, JSONC and JSON5 documents, only at the top level")
+    void schemaDeclarationIsReadTolerantly() {
+        assertEquals("./s.json", jsonService.getRawSchemaIdFromJsonContent("{\n  \"$schema\": \"./s.json\",\n  \n").orElseThrow());
+        assertEquals("a.json", jsonService.getRawSchemaIdFromJsonContent("{// c\n $schema: 'a.json', x: [1,],}").orElseThrow());
+        assertTrue(jsonService.getRawSchemaIdFromJsonContent("{\"x\": {\"$schema\": \"nested.json\"}}").isEmpty());
+        assertTrue(jsonService.getRawSchemaIdFromJsonContent("[{\"$schema\": \"a.json\"}]").isEmpty());
+        assertTrue(jsonService.getRawSchemaIdFromJsonContent("{\"$schema\": 1}").isEmpty());
     }
 }

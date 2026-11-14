@@ -58,8 +58,218 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
     private GridCanvasView<JsonNode> view;
     private boolean lossyToastShown;
 
+    /** The text the shown problems refer to (scanned once), or null: then rows have no source line. */
+    private org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.Span sourceRoot;
+    private int[] sourceLineStarts;
+
     public JsonGridAdapter(JsonEditorContext context) {
         this.context = context;
+        // the source lines refer to the text before the edit
+        context.addPropertyChangeListener("modelChanged", evt -> {
+            setSourceText(null);
+            modelRevision++;
+        });
+        context.addPropertyChangeListener("document", evt -> {
+            setSourceText(null);
+            modelRevision++;
+        });
+    }
+
+    // ==================== Filters (JSONPath) ====================
+
+    /** Bumped on every model change: cached filter results of an older model are stale. */
+    private long modelRevision;
+    /** The last filter results by container identity + expression (rows are rebuilt after every edit). */
+    private final java.util.Map<String, java.util.Set<JsonNode>> filterCache = new java.util.HashMap<>();
+    private long filterCacheRevision = -1;
+
+    @Override
+    public boolean supportsFilters() {
+        return true;
+    }
+
+    @Override
+    public String filterHint(String label) {
+        return I18n.t("JsonGridAdapter.filter-hint", label);
+    }
+
+    @Override
+    public java.util.function.Predicate<Object> filterPredicate(FlatRow row, String expression) {
+        if (row.isVirtual() || !(row.getModelNode() instanceof JsonNode container)
+                || !(container instanceof JsonObject || container instanceof JsonArray)) {
+            return null;
+        }
+        java.util.Set<JsonNode> matches = filterMatches(container, expression);
+        java.util.Set<JsonNode> ancestors = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        for (JsonNode match : matches) {
+            for (JsonNode n = match.getParent(); n != null && n != container; n = n.getParent()) {
+                ancestors.add(n);
+            }
+        }
+        return candidate -> {
+            if (!(candidate instanceof JsonNode node) || node == container || ancestors.contains(node)) {
+                return true;
+            }
+            for (JsonNode n = node; n != null && n != container; n = n.getParent()) {
+                if (matches.contains(n)) {
+                    return true; // the match itself or a node below it
+                }
+            }
+            return false;
+        };
+    }
+
+    /**
+     * Evaluates a JSONPath expression on a container ({@code $} = the container).
+     *
+     * @return the matched nodes (identity set)
+     * @throws IllegalArgumentException when the expression is invalid
+     */
+    java.util.Set<JsonNode> filterMatches(JsonNode container, String expression) {
+        if (filterCacheRevision != modelRevision) {
+            filterCache.clear();
+            filterCacheRevision = modelRevision;
+        }
+        String cacheKey = System.identityHashCode(container) + "\u0000" + expression;
+        java.util.Set<JsonNode> cached = filterCache.get(cacheKey);
+        if (cached != null) {
+            return cached;
+        }
+        List<String> paths;
+        try {
+            var config = com.jayway.jsonpath.Configuration.builder()
+                    .options(com.jayway.jsonpath.Option.AS_PATH_LIST, com.jayway.jsonpath.Option.SUPPRESS_EXCEPTIONS,
+                            com.jayway.jsonpath.Option.ALWAYS_RETURN_LIST)
+                    .build();
+            Object result = com.jayway.jsonpath.JsonPath.using(config).parse(container.serialize(0, 0)).read(expression);
+            paths = new ArrayList<>();
+            if (result instanceof List<?> list) {
+                list.forEach(p -> paths.add(String.valueOf(p)));
+            }
+        } catch (com.jayway.jsonpath.InvalidPathException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        } catch (RuntimeException e) {
+            throw new IllegalArgumentException("Invalid JSONPath: " + e.getMessage(), e);
+        }
+        java.util.Set<JsonNode> matches = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        for (String path : paths) {
+            JsonNode node = nodeAtPath(container, path);
+            if (node != null) {
+                matches.add(node);
+            }
+        }
+        filterCache.put(cacheKey, matches);
+        return matches;
+    }
+
+    private static final java.util.regex.Pattern PATH_STEP =
+            java.util.regex.Pattern.compile("\\['((?:[^'\\\\]|\\\\.)*)'\\]|\\[(\\d+)\\]");
+
+    /** @return the node a normalized Jayway path ({@code $['a'][0]}) addresses below the container */
+    static JsonNode nodeAtPath(JsonNode container, String path) {
+        JsonNode current = container;
+        var matcher = PATH_STEP.matcher(path);
+        while (matcher.find() && current != null) {
+            if (matcher.group(2) != null) {
+                current = current instanceof JsonArray ? current.getChild(Integer.parseInt(matcher.group(2))) : null;
+            } else {
+                String key = matcher.group(1).replace("\\'", "'").replace("\\\\", "\\");
+                current = current instanceof JsonObject object ? object.getProperty(key) : null;
+            }
+        }
+        return current;
+    }
+
+    @Override
+    public String focusFilterExpression(FlatRow root, Object target) {
+        if (!(root.getModelNode() instanceof JsonNode container) || !(target instanceof JsonNode node)
+                || node == container) {
+            return null;
+        }
+        java.util.LinkedList<String> steps = new java.util.LinkedList<>();
+        for (JsonNode n = node; n != container; n = n.getParent()) {
+            JsonNode parent = n.getParent();
+            if (parent == null) {
+                return null; // not below the root row
+            }
+            steps.addFirst(parent instanceof JsonArray ? "[" + parent.indexOf(n) + "]" : "[" + quoteKey(n.getKey()) + "]");
+        }
+        return "$" + String.join("", steps);
+    }
+
+    @Override
+    public String valueFilterExpression(Object member, String columnKey, String value) {
+        if (!(member instanceof JsonObject object) || columnKey == null || columnKey.isBlank()) {
+            return null;
+        }
+        JsonNode property = object.getProperty(columnKey);
+        String operand;
+        if (property instanceof JsonPrimitive p && (p.isNumber() || p.isBoolean() || p.getValue() == null)) {
+            operand = p.getValue() == null ? "null" : p.getValue().toString();
+        } else {
+            operand = quoteKey(value != null ? value : "");
+        }
+        return "$[?(@[" + quoteKey(columnKey) + "] == " + operand + ")]";
+    }
+
+    /** @return a single-quoted JSONPath string literal */
+    private static String quoteKey(String text) {
+        return "'" + text.replace("\\", "\\\\").replace("'", "\\'") + "'";
+    }
+
+    /**
+     * Sets the text the rows' source lines are read from (the text validation problems refer to).
+     * It is scanned once; any model change drops it again, so stale problem markers vanish.
+     *
+     * @param text the document text the model was parsed from, or {@code null}
+     */
+    public void setSourceText(String text) {
+        if (text == null) {
+            sourceRoot = null;
+            sourceLineStarts = null;
+            return;
+        }
+        sourceRoot = org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.scan(text);
+        java.util.List<Integer> starts = new java.util.ArrayList<>();
+        starts.add(0);
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '\n') {
+                starts.add(i + 1);
+            }
+        }
+        sourceLineStarts = starts.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    @Override
+    public int sourceLine(FlatRow row) {
+        return lineOf(nodeOf(row));
+    }
+
+    @Override
+    public int[] memberSourceLines(FlatRow row) {
+        List<?> members = row.getTableMembers();
+        if (members == null) {
+            return new int[0];
+        }
+        int[] lines = new int[members.size()];
+        for (int i = 0; i < lines.length; i++) {
+            lines[i] = members.get(i) instanceof JsonNode node ? lineOf(node) : 0;
+        }
+        return lines;
+    }
+
+    /** @return the 1-based line the node starts on in the source text, 0 when unknown */
+    private int lineOf(JsonNode node) {
+        if (node == null || sourceRoot == null) {
+            return 0;
+        }
+        var path = org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.pathOf(node);
+        var span = org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.spanAt(sourceRoot, path);
+        if (span == null) {
+            return 0;
+        }
+        int idx = java.util.Arrays.binarySearch(sourceLineStarts, span.start());
+        return (idx >= 0 ? idx : -idx - 2) + 1;
     }
 
     /** @return the wrapped editor context */
@@ -403,7 +613,14 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
     }
 
     @Override
-    public boolean commitCellEdit(RepeatingElementsTable table, int rowIndex, String columnName, String newValue) {
+    public boolean pasteCells(RepeatingElementsTable table, int startRow, int startCol,
+                              List<List<String>> values) {
+        CompositeJsonCommand cmd = JsonTableEditOps.pasteCells(table, startRow, startCol, values);
+        return !cmd.isEmpty() && context.executeCommand(cmd);
+    }
+
+    @Override
+        public boolean commitCellEdit(RepeatingElementsTable table, int rowIndex, String columnName, String newValue) {
         if (!(nodeOf(table.getRows().get(rowIndex)) instanceof JsonObject object)) {
             return true;
         }

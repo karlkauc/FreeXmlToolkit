@@ -53,28 +53,56 @@ public final class ValidationRunner {
         var service = new org.fxt.freexmltoolkit.service.JsonService();
         String wellFormed = service.validateJson(json);
         if (wellFormed != null) {
-            problems.add(new ValidationProblem("JSON", "error", parseErrorLine(wellFormed), wellFormed));
+            ValidationProblem problem = new ValidationProblem("JSON", "error", parseErrorLine(wellFormed), wellFormed);
+            int column = parseErrorColumn(wellFormed);
+            problems.add(column > 0 ? problem.withColumn(column) : problem);
             return problems;
         }
         if (jsonSchema != null) {
             var locator = new org.fxt.freexmltoolkit.util.JsonPointerLocator(json);
+            org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaResolver resolver = null;
             for (var error : service.validateAgainstSchemaDetailed(json, jsonSchema)) {
+                if (resolver == null && "required".equals(error.keyword())) {
+                    resolver = jsonSchemaResolver(jsonSchema); // sample values for added properties
+                }
                 // keyword into ruleId, instance pointer into context — mirroring how
                 // Schematron findings use those fields (test expression / location).
                 problems.add(new ValidationProblem("JSON Schema", "error",
                         locator.lineOf(error.instanceSegments()), error.message(),
-                        error.keyword(), error.instancePointer()));
+                        error.keyword(), error.instancePointer(),
+                        org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaQuickFixes.forError(error, resolver)));
             }
         }
         return problems;
     }
 
+    private static org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaResolver jsonSchemaResolver(File schema) {
+        try {
+            return new org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaResolver(
+                    org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaDocument.load(schema));
+        } catch (Exception e) {
+            return null; // the fix then adds an empty string
+        }
+    }
+
     private static final java.util.regex.Pattern GSON_ERROR_LINE =
             java.util.regex.Pattern.compile("at line (\\d+)");
 
+    private static final java.util.regex.Pattern GSON_ERROR_COLUMN =
+            java.util.regex.Pattern.compile("at line \\d+ column (\\d+)");
+
+    /** @return the 1-based column embedded in a Gson parse-error message, or -1 */
+    static int parseErrorColumn(String message) {
+        return firstNumber(GSON_ERROR_COLUMN, message);
+    }
+
     /** @return the 1-based line embedded in a Gson parse-error message, or -1 */
-    private static int parseErrorLine(String message) {
-        var matcher = GSON_ERROR_LINE.matcher(message);
+    static int parseErrorLine(String message) {
+        return firstNumber(GSON_ERROR_LINE, message);
+    }
+
+    private static int firstNumber(java.util.regex.Pattern pattern, String message) {
+        var matcher = pattern.matcher(message);
         if (matcher.find()) {
             try {
                 return Integer.parseInt(matcher.group(1));

@@ -64,11 +64,7 @@ public class JsonNodeFactory {
         String cleanedText = jsonText;
 
         if ("jsonc".equals(format) || "json5".equals(format)) {
-            cleanedText = JsonSyntaxHighlighter.stripComments(jsonText);
-            // For JSON5, also handle trailing commas
-            if ("json5".equals(format)) {
-                cleanedText = cleanedText.replaceAll(",\\s*([}\\]])", "$1");
-            }
+            cleanedText = org.fxt.freexmltoolkit.service.json.JsonDialect.toStrictJson(jsonText);
         }
 
         JsonElement gsonElement = JsonParser.parseString(cleanedText);

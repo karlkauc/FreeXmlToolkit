@@ -97,13 +97,81 @@ final class JsonEditorView implements EditorView {
     @Override
     public boolean loadSchema(File schema) {
         if (schema == null) {
+            editor.setSchema(null);
             return true; // clearing a binding always succeeds
         }
         try {
             String text = Files.readString(schema.toPath(), StandardCharsets.UTF_8);
-            return new JsonService().validateJson(text) == null;
+            if (new JsonService().validateJson(text) != null) {
+                return false;
+            }
+            // the walkable model for completion, hover and the inspector (files it references load
+            // when first followed)
+            editor.setSchema(new org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaResolver(
+                    org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaDocument.load(schema)));
+            return true;
         } catch (Exception e) {
             return false;
         }
+    }
+
+    @Override
+    public void clearSchema() {
+        editor.setSchema(null);
+    }
+
+    /** @return the bound JSON Schema model, or {@code null} */
+    public org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaResolver getSchemaResolver() {
+        return editor.getSchema();
+    }
+
+    @Override
+    public void setProblems(java.util.List<ValidationProblem> problems) {
+        String text = editor.getText();
+        java.util.List<JsonCodeEditor.ProblemRange> ranges = new java.util.ArrayList<>();
+        for (JsonProblemMarkers.Marker marker : JsonProblemMarkers.compute(text, problems)) {
+            ranges.add(new JsonCodeEditor.ProblemRange(marker.start(), marker.end(), marker.line(), marker.message()));
+        }
+        editor.setProblems(ranges);
+    }
+
+    @Override
+    public boolean setExtraGutterFactory(java.util.function.IntFunction<javafx.scene.Node> factory) {
+        editor.setExtraGutterFactory(factory);
+        return true;
+    }
+
+    @Override
+    public void refreshGutter() {
+        editor.refreshGutter();
+    }
+
+    @Override
+    public void setSearchMatchRanges(java.util.Map<Integer, Integer> ranges) {
+        editor.setSearchMatchRanges(ranges);
+    }
+
+    @Override
+    public void clearSearchMatches() {
+        editor.setSearchMatchRanges(java.util.Map.of());
+    }
+
+    /** @return the wrapped editor (tests) */
+    JsonCodeEditor getEditor() {
+        return editor;
+    }
+
+    /**
+     * Installs what Format / Minify / Validate / Sort Keys in the editor's context menu do.
+     *
+     * @param actions the shell's actions
+     */
+    void setContextActions(org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonContextMenuManager.JsonContextActions actions) {
+        editor.setContextMenuActions(actions);
+    }
+
+    @Override
+    public javafx.scene.control.ContextMenu getEditorContextMenu() {
+        return editor.getContextMenuManager().getContextMenu();
     }
 }

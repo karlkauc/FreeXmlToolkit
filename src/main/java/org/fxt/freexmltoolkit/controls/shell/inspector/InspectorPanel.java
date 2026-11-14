@@ -200,6 +200,8 @@ public class InspectorPanel extends VBox {
     @FXML private TextField nsPrefixField;
     @FXML private TextField nsUriField;
     @FXML private TitledPane namespaceSection;
+    @FXML private TitledPane jsonSchemaSection;
+    @FXML private InspectorKeyValueList<String> jsonSchemaList;
     // Non-element XML nodes: comment / CDATA / text content, and processing instructions
     @FXML private TextArea contentArea;
     @FXML private Label contentLabel;
@@ -930,6 +932,7 @@ public class InspectorPanel extends VBox {
         try {
             resetXmlNodeSections();
             resetFigmaRows();
+            show(jsonSchemaSection, false);
             if (selected != null) {
                 populateXsdNode(selected);
             } else if (currentXmlNode instanceof XmlElement el) {
@@ -1938,6 +1941,68 @@ public class InspectorPanel extends VBox {
         showXsdSections(false);
         show(namespaceSection, false);
         show(valueAttrSection, true);
+        showJsonSchema(node);
+    }
+
+    /** Fills the JSON Schema section from the active document's bound schema (hidden without one). */
+    private void showJsonSchema(org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode node) {
+        var resolver = editorHost.getActiveJsonSchema().orElse(null);
+        if (resolver == null) {
+            show(jsonSchemaSection, false);
+            return;
+        }
+        List<Object> path = jsonPath(node);
+        var view = resolver.at(path, null);
+        boolean required = false;
+        if (!path.isEmpty() && path.get(path.size() - 1) instanceof String key) {
+            required = resolver.at(path.subList(0, path.size() - 1), null).required().contains(key);
+        }
+        jsonSchemaList.setItems(jsonSchemaEntries(view, required));
+        jsonSchemaList.setPlaceholderText(I18n.t("InspectorPanel.json-not-described"));
+        show(jsonSchemaSection, true);
+    }
+
+    /** The rows of the JSON Schema section (read-only). */
+    static List<InspectorKeyValueList.Entry<String>> jsonSchemaEntries(
+            org.fxt.freexmltoolkit.service.jsonschema.SchemaView view, boolean required) {
+        List<InspectorKeyValueList.Entry<String>> rows = new ArrayList<>();
+        if (!view.known()) {
+            return rows;
+        }
+        java.util.function.BiConsumer<String, String> add = (key, value) -> {
+            if (value != null && !value.isBlank()) {
+                rows.add(new InspectorKeyValueList.Entry<>(key, I18n.t(key), value, true, value));
+            }
+        };
+        add.accept("InspectorPanel.json-type", view.typeText());
+        if (required) {
+            add.accept("InspectorPanel.json-required", I18n.t("InspectorPanel.json-yes"));
+        }
+        add.accept("InspectorPanel.json-description", view.title() != null && view.description() != null
+                ? view.title() + " - " + view.description()
+                : view.description() != null ? view.description() : view.title());
+        if (!view.allowedValues().isEmpty()) {
+            add.accept("InspectorPanel.json-allowed", String.join(", ",
+                    view.allowedValues().stream().map(Object::toString).toList()));
+        }
+        add.accept("InspectorPanel.json-default", view.defaultValue() == null ? null : view.defaultValue().toString());
+        add.accept("InspectorPanel.json-format", view.format());
+        if (view.deprecated()) {
+            add.accept("InspectorPanel.json-deprecated", I18n.t("InspectorPanel.json-yes"));
+        }
+        view.constraints().forEach((keyword, value) ->
+                rows.add(new InspectorKeyValueList.Entry<>(keyword, keyword, value, true, null)));
+        if (!view.properties().isEmpty()) {
+            List<String> names = new ArrayList<>();
+            view.properties().values().forEach(p -> names.add(p.required() ? p.name() + " *" : p.name()));
+            add.accept("InspectorPanel.json-properties", String.join(", ", names));
+        }
+        return rows;
+    }
+
+    /** The instance path of a model node: keys of object members, indices of array items. */
+    static List<Object> jsonPath(org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode node) {
+        return org.fxt.freexmltoolkit.controls.jsoneditor.grid.JsonEntryHelperModel.instancePath(node);
     }
 
     /** The scalar value, unquoted, for primitives; a type summary for objects/arrays. */

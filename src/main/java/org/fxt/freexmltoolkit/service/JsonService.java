@@ -38,6 +38,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.shared.JsonSyntaxHighlighter;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.json.JsonDialect;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -76,8 +77,9 @@ public class JsonService {
      * Creates a new JsonService with default Gson configurations.
      */
     public JsonService() {
-        // Standard Gson for JSON
-        this.gson = new GsonBuilder().create();
+        // Compact Gson: keeps null members (minify must not drop "a": null) and
+        // writes characters like < > & as they are
+        this.gson = new GsonBuilder().serializeNulls().disableHtmlEscaping().create();
         this.gsonPretty = new GsonBuilder()
                 .setPrettyPrinting()
                 .serializeNulls()
@@ -113,8 +115,7 @@ public class JsonService {
         if (jsonc == null || jsonc.isBlank()) {
             return JsonNull.INSTANCE;
         }
-        String stripped = JsonSyntaxHighlighter.stripComments(jsonc);
-        return JsonParser.parseString(stripped);
+        return JsonParser.parseString(JsonDialect.toStrictJson(jsonc));
     }
 
     /**
@@ -129,101 +130,8 @@ public class JsonService {
         if (json5Text == null || json5Text.isBlank()) {
             return JsonNull.INSTANCE;
         }
-        // Convert JSON5 to standard JSON
-        String standardJson = convertJson5ToJson(json5Text);
-        return JsonParser.parseString(standardJson);
-    }
-
-    /**
-     * Converts JSON5 features to standard JSON.
-     * Handles: comments, trailing commas, unquoted keys, single quotes.
-     *
-     * @param json5 The JSON5 text
-     * @return Standard JSON text
-     */
-    private String convertJson5ToJson(String json5) {
-        // Step 1: Strip comments
-        String result = JsonSyntaxHighlighter.stripComments(json5);
-
-        // Step 2: Remove trailing commas before } or ]
-        result = result.replaceAll(",\\s*([}\\]])", "$1");
-
-        // Step 3: Convert single quotes to double quotes (simple approach)
-        // Note: This is a simplified conversion; complex cases may need more work
-        result = result.replace("'", "\"");
-
-        // Step 4: Quote unquoted keys
-        // Pattern: word characters followed by colon, not inside quotes
-        result = quoteUnquotedKeys(result);
-
-        return result;
-    }
-
-    /**
-     * Quotes unquoted object keys in JSON5.
-     */
-    private String quoteUnquotedKeys(String json) {
-        StringBuilder result = new StringBuilder();
-        boolean inString = false;
-        char stringChar = 0;
-        int i = 0;
-
-        while (i < json.length()) {
-            char c = json.charAt(i);
-
-            // Track string state
-            if (!inString && (c == '"' || c == '\'')) {
-                inString = true;
-                stringChar = c;
-                result.append(c);
-                i++;
-                continue;
-            }
-            if (inString && c == stringChar && (i == 0 || json.charAt(i - 1) != '\\')) {
-                inString = false;
-                result.append(c);
-                i++;
-                continue;
-            }
-
-            // Look for unquoted keys when not in string
-            if (!inString && Character.isLetter(c) || c == '_' || c == '$') {
-                // Collect the identifier
-                StringBuilder key = new StringBuilder();
-                while (i < json.length() && (Character.isLetterOrDigit(json.charAt(i)) ||
-                        json.charAt(i) == '_' || json.charAt(i) == '$')) {
-                    key.append(json.charAt(i));
-                    i++;
-                }
-
-                // Skip whitespace
-                int afterKey = i;
-                while (afterKey < json.length() && Character.isWhitespace(json.charAt(afterKey))) {
-                    afterKey++;
-                }
-
-                // Check if followed by colon (then it's a key)
-                if (afterKey < json.length() && json.charAt(afterKey) == ':') {
-                    String keyStr = key.toString();
-                    // Check if it's a keyword (true, false, null, Infinity, NaN)
-                    if (keyStr.equals("true") || keyStr.equals("false") || keyStr.equals("null") ||
-                            keyStr.equals("Infinity") || keyStr.equals("NaN")) {
-                        result.append(keyStr);
-                    } else {
-                        result.append('"').append(keyStr).append('"');
-                    }
-                } else {
-                    // It's a value, not a key
-                    result.append(key);
-                }
-                continue;
-            }
-
-            result.append(c);
-            i++;
-        }
-
-        return result.toString();
+        // Convert JSON5 to standard JSON on the tokens (line breaks kept for error positions)
+        return JsonParser.parseString(JsonDialect.toStrictJson(json5Text));
     }
 
     /**
@@ -329,8 +237,7 @@ public class JsonService {
      * @return The formatted JSON string (comments removed)
      */
     public String formatJsonc(String jsonc, int indent) {
-        String stripped = JsonSyntaxHighlighter.stripComments(jsonc);
-        return formatJson(stripped, indent);
+        return formatJson(JsonDialect.toStrictJson(jsonc), indent);
     }
 
     /**
@@ -340,11 +247,42 @@ public class JsonService {
      * @return The formatted JSON string
      */
     public String formatJson5(String json5Text) {
+        return formatJson5(json5Text, 2);
+    }
+
+    /**
+     * Formats JSON5 (converts to JSON and formats) with the given indentation.
+     *
+     * @param json5Text The JSON5 string to format
+     * @param indent    The number of spaces for indentation
+     * @return The formatted JSON string
+     */
+    public String formatJson5(String json5Text, int indent) {
         if (json5Text == null || json5Text.isBlank()) {
             return json5Text;
         }
-        JsonElement element = parseJson5(json5Text);
-        return gsonPretty.toJson(element);
+        return formatJson(gson.toJson(parseJson5(json5Text)), indent);
+    }
+
+    /**
+     * The JSON indent configured in Settings (spaces), or 2 when no setting is available
+     * (tests, early startup).
+     *
+     * @return the configured indent, at least 1
+     */
+    public static int configuredIndent() {
+        try {
+            PropertiesService properties = ServiceRegistry.get(PropertiesService.class);
+            if (properties != null) {
+                int indent = properties.getJsonIndentSpaces();
+                if (indent > 0) {
+                    return indent;
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("JSON indent setting unavailable, using default", e);
+        }
+        return 2;
     }
 
     // ==================== Validation ====================
@@ -378,7 +316,8 @@ public class JsonService {
             return "JSON content is empty";
         }
         try {
-            parseJson(json);
+            // JSONC / JSON5 are well-formed in their own syntax (comments, trailing commas, …)
+            parseAuto(json);
             return null;
         } catch (JsonSyntaxException e) {
             return "JSON syntax error: " + e.getMessage();
@@ -513,9 +452,42 @@ public class JsonService {
      * @param instanceSegments instance location as segments (String = object key, Integer = array index)
      * @param instancePointer  instance location as an RFC 6901 JSON pointer ("" = root)
      * @param keyword          the failing schema keyword (e.g. "type", "required"), may be null
+     * @param property         the property the error names ({@code required}: the missing one,
+     *                         {@code additionalProperties}: the extra one), or {@code null}
+     * @param schemaValue      the failing keyword's value in the schema as JSON text (e.g. the
+     *                         {@code enum} array), or {@code null}
      */
     public record SchemaError(String message, List<Object> instanceSegments,
-                              String instancePointer, String keyword) {
+                              String instancePointer, String keyword, String property, String schemaValue) {
+
+        /** An error without property / schema value details. */
+        public SchemaError(String message, List<Object> instanceSegments, String instancePointer, String keyword) {
+            this(message, instanceSegments, instancePointer, keyword, null, null);
+        }
+    }
+
+    /**
+     * @param json a JSON text
+     * @return whether the text is a JSON Schema itself: its {@code $schema} names a json-schema.org
+     *         dialect, or (without one) its root declares {@code properties} / {@code $defs} /
+     *         {@code definitions} next to a {@code type}
+     */
+    public boolean isJsonSchemaDocument(String json) {
+        Optional<String> declared = getRawSchemaIdFromJsonContent(json);
+        if (declared.isPresent()) {
+            return META_SCHEMA_ID.matcher(declared.get()).find();
+        }
+        try {
+            JsonElement root = parseAuto(json);
+            if (!root.isJsonObject()) {
+                return false;
+            }
+            var object = root.getAsJsonObject();
+            return object.has("$defs") || object.has("definitions")
+                    || (object.has("properties") && object.get("properties").isJsonObject() && object.has("type"));
+        } catch (RuntimeException e) {
+            return false;
+        }
     }
 
     /** json-schema.org meta-schema ids declare the document's own dialect, not a validation binding. */
@@ -537,20 +509,37 @@ public class JsonService {
         if (json == null || json.isBlank()) {
             return Optional.empty();
         }
-        try {
-            JsonElement root = JsonParser.parseString(json);
-            if (!root.isJsonObject()) {
-                return Optional.empty();
-            }
-            JsonElement schema = root.getAsJsonObject().get("$schema");
-            if (schema == null || !schema.isJsonPrimitive() || !schema.getAsJsonPrimitive().isString()) {
-                return Optional.empty();
-            }
-            String location = schema.getAsString().trim();
-            return location.isEmpty() ? Optional.empty() : Optional.of(location);
-        } catch (JsonSyntaxException e) {
+        // read from the tokens: the document may be incomplete while it is typed, JSONC or JSON5
+        var tokens = org.fxt.freexmltoolkit.service.json.JsonTokenizer.tokenize(json).stream()
+                .filter(t -> !t.kind().isTrivia()).toList();
+        if (tokens.isEmpty() || tokens.get(0).kind() != org.fxt.freexmltoolkit.service.json.JsonTokenizer.Kind.BEGIN_OBJECT) {
             return Optional.empty();
         }
+        int depth = 0;
+        for (int i = 0; i < tokens.size(); i++) {
+            var t = tokens.get(i);
+            switch (t.kind()) {
+                case BEGIN_OBJECT, BEGIN_ARRAY -> depth++;
+                case END_OBJECT, END_ARRAY -> depth--;
+                default -> {
+                    if (depth == 1 && i + 2 < tokens.size()
+                            && tokens.get(i + 1).kind() == org.fxt.freexmltoolkit.service.json.JsonTokenizer.Kind.COLON
+                            && "$schema".equals(org.fxt.freexmltoolkit.service.json.JsonTokenizer.unquote(t))) {
+                        var value = tokens.get(i + 2);
+                        if (value.kind() != org.fxt.freexmltoolkit.service.json.JsonTokenizer.Kind.STRING
+                                || value.unterminated()) {
+                            return Optional.empty();
+                        }
+                        String location = org.fxt.freexmltoolkit.service.json.JsonTokenizer.unquote(value).trim();
+                        return location.isEmpty() ? Optional.empty() : Optional.of(location);
+                    }
+                }
+            }
+            if (depth <= 0 && i > 0) {
+                break;
+            }
+        }
+        return Optional.empty();
     }
 
     /**
@@ -651,7 +640,9 @@ public class JsonService {
             SchemaRegistry registry = newSchemaRegistry();
             // Loading via the file's URI keeps the base URI so relative $refs resolve.
             Schema schema = registry.getSchema(SchemaLocation.of(schemaFile.toURI().toString()));
-            for (Error error : schema.validate(json, InputFormat.JSON)) {
+            // networknt reads strict JSON: normalise JSONC/JSON5 first. The instance locations
+            // stay valid, callers map them back onto the original text (JsonPointerLocator).
+            for (Error error : schema.validate(JsonDialect.toStrictJson(json), InputFormat.JSON)) {
                 errors.add(toSchemaError(error));
             }
         } catch (Exception e) {
@@ -673,7 +664,14 @@ public class JsonService {
         for (Object segment : segments) {
             pointer.append('/').append(segment.toString().replace("~", "~0").replace("/", "~1"));
         }
-        return new SchemaError(error.getMessage(), List.copyOf(segments), pointer.toString(), error.getKeyword());
+        String schemaValue = null;
+        try {
+            schemaValue = error.getSchemaNode() != null ? error.getSchemaNode().toString() : null;
+        } catch (RuntimeException e) {
+            // details only
+        }
+        return new SchemaError(error.getMessage(), List.copyOf(segments), pointer.toString(), error.getKeyword(),
+                error.getProperty(), schemaValue);
     }
 
     // ==================== JSONPath ====================

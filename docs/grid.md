@@ -275,8 +275,11 @@ looks and feels exactly like an XML file in the grid:
   auto-fit). **Expand Fully** (Ctrl+Shift++) and **Collapse Unselected** (Ctrl+Shift+−),
   **Display as Table** / **Flip Rows/Columns** for arrays of objects, the scroll header and
   the search in table cells all work as described above. Table cells can be selected and
-  copied as tab-separated text (Ctrl+C or **Copy Table as Tab-separated Text**); Ctrl+V
-  overwrites existing cells only. The zoom factor is shared with the XML grid.
+  copied as tab-separated text (Ctrl+C or **Copy Table as Tab-separated Text**). **Ctrl+V**
+  pastes tab-separated cells (e.g. from a spreadsheet) from the selected cell on: a number or
+  boolean cell keeps its type (a value that does not fit is skipped), a missing property is
+  added as a string, and rows beyond the table become new objects - all in **one undo step**.
+  The zoom factor is shared with the XML grid.
 - **Change a value's type** by clicking its type glyph (or Ctrl+Alt+T on the selected row):
   a popup lists the other types. Number ↔ String ↔ Boolean ↔ Null convert the value
   (`"42"` → `42`); Object and Array start empty. One undo step.
@@ -292,8 +295,25 @@ looks and feels exactly like an XML file in the grid:
   Column Before / After…** (the key in every object, next to the clicked column) and
   **Rename Column…** (also a double-click on the column header; refused as a whole when an
   object already uses the new key). Each is one undo step.
-- **XML only:** **Wrap in Element**, **Edit as Raw Text**, filters, formulas and validation
-  markers.
+- **Sort Keys** / **Sort Keys Recursively** on an object (or a member of it) sorts its
+  properties by key - recursively also every object below it, inside arrays too. One undo step.
+- **Filters (JSONPath):** right-click an object or array → **Filter…** and enter a JSONPath
+  expression relative to it (`$` is that value), e.g. `$.orders[?(@.total > 100)]` or
+  `$..email`. Only the matches stay visible, with their parents and everything below them; a
+  table keeps only its matching rows. Started on a value row (`city = "Graz"`) the dialog
+  suggests `$[?(@['city'] == 'Graz')]` on the array holding the objects. **Filter to Focus**,
+  **Filter Active** and **Remove (All) Filters** work as in the XML grid; filters are not saved
+  in the document.
+- **Validation markers:** after **Validate** (or while typing with live validation), the rows
+  of values with a problem get a red marker with the messages as tooltip, as in the XML grid.
+- **Entry helpers:** the header's entry-helpers toggle opens the side panel. With a JSON Schema
+  bound, **Siblings** lists the properties the selected value's object may have, **Children**
+  those of the selected object (required ones marked `!`, present ones greyed) and **Values**
+  the allowed values of the selected scalar. Insert / Append / Add and a double-click add the
+  property with a starting value from the schema (its `const`, `default`, or an empty value of
+  its type) or set the value - each one undo step.
+- **XML only:** **Wrap in Element**, **Edit as Raw Text**, formulas and saving filters in the
+  document.
 
 !!! warning "Comments and JSON5 syntax are not preserved"
     The grid edits the parsed *model*. Comments (JSONC) and JSON5 syntax (unquoted keys,

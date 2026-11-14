@@ -112,14 +112,15 @@ class EditorHostGutterTest {
     }
 
     @Test
-    void jsonEditorRejectsGutter(@TempDir Path tmp) throws Exception {
+    void jsonEditorTakesAGutterColumn(@TempDir Path tmp) throws Exception {
         Path json = tmp.resolve("data.json");
         Files.writeString(json, "{}");
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(json));
         WaitForAsyncUtils.waitForFxEvents();
         boolean applied = WaitForAsyncUtils.waitForAsyncFx(2000,
                 () -> host.setActiveEditorGutterFactory(line -> (Node) new Region()));
-        assertFalse(applied, "JSON editor has no gutter support");
+        // JSON documents show the quick-fix light bulbs of JSON Schema violations in this column
+        assertTrue(applied, "the JSON editor takes an extra gutter column");
     }
 
     @Test

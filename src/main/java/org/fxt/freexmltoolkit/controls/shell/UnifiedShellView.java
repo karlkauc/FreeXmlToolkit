@@ -188,6 +188,7 @@ public class UnifiedShellView extends BorderPane {
         // new-file entry points (toolbar, Explorer, Welcome) share one flow.
         editorHost.setNewDocumentHandler(this::newDocument);
         editorHost.setRevealInExplorerHandler(this::revealInExplorer);
+        editorHost.setValidateHandler(this::validateActive);
         // "Export View…" / "Copy View as Image" in the diagram, grid and flame-graph context menus
         org.fxt.freexmltoolkit.controls.shell.editor.ViewExport.installMenuHandler(editorHost);
         queryConsole = new org.fxt.freexmltoolkit.controls.shell.editor.QueryConsole(editorHost);
@@ -1819,7 +1820,15 @@ public class UnifiedShellView extends BorderPane {
     @FXML public void onGenerateDocs() { toolbar("generate_docs"); editorActions.generateDocsActive(window()); }
     @FXML public void onTypeEditor() { toolbar("type_editor"); editorActions.openTypeEditorActive(); }
     /** Schema ▾ / Tools → Generate Sample XML… for the active XSD (same as the Schema panel tool). */
-    @FXML public void onGenerateSample() { toolbar("generate_sample"); schemaTools().generateSampleXmlForActive(); }
+    @FXML public void onGenerateSample() {
+        toolbar("generate_sample");
+        if (editorHost.getActiveDocument().map(d -> d.getFileType()
+                == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.JSON).orElse(false)) {
+            editorHost.generateJsonSampleForActive();
+        } else {
+            schemaTools().generateSampleXmlForActive();
+        }
+    }
 
     /** Schema ▾ → Generate XSD from XML: infers a schema from the active XML document. */
     @FXML public void onGenerateXsdFromXml() { toolbar("generate_xsd"); schemaTools().generateXsdFromActive(); }
@@ -2072,7 +2081,7 @@ public class UnifiedShellView extends BorderPane {
         actionGenerateDocs.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.GENERATE_DOCS));
         actionGenerateSample.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
-                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.TYPE_EDITOR));
+                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.GENERATE_SAMPLE));
         actionTypeEditor.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.TYPE_EDITOR));
         actionGenerateXsd.setDisable(type != org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XML);

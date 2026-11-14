@@ -191,6 +191,9 @@ public class EditorHost extends BorderPane {
                     if (added.getContextMenu() == null) {
                         EditorTabMenu.install(added, tabMenuActions);
                     }
+                    if (added instanceof EditorTab et && et.view instanceof JsonEditorView json) {
+                        json.setContextActions(jsonTextActions);
+                    }
                 }
             }
             syncOpenDocumentOrder();
@@ -589,8 +592,14 @@ public class EditorHost extends BorderPane {
         activeProblems.setAll(problems);
         rebuildQuickFixGutter(problems);
         // The Graphic (grid) view of the active document marks the rows with problems too
-        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab active && active.xmlGridView != null) {
-            active.xmlGridView.setProblems(problems);
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab active) {
+            if (active.xmlGridView != null) {
+                active.xmlGridView.setProblems(problems);
+            }
+            active.view.setProblems(problems);
+            if (active.jsonGridView != null) {
+                active.jsonGridView.setProblems(problems, active.text());
+            }
         }
     }
 
@@ -2833,9 +2842,139 @@ public class EditorHost extends BorderPane {
             return CompletableFuture.completedFuture(false);
         }
         boolean json = et.document.getFileType() == EditorFileType.JSON;
+        int jsonIndent = org.fxt.freexmltoolkit.service.JsonService.configuredIndent();
+        // JSON: comments, JSON5 spelling and trailing commas survive (only whitespace changes)
         return transformActiveText(et, "format", text -> json
-                ? new org.fxt.freexmltoolkit.service.JsonService().formatJson(text, 2)
+                ? org.fxt.freexmltoolkit.service.json.JsonFormatter.format(text, jsonIndent)
                 : org.fxt.freexmltoolkit.service.XmlService.prettyFormat(text, 2));
+    }
+
+    /**
+     * @return the JSON Schema model bound to the active JSON document (completion, hover,
+     *         inspector), empty when none is bound or the active document is no JSON
+     */
+    public java.util.Optional<org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaResolver> getActiveJsonSchema() {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (tab instanceof EditorTab et && et.view instanceof JsonEditorView json) {
+            return java.util.Optional.ofNullable(json.getSchemaResolver());
+        }
+        return java.util.Optional.empty();
+    }
+
+    /**
+     * Generates a sample instance of a JSON Schema and opens it in a new tab: the active JSON
+     * document when it is a JSON Schema, else the schema bound to it. Asks whether to fill in the
+     * required properties only.
+     */
+    public void generateJsonSampleForActive() {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (!(tab instanceof EditorTab et) || et.document.getFileType() != EditorFileType.JSON) {
+            return;
+        }
+        String title = I18n.t("EditorHost.json-sample-title");
+        String text = et.text();
+        boolean isSchema = new org.fxt.freexmltoolkit.service.JsonService().isJsonSchemaDocument(text);
+        var bound = getActiveJsonSchema().orElse(null);
+        if (!isSchema && bound == null) {
+            org.fxt.freexmltoolkit.util.DialogHelper.showActionError(title,
+                    I18n.t("EditorHost.json-sample-no-schema"), I18n.t("EditorHost.json-sample-bind"));
+            return;
+        }
+        String requiredOnly = I18n.t("EditorHost.json-sample-required-only");
+        String all = I18n.t("EditorHost.json-sample-all");
+        var choice = org.fxt.freexmltoolkit.util.DialogHelper.createChoiceDialog(title,
+                I18n.t("EditorHost.json-sample-header"), I18n.t("EditorHost.json-sample-content"),
+                requiredOnly, java.util.List.of(requiredOnly, all)).showAndWait();
+        if (choice.isEmpty()) {
+            return;
+        }
+        var options = new org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaSampleGenerator.Options(
+                requiredOnly.equals(choice.get()), 8, 1);
+        java.nio.file.Path file = et.document.getPath();
+        String baseName = file != null ? file.getFileName().toString().replaceFirst("(\\.schema)?\\.json[c5]?$", "")
+                : "sample";
+        int indent = org.fxt.freexmltoolkit.service.JsonService.configuredIndent();
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
+            try {
+                var resolver = isSchema
+                        ? new org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaResolver(file != null
+                                ? org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaDocument.load(file.toFile())
+                                : org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaDocument.of(text,
+                                        java.net.URI.create("mem:/schema.json")))
+                        : bound;
+                var sample = org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaSampleGenerator.generate(resolver, options);
+                String json = org.fxt.freexmltoolkit.service.json.JsonFormatter.format(
+                        new com.google.gson.GsonBuilder().serializeNulls().disableHtmlEscaping().create().toJson(sample),
+                        indent) + "\n";
+                UsageEvents.sampleGenerated(org.fxt.freexmltoolkit.service.telemetry.DocKind.JSON, "json", 1, t0, null);
+                Platform.runLater(() -> openGeneratedDocument(json, EditorFileType.JSON, baseName + "-sample.json"));
+            } catch (Exception e) {
+                var failure = org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e);
+                UsageEvents.sampleGenerated(org.fxt.freexmltoolkit.service.telemetry.DocKind.JSON, "json", 1, t0, failure);
+                Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showActionError(title,
+                        I18n.t("EditorHost.json-sample-failed"), I18n.t("EditorHost.json-sample-check-schema"), e));
+            }
+        });
+    }
+
+    /** Runs the shell's validation of the active document (F8); set by the shell. */
+    private Runnable validateHandler = () -> { };
+
+    /**
+     * Sets what "Validate" in an editor's context menu does (the shell's F8 action).
+     *
+     * @param handler validates the active document
+     */
+    public void setValidateHandler(Runnable handler) {
+        this.validateHandler = handler != null ? handler : () -> { };
+    }
+
+    /** The JSON text editor's context-menu actions (they act on the active document). */
+    private final org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonContextMenuManager.JsonContextActions
+            jsonTextActions = new org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonContextMenuManager
+                    .JsonContextActions() {
+                @Override
+                public void formatJson() {
+                    formatActive();
+                }
+
+                @Override
+                public void minifyJson() {
+                    minifyActive();
+                }
+
+                @Override
+                public void validateJson() {
+                    validateHandler.run();
+                }
+
+                @Override
+                public void sortKeys(boolean recursive) {
+                    sortJsonKeysActive(recursive);
+                }
+
+                @Override
+                public boolean canSortKeys() {
+                    return true;
+                }
+            };
+
+    /**
+     * Sorts the object members of the active JSON document by key, off the FX thread, keeping
+     * comments with their members, and formats it (one undo step).
+     *
+     * @param recursive whether nested objects are sorted too (else only the top-level object)
+     * @return completes on the FX thread with whether the text was rewritten
+     */
+    public CompletableFuture<Boolean> sortJsonKeysActive(boolean recursive) {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (!(tab instanceof EditorTab et) || et.document.getFileType() != EditorFileType.JSON) {
+            return CompletableFuture.completedFuture(false);
+        }
+        int jsonIndent = org.fxt.freexmltoolkit.service.JsonService.configuredIndent();
+        return transformActiveText(et, recursive ? "sort_keys_recursive" : "sort_keys",
+                text -> org.fxt.freexmltoolkit.service.json.JsonFormatter.sortKeys(text, recursive, jsonIndent));
     }
 
     /**

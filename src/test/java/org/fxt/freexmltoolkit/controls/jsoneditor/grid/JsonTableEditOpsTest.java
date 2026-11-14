@@ -113,4 +113,29 @@ class JsonTableEditOpsTest {
         });
         assertFalse(menu.tableMenuForTest().isVisible(), "no table context, no Table submenu");
     }
+
+    @Test
+    void pastedCellsKeepTypesAppendRowsAndAreOneUndo() {
+        load("{\"people\": [{\"a\": 1, \"b\": \"x\"}, {\"a\": 2}]}");
+        var cmd = JsonTableEditOps.pasteCells(table, 0, 0, List.of(
+                List.of("10", "y"),
+                List.of("not a number", "z"),
+                List.of("30", "w")));
+        assertTrue(context.executeCommand(cmd));
+        JsonArray people = people();
+        assertEquals(3, people.size(), "a third row is appended");
+        assertEquals(10L, ((Number) ((org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonPrimitive)
+                ((JsonObject) people.get(0)).getProperty("a")).getValue()).longValue(), "numbers stay numbers");
+        assertEquals("y", ((org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonPrimitive)
+                ((JsonObject) people.get(0)).getProperty("b")).getValue());
+        assertEquals(2L, ((Number) ((org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonPrimitive)
+                ((JsonObject) people.get(1)).getProperty("a")).getValue()).longValue(), "an unparsable number is skipped");
+        assertEquals("z", ((org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonPrimitive)
+                ((JsonObject) people.get(1)).getProperty("b")).getValue(), "a missing property is added");
+        assertEquals(List.of("a", "b"), keys(people.get(2)));
+        context.undo();
+        assertEquals(2, people().size(), "one undo removes the whole paste");
+        assertEquals(1L, ((Number) ((org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonPrimitive)
+                ((JsonObject) people().get(0)).getProperty("a")).getValue()).longValue());
+    }
 }

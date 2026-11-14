@@ -156,33 +156,7 @@ public final class JsonSyntaxHighlighter {
      * @return The detected format: "json", "jsonc", or "json5"
      */
     public static String detectFormat(String text) {
-        if (text == null || text.isEmpty()) {
-            return "json";
-        }
-
-        // Check for JSON5 features
-        boolean hasJson5Features =
-            text.contains("Infinity") ||
-            text.contains("NaN") ||
-            Pattern.compile("[a-zA-Z_$][a-zA-Z0-9_$]*\\s*:").matcher(text).find() ||  // Unquoted keys
-            Pattern.compile("'[^']*'").matcher(text).find() ||                        // Single quotes
-            Pattern.compile(",\\s*[}\\]]").matcher(text).find() ||                    // Trailing commas
-            Pattern.compile("0[xX][0-9a-fA-F]+").matcher(text).find();               // Hex numbers
-
-        if (hasJson5Features) {
-            return "json5";
-        }
-
-        // Check for JSONC features (comments)
-        boolean hasComments =
-            text.contains("//") ||
-            text.contains("/*");
-
-        if (hasComments) {
-            return "jsonc";
-        }
-
-        return "json";
+        return org.fxt.freexmltoolkit.service.json.JsonDialect.detect(text);
     }
 
     /**
@@ -196,43 +170,12 @@ public final class JsonSyntaxHighlighter {
         if (text == null) {
             return null;
         }
-
-        // Remove block comments
-        text = text.replaceAll("/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/", "");
-
-        // Remove line comments (but not in strings)
-        StringBuilder result = new StringBuilder();
-        boolean inString = false;
-        boolean inLineComment = false;
-        char stringChar = 0;
-
-        for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-            char next = i + 1 < text.length() ? text.charAt(i + 1) : 0;
-
-            if (inLineComment) {
-                if (c == '\n') {
-                    inLineComment = false;
-                    result.append(c);
-                }
-                continue;
+        StringBuilder result = new StringBuilder(text.length());
+        for (var token : org.fxt.freexmltoolkit.service.json.JsonTokenizer.tokenize(text)) {
+            if (!token.kind().isComment()) {
+                result.append(token.text());
             }
-
-            if (!inString && c == '/' && next == '/') {
-                inLineComment = true;
-                continue;
-            }
-
-            if (!inString && (c == '"' || c == '\'')) {
-                inString = true;
-                stringChar = c;
-            } else if (inString && c == stringChar && (i == 0 || text.charAt(i - 1) != '\\')) {
-                inString = false;
-            }
-
-            result.append(c);
         }
-
         return result.toString();
     }
 }

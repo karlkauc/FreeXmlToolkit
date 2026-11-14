@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Order",
+  "type": "object",
+  "required": ["id", "status"],
+  "properties": {
+    "id": {"type": "string", "description": "Order number", "pattern": "^[A-Z]{2}-\\d+$"},
+    "status": {"enum": ["open", "shipped", "closed"], "default": "open", "description": "Workflow state"},
+    "customer": {"$ref": "customer.schema.json"},
+    "items": {"type": "array", "items": {"$ref": "#/$defs/item"}, "minItems": 1},
+    "payment": {
+      "oneOf": [
+        {"type": "object", "properties": {"kind": {"const": "card"}, "cardNo": {"type": "string"}}, "required": ["kind", "cardNo"]},
+        {"type": "object", "properties": {"kind": {"const": "invoice"}, "dueDays": {"type": "integer", "minimum": 0}}, "required": ["kind"]}
+      ]
+    },
+    "tree": {"$ref": "#/$defs/node"},
+    "legacy": {"type": "boolean", "deprecated": true}
+  },
+  "if": {"properties": {"status": {"const": "shipped"}}, "required": ["status"]},
+  "then": {"properties": {"trackingNo": {"type": "string", "description": "Carrier tracking number"}}, "required": ["trackingNo"]},
+  "additionalProperties": false,
+  "$defs": {
+    "item": {
+      "type": "object",
+      "required": ["sku"],
+      "properties": {
+        "sku": {"type": "string"},
+        "qty": {"type": "integer", "default": 1, "minimum": 1},
+        "tags": {"type": "array", "items": {"type": "string", "examples": ["gift", "fragile"]}}
+      }
+    },
+    "node": {
+      "$anchor": "treeNode",
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"},
+        "children": {"type": "array", "items": {"$ref": "#treeNode"}}
+      }
+    }
+  }
+}

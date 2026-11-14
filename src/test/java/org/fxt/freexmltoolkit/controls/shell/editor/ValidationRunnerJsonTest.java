@@ -77,4 +77,44 @@ class ValidationRunnerJsonTest {
         assertEquals("JSON", p.get(0).source());
         assertTrue(p.get(0).line() > 1, "syntax error line must be parsed from the Gson message");
     }
+
+    @Test
+    void syntaxErrorCarriesParsedColumn() {
+        List<ValidationProblem> p = ValidationRunner.validateJson("{\n  \"a\": [1, 2\n}", null);
+        assertEquals(1, p.size(), p.toString());
+        assertTrue(p.get(0).column() > 0, "syntax error column must be parsed from the Gson message: " + p.get(0));
+    }
+
+    @Test
+    void gsonMessagePositionsAreRead() {
+        String message = "JSON syntax error: Unterminated array at line 3 column 2 path $.a[2]";
+        assertEquals(3, ValidationRunner.parseErrorLine(message));
+        assertEquals(2, ValidationRunner.parseErrorColumn(message));
+        assertEquals(-1, ValidationRunner.parseErrorColumn("no position"));
+    }
+
+    @Test
+    void jsoncIsValidatedAgainstTheSchema(@TempDir Path tmp) throws Exception {
+        String jsonc = """
+                {
+                  // the name
+                  "name": 42, /* wrong type */
+                }
+                """;
+        List<ValidationProblem> p = ValidationRunner.validateJson(jsonc, schema(tmp));
+        assertEquals(1, p.size(), p.toString());
+        assertEquals("type", p.get(0).ruleId());
+        assertEquals(3, p.get(0).line(), "the pointer must map onto the original JSONC line");
+    }
+
+    @Test
+    void validJsoncHasNoProblems(@TempDir Path tmp) throws Exception {
+        String jsonc = """
+                {
+                  // the name
+                  "name": "x",
+                }
+                """;
+        assertTrue(ValidationRunner.validateJson(jsonc, schema(tmp)).isEmpty());
+    }
 }

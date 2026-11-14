@@ -17,6 +17,11 @@ public class JsonCanvasView extends GridCanvasView<JsonNode> {
 
     /** @return the adapter's editor context */
     public JsonEditorContext getContext() {
-        return ((JsonGridAdapter) getAdapter()).getContext();
+        return getJsonAdapter().getContext();
+    }
+
+    /** @return the JSON adapter */
+    public JsonGridAdapter getJsonAdapter() {
+        return (JsonGridAdapter) getAdapter();
     }
 }

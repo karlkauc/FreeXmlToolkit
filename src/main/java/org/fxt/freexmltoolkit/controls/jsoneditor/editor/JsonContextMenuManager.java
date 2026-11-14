@@ -70,7 +70,48 @@ public class JsonContextMenuManager {
          * Validates the JSON content and reports any errors.
          */
         void validateJson();
+
+        /**
+         * Sorts the object members by key (one undo step), keeping comments with their members.
+         *
+         * @param recursive whether nested objects are sorted too
+         */
+        default void sortKeys(boolean recursive) {
+        }
+
+        /** @return whether the Sort Keys items are offered */
+        default boolean canSortKeys() {
+            return false;
+        }
     }
+
+    /** Folds / unfolds every region (installed by the editor; null = no folding items). */
+    private Runnable foldAll;
+    private Runnable unfoldAll;
+
+    /**
+     * Adds Fold All / Unfold All to the menu.
+     *
+     * @param foldAll   folds every region
+     * @param unfoldAll unfolds every region
+     */
+    public void setFoldingActions(Runnable foldAll, Runnable unfoldAll) {
+        this.foldAll = foldAll;
+        this.unfoldAll = unfoldAll;
+        if (contextMenu != null && foldAllMenuItem == null) {
+            foldAllMenuItem = new MenuItem(I18n.t("JsonContextMenuManager.fold-all"));
+            foldAllMenuItem.setGraphic(createColoredIcon("bi-arrows-collapse", ActionColor.NEUTRAL));
+            foldAllMenuItem.setOnAction(e -> this.foldAll.run());
+            MenuItem unfold = new MenuItem(I18n.t("JsonContextMenuManager.unfold-all"));
+            unfold.setGraphic(createColoredIcon("bi-arrows-expand", ActionColor.NEUTRAL));
+            unfold.setOnAction(e -> this.unfoldAll.run());
+            contextMenu.getItems().addAll(new SeparatorMenuItem(), foldAllMenuItem, unfold);
+        }
+    }
+
+    private MenuItem foldAllMenuItem;
+    private MenuItem sortKeysMenuItem;
+    private MenuItem sortKeysRecursiveMenuItem;
 
     /**
      * Creates a new JsonContextMenuManager.
@@ -153,6 +194,22 @@ public class JsonContextMenuManager {
             }
         });
 
+        sortKeysMenuItem = new MenuItem(I18n.t("JsonContextMenuManager.sort-keys"));
+        sortKeysMenuItem.setGraphic(createColoredIcon("bi-sort-alpha-down", ActionColor.MODIFY));
+        sortKeysMenuItem.setOnAction(e -> {
+            if (contextActions != null) {
+                contextActions.sortKeys(false);
+            }
+        });
+
+        sortKeysRecursiveMenuItem = new MenuItem(I18n.t("JsonContextMenuManager.sort-keys-recursive"));
+        sortKeysRecursiveMenuItem.setGraphic(createColoredIcon("bi-sort-alpha-down-alt", ActionColor.MODIFY));
+        sortKeysRecursiveMenuItem.setOnAction(e -> {
+            if (contextActions != null) {
+                contextActions.sortKeys(true);
+            }
+        });
+
         // === Validation Section ===
         SeparatorMenuItem separator5 = new SeparatorMenuItem();
 
@@ -179,6 +236,8 @@ public class JsonContextMenuManager {
                 separator4,
                 formatMenuItem,
                 minifyMenuItem,
+                sortKeysMenuItem,
+                sortKeysRecursiveMenuItem,
                 separator5,
                 validateMenuItem
         );
@@ -220,6 +279,9 @@ public class JsonContextMenuManager {
         copyMenuItem.setDisable(!hasSelection);
         pasteMenuItem.setDisable(false);
         copyJsonPathMenuItem.setDisable(!hasText);
+        boolean sortable = contextActions != null && contextActions.canSortKeys() && hasText;
+        sortKeysMenuItem.setVisible(sortable);
+        sortKeysRecursiveMenuItem.setVisible(sortable);
 
         logger.trace("Menu state updated: selection={}, text={}, undo={}, redo={}",
                 hasSelection, hasText, canUndo, canRedo);

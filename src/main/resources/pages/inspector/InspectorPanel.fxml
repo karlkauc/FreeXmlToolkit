@@ -482,6 +482,17 @@
                             </content>
                         </TitledPane>
 
+                        <!-- JSON: what the bound JSON Schema says about the selected value -->
+                        <TitledPane fx:id="jsonSchemaSection" text="%InspectorPanel.jsonSchemaSection.text" expanded="true" styleClass="fxt-inspector-section">
+                            <content>
+                                <VBox styleClass="fxt-inspector-section-body">
+                                    <children>
+                                        <InspectorKeyValueList fx:id="jsonSchemaList" id="inspector-json-schema"/>
+                                    </children>
+                                </VBox>
+                            </content>
+                        </TitledPane>
+
                         <!-- Comment / CDATA / text node content -->
                         <TitledPane fx:id="contentSection" text="%InspectorPanel.contentSection.text" expanded="true" styleClass="fxt-inspector-section">
                             <content>

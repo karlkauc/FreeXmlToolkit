@@ -84,6 +84,34 @@ public class JsonCodeEditor extends VBox {
     // Context menu
     private JsonContextMenuManager contextMenuManager;
 
+    /** Merge point for syntax + validation-error + search-match styling (like the XML editor). */
+    private final org.fxt.freexmltoolkit.controls.v2.editor.managers.CombinedStyleManager combinedStyles;
+    /** The problems shown in the text, by 0-based paragraph (gutter badge + tooltip). */
+    private java.util.Map<Integer, List<String>> problemsByLine = java.util.Map.of();
+    /** The marked problem ranges as {start, end, message index into problemMessages}. */
+    private List<ProblemRange> problemRanges = List.of();
+    /** Folds objects, arrays and block comments (bracket pairs, see {@link JsonFoldScanner}). */
+    private final org.fxt.freexmltoolkit.controls.v2.editor.managers.FoldingManagerV2 foldingManager;
+
+    /** The bound JSON Schema (completion, hover), or null. Set from worker threads. */
+    private volatile org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaResolver schema;
+    /** Schema-driven completion (Ctrl+Space, after a quote at a key or a colon). */
+    private final JsonIntelliSenseEngine intelliSense;
+
+    /** An extra gutter column contributed by the shell (e.g. quick-fix light bulbs), or null. */
+    private IntFunction<javafx.scene.Node> extraGutterFactory;
+
+    /**
+     * A marked problem range.
+     *
+     * @param start   offset of its first character
+     * @param end     offset after its last character
+     * @param line    0-based paragraph of {@code start}
+     * @param message the problem message
+     */
+    public record ProblemRange(int start, int end, int line, String message) {
+    }
+
     /**
      * Creates a new JSON code editor.
      */
@@ -95,6 +123,10 @@ public class JsonCodeEditor extends VBox {
         // Create code area
         this.codeArea = new PlainTextCodeArea();
         this.scrollPane = new VirtualizedScrollPane<>(codeArea);
+        this.combinedStyles = new org.fxt.freexmltoolkit.controls.v2.editor.managers.CombinedStyleManager(codeArea);
+        this.foldingManager = new org.fxt.freexmltoolkit.controls.v2.editor.managers.FoldingManagerV2(
+                codeArea, JsonFoldScanner::scan);
+        this.intelliSense = new JsonIntelliSenseEngine(codeArea, () -> schema);
 
         // Create status bar
         this.statusLabel = new Label(I18n.t("JsonCodeEditor.ready"));
@@ -123,6 +155,7 @@ public class JsonCodeEditor extends VBox {
     private void setupContextMenu() {
         contextMenuManager = new JsonContextMenuManager(codeArea);
         contextMenuManager.initializeContextMenu();
+        contextMenuManager.setFoldingActions(foldingManager::foldAll, foldingManager::unfoldAll);
         logger.debug("Context menu setup");
     }
 
@@ -182,10 +215,47 @@ public class JsonCodeEditor extends VBox {
             HBox hbox = new HBox(3);
             hbox.setAlignment(Pos.CENTER_LEFT);
 
-            // Add spacer for alignment
-            Region spacer = new Region();
-            spacer.setPrefSize(12, 12);
-            hbox.getChildren().add(spacer);
+            if (extraGutterFactory != null) {
+                javafx.scene.Node extra = extraGutterFactory.apply(lineIndex);
+                if (extra != null) {
+                    hbox.getChildren().add(extra);
+                }
+            }
+
+            javafx.scene.Node foldIndicator = foldingManager.createFoldIndicator(lineIndex);
+            if (foldIndicator != null) {
+                hbox.getChildren().add(foldIndicator);
+            } else {
+                Region foldSpacer = new Region();
+                foldSpacer.setPrefSize(org.fxt.freexmltoolkit.controls.v2.editor.managers.FoldingManagerV2.FOLD_TOGGLE_SIZE,
+                        org.fxt.freexmltoolkit.controls.v2.editor.managers.FoldingManagerV2.FOLD_TOGGLE_SIZE);
+                hbox.getChildren().add(foldSpacer);
+            }
+
+            // Problem badge (or a spacer of the same size for alignment)
+            List<String> problems = problemsByLine.get(lineIndex);
+            if (problems != null && !problems.isEmpty()) {
+                var icon = new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-exclamation-circle-fill");
+                icon.setIconSize(12);
+                icon.getStyleClass().add("json-gutter-problem");
+                Label badge = new Label();
+                badge.setGraphic(icon);
+                badge.setMinSize(12, 12);
+                badge.setPrefSize(12, 12);
+                badge.getStyleClass().add("json-gutter-problem-badge");
+                javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip(String.join("\n", problems));
+                tooltip.setShowDelay(javafx.util.Duration.millis(200));
+                tooltip.setWrapText(true);
+                tooltip.setMaxWidth(560);
+                badge.setTooltip(tooltip);
+                badge.setAccessibleText(String.join("; ", problems));
+                hbox.getChildren().add(badge);
+            } else {
+                Region spacer = new Region();
+                spacer.setPrefSize(12, 12);
+                spacer.setMinSize(12, 12);
+                hbox.getChildren().add(spacer);
+            }
 
             // Add line number
             Label lineNumber = new Label(String.format("%4d", lineIndex + 1));
@@ -194,6 +264,173 @@ public class JsonCodeEditor extends VBox {
 
             return hbox;
         };
+    }
+
+    /**
+     * Shows validation problems in the text: each range is underlined, its line gets a badge with
+     * the messages as tooltip, and hovering it shows the message. The markers are dropped on the
+     * next edit (their offsets would be stale) until the next validation sets new ones.
+     *
+     * @param ranges the problems; empty clears them
+     */
+    public void setProblems(List<ProblemRange> ranges) {
+        List<ProblemRange> list = ranges == null ? List.of() : List.copyOf(ranges);
+        if (list.isEmpty() && problemRanges.isEmpty()) {
+            return;
+        }
+        problemRanges = list;
+        java.util.Map<Integer, List<String>> byLine = new java.util.HashMap<>();
+        java.util.Map<Integer, Integer> overlay = new java.util.HashMap<>();
+        for (ProblemRange range : list) {
+            byLine.computeIfAbsent(range.line(), l -> new java.util.ArrayList<>()).add(range.message());
+            overlay.merge(range.start(), range.end() - range.start(), Math::max);
+        }
+        problemsByLine = byLine;
+        if (overlay.isEmpty()) {
+            combinedStyles.clearErrors();
+        } else {
+            combinedStyles.setErrorRanges(overlay);
+        }
+        refreshGutter();
+    }
+
+    /** Above this size the text is not scanned for folding regions (a copy per edit pause). */
+    private static final int FOLDING_LIMIT = 16 * 1024 * 1024;
+
+    /** Recomputes the foldable regions off the FX thread (skipped for very large documents). */
+    private void updateFolding() {
+        if (codeArea.getLength() <= FOLDING_LIMIT) {
+            foldingManager.updateFoldingRegionsAsync(codeArea.getText());
+        }
+    }
+
+    /**
+     * Binds a JSON Schema for completion and hover help ({@code null} unbinds). Any thread.
+     *
+     * @param resolver the schema
+     */
+    public void setSchema(org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaResolver resolver) {
+        this.schema = resolver;
+    }
+
+    /** @return the bound schema, or {@code null} */
+    public org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaResolver getSchema() {
+        return schema;
+    }
+
+    /** @return the completion engine */
+    public JsonIntelliSenseEngine getIntelliSense() {
+        return intelliSense;
+    }
+
+    /**
+     * What the bound schema says about the key or value at an offset, as hover text lines.
+     *
+     * @param offset an offset in the text
+     * @return the lines (empty without a schema or when it says nothing)
+     */
+    public List<String> schemaInfoAt(int offset) {
+        var resolver = schema;
+        // the hover reads the whole text on every mouse pause: only for documents up to 1 MB
+        if (resolver == null || codeArea.getLength() > 1024 * 1024) {
+            return List.of();
+        }
+        List<Object> path = org.fxt.freexmltoolkit.service.jsonschema.JsonCaretContext.pathAt(codeArea.getText(), offset);
+        if (path == null) {
+            return List.of();
+        }
+        var view = resolver.at(path, null);
+        if (!view.known()) {
+            return List.of();
+        }
+        List<String> lines = new java.util.ArrayList<>();
+        StringBuilder head = new StringBuilder("Schema:");
+        if (view.title() != null) {
+            head.append(' ').append(view.title());
+        }
+        if (view.typeText() != null) {
+            head.append(" (").append(view.typeText()).append(')');
+        }
+        if (!path.isEmpty() && path.get(path.size() - 1) instanceof String key) {
+            var parent = resolver.at(path.subList(0, path.size() - 1), null);
+            if (parent.required().contains(key)) {
+                head.append(" - required");
+            }
+        }
+        if (view.deprecated()) {
+            head.append(" - deprecated");
+        }
+        lines.add(head.toString());
+        if (view.description() != null) {
+            lines.add(view.description().length() > 300 ? view.description().substring(0, 297) + "..." : view.description());
+        }
+        if (!view.allowedValues().isEmpty()) {
+            List<String> values = view.allowedValues().stream().limit(8).map(Object::toString).toList();
+            lines.add("Allowed: " + String.join(", ", values) + (view.allowedValues().size() > 8 ? ", ..." : ""));
+        }
+        if (view.format() != null) {
+            lines.add("Format: " + view.format());
+        }
+        if (!view.constraints().isEmpty()) {
+            List<String> parts = new java.util.ArrayList<>();
+            view.constraints().forEach((k, v) -> parts.add(k + " " + v));
+            lines.add(String.join(", ", parts));
+        }
+        return lines;
+    }
+
+    /** @return the folding support (fold all / unfold all, foldable regions) */
+    public org.fxt.freexmltoolkit.controls.v2.editor.managers.FoldingManagerV2 getFoldingManager() {
+        return foldingManager;
+    }
+
+    /** @return the context menu manager (the shell installs its actions) */
+    public JsonContextMenuManager getContextMenuManager() {
+        return contextMenuManager;
+    }
+
+    /** @return the problems currently marked in the text */
+    public List<ProblemRange> getProblems() {
+        return problemRanges;
+    }
+
+    /** @return the messages of the problems covering {@code offset} (empty when none) */
+    public List<String> problemsAt(int offset) {
+        List<String> messages = new java.util.ArrayList<>();
+        for (ProblemRange range : problemRanges) {
+            if (offset >= range.start() && offset < range.end()) {
+                messages.add(range.message());
+            }
+        }
+        return messages;
+    }
+
+    /**
+     * Sets an extra gutter column (left of the problem badge), e.g. quick-fix light bulbs.
+     *
+     * @param factory a node per 0-based paragraph ({@code null} entries allowed); {@code null} removes it
+     */
+    public void setExtraGutterFactory(IntFunction<javafx.scene.Node> factory) {
+        this.extraGutterFactory = factory;
+        refreshGutter();
+    }
+
+    /** Rebuilds the gutter cells (after the problems or the extra column changed). */
+    public void refreshGutter() {
+        codeArea.setParagraphGraphicFactory(createLineNumberFactory());
+    }
+
+    /**
+     * Highlights search matches (start offset → length) on top of the syntax highlighting.
+     *
+     * @param ranges the matches; empty clears them
+     */
+    public void setSearchMatchRanges(java.util.Map<Integer, Integer> ranges) {
+        if (ranges == null || ranges.isEmpty()) {
+            combinedStyles.clearMatches();
+        } else {
+            combinedStyles.setMatchRanges(ranges);
+        }
     }
 
     /**
@@ -221,11 +458,19 @@ public class JsonCodeEditor extends VBox {
      * Sets up event handlers.
      */
     private void setupEventHandlers() {
+        // Problem markers point at offsets of the validated text: an edit makes them stale
+        codeArea.plainTextChanges().subscribe(change -> {
+            if (!problemRanges.isEmpty()) {
+                setProblems(List.of());
+            }
+        });
+
         // Text change listener with debounce for syntax highlighting
         codeArea.multiPlainChanges()
                 .successionEnds(Duration.ofMillis(100))
                 .subscribe(ignore -> {
                     requestHighlighting();
+                    updateFolding();
                     dirty = true;
                 });
 
@@ -295,10 +540,21 @@ public class JsonCodeEditor extends VBox {
                 if (charIndex >= 0 && charIndex < codeArea.getLength()) {
                     String text = codeArea.getText();
                     JsonPathCalculator.JsonHoverInfo hoverInfo = JsonPathCalculator.calculatePath(text, charIndex);
+                    List<String> problems = problemsAt(charIndex);
 
-                    if (hoverInfo != null && hoverInfo.isValid()) {
-                        // Build tooltip text
+                    if (!problems.isEmpty() || (hoverInfo != null && hoverInfo.isValid())) {
+                        // Build tooltip text: the problems first, then where the caret is
                         StringBuilder tooltipText = new StringBuilder();
+                        for (String problem : problems) {
+                            tooltipText.append("\u26A0 ").append(problem).append('\n');
+                        }
+                        List<String> schemaLines = schemaInfoAt(charIndex);
+                        if (hoverInfo == null || !hoverInfo.isValid()) {
+                            schemaLines.forEach(line -> tooltipText.append(line).append('\n'));
+                            hoverLabel.setText(tooltipText.toString().strip());
+                            hoverPopup.show(codeArea, event.getScreenX() + 15, event.getScreenY() + 15);
+                            return;
+                        }
                         tooltipText.append("Path: ").append(hoverInfo.jsonPath());
                         tooltipText.append("\nType: ").append(hoverInfo.valueType());
                         if (hoverInfo.key() != null) {
@@ -310,6 +566,9 @@ public class JsonCodeEditor extends VBox {
                                 displayValue = displayValue.substring(0, 47) + "...";
                             }
                             tooltipText.append("\nValue: ").append(displayValue);
+                        }
+                        for (String line : schemaLines) {
+                            tooltipText.append('\n').append(line);
                         }
 
                         hoverLabel.setText(tooltipText.toString());
@@ -470,7 +729,7 @@ public class JsonCodeEditor extends VBox {
                     return; // edited meanwhile: a newer request follows
                 }
                 try {
-                    codeArea.setStyleSpans(0, highlighting);
+                    combinedStyles.setSyntaxStyles(highlighting);
                     detectedFormat = format;
                     updateStatusBar();
                 } catch (Exception e) {
@@ -540,6 +799,7 @@ public class JsonCodeEditor extends VBox {
         if (text != null && !text.isEmpty()) {
             Platform.runLater(() -> {
                 requestHighlighting();
+                updateFolding();
                 updateStatusBar();
             });
         }

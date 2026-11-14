@@ -986,8 +986,15 @@ public final class UsageEvents {
      *                sample beyond the size limits {@code unsupported}), or {@code null} when it succeeded
      */
     public static void sampleGenerated(String mode, int fileCount, long startNanos, QueryFailure failure) {
+        sampleGenerated(DocKind.XSD, mode, fileCount, startNanos, failure);
+    }
+
+    /**
+     * A sample instance was generated from a schema of the given kind ({@code json}: from a JSON Schema).
+     */
+    public static void sampleGenerated(DocKind kind, String mode, int fileCount, long startNanos, QueryFailure failure) {
         action("sample_generate", b -> {
-            b.docKind(DocKind.XSD).fileCount(fileCount).meta("mode", mode);
+            b.docKind(kind).fileCount(fileCount).meta("mode", mode);
             outcome(b, failure);
             duration(b, startNanos);
         });

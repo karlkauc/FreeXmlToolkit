@@ -33,7 +33,9 @@ public final class EntryHelperModel {
     public enum Kind {
         ELEMENT,
         ATTRIBUTE,
-        VALUE
+        VALUE,
+        /** A JSON object member (the JSON grid's helpers). */
+        PROPERTY
     }
 
     /**
@@ -196,7 +198,7 @@ public final class EntryHelperModel {
         return switch (entry.kind()) {
             case ATTRIBUTE -> newAttribute(schema, owner, entry.name());
             case ELEMENT -> new AddElementCommand(owner, new XmlElement(entry.name()));
-            case VALUE -> null;
+            case VALUE, PROPERTY -> null;
         };
     }
 

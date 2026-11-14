@@ -112,6 +112,15 @@ public interface EditorView {
         return false;
     }
 
+    /**
+     * Shows the document's validation problems in the text (underline, gutter badge, hover).
+     * No-op by default: the XML editor validates live on its own.
+     *
+     * @param problems the problems of the current text; empty clears them
+     */
+    default void setProblems(java.util.List<ValidationProblem> problems) {
+    }
+
     /** Re-renders the gutter (e.g. after breakpoint/execution-line changes). No-op if unsupported. */
     default void refreshGutter() {
     }

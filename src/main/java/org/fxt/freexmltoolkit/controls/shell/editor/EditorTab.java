@@ -2747,6 +2747,9 @@ final class EditorTab extends Tab {
                 currentJsonSelection = node;
                 selectionCallback.run();
             });
+            if (view instanceof JsonEditorView json) {
+                jsonGridView.setSchemaSupplier(json::getSchemaResolver);
+            }
             contentStack.getChildren().add(jsonGridView);
         }
     }

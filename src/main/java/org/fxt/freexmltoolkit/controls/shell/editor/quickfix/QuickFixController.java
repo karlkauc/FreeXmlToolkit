@@ -81,6 +81,10 @@ public final class QuickFixController {
                     I18n.t("QuickFixController.open-the-xml-document-the"), (String) null, false);
             return;
         }
+        if (org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaQuickFixes.isJsonFix(fix)) {
+            applyJsonFix(text, fix);
+            return;
+        }
         SqfCatalog catalog = SqfCatalogCache.forFile(fix.schematronFile());
 
         Map<String, String> userValues = Map.of();
@@ -120,6 +124,22 @@ public final class QuickFixController {
                         I18n.t("QuickFixController.re-validate-the-document-and"), e, false));
             }
         });
+    }
+
+    /** A JSON Schema fix: computed from the text (no Schematron), applied like an SQF plan. */
+    private void applyJsonFix(String text, SqfFixSuggestion fix) {
+        SqfEditPlan plan;
+        try {
+            plan = org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaQuickFixes.computeEdit(text, fix);
+        } catch (RuntimeException e) {
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.quickFixFailed(
+                    org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("JsonSchemaFix"));
+            logger.info("JSON quick fix '{}' not applied: {}", fix.fixKey(), e.getMessage());
+            DialogHelper.showActionError(I18n.t("QuickFixController.quick-fix"),
+                    I18n.t("QuickFixController.the-fix-could-not-be-2", fix.title()), e.getMessage(), (String) null, false);
+            return;
+        }
+        applyPlan(text, plan);
     }
 
     private void applyPlan(String textAtCompute, SqfEditPlan plan) {

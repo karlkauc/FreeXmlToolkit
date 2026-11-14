@@ -41,6 +41,7 @@ public class CompletionItemCellRenderer extends ListCell<CompletionItem> {
     private static final String ICON_NODE_TEST = "bi-bullseye";
     private static final String ICON_VARIABLE = "bi-braces";
     private static final String ICON_TYPE = "bi-diagram-3";
+    private static final String ICON_PROPERTY = "bi-tag";
     private static final String ICON_DEFAULT = "bi-circle";
 
     @Override
@@ -252,6 +253,10 @@ public class CompletionItemCellRenderer extends ListCell<CompletionItem> {
             case TYPE:
                 iconLiteral = ICON_TYPE;
                 styleClass = "completion-icon-type";
+                break;
+            case PROPERTY:
+                iconLiteral = ICON_PROPERTY;
+                styleClass = "completion-icon-attribute";
                 break;
             default:
                 iconLiteral = ICON_DEFAULT;

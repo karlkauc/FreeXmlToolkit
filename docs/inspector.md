@@ -257,7 +257,10 @@ Properties sidebar shows it:
 - The **key** is editable for object properties - click the name in the node header to rename
   the key (duplicate keys are refused). Array items (`[0]`, `[1]`, …) and the root `$` have no key.
 - The **Value** field is editable for scalars (strings, numbers, booleans, `null`); the type
-  is kept, so a number must stay a number. Objects and arrays show a summary instead.
+  is kept, so a number must stay a number.
+- With a JSON Schema bound, the **JSON SCHEMA** section shows what the schema says about the
+  value: type, whether it is required, description, allowed values, default, format, limits
+  (`minimum`, `maxLength`, `pattern`, …) and an object's declared properties (`*` = required). Objects and arrays show a summary instead.
 - The node **kind** (object, array, string, …) is shown for information.
 
 The inspector shares the document model with the grid, the tree and the text, so an edit here

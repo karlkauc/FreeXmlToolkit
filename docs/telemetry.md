@@ -64,7 +64,7 @@ exception class in `error_code`, a stack signature (`error_detail`, `error_hash`
 and status `invalid_input` when the user's document, stylesheet, schema or environment was the cause
 (not well-formed input, a missing or unreadable file, an unreachable host). This applies to
 `xslt_transform`, `sign`, `verify_signature`, `create_certificate`, `encrypt` (target kind, data algorithm family, key methods, number of recipients, whether a legacy algorithm was used - never keys, passwords or content), `decrypt` (key source, number of decrypted elements), `inspect_encryption`, `schema_analysis`, `xsd_generate`,
-`sample_generate`, `spreadsheet_convert`, `format` (`meta.mode` = `format` or `minify`),
+`sample_generate` (`meta.mode` = `basic`, …, or `json` for a sample from a JSON Schema), `spreadsheet_convert`, `format` (`meta.mode` = `format`, `minify`, or for JSON `sort_keys` / `sort_keys_recursive`),
 `schematron_check`, `quick_fix` (a fix that does not apply to the document is `invalid_input`, a
 skipped one `cancelled` with `meta.reason`), `replace` (`meta.kind` = `xpath`/`text`, `meta.scope` =
 `document`/`files`), `file_search` (`meta.kind`, files searched and files that could not be read),
