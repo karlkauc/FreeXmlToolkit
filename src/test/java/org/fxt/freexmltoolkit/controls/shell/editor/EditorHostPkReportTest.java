@@ -60,7 +60,9 @@ class EditorHostPkReportTest {
                 "the static resolution finds it: " + entry.get().location());
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(report));
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
-        assertTrue(host.activeSchemaProperty().get().getName().startsWith("pk_meldung_pfq_"),
+        // the stable copy of the active taxonomy's schema (_active/pk_meldung_pfq.xsd)
+        assertEquals("pk_meldung_pfq.xsd", host.activeSchemaProperty().get().getName());
+        assertTrue(host.activeSchemaProperty().get().getParentFile().getName().equals("_active"),
                 String.valueOf(host.activeSchemaProperty().get()));
     }
 }

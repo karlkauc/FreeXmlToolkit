@@ -149,7 +149,7 @@ public final class DesignTokens {
         WF_PENSION_FILL("-fxt-wf-pension-fill", "#8f2340", "#a12b4b"),
         WF_PENSION_BG("-fxt-wf-pension-bg", "#fbeef2", "#2f1520"),
         WF_PENSION_BORDER("-fxt-wf-pension-border", "#efc2cf", "#5c2a3c"),
-        WF_PENSION_RAIL("-fxt-wf-pension-rail", "#e8789a", "#f08aa6"),
+        WF_PENSION_RAIL("-fxt-wf-pension-rail", "#f08aa6", "#f08aa6"),
 
         WF_SEARCH_ACCENT("-fxt-wf-search-accent", "#4c5fd5", "#748ffc"),
         WF_SEARCH_FG("-fxt-wf-search-fg", "#3f51c9", "#748ffc"),

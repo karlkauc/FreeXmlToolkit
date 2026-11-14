@@ -19,7 +19,8 @@ class ActivityTest {
         Activity[] expected = {
                 Activity.EXPLORER, Activity.SEARCH, Activity.FAVORITES, Activity.VALIDATION,
                 Activity.TRANSFORM, Activity.SCHEMA, Activity.SCHEMA_LIBRARY, Activity.PDF_FOP,
-                Activity.SIGNATURE, Activity.fromId("fundsxml").orElseThrow(), Activity.SETTINGS
+                Activity.SIGNATURE, Activity.fromId("fundsxml").orElseThrow(),
+                Activity.fromId("pk-meldewesen").orElseThrow(), Activity.SETTINGS
         };
         assertArrayEquals(expected, Activity.values(),
                 "Activity order drives the Activity Bar layout");
