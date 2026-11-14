@@ -56,11 +56,23 @@ class PkExtrasTest {
         assertEquals(6, snippets.getSnippetsByTag(PkExtras.TAG).size(), "registering again updates");
         assertTrue(snippets.getSnippet("pk-meldewesen-top-positions").getQuery().contains("C1100PK"));
 
+        // the template files go to a temporary folder, never into release/examples/templates
+        var templateFiles = org.fxt.freexmltoolkit.service.TemplateFileService.getInstance();
+        Path previousTemplates = templateFiles.getTemplatesDirectoryPath();
+        templateFiles.setTemplatesDirectory(tmp.resolve("templates"));
         TemplateRepository templates = TemplateRepository.getInstance();
+        try {
         assertEquals(3, PkExtras.registerTemplates(templates));
         String pfq = templates.getTemplate("pk-meldewesen-template-pfq").getContent();
         assertTrue(pfq.contains("<Nationale_Meldung_pfq") && pfq.contains("<RowCode>R000-120</RowCode>"), pfq);
         assertTrue(templates.getTemplate("pk-meldewesen-template-pfe").getContent().contains("Stichtag=\"JAHR\""));
+        assertTrue(java.nio.file.Files.isRegularFile(tmp.resolve("templates").resolve("pk-meldewesen-template-pfq.template")));
+        } finally {
+            for (String module : new String[] {"pfq", "pfa", "pfe"}) {
+                templates.removeTemplate("pk-meldewesen-template-" + module, false);
+            }
+            templateFiles.setTemplatesDirectory(previousTemplates);
+        }
 
         FavoritesService.resetInstanceForTests();
         FavoritesService favorites = FavoritesService.getInstance();
