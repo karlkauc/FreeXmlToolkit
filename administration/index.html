@@ -2258,6 +2258,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugin-pk-meldewesen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PK-Meldewesen (FMA)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -3515,7 +3543,22 @@ forward slashes (<code>C:/Schemas</code>). Characters outside Latin-1 have to be
 <tr>
 <td><code>plugin.&lt;id&gt;.enabled</code></td>
 <td><code>true</code> / <code>false</code></td>
-<td>A <a href="../plugins/">plugin</a> on or off (Settings → Plugins), e.g. <code>plugin.fundsxml.enabled</code></td>
+<td>An <a href="../plugins/">extension</a> loaded or not (Settings → Extensions → Installed Extensions), e.g. <code>plugin.fundsxml.enabled</code>, <code>plugin.pk-meldewesen.enabled</code></td>
+</tr>
+<tr>
+<td><code>pk.enabled</code></td>
+<td><code>true</code> / <code>false</code></td>
+<td>The <a href="../plugin-pk-meldewesen/">PK-Meldewesen</a> extension switched on (default <code>false</code>)</td>
+</tr>
+<tr>
+<td><code>pk.rules.additional</code></td>
+<td><code>true</code> / <code>false</code></td>
+<td>PK-Meldewesen: run the additional plausibility checks besides the FMA rules (default <code>true</code>)</td>
+</tr>
+<tr>
+<td><code>pk.rules.tolerance</code>, <code>pk.rules.toleranceWarning</code></td>
+<td>number (EUR)</td>
+<td>PK-Meldewesen: amount differences above which a rule is an error / a warning (defaults <code>3</code> / <code>0.99</code>)</td>
 </tr>
 <tr>
 <td><code>schemaLibrary.autoBind.enabled</code></td>

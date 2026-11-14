@@ -2258,6 +2258,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugin-pk-meldewesen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PK-Meldewesen (FMA)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -3432,6 +3460,26 @@ running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
 <li><strong>Export all records:</strong> all children of an element — not only the loaded 1,000 — to CSV or Excel.</li>
 <li>The viewer notices when the file changes on disk and offers to reload it; character references such as <code>&amp;#233;</code>
   are decoded in the tree and table.</li>
+</ul>
+<p><strong>PK-Meldewesen (FMA)</strong></p>
+<ul>
+<li><strong>New extension for Austrian pension fund reports:</strong> the quarterly report (PK-QMV), the annual report (PK-FJMV)
+  and the ECB report are recognised by their root element and bound to the shipped FMA taxonomy 2.9.0 Hotfix2 - also
+  when the schema location in the file points to an unreachable network path. A status bar badge
+  (<strong>PK-QMV Q1/2026</strong>) and a side panel show the report, its schema and the FMA documentation. See
+  <a href="../plugin-pk-meldewesen/">PK-Meldewesen</a>.</li>
+<li><strong>FMA rules:</strong> the 180 rules of the FMA validation workbook (plus optional additional plausibility checks) run
+  on quarterly reports with <strong>F8</strong> and in <code>fxt-cli validate</code>; every finding names its FMA code, the VRG and the
+  object and jumps to its line. <strong>Rule Report (HTML)</strong> shows a dashboard per VRG, all results and the rule catalogue;
+  tolerances and look-through limits are set in the side panel.</li>
+<li><strong>FMA labels:</strong> row, column and template codes show their FMA name, explanation and code-list values in the
+  Inspector, as the grid tooltip and when hovering a code in the text. <strong>Grid formulas and filters</strong> for the quarterly
+  report can be added to a copy and removed again before submission.</li>
+<li><strong>Prepare Submission:</strong> cleans the report (no grid formulas, UTF-8), checks it against the schema and the FMA
+  rules, proposes the next running number and writes the ZIP under the FMA's file name
+  (<code>34.pfq.20190331.00001.test.zip</code>).</li>
+<li><strong>Newer taxonomies</strong> are imported from the FMA's ZIP and chosen in the side panel (no restart); an example report,
+  the schema documentation, six Query Console snippets, new-file templates and favorites come with the extension.</li>
 </ul>
 <p><strong>Opening files</strong></p>
 <ul>

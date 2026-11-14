@@ -12,7 +12,7 @@
         <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/plugins/">
       
       
-        <link rel="prev" href="../plugin-xbrl/">
+        <link rel="prev" href="../plugin-pk-meldewesen/">
       
       
         <link rel="next" href="../plugin-development/">
@@ -2264,6 +2264,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugin-pk-meldewesen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PK-Meldewesen (FMA)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -3348,6 +3376,11 @@ loaded, every contribution type, threads, translations, building, testing and de
 <td>no</td>
 <td><a href="../plugin-xbrl/">XBRL</a></td>
 </tr>
+<tr>
+<td>PK-Meldewesen (FMA pension fund reports)</td>
+<td>yes (its activity appears once the extension is enabled)</td>
+<td><a href="../plugin-pk-meldewesen/">PK-Meldewesen</a></td>
+</tr>
 </tbody>
 </table>
 <p>A plugin can say it is off until the user switches it on (<code>enabledByDefault()</code>), and it can add
@@ -3363,7 +3396,7 @@ XML Schemas to the Schema Library (<code>context.addSchema(new PluginSchema(name
 </thead>
 <tbody>
 <tr>
-<td>Built-in plugins (FundsXML, ISO 20022, ebInterface, FinDatEx, XBRL) and their data (FinDatEx field definitions, ISO 20022 schemas)</td>
+<td>Built-in plugins (FundsXML, ISO 20022, ebInterface, FinDatEx, XBRL, PK-Meldewesen) and their data (FinDatEx field definitions, ISO 20022 schemas, the bundled FMA taxonomy)</td>
 <td>With the application: <strong>Help → Check for Updates…</strong> or the automatic update check, see <a href="../installation/#updates">Installation</a></td>
 </tr>
 <tr>
@@ -3373,6 +3406,10 @@ XML Schemas to the Schema Library (<code>context.addSchema(new PluginSchema(name
 <tr>
 <td>Plugins from the plugins folder (<code>.jar</code>)</td>
 <td>By hand: put the new jar into the folder, remove the old one, restart. <strong>Settings → Extensions → INSTALLED EXTENSIONS</strong> shows the version that is loaded.</td>
+</tr>
+<tr>
+<td>FMA taxonomies (PK-Meldewesen)</td>
+<td>Imported from the FMA's ZIP in the PK-Meldewesen panel, see <a href="../plugin-pk-meldewesen/#newer-taxonomies">PK-Meldewesen</a></td>
 </tr>
 <tr>
 <td>Arelle (used by the XBRL plugin)</td>
@@ -3449,7 +3486,7 @@ folder that software distribution fills. See <a href="../administration/">Admini
       <nav class="md-footer__inner md-grid" aria-label="Footer">
         
           
-          <a href="../plugin-xbrl/" class="md-footer__link md-footer__link--prev" aria-label="Previous: XBRL (with Arelle)">
+          <a href="../plugin-pk-meldewesen/" class="md-footer__link md-footer__link--prev" aria-label="Previous: PK-Meldewesen (FMA)">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
@@ -3459,7 +3496,7 @@ folder that software distribution fills. See <a href="../administration/">Admini
                 Previous
               </span>
               <div class="md-ellipsis">
-                XBRL (with Arelle)
+                PK-Meldewesen (FMA)
               </div>
             </div>
           </a>

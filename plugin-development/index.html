@@ -2264,6 +2264,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugin-pk-meldewesen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PK-Meldewesen (FMA)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2460,6 +2488,17 @@
     <span class="md-ellipsis">
       
         Document badges
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#element-describers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Element describers
       
     </span>
   </a>
@@ -3427,6 +3466,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#element-describers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Element describers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#startup-tasks" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3735,6 +3785,10 @@ jar into the plugins folder and restart.</p>
 <td>A small mark in the status bar while the active document is one your plugin recognises</td>
 </tr>
 <tr>
+<td><code>addElementDescriber(ElementDescriber)</code></td>
+<td>A description of XML elements your plugin knows (Inspector documentation, grid tooltip)</td>
+</tr>
+<tr>
 <td><code>addStylesheet(String url)</code></td>
 <td>A CSS file added to the window, for your panels</td>
 </tr>
@@ -3809,18 +3863,28 @@ asked each time the menu opens.</p>
 or the settings were saved; return <code>null</code> when the document is not yours. It runs on the JavaFX
 thread, so look at the text only (no I/O). The chip uses the colours of the given <code>Workflow</code>; the
 click action and the icon are optional. FundsXML uses it to show that a document was recognised.</p>
+<h3 id="element-describers">Element describers<a class="headerlink" href="#element-describers" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">context</span><span class="p">.</span><span class="na">addElementDescriber</span><span class="p">(</span><span class="n">element</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">element</span><span class="p">.</span><span class="na">rootName</span><span class="p">().</span><span class="na">equals</span><span class="p">(</span><span class="s">"order"</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">element</span><span class="p">.</span><span class="na">name</span><span class="p">().</span><span class="na">equals</span><span class="p">(</span><span class="s">"sku"</span><span class="p">)</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">        </span><span class="o">?</span><span class="w"> </span><span class="s">"Stock keeping unit, 8 digits"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">);</span>
+</code></pre></div>
+<p>The describer gets an <code>ElementInfo</code>: the element names from the root to the element, the element's
+attributes, the texts of its leaf children and of its siblings, its own text and the ancestors'
+attributes. Its text is shown first in the Inspector's DOCUMENTATION section and as the tooltip of
+the element's name in the grid. It runs on the JavaFX thread: answer from memory and return <code>null</code>
+while your data is still loading. The PK-Meldewesen extension uses it for the FMA labels of row and
+column codes.</p>
 <h3 id="startup-tasks">Startup tasks<a class="headerlink" href="#startup-tasks" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">context</span><span class="p">.</span><span class="na">addStartupTask</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">refreshCodeListsFromServer</span><span class="p">());</span><span class="w">   </span><span class="c1">// background thread, once</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">context</span><span class="p">.</span><span class="na">addStartupTask</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">refreshCodeListsFromServer</span><span class="p">());</span><span class="w">   </span><span class="c1">// background thread, once</span>
 </code></pre></div>
 <p>Use <code>service(ConnectionService.class)</code> for network access so the proxy settings apply.</p>
 <h3 id="schemas">Schemas<a class="headerlink" href="#schemas" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">context</span><span class="p">.</span><span class="na">addSchema</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">PluginSchema</span><span class="p">(</span><span class="s">"urn:example:orders:1"</span><span class="p">,</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">        </span><span class="s">"https://example.com/schemas/orders-1.xsd"</span><span class="p">,</span><span class="w"> </span><span class="s">"Orders 1.0"</span><span class="p">,</span><span class="w"> </span><span class="kc">null</span><span class="p">));</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">context</span><span class="p">.</span><span class="na">addSchema</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">PluginSchema</span><span class="p">(</span><span class="s">"urn:example:orders:1"</span><span class="p">,</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">        </span><span class="s">"https://example.com/schemas/orders-1.xsd"</span><span class="p">,</span><span class="w"> </span><span class="s">"Orders 1.0"</span><span class="p">,</span><span class="w"> </span><span class="kc">null</span><span class="p">));</span>
 </code></pre></div>
 <p>Documents in that namespace get the schema bound automatically. Remote schemas are downloaded once and
 cached; the user's own Schema Library entries for the same namespace win.</p>
 <h3 id="stylesheets">Stylesheets<a class="headerlink" href="#stylesheets" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">context</span><span class="p">.</span><span class="na">addStylesheet</span><span class="p">(</span><span class="n">OrdersPlugin</span><span class="p">.</span><span class="na">class</span><span class="p">.</span><span class="na">getResource</span><span class="p">(</span><span class="s">"orders.css"</span><span class="p">).</span><span class="na">toExternalForm</span><span class="p">());</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">context</span><span class="p">.</span><span class="na">addStylesheet</span><span class="p">(</span><span class="n">OrdersPlugin</span><span class="p">.</span><span class="na">class</span><span class="p">.</span><span class="na">getResource</span><span class="p">(</span><span class="s">"orders.css"</span><span class="p">).</span><span class="na">toExternalForm</span><span class="p">());</span>
 </code></pre></div>
 <p>Your CSS can use the design tokens of the application (<code>-fxt-text-primary</code>, <code>-fxt-bg-surface</code>,
 <code>-fxt-primary-text</code>, …), so it follows the light and dark theme. See <code>STYLE_GUIDE.jsonc</code> in the
@@ -3927,8 +3991,8 @@ FundsXML plugin adds its snippets and sample templates there.</p>
 <h2 id="translations">Translations<a class="headerlink" href="#translations" title="Permanent link">¶</a></h2>
 <p>The application's interface is English and German (Settings → Appearance → Language). Plugins bring
 their own texts. A simple way is a <code>ResourceBundle</code> in your jar that follows the application language:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">ResourceBundle</span><span class="w"> </span><span class="n">texts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ResourceBundle</span><span class="p">.</span><span class="na">getBundle</span><span class="p">(</span><span class="s">"com.example.orders.messages"</span><span class="p">,</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">        </span><span class="n">org</span><span class="p">.</span><span class="na">fxt</span><span class="p">.</span><span class="na">freexmltoolkit</span><span class="p">.</span><span class="na">i18n</span><span class="p">.</span><span class="na">I18n</span><span class="p">.</span><span class="na">locale</span><span class="p">(),</span><span class="w"> </span><span class="n">OrdersPlugin</span><span class="p">.</span><span class="na">class</span><span class="p">.</span><span class="na">getClassLoader</span><span class="p">());</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">ResourceBundle</span><span class="w"> </span><span class="n">texts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ResourceBundle</span><span class="p">.</span><span class="na">getBundle</span><span class="p">(</span><span class="s">"com.example.orders.messages"</span><span class="p">,</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">        </span><span class="n">org</span><span class="p">.</span><span class="na">fxt</span><span class="p">.</span><span class="na">freexmltoolkit</span><span class="p">.</span><span class="na">i18n</span><span class="p">.</span><span class="na">I18n</span><span class="p">.</span><span class="na">locale</span><span class="p">(),</span><span class="w"> </span><span class="n">OrdersPlugin</span><span class="p">.</span><span class="na">class</span><span class="p">.</span><span class="na">getClassLoader</span><span class="p">());</span>
 </code></pre></div>
 <p>with <code>messages.properties</code> (English) and <code>messages_de.properties</code> (German) next to your classes.</p>
 <h2 id="settings-of-your-plugin">Settings of your plugin<a class="headerlink" href="#settings-of-your-plugin" title="Permanent link">¶</a></h2>
@@ -3941,30 +4005,30 @@ application.</p>
 <p>Compile against the FreeXmlToolkit jar — from an installation (<code>FreeXmlToolkit.jar</code> in its <code>app</code>
 folder) or from a source build (<code>./gradlew jar</code> → <code>build/libs/FreeXmlToolkit-&lt;version&gt;.jar</code>) — with
 <strong>Java 25</strong> and <code>--enable-preview</code>. A Gradle build (see <code>examples/plugin-sample/build.gradle.kts</code>):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">plugins</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">java</span><span class="w"> </span><span class="p">}</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="n">java</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">toolchain</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">languageVersion</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">JavaLanguageVersion</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="m">25</span><span class="p">)</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
-<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="n">repositories</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">mavenCentral</span><span class="p">()</span><span class="w"> </span><span class="p">}</span>
-<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>
-<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="n">dependencies</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">    </span><span class="n">compileOnly</span><span class="p">(</span><span class="n">files</span><span class="p">(</span><span class="n">property</span><span class="p">(</span><span class="s">"fxtJar"</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="kt">String</span><span class="p">))</span><span class="w">      </span><span class="c1">// provided at run time</span>
-<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">    </span><span class="n">compileOnly</span><span class="p">(</span><span class="s">"org.openjfx:javafx-controls:25:linux"</span><span class="p">)</span><span class="w">   </span><span class="c1">// ditto (any platform classifier)</span>
-<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="p">}</span>
-<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>
-<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="n">tasks</span><span class="p">.</span><span class="na">withType</span><span class="o">&lt;</span><span class="n">JavaCompile</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">options</span><span class="p">.</span><span class="na">compilerArgs</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="s">"--enable-preview"</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">plugins</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">java</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="n">java</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">toolchain</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">languageVersion</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">JavaLanguageVersion</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="m">25</span><span class="p">)</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="n">repositories</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">mavenCentral</span><span class="p">()</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="n">dependencies</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">    </span><span class="n">compileOnly</span><span class="p">(</span><span class="n">files</span><span class="p">(</span><span class="n">property</span><span class="p">(</span><span class="s">"fxtJar"</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="kt">String</span><span class="p">))</span><span class="w">      </span><span class="c1">// provided at run time</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">    </span><span class="n">compileOnly</span><span class="p">(</span><span class="s">"org.openjfx:javafx-controls:25:linux"</span><span class="p">)</span><span class="w">   </span><span class="c1">// ditto (any platform classifier)</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="p">}</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="n">tasks</span><span class="p">.</span><span class="na">withType</span><span class="o">&lt;</span><span class="n">JavaCompile</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">options</span><span class="p">.</span><span class="na">compilerArgs</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="s">"--enable-preview"</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>gradle<span class="w"> </span>jar<span class="w"> </span>-PfxtJar<span class="o">=</span>/opt/freexmltoolkit/lib/app/FreeXmlToolkit.jar
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>cp<span class="w"> </span>build/libs/orders-plugin.jar<span class="w"> </span>~/.freeXmlToolkit/plugins/
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>gradle<span class="w"> </span>jar<span class="w"> </span>-PfxtJar<span class="o">=</span>/opt/freexmltoolkit/lib/app/FreeXmlToolkit.jar
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>cp<span class="w"> </span>build/libs/orders-plugin.jar<span class="w"> </span>~/.freeXmlToolkit/plugins/
 </code></pre></div>
 <p>The jar contains your classes, <code>META-INF/services/org.fxt.freexmltoolkit.plugin.FxtPlugin</code>, resources
 (CSS, bundles, sample files) and libraries the application does not provide.</p>
 <h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">¶</a></h2>
 <p>Unit-test validators directly. To test registration, register the plugin as if it had been found:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nd">@Test</span>
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="kt">void</span><span class="w"> </span><span class="nf">registersItsContributions</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">    </span><span class="n">PluginManager</span><span class="w"> </span><span class="n">manager</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PluginManager</span><span class="p">.</span><span class="na">getInstance</span><span class="p">();</span>
-<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">    </span><span class="n">manager</span><span class="p">.</span><span class="na">registerForTesting</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">OrdersPlugin</span><span class="p">());</span>
-<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">    </span><span class="n">assertTrue</span><span class="p">(</span><span class="n">manager</span><span class="p">.</span><span class="na">activities</span><span class="p">().</span><span class="na">stream</span><span class="p">().</span><span class="na">anyMatch</span><span class="p">(</span><span class="n">a</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="na">id</span><span class="p">().</span><span class="na">equals</span><span class="p">(</span><span class="s">"orders"</span><span class="p">)));</span>
-<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nd">@Test</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="kt">void</span><span class="w"> </span><span class="nf">registersItsContributions</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">    </span><span class="n">PluginManager</span><span class="w"> </span><span class="n">manager</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PluginManager</span><span class="p">.</span><span class="na">getInstance</span><span class="p">();</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">    </span><span class="n">manager</span><span class="p">.</span><span class="na">registerForTesting</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">OrdersPlugin</span><span class="p">());</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">    </span><span class="n">assertTrue</span><span class="p">(</span><span class="n">manager</span><span class="p">.</span><span class="na">activities</span><span class="p">().</span><span class="na">stream</span><span class="p">().</span><span class="na">anyMatch</span><span class="p">(</span><span class="n">a</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="na">id</span><span class="p">().</span><span class="na">equals</span><span class="p">(</span><span class="s">"orders"</span><span class="p">)));</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="p">}</span>
 </code></pre></div>
 <p>UI tests can use TestFX like the application's own tests; <code>PluginShellTest</code> in the repository shows a
 plugin activity, menu item and editor bar inside the real shell.</p>
