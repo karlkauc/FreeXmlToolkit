@@ -63,6 +63,8 @@ class EditorHostIncludeResolutionTest {
             host.setActiveViewMode(ViewMode.TREE);
             return null;
         });
+        // A schema with includes/imports is parsed off the FX thread: wait for the switch.
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> host.activeViewModeProperty().get() == ViewMode.TREE);
 
         // The included type "Code" is visible to the Type Library / model.
         List<String> typeNames = WaitForAsyncUtils.waitForAsyncFx(3000,

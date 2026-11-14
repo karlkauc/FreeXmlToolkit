@@ -543,6 +543,8 @@ class EditorHostExternalChangeTest {
         Files.writeString(tmp.resolve("core.xsd"), schemaWithType("OldType"));
         open(tmp, "main.xsd", schemaIncluding("core.xsd"));
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.setActiveViewMode(ViewMode.TREE));
+        // A schema with includes/imports is parsed off the FX thread: wait for the switch.
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> host.activeViewModeProperty().get() == ViewMode.TREE);
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.setActiveViewMode(ViewMode.TEXT));
         prompt.changedAnswer = ExternalChangePrompt.ChangedChoice.RELOAD;
 

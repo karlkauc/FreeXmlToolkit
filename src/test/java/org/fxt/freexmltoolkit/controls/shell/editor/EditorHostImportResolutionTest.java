@@ -65,6 +65,8 @@ class EditorHostImportResolutionTest {
             host.setActiveViewMode(ViewMode.TREE);
             return null;
         });
+        // A schema with includes/imports is parsed off the FX thread: wait for the switch.
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> host.activeViewModeProperty().get() == ViewMode.TREE);
 
         List<String> typeNames = WaitForAsyncUtils.waitForAsyncFx(3000,
                 () -> host.getActiveNamedTypes().stream().map(XsdNode::getName).toList());
@@ -125,6 +127,8 @@ class EditorHostImportResolutionTest {
             host.setActiveViewMode(ViewMode.TREE);
             return null;
         });
+        // A schema with includes/imports is parsed off the FX thread: wait for the switch.
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> host.activeViewModeProperty().get() == ViewMode.TREE);
 
         List<String> typeNames = WaitForAsyncUtils.waitForAsyncFx(3000,
                 () -> host.getActiveNamedTypes().stream().map(XsdNode::getName).toList());

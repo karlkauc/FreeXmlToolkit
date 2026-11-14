@@ -646,14 +646,34 @@ final class EditorTab extends Tab {
     /** Above this size a structured view's stale model is parsed off the FX thread. */
     private static final int BACKGROUND_PARSE_THRESHOLD = 256 * 1024;
 
+    /** An {@code xs:include}, {@code xs:import}, {@code xs:redefine} or {@code xs:override} start tag (any prefix). */
+    private static final java.util.regex.Pattern SCHEMA_REFERENCE =
+            java.util.regex.Pattern.compile("<(?:[\\w.-]+:)?(?:include|import|redefine|override)[\\s/>]");
+
+    /**
+     * Whether a schema text refers to other schema files (which parsing reads from disk). A match
+     * inside a comment counts too: it only costs a background parse.
+     */
+    static boolean referencesOtherSchemas(String text) {
+        return text != null && SCHEMA_REFERENCE.matcher(text).find();
+    }
+
     /** The view mode a background parse will switch to, or {@code null}. */
     private ViewMode pendingViewMode;
 
     /** Whether switching to {@code target} has to parse a large document's model first. */
     private boolean needsBackgroundParse(ViewMode target) {
-        if (target == ViewMode.TEXT || target == ViewMode.PREVIEW
-                || view.getCodeArea().getLength() < BACKGROUND_PARSE_THRESHOLD) {
+        if (target == ViewMode.TEXT || target == ViewMode.PREVIEW) {
             return false;
+        }
+        if (view.getCodeArea().getLength() < BACKGROUND_PARSE_THRESHOLD) {
+            // A small schema that pulls in other files reads them while parsing; on a slow file
+            // system (cloud folder, network share) that froze the UI for minutes (telemetry: 194 s
+            // for a 1.8 KB XSD with nested includes on macOS). Parse it off the FX thread as well.
+            return document.getFileType() == EditorFileType.XSD
+                    && (editorContext == null || lastParsedRevision != textRevision)
+                    && failedXsdParseRevision != textRevision
+                    && referencesOtherSchemas(view.getText());
         }
         return switch (document.getFileType()) {
             case XSD -> (editorContext == null || lastParsedRevision != textRevision)

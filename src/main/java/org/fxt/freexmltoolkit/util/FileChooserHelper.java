@@ -1,7 +1,14 @@
 package org.fxt.freexmltoolkit.util;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Predicate;
 
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -136,15 +143,34 @@ public final class FileChooserHelper {
     /**
      * Persists the directory of the given file (or the directory itself) as the
      * last used directory. No-op for {@code null} or non-existent locations.
+     * The file system is asked at most the probe time limit (300 ms) on the calling (FX)
+     * thread; a slower answer is awaited in the background.
      */
     static void remember(File file) {
         if (file == null) {
             return;
         }
-        File dir = file.isDirectory() ? file : file.getParentFile();
-        if (dir == null || !dir.isDirectory()) {
-            return;
+        CompletableFuture<File> dir = CompletableFuture.supplyAsync(() -> {
+            File d = directoryProbe.test(file) ? file : file.getParentFile();
+            return d != null && directoryProbe.test(d) ? d : null;
+        }, PROBES);
+        File known = await(dir);
+        if (known == null && dir.isDone() && !dir.isCompletedExceptionally()) {
+            known = dir.getNow(null); // finished just after the wait
         }
+        if (known != null) {
+            store(known);
+        } else if (!dir.isDone()) {
+            dir.thenAccept(d -> {
+                if (d != null) {
+                    store(d);
+                }
+            });
+        }
+    }
+
+    private static void store(File dir) {
+        verified(dir);
         PropertiesService props = props();
         if (props != null) {
             props.setLastOpenDirectory(dir.getAbsolutePath());
@@ -153,9 +179,13 @@ public final class FileChooserHelper {
 
     /**
      * @return the last remembered directory as an existing directory, or
-     *         {@code null} if none is stored or the stored path no longer exists
+     *         {@code null} if none is stored, the stored path no longer exists,
+     *         or the file system does not answer within the probe time limit (300 ms)
+     *         (cloud folders, network shares: telemetry showed 5 s on the FX
+     *         thread before a dialog). A slow check finishes in the background,
+     *         so the next dialog gets the directory.
      */
-    private static File lastDirectory() {
+    static File lastDirectory() {
         PropertiesService props = props();
         if (props == null) {
             return null;
@@ -165,7 +195,81 @@ public final class FileChooserHelper {
             return null;
         }
         File dir = new File(last);
-        return dir.isDirectory() ? dir : null;
+        CompletableFuture<File> check = CompletableFuture.supplyAsync(
+                () -> directoryProbe.test(dir) ? dir : null, PROBES);
+        check.thenAccept(d -> {
+            if (d != null) {
+                verified(d);
+            }
+        });
+        File known = await(check);
+        if (known != null || check.isDone()) {
+            return known != null || check.isCompletedExceptionally() ? known : check.getNow(null);
+        }
+        if (isRecentlyVerified(dir)) {
+            return dir; // slow, but found to exist a moment ago
+        }
+        LOGGER.info("Last directory {} did not answer within {} ms; dialog opens without it",
+                dir, probeTimeout.toMillis());
+        return null;
+    }
+
+    // ---------------------------------------------------------------------
+    // Time-limited file system checks
+    // ---------------------------------------------------------------------
+
+    /** Checks run on virtual threads, so a hanging one ties up no pool. */
+    private static final Executor PROBES = runnable -> Thread.ofVirtual().name("fxt-dir-probe").start(runnable);
+
+    private static final Duration DEFAULT_PROBE_TIMEOUT = Duration.ofMillis(300);
+
+    /** How long a directory found to exist is trusted when the file system is slow. */
+    private static final Duration VERIFIED_FOR = Duration.ofMinutes(10);
+
+    /** How long the FX thread waits for the file system before a dialog. */
+    private static volatile Duration probeTimeout = DEFAULT_PROBE_TIMEOUT;
+
+    /** The check whether a path is a directory. */
+    private static volatile Predicate<File> directoryProbe = File::isDirectory;
+
+    /**
+     * Replaces the directory check and its time limit (tests); a {@code null} probe restores the
+     * defaults and forgets the trusted directory.
+     */
+    static void setDirectoryProbe(Predicate<File> probe, Duration timeout) {
+        directoryProbe = probe != null ? probe : File::isDirectory;
+        probeTimeout = timeout != null ? timeout : DEFAULT_PROBE_TIMEOUT;
+        if (probe == null) {
+            verifiedDir = null;
+        }
+    }
+
+    private static volatile File verifiedDir;
+    private static volatile long verifiedAt;
+
+    private static void verified(File dir) {
+        verifiedDir = dir.getAbsoluteFile();
+        verifiedAt = System.nanoTime();
+    }
+
+    private static boolean isRecentlyVerified(File dir) {
+        File known = verifiedDir;
+        return known != null && known.equals(dir.getAbsoluteFile())
+                && System.nanoTime() - verifiedAt < VERIFIED_FOR.toNanos();
+    }
+
+    private static File await(CompletableFuture<File> future) {
+        try {
+            return future.get(probeTimeout.toMillis(), TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
+            return null;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+        } catch (ExecutionException e) {
+            LOGGER.debug("Directory check failed", e.getCause());
+            return null;
+        }
     }
 
     /**
