@@ -1168,10 +1168,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#working-in-the-viewer" class="md-nav__link">
+  <a href="#text" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Working in the viewer
+        Text
       
     </span>
   </a>
@@ -1190,10 +1190,60 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#graphic-view-and-edit-a-part-of-the-file-xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Graphic: view and edit a part of the file (XML)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Graphic: view and edit a part of the file (XML)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#editing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#statistics-xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Statistics (XML)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#validation" class="md-nav__link">
     <span class="md-ellipsis">
       
         Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changes-on-disk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changes on disk
       
     </span>
   </a>
@@ -3131,10 +3181,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#working-in-the-viewer" class="md-nav__link">
+  <a href="#text" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Working in the viewer
+        Text
       
     </span>
   </a>
@@ -3153,10 +3203,60 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#graphic-view-and-edit-a-part-of-the-file-xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Graphic: view and edit a part of the file (XML)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Graphic: view and edit a part of the file (XML)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#editing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#statistics-xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Statistics (XML)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#validation" class="md-nav__link">
     <span class="md-ellipsis">
       
         Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changes-on-disk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changes on disk
       
     </span>
   </a>
@@ -3195,10 +3295,10 @@
 
 
 <h1 id="large-file-viewer">Large File Viewer<a class="headerlink" href="#large-file-viewer" title="Permanent link">¶</a></h1>
-<p>The <strong>Large File Viewer</strong> shows text and XML files of any size, read-only: a 1 GB file opens in a
-few seconds and needs only a few megabytes of memory. It reads the file from disk as you scroll,
-instead of loading it into the editor. Use it for files that are too large for the editor, or when
-you only want to look at, search or copy from a large file.</p>
+<p>The <strong>Large File Viewer</strong> shows text and XML files of any size: a 1 GB file opens in a few seconds
+and needs only a few megabytes of memory. It reads the file from disk as you scroll, instead of
+loading it into the editor. Use it for files that are too large for the editor, or when you only
+want to look at, search, analyse or change a part of a large file.</p>
 <h2 id="opening-a-file-in-the-viewer">Opening a file in the viewer<a class="headerlink" href="#opening-a-file-in-the-viewer" title="Permanent link">¶</a></h2>
 <ul>
 <li><strong>Opening a large file:</strong> a file of 50 MB or more asks how to open it: <strong>Open in Viewer</strong>,
@@ -3209,7 +3309,9 @@ you only want to look at, search or copy from a large file.</p>
 <p>The tab is named <code>&lt;file&gt; (viewer)</code>. While the file is read for the first time, a progress bar
 shows how far it is (a 1 GB file takes a few seconds on an SSD); <strong>Cancel</strong> stops it. The bar above
 the text shows the size, the number of lines and the encoding.</p>
-<h2 id="working-in-the-viewer">Working in the viewer<a class="headerlink" href="#working-in-the-viewer" title="Permanent link">¶</a></h2>
+<p>The viewer has five tabs: <strong>Text</strong>, <strong>Problems</strong>, <strong>Structure</strong>, <strong>Graphic</strong> and <strong>Statistics</strong>. The
+last three are available for XML files.</p>
+<h2 id="text">Text<a class="headerlink" href="#text" title="Permanent link">¶</a></h2>
 <table>
 <thead>
 <tr>
@@ -3242,32 +3344,149 @@ the text shows the size, the number of lines and the encoding.</p>
 <td>Next / previous match</td>
 <td><strong>F3</strong> / <strong>Shift+F3</strong>, or click a match in the list below the text</td>
 </tr>
+<tr>
+<td>Show in Structure</td>
+<td>Right-click a row or a match → <strong>Show in Structure</strong></td>
+</tr>
 </tbody>
 </table>
 <p>The search runs in the background over the whole file and lists up to 10,000 matches with their
-line numbers; clicking one shows its line. The status bar shows the line and the byte offset of the
-selection.</p>
+line numbers; clicking one shows its line. <strong>Show in Structure</strong> opens the Structure tab at the
+element that contains the row (or the match), with the tree expanded down to it. The status bar
+shows the line and the byte offset of the selection.</p>
 <p>XML is coloured line by line (tags, attributes, values, comments). A line longer than 4 KB, such as a
 minified document on one line, is shown as several rows; the continuation rows are marked with <code>↪</code>
 instead of a line number. A match that spans two such rows is not found.</p>
 <h2 id="structure-xml">Structure (XML)<a class="headerlink" href="#structure-xml" title="Permanent link">¶</a></h2>
-<p>For an XML file, the <strong>Structure</strong> tab shows the elements without reading the whole file:</p>
+<p>The <strong>Structure</strong> tab shows the elements without reading the whole file:</p>
 <ul>
 <li><strong>Tree</strong> (left): the root element; expanding an element lists its children, 1,000 at a time.
-  <strong>Load more…</strong> at the end of a list reads the next 1,000. Each element shows its name, its first
-  attribute and, for an element with only text, the text.</li>
+  <strong>Load more…</strong> at the end of a list reads the next 1,000, <strong>Previous page…</strong> at its start the
+  1,000 before. Each element shows its name, its first attribute and, for an element with only
+  text, the text.</li>
 <li><strong>Table</strong> (right): the children of the selected element as records, one row per child. The columns
   are the children's attributes (<code>@id</code>, …) and the texts of their simple child elements (elements
-  that contain only text, such as <code>&lt;amount&gt;</code>), so a file of records reads like a spreadsheet.
-  <strong>Load More</strong> adds the next 1,000 children.</li>
+  that contain only text, such as <code>&lt;amount&gt;</code>), so a file of records reads like a spreadsheet. The
+  first column is the child's number. <strong>Load More</strong> adds the next 1,000 children.</li>
 </ul>
-<p>Double-click a row, or choose <strong>Show in Text</strong> in the context menu, to see the element in the
-<strong>Text</strong> tab. <strong>Open as New Document</strong> opens the element (up to 50 MB) as a new, unsaved document
-in the editor, where it can be edited, validated or transformed like any other file. <strong>Copy XPath</strong>
-copies the element's path, such as <code>/orders[1]/order[42]</code>.</p>
+<p>Jump to any element:</p>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>How</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Go to an element by its path</td>
+<td>Type it into <strong>Go to</strong> (or press <strong>Ctrl+L</strong>) and press Enter: <code>/orders/order[42]</code>, <code>order[42]/item[2]</code>, <code>*[3]</code> (the third child, whatever its name). A step without a position means the first.</td>
+</tr>
+<tr>
+<td>Go to child number <em>n</em></td>
+<td>Type the number into <strong>Child #</strong> above the table and press Enter</td>
+</tr>
+</tbody>
+</table>
+<p>The tree is expanded down to the element and the page of 1,000 children that contains it is shown,
+so even child 1,500,000 of the root is reached in seconds. To jump to a child number, the children
+of the element are counted once (a few seconds for a 1 GB file); after that the table shows "of
+<em>n</em>" with the total.</p>
+<p>Right-click an element in the tree or a row in the table:</p>
+<ul>
+<li><strong>Show in Text</strong> (or double-click a row): the element in the <strong>Text</strong> tab.</li>
+<li><strong>Show in Graphic</strong> (or Alt+double-click a row): the element in the <strong>Graphic</strong> tab, where it can be
+  edited (see below).</li>
+<li><strong>Open as New Document</strong>: the element (up to 50 MB) as a new, unsaved document in the editor.</li>
+<li><strong>Copy XPath</strong>: the element's path, such as <code>/orders[1]/order[42]</code>.</li>
+</ul>
+<p><strong>Export ▾</strong> above the table writes <em>all</em> children of the selected element — not only the loaded
+1,000 — to a <strong>CSV</strong> file (UTF-8, Excel-compatible) or an <strong>Excel</strong> workbook (a summary sheet and the
+records; a new sheet every 1,048,575 rows). The columns are the same as in the table; values are not
+cut. The export reads the file twice (first the columns, then the rows), so memory stays flat: two
+million records take about half a minute.</p>
 <p>The structure is read from the bytes of the file on demand, so the first 1,000 children of the root
 of a 1 GB file appear in well under a second. Reading assumes a well-formed document; DTD
-declarations are skipped, entities other than the predefined ones are not expanded.</p>
+declarations are skipped; the predefined entities and character references (<code>&amp;#233;</code>) are decoded,
+other entities are not expanded.</p>
+<h2 id="graphic-view-and-edit-a-part-of-the-file-xml">Graphic: view and edit a part of the file (XML)<a class="headerlink" href="#graphic-view-and-edit-a-part-of-the-file-xml" title="Permanent link">¶</a></h2>
+<p>The <strong>Graphic</strong> tab shows a part of the file — a <em>window</em> — in the same grid as the editor's
+<a href="../grid/">Graphic view</a>: repeating elements as tables, nested elements, sorting, filters and
+inline editing. A window is at most 20 MB:</p>
+<ul>
+<li>an element that fits is shown as a whole (inside its parent);</li>
+<li>for a larger element, such as a root with millions of records, the window holds a page of up to
+  1,000 of its children. Choosing <strong>Show in Graphic</strong> on a row of the table starts the window at
+  that row. <strong>◀</strong> / <strong>▶</strong> move to the previous / next children.</li>
+</ul>
+<p>Opening the tab without choosing an element shows the whole document when it fits, else the first
+1,000 children of the root.</p>
+<h3 id="editing">Editing<a class="headerlink" href="#editing" title="Permanent link">¶</a></h3>
+<p>Change values, attributes and elements in the grid as in the editor; <strong>Undo</strong> / <strong>Redo</strong>
+(<strong>Ctrl+Z</strong> / <strong>Ctrl+Y</strong>) work within the window. The header shows <strong>● edited</strong> while the window
+has changes that are not written yet.</p>
+<ul>
+<li><strong>Apply to File</strong> (<strong>Ctrl+S</strong>) writes the window into the file. Only the window's bytes are
+  replaced; everything before and after it stays byte for byte as it was. The file is written to a
+  temporary file next to it, which then replaces the original, so the original is untouched if
+  writing fails or is cancelled. Afterwards the file is indexed again and the same window is shown.
+  A 1 GB file takes about 10–20 seconds on an SSD.</li>
+<li><strong>Discard</strong> drops the changes and reads the window again from the file.</li>
+</ul>
+<p>Moving to another window, reloading or closing the tab with changes that are not written asks
+first: <strong>Apply to File</strong>, <strong>Discard</strong> or <strong>Cancel</strong>. Quitting the application offers to discard
+them.</p>
+<p>Notes on writing:</p>
+<ul>
+<li>The window's content is written as the grid formats it (indentation, attribute quotes); the rest
+  of the file keeps its formatting.</li>
+<li>The attributes of the window's parent element (the grid's top row) cannot be changed from a window
+  of its children; only the children are written.</li>
+<li>Characters the file's encoding cannot represent (for example € in an ISO-8859-1 file) are written as
+  character references (<code>&amp;#x20AC;</code>).</li>
+<li>If another program changed the file since the window was read, <strong>Apply to File</strong> refuses; reload
+  the file first.</li>
+</ul>
+<h2 id="statistics-xml">Statistics (XML)<a class="headerlink" href="#statistics-xml" title="Permanent link">¶</a></h2>
+<p><strong>Scan</strong> reads the whole file once and lists every element path (names from the root, without
+positions, such as <code>/orders/order/item</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Element</strong></td>
+<td>The element, indented by its depth (the full path in the tooltip)</td>
+</tr>
+<tr>
+<td><strong>Count</strong></td>
+<td>How many elements have this path</td>
+</tr>
+<tr>
+<td><strong>Per Parent</strong></td>
+<td>How often it occurs in one parent element: one number, or the range (<code>0–3</code> means some parents have none)</td>
+</tr>
+<tr>
+<td><strong>Attributes</strong></td>
+<td>The attribute names seen</td>
+</tr>
+<tr>
+<td><strong>Text</strong></td>
+<td>Whether the element has text of its own</td>
+</tr>
+<tr>
+<td><strong>Sample</strong></td>
+<td>The first text found</td>
+</tr>
+</tbody>
+</table>
+<p>The summary line counts elements, attributes, the depth and the paths. Double-click a path to show
+its first element in the Structure tab. A 1 GB file takes about 10 seconds; at most 10,000 different
+paths are listed.</p>
 <h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">¶</a></h2>
 <p><strong>Validate</strong> in the toolbar checks the whole file while reading it as a stream, so memory stays
 flat whatever its size (a 1 GB file: well-formedness in about 10 seconds, XML Schema validation in
@@ -3300,13 +3519,17 @@ the document not well-formed. A progress bar shows how far it is; <strong>Cancel
 is not available for large files.</p>
 <p><code>fxt-cli validate</code> validates XML files of 64 MB or more the same way (without Schematron), see
 <a href="../command-line/#validate">Command Line</a>.</p>
+<h2 id="changes-on-disk">Changes on disk<a class="headerlink" href="#changes-on-disk" title="Permanent link">¶</a></h2>
+<p>When another program changes or deletes the file while it is open, a bar above the tabs says so;
+<strong>Reload</strong> indexes the file again (and asks first if the Graphic tab has changes that are not
+written). The viewer's own <strong>Apply to File</strong> is no change from outside.</p>
 <h2 id="limits">Limits<a class="headerlink" href="#limits" title="Permanent link">¶</a></h2>
 <ul>
-<li>The viewer is read-only. To change a large file, open it in the editor (if it fits the memory
-  limit), or open the element you need as a new document from the <strong>Structure</strong> tab.</li>
+<li>Edits are made window by window (at most 20 MB each). To change the whole file at once, open it in
+  the editor if it fits the memory limit.</li>
 <li>UTF-8, ASCII and single-byte encodings such as ISO-8859-1 are supported; UTF-16 and UTF-32 files
   are not.</li>
-<li>The file is read where it is: if it changes on disk while it is open, close and reopen the viewer.</li>
+<li>Writing needs free space for a second copy of the file in its folder.</li>
 </ul>
 
 
