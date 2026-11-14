@@ -1450,6 +1450,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Properties Inspector">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quick-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generate-a-sample" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generate a Sample
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -3406,6 +3434,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Properties Inspector">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quick-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generate-a-sample" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generate a Sample
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -3678,8 +3734,28 @@ from the extension - a <code>.json</code> file with comments is treated as JSONC
 <td>Color-coded JSON for easy reading</td>
 </tr>
 <tr>
-<td><strong>Auto Format</strong></td>
-<td>Beautify JSON with proper indentation</td>
+<td><strong>Format</strong></td>
+<td>Pretty-print with the JSON indentation from Settings. Only whitespace changes: comments stay with their members, and quote style, numbers such as <code>0x1F</code>, unquoted keys and trailing commas are kept</td>
+</tr>
+<tr>
+<td><strong>Sort Keys</strong></td>
+<td>Right-click → <strong>Sort Keys</strong> sorts the members of the top-level object, <strong>Sort Keys Recursively</strong> every object (also inside arrays); comments move with their members, one undo step. The grid offers both for the selected object</td>
+</tr>
+<tr>
+<td><strong>Folding</strong></td>
+<td>Fold objects, arrays and long block comments with the arrow in the gutter; <strong>Fold All</strong> / <strong>Unfold All</strong> in the context menu</td>
+</tr>
+<tr>
+<td><strong>Schema completion</strong></td>
+<td>With a JSON Schema bound, <strong>Ctrl+Space</strong> lists the properties the object may still get (required ones first, with type and description) and, at a value, the allowed values (<code>enum</code>, <code>const</code>, <code>default</code>, <code>examples</code>, <code>true</code>/<code>false</code>, <code>null</code>). It also opens by itself after typing <code>"</code> at a key or <code>:</code> after a key. A property is inserted with a value skeleton (<code>""</code>, <code>{}</code>, <code>[]</code>) and the caret inside</td>
+</tr>
+<tr>
+<td><strong>Schema hover</strong></td>
+<td>Hovering a key or value adds what the schema says: title, type, whether it is required, description, allowed values, format and limits such as <code>minimum</code> or <code>pattern</code></td>
+</tr>
+<tr>
+<td><strong>Problems in place</strong></td>
+<td>Validation problems are underlined (a schema violation at the member's key, a syntax error at its token), the line gets a red badge, and hovering shows the message. The marks go away with the next edit until the next validation</td>
 </tr>
 <tr>
 <td><strong>Minify</strong></td>
@@ -3793,6 +3869,50 @@ a node in the <strong>Tree</strong> or <strong>Graphic</strong> (grid) view and 
 </ul>
 <p>Edits made in the inspector are undoable (Ctrl+Z) and written back into the text just like
 grid edits. See <a href="../inspector/#json-files">Properties Inspector - JSON Files</a> for details.</p>
+<p>With a JSON Schema bound, the inspector's <strong>JSON SCHEMA</strong> section shows what the schema says about
+the selected value: type, required, description, allowed values, default, format, limits
+(<code>minimum</code>, <code>maxLength</code>, <code>pattern</code>, …) and, for an object, its declared properties (<code>*</code> = required).</p>
+<p>The schema help follows <code>$ref</code> (also into other files, local or downloaded), merges <code>allOf</code>, offers the
+branches of <code>anyOf</code> / <code>oneOf</code> that fit the document (a <code>const</code> or <code>enum</code> on a member picks the
+branch) and applies <code>if</code> / <code>then</code> / <code>else</code> when the document decides the condition. It is a guide,
+not a validator: <code>unevaluatedProperties</code>, <code>dependentRequired</code> and conditions on patterns or ranges
+are not evaluated - <strong>Validate</strong> checks everything.</p>
+<h4 id="quick-fixes">Quick Fixes<a class="headerlink" href="#quick-fixes" title="Permanent link">¶</a></h4>
+<p>Some schema violations come with a <strong>quick fix</strong> - the light bulb in the gutter, or <strong>Quick Fix</strong>
+on the problem in the Problems list:</p>
+<table>
+<thead>
+<tr>
+<th>Violation</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A required property is missing (<code>required</code>)</td>
+<td><strong>Add required property "…"</strong>: added as the object's last member, in the object's layout, with a value from the schema (its <code>const</code>, <code>default</code>, first <code>enum</code> value or a sample of its type)</td>
+</tr>
+<tr>
+<td>A value is not one of the allowed ones (<code>enum</code>, <code>const</code>)</td>
+<td><strong>Replace with …</strong> one of the allowed values</td>
+</tr>
+<tr>
+<td>A property the schema does not allow (<code>additionalProperties: false</code>)</td>
+<td><strong>Remove property "…"</strong> (with its comma and line)</td>
+</tr>
+</tbody>
+</table>
+<p>A fix changes only the affected text (comments and formatting stay) and is one undo step; the
+document is validated again right after.</p>
+<h4 id="generate-a-sample">Generate a Sample<a class="headerlink" href="#generate-a-sample" title="Permanent link">¶</a></h4>
+<p><strong>Generate Sample (XML / JSON)…</strong> (toolbar Schema ▾, Tools menu) on a JSON document creates a
+sample instance in a new tab: from the open document when it is a JSON Schema, otherwise from
+the schema bound to it. Choose <strong>Required properties only</strong> or <strong>All declared properties</strong>.
+Values come from <code>const</code>, <code>default</code>, <code>enum</code> and <code>examples</code>, else from the type, honouring
+<code>format</code> (date-time, email, uri, uuid, …), <code>pattern</code> (common patterns), <code>minimum</code> / <code>maximum</code>,
+<code>multipleOf</code>, <code>minLength</code> and <code>minItems</code>. Recursive schemas stop after 8 levels; with all
+properties, the members of every <code>oneOf</code> branch are filled in, so such a sample may need a
+manual choice.</p>
 <h3 id="hover-information">Hover Information<a class="headerlink" href="#hover-information" title="Permanent link">¶</a></h3>
 <p>When you hover over any element in the JSON editor, you'll see:
 - <strong>JSONPath</strong> - The full path to the current element (e.g., <code>$.store.book[0].title</code>)
@@ -3837,9 +3957,9 @@ grid edits. See <a href="../inspector/#json-files">Properties Inspector - JSON F
 3. Run it to see the results in the console's result pane</p>
 <h3 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">¶</a></h3>
 <h4 id="syntax-validation">Syntax Validation<a class="headerlink" href="#syntax-validation" title="Permanent link">¶</a></h4>
-<p>Click <strong>Validate</strong> to check if your JSON is syntactically correct. The editor will report:
-- Parse errors with line and column numbers
-- Detected format (JSON, JSONC, or JSON5)</p>
+<p>Click <strong>Validate</strong> to check if your JSON is syntactically correct. Parse errors are reported with
+line and column; double-click a problem to jump there. Comments, trailing commas and the other
+JSONC / JSON5 forms are valid in such files, and a JSON Schema validates them too.</p>
 <h4 id="json-schema-validation">JSON Schema Validation<a class="headerlink" href="#json-schema-validation" title="Permanent link">¶</a></h4>
 <p>JSON documents bind a JSON Schema the same way XML documents bind an XSD:</p>
 <ul>
@@ -3858,7 +3978,9 @@ grid edits. See <a href="../inspector/#json-files">Properties Inspector - JSON F
 <p>Validation runs via <strong>Run Validation</strong> in the panel, the toolbar's <strong>Validate</strong>
 button / F8, or continuously while typing (<strong>Validate while typing</strong>, on by
 default). Schema violations appear in the PROBLEMS list with the offending
-<strong>line number</strong> — clicking a problem jumps to it. Each problem also carries the
+<strong>line number</strong> — clicking a problem jumps to it — and are marked in the text
+(underline, gutter badge, hover) and in the grid (red row marker with the messages
+as tooltip). Each problem also carries the
 failing schema keyword and the JSON pointer of the invalid value.</p>
 <p>The validator supports JSON Schema <strong>Draft-07</strong>, <strong>2019-09</strong>, and <strong>2020-12</strong>;
 the dialect is selected by the schema's own <code>$schema</code> declaration (2020-12 is
@@ -3907,8 +4029,9 @@ dialect demo each for Draft-07 and 2019-09. Open
 </table>
 <h2 id="supported-formats">Supported Formats<a class="headerlink" href="#supported-formats" title="Permanent link">¶</a></h2>
 <p>All three flavors below are recognized in <code>.json</code>, <code>.jsonc</code> and <code>.json5</code> files; the
-editor auto-detects the flavor from the content (syntax highlighting and the tree view
-strip comments and trailing commas before parsing).</p>
+editor auto-detects the flavor from the content: comments make it JSONC; single-quoted strings,
+unquoted keys, trailing commas or JSON5 numbers (<code>0x1F</code>, <code>.5</code>, <code>+1</code>, <code>Infinity</code>) make it JSON5. A
+<code>//</code> or a colon inside a string value does not count, so a plain JSON file with URLs stays JSON.</p>
 <h3 id="json-standard">JSON (Standard)<a class="headerlink" href="#json-standard" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John"</span><span class="p">,</span>
@@ -4080,7 +4203,7 @@ actions sit in <strong>split buttons</strong> with a visible <strong>▾</strong
 </tr>
 <tr>
 <td><strong>Format ▾</strong></td>
-<td>Pretty-print the JSON; the arrow menu holds <strong>Minify</strong> (compress by removing whitespace)</td>
+<td>Pretty-print the JSON with the indentation from Settings → Editor (JSON indent); the arrow menu holds <strong>Minify</strong> (compress by removing whitespace; <code>null</code> members are kept)</td>
 </tr>
 <tr>
 <td><strong>Query Console</strong></td>

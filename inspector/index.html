@@ -3575,7 +3575,10 @@ Properties sidebar shows it:</p>
 <li>The <strong>key</strong> is editable for object properties - click the name in the node header to rename
   the key (duplicate keys are refused). Array items (<code>[0]</code>, <code>[1]</code>, …) and the root <code>$</code> have no key.</li>
 <li>The <strong>Value</strong> field is editable for scalars (strings, numbers, booleans, <code>null</code>); the type
-  is kept, so a number must stay a number. Objects and arrays show a summary instead.</li>
+  is kept, so a number must stay a number.</li>
+<li>With a JSON Schema bound, the <strong>JSON SCHEMA</strong> section shows what the schema says about the
+  value: type, whether it is required, description, allowed values, default, format, limits
+  (<code>minimum</code>, <code>maxLength</code>, <code>pattern</code>, …) and an object's declared properties (<code>*</code> = required). Objects and arrays show a summary instead.</li>
 <li>The node <strong>kind</strong> (object, array, string, …) is shown for information.</li>
 </ul>
 <p>The inspector shares the document model with the grid, the tree and the text, so an edit here

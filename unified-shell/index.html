@@ -4784,7 +4784,7 @@ collapsed to give the editor more room - the activity bar always stays visible.<
 <h3 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>Multi-tab editing</strong> - Open multiple files of different types in one view</li>
-<li><strong>Automatic file type detection</strong> - Files are recognized by extension (.xml/.wsdl, .xsd, .xsl/.xslt, .xpl/.xproc, .xq/.xquery/.xqm/.xqy, .xpath, .sch/.schematron, .json/.jsonc/.json5, .html/.htm/.xhtml); anything else opens as plain text</li>
+<li><strong>Automatic file type detection</strong> - Files are recognized by extension (.xml/.wsdl, .xsd, .xsl/.xslt, .xpl/.xproc, .xq/.xquery/.xqm/.xqy, .xpath, .sch/.schematron, .json/.jsonc/.json5, .html/.htm/.xhtml). A file with any other extension (or none) is recognized by its <strong>content</strong>: one that starts with an XML declaration, a start tag, a comment or a DOCTYPE opens as <strong>XML</strong> (for example <code>web.config</code>, <code>.xaml</code>, <code>.gpx</code>, <code>.svg</code>), an HTML page as <strong>HTML</strong> and a JSON object as <strong>JSON</strong> (<code>.geojson</code>, <code>.har</code>, …) - with grid, validation and every other feature of that type. Anything else opens as plain text</li>
 <li><strong>View modes per document</strong> - Text, Tree and Graphic, all over one shared model, plus a rendered <strong>Preview</strong> for HTML documents (see <a href="#view-modes">View Modes</a>)</li>
 <li><strong>Inspector editing everywhere</strong> - edit node properties from the Text, Tree and Graphic views, not just one</li>
 <li><strong>Type picker with explanations</strong> - the inspector's <strong>Type</strong> field and <em>Change Type…</em> in the

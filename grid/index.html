@@ -3396,8 +3396,11 @@ looks and feels exactly like an XML file in the grid:</p>
   auto-fit). <strong>Expand Fully</strong> (Ctrl+Shift++) and <strong>Collapse Unselected</strong> (Ctrl+Shift+−),
   <strong>Display as Table</strong> / <strong>Flip Rows/Columns</strong> for arrays of objects, the scroll header and
   the search in table cells all work as described above. Table cells can be selected and
-  copied as tab-separated text (Ctrl+C or <strong>Copy Table as Tab-separated Text</strong>); Ctrl+V
-  overwrites existing cells only. The zoom factor is shared with the XML grid.</li>
+  copied as tab-separated text (Ctrl+C or <strong>Copy Table as Tab-separated Text</strong>). <strong>Ctrl+V</strong>
+  pastes tab-separated cells (e.g. from a spreadsheet) from the selected cell on: a number or
+  boolean cell keeps its type (a value that does not fit is skipped), a missing property is
+  added as a string, and rows beyond the table become new objects - all in <strong>one undo step</strong>.
+  The zoom factor is shared with the XML grid.</li>
 <li><strong>Change a value's type</strong> by clicking its type glyph (or Ctrl+Alt+T on the selected row):
   a popup lists the other types. Number ↔ String ↔ Boolean ↔ Null convert the value
   (<code>"42"</code> → <code>42</code>); Object and Array start empty. One undo step.</li>
@@ -3413,8 +3416,25 @@ looks and feels exactly like an XML file in the grid:</p>
   Column Before / After…</strong> (the key in every object, next to the clicked column) and
   <strong>Rename Column…</strong> (also a double-click on the column header; refused as a whole when an
   object already uses the new key). Each is one undo step.</li>
-<li><strong>XML only:</strong> <strong>Wrap in Element</strong>, <strong>Edit as Raw Text</strong>, filters, formulas and validation
-  markers.</li>
+<li><strong>Sort Keys</strong> / <strong>Sort Keys Recursively</strong> on an object (or a member of it) sorts its
+  properties by key - recursively also every object below it, inside arrays too. One undo step.</li>
+<li><strong>Filters (JSONPath):</strong> right-click an object or array → <strong>Filter…</strong> and enter a JSONPath
+  expression relative to it (<code>$</code> is that value), e.g. <code>$.orders[?(@.total &gt; 100)]</code> or
+  <code>$..email</code>. Only the matches stay visible, with their parents and everything below them; a
+  table keeps only its matching rows. Started on a value row (<code>city = "Graz"</code>) the dialog
+  suggests <code>$[?(@['city'] == 'Graz')]</code> on the array holding the objects. <strong>Filter to Focus</strong>,
+  <strong>Filter Active</strong> and <strong>Remove (All) Filters</strong> work as in the XML grid; filters are not saved
+  in the document.</li>
+<li><strong>Validation markers:</strong> after <strong>Validate</strong> (or while typing with live validation), the rows
+  of values with a problem get a red marker with the messages as tooltip, as in the XML grid.</li>
+<li><strong>Entry helpers:</strong> the header's entry-helpers toggle opens the side panel. With a JSON Schema
+  bound, <strong>Siblings</strong> lists the properties the selected value's object may have, <strong>Children</strong>
+  those of the selected object (required ones marked <code>!</code>, present ones greyed) and <strong>Values</strong>
+  the allowed values of the selected scalar. Insert / Append / Add and a double-click add the
+  property with a starting value from the schema (its <code>const</code>, <code>default</code>, or an empty value of
+  its type) or set the value - each one undo step.</li>
+<li><strong>XML only:</strong> <strong>Wrap in Element</strong>, <strong>Edit as Raw Text</strong>, formulas and saving filters in the
+  document.</li>
 </ul>
 <div class="admonition warning">
 <p class="admonition-title">Comments and JSON5 syntax are not preserved</p>

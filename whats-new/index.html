@@ -3433,6 +3433,40 @@ running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
 <li>The viewer notices when the file changes on disk and offers to reload it; character references such as <code>&amp;#233;</code>
   are decoded in the tree and table.</li>
 </ul>
+<p><strong>Opening files</strong></p>
+<ul>
+<li><strong>XML in files with other extensions:</strong> a file whose extension the app does not know (<code>web.config</code>, <code>.xaml</code>, <code>.gpx</code>,
+  <code>.svg</code>, a file without extension, …) is opened by its content - as XML, HTML or JSON with all their features
+  instead of plain text.</li>
+</ul>
+<p><strong>JSON</strong></p>
+<ul>
+<li><strong>Format detection fixed:</strong> a plain JSON file with a URL or a time such as <code>10:30</code> in a string was taken for
+  JSON5 (and warned about lost comments in the grid); the flavor is now read from the tokens, not guessed by
+  patterns. JSON5 strings with apostrophes, hex numbers and <code>.5</code> / <code>5.</code> numbers are read correctly.</li>
+<li><strong>Format</strong> uses the JSON indentation from Settings; <strong>Minify</strong> keeps <code>null</code> members.</li>
+<li>Parse errors carry the column; JSONC and JSON5 files are validated against their JSON Schema (the
+  violations point at the original lines).</li>
+<li><strong>Schema help while typing:</strong> with a JSON Schema bound, Ctrl+Space (or typing <code>"</code> / <code>:</code>) proposes the missing
+  properties - required ones first - and the allowed values; hovering shows the schema's description, type and
+  limits, and the inspector has a <strong>JSON Schema</strong> section for the selected value. <code>$schema</code> is also found while the
+  document is incomplete.</li>
+<li><strong>Problems in place:</strong> validation problems are underlined in the text (with a gutter badge and the message on
+  hover) and marked in the grid.</li>
+<li><strong>Format keeps comments:</strong> formatting changes only whitespace - comments, quote style, JSON5 numbers and trailing
+  commas stay.</li>
+<li><strong>Sort Keys</strong> (top level or recursive) in the text editor's and the grid's context menu; comments move with their
+  members.</li>
+<li><strong>Folding</strong> of objects, arrays and block comments in the text editor; the context menu's Format / Minify /
+  Validate entries work again.</li>
+<li>Ctrl+Z right after opening a file no longer empties the editor.</li>
+<li><strong>Quick fixes for schema violations:</strong> add a missing required property, replace a value with an allowed one,
+  remove a property the schema does not allow - one undo step, formatting kept.</li>
+<li><strong>Generate a sample JSON</strong> from a JSON Schema (the open schema or the bound one), required properties only or
+  all.</li>
+<li><strong>Grid:</strong> JSONPath <strong>filters</strong>, validation markers, the <strong>entry helpers</strong> panel with the schema's properties and
+  values, and pasting tab-separated cells into a table as one undo step.</li>
+</ul>
 <h2 id="320-2026-11-13">3.2.0 (2026-11-13)<a class="headerlink" href="#320-2026-11-13" title="Permanent link">¶</a></h2>
 <p><strong>Editing</strong></p>
 <ul>
