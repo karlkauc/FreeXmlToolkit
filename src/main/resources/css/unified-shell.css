@@ -99,7 +99,9 @@
 .fxt-activity-button.fxt-wf-signature:selected { -fx-background-color: -fxt-wf-signature-rail, #3b3866; }
 .fxt-activity-button.fxt-wf-signature:selected .iconify-icon, .fxt-activity-button-labeled.fxt-wf-signature:selected { -fx-icon-color: -fxt-wf-signature-rail; -fx-text-fill: -fxt-wf-signature-rail; }
 .fxt-activity-button.fxt-wf-fundsxml:selected { -fx-background-color: -fxt-wf-fundsxml-rail, #3b3866; }
+.fxt-activity-button.fxt-wf-pension:selected { -fx-background-color: -fxt-wf-pension-rail, #3b3866; }
 .fxt-activity-button.fxt-wf-fundsxml:selected .iconify-icon, .fxt-activity-button-labeled.fxt-wf-fundsxml:selected { -fx-icon-color: -fxt-wf-fundsxml-rail; -fx-text-fill: -fxt-wf-fundsxml-rail; }
+.fxt-activity-button.fxt-wf-pension:selected .iconify-icon, .fxt-activity-button-labeled.fxt-wf-pension:selected { -fx-icon-color: -fxt-wf-pension-rail; -fx-text-fill: -fxt-wf-pension-rail; }
 .fxt-activity-button.fxt-wf-search:selected { -fx-background-color: -fxt-wf-search-rail, #3b3866; }
 .fxt-activity-button.fxt-wf-search:selected .iconify-icon, .fxt-activity-button-labeled.fxt-wf-search:selected { -fx-icon-color: -fxt-wf-search-rail; -fx-text-fill: -fxt-wf-search-rail; }
 .fxt-activity-button.fxt-wf-favorites:selected { -fx-background-color: -fxt-wf-favorites-rail, #3b3866; }
@@ -728,6 +730,7 @@
 .fxt-status-badge.fxt-wf-pdf { -fx-background-color: -fxt-wf-pdf-bg; -fx-border-color: -fxt-wf-pdf-border; -fx-text-fill: -fxt-wf-pdf-fg; }
 .fxt-status-badge.fxt-wf-signature { -fx-background-color: -fxt-wf-signature-bg; -fx-border-color: -fxt-wf-signature-border; -fx-text-fill: -fxt-wf-signature-fg; }
 .fxt-status-badge.fxt-wf-fundsxml { -fx-background-color: -fxt-wf-fundsxml-bg; -fx-border-color: -fxt-wf-fundsxml-border; -fx-text-fill: -fxt-wf-fundsxml-fg; }
+.fxt-status-badge.fxt-wf-pension { -fx-background-color: -fxt-wf-pension-bg; -fx-border-color: -fxt-wf-pension-border; -fx-text-fill: -fxt-wf-pension-fg; }
 .fxt-status-badge.fxt-wf-neutral { -fx-background-color: -fxt-wf-neutral-bg; -fx-border-color: -fxt-wf-neutral-border; -fx-text-fill: -fxt-wf-neutral-fg; }
 .fxt-status-badge.fxt-wf-search { -fx-background-color: -fxt-wf-search-bg; -fx-border-color: -fxt-wf-search-border; -fx-text-fill: -fxt-wf-search-fg; }
 .fxt-status-badge.fxt-wf-favorites { -fx-background-color: -fxt-wf-favorites-bg; -fx-border-color: -fxt-wf-favorites-border; -fx-text-fill: -fxt-wf-favorites-fg; }
@@ -2278,6 +2281,7 @@
 .fxt-card-icon.fxt-wf-pdf { -fx-background-color: -fxt-wf-pdf-bg; }
 .fxt-card-icon.fxt-wf-signature { -fx-background-color: -fxt-wf-signature-bg; }
 .fxt-card-icon.fxt-wf-fundsxml { -fx-background-color: -fxt-wf-fundsxml-bg; }
+.fxt-card-icon.fxt-wf-pension { -fx-background-color: -fxt-wf-pension-bg; }
 .fxt-card-icon.fxt-wf-neutral { -fx-background-color: -fxt-wf-neutral-bg; }
 .fxt-card-icon.fxt-wf-search { -fx-background-color: -fxt-wf-search-bg; }
 .fxt-card-icon.fxt-wf-favorites { -fx-background-color: -fxt-wf-favorites-bg; }
@@ -2289,6 +2293,7 @@
 .fxt-tool-card .fxt-card-icon.fxt-wf-pdf .iconify-icon { -fx-icon-color: -fxt-wf-pdf-accent; }
 .fxt-tool-card .fxt-card-icon.fxt-wf-signature .iconify-icon { -fx-icon-color: -fxt-wf-signature-accent; }
 .fxt-tool-card .fxt-card-icon.fxt-wf-fundsxml .iconify-icon { -fx-icon-color: -fxt-wf-fundsxml-accent; }
+.fxt-tool-card .fxt-card-icon.fxt-wf-pension .iconify-icon { -fx-icon-color: -fxt-wf-pension-accent; }
 .fxt-tool-card .fxt-card-icon.fxt-wf-neutral .iconify-icon { -fx-icon-color: -fxt-wf-neutral-accent; }
 .fxt-tool-card .fxt-card-icon.fxt-wf-search .iconify-icon { -fx-icon-color: -fxt-wf-search-accent; }
 .fxt-tool-card .fxt-card-icon.fxt-wf-favorites .iconify-icon { -fx-icon-color: -fxt-wf-favorites-accent; }
@@ -2301,6 +2306,7 @@
 .fxt-tool-card.fxt-wf-pdf:hover { -fx-border-color: -fxt-wf-pdf-border; }
 .fxt-tool-card.fxt-wf-signature:hover { -fx-border-color: -fxt-wf-signature-border; }
 .fxt-tool-card.fxt-wf-fundsxml:hover { -fx-border-color: -fxt-wf-fundsxml-border; }
+.fxt-tool-card.fxt-wf-pension:hover { -fx-border-color: -fxt-wf-pension-border; }
 .fxt-tool-card.fxt-wf-neutral:hover { -fx-border-color: -fxt-wf-neutral-border; }
 .fxt-tool-card.fxt-wf-search:hover { -fx-border-color: -fxt-wf-search-border; }
 .fxt-tool-card.fxt-wf-favorites:hover { -fx-border-color: -fxt-wf-favorites-border; }
@@ -2411,7 +2417,9 @@
 .fxt-trend-cat-card.fxt-wf-signature .fxt-trend-cat-dot { -fx-background-color: -fxt-wf-signature-accent; }
 .fxt-trend-cat-card.fxt-wf-signature .fxt-trend-cat-bar { -fx-accent: -fxt-wf-signature-accent; }
 .fxt-trend-cat-card.fxt-wf-fundsxml .fxt-trend-cat-dot { -fx-background-color: -fxt-wf-fundsxml-accent; }
+.fxt-trend-cat-card.fxt-wf-pension .fxt-trend-cat-dot { -fx-background-color: -fxt-wf-pension-accent; }
 .fxt-trend-cat-card.fxt-wf-fundsxml .fxt-trend-cat-bar { -fx-accent: -fxt-wf-fundsxml-accent; }
+.fxt-trend-cat-card.fxt-wf-pension .fxt-trend-cat-bar { -fx-accent: -fxt-wf-pension-accent; }
 .fxt-trend-cat-card.fxt-wf-neutral .fxt-trend-cat-dot { -fx-background-color: -fxt-wf-neutral-accent; }
 .fxt-trend-cat-card.fxt-wf-neutral .fxt-trend-cat-bar { -fx-accent: -fxt-wf-neutral-accent; }
 .fxt-trend-cat-pct {
@@ -4262,11 +4270,17 @@
 .fxt-wf-signature .fxt-primary-button:pressed, .fxt-wf-signature .fxt-action-row-primary:pressed, .fxt-wf-signature .fxt-action-row-primary:armed { -fx-background-color: derive(-fxt-wf-signature-fill, -18%); }
 
 .fxt-wf-fundsxml .fxt-panel-title { -fx-text-fill: -fxt-wf-fundsxml-fg; }
+.fxt-wf-pension .fxt-panel-title { -fx-text-fill: -fxt-wf-pension-fg; }
 .fxt-wf-fundsxml .fxt-action-row:hover { -fx-background-color: -fxt-wf-fundsxml-bg; }
+.fxt-wf-pension .fxt-action-row:hover { -fx-background-color: -fxt-wf-pension-bg; }
 .fxt-wf-fundsxml .fxt-action-row:armed, .fxt-wf-fundsxml .fxt-action-row:pressed { -fx-background-color: derive(-fxt-wf-fundsxml-bg, -8%); }
+.fxt-wf-pension .fxt-action-row:armed, .fxt-wf-pension .fxt-action-row:pressed { -fx-background-color: derive(-fxt-wf-pension-bg, -8%); }
 .fxt-wf-fundsxml .fxt-primary-button, .fxt-wf-fundsxml .fxt-action-row-primary { -fx-background-color: -fxt-wf-fundsxml-fill; }
+.fxt-wf-pension .fxt-primary-button, .fxt-wf-pension .fxt-action-row-primary { -fx-background-color: -fxt-wf-pension-fill; }
 .fxt-wf-fundsxml .fxt-primary-button:hover, .fxt-wf-fundsxml .fxt-action-row-primary:hover { -fx-background-color: derive(-fxt-wf-fundsxml-fill, -10%); }
+.fxt-wf-pension .fxt-primary-button:hover, .fxt-wf-pension .fxt-action-row-primary:hover { -fx-background-color: derive(-fxt-wf-pension-fill, -10%); }
 .fxt-wf-fundsxml .fxt-primary-button:pressed, .fxt-wf-fundsxml .fxt-action-row-primary:pressed, .fxt-wf-fundsxml .fxt-action-row-primary:armed { -fx-background-color: derive(-fxt-wf-fundsxml-fill, -18%); }
+.fxt-wf-pension .fxt-primary-button:pressed, .fxt-wf-pension .fxt-action-row-primary:pressed, .fxt-wf-pension .fxt-action-row-primary:armed { -fx-background-color: derive(-fxt-wf-pension-fill, -18%); }
 
 .fxt-wf-search .fxt-panel-title { -fx-text-fill: -fxt-wf-search-fg; }
 .fxt-wf-search .fxt-action-row:hover { -fx-background-color: -fxt-wf-search-bg; }
@@ -4475,6 +4489,16 @@
 
 .fxt-hint-bar .fxt-hint-bar-icon {
     -fx-icon-color: -fxt-wf-fundsxml-fg;
+}
+
+/* The PK-Meldewesen hint bar in its own colour family. */
+.fxt-hint-bar.fxt-wf-pension {
+    -fx-background-color: -fxt-wf-pension-bg;
+    -fx-border-color: -fxt-wf-pension-border;
+}
+
+.fxt-hint-bar.fxt-wf-pension .fxt-hint-bar-icon {
+    -fx-icon-color: -fxt-wf-pension-fg;
 }
 
 .fxt-hint-bar-text {

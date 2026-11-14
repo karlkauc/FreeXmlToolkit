@@ -84,7 +84,8 @@ Any key of the user's settings file works. These are the ones most often managed
 | `ai.enabled`, `ai.dataLevel`, `ai.dataLevel.remote`, `ai.preview.always` | `true`/`false`; `SCHEMA` / `STRUCTURE` / `EXCERPTS` | AI assistant on/off, what may be sent to local / remote providers, preview every request (Settings → AI) |
 | `ai.providers`, `ai.provider.default` | JSON list, provider id | The AI providers; in `policy.properties` a fixed list. API keys are never read from the machine-wide files |
 | `ai.localHosts` | host list | Hosts that count as local (a company gateway) |
-| `plugin.<id>.enabled` | `true` / `false` | A [plugin](plugins.md) on or off (Settings → Plugins), e.g. `plugin.fundsxml.enabled` |
+| `plugin.<id>.enabled` | `true` / `false` | An [extension](plugins.md) loaded or not (Settings → Extensions → Installed Extensions), e.g. `plugin.fundsxml.enabled`, `plugin.pk-meldewesen.enabled` |
+| `pk.enabled` | `true` / `false` | The [PK-Meldewesen](plugin-pk-meldewesen.md) extension switched on (default `false`) |
 | `schemaLibrary.autoBind.enabled` | `true` / `false` | Bind schemas from the Schema Library automatically |
 | `xml.parser.type` | `XERCES` / `SAXON` | XSD validator (XSD 1.1 schemas always use Xerces) |
 | `memory.max.mb` | megabytes, `0` = automatic | Maximum memory (Settings → Memory) |

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionButton?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionList?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelHeader?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelSection?>
+
+<!--
+  PK-Meldewesen activity side panel (FMA pension fund reports: QMV, FJMV, ECB): the active
+  report, the taxonomy in use, checks and the FMA documentation. Loaded by PkMeldewesenPanel via
+  the fx:root pattern (FxmlViews.load); the texts of the active document are filled in code.
+-->
+<fx:root type="javafx.scene.layout.VBox"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <SidePanelHeader title="%PkMeldewesenPanel.title"/>
+
+        <SidePanelSection title="%PkMeldewesenPanel.report.title">
+            <children>
+                <VBox spacing="4" styleClass="fxt-tp-section-body">
+                    <children>
+                        <Label fx:id="reportSummary" id="pk-report-summary" wrapText="true"/>
+                    </children>
+                </VBox>
+            </children>
+        </SidePanelSection>
+
+        <SidePanelSection title="%PkMeldewesenPanel.check.title">
+            <children>
+                <PanelActionList>
+                    <children>
+                        <PanelActionButton id="pk-validate" iconLiteral="bi-check2-circle"
+                                           text="%PkMeldewesenPanel.pk-validate.text" color="CREATE" onAction="#onValidate"/>
+                    </children>
+                </PanelActionList>
+            </children>
+        </SidePanelSection>
+
+        <SidePanelSection title="%PkMeldewesenPanel.taxonomy.title">
+            <children>
+                <VBox spacing="4" styleClass="fxt-tp-section-body">
+                    <children>
+                        <Label fx:id="taxonomyLabel" id="pk-taxonomy" wrapText="true"/>
+                    </children>
+                </VBox>
+                <PanelActionList>
+                    <children>
+                        <PanelActionButton id="pk-open-schema" iconLiteral="bi-file-earmark-code"
+                                           text="%PkMeldewesenPanel.pk-open-schema.text" color="NAVIGATE" onAction="#onOpenSchema"/>
+                        <PanelActionButton id="pk-open-documentation" iconLiteral="bi-file-earmark-pdf"
+                                           text="%PkMeldewesenPanel.pk-open-documentation.text" color="NAVIGATE"
+                                           onAction="#onOpenDocumentation"/>
+                        <PanelActionButton id="pk-open-folder" iconLiteral="bi-folder2-open"
+                                           text="%PkMeldewesenPanel.pk-open-folder.text" color="NAVIGATE" onAction="#onOpenFolder"/>
+                    </children>
+                </PanelActionList>
+            </children>
+        </SidePanelSection>
+
+        <VBox VBox.vgrow="ALWAYS"/>
+
+        <VBox spacing="6" styleClass="fxt-tp-section-body">
+            <children>
+                <Label fx:id="status" id="pk-status" wrapText="true" styleClass="fxt-placeholder-text"/>
+            </children>
+        </VBox>
+    </children>
+</fx:root>

@@ -598,7 +598,12 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
 
     /** {@code Path.of(location)} without the {@link java.nio.file.InvalidPathException} risk (malformed location). */
     private static Path localPathOrNull(String location) {
-        try { return Path.of(location); } catch (RuntimeException e) { return null; }
+        try {
+            // a plain path, or a file: URI (as extensions may pass their schemas)
+            return location.regionMatches(true, 0, "file:", 0, 5) ? Path.of(java.net.URI.create(location)) : Path.of(location);
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 
     @Override public Optional<String> lastError(SchemaLibraryEntry entry) {

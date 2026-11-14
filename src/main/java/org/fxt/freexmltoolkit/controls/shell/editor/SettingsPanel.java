@@ -220,6 +220,8 @@ public class SettingsPanel extends VBox {
     // FundsXML extension
     /** The FundsXML extension's switch: its row in the list of installed extensions (applies at once). */
     private final CheckBox fundsXmlEnabled = new CheckBox();
+    /** The PK-Meldewesen extension's switch: its row in the list of installed extensions (applies at once). */
+    private final CheckBox pkEnabled = new CheckBox();
     @FXML private javafx.scene.control.ComboBox<org.fxt.freexmltoolkit.i18n.I18n.Language> uiLanguage;
     @FXML private VBox pluginRows;
     @FXML private FoProcessorsSettings foProcessors;
@@ -1193,7 +1195,8 @@ public class SettingsPanel extends VBox {
                     + (info.origin() == org.fxt.freexmltoolkit.plugin.PluginManager.Origin.EXTERNAL
                             ? " (" + (info.jar() != null ? info.jar().getFileName() : "external") + ")" : " (built-in)");
             boolean fundsXml = org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlPlugin.ID.equals(info.id());
-            CheckBox box = fundsXml ? fundsXmlEnabled : new CheckBox();
+            boolean pk = org.fxt.freexmltoolkit.plugins.pkmeldewesen.PkMeldewesenPlugin.ID.equals(info.id());
+            CheckBox box = fundsXml ? fundsXmlEnabled : pk ? pkEnabled : new CheckBox();
             box.setText(title);
             box.setId("settings-plugin-" + info.id());
             box.setSelected(info.state() != org.fxt.freexmltoolkit.plugin.PluginManager.State.DISABLED);
@@ -1208,6 +1211,9 @@ public class SettingsPanel extends VBox {
             } else if (fundsXml) {
                 box.setSelected(info.state() != org.fxt.freexmltoolkit.plugin.PluginManager.State.DISABLED
                         && FundsXmlRunner.isEnabled());
+            } else if (pk) {
+                box.setSelected(info.state() != org.fxt.freexmltoolkit.plugin.PluginManager.State.DISABLED
+                        && org.fxt.freexmltoolkit.plugins.pkmeldewesen.PkSettings.isEnabled());
             } else {
                 pluginSwitches.put(info.id(), box);
             }
@@ -1357,6 +1363,7 @@ public class SettingsPanel extends VBox {
         keys.put(telemetryErrors, new String[] {PropertiesService.TELEMETRY_ERRORS_ENABLED});
         keys.put(execStatsEnabled, new String[] {org.fxt.freexmltoolkit.service.DeveloperPropertyKeys.EXECUTION_STATS_ENABLED});
         keys.put(fundsXmlEnabled, new String[] {org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED});
+        keys.put(pkEnabled, new String[] {org.fxt.freexmltoolkit.plugins.pkmeldewesen.PkSettings.ENABLED});
         keys.put(templatesDir, new String[] {"templates.directory"});
         keys.put(schemaLibraryAutoBind, new String[] {"schemaLibrary.autoBind.enabled"});
         keys.put(uiLanguage, new String[] {org.fxt.freexmltoolkit.i18n.I18n.SETTING});
@@ -1924,6 +1931,16 @@ public class SettingsPanel extends VBox {
                     org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED));
             props.set(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED,
                     String.valueOf(fundsXmlEnabled.isSelected()));
+            if (pkEnabled.getScene() != null) {
+                props.set(org.fxt.freexmltoolkit.plugins.pkmeldewesen.PkSettings.ENABLED,
+                        String.valueOf(pkEnabled.isSelected()));
+                if (pkEnabled.isSelected() && !org.fxt.freexmltoolkit.service.AdminPolicy.current().isLocked(
+                        org.fxt.freexmltoolkit.plugin.PluginManager.enabledKey(
+                                org.fxt.freexmltoolkit.plugins.pkmeldewesen.PkMeldewesenPlugin.ID))) {
+                    props.set(org.fxt.freexmltoolkit.plugin.PluginManager.enabledKey(
+                            org.fxt.freexmltoolkit.plugins.pkmeldewesen.PkMeldewesenPlugin.ID), "true");
+                }
+            }
             if (fundsXmlEnabled.isSelected() && !org.fxt.freexmltoolkit.service.AdminPolicy.current().isLocked(org.fxt.freexmltoolkit.plugin.PluginManager.enabledKey(
                     org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlPlugin.ID))) {
                 // switched on: also loaded from the next start, should an older setting have unloaded it

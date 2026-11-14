@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic test report: fictitious pension fund 99, made-up LEI. No real data. -->
+<Nationale_Meldung_pfq xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="\\fileserver.example\share\QMV\pk_meldung_pfq_2.9.0.xsd" PK-Nummer="99" GJ="2026" LEI="LEI/5299000000000000TEST" Stichtag="Q1" Typ_der_Meldung="Testmeldung" Taxonomie="2.9.0" DB="0.1">
+    <PK.000.01_Stammdaten_zur_VRG VRG="0">
+        <Datenpunkt_non_negative_integer>
+            <TemplateCode>PK.000.01</TemplateCode>
+            <RowCode>R000-100</RowCode>
+            <ColumnCode>C000-100</ColumnCode>
+            <Wert>0</Wert>
+        </Datenpunkt_non_negative_integer>
+        <Datenpunkt_string>
+            <TemplateCode>PK.000.01</TemplateCode>
+            <RowCode>R000-110</RowCode>
+            <ColumnCode>C000-100</ColumnCode>
+            <Wert>Summe (Test-Pensionskasse)</Wert>
+        </Datenpunkt_string>
+    </PK.000.01_Stammdaten_zur_VRG>
+</Nationale_Meldung_pfq>

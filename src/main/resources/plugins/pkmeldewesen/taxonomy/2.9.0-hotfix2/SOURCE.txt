@@ -1,0 +1,12 @@
+PK-Meldewesen, Nationale Meldung - Taxonomie 2.9.0 Hotfix2 (Stand 21.07.2026)
+
+Source: Finanzmarktaufsicht (FMA), Abteilung II/4 - published reporting documentation for
+Austrian pension funds (PK-QMV 2025, PK-FJMV 2025, Regulation (EU) 2018/231),
+https://www.fma.gv.at/ (download "Website_PK_Nationale_Meldung_Taxonomie_2.9.0_Hotfix2").
+
+Files (unchanged):
+  pk_meldung_pfq_2.9.0_Hotfix2.xsd   quarterly report  (root Nationale_Meldung_pfq)
+  pk_meldung_pfa_2.9.0_Hotfix2.xsd   annual report     (root Nationale_Meldung_pfa)
+  pk_meldung_pfe_2.9.0_Hotfix2.xsd   ECB report        (root EZB_Meldung_pfe)
+  PK-Meldewesen_Dokumentation 2.9.0_Hotfix2.pdf
+  PK-Meldewesen_Business-Templates / Dictionary / Positionsbeschreibung / Validierungen 2.9.0_Hotfix2.xlsx

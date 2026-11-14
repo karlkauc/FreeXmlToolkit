@@ -49,6 +49,9 @@ public enum Workflow {
             ColorToken.WF_SIGNATURE_BG, ColorToken.WF_SIGNATURE_BORDER, ColorToken.WF_SIGNATURE_RAIL),
     FUNDSXML("fundsxml", ColorToken.WF_FUNDSXML_ACCENT, ColorToken.WF_FUNDSXML_FG, ColorToken.WF_FUNDSXML_FILL,
             ColorToken.WF_FUNDSXML_BG, ColorToken.WF_FUNDSXML_BORDER, ColorToken.WF_FUNDSXML_RAIL),
+    /** The PK-Meldewesen extension (FMA pension fund reports). */
+    PENSION("pension", ColorToken.WF_PENSION_ACCENT, ColorToken.WF_PENSION_FG, ColorToken.WF_PENSION_FILL,
+            ColorToken.WF_PENSION_BG, ColorToken.WF_PENSION_BORDER, ColorToken.WF_PENSION_RAIL),
     NEUTRAL("neutral", ColorToken.WF_NEUTRAL_ACCENT, ColorToken.WF_NEUTRAL_FG, ColorToken.WF_NEUTRAL_FILL,
             ColorToken.WF_NEUTRAL_BG, ColorToken.WF_NEUTRAL_BORDER, ColorToken.WF_NEUTRAL_RAIL);
 

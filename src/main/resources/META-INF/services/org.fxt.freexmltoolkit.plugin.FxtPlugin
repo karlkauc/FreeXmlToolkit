@@ -3,3 +3,4 @@ org.fxt.freexmltoolkit.plugins.iso20022.Iso20022Plugin
 org.fxt.freexmltoolkit.plugins.ebinterface.EbInterfacePlugin
 org.fxt.freexmltoolkit.plugins.findatex.FinDatExPlugin
 org.fxt.freexmltoolkit.plugins.xbrl.XbrlPlugin
+org.fxt.freexmltoolkit.plugins.pkmeldewesen.PkMeldewesenPlugin

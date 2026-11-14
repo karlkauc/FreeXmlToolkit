@@ -79,10 +79,8 @@ class UnifiedShellViewTest {
         // lookupAll must run on the FX thread (scene graph may still be mutating)
         Set<javafx.scene.Node> buttons = WaitForAsyncUtils.waitForAsyncFx(2000,
                 () -> shell.lookupAll(".fxt-activity-button"));
-        // FUNDSXML is conditional — only rendered when the extension is enabled.
-        boolean fundsXmlEnabled =
-                org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlRunner.isEnabled();
-        int expected = Activity.values().length - (fundsXmlEnabled ? 0 : 1);
+        // extension activities (FundsXML, PK-Meldewesen, …) are only rendered while visible
+        int expected = (int) java.util.Arrays.stream(Activity.values()).filter(Activity::isVisible).count();
         assertEquals(expected, buttons.size(),
                 "Activity Bar must render one button per (visible) activity");
     }

@@ -165,6 +165,7 @@ nav:
       - ebInterface: plugin-ebinterface.md
       - FinDatEx Templates: plugin-findatex.md
       - XBRL (with Arelle): plugin-xbrl.md
+      - PK-Meldewesen (FMA): plugin-pk-meldewesen.md
     - Extensions: plugins.md
     - Writing Extensions (Plugins): plugin-development.md
   - Security:

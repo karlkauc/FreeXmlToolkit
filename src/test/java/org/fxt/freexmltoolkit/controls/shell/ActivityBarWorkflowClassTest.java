@@ -27,10 +27,9 @@ class ActivityBarWorkflowClassTest {
                 ActivityBar bar = new ActivityBar(new ActivitySelectionModel());
                 new Scene(new StackPane(bar), 100, 600);
                 var buttons = bar.lookupAll(".fxt-activity-button");
-                // FundsXML only gets a button while its extension is enabled
-                int expected = Activity.values().length
-                        - (org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlRunner.isEnabled() ? 0 : 1);
-                assertEquals(expected, buttons.size(), "one rail button per shown activity");
+                // extension activities (FundsXML, PK-Meldewesen, …) only get a button while they are visible
+                long expected = java.util.Arrays.stream(Activity.values()).filter(Activity::isVisible).count();
+                assertEquals((int) expected, buttons.size(), "one rail button per shown activity");
                 for (var node : buttons) {
                     ToggleButton button = (ToggleButton) node;
                     Activity activity = (Activity) button.getUserData();

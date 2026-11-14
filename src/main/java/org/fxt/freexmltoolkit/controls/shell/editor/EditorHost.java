@@ -2961,6 +2961,11 @@ public class EditorHost extends BorderPane {
         this.validateHandler = handler != null ? handler : () -> { };
     }
 
+    /** Validates the active document the way F8 does (Validation panel, problems in the editor). */
+    public void runValidation() {
+        validateHandler.run();
+    }
+
     /** The JSON text editor's context-menu actions (they act on the active document). */
     private final org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonContextMenuManager.JsonContextActions
             jsonTextActions = new org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonContextMenuManager

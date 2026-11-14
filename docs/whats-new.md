@@ -20,6 +20,14 @@ running is shown under **Help → About FreeXmlToolkit**.
 - The viewer notices when the file changes on disk and offers to reload it; character references such as `&#233;`
   are decoded in the tree and table.
 
+**PK-Meldewesen (FMA)**
+
+- **New extension for Austrian pension fund reports:** the quarterly report (PK-QMV), the annual report (PK-FJMV)
+  and the ECB report are recognised by their root element and bound to the shipped FMA taxonomy 2.9.0 Hotfix2 - also
+  when the schema location in the file points to an unreachable network path. A status bar badge
+  (**PK-QMV Q1/2026**) and a side panel show the report, its schema and the FMA documentation. See
+  [PK-Meldewesen](plugin-pk-meldewesen.md).
+
 **Opening files**
 
 - **XML in files with other extensions:** a file whose extension the app does not know (`web.config`, `.xaml`, `.gpx`,
