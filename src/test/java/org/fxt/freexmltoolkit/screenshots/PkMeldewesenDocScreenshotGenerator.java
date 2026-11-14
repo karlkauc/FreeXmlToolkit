@@ -97,12 +97,57 @@ class PkMeldewesenDocScreenshotGenerator {
         settle(800);
         shot("plugin-pk-meldewesen");
 
+        // the grid with the formulas and filters of the quarterly report (a copy of the example)
+        onFx(panel::onGridAdd);
+        WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS, () -> ScreenshotFx.call("pk-screenshot",
+                () -> host.getActiveDocument().map(d -> d.getDisplayName().endsWith("-grid.xml")).orElse(false)));
+        settle(2500);
+        // open the Formblatt 800 of VRG 2 (the deliberate violation): its checks at the top of the cell
+        onFx(() -> {
+            shell.setInspectorVisible(false);
+            host.lookupAll("*").stream()
+                    .filter(n -> n instanceof org.fxt.freexmltoolkit.controls.shell.editor.XmlGridView && shown(n))
+                    .map(org.fxt.freexmltoolkit.controls.shell.editor.XmlGridView.class::cast)
+                    .findFirst().ifPresent(PkMeldewesenDocScreenshotGenerator::revealFormblatt800);
+        });
+        settle(1500);
+        // a little up: the saved filter and the first check (Diff_100, not 0 here) in view
+        onFx(() -> host.lookupAll(".scroll-bar").stream()
+                .filter(n -> n instanceof javafx.scene.control.ScrollBar sb && shown(n)
+                        && sb.getOrientation() == javafx.geometry.Orientation.VERTICAL
+                        && n.getParent() instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView)
+                .map(javafx.scene.control.ScrollBar.class::cast)
+                .forEach(sb -> sb.setValue(Math.max(0, sb.getValue() - 300))));
+        settle(800);
+        shot("plugin-pk-meldewesen-grid");
+        onFx(() -> shell.setInspectorVisible(true)); // the choice is persisted
+        panel = showActivity();
+        onFx(panel::onOpenExample); // the rule report below is of the example itself, not the grid copy
+        settle(1500);
+
         onFx(panel::onRuleReport);
         WaitForAsyncUtils.waitFor(60, TimeUnit.SECONDS, () -> ScreenshotFx.call("pk-screenshot",
                 () -> host.getActiveDocument().map(d -> d.getDisplayName().endsWith("-pruefbericht.html")).orElse(false)));
         settle(2500);
         shot("plugin-pk-meldewesen-report");
 
+    }
+
+    /** Reveals the first data point of VRG 2's Formblatt 800 in the grid, which opens its table cell. */
+    private static void revealFormblatt800(org.fxt.freexmltoolkit.controls.shell.editor.XmlGridView grid) {
+        var report = grid.getContext().getDocument().getRootElement();
+        for (var child : report.getChildren()) {
+            if (child instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement table
+                    && table.getName().startsWith("PK.800.01") && "2".equals(table.getAttribute("VRG"))) {
+                for (var point : table.getChildren()) {
+                    if (point instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement e
+                            && e.getName().equals("Datenpunkt")) {
+                        grid.getCanvasView().revealProblem(e, null);
+                        return;
+                    }
+                }
+            }
+        }
     }
 
     private PkMeldewesenPanel showActivity() throws Exception {

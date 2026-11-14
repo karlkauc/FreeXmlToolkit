@@ -135,6 +135,8 @@ filter per table (switched off; click its funnel line to switch it on). The form
 instructions (`<?fxt-formula …?>`, `<?fxt-filter …?>`) and change no data; see
 [Grid formulas](grid.md).
 
+![The grid copy of the example report: Formblatt 800 of VRG 2 with its saved filter and checks - Diff_100 shows the deliberate difference of 400,00](img/plugin-pk-meldewesen-grid.png)
+
 They must not be submitted: **Remove Grid Formulas (for Submission)** opens a copy without them
 (`<name>-clean.xml`). Running either again gives the same file.
 
