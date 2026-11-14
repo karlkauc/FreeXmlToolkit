@@ -167,6 +167,7 @@ nav:
       - XBRL (with Arelle): plugin-xbrl.md
       - PK-Meldewesen (FMA): plugin-pk-meldewesen.md
       - KAG-Meldewesen (FMA): plugin-kag-meldewesen.md
+      - ESMA Reporting (EMIR): plugin-esma-reporting.md
     - Extensions: plugins.md
     - Writing Extensions (Plugins): plugin-development.md
   - Security:

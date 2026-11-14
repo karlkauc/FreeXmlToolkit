@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Driver schema of ESMA's ISO 20022 reports in the business data envelope (BizData,
+  head.003.001.01): imports the envelope, the business application header (head.001.001.01, ESMA
+  usage guideline) and the reports FreeXmlToolkit knows, so the envelope's strict payload can be
+  validated. Part of FreeXmlToolkit's reporting extensions; the imported schemas are ESMA's, unchanged:
+    auth.093.001.01  money market fund report (MMF reporting XML schemas v04.1)
+    auth.030.001.03  EMIR Refit derivatives trade report (incoming messages 1.1.0, DATTAR)
+    auth.052.001.02  SFTR securities financing transaction report (counterparty and TR data exchange 2023)
+    auth.016.001.01  MiFIR transaction report (ESMA65-8-2598 annex 2, 1.1.0)
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:import namespace="urn:iso:std:iso:20022:tech:xsd:head.003.001.01" schemaLocation="head.003.001.01.xsd"/>
+	<xs:import namespace="urn:iso:std:iso:20022:tech:xsd:head.001.001.01" schemaLocation="head.001.001.01_ESMAUG_1.0.0.xsd"/>
+	<xs:import namespace="urn:iso:std:iso:20022:tech:xsd:DRAFT6auth.093.001.01" schemaLocation="MMF_Regulatory_reporting_MoneyMarketFundReport_V04_DRAFT_auth_093_001_01.xsd"/>
+	<xs:import namespace="urn:iso:std:iso:20022:tech:xsd:auth.030.001.03" schemaLocation="auth.030.001.03_ESMAUG_DATTAR_1.1.0.xsd"/>
+	<xs:import namespace="urn:iso:std:iso:20022:tech:xsd:auth.052.001.02" schemaLocation="auth.052.001.02_ESMAUG_1.2.0.xsd"/>
+	<xs:import namespace="urn:iso:std:iso:20022:tech:xsd:auth.016.001.01" schemaLocation="auth.016.001.01_ESMAUG_Reporting_1.1.0.xsd"/>
+</xs:schema>

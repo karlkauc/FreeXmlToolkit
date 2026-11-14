@@ -89,6 +89,7 @@ public final class RegRuleSet {
     private final Set<String> recordPaths;
     private final List<Rule> headerRules = new ArrayList<>();
     private final List<Rule> recordRules = new ArrayList<>();
+    private final List<java.util.function.BiConsumer<Context, Findings>> finishRules = new ArrayList<>();
 
     /** @param recordPaths the paths of the record elements from the root ({@code AIFReportingInfo/AIFRecordInfo}) */
     public RegRuleSet(String... recordPaths) {
@@ -104,6 +105,12 @@ public final class RegRuleSet {
     /** Adds a rule on every record. */
     public RegRuleSet record(Rule rule) {
         recordRules.add(rule);
+        return this;
+    }
+
+    /** Adds a rule run once after the last record (checks across the whole file, with the run's state). */
+    public RegRuleSet finish(java.util.function.BiConsumer<Context, Findings> rule) {
+        finishRules.add(rule);
         return this;
     }
 
@@ -127,6 +134,10 @@ public final class RegRuleSet {
                 rule.check(record, context, out);
             }
         });
+        Context end = new Context(root[0], documentName, state);
+        for (java.util.function.BiConsumer<Context, Findings> rule : finishRules) {
+            rule.accept(end, out);
+        }
         List<Finding> sorted = new ArrayList<>(out.list());
         sorted.sort(java.util.Comparator.comparingInt(Finding::line));
         return sorted;

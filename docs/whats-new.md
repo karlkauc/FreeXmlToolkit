@@ -20,6 +20,12 @@ running is shown under **Help → About FreeXmlToolkit**.
 - The viewer notices when the file changes on disk and offers to reload it; character references such as `&#233;`
   are decoded in the tree and table.
 
+**ESMA Reporting**
+
+- **EMIR Refit trade reports** (auth.030): a new extension binds them to ESMA's schema (also in the BizData
+  envelope) and checks ESMA's table of mandatory and not applicable fields per action type and level, the record
+  count, UTI, LEI and ISIN; every element shows its EMIR field number. See [ESMA Reporting](plugin-esma-reporting.md).
+
 **KAG-Meldewesen (FMA)**
 
 - **AIFMD reporting:** a new extension for Austrian management companies binds the AIFM and AIF files to ESMA's

@@ -1,0 +1,7226 @@
+{
+ "1.1": {
+  "name": "Reporting timestamp",
+  "codes": "1. EMIR-VR-1001-01 2. EMIR-VR-1001-02 3. EMIR-VR-1001-03 4. EMIR-VR-1001-04 5. EMIR-VR-1001-05",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "M",
+   "CORR": "M",
+   "TERM": "M",
+   "EROR": "M",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "M",
+   "CORR": "M",
+   "TERM": "M",
+   "EROR": "M",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/RptgTmStmp"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/RptgTmStmp"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/RptgTmStmp"
+   ],
+   "TERM": [
+    "CtrPtySpcfcData/RptgTmStmp"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/RptgTmStmp"
+   ],
+   "VALU": [
+    "CtrPtySpcfcData/RptgTmStmp"
+   ],
+   "EROR": [
+    "CtrPtySpcfcData/RptgTmStmp"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/RptgTmStmp"
+   ]
+  }
+ },
+ "1.2": {
+  "name": "Report submitting entity ID",
+  "codes": "1. EMIR-VR-1002-01 2. EMIR-VR-1002-02 3. EMIR-VR-1002-03 4. EMIR-VR-1002-04",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "M",
+   "CORR": "M",
+   "TERM": "M",
+   "EROR": "M",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "M",
+   "CORR": "M",
+   "TERM": "M",
+   "EROR": "M",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/SubmitgAgt/LEI"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/SubmitgAgt/LEI"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/SubmitgAgt/LEI"
+   ],
+   "TERM": [
+    "CtrPtySpcfcData/CtrPty/SubmitgAgt/LEI"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/SubmitgAgt/LEI"
+   ],
+   "VALU": [
+    "CtrPtySpcfcData/CtrPty/SubmitgAgt/LEI"
+   ],
+   "EROR": [
+    "CtrPtySpcfcData/CtrPty/SubmitgAgt/LEI"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/CtrPty/SubmitgAgt/LEI"
+   ]
+  }
+ },
+ "1.3": {
+  "name": "Entity responsible for reporting",
+  "codes": "1. EMIR-VR-1003-01 2. EMIR-VR-1003-02 3. EMIR-VR-1003-03 4. EMIR-VR-1003-04 5. EMIR-VR-1003-05",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "C",
+   "CORR": "C",
+   "TERM": "C",
+   "EROR": "C",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "C",
+   "CORR": "C",
+   "TERM": "C",
+   "EROR": "C",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/NttyRspnsblForRpt/LEI"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/NttyRspnsblForRpt/LEI"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/NttyRspnsblForRpt/LEI"
+   ],
+   "TERM": [
+    "CtrPtySpcfcData/CtrPty/NttyRspnsblForRpt/LEI"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/NttyRspnsblForRpt/LEI"
+   ],
+   "VALU": [
+    "CtrPtySpcfcData/CtrPty/NttyRspnsblForRpt/LEI"
+   ],
+   "EROR": [
+    "CtrPtySpcfcData/CtrPty/NttyRspnsblForRpt/LEI"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/CtrPty/NttyRspnsblForRpt/LEI"
+   ]
+  }
+ },
+ "1.4": {
+  "name": "Counterparty 1 (Reporting counterparty)",
+  "codes": "1. EMIR-VR-1004-01 2. EMIR-VR-1004-02 3. EMIR-VR-1004-03 4. EMIR-VR-1004-04 5. EMIR-VR-1004-05",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "M",
+   "CORR": "M",
+   "TERM": "M",
+   "EROR": "M",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "M",
+   "CORR": "M",
+   "TERM": "M",
+   "EROR": "M",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Id/Lgl/Id/LEI"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Id/Lgl/Id/LEI"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Id/Lgl/Id/LEI"
+   ],
+   "TERM": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Id/Lgl/Id/LEI"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Id/Lgl/Id/LEI"
+   ],
+   "VALU": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Id/Lgl/Id/LEI"
+   ],
+   "EROR": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Id/Lgl/Id/LEI"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Id/Lgl/Id/LEI"
+   ]
+  }
+ },
+ "1.5": {
+  "name": "Nature of the counterparty 1",
+  "codes": "1. EMIR-VR-1005-01",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr"
+   ]
+  }
+ },
+ "1.6": {
+  "name": "Corporate sector of the counterparty 1",
+  "codes": "1. EMIR-VR-1006-01 2. EMIR-VR-1006-02 3. EMIR-VR-1006-03",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/FI/Sctr",
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/Sctr"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/FI/Sctr",
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/Sctr"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/FI/Sctr",
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/Sctr"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/FI/Sctr",
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/Sctr"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/FI/Sctr",
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/Sctr"
+   ]
+  }
+ },
+ "1.7": {
+  "name": "Clearing threshold of counterparty 1",
+  "codes": "1. EMIR-VR-1007-01 2. EMIR-VR-1007-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/ClrThrshld"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/ClrThrshld"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/ClrThrshld"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/ClrThrshld"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/ClrThrshld"
+   ]
+  }
+ },
+ "1.8": {
+  "name": "Counterparty 2 identifier type",
+  "codes": "1. EMIR-VR-1008-01 2. EMIR-VR-1008-02",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "M",
+   "CORR": "M",
+   "TERM": "M",
+   "EROR": "M",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "M",
+   "CORR": "M",
+   "TERM": "M",
+   "EROR": "M",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp"
+   ],
+   "TERM": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp"
+   ],
+   "VALU": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp"
+   ],
+   "EROR": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp"
+   ]
+  }
+ },
+ "1.9": {
+  "name": "Counterparty 2",
+  "codes": "1. EMIR-VR-1009-01 2. EMIR-VR-1009-02 3. EMIR-VR-1009-03 4. EMIR-VR-1009-04 5. EMIR-VR-1009-05 6. EMIR-VR-1009-06 7. EMIR-VR-1009-07 8. EMIR-VR-1009-08 9. EMIR-VR-1009-09",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "M",
+   "CORR": "M",
+   "TERM": "M",
+   "EROR": "M",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "M",
+   "CORR": "M",
+   "TERM": "M",
+   "EROR": "M",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Lgl/Id/LEI",
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Ntrl/Id/Id/Id"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Lgl/Id/LEI",
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Ntrl/Id/Id/Id"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Lgl/Id/LEI",
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Ntrl/Id/Id/Id"
+   ],
+   "TERM": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Lgl/Id/LEI",
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Ntrl/Id/Id/Id"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Lgl/Id/LEI",
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Ntrl/Id/Id/Id"
+   ],
+   "VALU": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Lgl/Id/LEI",
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Ntrl/Id/Id/Id"
+   ],
+   "EROR": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Lgl/Id/LEI",
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Ntrl/Id/Id/Id"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Lgl/Id/LEI",
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Ntrl/Id/Id/Id"
+   ]
+  }
+ },
+ "1.10": {
+  "name": "Country of the counterparty 2",
+  "codes": "1. EMIR-VR-1010-01 2. EMIR-VR-1010-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Ntrl/Ctry"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Ntrl/Ctry"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Ntrl/Ctry"
+   ],
+   "TERM": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Ntrl/Ctry"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Ntrl/Ctry"
+   ],
+   "VALU": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Ntrl/Ctry"
+   ],
+   "EROR": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Ntrl/Ctry"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/IdTp/Ntrl/Ctry"
+   ]
+  }
+ },
+ "1.11": {
+  "name": "Nature of the counterparty 2",
+  "codes": "1. EMIR-VR-1011-01 2. EMIR-VR-1011-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Ntr"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Ntr"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Ntr"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Ntr"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Ntr"
+   ]
+  }
+ },
+ "1.12": {
+  "name": "Corporate sector of the counterparty 2",
+  "codes": "1. EMIR-VR-1012-01 2. EMIR-VR-1012-02 3. EMIR-VR-1012-03",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Ntr/FI/Sctr",
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Ntr/NFI/Sctr"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Ntr/FI/Sctr",
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Ntr/NFI/Sctr"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Ntr/FI/Sctr",
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Ntr/NFI/Sctr"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Ntr/FI/Sctr",
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Ntr/NFI/Sctr"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Ntr/FI/Sctr",
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Ntr/NFI/Sctr"
+   ]
+  }
+ },
+ "1.13": {
+  "name": "Clearing threshold of counterparty 2",
+  "codes": "1. EMIR-VR-1013-01 2. EMIR-VR-1013-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Ntr/NFI/ClrThrshld"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Ntr/NFI/ClrThrshld"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Ntr/NFI/ClrThrshld"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Ntr/NFI/ClrThrshld"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Ntr/NFI/ClrThrshld"
+   ]
+  }
+ },
+ "1.14": {
+  "name": "Reporting obligation of the counterparty 2",
+  "codes": "1. EMIR-VR-1014-01 2. EMIR-VR-1014-02",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/RptgOblgtn"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/RptgOblgtn"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/RptgOblgtn"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/RptgOblgtn"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/RptgOblgtn"
+   ]
+  }
+ },
+ "1.15": {
+  "name": "Broker ID",
+  "codes": "1. EMIR-VR-1015-01 2. EMIR-VR-1015-02",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/Brkr/LEI"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/Brkr/LEI"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/Brkr/LEI"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/Brkr/LEI"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/CtrPty/Brkr/LEI"
+   ]
+  }
+ },
+ "1.16": {
+  "name": "Clearing member",
+  "codes": "1. EMIR-VR-1016-01 2. EMIR-VR-1016-02 3. EMIR-VR-1016-03 4. EMIR-VR-1016-04 5. EMIR-VR-1016-05 6. EMIR-VR-1016-06 7. EMIR-VR-1016-07",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {}
+ },
+ "1.17": {
+  "name": "Direction",
+  "codes": "1. EMIR-VR-1017-01 2. EMIR-VR-1017-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/DrctnOrSd/CtrPtySd"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/DrctnOrSd/CtrPtySd"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/DrctnOrSd/CtrPtySd"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/DrctnOrSd/CtrPtySd"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/DrctnOrSd/CtrPtySd"
+   ]
+  }
+ },
+ "1.18": {
+  "name": "Direction of leg 1",
+  "codes": "1. EMIR-VR-1018-01 2. EMIR-VR-1018-02 3. EMIR-VR-1018-03",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/DrctnOrSd/Drctn/DrctnOfTheFrstLeg"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/DrctnOrSd/Drctn/DrctnOfTheFrstLeg"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/DrctnOrSd/Drctn/DrctnOfTheFrstLeg"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/DrctnOrSd/Drctn/DrctnOfTheFrstLeg"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/DrctnOrSd/Drctn/DrctnOfTheFrstLeg"
+   ]
+  }
+ },
+ "1.19": {
+  "name": "Direction of leg 2",
+  "codes": "1. EMIR-VR-1019-01 2. EMIR-VR-1019-02 3. EMIR-VR-1019-03",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/DrctnOrSd/Drctn/DrctnOfTheScndLeg"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/DrctnOrSd/Drctn/DrctnOfTheScndLeg"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/DrctnOrSd/Drctn/DrctnOfTheScndLeg"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/DrctnOrSd/Drctn/DrctnOfTheScndLeg"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/DrctnOrSd/Drctn/DrctnOfTheScndLeg"
+   ]
+  }
+ },
+ "1.20": {
+  "name": "Directly linked to commercial activity or treasury financing",
+  "codes": "1. EMIR-VR-1020-01 2. EMIR-VR-1020-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "-",
+   "MODI": "-",
+   "VALU": "-",
+   "CORR": "-",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "-",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/DrctlyLkdActvty"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/DrctlyLkdActvty"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/DrctlyLkdActvty"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/DrctlyLkdActvty"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/DrctlyLkdActvty"
+   ]
+  }
+ },
+ "2.1": {
+  "name": "UTI",
+  "codes": "1. EMIR-VR-2001-01 2. EMIR-VR-2001-02 3. EMIR-VR-2001-03 4. EMIR-VR-2001-04",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "M",
+   "CORR": "M",
+   "TERM": "M",
+   "EROR": "M",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "M",
+   "CORR": "M",
+   "TERM": "M",
+   "EROR": "M",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/TxId/UnqTxIdr"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/TxId/UnqTxIdr",
+    "CmonTradData/TxData/TxId/Prtry"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/TxId/UnqTxIdr",
+    "CmonTradData/TxData/TxId/Prtry"
+   ],
+   "TERM": [
+    "CmonTradData/TxData/TxId/UnqTxIdr",
+    "CmonTradData/TxData/TxId/Prtry"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/TxId/UnqTxIdr"
+   ],
+   "VALU": [
+    "CmonTradData/TxData/TxId/UnqTxIdr",
+    "CmonTradData/TxData/TxId/Prtry"
+   ],
+   "EROR": [
+    "CmonTradData/TxData/TxId/UnqTxIdr",
+    "CmonTradData/TxData/TxId/Prtry"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/TxId/UnqTxIdr",
+    "CmonTradData/TxData/TxId/Prtry"
+   ]
+  }
+ },
+ "2.2": {
+  "name": "Report tracking number",
+  "codes": "1. EMIR-VR-2002-01 2. EMIR-VR-2002-02 3. EMIR-VR-2002-03 4. EMIR-VR-2002-04",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "-",
+   "MODI": "-",
+   "VALU": "-",
+   "CORR": "-",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "-",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/RptTrckgNb"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/RptTrckgNb"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/RptTrckgNb"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/RptTrckgNb"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/RptTrckgNb"
+   ]
+  }
+ },
+ "2.3": {
+  "name": "Prior UTI (for one-to-one and one-to-many relations between transactions)",
+  "codes": "1. EMIR-VR-2003-01 2. EMIR-VR-2003-02 3. EMIR-VR-2003-03 4. EMIR-VR-2003-04 5. EMIR-VR-2003-05",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/PrrTxId/UnqTxIdr",
+    "CmonTradData/TxData/PrrTxId/Prtry"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/PrrTxId/UnqTxIdr",
+    "CmonTradData/TxData/PrrTxId/Prtry"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/PrrTxId/UnqTxIdr",
+    "CmonTradData/TxData/PrrTxId/Prtry"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/PrrTxId/UnqTxIdr",
+    "CmonTradData/TxData/PrrTxId/Prtry"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/PrrTxId/UnqTxIdr",
+    "CmonTradData/TxData/PrrTxId/Prtry"
+   ]
+  }
+ },
+ "2.4": {
+  "name": "Subsequent position UTI",
+  "codes": "1. EMIR-VR-2004-01 2. EMIR-VR-2004-02 3. EMIR-VR-2004-03 4. EMIR-VR-2004-04",
+  "TRAD": {
+   "NEWT": "-",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "C",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "-",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "C",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "MODI": [
+    "CmonTradData/TxData/SbsqntTxId/UnqTxIdr",
+    "CmonTradData/TxData/SbsqntTxId/Prtry"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/SbsqntTxId/UnqTxIdr",
+    "CmonTradData/TxData/SbsqntTxId/Prtry"
+   ],
+   "TERM": [
+    "CmonTradData/TxData/SbsqntTxId/UnqTxIdr",
+    "CmonTradData/TxData/SbsqntTxId/Prtry"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/SbsqntTxId/UnqTxIdr",
+    "CmonTradData/TxData/SbsqntTxId/Prtry"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/SbsqntTxId/UnqTxIdr",
+    "CmonTradData/TxData/SbsqntTxId/Prtry"
+   ]
+  }
+ },
+ "2.5": {
+  "name": "PTRR ID",
+  "codes": "1. EMIR-VR-2005-01 2. EMIR-VR-2005-02 3. EMIR-VR-2005-03 4. EMIR-VR-2005-04",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "C",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "-"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "C",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/DerivEvt/Id/PstTradRskRdctnIdr"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/DerivEvt/Id/PstTradRskRdctnIdr"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/DerivEvt/Id/PstTradRskRdctnIdr"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/DerivEvt/Id/PstTradRskRdctnIdr"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/DerivEvt/Id/PstTradRskRdctnIdr"
+   ]
+  }
+ },
+ "2.6": {
+  "name": "Package identifier",
+  "codes": "1. EMIR-VR-2006-01",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Packg/CmplxTradId"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Packg/CmplxTradId"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Packg/CmplxTradId"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Packg/CmplxTradId"
+   ]
+  }
+ },
+ "2.7": {
+  "name": "ISIN",
+  "codes": "1. EMIR-VR-2007-01 2. EMIR-VR-2007-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/CtrctData/PdctId/ISIN"
+   ],
+   "CORR": [
+    "CmonTradData/CtrctData/PdctId/ISIN"
+   ],
+   "POSC": [
+    "CmonTradData/CtrctData/PdctId/ISIN"
+   ],
+   "REVI": [
+    "CmonTradData/CtrctData/PdctId/ISIN"
+   ]
+  }
+ },
+ "2.8": {
+  "name": "Unique product identifier (UPI)",
+  "codes": "1. EMIR-VR-2008-01 2. EMIR-VR-2008-02 3. EMIR-VR-2008-03 4. EMIR-VR-2008-04",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/CtrctData/PdctId/UnqPdctIdr"
+   ],
+   "MODI": [
+    "CmonTradData/CtrctData/PdctId/UnqPdctIdr"
+   ],
+   "CORR": [
+    "CmonTradData/CtrctData/PdctId/UnqPdctIdr"
+   ],
+   "POSC": [
+    "CmonTradData/CtrctData/PdctId/UnqPdctIdr"
+   ],
+   "REVI": [
+    "CmonTradData/CtrctData/PdctId/UnqPdctIdr"
+   ]
+  }
+ },
+ "2.9": {
+  "name": "Product classification",
+  "codes": "1. EMIR-VR-2009-01 2. EMIR-VR-2009-02",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/CtrctData/PdctClssfctn"
+   ],
+   "MODI": [
+    "CmonTradData/CtrctData/PdctClssfctn"
+   ],
+   "CORR": [
+    "CmonTradData/CtrctData/PdctClssfctn"
+   ],
+   "POSC": [
+    "CmonTradData/CtrctData/PdctClssfctn"
+   ],
+   "REVI": [
+    "CmonTradData/CtrctData/PdctClssfctn"
+   ]
+  }
+ },
+ "2.10": {
+  "name": "Contract type",
+  "codes": "1. EMIR-VR-2010-01",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/CtrctData/CtrctTp"
+   ],
+   "MODI": [
+    "CmonTradData/CtrctData/CtrctTp"
+   ],
+   "CORR": [
+    "CmonTradData/CtrctData/CtrctTp"
+   ],
+   "POSC": [
+    "CmonTradData/CtrctData/CtrctTp"
+   ],
+   "REVI": [
+    "CmonTradData/CtrctData/CtrctTp"
+   ]
+  }
+ },
+ "2.11": {
+  "name": "Asset class",
+  "codes": "1. EMIR-VR-2011-01",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/CtrctData/AsstClss"
+   ],
+   "MODI": [
+    "CmonTradData/CtrctData/AsstClss"
+   ],
+   "CORR": [
+    "CmonTradData/CtrctData/AsstClss"
+   ],
+   "POSC": [
+    "CmonTradData/CtrctData/AsstClss"
+   ],
+   "REVI": [
+    "CmonTradData/CtrctData/AsstClss"
+   ]
+  }
+ },
+ "2.12": {
+  "name": "Derivative based on crypto-assets",
+  "codes": "1. EMIR-VR-2012-01",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/CtrctData/DerivBasedOnCrptAsst"
+   ],
+   "MODI": [
+    "CmonTradData/CtrctData/DerivBasedOnCrptAsst"
+   ],
+   "CORR": [
+    "CmonTradData/CtrctData/DerivBasedOnCrptAsst"
+   ],
+   "POSC": [
+    "CmonTradData/CtrctData/DerivBasedOnCrptAsst"
+   ],
+   "REVI": [
+    "CmonTradData/CtrctData/DerivBasedOnCrptAsst"
+   ]
+  }
+ },
+ "2.13": {
+  "name": "Underlying identification type",
+  "codes": "1. EMIR-VR-2013-01 2. EMIR-VR-2013-02 3. EMIR-VR-2013-03 4. EMIR-VR-2013-04 5. EMIR-VR-2013-05",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/CtrctData/UndrlygInstrm"
+   ],
+   "MODI": [
+    "CmonTradData/CtrctData/UndrlygInstrm"
+   ],
+   "CORR": [
+    "CmonTradData/CtrctData/UndrlygInstrm"
+   ],
+   "POSC": [
+    "CmonTradData/CtrctData/UndrlygInstrm"
+   ],
+   "REVI": [
+    "CmonTradData/CtrctData/UndrlygInstrm"
+   ]
+  }
+ },
+ "2.14": {
+  "name": "Underlying identification",
+  "codes": "1. EMIR-VR-2014-01 2. EMIR-VR-2014-02 3. EMIR-VR-2014-03",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/CtrctData/UndrlygInstrm/ISIN",
+    "CmonTradData/CtrctData/UndrlygInstrm/Indx/ISIN"
+   ],
+   "MODI": [
+    "CmonTradData/CtrctData/UndrlygInstrm/ISIN",
+    "CmonTradData/CtrctData/UndrlygInstrm/Indx/ISIN"
+   ],
+   "CORR": [
+    "CmonTradData/CtrctData/UndrlygInstrm/ISIN",
+    "CmonTradData/CtrctData/UndrlygInstrm/Indx/ISIN"
+   ],
+   "POSC": [
+    "CmonTradData/CtrctData/UndrlygInstrm/ISIN",
+    "CmonTradData/CtrctData/UndrlygInstrm/Indx/ISIN"
+   ],
+   "REVI": [
+    "CmonTradData/CtrctData/UndrlygInstrm/ISIN",
+    "CmonTradData/CtrctData/UndrlygInstrm/Indx/ISIN"
+   ]
+  }
+ },
+ "2.15": {
+  "name": "Indicator of the underlying index",
+  "codes": "1. EMIR-VR-2015-01 2. EMIR-VR-2015-02",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/CtrctData/UndrlygInstrm/Indx/Indx"
+   ],
+   "MODI": [
+    "CmonTradData/CtrctData/UndrlygInstrm/Indx/Indx"
+   ],
+   "CORR": [
+    "CmonTradData/CtrctData/UndrlygInstrm/Indx/Indx"
+   ],
+   "POSC": [
+    "CmonTradData/CtrctData/UndrlygInstrm/Indx/Indx"
+   ],
+   "REVI": [
+    "CmonTradData/CtrctData/UndrlygInstrm/Indx/Indx"
+   ]
+  }
+ },
+ "2.16": {
+  "name": "Name of the underlying index",
+  "codes": "1. EMIR-VR-2016-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/CtrctData/UndrlygInstrm/Indx/Nm"
+   ],
+   "MODI": [
+    "CmonTradData/CtrctData/UndrlygInstrm/Indx/Nm"
+   ],
+   "CORR": [
+    "CmonTradData/CtrctData/UndrlygInstrm/Indx/Nm"
+   ],
+   "POSC": [
+    "CmonTradData/CtrctData/UndrlygInstrm/Indx/Nm"
+   ],
+   "REVI": [
+    "CmonTradData/CtrctData/UndrlygInstrm/Indx/Nm"
+   ]
+  }
+ },
+ "2.17": {
+  "name": "Custom basket code",
+  "codes": "1. EMIR-VR-2017-01 2. EMIR-VR-2017-02 3. EMIR-VR-2017-03",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/CtrctData/UndrlygInstrm/Bskt/Strr",
+    "CmonTradData/CtrctData/UndrlygInstrm/Bskt/Id"
+   ],
+   "MODI": [
+    "CmonTradData/CtrctData/UndrlygInstrm/Bskt/Strr",
+    "CmonTradData/CtrctData/UndrlygInstrm/Bskt/Id"
+   ],
+   "CORR": [
+    "CmonTradData/CtrctData/UndrlygInstrm/Bskt/Strr",
+    "CmonTradData/CtrctData/UndrlygInstrm/Bskt/Id"
+   ],
+   "POSC": [
+    "CmonTradData/CtrctData/UndrlygInstrm/Bskt/Strr",
+    "CmonTradData/CtrctData/UndrlygInstrm/Bskt/Id"
+   ],
+   "REVI": [
+    "CmonTradData/CtrctData/UndrlygInstrm/Bskt/Strr",
+    "CmonTradData/CtrctData/UndrlygInstrm/Bskt/Id"
+   ]
+  }
+ },
+ "2.18": {
+  "name": "Identifier of the basket’s constituents",
+  "codes": "1. EMIR-VR-2018-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/CtrctData/UndrlygInstrm/Bskt/Cnsttnts/InstrmId/ISIN"
+   ],
+   "MODI": [
+    "CmonTradData/CtrctData/UndrlygInstrm/Bskt/Cnsttnts/InstrmId/ISIN"
+   ],
+   "CORR": [
+    "CmonTradData/CtrctData/UndrlygInstrm/Bskt/Cnsttnts/InstrmId/ISIN"
+   ],
+   "POSC": [
+    "CmonTradData/CtrctData/UndrlygInstrm/Bskt/Cnsttnts/InstrmId/ISIN"
+   ],
+   "REVI": [
+    "CmonTradData/CtrctData/UndrlygInstrm/Bskt/Cnsttnts/InstrmId/ISIN"
+   ]
+  }
+ },
+ "2.19": {
+  "name": "Settlement currency 1",
+  "codes": "1. EMIR-VR-2019-01 2. EMIR-VR-2019-02 3. EMIR-VR-2019-03 4. EMIR-VR-2019-04 5. EMIR-VR-2019-05",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/CtrctData/SttlmCcy"
+   ],
+   "MODI": [
+    "CmonTradData/CtrctData/SttlmCcy"
+   ],
+   "CORR": [
+    "CmonTradData/CtrctData/SttlmCcy"
+   ],
+   "POSC": [
+    "CmonTradData/CtrctData/SttlmCcy"
+   ],
+   "REVI": [
+    "CmonTradData/CtrctData/SttlmCcy"
+   ]
+  }
+ },
+ "2.20": {
+  "name": "Settlement currency 2",
+  "codes": "1. EMIR-VR-2020-01 2. EMIR-VR-2020-02 3. EMIR-VR-2020-03",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/CtrctData/SttlmCcyScndLeg"
+   ],
+   "MODI": [
+    "CmonTradData/CtrctData/SttlmCcyScndLeg"
+   ],
+   "CORR": [
+    "CmonTradData/CtrctData/SttlmCcyScndLeg"
+   ],
+   "REVI": [
+    "CmonTradData/CtrctData/SttlmCcyScndLeg"
+   ]
+  }
+ },
+ "2.21": {
+  "name": "Valuation amount",
+  "codes": "1. EMIR-VR-2021-01",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "-",
+   "VALU": "M",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "-",
+   "VALU": "M",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/Valtn/CtrctVal/Amt",
+    "CtrPtySpcfcData/Valtn/CtrctVal/Sgn"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/Valtn/CtrctVal/Amt",
+    "CtrPtySpcfcData/Valtn/CtrctVal/Sgn"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/Valtn/CtrctVal/Amt",
+    "CtrPtySpcfcData/Valtn/CtrctVal/Sgn"
+   ],
+   "VALU": [
+    "CtrPtySpcfcData/Valtn/CtrctVal/Amt",
+    "CtrPtySpcfcData/Valtn/CtrctVal/Sgn"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/Valtn/CtrctVal/Amt",
+    "CtrPtySpcfcData/Valtn/CtrctVal/Sgn"
+   ]
+  }
+ },
+ "2.22": {
+  "name": "Valuation currency",
+  "codes": "1. EMIR-VR-2022-01 2. EMIR-VR-2022-02 3. EMIR-VR-2022-03",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "-",
+   "VALU": "M",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "-",
+   "VALU": "M",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/Valtn/CtrctVal/Amt/@Ccy"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/Valtn/CtrctVal/Amt/@Ccy"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/Valtn/CtrctVal/Amt/@Ccy"
+   ],
+   "VALU": [
+    "CtrPtySpcfcData/Valtn/CtrctVal/Amt/@Ccy"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/Valtn/CtrctVal/Amt/@Ccy"
+   ]
+  }
+ },
+ "2.23": {
+  "name": "Valuation timestamp",
+  "codes": "1. EMIR-VR-2023-01 2. EMIR-VR-2023-02 3. EMIR-VR-2023-03 4. EMIR-VR-2023-04 5. EMIR-VR-2023-05 6. EMIR-VR-2023-06 7. EMIR-VR-2023-07",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "-",
+   "VALU": "M",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "-",
+   "VALU": "M",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/Valtn/TmStmp"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/Valtn/TmStmp"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/Valtn/TmStmp"
+   ],
+   "VALU": [
+    "CtrPtySpcfcData/Valtn/TmStmp"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/Valtn/TmStmp"
+   ]
+  }
+ },
+ "2.24": {
+  "name": "Valuation method",
+  "codes": "1. EMIR-VR-2024-01 2. EMIR-VR-2024-02 3. EMIR-VR-2024-03",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "-",
+   "VALU": "M",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "-",
+   "VALU": "M",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/Valtn/Tp"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/Valtn/Tp"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/Valtn/Tp"
+   ],
+   "VALU": [
+    "CtrPtySpcfcData/Valtn/Tp"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/Valtn/Tp"
+   ]
+  }
+ },
+ "2.25": {
+  "name": "Delta",
+  "codes": "1. EMIR-VR-2025-01 2. EMIR-VR-2025-02 3. EMIR-VR-2025-03",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "-",
+   "VALU": "C",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "-",
+   "VALU": "C",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/Valtn/Dlta"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/Valtn/Dlta"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/Valtn/Dlta"
+   ],
+   "VALU": [
+    "CtrPtySpcfcData/Valtn/Dlta"
+   ],
+   "REVI": [
+    "CtrPtySpcfcData/Valtn/Dlta"
+   ]
+  }
+ },
+ "2.26": {
+  "name": "Collateral portfolio indicator",
+  "codes": "1. EMIR-VR-2026-01",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/CollPrtflCd/Prtfl"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/CollPrtflCd/Prtfl"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/CollPrtflCd/Prtfl"
+   ],
+   "TERM": [
+    "CmonTradData/TxData/CollPrtflCd/Prtfl"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/CollPrtflCd/Prtfl"
+   ],
+   "VALU": [
+    "CmonTradData/TxData/CollPrtflCd/Prtfl"
+   ],
+   "EROR": [
+    "CmonTradData/TxData/CollPrtflCd/Prtfl"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/CollPrtflCd/Prtfl"
+   ]
+  }
+ },
+ "2.27": {
+  "name": "Collateral portfolio code",
+  "codes": "1. EMIR-VR-2027-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "- C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/CollPrtflCd/Prtfl/Cd"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/CollPrtflCd/Prtfl/Cd"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/CollPrtflCd/Prtfl/Cd"
+   ],
+   "TERM": [
+    "CmonTradData/TxData/CollPrtflCd/Prtfl/Cd"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/CollPrtflCd/Prtfl/Cd"
+   ],
+   "VALU": [
+    "CmonTradData/TxData/CollPrtflCd/Prtfl/Cd"
+   ],
+   "EROR": [
+    "CmonTradData/TxData/CollPrtflCd/Prtfl/Cd"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/CollPrtflCd/Prtfl/Cd"
+   ]
+  }
+ },
+ "2.28": {
+  "name": "Confirmation timestamp",
+  "codes": "1. EMIR-VR-2028-01 2. EMIR-VR-2028-02 3. EMIR-VR-2028-03 4. EMIR-VR-2028-04 5. EMIR-VR-2028-05",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/TradConf/Confd/TmStmp"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/TradConf/Confd/TmStmp"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/TradConf/Confd/TmStmp"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/TradConf/Confd/TmStmp"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/TradConf/Confd/TmStmp"
+   ]
+  }
+ },
+ "2.29": {
+  "name": "Confirmed",
+  "codes": "1. EMIR-VR-2029-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/TradConf/Confd/Tp",
+    "CmonTradData/TxData/TradConf/NonConfd/Tp"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/TradConf/Confd/Tp",
+    "CmonTradData/TxData/TradConf/NonConfd/Tp"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/TradConf/Confd/Tp",
+    "CmonTradData/TxData/TradConf/NonConfd/Tp"
+   ],
+   "POSC": [
+    "CmonTradData/CtrctData/SttlmCcyScndLeg",
+    "CmonTradData/TxData/TradConf/Confd/Tp",
+    "CmonTradData/TxData/TradConf/NonConfd/Tp"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/TradConf/Confd/Tp",
+    "CmonTradData/TxData/TradConf/NonConfd/Tp"
+   ]
+  }
+ },
+ "2.30": {
+  "name": "Clearing obligation",
+  "codes": "1. EMIR-VR-2030-01 2. EMIR-VR-2030-02 3. EMIR-VR-2030-03",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/TradClr/ClrOblgtn"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/TradClr/ClrOblgtn"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/TradClr/ClrOblgtn"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/TradClr/ClrOblgtn"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/TradClr/ClrOblgtn"
+   ]
+  }
+ },
+ "2.31": {
+  "name": "Cleared",
+  "codes": "1. EMIR-VR-2031-01",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/TradClr/ClrSts/Clrd",
+    "CmonTradData/TxData/TradClr/ClrSts/NonClrd"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/TradClr/ClrSts/Clrd",
+    "CmonTradData/TxData/TradClr/ClrSts/NonClrd"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/TradClr/ClrSts/Clrd",
+    "CmonTradData/TxData/TradClr/ClrSts/NonClrd"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/TradClr/ClrSts/Clrd",
+    "CmonTradData/TxData/TradClr/ClrSts/NonClrd"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/TradClr/ClrSts/Clrd",
+    "CmonTradData/TxData/TradClr/ClrSts/NonClrd"
+   ]
+  }
+ },
+ "2.32": {
+  "name": "Clearing timestamp",
+  "codes": "1. EMIR-VR-2032-01 2. EMIR-VR-2032-02 3. EMIR-VR-2032-03 4. EMIR-VR-2032-04 5. EMIR-VR-2032-05",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/TradClr/ClrSts/Clrd/Dtls/ClrDtTm"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/TradClr/ClrSts/Clrd/Dtls/ClrDtTm"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/TradClr/ClrSts/Clrd/Dtls/ClrDtTm"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/TradClr/ClrSts/Clrd/Dtls/ClrDtTm"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/TradClr/ClrSts/Clrd/Dtls/ClrDtTm"
+   ]
+  }
+ },
+ "2.33": {
+  "name": "Central counterparty",
+  "codes": "1. EMIR-VR-2033-01 2. EMIR-VR-2033-02 3. EMIR-VR-2033-03 4. EMIR-VR-2033-04",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/TradClr/ClrSts/Clrd/Dtls/CCP/LEI"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/TradClr/ClrSts/Clrd/Dtls/CCP/LEI"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/TradClr/ClrSts/Clrd/Dtls/CCP/LEI"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/TradClr/ClrSts/Clrd/Dtls/CCP/LEI"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/TradClr/ClrSts/Clrd/Dtls/CCP/LEI"
+   ]
+  }
+ },
+ "2.34": {
+  "name": "Master Agreement type",
+  "codes": "1. EMIR-VR-2034-01",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/MstrAgrmt/Tp/Tp"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/MstrAgrmt/Tp/Tp"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/MstrAgrmt/Tp/Tp"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/MstrAgrmt/Tp/Tp"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/MstrAgrmt/Tp/Tp"
+   ]
+  }
+ },
+ "2.35": {
+  "name": "Other master agreement type",
+  "codes": "1. EMIR-VR-2035-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/MstrAgrmt/OthrMstrAgrmtDtls"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/MstrAgrmt/OthrMstrAgrmtDtls"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/MstrAgrmt/OthrMstrAgrmtDtls"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/MstrAgrmt/OthrMstrAgrmtDtls"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/MstrAgrmt/OthrMstrAgrmtDtls"
+   ]
+  }
+ },
+ "2.36": {
+  "name": "Master Agreement version",
+  "codes": "1. EMIR-VR-2036-01 2. EMIR-VR-2036-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/MstrAgrmt/Vrsn"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/MstrAgrmt/Vrsn"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/MstrAgrmt/Vrsn"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/MstrAgrmt/Vrsn"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/MstrAgrmt/Vrsn"
+   ]
+  }
+ },
+ "2.37": {
+  "name": "Intragroup",
+  "codes": "1. EMIR-VR-2037-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/TradClr/IntraGrp"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/TradClr/IntraGrp"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/TradClr/IntraGrp"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/TradClr/IntraGrp"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/TradClr/IntraGrp"
+   ]
+  }
+ },
+ "2.38": {
+  "name": "PTRR",
+  "codes": "1. EMIR-VR-2038-01 2. EMIR-VR-2038-02",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "-",
+   "MODI": "-",
+   "VALU": "-",
+   "CORR": "-",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "-",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt"
+   ],
+   "TERM": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt"
+   ],
+   "VALU": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt"
+   ],
+   "EROR": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt"
+   ]
+  }
+ },
+ "2.39": {
+  "name": "Type of PTRR technique",
+  "codes": "1. EMIR-VR-2039-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "C",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "-",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "C",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt/Tchnq"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt/Tchnq"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt/Tchnq"
+   ],
+   "TERM": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt/Tchnq"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt/Tchnq"
+   ],
+   "VALU": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt/Tchnq"
+   ],
+   "EROR": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt/Tchnq"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt/Tchnq"
+   ]
+  }
+ },
+ "2.40": {
+  "name": "PTRR service provider",
+  "codes": "1. EMIR-VR-2040-01 2. EMIR-VR-2040-02 3. EMIR-VR-2040-03 4. EMIR-VR-2040-04",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "C",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "-",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "C",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt/SvcPrvdr/LEI"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt/SvcPrvdr/LEI"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt/SvcPrvdr/LEI"
+   ],
+   "TERM": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt/SvcPrvdr/LEI"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt/SvcPrvdr/LEI"
+   ],
+   "VALU": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt/SvcPrvdr/LEI"
+   ],
+   "EROR": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt/SvcPrvdr/LEI"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/PstTradRskRdctnEvt/SvcPrvdr/LEI"
+   ]
+  }
+ },
+ "2.41": {
+  "name": "Venue of execution",
+  "codes": "1. EMIR-VR-2041-01 2. EMIR-VR-2041-02",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "O M",
+   "MODI": "O M",
+   "VALU": "-",
+   "CORR": "O M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/PltfmIdr"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/PltfmIdr"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/PltfmIdr"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/PltfmIdr"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/PltfmIdr"
+   ]
+  }
+ },
+ "2.42": {
+  "name": "Execution timestamp",
+  "codes": "1. EMIR-VR-2042-01 2. EMIR-VR-2042-02 3. EMIR -VR-2042-03",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/ExctnTmStmp"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/ExctnTmStmp"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/ExctnTmStmp"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/ExctnTmStmp"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/ExctnTmStmp"
+   ]
+  }
+ },
+ "2.43": {
+  "name": "Effective date",
+  "codes": "1. EMIR-VR-2043-01 2. EMIR-VR-2043-02",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/FctvDt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/FctvDt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/FctvDt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/FctvDt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/FctvDt"
+   ]
+  }
+ },
+ "2.44": {
+  "name": "Expiration date",
+  "codes": "1. EMIR-VR-2044-01 2. EMIR-VR-2044-02 3. EMIR-VR-2044-03 4. EMIR-VR-2044-04 5. EMIR-VR-2044-05",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/XprtnDt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/XprtnDt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/XprtnDt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/XprtnDt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/XprtnDt"
+   ]
+  }
+ },
+ "2.45": {
+  "name": "Early termination date",
+  "codes": "1. EMIR-VR-2045-01 2. EMIR-VR-2045-02 3. EMIR-VR-2045-03 4. EMIR-VR-2045-04 5. EMIR-VR-2045-05 6. EMIR-VR-2045-06 7. EMIR-VR-2045-07 8. EMIR-VR-2045-08",
+  "TRAD": {
+   "NEWT": "-",
+   "MODI": "-",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "M",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "-"
+  },
+  "PSTN": {
+   "NEWT": "-",
+   "MODI": "-",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "M",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "TERM": [
+    "CmonTradData/TxData/EarlyTermntnDt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/EarlyTermntnDt"
+   ]
+  }
+ },
+ "2.46": {
+  "name": "Final contractual settlement date",
+  "codes": "1. EMIR-VR-2046-01 2. EMIR-VR-2046-02 3. EMIR-VR-2046-03 4. EMIR-VR-2046-04",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/SttlmDt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/SttlmDt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/SttlmDt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/SttlmDt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/SttlmDt"
+   ]
+  }
+ },
+ "2.47": {
+  "name": "Delivery type",
+  "codes": "1. EMIR-VR-2047-01",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/DlvryTp"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/DlvryTp"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/DlvryTp"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/DlvryTp"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/DlvryTp"
+   ]
+  }
+ },
+ "2.48": {
+  "name": "Price",
+  "codes": "1. EMIR-VR-2048-01 2. EMIR-VR-2048-02 3. EMIR-VR-2048-03",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/TxPric/Pric/MntryVal/Amt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/TxPric/Pric/MntryVal/Amt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/TxPric/Pric/MntryVal/Amt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/TxPric/Pric/MntryVal/Amt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/TxPric/Pric/MntryVal/Amt"
+   ]
+  }
+ },
+ "2.49": {
+  "name": "Price currency",
+  "codes": "1. EMIR-VR-2049-01 2. EMIR-VR-2049-02 3. EMIR-VR-2049-03",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/TxPric/Pric/MntryVal/Amt/@Ccy"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/TxPric/Pric/MntryVal/Amt/@Ccy"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/TxPric/Pric/MntryVal/Amt/@Ccy"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/TxPric/Pric/MntryVal/Amt/@Ccy"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/TxPric/Pric/MntryVal/Amt/@Ccy"
+   ]
+  }
+ },
+ "2.50": {
+  "name": "Unadjusted effective date of the price",
+  "codes": "1. EMIR-VR-2050-01 2. EMIR-VR-2050-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/TxPric/SchdlPrd/UadjstdFctvDt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/TxPric/SchdlPrd/UadjstdFctvDt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/TxPric/SchdlPrd/UadjstdFctvDt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/TxPric/SchdlPrd/UadjstdFctvDt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/TxPric/SchdlPrd/UadjstdFctvDt"
+   ]
+  }
+ },
+ "2.51": {
+  "name": "Unadjusted end date of the price",
+  "codes": "1. EMIR-VR-2051-01 2. EMIR-VR-2051-02",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/TxPric/SchdlPrd/UadjstdEndDt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/TxPric/SchdlPrd/UadjstdEndDt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/TxPric/SchdlPrd/UadjstdEndDt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/TxPric/SchdlPrd/UadjstdEndDt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/TxPric/SchdlPrd/UadjstdEndDt"
+   ]
+  }
+ },
+ "2.52": {
+  "name": "Price in effect between the unadjusted effective and end date",
+  "codes": "1. EMIR-VR-2052-01 2. EMIR-VR-2052-02",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/TxPric/SchdlPrd/Pric/MntryVal/Amt",
+    "CmonTradData/TxData/TxPric/SchdlPrd/Pric/Pctg",
+    "CmonTradData/TxData/TxPric/SchdlPrd/Pric/Yld"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/TxPric/SchdlPrd/Pric/MntryVal/Amt",
+    "CmonTradData/TxData/TxPric/SchdlPrd/Pric/Pctg",
+    "CmonTradData/TxData/TxPric/SchdlPrd/Pric/Yld"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/TxPric/SchdlPrd/Pric/MntryVal/Amt",
+    "CmonTradData/TxData/TxPric/SchdlPrd/Pric/Pctg",
+    "CmonTradData/TxData/TxPric/SchdlPrd/Pric/Yld"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/TxPric/SchdlPrd/Pric/MntryVal/Amt",
+    "CmonTradData/TxData/TxPric/SchdlPrd/Pric/Pctg",
+    "CmonTradData/TxData/TxPric/SchdlPrd/Pric/Yld"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/TxPric/SchdlPrd/Pric/MntryVal/Amt",
+    "CmonTradData/TxData/TxPric/SchdlPrd/Pric/Pctg",
+    "CmonTradData/TxData/TxPric/SchdlPrd/Pric/Yld"
+   ]
+  }
+ },
+ "2.53": {
+  "name": "Package transaction price",
+  "codes": "1. EMIR-VR-2053-01 2. EMIR-VR-2053-02 3. EMIR-VR-2053-03 4. EMIR-VR-2053-04",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Packg/Pric/MntryVal/Amt",
+    "CmonTradData/TxData/Packg/Pric/Pctg"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Packg/Pric/MntryVal/Amt",
+    "CmonTradData/TxData/Packg/Pric/Pctg"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Packg/Pric/MntryVal/Amt",
+    "CmonTradData/TxData/Packg/Pric/Pctg"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Packg/Pric/MntryVal/Amt",
+    "CmonTradData/TxData/Packg/Pric/Pctg"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Packg/Pric/MntryVal/Amt",
+    "CmonTradData/TxData/Packg/Pric/Pctg"
+   ]
+  }
+ },
+ "2.54": {
+  "name": "Package transaction price currency",
+  "codes": "1. EMIR-VR-2054-01 2. EMIR-VR-2054-02 3. EMIR-VR-2054-03",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Packg/Pric/MntryVal/Amt/@Ccy"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Packg/Pric/MntryVal/Amt/@Ccy"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Packg/Pric/MntryVal/Amt/@Ccy"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Packg/Pric/MntryVal/Amt/@Ccy"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Packg/Pric/MntryVal/Amt/@Ccy"
+   ]
+  }
+ },
+ "2.55": {
+  "name": "Notional amount of leg 1",
+  "codes": "1. EMIR-VR-2055-01",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/Amt/Amt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/Amt/Amt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/Amt/Amt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/Amt/Amt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/Amt/Amt"
+   ]
+  }
+ },
+ "2.56": {
+  "name": "Notional currency 1",
+  "codes": "1. EMIR-VR-2056-01 2. EMIR-VR-2056-02",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "M",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/Amt/Amt/@Ccy"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/Amt/Amt/@Ccy",
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/SchdlPrd/UadjstdFctvDt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/Amt/Amt/@Ccy"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/Amt/Amt/@Ccy"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/Amt/Amt/@Ccy"
+   ]
+  }
+ },
+ "2.57": {
+  "name": "Effective date of the notional amount of leg 1",
+  "codes": "1. EMIR-VR-2057-01 2. EMIR-VR-2057-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/SchdlPrd/UadjstdFctvDt",
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/SchdlPrd/UadjstdEndDt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/SchdlPrd/UadjstdFctvDt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/SchdlPrd/UadjstdFctvDt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/SchdlPrd/UadjstdFctvDt"
+   ]
+  }
+ },
+ "2.58": {
+  "name": "End date of the notional amount of leg 1",
+  "codes": "1. EMIR-VR-2058-01 2. EMIR-VR-2058-02",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "MODI": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/SchdlPrd/UadjstdEndDt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/SchdlPrd/UadjstdEndDt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/SchdlPrd/UadjstdEndDt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/SchdlPrd/UadjstdEndDt"
+   ]
+  }
+ },
+ "2.59": {
+  "name": "Notional amount in effect on associated effective date of leg 1",
+  "codes": "1. EMIR-VR-2059-01",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/SchdlPrd/Amt/Amt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/SchdlPrd/Amt/Amt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/SchdlPrd/Amt/Amt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/SchdlPrd/Amt/Amt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NtnlAmt/FrstLeg/SchdlPrd/Amt/Amt"
+   ]
+  }
+ },
+ "2.60": {
+  "name": "Total notional quantity of leg 1",
+  "codes": "1. EMIR-VR-2060-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NtnlQty/FrstLeg/TtlQty"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NtnlQty/FrstLeg/TtlQty"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NtnlQty/FrstLeg/TtlQty"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NtnlQty/FrstLeg/TtlQty"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NtnlQty/FrstLeg/TtlQty"
+   ]
+  }
+ },
+ "2.61": {
+  "name": "Effective date of the notional quantity of leg 1",
+  "codes": "1. EMIR-VR-2061-01 2. EMIR-VR-2061-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NtnlQty/FrstLeg/Dtls/SchdlPrd/UadjstdFctvDt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NtnlQty/FrstLeg/Dtls/SchdlPrd/UadjstdFctvDt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NtnlQty/FrstLeg/Dtls/SchdlPrd/UadjstdFctvDt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NtnlQty/FrstLeg/Dtls/SchdlPrd/UadjstdFctvDt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NtnlQty/FrstLeg/Dtls/SchdlPrd/UadjstdFctvDt"
+   ]
+  }
+ },
+ "2.62": {
+  "name": "End date of the notional quantity of leg 1",
+  "codes": "1. EMIR-VR-2062-01 2. EMIR-VR-2062-02",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NtnlQty/FrstLeg/Dtls/SchdlPrd/UadjstdEndDt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NtnlQty/FrstLeg/Dtls/SchdlPrd/UadjstdEndDt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NtnlQty/FrstLeg/Dtls/SchdlPrd/UadjstdEndDt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NtnlQty/FrstLeg/Dtls/SchdlPrd/UadjstdEndDt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NtnlQty/FrstLeg/Dtls/SchdlPrd/UadjstdEndDt"
+   ]
+  }
+ },
+ "2.63": {
+  "name": "Notional quantity in effect on associated effective date of leg 1",
+  "codes": "1. EMIR-VR-2063-01",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NtnlQty/FrstLeg/Dtls/SchdlPrd/Qty"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NtnlQty/FrstLeg/Dtls/SchdlPrd/Qty"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NtnlQty/FrstLeg/Dtls/SchdlPrd/Qty"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NtnlQty/FrstLeg/Dtls/SchdlPrd/Qty"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NtnlQty/FrstLeg/Dtls/SchdlPrd/Qty"
+   ]
+  }
+ },
+ "2.64": {
+  "name": "Notional amount of leg 2",
+  "codes": "1. EMIR-VR-2064-01",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/Amt/Amt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/Amt/Amt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/Amt/Amt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/Amt/Amt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/Amt/Amt"
+   ]
+  }
+ },
+ "2.65": {
+  "name": "Notional currency 2",
+  "codes": "1. EMIR-VR-2065-01 2. EMIR-VR-2065-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/Amt/Amt/@Ccy"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/Amt/Amt/@Ccy"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/Amt/Amt/@Ccy"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/Amt/Amt/@Ccy"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/Amt/Amt/@Ccy"
+   ]
+  }
+ },
+ "2.66": {
+  "name": "Effective date of the notional amount of leg 2",
+  "codes": "1. EMIR-VR-2066-01 2. EMIR-VR-2066-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/SchdlPrd/UadjstdFctvDt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/SchdlPrd/UadjstdFctvDt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/SchdlPrd/UadjstdFctvDt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/SchdlPrd/UadjstdFctvDt"
+   ]
+  }
+ },
+ "2.67": {
+  "name": "End date of the notional amount of leg 2",
+  "codes": "1. EMIR-VR-2067-01 2. EMIR-VR-2067-02",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/SchdlPrd/UadjstdEndDt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/SchdlPrd/UadjstdEndDt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/SchdlPrd/UadjstdEndDt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/SchdlPrd/UadjstdEndDt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/SchdlPrd/UadjstdEndDt"
+   ]
+  }
+ },
+ "2.68": {
+  "name": "Notional amount in effect on associated effective date of leg 2",
+  "codes": "1. EMIR-VR-2068-01",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/SchdlPrd/Amt/Amt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/SchdlPrd/Amt/Amt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/SchdlPrd/Amt/Amt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/SchdlPrd/Amt/Amt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NtnlAmt/ScndLeg/SchdlPrd/Amt/Amt"
+   ]
+  }
+ },
+ "2.69": {
+  "name": "Total notional quantity of leg 2",
+  "codes": "1. EMIR-VR-2069-01",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NtnlQty/ScndLeg/TtlQty"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NtnlQty/ScndLeg/TtlQty"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NtnlQty/ScndLeg/TtlQty"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NtnlQty/ScndLeg/TtlQty"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NtnlQty/ScndLeg/TtlQty"
+   ]
+  }
+ },
+ "2.70": {
+  "name": "Effective date of the notional quantity of leg 2",
+  "codes": "1. EMIR-VR-2070-01 2. EMIR-VR-2070-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NtnlQty/ScndLeg/Dtls/SchdlPrd/UadjstdFctvDt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NtnlQty/ScndLeg/Dtls/SchdlPrd/UadjstdFctvDt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NtnlQty/ScndLeg/Dtls/SchdlPrd/UadjstdFctvDt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NtnlQty/ScndLeg/Dtls/SchdlPrd/UadjstdFctvDt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NtnlQty/ScndLeg/Dtls/SchdlPrd/UadjstdFctvDt"
+   ]
+  }
+ },
+ "2.71": {
+  "name": "End date of the notional quantity of leg 2",
+  "codes": "1. EMIR-VR-2071-01 2. EMIR-VR-2071-02",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NtnlQty/ScndLeg/Dtls/SchdlPrd/UadjstdEndDt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NtnlQty/ScndLeg/Dtls/SchdlPrd/UadjstdEndDt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NtnlQty/ScndLeg/Dtls/SchdlPrd/UadjstdEndDt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NtnlQty/ScndLeg/Dtls/SchdlPrd/UadjstdEndDt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NtnlQty/ScndLeg/Dtls/SchdlPrd/UadjstdEndDt"
+   ]
+  }
+ },
+ "2.72": {
+  "name": "Notional quantity in effect on associated effective date of leg 2",
+  "codes": "1. EMIR-VR-2072-01",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NtnlQty/ScndLeg/Dtls/SchdlPrd/Qty"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NtnlQty/ScndLeg/Dtls/SchdlPrd/Qty"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NtnlQty/ScndLeg/Dtls/SchdlPrd/Qty"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NtnlQty/ScndLeg/Dtls/SchdlPrd/Qty"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NtnlQty/ScndLeg/Dtls/SchdlPrd/Qty"
+   ]
+  }
+ },
+ "2.73": {
+  "name": "Other payment type",
+  "codes": "1. EMIR-VR-2073-01",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "O",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "O",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/OthrPmt/PmtTp/Tp"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/OthrPmt/PmtTp/Tp"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/OthrPmt/PmtTp/Tp"
+   ],
+   "TERM": [
+    "CmonTradData/TxData/OthrPmt/PmtTp/Tp"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/OthrPmt/PmtTp/Tp"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/OthrPmt/PmtTp/Tp"
+   ]
+  }
+ },
+ "2.74": {
+  "name": "Other payment amount",
+  "codes": "1. EMIR-VR-2074-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "C",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "C",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/OthrPmt/PmtAmt/Amt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/OthrPmt/PmtAmt/Amt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/OthrPmt/PmtAmt/Amt"
+   ],
+   "TERM": [
+    "CmonTradData/TxData/OthrPmt/PmtAmt/Amt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/OthrPmt/PmtAmt/Amt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/OthrPmt/PmtAmt/Amt"
+   ]
+  }
+ },
+ "2.75": {
+  "name": "Other payment currency",
+  "codes": "1. EMIR-VR-2075-01 2. EMIR-VR-2075-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "C",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "C",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/OthrPmt/PmtAmt/Amt/@Ccy"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/OthrPmt/PmtAmt/Amt/@Ccy"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/OthrPmt/PmtAmt/Amt/@Ccy"
+   ],
+   "TERM": [
+    "CmonTradData/TxData/OthrPmt/PmtAmt/Amt/@Ccy"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/OthrPmt/PmtAmt/Amt/@Ccy"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/OthrPmt/PmtAmt/Amt/@Ccy"
+   ]
+  }
+ },
+ "2.76": {
+  "name": "Other payment date",
+  "codes": "1. EMIR-VR-2076-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "C",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "C",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/OthrPmt/PmtDt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/OthrPmt/PmtDt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/OthrPmt/PmtDt"
+   ],
+   "TERM": [
+    "CmonTradData/TxData/OthrPmt/PmtDt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/OthrPmt/PmtDt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/OthrPmt/PmtDt"
+   ]
+  }
+ },
+ "2.77": {
+  "name": "Other payment payer",
+  "codes": "1. EMIR-VR-2077-01 2. EMIR-VR-2077-02 3. EMIR-VR-2077-03 4. EMIR-VR-2077-04 5. EMIR-VR-2077-05",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "C",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "C",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/OthrPmt/PmtPyer/Lgl/LEI",
+    "CmonTradData/TxData/OthrPmt/PmtPyer/Ntrl/Id/Id"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/OthrPmt/PmtPyer/Lgl/LEI",
+    "CmonTradData/TxData/OthrPmt/PmtPyer/Ntrl/Id/Id"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/OthrPmt/PmtPyer/Lgl/LEI",
+    "CmonTradData/TxData/OthrPmt/PmtPyer/Ntrl/Id/Id"
+   ],
+   "TERM": [
+    "CmonTradData/TxData/OthrPmt/PmtPyer/Lgl/LEI",
+    "CmonTradData/TxData/OthrPmt/PmtPyer/Ntrl/Id/Id"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/OthrPmt/PmtPyer/Lgl/LEI",
+    "CmonTradData/TxData/OthrPmt/PmtPyer/Ntrl/Id/Id"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/OthrPmt/PmtPyer/Lgl/LEI",
+    "CmonTradData/TxData/OthrPmt/PmtPyer/Ntrl/Id/Id"
+   ]
+  }
+ },
+ "2.78": {
+  "name": "Other payment receiver",
+  "codes": "1. EMIR-VR-2078-01 2. EMIR-VR-2078-02 3. EMIR-VR-2078-03 4. EMIR-VR-2078-04 5. EMIR-VR-2078-05",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "C",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "C",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/OthrPmt/PmtRcvr/Lgl/LEI",
+    "CmonTradData/TxData/OthrPmt/PmtRcvr/Ntrl/Id/Id"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/OthrPmt/PmtRcvr/Lgl/LEI",
+    "CmonTradData/TxData/OthrPmt/PmtRcvr/Ntrl/Id/Id"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/OthrPmt/PmtRcvr/Lgl/LEI",
+    "CmonTradData/TxData/OthrPmt/PmtRcvr/Ntrl/Id/Id"
+   ],
+   "TERM": [
+    "CmonTradData/TxData/OthrPmt/PmtRcvr/Lgl/LEI",
+    "CmonTradData/TxData/OthrPmt/PmtRcvr/Ntrl/Id/Id"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/OthrPmt/PmtRcvr/Lgl/LEI",
+    "CmonTradData/TxData/OthrPmt/PmtRcvr/Ntrl/Id/Id"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/OthrPmt/PmtRcvr/Lgl/LEI",
+    "CmonTradData/TxData/OthrPmt/PmtRcvr/Ntrl/Id/Id"
+   ]
+  }
+ },
+ "2.79": {
+  "name": "Fixed rate of leg 1 or coupon",
+  "codes": "1. EMIR-VR-2079-01 2. EMIR-VR-2079-02 3. EMIR-VR-2079-03",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fxd/Rate/Rate"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fxd/Rate/Rate"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fxd/Rate/Rate"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fxd/Rate/Rate"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fxd/Rate/Rate"
+   ]
+  }
+ },
+ "2.80": {
+  "name": "Fixed rate or coupon day count convention leg 1",
+  "codes": "1. EMIR-VR-2080-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fxd/DayCnt/Cd"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fxd/DayCnt/Cd"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fxd/DayCnt/Cd"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fxd/DayCnt/Cd"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fxd/DayCnt/Cd"
+   ]
+  }
+ },
+ "2.81": {
+  "name": "Fixed rate or coupon payment frequency period leg 1",
+  "codes": "1. EMIR-VR-2081-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fxd/PmtFrqcy/Term/Unit"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fxd/PmtFrqcy/Term/Unit"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fxd/PmtFrqcy/Term/Unit"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fxd/PmtFrqcy/Term/Unit"
+   ]
+  }
+ },
+ "2.82": {
+  "name": "Fixed rate or coupon payment frequency period multiplier leg 1",
+  "codes": "1. EMIR-VR-2082-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fxd/PmtFrqcy/Term/Val"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fxd/PmtFrqcy/Term/Val"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fxd/PmtFrqcy/Term/Val"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fxd/PmtFrqcy/Term/Val"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fxd/PmtFrqcy/Term/Val"
+   ]
+  }
+ },
+ "2.83": {
+  "name": "Identifier of the floating rate of leg 1",
+  "codes": "1. EMIR-VR-2083-01 2. EMIR-VR-2083-02",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Id"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fxd/PmtFrqcy/Term/Unit",
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Id"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Id"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Id"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Id"
+   ]
+  }
+ },
+ "2.84": {
+  "name": "Indicator of the floating rate of leg 1",
+  "codes": "1. EMIR-VR-2084-01 2. EMIR-VR-2084-02",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Rate/Cd"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Rate/Cd"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Rate/Cd"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Rate/Cd"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Rate/Cd"
+   ]
+  }
+ },
+ "2.85": {
+  "name": "Name of the floating rate of leg 1",
+  "codes": "1. EMIR-VR-2085-01 2. EMIR-VR-2085-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Nm"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Nm"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Nm"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Nm"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Nm"
+   ]
+  }
+ },
+ "2.86": {
+  "name": "Floating rate day count convention of leg 1",
+  "codes": "1. EMIR-VR-2086-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/DayCnt/Cd"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/DayCnt/Cd"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/DayCnt/Cd"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/DayCnt/Cd"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/DayCnt/Cd"
+   ]
+  }
+ },
+ "2.87": {
+  "name": "Floating rate payment frequency period of leg 1",
+  "codes": "1. EMIR-VR-2087-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/PmtFrqcy/Term/Unit"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/PmtFrqcy/Term/Unit"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/PmtFrqcy/Term/Unit"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/PmtFrqcy/Term/Unit"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/PmtFrqcy/Term/Unit"
+   ]
+  }
+ },
+ "2.88": {
+  "name": "Floating rate payment frequency period multiplier of leg 1",
+  "codes": "1. EMIR-VR-2088-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/PmtFrqcy/Term/Val"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/PmtFrqcy/Term/Val"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/PmtFrqcy/Term/Val"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/PmtFrqcy/Term/Val"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/PmtFrqcy/Term/Val"
+   ]
+  }
+ },
+ "2.89": {
+  "name": "Floating rate reference period of leg 1 – time period",
+  "codes": "1. EMIR-VR-2089-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/RefPrd/Unit"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/RefPrd/Unit"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/RefPrd/Unit"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/RefPrd/Unit"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/RefPrd/Unit"
+   ]
+  }
+ },
+ "2.90": {
+  "name": "Floating rate reference period of leg 1 – multiplier",
+  "codes": "1. EMIR-VR-2090-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/RefPrd/Val"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/RefPrd/Val"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/RefPrd/Val"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/RefPrd/Val"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/RefPrd/Val"
+   ]
+  }
+ },
+ "2.91": {
+  "name": "Floating rate reset frequency period of leg 1",
+  "codes": "1. EMIR-VR-2091-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/RstFrqcy/Term/Unit"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/RstFrqcy/Term/Unit"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/RstFrqcy/Term/Unit"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/RstFrqcy/Term/Unit"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/RstFrqcy/Term/Unit"
+   ]
+  }
+ },
+ "2.92": {
+  "name": "Floating rate reset frequency multiplier of leg 1",
+  "codes": "1. EMIR-VR-2092-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/RstFrqcy/Term/Val"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/RstFrqcy/Term/Val"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/RstFrqcy/Term/Val"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/RstFrqcy/Term/Val"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/RstFrqcy/Term/Val"
+   ]
+  }
+ },
+ "2.93": {
+  "name": "Spread of leg 1",
+  "codes": "1. EMIR-VR-2093-01 2. EMIR-VR-2093-02 3. EMIR-VR-2093-03",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Sprd"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Sprd"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Sprd"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Sprd"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Sprd"
+   ]
+  }
+ },
+ "2.94": {
+  "name": "Spread currency of leg 1",
+  "codes": "1. EMIR-VR-2094-01 2. EMIR-VR-2094-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Sprd/MntryVal/Amt/@Ccy"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Sprd/MntryVal/Amt/@Ccy"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Sprd/MntryVal/Amt/@Ccy"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Sprd/MntryVal/Amt/@Ccy"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/FrstLeg/Fltg/Sprd/MntryVal/Amt/@Ccy"
+   ]
+  }
+ },
+ "2.95": {
+  "name": "Fixed rate of leg 2",
+  "codes": "1. EMIR-VR-2095-01 2. EMIR-VR-2095-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fxd/Rate/Rate"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fxd/Rate/Rate"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fxd/Rate/Rate"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fxd/Rate/Rate"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fxd/Rate/Rate"
+   ]
+  }
+ },
+ "2.96": {
+  "name": "Fixed rate day count convention leg 2",
+  "codes": "1. EMIR-VR-2096-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fxd/DayCnt/Cd"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fxd/DayCnt/Cd"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fxd/DayCnt/Cd"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fxd/DayCnt/Cd"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fxd/DayCnt/Cd"
+   ]
+  }
+ },
+ "2.97": {
+  "name": "Fixed rate payment frequency period leg 2",
+  "codes": "1. EMIR-VR-2097-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fxd/PmtFrqcy/Term/Unit"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fxd/PmtFrqcy/Term/Unit"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fxd/PmtFrqcy/Term/Unit"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fxd/PmtFrqcy/Term/Unit"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fxd/PmtFrqcy/Term/Unit"
+   ]
+  }
+ },
+ "2.98": {
+  "name": "Fixed rate payment frequency period multiplier leg 2",
+  "codes": "1. EMIR-VR-2098-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fxd/PmtFrqcy/Term/Val"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fxd/PmtFrqcy/Term/Val"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fxd/PmtFrqcy/Term/Val"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fxd/PmtFrqcy/Term/Val"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fxd/PmtFrqcy/Term/Val"
+   ]
+  }
+ },
+ "2.99": {
+  "name": "Identifier of the floating rate of leg 2",
+  "codes": "1. EMIR-VR-2099-01 2. EMIR-VR-2099-02",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Id"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Id"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Id"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Id"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Id"
+   ]
+  }
+ },
+ "2.100": {
+  "name": "Indicator of the floating rate of leg 2",
+  "codes": "1. EMIR-VR-2100-01 2. EMIR-VR-2100-02",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Rate/Cd"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Rate/Cd"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Rate/Cd"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Rate/Cd"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Rate/Cd"
+   ]
+  }
+ },
+ "2.101": {
+  "name": "Name of the floating rate of leg 2",
+  "codes": "1. EMIR-VR-2101-01 2. EMIR-VR-2101-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Nm"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Nm"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Nm"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Nm"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Nm"
+   ]
+  }
+ },
+ "2.102": {
+  "name": "Floating rate day count convention of leg 2",
+  "codes": "1. EMIR-VR-2102-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/DayCnt/Cd"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/DayCnt/Cd"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/DayCnt/Cd"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/DayCnt/Cd"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/DayCnt/Cd"
+   ]
+  }
+ },
+ "2.103": {
+  "name": "Floating rate payment frequency period of leg 2",
+  "codes": "1. EMIR-VR-2103-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/PmtFrqcy/Term/Unit"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/PmtFrqcy/Term/Unit"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/PmtFrqcy/Term/Unit"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/PmtFrqcy/Term/Unit"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/PmtFrqcy/Term/Unit"
+   ]
+  }
+ },
+ "2.104": {
+  "name": "Floating rate payment frequency period multiplier of leg 2",
+  "codes": "1. EMIR-VR-2104-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/PmtFrqcy/Term/Val"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/PmtFrqcy/Term/Val"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/PmtFrqcy/Term/Val"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/PmtFrqcy/Term/Val"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/PmtFrqcy/Term/Val"
+   ]
+  }
+ },
+ "2.105": {
+  "name": "Floating rate reference period of leg 2 – time period",
+  "codes": "1. EMIR-VR-2105-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/RefPrd/Unit"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/RefPrd/Unit"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/RefPrd/Unit"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/RefPrd/Unit"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/RefPrd/Unit"
+   ]
+  }
+ },
+ "2.106": {
+  "name": "Floating rate reference period of leg 2 – multiplier",
+  "codes": "1. EMIR-VR-2106-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/RefPrd/Val"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/RefPrd/Val"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/RefPrd/Val"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/RefPrd/Val"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/RefPrd/Val"
+   ]
+  }
+ },
+ "2.107": {
+  "name": "Floating rate reset frequency period of leg 2",
+  "codes": "1. EMIR-VR-2107-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/RstFrqcy/Term/Unit"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/RstFrqcy/Term/Unit"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/RstFrqcy/Term/Unit"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/RstFrqcy/Term/Unit"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/RstFrqcy/Term/Unit"
+   ]
+  }
+ },
+ "2.108": {
+  "name": "Floating rate reset frequency multiplier of leg 2",
+  "codes": "1. EMIR-VR-2108-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/RstFrqcy/Term/Val"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/RstFrqcy/Term/Val"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/RstFrqcy/Term/Val"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/RstFrqcy/Term/Val"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/RstFrqcy/Term/Val"
+   ]
+  }
+ },
+ "2.109": {
+  "name": "Spread of leg 2",
+  "codes": "1. EMIR-VR-2109-01 2. EMIR-VR-2109-02 3. EMIR-VR-2109-03",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Sprd"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Sprd"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Sprd"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Sprd"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Sprd"
+   ]
+  }
+ },
+ "2.110": {
+  "name": "Spread currency of leg 2",
+  "codes": "1. EMIR-VR-2110-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Sprd/MntryVal/Amt/@Ccy"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Sprd/MntryVal/Amt/@Ccy"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Sprd/MntryVal/Amt/@Ccy"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Sprd/MntryVal/Amt/@Ccy"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/IntrstRate/ScndLeg/Fltg/Sprd/MntryVal/Amt/@Ccy"
+   ]
+  }
+ },
+ "2.111": {
+  "name": "Package transaction spread",
+  "codes": "1. EMIR-VR-2111-01 2. EMIR-VR-2111-02 3. EMIR-VR-2111-03 4. EMIR-VR-2111-04",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "O",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Packg/Sprd"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Packg/Sprd"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Packg/Sprd"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Packg/Sprd"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Packg/Sprd"
+   ]
+  }
+ },
+ "2.112": {
+  "name": "Package transaction spread currency",
+  "codes": "1. EMIR-VR-2112-01 2. EMIR-VR-2112-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Packg/Sprd/MntryVal/Amt/@Ccy"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Packg/Sprd/MntryVal/Amt/@Ccy"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Packg/Sprd/MntryVal/Amt/@Ccy"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Packg/Sprd/MntryVal/Amt/@Ccy"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Packg/Sprd/MntryVal/Amt/@Ccy"
+   ]
+  }
+ },
+ "2.113": {
+  "name": "Exchange rate 1",
+  "codes": "1. EMIR-VR-2113-01 2. EMIR-VR-2113-02 3. EMIR-VR-2113-03",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Ccy/XchgRate"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Ccy/XchgRate"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Ccy/XchgRate"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Ccy/XchgRate"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Ccy/XchgRate"
+   ]
+  }
+ },
+ "2.114": {
+  "name": "Forward exchange rate",
+  "codes": "1. EMIR-VR-2114-01 2. EMIR-VR-2114-02 3. EMIR-VR-2114-03",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Ccy/FwdXchgRate"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Ccy/FwdXchgRate"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Ccy/FwdXchgRate"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Ccy/FwdXchgRate"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Ccy/FwdXchgRate"
+   ]
+  }
+ },
+ "2.115": {
+  "name": "Exchange rate basis",
+  "codes": "1. EMIR-VR-2115-01 2. EMIR-VR-2115-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Ccy/XchgRateBsis/CcyPair"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Ccy/XchgRateBsis/CcyPair"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Ccy/XchgRateBsis/CcyPair"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Ccy/XchgRateBsis/CcyPair"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Ccy/XchgRateBsis/CcyPair"
+   ]
+  }
+ },
+ "2.116": {
+  "name": "Base product",
+  "codes": "1. EMIR-VR-2116-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Cmmdty"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Cmmdty"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Cmmdty"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Cmmdty"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Cmmdty"
+   ]
+  }
+ },
+ "2.117": {
+  "name": "Sub-product",
+  "codes": "1. EMIR-VR-2117-01 2. EMIR-VR-2117-02 3. EMIR-VR-2117-03 4. EMIR-VR-2117-04 5. EMIR-VR-2117-05 6. EMIR-VR-2117-06 7. EMIR-VR-2117-07 8. EMIR-VR-2117-08 9. EMIR-VR-2117-09 10. EMIR-VR-2117-10",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {}
+ },
+ "2.118": {
+  "name": "Further sub-product",
+  "codes": "1. EMIR-VR-2118-01 2. EMIR-VR-2118-02 3. EMIR-VR-2118-03 4. EMIR-VR-2118-04 5. EMIR-VR-2118-05 6. EMIR-VR-2118-06 7. EMIR-VR-2118-07 8. EMIR-VR-2118-08 9. EMIR-VR-2118-09 10. EMIR-VR-2118-10 11. EMIR-VR-2118-11 12. EMIR-VR-2118-12 13. EMIR-VR-2118-13",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {}
+ },
+ "2.119": {
+  "name": "Delivery point or zone",
+  "codes": "1. EMIR-VR-2119-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryPtOrZone/Cd"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryPtOrZone/Cd"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryPtOrZone/Cd"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryPtOrZone/Cd"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryPtOrZone/Cd"
+   ]
+  }
+ },
+ "2.120": {
+  "name": "Interconnection Point",
+  "codes": "1. EMIR-VR-2120-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/IntrCnnctnPt/Cd"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/IntrCnnctnPt/Cd"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/IntrCnnctnPt/Cd"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/IntrCnnctnPt/Cd"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/IntrCnnctnPt/Cd"
+   ]
+  }
+ },
+ "2.121": {
+  "name": "Load type",
+  "codes": "1. EMIR-VR-2121-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/LdTp"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/LdTp"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/LdTp"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/LdTp"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/LdTp"
+   ]
+  }
+ },
+ "2.122": {
+  "name": "Delivery interval start time",
+  "codes": "1. EMIR-VR-2122-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryIntrvl/FrTm"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryIntrvl/FrTm"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryIntrvl/FrTm"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryIntrvl/FrTm"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryIntrvl/FrTm"
+   ]
+  }
+ },
+ "2.123": {
+  "name": "Delivery interval end time",
+  "codes": "1. EMIR-VR-2123-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryIntrvl/ToTm"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryIntrvl/ToTm"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryIntrvl/ToTm"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryIntrvl/ToTm"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryIntrvl/ToTm"
+   ]
+  }
+ },
+ "2.124": {
+  "name": "Delivery start date",
+  "codes": "1. EMIR-VR-2124-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryDt/FrDt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryDt/FrDt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryDt/FrDt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryDt/FrDt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryDt/FrDt"
+   ]
+  }
+ },
+ "2.125": {
+  "name": "Delivery end date",
+  "codes": "1. EMIR-VR-2125-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryDt/ToDt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryDt/ToDt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryDt/ToDt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryDt/ToDt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryDt/ToDt"
+   ]
+  }
+ },
+ "2.126": {
+  "name": "Duration",
+  "codes": "1. EMIR-VR-2126-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/Drtn"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/Drtn"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/Drtn"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/Drtn"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/Drtn"
+   ]
+  }
+ },
+ "2.127": {
+  "name": "Days of the week",
+  "codes": "1. EMIR-VR-2127-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/WkDay"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/WkDay"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/WkDay"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/WkDay"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/WkDay"
+   ]
+  }
+ },
+ "2.128": {
+  "name": "Delivery capacity",
+  "codes": "1. EMIR-VR-2128-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryCpcty"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryCpcty"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryCpcty"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryCpcty"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/DlvryCpcty"
+   ]
+  }
+ },
+ "2.129": {
+  "name": "Quantity Unit",
+  "codes": "1. EMIR-VR-2129-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/QtyUnit"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/QtyUnit"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/QtyUnit"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/QtyUnit"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/QtyUnit"
+   ]
+  }
+ },
+ "2.130": {
+  "name": "Price/time interval quantity",
+  "codes": "1. EMIR-VR-2130-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/PricTmIntrvlQty"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/PricTmIntrvlQty"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/PricTmIntrvlQty"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/PricTmIntrvlQty"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/NrgySpcfcAttrbts/DlvryAttr/PricTmIntrvlQty"
+   ]
+  }
+ },
+ "2.132": {
+  "name": "Option type",
+  "codes": "1. EMIR-VR-2132-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Optn/Tp"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Optn/Tp"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Optn/Tp"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Optn/Tp"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Optn/Tp"
+   ]
+  }
+ },
+ "2.133": {
+  "name": "Option style",
+  "codes": "1. EMIR-VR-2133-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Optn/ExrcStyle"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Optn/ExrcStyle"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Optn/ExrcStyle"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Optn/ExrcStyle"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Optn/ExrcStyle"
+   ]
+  }
+ },
+ "2.134": {
+  "name": "Strike price",
+  "codes": "1. EMIR-VR-2134-01 2. EMIR-VR-2134-02 3. EMIR-VR-2134-03 4. EMIR-VR-2134-04",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Optn/StrkPric/MntryVal/Amt",
+    "CmonTradData/TxData/Optn/StrkPric/Pctg"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Optn/StrkPric/MntryVal/Amt",
+    "CmonTradData/TxData/Optn/StrkPric/Pctg"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Optn/StrkPric/MntryVal/Amt",
+    "CmonTradData/TxData/Optn/StrkPric/Pctg"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Optn/StrkPric/MntryVal/Amt",
+    "CmonTradData/TxData/Optn/StrkPric/Pctg"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Optn/StrkPric/MntryVal/Amt",
+    "CmonTradData/TxData/Optn/StrkPric/Pctg"
+   ]
+  }
+ },
+ "2.135": {
+  "name": "Effective date of the strike price",
+  "codes": "1. EMIR-VR-2135-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Optn/StrkPricSchdl/UadjstdFctvDt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Optn/StrkPricSchdl/UadjstdFctvDt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Optn/StrkPricSchdl/UadjstdFctvDt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Optn/StrkPricSchdl/UadjstdFctvDt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Optn/StrkPricSchdl/UadjstdFctvDt"
+   ]
+  }
+ },
+ "2.136": {
+  "name": "End date of the strike price",
+  "codes": "1. EMIR-VR-2136-01 2. EMIR-VR-2136-02",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Optn/StrkPricSchdl/UadjstdEndDt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Optn/StrkPricSchdl/UadjstdEndDt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Optn/StrkPricSchdl/UadjstdEndDt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Optn/StrkPricSchdl/UadjstdEndDt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Optn/StrkPricSchdl/UadjstdEndDt"
+   ]
+  }
+ },
+ "2.137": {
+  "name": "Strike price in effect on associated effective date",
+  "codes": "1. EMIR-VR-2137-01 2. EMIR-VR-2137-02",
+  "TRAD": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": "O"
+  },
+  "PSTN": {
+   "NEWT": "O",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "O",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "O",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Optn/StrkPricSchdl/Pric"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Optn/StrkPricSchdl/Pric"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Optn/StrkPricSchdl/Pric"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Optn/StrkPricSchdl/Pric"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Optn/StrkPricSchdl/Pric"
+   ]
+  }
+ },
+ "2.138": {
+  "name": "Strike price currency/currency pair",
+  "codes": "1. EMIR-VR-2138-01 2. EMIR-VR-2138-02 3. EMIR-VR-2138-03",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {}
+ },
+ "2.139": {
+  "name": "Option premium amount",
+  "codes": "1. EMIR-VR-2139-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Optn/PrmAmt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Optn/PrmAmt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Optn/PrmAmt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Optn/PrmAmt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Optn/PrmAmt"
+   ]
+  }
+ },
+ "2.140": {
+  "name": "Option premium currency",
+  "codes": "1. EMIR-VR-2140-01 2. EMIR-VR-2140-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Optn/PrmAmt/@Ccy"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Optn/PrmAmt/@Ccy"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Optn/PrmAmt/@Ccy"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Optn/PrmAmt/@Ccy"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Optn/PrmAmt/@Ccy"
+   ]
+  }
+ },
+ "2.141": {
+  "name": "Option premium payment date",
+  "codes": "1. EMIR-VR-2141-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Optn/PrmPmtDt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Optn/PrmPmtDt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Optn/PrmPmtDt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Optn/PrmPmtDt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Optn/PrmPmtDt"
+   ]
+  }
+ },
+ "2.142": {
+  "name": "Maturity date of the underlying",
+  "codes": "1. EMIR-VR-2142-01 2. EMIR-VR-2142-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Optn/MtrtyDtOfUndrlyg"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Optn/MtrtyDtOfUndrlyg"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Optn/MtrtyDtOfUndrlyg"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Optn/MtrtyDtOfUndrlyg"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Optn/MtrtyDtOfUndrlyg"
+   ]
+  }
+ },
+ "2.143": {
+  "name": "Seniority",
+  "codes": "1. EMIR-VR-2143-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Cdt/Snrty"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Cdt/Snrty"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Cdt/Snrty"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Cdt/Snrty"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Cdt/Snrty"
+   ]
+  }
+ },
+ "2.144": {
+  "name": "Reference entity",
+  "codes": "1. EMIR-VR-2144-01 2. EMIR-VR-2144-02 3. EMIR-VR-2144-03 4. EMIR-VR-2144-04",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {}
+ },
+ "2.145": {
+  "name": "Series",
+  "codes": "1. EMIR-VR-2145-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Cdt/RefPty/Ctry",
+    "CmonTradData/TxData/Cdt/RefPty/CtrySubDvsn",
+    "CmonTradData/TxData/Cdt/RefPty/LEI",
+    "CmonTradData/TxData/Cdt/Srs"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Cdt/RefPty/Ctry",
+    "CmonTradData/TxData/Cdt/RefPty/CtrySubDvsn",
+    "CmonTradData/TxData/Cdt/RefPty/LEI",
+    "CmonTradData/TxData/Cdt/Srs"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Cdt/RefPty/Ctry",
+    "CmonTradData/TxData/Cdt/RefPty/CtrySubDvsn",
+    "CmonTradData/TxData/Cdt/RefPty/LEI",
+    "CmonTradData/TxData/Cdt/Srs"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Cdt/RefPty/Ctry",
+    "CmonTradData/TxData/Cdt/RefPty/CtrySubDvsn",
+    "CmonTradData/TxData/Cdt/RefPty/LEI",
+    "CmonTradData/TxData/Cdt/Srs"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Cdt/RefPty/Ctry",
+    "CmonTradData/TxData/Cdt/RefPty/CtrySubDvsn",
+    "CmonTradData/TxData/Cdt/RefPty/LEI"
+   ]
+  }
+ },
+ "2.146": {
+  "name": "Version",
+  "codes": "1. EMIR-VR-2146-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Cdt/Vrsn"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Cdt/Vrsn"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Cdt/Vrsn"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Cdt/Vrsn"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Cdt/Srs",
+    "CmonTradData/TxData/Cdt/Vrsn"
+   ]
+  }
+ },
+ "2.147": {
+  "name": "Index factor",
+  "codes": "1. EMIR-VR-2147-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Cdt/IndxFctr"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Cdt/IndxFctr"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Cdt/IndxFctr"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Cdt/IndxFctr"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Cdt/IndxFctr"
+   ]
+  }
+ },
+ "2.148": {
+  "name": "Tranche",
+  "codes": "1. EMIR-VR-2148-01",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Cdt/Trch"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Cdt/Trch"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Cdt/Trch"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Cdt/Trch"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Cdt/Trch"
+   ]
+  }
+ },
+ "2.149": {
+  "name": "CDS index attachment point",
+  "codes": "1. EMIR-VR-2149-01 2. EMIR-VR-2149-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Cdt/Trch/Trnchd/AttchmntPt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Cdt/Trch/Trnchd/AttchmntPt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Cdt/Trch/Trnchd/AttchmntPt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Cdt/Trch/Trnchd/AttchmntPt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Cdt/Trch/Trnchd/AttchmntPt"
+   ]
+  }
+ },
+ "2.150": {
+  "name": "CDS index detachment point",
+  "codes": "1. EMIR-VR-2150-01 2. EMIR-VR-2150-02",
+  "TRAD": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": "C"
+  },
+  "PSTN": {
+   "NEWT": "C",
+   "MODI": "C",
+   "VALU": "-",
+   "CORR": "C",
+   "TERM": "-",
+   "EROR": "-",
+   "REVI": "C",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/Cdt/Trch/Trnchd/DtchmntPt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/Cdt/Trch/Trnchd/DtchmntPt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/Cdt/Trch/Trnchd/DtchmntPt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/Cdt/Trch/Trnchd/DtchmntPt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/Cdt/Trch/Trnchd/DtchmntPt"
+   ]
+  }
+ },
+ "2.151": {
+  "name": "Action type",
+  "codes": "1. EMIR-VR-2151-01 2. EMIR-VR-2151-02 3. EMIR-VR-2151-03 4. EMIR-VR-2151-04 5. EMIR-VR-2151-05 6. EMIR-VR-2151-06",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "M",
+   "CORR": "M",
+   "TERM": "M",
+   "EROR": "M",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "M",
+   "CORR": "M",
+   "TERM": "M",
+   "EROR": "M",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {}
+ },
+ "2.152": {
+  "name": "Event type",
+  "codes": "1. EMIR-VR-2152-01 2. EMIR-VR-2152-02 3. EMIR-VR-2152-03 4. EMIR-VR-2152-04 5. EMIR-VR-2152-05",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "-",
+   "CORR": "-",
+   "TERM": "M",
+   "EROR": "-",
+   "REVI": "-",
+   "POSC": "-"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "O",
+   "VALU": "-",
+   "CORR": "-",
+   "TERM": "M",
+   "EROR": "-",
+   "REVI": "-",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/DerivEvt/Tp"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/DerivEvt/Tp"
+   ],
+   "TERM": [
+    "CmonTradData/TxData/DerivEvt/Tp"
+   ]
+  }
+ },
+ "2.153": {
+  "name": "Event date",
+  "codes": "1. EMIR-VR-2153-01 2. EMIR-VR-2153-02 3. EMIR-VR-2153-03 4. EMIR-VR-2153-04 5. EMIR-VR-2153-05 6. EMIR-VR-2153-06 7. EMIR-VR-2153-07 8. EMIR-VR-2153-08",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "M",
+   "CORR": "M",
+   "TERM": "M",
+   "EROR": "M",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "M",
+   "CORR": "M",
+   "TERM": "M",
+   "EROR": "M",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "CmonTradData/TxData/DerivEvt/TmStmp/Dt"
+   ],
+   "MODI": [
+    "CmonTradData/TxData/DerivEvt/TmStmp/Dt"
+   ],
+   "CORR": [
+    "CmonTradData/TxData/DerivEvt/TmStmp/Dt"
+   ],
+   "TERM": [
+    "CmonTradData/TxData/DerivEvt/TmStmp/Dt"
+   ],
+   "POSC": [
+    "CmonTradData/TxData/DerivEvt/TmStmp/Dt"
+   ],
+   "VALU": [
+    "CmonTradData/TxData/DerivEvt/TmStmp/Dt"
+   ],
+   "EROR": [
+    "CmonTradData/TxData/DerivEvt/TmStmp/Dt"
+   ],
+   "REVI": [
+    "CmonTradData/TxData/DerivEvt/TmStmp/Dt"
+   ]
+  }
+ },
+ "2.154": {
+  "name": "Level",
+  "codes": "1. EMIR-VR-2154-01 2. EMIR-VR-2154-02 3. EMIR-VR-2154-03",
+  "TRAD": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "M",
+   "CORR": "M",
+   "TERM": "M",
+   "EROR": "M",
+   "REVI": "M",
+   "POSC": "M"
+  },
+  "PSTN": {
+   "NEWT": "M",
+   "MODI": "M",
+   "VALU": "M",
+   "CORR": "M",
+   "TERM": "M",
+   "EROR": "M",
+   "REVI": "M",
+   "POSC": ""
+  },
+  "paths": {
+   "NEWT": [
+    "Lvl"
+   ],
+   "MODI": [
+    "Lvl"
+   ],
+   "CORR": [
+    "Lvl"
+   ],
+   "TERM": [
+    "Lvl"
+   ],
+   "POSC": [
+    "Lvl"
+   ],
+   "VALU": [
+    "Lvl"
+   ],
+   "EROR": [
+    "Lvl"
+   ],
+   "REVI": [
+    "Lvl"
+   ]
+  }
+ }
+}

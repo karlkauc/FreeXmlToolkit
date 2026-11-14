@@ -30,6 +30,9 @@ import org.fxt.freexmltoolkit.plugin.ElementDescriber;
  */
 public final class CatalogDescriber implements ElementDescriber {
 
+    /** The prefix of the payload in ESMA's business data envelope. */
+    static final String ENVELOPE_PAYLOAD = "BizData/Pyld/";
+
     private final BooleanSupplier enabled;
     private final List<Supplier<FieldCatalog>> catalogs;
 
@@ -48,8 +51,13 @@ public final class CatalogDescriber implements ElementDescriber {
             return null;
         }
         String path = String.join("/", element.path());
+        // ISO 20022 reports in the business data envelope: the catalogues may list the bare Document only
+        String bare = path.startsWith(ENVELOPE_PAYLOAD) ? path.substring(ENVELOPE_PAYLOAD.length()) : null;
         for (Supplier<FieldCatalog> catalog : catalogs) {
             FieldCatalog.Field field = catalog.get().byPath(path);
+            if (field == null && bare != null) {
+                field = catalog.get().byPath(bare);
+            }
             if (field != null) {
                 return FieldCatalog.describe(field);
             }

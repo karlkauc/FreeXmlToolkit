@@ -5,3 +5,4 @@ org.fxt.freexmltoolkit.plugins.findatex.FinDatExPlugin
 org.fxt.freexmltoolkit.plugins.xbrl.XbrlPlugin
 org.fxt.freexmltoolkit.plugins.pkmeldewesen.PkMeldewesenPlugin
 org.fxt.freexmltoolkit.plugins.kagmeldewesen.KagMeldewesenPlugin
+org.fxt.freexmltoolkit.plugins.esmareporting.EsmaReportingPlugin

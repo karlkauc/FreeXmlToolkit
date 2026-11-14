@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Example EMIR Refit report (auth.030.001.03) with fictitious data: an error report (EROR) that withdraws a
+     derivative reported by mistake. Made-up LEIs and UTI. -->
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:auth.030.001.03">
+	<DerivsTradRpt>
+		<RptHdr>
+			<NbRcrds>1</NbRcrds>
+		</RptHdr>
+		<TradData>
+			<Rpt>
+				<Err>
+					<CtrPtySpcfcData>
+						<CtrPty>
+							<RptgCtrPty>
+								<Id>
+									<Lgl>
+										<Id>
+											<LEI>5299009FXTKAGFUND050</LEI>
+										</Id>
+									</Lgl>
+								</Id>
+							</RptgCtrPty>
+							<OthrCtrPty>
+								<IdTp>
+									<Lgl>
+										<Id>
+											<LEI>5299009FXTBANK000080</LEI>
+										</Id>
+									</Lgl>
+								</IdTp>
+							</OthrCtrPty>
+							<SubmitgAgt>
+								<LEI>5299009FXTKAGFUND050</LEI>
+							</SubmitgAgt>
+						</CtrPty>
+						<RptgTmStmp>2026-01-16T09:00:00Z</RptgTmStmp>
+					</CtrPtySpcfcData>
+					<CmonTradData>
+						<TxData>
+							<TxId>
+								<UnqTxIdr>5299009FXTKAGFUND050FXTEXAMPLE2026011500001</UnqTxIdr>
+							</TxId>
+							<DerivEvt>
+								<TmStmp>
+									<Dt>2026-01-15</Dt>
+								</TmStmp>
+							</DerivEvt>
+						</TxData>
+					</CmonTradData>
+					<Lvl>TCTN</Lvl>
+				</Err>
+			</Rpt>
+		</TradData>
+	</DerivsTradRpt>
+</Document>

@@ -72,9 +72,6 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
     static final Supplier<FieldCatalog> AIFM_FIELDS = CatalogDescriber.lazy(AIFMD_RESOURCES + "/aifm-fields.json");
 
     static final String MMF_RESOURCES = "/plugins/kagmeldewesen/mmf";
-    static final List<String> MMF_SCHEMAS = List.of("mmf-envelope.xsd", "head.003.001.01.xsd",
-            "bah_MMF_Regulatory_reporting_MoneyMarketFundReportV01_auth_093_001_01.xsd",
-            "MMF_Regulatory_reporting_MoneyMarketFundReport_V04_DRAFT_auth_093_001_01.xsd");
     static final Supplier<FieldCatalog> MMF_FIELDS = CatalogDescriber.lazy(MMF_RESOURCES + "/mmf-fields.json");
     private static volatile RegRuleSet mmfRules;
 
@@ -131,13 +128,8 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
                     "ESMA AIFMD reporting, AIF file (v1.2)", AifmdRules.AIF_ROOT));
             context.addSchema(new PluginSchema(null, dir.resolve("AIFMD_DATMAN_V1.2.xsd").toAbsolutePath().toString(),
                     "ESMA AIFMD reporting, AIFM file (v1.2)", AifmdRules.AIFM_ROOT));
-            Path mmf = BundledSchemas.install(ID, "mmf-4.1", MMF_RESOURCES, MMF_SCHEMAS);
-            context.addSchema(new PluginSchema("urn:iso:std:iso:20022:tech:xsd:head.003.001.01",
-                    mmf.resolve("mmf-envelope.xsd").toAbsolutePath().toString(),
-                    "ESMA money market fund report in its BizData envelope (auth.093, v04.1)", null));
-            context.addSchema(new PluginSchema("urn:iso:std:iso:20022:tech:xsd:DRAFT6auth.093.001.01",
-                    mmf.resolve(MMF_SCHEMAS.getLast()).toAbsolutePath().toString(),
-                    "ESMA money market fund report (auth.093, v04.1)", null));
+            org.fxt.freexmltoolkit.plugins.regreport.EsmaSchemas.register(context,
+                    org.fxt.freexmltoolkit.plugins.regreport.EsmaSchemas.MMF, "ESMA money market fund report (auth.093, v04.1)");
         } catch (RuntimeException e) {
             logger.warn("KAG-Meldewesen schemas not registered: {}", e.getMessage());
         }
