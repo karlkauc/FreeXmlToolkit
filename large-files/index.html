@@ -3446,6 +3446,9 @@ them.</p>
   character references (<code>&amp;#x20AC;</code>).</li>
 <li>If another program changed the file since the window was read, <strong>Apply to File</strong> refuses; reload
   the file first.</li>
+<li>With <strong>Settings → Appearance → Memory → Large File Viewer: keep a backup (.bak) when writing</strong>, the
+  previous version is kept as <code>&lt;name&gt;.bak</code> next to the file (the next write replaces it); the status
+  line names it.</li>
 </ul>
 <h2 id="statistics-xml">Statistics (XML)<a class="headerlink" href="#statistics-xml" title="Permanent link">¶</a></h2>
 <p><strong>Scan</strong> reads the whole file once and lists every element path (names from the root, without
@@ -3529,7 +3532,7 @@ written). The viewer's own <strong>Apply to File</strong> is no change from outs
   the editor if it fits the memory limit.</li>
 <li>UTF-8, ASCII and single-byte encodings such as ISO-8859-1 are supported; UTF-16 and UTF-32 files
   are not.</li>
-<li>Writing needs free space for a second copy of the file in its folder.</li>
+<li>Writing needs free space for a second copy of the file in its folder (a third one with the <code>.bak</code> backup).</li>
 </ul>
 
 
