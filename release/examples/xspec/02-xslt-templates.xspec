@@ -70,7 +70,7 @@
         <x:context href="../xml/FundsXML4_Equity_Fund.xml"/>
         <x:expect label="one fund with its 27 positions">
             <position-report>
-                <fund id="HU0000704200" currency="HUF">
+                <fund id="HUXMPLEQ0000" currency="HUF">
                     <name>...</name>
                     <lines count="27">...</lines>
                 </fund>

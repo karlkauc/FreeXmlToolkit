@@ -124,7 +124,7 @@ class ExamplesIntegrityTest {
 
         assertTrue(result.isSuccess(), () -> "Look-through XQuery failed: " + result.getErrorMessage());
         // the equity example holds exactly one target-fund position (Example Euro Bázis)
-        assertTrue(result.getOutputContent().contains("HU0000706007"),
+        assertTrue(result.getOutputContent().contains("HUXMPLEU0004"),
                 "Look-through report should list the fund-investment candidate");
     }
 

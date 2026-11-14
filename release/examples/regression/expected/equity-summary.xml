@@ -4,7 +4,7 @@
   XMLUnit placeholders; the sum of the weights is 100 within the scenario's tolerance (0.001).
 -->
 <fund-summary created="${xmlunit.isDateTime}" run="${xmlunit.matchesRegex(^d\w+-\d+$)}">
-   <fund isin="HU0000704200" currency="HUF">
+   <fund isin="HUXMPLEQ0000" currency="HUF">
       <name>Example Stock Hungary Indexkövető Befektetési Alap</name>
       <nav>29411334597</nav>
       <positions count="27">

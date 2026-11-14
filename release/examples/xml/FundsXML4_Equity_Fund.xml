@@ -34,12 +34,12 @@
 	<Funds>
 		<Fund>
 			<Identifiers>
-				<ISIN>HU0000704200</ISIN>
-				<LEI>529900TQDPMSEVGAGY74</LEI>
+				<ISIN>HUXMPLEQ0000</ISIN>
+				<LEI>XMPL00HUEQUITYFND140</LEI>
 			</Identifiers>
 			<Names>
 				<OfficialName>Example Stock Hungary Indexkövető Befektetési Alap</OfficialName>
-				<ShortName>ALPDINAMIK</ShortName>
+				<ShortName>XMPLEQHU</ShortName>
 			</Names>
 			<Currency>HUF</Currency>
 			<SingleFundFlag>true</SingleFundFlag>
@@ -49,15 +49,15 @@
 				<Benchmarks>
 					<Benchmark>
 						<BenchmarkID>ID_15494</BenchmarkID>
-						<Name>ALPDINAMIK BM</Name>
+						<Name>XMPLEQHU BM</Name>
 						<Currency>HUF</Currency>
 						<BenchmarkUsage ListedType="OFFICIAL"/>
 						<BenchmarkComponents>
 							<BenchmarkComponent>
 								<ValidFrom>2010-09-30</ValidFrom>
-								<Name>ALPDINAMIK BM</Name>
+								<Name>XMPLEQHU BM</Name>
 								<Identifier>
-									<OtherID FreeType="Name">ALPDINAMIK BM</OtherID>
+									<OtherID FreeType="Name">XMPLEQHU BM</OtherID>
 								</Identifier>
 								<Weight>100</Weight>
 							</BenchmarkComponent>
@@ -187,9 +187,9 @@
 								</Account>
 							</Position>
 							<Position>
-								<UniqueID>HU0000706007</UniqueID>
+								<UniqueID>HUXMPLEU0004</UniqueID>
 								<Identifiers>
-									<ISIN>HU0000706007</ISIN>
+									<ISIN>HUXMPLEU0004</ISIN>
 									<OtherID FreeType="Name">Example Nyíltvégű Euro Bázis Befektetési Alap</OtherID>
 								</Identifiers>
 								<Currency>EUR</Currency>
@@ -407,9 +407,9 @@
 								</Equity>
 							</Position>
 							<Position>
-								<UniqueID>ALAPKEZ_ALAPKEZE_ALPDINAMIK</UniqueID>
+								<UniqueID>ALAPKEZ_ALAPKEZE_XMPLEQHU</UniqueID>
 								<Identifiers>
-									<OtherID FreeType="Name">Alapkezelési díj - ALAPKEZE-ALAPKEZE-ALPDINAMIK</OtherID>
+									<OtherID FreeType="Name">Alapkezelési díj - ALAPKEZE-ALAPKEZE-XMPLEQHU</OtherID>
 								</Identifiers>
 								<Currency>HUF</Currency>
 								<TotalValue>
@@ -422,9 +422,9 @@
 								<Fee/>
 							</Position>
 							<Position>
-								<UniqueID>FORGALM_EXAMPLE_ALPDINAMIK</UniqueID>
+								<UniqueID>FORGALM_EXAMPLE_XMPLEQHU</UniqueID>
 								<Identifiers>
-									<OtherID FreeType="Name">Forgalmazási díj - EXAMPLE-EXAMPLE-ALPDINAMIK</OtherID>
+									<OtherID FreeType="Name">Forgalmazási díj - EXAMPLE-EXAMPLE-XMPLEQHU</OtherID>
 								</Identifiers>
 								<Currency>HUF</Currency>
 								<TotalValue>
@@ -485,9 +485,9 @@
 								</Equity>
 							</Position>
 							<Position>
-								<UniqueID>KONYVELES_KÖNYVELŐ_ALPDINAMIK</UniqueID>
+								<UniqueID>KONYVELES_KÖNYVELŐ_XMPLEQHU</UniqueID>
 								<Identifiers>
-									<OtherID FreeType="Name">Könyvelési díj - KÖNYVELŐ-KÖNYVELŐ-ALPDINAMIK</OtherID>
+									<OtherID FreeType="Name">Könyvelési díj - KÖNYVELŐ-KÖNYVELŐ-XMPLEQHU</OtherID>
 								</Identifiers>
 								<Currency>HUF</Currency>
 								<TotalValue>
@@ -500,9 +500,9 @@
 								<Fee/>
 							</Position>
 							<Position>
-								<UniqueID>AUDITOR_KÖNYVVIZSG_ALPDINAMIK</UniqueID>
+								<UniqueID>AUDITOR_KÖNYVVIZSG_XMPLEQHU</UniqueID>
 								<Identifiers>
-									<OtherID FreeType="Name">Könyvizsgálói díj - KÖNYVVIZSG-KÖNYVVIZSG-ALPDINAMIK</OtherID>
+									<OtherID FreeType="Name">Könyvizsgálói díj - KÖNYVVIZSG-KÖNYVVIZSG-XMPLEQHU</OtherID>
 								</Identifiers>
 								<Currency>HUF</Currency>
 								<TotalValue>
@@ -515,9 +515,9 @@
 								<Fee/>
 							</Position>
 							<Position>
-								<UniqueID>APTF_MNB_ALPDINAMIK</UniqueID>
+								<UniqueID>APTF_MNB_XMPLEQHU</UniqueID>
 								<Identifiers>
-									<OtherID FreeType="Name">Felügyeleti díj - MNB-MNB-ALPDINAMIK</OtherID>
+									<OtherID FreeType="Name">Felügyeleti díj - MNB-MNB-XMPLEQHU</OtherID>
 								</Identifiers>
 								<Currency>HUF</Currency>
 								<TotalValue>
@@ -578,9 +578,9 @@
 								</Bond>
 							</Position>
 							<Position>
-								<UniqueID>LETKEZDIJ_EXAMPLEH_ALPDINAMIK</UniqueID>
+								<UniqueID>LETKEZDIJ_EXAMPLEH_XMPLEQHU</UniqueID>
 								<Identifiers>
-									<OtherID FreeType="Name">Letétkezelési díj - EXAMPLEH-EXAMPLEH-ALPDINAMIK</OtherID>
+									<OtherID FreeType="Name">Letétkezelési díj - EXAMPLEH-EXAMPLEH-XMPLEQHU</OtherID>
 								</Identifiers>
 								<Currency>HUF</Currency>
 								<TotalValue>
@@ -593,9 +593,9 @@
 								<Fee/>
 							</Position>
 							<Position>
-								<UniqueID>KULONADO_MNB_ALPDINAMIK</UniqueID>
+								<UniqueID>KULONADO_MNB_XMPLEQHU</UniqueID>
 								<Identifiers>
-									<OtherID FreeType="Name">Különadó - MNB-MNB-ALPDINAMIK</OtherID>
+									<OtherID FreeType="Name">Különadó - MNB-MNB-XMPLEQHU</OtherID>
 								</Identifiers>
 								<Currency>HUF</Currency>
 								<TotalValue>
@@ -743,7 +743,7 @@
 				<ShareClasses>
 					<ShareClass>
 						<Identifiers>
-							<ISIN>HU0000704200</ISIN>
+							<ISIN>HUXMPLEQ0000</ISIN>
 						</Identifiers>
 						<Names>
 							<OfficialName>Example Stock Hungary Indexkövető Befektetési Alap A sorozat</OfficialName>
@@ -775,7 +775,7 @@
 					</ShareClass>
 					<ShareClass>
 						<Identifiers>
-							<ISIN>HU0000723457</ISIN>
+							<ISIN>HUXMPLEQ0018</ISIN>
 						</Identifiers>
 						<Names>
 							<OfficialName>Example Stock Hungary Indexkövető Befektetési Alap D sorozat</OfficialName>
@@ -1092,20 +1092,20 @@
 			</AssetDetails>
 		</Asset>
 		<Asset>
-			<UniqueID>HU0000706007</UniqueID>
+			<UniqueID>HUXMPLEU0004</UniqueID>
 			<Identifiers>
-				<ISIN>HU0000706007</ISIN>
-				<OtherID FreeType="Name">ALPOKEURO</OtherID>
+				<ISIN>HUXMPLEU0004</ISIN>
+				<OtherID FreeType="Name">XMPLEURO</OtherID>
 			</Identifiers>
 			<Currency>EUR</Currency>
 			<Country>HU</Country>
-			<Name>ALPOKEURO</Name>
+			<Name>XMPLEURO</Name>
 			<AssetType>SC</AssetType>
 			<AssetDetails>
 				<ShareClass>
 					<Issuer>
 						<Identifiers>
-							<LEI>529900S4G4W2K5EO0X04</LEI>
+							<LEI>XMPL00HUEXAMPLEAM115</LEI>
 							<OtherID FreeType="Name">Example Alapkezelő Zrt.</OtherID>
 						</Identifiers>
 						<Name>Example Alapkezelő Zrt.</Name>
@@ -1160,7 +1160,7 @@
 			</Identifiers>
 			<Currency>EUR</Currency>
 			<Country>HU</Country>
-			<Name>FX forward eladási pozíció nyitása - ALPDINAMIK - EXAMPLEH - 2025-01-31 - 2026-02-03 - 1,170,000 - EURHUF [txId=1473954]</Name>
+			<Name>FX forward eladási pozíció nyitása - XMPLEQHU - EXAMPLEH - 2025-01-31 - 2026-02-03 - 1,170,000 - EURHUF [txId=1000001]</Name>
 			<AssetType>FX</AssetType>
 			<AssetDetails>
 				<FXForward>
@@ -1335,13 +1335,13 @@
 			</AssetDetails>
 		</Asset>
 		<Asset>
-			<UniqueID>APTF_MNB_ALPDINAMIK</UniqueID>
+			<UniqueID>APTF_MNB_XMPLEQHU</UniqueID>
 			<Identifiers>
-				<OtherID FreeType="Name">APTF_MNB_ALPDINAMIK</OtherID>
+				<OtherID FreeType="Name">APTF_MNB_XMPLEQHU</OtherID>
 			</Identifiers>
 			<Currency>HUF</Currency>
 			<Country>HU</Country>
-			<Name>APTF_MNB_ALPDINAMIK</Name>
+			<Name>APTF_MNB_XMPLEQHU</Name>
 			<AssetType>FE</AssetType>
 			<AssetDetails>
 				<Fee>
@@ -1361,13 +1361,13 @@
 			</AssetDetails>
 		</Asset>
 		<Asset>
-			<UniqueID>FORGALM_EXAMPLE_ALPDINAMIK</UniqueID>
+			<UniqueID>FORGALM_EXAMPLE_XMPLEQHU</UniqueID>
 			<Identifiers>
-				<OtherID FreeType="Name">FORGALM_EXAMPLE_ALPDINAMIK</OtherID>
+				<OtherID FreeType="Name">FORGALM_EXAMPLE_XMPLEQHU</OtherID>
 			</Identifiers>
 			<Currency>HUF</Currency>
 			<Country>HU</Country>
-			<Name>FORGALM_EXAMPLE_ALPDINAMIK</Name>
+			<Name>FORGALM_EXAMPLE_XMPLEQHU</Name>
 			<AssetType>FE</AssetType>
 			<AssetDetails>
 				<Fee>
@@ -1387,20 +1387,20 @@
 			</AssetDetails>
 		</Asset>
 		<Asset>
-			<UniqueID>ALAPKEZ_ALAPKEZE_ALPDINAMIK</UniqueID>
+			<UniqueID>ALAPKEZ_ALAPKEZE_XMPLEQHU</UniqueID>
 			<Identifiers>
-				<OtherID FreeType="Name">ALAPKEZ_ALAPKEZE_ALPDINAMIK</OtherID>
+				<OtherID FreeType="Name">ALAPKEZ_ALAPKEZE_XMPLEQHU</OtherID>
 			</Identifiers>
 			<Currency>HUF</Currency>
 			<Country>HU</Country>
-			<Name>ALAPKEZ_ALAPKEZE_ALPDINAMIK</Name>
+			<Name>ALAPKEZ_ALAPKEZE_XMPLEQHU</Name>
 			<AssetType>FE</AssetType>
 			<AssetDetails>
 				<Fee>
 					<Type>Alapkezelési díj - ALAPKEZE</Type>
 					<Counterparty>
 						<Identifiers>
-							<LEI>529900S4G4W2K5EO0X04</LEI>
+							<LEI>XMPL00HUEXAMPLEAM115</LEI>
 							<OtherID FreeType="Name">Example Alapkezelő Zrt.</OtherID>
 						</Identifiers>
 						<Name>Example Alapkezelő Zrt.</Name>
@@ -1412,13 +1412,13 @@
 			</AssetDetails>
 		</Asset>
 		<Asset>
-			<UniqueID>KULONADO_MNB_ALPDINAMIK</UniqueID>
+			<UniqueID>KULONADO_MNB_XMPLEQHU</UniqueID>
 			<Identifiers>
-				<OtherID FreeType="Name">KULONADO_MNB_ALPDINAMIK</OtherID>
+				<OtherID FreeType="Name">KULONADO_MNB_XMPLEQHU</OtherID>
 			</Identifiers>
 			<Currency>HUF</Currency>
 			<Country>HU</Country>
-			<Name>KULONADO_MNB_ALPDINAMIK</Name>
+			<Name>KULONADO_MNB_XMPLEQHU</Name>
 			<AssetType>FE</AssetType>
 			<AssetDetails>
 				<Fee>
@@ -1438,13 +1438,13 @@
 			</AssetDetails>
 		</Asset>
 		<Asset>
-			<UniqueID>KONYVELES_KÖNYVELŐ_ALPDINAMIK</UniqueID>
+			<UniqueID>KONYVELES_KÖNYVELŐ_XMPLEQHU</UniqueID>
 			<Identifiers>
-				<OtherID FreeType="Name">KONYVELES_KÖNYVELŐ_ALPDINAMIK</OtherID>
+				<OtherID FreeType="Name">KONYVELES_KÖNYVELŐ_XMPLEQHU</OtherID>
 			</Identifiers>
 			<Currency>HUF</Currency>
 			<Country>HU</Country>
-			<Name>KONYVELES_KÖNYVELŐ_ALPDINAMIK</Name>
+			<Name>KONYVELES_KÖNYVELŐ_XMPLEQHU</Name>
 			<AssetType>FE</AssetType>
 			<AssetDetails>
 				<Fee>
@@ -1462,13 +1462,13 @@
 			</AssetDetails>
 		</Asset>
 		<Asset>
-			<UniqueID>AUDITOR_KÖNYVVIZSG_ALPDINAMIK</UniqueID>
+			<UniqueID>AUDITOR_KÖNYVVIZSG_XMPLEQHU</UniqueID>
 			<Identifiers>
-				<OtherID FreeType="Name">AUDITOR_KÖNYVVIZSG_ALPDINAMIK</OtherID>
+				<OtherID FreeType="Name">AUDITOR_KÖNYVVIZSG_XMPLEQHU</OtherID>
 			</Identifiers>
 			<Currency>HUF</Currency>
 			<Country>HU</Country>
-			<Name>AUDITOR_KÖNYVVIZSG_ALPDINAMIK</Name>
+			<Name>AUDITOR_KÖNYVVIZSG_XMPLEQHU</Name>
 			<AssetType>FE</AssetType>
 			<AssetDetails>
 				<Fee>
@@ -1487,13 +1487,13 @@
 			</AssetDetails>
 		</Asset>
 		<Asset>
-			<UniqueID>LETKEZDIJ_EXAMPLEH_ALPDINAMIK</UniqueID>
+			<UniqueID>LETKEZDIJ_EXAMPLEH_XMPLEQHU</UniqueID>
 			<Identifiers>
-				<OtherID FreeType="Name">LETKEZDIJ_EXAMPLEH_ALPDINAMIK</OtherID>
+				<OtherID FreeType="Name">LETKEZDIJ_EXAMPLEH_XMPLEQHU</OtherID>
 			</Identifiers>
 			<Currency>HUF</Currency>
 			<Country>HU</Country>
-			<Name>LETKEZDIJ_EXAMPLEH_ALPDINAMIK</Name>
+			<Name>LETKEZDIJ_EXAMPLEH_XMPLEQHU</Name>
 			<AssetType>FE</AssetType>
 			<AssetDetails>
 				<Fee>
