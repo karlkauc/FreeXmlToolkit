@@ -1,7 +1,8 @@
-# ESMA Reporting (EMIR)
+# ESMA Reporting (EMIR, SFTR)
 
 The **ESMA Reporting** extension supports ESMA's transaction reports in ISO 20022 - starting with
-the **EMIR Refit derivatives trade report** (`auth.030.001.03`, ESMA usage guideline DATTAR 1.1.0),
+the **EMIR Refit derivatives trade report** (`auth.030.001.03`, ESMA usage guideline DATTAR 1.1.0)
+and the **SFTR securities financing transaction report** (`auth.052.001.02`, usage guideline 1.2.0),
 which counterparties (also management companies for their funds) send to a trade repository.
 
 The extension is **off by default**: switch it on in **Settings → Extensions → INSTALLED EXTENSIONS**
@@ -29,12 +30,23 @@ The extension is **off by default**: switch it on in **Settings → Extensions �
 - **Field labels:** every element shows its EMIR field number and name, the obligation per action
   type, ESMA's rules text and the details to be reported in the Inspector's DOCUMENTATION and as grid
   tooltip - also inside the envelope.
-- **Status bar badge:** `EMIR · 3 reports`; the side panel lists the reports per action type.
+- **Status bar badge:** `EMIR · 3 reports`, `SFTR · 1 report`; the side panel lists the reports per action type.
 - **ESMA Reporting activity:** the document's summary, **Check Active Document**, an LEI/ISIN checker
   and an example error report (EROR) with fictitious data.
+
+## SFTR
+
+SFTR reports (`Document` in the `auth.052.001.02` namespace or in the `BizData` envelope) are checked
+the same way, with ESMA's *SFTR validation rules* (ESMA74-362-1008): the table distinguishes the
+action type (`New` = NEWT, `Mod` = MODI, `Err` = EROR, `EarlyTermntn` = ETRM, `PosCmpnt` = POSC,
+`CollUpd` = COLU, `Crrctn` = CORR, `ValtnUpd` = VALU), the level (`LvlTp`: TCTN or PSTN) and the type
+of SFT, read from the loan data (`RpTrad` repo, `BuySellBck` buy-sell back, `SctiesLndg` securities
+lending, `MrgnLndg` margin lending) - `SFTR-2.3 Field 2.3 · Event date is mandatory for action type
+COLU`. UTI, LEI and ISIN are checked too; **New SFTR Error Report (Example)** opens a fictitious report.
 
 ## Sources
 
 ESMA: EMIR Refit incoming messages 1.1.0 (usage guidelines and schemas) and EMIR Refit validation
-rules (esma74-362-2683). The field catalogue and the action-type table are generated with
-`scripts/esma-emir-fields.py`.
+rules (esma74-362-2683); SFTR counterparty and TR data exchange 2023 and SFTR validation rules
+(ESMA74-362-1008). The field catalogues and the action-type tables are generated with
+`scripts/esma-emir-fields.py` and `scripts/esma-sftr-fields.py`.

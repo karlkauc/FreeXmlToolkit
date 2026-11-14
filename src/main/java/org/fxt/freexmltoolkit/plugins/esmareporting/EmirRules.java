@@ -69,7 +69,7 @@ public final class EmirRules {
                 return;
             }
             String level = "PSTN".equals(action.text("Lvl")) ? "PSTN" : "TRAD";
-            matrix.check(action, type, level, "EMIR", out);
+            matrix.check(action, type, level, level.equals("PSTN") ? " at position level" : "", "EMIR", out);
             codes.check(rec, ctx, out);
             String uti = action.text("CmonTradData/TxData/TxId/UnqTxIdr");
             if (!uti.isEmpty()) {

@@ -32,13 +32,15 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 /**
- * The obligation of every field per action type and level, as ESMA's transaction reporting rules
- * tabulate it (EMIR, SFTR): {@code M} mandatory, {@code C} conditional, {@code O} optional,
- * {@code -} not applicable. With the element paths of each field (relative to the action element),
- * it checks a report: mandatory fields present, not applicable fields absent. Generated as JSON:
+ * The obligation of every field per action type and variant, as ESMA's transaction reporting rules
+ * tabulate it: {@code M} mandatory, {@code C} conditional, {@code O} optional, {@code -} not
+ * applicable. A variant is what the table distinguishes besides the action type - the level for EMIR
+ * ({@code TRAD}, {@code PSTN}), level and SFT type for SFTR ({@code TCTN.Repo}). With the element paths
+ * of each field (relative to the action element), it checks a report: mandatory fields present, not
+ * applicable fields absent. Generated as JSON:
  *
- * <pre>{"1.4": {"name": "…", "codes": "EMIR-VR-1004-01 …", "TRAD": {"NEWT": "M", …},
- *   "PSTN": {…}, "paths": {"NEWT": ["CtrPtySpcfcData/…/LEI"], …}}}</pre>
+ * <pre>{"1.4": {"name": "…", "codes": "EMIR-VR-1004-01 …", "obligations": {"TRAD": {"NEWT": "M", …},
+ *   "PSTN": {…}}, "paths": {"NEWT": ["CtrPtySpcfcData/…/LEI"], …}}}</pre>
  */
 public final class ActionMatrix {
 
@@ -46,17 +48,16 @@ public final class ActionMatrix {
     public static final class Entry {
         String name;
         String codes;
-        Map<String, String> TRAD;
-        Map<String, String> PSTN;
+        Map<String, Map<String, String>> obligations;
         Map<String, List<String>> paths;
 
         public String name() { return name == null ? "" : name; }
         /** @return ESMA's error codes of the field ({@code EMIR-VR-1004-01 …}) */
         public String codes() { return codes == null ? "" : codes; }
 
-        /** @return the obligation for an action type at a level ({@code TRAD}, {@code PSTN}), empty when unknown */
-        public String obligation(String level, String action) {
-            Map<String, String> byAction = "PSTN".equals(level) ? PSTN : TRAD;
+        /** @return the obligation for an action type in a variant ({@code TRAD}, {@code TCTN.Repo}), empty when unknown */
+        public String obligation(String variant, String action) {
+            Map<String, String> byAction = obligations == null ? null : obligations.get(variant);
             String value = byAction == null ? null : byAction.get(action);
             return value == null ? "" : value;
         }
@@ -98,24 +99,26 @@ public final class ActionMatrix {
      *
      * @param rulePrefix ids are {@code <prefix>-<field number>}
      * @param action     the action type ({@code NEWT} …)
-     * @param level      {@code TRAD} or {@code PSTN}
+     * @param variant    the table's variant ({@code TRAD}, {@code PSTN}, {@code TCTN.Repo} …)
+     * @param where      how the variant reads in a message ({@code " at position level"}, {@code " for a repo"}), may be empty
      */
-    public void check(RecordNode actionElement, String action, String level, String rulePrefix, RegRuleSet.Findings out) {
+    public void check(RecordNode actionElement, String action, String variant, String where, String rulePrefix,
+                      RegRuleSet.Findings out) {
         for (Map.Entry<String, Entry> e : entries.entrySet()) {
             Entry entry = e.getValue();
             List<String> paths = entry.paths(action);
             if (paths.isEmpty()) {
                 continue;
             }
-            String obligation = entry.obligation(level, action);
+            String obligation = entry.obligation(variant, action);
             boolean present = paths.stream().anyMatch(actionElement::filled);
             if ("M".equals(obligation) && !present) {
                 out.error(rulePrefix + "-" + e.getKey(), actionElement.line(), "Field " + e.getKey() + " · " + entry.name()
-                        + " is mandatory for action type " + action + (level.equals("PSTN") ? " at position level" : "") + ".");
+                        + " is mandatory for action type " + action + where + ".");
             } else if ("-".equals(obligation) && present) {
                 String path = paths.stream().filter(actionElement::filled).findFirst().orElse(paths.getFirst());
                 out.error(rulePrefix + "-" + e.getKey(), actionElement.lineOf(path), "Field " + e.getKey() + " · " + entry.name()
-                        + " must not be reported for action type " + action + (level.equals("PSTN") ? " at position level" : "") + ".");
+                        + " must not be reported for action type " + action + where + ".");
             }
         }
     }

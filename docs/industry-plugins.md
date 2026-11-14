@@ -10,7 +10,7 @@ page that explains its functions in detail:
 | **FinDatEx Templates** | EMT, EET, EPT and TPT (V7/V8) files as CSV or Excel | [FinDatEx Templates](plugin-findatex.md) |
 | **XBRL (with Arelle)** | XBRL instances and inline XBRL reports, validated with Arelle | [XBRL](plugin-xbrl.md) |
 | **PK-Meldewesen (FMA)** | Austrian pension fund reports to the FMA: quarterly (PK-QMV), annual (PK-FJMV) and ECB report | [PK-Meldewesen](plugin-pk-meldewesen.md) |
-| **ESMA Reporting (EMIR)** | EMIR Refit derivatives trade reports (ISO 20022 auth.030) with ESMA's validation rules per action type | [ESMA Reporting](plugin-esma-reporting.md) |
+| **ESMA Reporting (EMIR, SFTR)** | EMIR Refit trade reports (auth.030) and SFTR reports (auth.052) with ESMA's validation rules per action type | [ESMA Reporting](plugin-esma-reporting.md) |
 | **KAG-Meldewesen (FMA)** | Reports of Austrian management companies to the FMA: AIFMD reporting (AIFM and AIF file) with the FMA's rules, money market fund report | [KAG-Meldewesen](plugin-kag-meldewesen.md) |
 
 The [FundsXML extension](fundsxml-extensions.md) is an extension as well, with its own page.

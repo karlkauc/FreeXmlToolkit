@@ -2,25 +2,27 @@
  "1.1": {
   "name": "Reporting timestamp",
   "codes": "1. EMIR-VR-1001-01 2. EMIR-VR-1001-02 3. EMIR-VR-1001-03 4. EMIR-VR-1001-04 5. EMIR-VR-1001-05",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "M",
-   "CORR": "M",
-   "TERM": "M",
-   "EROR": "M",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "M",
-   "CORR": "M",
-   "TERM": "M",
-   "EROR": "M",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "M",
+    "CORR": "M",
+    "TERM": "M",
+    "EROR": "M",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "M",
+    "CORR": "M",
+    "TERM": "M",
+    "EROR": "M",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -52,25 +54,27 @@
  "1.2": {
   "name": "Report submitting entity ID",
   "codes": "1. EMIR-VR-1002-01 2. EMIR-VR-1002-02 3. EMIR-VR-1002-03 4. EMIR-VR-1002-04",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "M",
-   "CORR": "M",
-   "TERM": "M",
-   "EROR": "M",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "M",
-   "CORR": "M",
-   "TERM": "M",
-   "EROR": "M",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "M",
+    "CORR": "M",
+    "TERM": "M",
+    "EROR": "M",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "M",
+    "CORR": "M",
+    "TERM": "M",
+    "EROR": "M",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -102,25 +106,27 @@
  "1.3": {
   "name": "Entity responsible for reporting",
   "codes": "1. EMIR-VR-1003-01 2. EMIR-VR-1003-02 3. EMIR-VR-1003-03 4. EMIR-VR-1003-04 5. EMIR-VR-1003-05",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "C",
-   "CORR": "C",
-   "TERM": "C",
-   "EROR": "C",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "C",
-   "CORR": "C",
-   "TERM": "C",
-   "EROR": "C",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "C",
+    "CORR": "C",
+    "TERM": "C",
+    "EROR": "C",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "C",
+    "CORR": "C",
+    "TERM": "C",
+    "EROR": "C",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -152,25 +158,27 @@
  "1.4": {
   "name": "Counterparty 1 (Reporting counterparty)",
   "codes": "1. EMIR-VR-1004-01 2. EMIR-VR-1004-02 3. EMIR-VR-1004-03 4. EMIR-VR-1004-04 5. EMIR-VR-1004-05",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "M",
-   "CORR": "M",
-   "TERM": "M",
-   "EROR": "M",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "M",
-   "CORR": "M",
-   "TERM": "M",
-   "EROR": "M",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "M",
+    "CORR": "M",
+    "TERM": "M",
+    "EROR": "M",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "M",
+    "CORR": "M",
+    "TERM": "M",
+    "EROR": "M",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -202,25 +210,27 @@
  "1.5": {
   "name": "Nature of the counterparty 1",
   "codes": "1. EMIR-VR-1005-01",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -243,25 +253,27 @@
  "1.6": {
   "name": "Corporate sector of the counterparty 1",
   "codes": "1. EMIR-VR-1006-01 2. EMIR-VR-1006-02 3. EMIR-VR-1006-03",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -289,25 +301,27 @@
  "1.7": {
   "name": "Clearing threshold of counterparty 1",
   "codes": "1. EMIR-VR-1007-01 2. EMIR-VR-1007-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -330,25 +344,27 @@
  "1.8": {
   "name": "Counterparty 2 identifier type",
   "codes": "1. EMIR-VR-1008-01 2. EMIR-VR-1008-02",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "M",
-   "CORR": "M",
-   "TERM": "M",
-   "EROR": "M",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "M",
-   "CORR": "M",
-   "TERM": "M",
-   "EROR": "M",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "M",
+    "CORR": "M",
+    "TERM": "M",
+    "EROR": "M",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "M",
+    "CORR": "M",
+    "TERM": "M",
+    "EROR": "M",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -380,25 +396,27 @@
  "1.9": {
   "name": "Counterparty 2",
   "codes": "1. EMIR-VR-1009-01 2. EMIR-VR-1009-02 3. EMIR-VR-1009-03 4. EMIR-VR-1009-04 5. EMIR-VR-1009-05 6. EMIR-VR-1009-06 7. EMIR-VR-1009-07 8. EMIR-VR-1009-08 9. EMIR-VR-1009-09",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "M",
-   "CORR": "M",
-   "TERM": "M",
-   "EROR": "M",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "M",
-   "CORR": "M",
-   "TERM": "M",
-   "EROR": "M",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "M",
+    "CORR": "M",
+    "TERM": "M",
+    "EROR": "M",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "M",
+    "CORR": "M",
+    "TERM": "M",
+    "EROR": "M",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -438,25 +456,27 @@
  "1.10": {
   "name": "Country of the counterparty 2",
   "codes": "1. EMIR-VR-1010-01 2. EMIR-VR-1010-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -488,25 +508,27 @@
  "1.11": {
   "name": "Nature of the counterparty 2",
   "codes": "1. EMIR-VR-1011-01 2. EMIR-VR-1011-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -529,25 +551,27 @@
  "1.12": {
   "name": "Corporate sector of the counterparty 2",
   "codes": "1. EMIR-VR-1012-01 2. EMIR-VR-1012-02 3. EMIR-VR-1012-03",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -575,25 +599,27 @@
  "1.13": {
   "name": "Clearing threshold of counterparty 2",
   "codes": "1. EMIR-VR-1013-01 2. EMIR-VR-1013-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -616,25 +642,27 @@
  "1.14": {
   "name": "Reporting obligation of the counterparty 2",
   "codes": "1. EMIR-VR-1014-01 2. EMIR-VR-1014-02",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -657,25 +685,27 @@
  "1.15": {
   "name": "Broker ID",
   "codes": "1. EMIR-VR-1015-01 2. EMIR-VR-1015-02",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -698,50 +728,54 @@
  "1.16": {
   "name": "Clearing member",
   "codes": "1. EMIR-VR-1016-01 2. EMIR-VR-1016-02 3. EMIR-VR-1016-03 4. EMIR-VR-1016-04 5. EMIR-VR-1016-05 6. EMIR-VR-1016-06 7. EMIR-VR-1016-07",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {}
  },
  "1.17": {
   "name": "Direction",
   "codes": "1. EMIR-VR-1017-01 2. EMIR-VR-1017-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -764,25 +798,27 @@
  "1.18": {
   "name": "Direction of leg 1",
   "codes": "1. EMIR-VR-1018-01 2. EMIR-VR-1018-02 3. EMIR-VR-1018-03",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -805,25 +841,27 @@
  "1.19": {
   "name": "Direction of leg 2",
   "codes": "1. EMIR-VR-1019-01 2. EMIR-VR-1019-02 3. EMIR-VR-1019-03",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -846,25 +884,27 @@
  "1.20": {
   "name": "Directly linked to commercial activity or treasury financing",
   "codes": "1. EMIR-VR-1020-01 2. EMIR-VR-1020-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "-",
-   "MODI": "-",
-   "VALU": "-",
-   "CORR": "-",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "-",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "-",
+    "MODI": "-",
+    "VALU": "-",
+    "CORR": "-",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "-",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -887,25 +927,27 @@
  "2.1": {
   "name": "UTI",
   "codes": "1. EMIR-VR-2001-01 2. EMIR-VR-2001-02 3. EMIR-VR-2001-03 4. EMIR-VR-2001-04",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "M",
-   "CORR": "M",
-   "TERM": "M",
-   "EROR": "M",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "M",
-   "CORR": "M",
-   "TERM": "M",
-   "EROR": "M",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "M",
+    "CORR": "M",
+    "TERM": "M",
+    "EROR": "M",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "M",
+    "CORR": "M",
+    "TERM": "M",
+    "EROR": "M",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -943,25 +985,27 @@
  "2.2": {
   "name": "Report tracking number",
   "codes": "1. EMIR-VR-2002-01 2. EMIR-VR-2002-02 3. EMIR-VR-2002-03 4. EMIR-VR-2002-04",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "-",
-   "MODI": "-",
-   "VALU": "-",
-   "CORR": "-",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "-",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "-",
+    "MODI": "-",
+    "VALU": "-",
+    "CORR": "-",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "-",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -984,25 +1028,27 @@
  "2.3": {
   "name": "Prior UTI (for one-to-one and one-to-many relations between transactions)",
   "codes": "1. EMIR-VR-2003-01 2. EMIR-VR-2003-02 3. EMIR-VR-2003-03 4. EMIR-VR-2003-04 5. EMIR-VR-2003-05",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1030,25 +1076,27 @@
  "2.4": {
   "name": "Subsequent position UTI",
   "codes": "1. EMIR-VR-2004-01 2. EMIR-VR-2004-02 3. EMIR-VR-2004-03 4. EMIR-VR-2004-04",
-  "TRAD": {
-   "NEWT": "-",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "C",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "-",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "C",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "-",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "C",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "-",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "C",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "MODI": [
@@ -1076,25 +1124,27 @@
  "2.5": {
   "name": "PTRR ID",
   "codes": "1. EMIR-VR-2005-01 2. EMIR-VR-2005-02 3. EMIR-VR-2005-03 4. EMIR-VR-2005-04",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "C",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "-"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "C",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "C",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "-"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "C",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1117,25 +1167,27 @@
  "2.6": {
   "name": "Package identifier",
   "codes": "1. EMIR-VR-2006-01",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1155,25 +1207,27 @@
  "2.7": {
   "name": "ISIN",
   "codes": "1. EMIR-VR-2007-01 2. EMIR-VR-2007-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1193,25 +1247,27 @@
  "2.8": {
   "name": "Unique product identifier (UPI)",
   "codes": "1. EMIR-VR-2008-01 2. EMIR-VR-2008-02 3. EMIR-VR-2008-03 4. EMIR-VR-2008-04",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1234,25 +1290,27 @@
  "2.9": {
   "name": "Product classification",
   "codes": "1. EMIR-VR-2009-01 2. EMIR-VR-2009-02",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1275,25 +1333,27 @@
  "2.10": {
   "name": "Contract type",
   "codes": "1. EMIR-VR-2010-01",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1316,25 +1376,27 @@
  "2.11": {
   "name": "Asset class",
   "codes": "1. EMIR-VR-2011-01",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1357,25 +1419,27 @@
  "2.12": {
   "name": "Derivative based on crypto-assets",
   "codes": "1. EMIR-VR-2012-01",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1398,25 +1462,27 @@
  "2.13": {
   "name": "Underlying identification type",
   "codes": "1. EMIR-VR-2013-01 2. EMIR-VR-2013-02 3. EMIR-VR-2013-03 4. EMIR-VR-2013-04 5. EMIR-VR-2013-05",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1439,25 +1505,27 @@
  "2.14": {
   "name": "Underlying identification",
   "codes": "1. EMIR-VR-2014-01 2. EMIR-VR-2014-02 3. EMIR-VR-2014-03",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1485,25 +1553,27 @@
  "2.15": {
   "name": "Indicator of the underlying index",
   "codes": "1. EMIR-VR-2015-01 2. EMIR-VR-2015-02",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1526,25 +1596,27 @@
  "2.16": {
   "name": "Name of the underlying index",
   "codes": "1. EMIR-VR-2016-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1567,25 +1639,27 @@
  "2.17": {
   "name": "Custom basket code",
   "codes": "1. EMIR-VR-2017-01 2. EMIR-VR-2017-02 3. EMIR-VR-2017-03",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1613,25 +1687,27 @@
  "2.18": {
   "name": "Identifier of the basket’s constituents",
   "codes": "1. EMIR-VR-2018-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1654,25 +1730,27 @@
  "2.19": {
   "name": "Settlement currency 1",
   "codes": "1. EMIR-VR-2019-01 2. EMIR-VR-2019-02 3. EMIR-VR-2019-03 4. EMIR-VR-2019-04 5. EMIR-VR-2019-05",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1695,25 +1773,27 @@
  "2.20": {
   "name": "Settlement currency 2",
   "codes": "1. EMIR-VR-2020-01 2. EMIR-VR-2020-02 3. EMIR-VR-2020-03",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1733,25 +1813,27 @@
  "2.21": {
   "name": "Valuation amount",
   "codes": "1. EMIR-VR-2021-01",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "-",
-   "VALU": "M",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "-",
-   "VALU": "M",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "-",
+    "VALU": "M",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "-",
+    "VALU": "M",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1779,25 +1861,27 @@
  "2.22": {
   "name": "Valuation currency",
   "codes": "1. EMIR-VR-2022-01 2. EMIR-VR-2022-02 3. EMIR-VR-2022-03",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "-",
-   "VALU": "M",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "-",
-   "VALU": "M",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "-",
+    "VALU": "M",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "-",
+    "VALU": "M",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1820,25 +1904,27 @@
  "2.23": {
   "name": "Valuation timestamp",
   "codes": "1. EMIR-VR-2023-01 2. EMIR-VR-2023-02 3. EMIR-VR-2023-03 4. EMIR-VR-2023-04 5. EMIR-VR-2023-05 6. EMIR-VR-2023-06 7. EMIR-VR-2023-07",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "-",
-   "VALU": "M",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "-",
-   "VALU": "M",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "-",
+    "VALU": "M",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "-",
+    "VALU": "M",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1861,25 +1947,27 @@
  "2.24": {
   "name": "Valuation method",
   "codes": "1. EMIR-VR-2024-01 2. EMIR-VR-2024-02 3. EMIR-VR-2024-03",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "-",
-   "VALU": "M",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "-",
-   "VALU": "M",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "-",
+    "VALU": "M",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "-",
+    "VALU": "M",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1902,25 +1990,27 @@
  "2.25": {
   "name": "Delta",
   "codes": "1. EMIR-VR-2025-01 2. EMIR-VR-2025-02 3. EMIR-VR-2025-03",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "-",
-   "VALU": "C",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "-",
-   "VALU": "C",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "-",
+    "VALU": "C",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "-",
+    "VALU": "C",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1943,25 +2033,27 @@
  "2.26": {
   "name": "Collateral portfolio indicator",
   "codes": "1. EMIR-VR-2026-01",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -1993,25 +2085,27 @@
  "2.27": {
   "name": "Collateral portfolio code",
   "codes": "1. EMIR-VR-2027-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "- C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "- C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2043,25 +2137,27 @@
  "2.28": {
   "name": "Confirmation timestamp",
   "codes": "1. EMIR-VR-2028-01 2. EMIR-VR-2028-02 3. EMIR-VR-2028-03 4. EMIR-VR-2028-04 5. EMIR-VR-2028-05",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2084,25 +2180,27 @@
  "2.29": {
   "name": "Confirmed",
   "codes": "1. EMIR-VR-2029-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2131,25 +2229,27 @@
  "2.30": {
   "name": "Clearing obligation",
   "codes": "1. EMIR-VR-2030-01 2. EMIR-VR-2030-02 3. EMIR-VR-2030-03",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2172,25 +2272,27 @@
  "2.31": {
   "name": "Cleared",
   "codes": "1. EMIR-VR-2031-01",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2218,25 +2320,27 @@
  "2.32": {
   "name": "Clearing timestamp",
   "codes": "1. EMIR-VR-2032-01 2. EMIR-VR-2032-02 3. EMIR-VR-2032-03 4. EMIR-VR-2032-04 5. EMIR-VR-2032-05",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2259,25 +2363,27 @@
  "2.33": {
   "name": "Central counterparty",
   "codes": "1. EMIR-VR-2033-01 2. EMIR-VR-2033-02 3. EMIR-VR-2033-03 4. EMIR-VR-2033-04",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2300,25 +2406,27 @@
  "2.34": {
   "name": "Master Agreement type",
   "codes": "1. EMIR-VR-2034-01",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2341,25 +2449,27 @@
  "2.35": {
   "name": "Other master agreement type",
   "codes": "1. EMIR-VR-2035-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2382,25 +2492,27 @@
  "2.36": {
   "name": "Master Agreement version",
   "codes": "1. EMIR-VR-2036-01 2. EMIR-VR-2036-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2423,25 +2535,27 @@
  "2.37": {
   "name": "Intragroup",
   "codes": "1. EMIR-VR-2037-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2464,25 +2578,27 @@
  "2.38": {
   "name": "PTRR",
   "codes": "1. EMIR-VR-2038-01 2. EMIR-VR-2038-02",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "-",
-   "MODI": "-",
-   "VALU": "-",
-   "CORR": "-",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "-",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "-",
+    "MODI": "-",
+    "VALU": "-",
+    "CORR": "-",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "-",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2514,25 +2630,27 @@
  "2.39": {
   "name": "Type of PTRR technique",
   "codes": "1. EMIR-VR-2039-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "C",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "-",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "C",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "C",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "-",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "C",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2564,25 +2682,27 @@
  "2.40": {
   "name": "PTRR service provider",
   "codes": "1. EMIR-VR-2040-01 2. EMIR-VR-2040-02 3. EMIR-VR-2040-03 4. EMIR-VR-2040-04",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "C",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "-",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "C",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "C",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "-",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "C",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2614,25 +2734,27 @@
  "2.41": {
   "name": "Venue of execution",
   "codes": "1. EMIR-VR-2041-01 2. EMIR-VR-2041-02",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "O M",
-   "MODI": "O M",
-   "VALU": "-",
-   "CORR": "O M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "O M",
+    "MODI": "O M",
+    "VALU": "-",
+    "CORR": "O M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2655,25 +2777,27 @@
  "2.42": {
   "name": "Execution timestamp",
   "codes": "1. EMIR-VR-2042-01 2. EMIR-VR-2042-02 3. EMIR -VR-2042-03",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2696,25 +2820,27 @@
  "2.43": {
   "name": "Effective date",
   "codes": "1. EMIR-VR-2043-01 2. EMIR-VR-2043-02",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2737,25 +2863,27 @@
  "2.44": {
   "name": "Expiration date",
   "codes": "1. EMIR-VR-2044-01 2. EMIR-VR-2044-02 3. EMIR-VR-2044-03 4. EMIR-VR-2044-04 5. EMIR-VR-2044-05",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2778,25 +2906,27 @@
  "2.45": {
   "name": "Early termination date",
   "codes": "1. EMIR-VR-2045-01 2. EMIR-VR-2045-02 3. EMIR-VR-2045-03 4. EMIR-VR-2045-04 5. EMIR-VR-2045-05 6. EMIR-VR-2045-06 7. EMIR-VR-2045-07 8. EMIR-VR-2045-08",
-  "TRAD": {
-   "NEWT": "-",
-   "MODI": "-",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "M",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "-"
-  },
-  "PSTN": {
-   "NEWT": "-",
-   "MODI": "-",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "M",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "-",
+    "MODI": "-",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "M",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "-"
+   },
+   "PSTN": {
+    "NEWT": "-",
+    "MODI": "-",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "M",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "TERM": [
@@ -2810,25 +2940,27 @@
  "2.46": {
   "name": "Final contractual settlement date",
   "codes": "1. EMIR-VR-2046-01 2. EMIR-VR-2046-02 3. EMIR-VR-2046-03 4. EMIR-VR-2046-04",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2851,25 +2983,27 @@
  "2.47": {
   "name": "Delivery type",
   "codes": "1. EMIR-VR-2047-01",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2892,25 +3026,27 @@
  "2.48": {
   "name": "Price",
   "codes": "1. EMIR-VR-2048-01 2. EMIR-VR-2048-02 3. EMIR-VR-2048-03",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2933,25 +3069,27 @@
  "2.49": {
   "name": "Price currency",
   "codes": "1. EMIR-VR-2049-01 2. EMIR-VR-2049-02 3. EMIR-VR-2049-03",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -2974,25 +3112,27 @@
  "2.50": {
   "name": "Unadjusted effective date of the price",
   "codes": "1. EMIR-VR-2050-01 2. EMIR-VR-2050-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3015,25 +3155,27 @@
  "2.51": {
   "name": "Unadjusted end date of the price",
   "codes": "1. EMIR-VR-2051-01 2. EMIR-VR-2051-02",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3056,25 +3198,27 @@
  "2.52": {
   "name": "Price in effect between the unadjusted effective and end date",
   "codes": "1. EMIR-VR-2052-01 2. EMIR-VR-2052-02",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3107,25 +3251,27 @@
  "2.53": {
   "name": "Package transaction price",
   "codes": "1. EMIR-VR-2053-01 2. EMIR-VR-2053-02 3. EMIR-VR-2053-03 4. EMIR-VR-2053-04",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3153,25 +3299,27 @@
  "2.54": {
   "name": "Package transaction price currency",
   "codes": "1. EMIR-VR-2054-01 2. EMIR-VR-2054-02 3. EMIR-VR-2054-03",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3194,25 +3342,27 @@
  "2.55": {
   "name": "Notional amount of leg 1",
   "codes": "1. EMIR-VR-2055-01",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3235,25 +3385,27 @@
  "2.56": {
   "name": "Notional currency 1",
   "codes": "1. EMIR-VR-2056-01 2. EMIR-VR-2056-02",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "M",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "M",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3277,25 +3429,27 @@
  "2.57": {
   "name": "Effective date of the notional amount of leg 1",
   "codes": "1. EMIR-VR-2057-01 2. EMIR-VR-2057-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3316,25 +3470,27 @@
  "2.58": {
   "name": "End date of the notional amount of leg 1",
   "codes": "1. EMIR-VR-2058-01 2. EMIR-VR-2058-02",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "MODI": [
@@ -3354,25 +3510,27 @@
  "2.59": {
   "name": "Notional amount in effect on associated effective date of leg 1",
   "codes": "1. EMIR-VR-2059-01",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3395,25 +3553,27 @@
  "2.60": {
   "name": "Total notional quantity of leg 1",
   "codes": "1. EMIR-VR-2060-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3436,25 +3596,27 @@
  "2.61": {
   "name": "Effective date of the notional quantity of leg 1",
   "codes": "1. EMIR-VR-2061-01 2. EMIR-VR-2061-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3477,25 +3639,27 @@
  "2.62": {
   "name": "End date of the notional quantity of leg 1",
   "codes": "1. EMIR-VR-2062-01 2. EMIR-VR-2062-02",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3518,25 +3682,27 @@
  "2.63": {
   "name": "Notional quantity in effect on associated effective date of leg 1",
   "codes": "1. EMIR-VR-2063-01",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3559,25 +3725,27 @@
  "2.64": {
   "name": "Notional amount of leg 2",
   "codes": "1. EMIR-VR-2064-01",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3600,25 +3768,27 @@
  "2.65": {
   "name": "Notional currency 2",
   "codes": "1. EMIR-VR-2065-01 2. EMIR-VR-2065-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3641,25 +3811,27 @@
  "2.66": {
   "name": "Effective date of the notional amount of leg 2",
   "codes": "1. EMIR-VR-2066-01 2. EMIR-VR-2066-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3679,25 +3851,27 @@
  "2.67": {
   "name": "End date of the notional amount of leg 2",
   "codes": "1. EMIR-VR-2067-01 2. EMIR-VR-2067-02",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3720,25 +3894,27 @@
  "2.68": {
   "name": "Notional amount in effect on associated effective date of leg 2",
   "codes": "1. EMIR-VR-2068-01",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3761,25 +3937,27 @@
  "2.69": {
   "name": "Total notional quantity of leg 2",
   "codes": "1. EMIR-VR-2069-01",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3802,25 +3980,27 @@
  "2.70": {
   "name": "Effective date of the notional quantity of leg 2",
   "codes": "1. EMIR-VR-2070-01 2. EMIR-VR-2070-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3843,25 +4023,27 @@
  "2.71": {
   "name": "End date of the notional quantity of leg 2",
   "codes": "1. EMIR-VR-2071-01 2. EMIR-VR-2071-02",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3884,25 +4066,27 @@
  "2.72": {
   "name": "Notional quantity in effect on associated effective date of leg 2",
   "codes": "1. EMIR-VR-2072-01",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3925,25 +4109,27 @@
  "2.73": {
   "name": "Other payment type",
   "codes": "1. EMIR-VR-2073-01",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "O",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "O",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "O",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "O",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -3969,25 +4155,27 @@
  "2.74": {
   "name": "Other payment amount",
   "codes": "1. EMIR-VR-2074-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "C",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "C",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "C",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "C",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4013,25 +4201,27 @@
  "2.75": {
   "name": "Other payment currency",
   "codes": "1. EMIR-VR-2075-01 2. EMIR-VR-2075-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "C",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "C",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "C",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "C",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4057,25 +4247,27 @@
  "2.76": {
   "name": "Other payment date",
   "codes": "1. EMIR-VR-2076-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "C",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "C",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "C",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "C",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4101,25 +4293,27 @@
  "2.77": {
   "name": "Other payment payer",
   "codes": "1. EMIR-VR-2077-01 2. EMIR-VR-2077-02 3. EMIR-VR-2077-03 4. EMIR-VR-2077-04 5. EMIR-VR-2077-05",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "C",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "C",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "C",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "C",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4151,25 +4345,27 @@
  "2.78": {
   "name": "Other payment receiver",
   "codes": "1. EMIR-VR-2078-01 2. EMIR-VR-2078-02 3. EMIR-VR-2078-03 4. EMIR-VR-2078-04 5. EMIR-VR-2078-05",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "C",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "C",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "C",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "C",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4201,25 +4397,27 @@
  "2.79": {
   "name": "Fixed rate of leg 1 or coupon",
   "codes": "1. EMIR-VR-2079-01 2. EMIR-VR-2079-02 3. EMIR-VR-2079-03",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4242,25 +4440,27 @@
  "2.80": {
   "name": "Fixed rate or coupon day count convention leg 1",
   "codes": "1. EMIR-VR-2080-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4283,25 +4483,27 @@
  "2.81": {
   "name": "Fixed rate or coupon payment frequency period leg 1",
   "codes": "1. EMIR-VR-2081-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4321,25 +4523,27 @@
  "2.82": {
   "name": "Fixed rate or coupon payment frequency period multiplier leg 1",
   "codes": "1. EMIR-VR-2082-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4362,25 +4566,27 @@
  "2.83": {
   "name": "Identifier of the floating rate of leg 1",
   "codes": "1. EMIR-VR-2083-01 2. EMIR-VR-2083-02",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4404,25 +4610,27 @@
  "2.84": {
   "name": "Indicator of the floating rate of leg 1",
   "codes": "1. EMIR-VR-2084-01 2. EMIR-VR-2084-02",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4445,25 +4653,27 @@
  "2.85": {
   "name": "Name of the floating rate of leg 1",
   "codes": "1. EMIR-VR-2085-01 2. EMIR-VR-2085-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4486,25 +4696,27 @@
  "2.86": {
   "name": "Floating rate day count convention of leg 1",
   "codes": "1. EMIR-VR-2086-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4527,25 +4739,27 @@
  "2.87": {
   "name": "Floating rate payment frequency period of leg 1",
   "codes": "1. EMIR-VR-2087-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4568,25 +4782,27 @@
  "2.88": {
   "name": "Floating rate payment frequency period multiplier of leg 1",
   "codes": "1. EMIR-VR-2088-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4609,25 +4825,27 @@
  "2.89": {
   "name": "Floating rate reference period of leg 1 – time period",
   "codes": "1. EMIR-VR-2089-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4650,25 +4868,27 @@
  "2.90": {
   "name": "Floating rate reference period of leg 1 – multiplier",
   "codes": "1. EMIR-VR-2090-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4691,25 +4911,27 @@
  "2.91": {
   "name": "Floating rate reset frequency period of leg 1",
   "codes": "1. EMIR-VR-2091-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4732,25 +4954,27 @@
  "2.92": {
   "name": "Floating rate reset frequency multiplier of leg 1",
   "codes": "1. EMIR-VR-2092-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4773,25 +4997,27 @@
  "2.93": {
   "name": "Spread of leg 1",
   "codes": "1. EMIR-VR-2093-01 2. EMIR-VR-2093-02 3. EMIR-VR-2093-03",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4814,25 +5040,27 @@
  "2.94": {
   "name": "Spread currency of leg 1",
   "codes": "1. EMIR-VR-2094-01 2. EMIR-VR-2094-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4855,25 +5083,27 @@
  "2.95": {
   "name": "Fixed rate of leg 2",
   "codes": "1. EMIR-VR-2095-01 2. EMIR-VR-2095-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4896,25 +5126,27 @@
  "2.96": {
   "name": "Fixed rate day count convention leg 2",
   "codes": "1. EMIR-VR-2096-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4937,25 +5169,27 @@
  "2.97": {
   "name": "Fixed rate payment frequency period leg 2",
   "codes": "1. EMIR-VR-2097-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -4978,25 +5212,27 @@
  "2.98": {
   "name": "Fixed rate payment frequency period multiplier leg 2",
   "codes": "1. EMIR-VR-2098-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5019,25 +5255,27 @@
  "2.99": {
   "name": "Identifier of the floating rate of leg 2",
   "codes": "1. EMIR-VR-2099-01 2. EMIR-VR-2099-02",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5060,25 +5298,27 @@
  "2.100": {
   "name": "Indicator of the floating rate of leg 2",
   "codes": "1. EMIR-VR-2100-01 2. EMIR-VR-2100-02",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5101,25 +5341,27 @@
  "2.101": {
   "name": "Name of the floating rate of leg 2",
   "codes": "1. EMIR-VR-2101-01 2. EMIR-VR-2101-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5142,25 +5384,27 @@
  "2.102": {
   "name": "Floating rate day count convention of leg 2",
   "codes": "1. EMIR-VR-2102-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5183,25 +5427,27 @@
  "2.103": {
   "name": "Floating rate payment frequency period of leg 2",
   "codes": "1. EMIR-VR-2103-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5224,25 +5470,27 @@
  "2.104": {
   "name": "Floating rate payment frequency period multiplier of leg 2",
   "codes": "1. EMIR-VR-2104-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5265,25 +5513,27 @@
  "2.105": {
   "name": "Floating rate reference period of leg 2 – time period",
   "codes": "1. EMIR-VR-2105-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5306,25 +5556,27 @@
  "2.106": {
   "name": "Floating rate reference period of leg 2 – multiplier",
   "codes": "1. EMIR-VR-2106-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5347,25 +5599,27 @@
  "2.107": {
   "name": "Floating rate reset frequency period of leg 2",
   "codes": "1. EMIR-VR-2107-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5388,25 +5642,27 @@
  "2.108": {
   "name": "Floating rate reset frequency multiplier of leg 2",
   "codes": "1. EMIR-VR-2108-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5429,25 +5685,27 @@
  "2.109": {
   "name": "Spread of leg 2",
   "codes": "1. EMIR-VR-2109-01 2. EMIR-VR-2109-02 3. EMIR-VR-2109-03",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5470,25 +5728,27 @@
  "2.110": {
   "name": "Spread currency of leg 2",
   "codes": "1. EMIR-VR-2110-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5511,25 +5771,27 @@
  "2.111": {
   "name": "Package transaction spread",
   "codes": "1. EMIR-VR-2111-01 2. EMIR-VR-2111-02 3. EMIR-VR-2111-03 4. EMIR-VR-2111-04",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "O",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "O",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5552,25 +5814,27 @@
  "2.112": {
   "name": "Package transaction spread currency",
   "codes": "1. EMIR-VR-2112-01 2. EMIR-VR-2112-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5593,25 +5857,27 @@
  "2.113": {
   "name": "Exchange rate 1",
   "codes": "1. EMIR-VR-2113-01 2. EMIR-VR-2113-02 3. EMIR-VR-2113-03",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5634,25 +5900,27 @@
  "2.114": {
   "name": "Forward exchange rate",
   "codes": "1. EMIR-VR-2114-01 2. EMIR-VR-2114-02 3. EMIR-VR-2114-03",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5675,25 +5943,27 @@
  "2.115": {
   "name": "Exchange rate basis",
   "codes": "1. EMIR-VR-2115-01 2. EMIR-VR-2115-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5716,25 +5986,27 @@
  "2.116": {
   "name": "Base product",
   "codes": "1. EMIR-VR-2116-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5757,75 +6029,81 @@
  "2.117": {
   "name": "Sub-product",
   "codes": "1. EMIR-VR-2117-01 2. EMIR-VR-2117-02 3. EMIR-VR-2117-03 4. EMIR-VR-2117-04 5. EMIR-VR-2117-05 6. EMIR-VR-2117-06 7. EMIR-VR-2117-07 8. EMIR-VR-2117-08 9. EMIR-VR-2117-09 10. EMIR-VR-2117-10",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {}
  },
  "2.118": {
   "name": "Further sub-product",
   "codes": "1. EMIR-VR-2118-01 2. EMIR-VR-2118-02 3. EMIR-VR-2118-03 4. EMIR-VR-2118-04 5. EMIR-VR-2118-05 6. EMIR-VR-2118-06 7. EMIR-VR-2118-07 8. EMIR-VR-2118-08 9. EMIR-VR-2118-09 10. EMIR-VR-2118-10 11. EMIR-VR-2118-11 12. EMIR-VR-2118-12 13. EMIR-VR-2118-13",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {}
  },
  "2.119": {
   "name": "Delivery point or zone",
   "codes": "1. EMIR-VR-2119-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5848,25 +6126,27 @@
  "2.120": {
   "name": "Interconnection Point",
   "codes": "1. EMIR-VR-2120-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5889,25 +6169,27 @@
  "2.121": {
   "name": "Load type",
   "codes": "1. EMIR-VR-2121-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5930,25 +6212,27 @@
  "2.122": {
   "name": "Delivery interval start time",
   "codes": "1. EMIR-VR-2122-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -5971,25 +6255,27 @@
  "2.123": {
   "name": "Delivery interval end time",
   "codes": "1. EMIR-VR-2123-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6012,25 +6298,27 @@
  "2.124": {
   "name": "Delivery start date",
   "codes": "1. EMIR-VR-2124-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6053,25 +6341,27 @@
  "2.125": {
   "name": "Delivery end date",
   "codes": "1. EMIR-VR-2125-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6094,25 +6384,27 @@
  "2.126": {
   "name": "Duration",
   "codes": "1. EMIR-VR-2126-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6135,25 +6427,27 @@
  "2.127": {
   "name": "Days of the week",
   "codes": "1. EMIR-VR-2127-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6176,25 +6470,27 @@
  "2.128": {
   "name": "Delivery capacity",
   "codes": "1. EMIR-VR-2128-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6217,25 +6513,27 @@
  "2.129": {
   "name": "Quantity Unit",
   "codes": "1. EMIR-VR-2129-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6258,25 +6556,27 @@
  "2.130": {
   "name": "Price/time interval quantity",
   "codes": "1. EMIR-VR-2130-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6299,25 +6599,27 @@
  "2.132": {
   "name": "Option type",
   "codes": "1. EMIR-VR-2132-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6340,25 +6642,27 @@
  "2.133": {
   "name": "Option style",
   "codes": "1. EMIR-VR-2133-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6381,25 +6685,27 @@
  "2.134": {
   "name": "Strike price",
   "codes": "1. EMIR-VR-2134-01 2. EMIR-VR-2134-02 3. EMIR-VR-2134-03 4. EMIR-VR-2134-04",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6427,25 +6733,27 @@
  "2.135": {
   "name": "Effective date of the strike price",
   "codes": "1. EMIR-VR-2135-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6468,25 +6776,27 @@
  "2.136": {
   "name": "End date of the strike price",
   "codes": "1. EMIR-VR-2136-01 2. EMIR-VR-2136-02",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6509,25 +6819,27 @@
  "2.137": {
   "name": "Strike price in effect on associated effective date",
   "codes": "1. EMIR-VR-2137-01 2. EMIR-VR-2137-02",
-  "TRAD": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": "O"
-  },
-  "PSTN": {
-   "NEWT": "O",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "O",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "O",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": "O"
+   },
+   "PSTN": {
+    "NEWT": "O",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "O",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "O",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6550,50 +6862,54 @@
  "2.138": {
   "name": "Strike price currency/currency pair",
   "codes": "1. EMIR-VR-2138-01 2. EMIR-VR-2138-02 3. EMIR-VR-2138-03",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {}
  },
  "2.139": {
   "name": "Option premium amount",
   "codes": "1. EMIR-VR-2139-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6616,25 +6932,27 @@
  "2.140": {
   "name": "Option premium currency",
   "codes": "1. EMIR-VR-2140-01 2. EMIR-VR-2140-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6657,25 +6975,27 @@
  "2.141": {
   "name": "Option premium payment date",
   "codes": "1. EMIR-VR-2141-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6698,25 +7018,27 @@
  "2.142": {
   "name": "Maturity date of the underlying",
   "codes": "1. EMIR-VR-2142-01 2. EMIR-VR-2142-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6739,25 +7061,27 @@
  "2.143": {
   "name": "Seniority",
   "codes": "1. EMIR-VR-2143-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6780,50 +7104,54 @@
  "2.144": {
   "name": "Reference entity",
   "codes": "1. EMIR-VR-2144-01 2. EMIR-VR-2144-02 3. EMIR-VR-2144-03 4. EMIR-VR-2144-04",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {}
  },
  "2.145": {
   "name": "Series",
   "codes": "1. EMIR-VR-2145-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6860,25 +7188,27 @@
  "2.146": {
   "name": "Version",
   "codes": "1. EMIR-VR-2146-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6902,25 +7232,27 @@
  "2.147": {
   "name": "Index factor",
   "codes": "1. EMIR-VR-2147-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6943,25 +7275,27 @@
  "2.148": {
   "name": "Tranche",
   "codes": "1. EMIR-VR-2148-01",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -6984,25 +7318,27 @@
  "2.149": {
   "name": "CDS index attachment point",
   "codes": "1. EMIR-VR-2149-01 2. EMIR-VR-2149-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -7025,25 +7361,27 @@
  "2.150": {
   "name": "CDS index detachment point",
   "codes": "1. EMIR-VR-2150-01 2. EMIR-VR-2150-02",
-  "TRAD": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": "C"
-  },
-  "PSTN": {
-   "NEWT": "C",
-   "MODI": "C",
-   "VALU": "-",
-   "CORR": "C",
-   "TERM": "-",
-   "EROR": "-",
-   "REVI": "C",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": "C"
+   },
+   "PSTN": {
+    "NEWT": "C",
+    "MODI": "C",
+    "VALU": "-",
+    "CORR": "C",
+    "TERM": "-",
+    "EROR": "-",
+    "REVI": "C",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -7066,50 +7404,54 @@
  "2.151": {
   "name": "Action type",
   "codes": "1. EMIR-VR-2151-01 2. EMIR-VR-2151-02 3. EMIR-VR-2151-03 4. EMIR-VR-2151-04 5. EMIR-VR-2151-05 6. EMIR-VR-2151-06",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "M",
-   "CORR": "M",
-   "TERM": "M",
-   "EROR": "M",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "M",
-   "CORR": "M",
-   "TERM": "M",
-   "EROR": "M",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "M",
+    "CORR": "M",
+    "TERM": "M",
+    "EROR": "M",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "M",
+    "CORR": "M",
+    "TERM": "M",
+    "EROR": "M",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {}
  },
  "2.152": {
   "name": "Event type",
   "codes": "1. EMIR-VR-2152-01 2. EMIR-VR-2152-02 3. EMIR-VR-2152-03 4. EMIR-VR-2152-04 5. EMIR-VR-2152-05",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "-",
-   "CORR": "-",
-   "TERM": "M",
-   "EROR": "-",
-   "REVI": "-",
-   "POSC": "-"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "O",
-   "VALU": "-",
-   "CORR": "-",
-   "TERM": "M",
-   "EROR": "-",
-   "REVI": "-",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "-",
+    "CORR": "-",
+    "TERM": "M",
+    "EROR": "-",
+    "REVI": "-",
+    "POSC": "-"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "O",
+    "VALU": "-",
+    "CORR": "-",
+    "TERM": "M",
+    "EROR": "-",
+    "REVI": "-",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -7126,25 +7468,27 @@
  "2.153": {
   "name": "Event date",
   "codes": "1. EMIR-VR-2153-01 2. EMIR-VR-2153-02 3. EMIR-VR-2153-03 4. EMIR-VR-2153-04 5. EMIR-VR-2153-05 6. EMIR-VR-2153-06 7. EMIR-VR-2153-07 8. EMIR-VR-2153-08",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "M",
-   "CORR": "M",
-   "TERM": "M",
-   "EROR": "M",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "M",
-   "CORR": "M",
-   "TERM": "M",
-   "EROR": "M",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "M",
+    "CORR": "M",
+    "TERM": "M",
+    "EROR": "M",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "M",
+    "CORR": "M",
+    "TERM": "M",
+    "EROR": "M",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [
@@ -7176,25 +7520,27 @@
  "2.154": {
   "name": "Level",
   "codes": "1. EMIR-VR-2154-01 2. EMIR-VR-2154-02 3. EMIR-VR-2154-03",
-  "TRAD": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "M",
-   "CORR": "M",
-   "TERM": "M",
-   "EROR": "M",
-   "REVI": "M",
-   "POSC": "M"
-  },
-  "PSTN": {
-   "NEWT": "M",
-   "MODI": "M",
-   "VALU": "M",
-   "CORR": "M",
-   "TERM": "M",
-   "EROR": "M",
-   "REVI": "M",
-   "POSC": ""
+  "obligations": {
+   "TRAD": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "M",
+    "CORR": "M",
+    "TERM": "M",
+    "EROR": "M",
+    "REVI": "M",
+    "POSC": "M"
+   },
+   "PSTN": {
+    "NEWT": "M",
+    "MODI": "M",
+    "VALU": "M",
+    "CORR": "M",
+    "TERM": "M",
+    "EROR": "M",
+    "REVI": "M",
+    "POSC": ""
+   }
   },
   "paths": {
    "NEWT": [

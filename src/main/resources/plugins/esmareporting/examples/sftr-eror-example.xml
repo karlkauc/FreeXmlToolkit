@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Example SFTR report (auth.052.001.02) with fictitious data: an error report (EROR) that withdraws a
+     securities financing transaction reported by mistake. Made-up LEIs and UTI. -->
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:auth.052.001.02">
+	<SctiesFincgRptgTxRpt>
+		<TradData>
+			<Rpt>
+				<Err>
+					<TechRcrdId>FXT-SFTR-EXAMPLE-0001</TechRcrdId>
+					<CtrPtySpcfcData>
+						<RptgDtTm>2026-01-16T09:00:00Z</RptgDtTm>
+						<RptSubmitgNtty>
+							<LEI>5299009FXTKAGFUND050</LEI>
+						</RptSubmitgNtty>
+						<CtrPty>
+							<RptgCtrPty>
+								<Id>
+									<LEI>5299009FXTKAGFUND050</LEI>
+								</Id>
+								<Ntr>
+									<FI>
+										<Clssfctn>UCIT</Clssfctn>
+									</FI>
+								</Ntr>
+							</RptgCtrPty>
+							<OthrCtrPty>
+								<Id>
+									<Lgl>
+										<LEI>5299009FXTBANK000080</LEI>
+									</Lgl>
+								</Id>
+							</OthrCtrPty>
+						</CtrPty>
+					</CtrPtySpcfcData>
+					<LnData>
+						<UnqTradIdr>5299009FXTKAGFUND050FXTSFTEXAMPLE20260115001</UnqTradIdr>
+					</LnData>
+				</Err>
+			</Rpt>
+		</TradData>
+	</SctiesFincgRptgTxRpt>
+</Document>

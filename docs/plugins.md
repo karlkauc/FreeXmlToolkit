@@ -59,7 +59,7 @@ loaded, every contribution type, threads, translations, building, testing and de
 | XBRL (with Arelle) | no | [XBRL](plugin-xbrl.md) |
 | PK-Meldewesen (FMA pension fund reports) | yes (its activity appears once the extension is enabled) | [PK-Meldewesen](plugin-pk-meldewesen.md) |
 | KAG-Meldewesen (FMA reports of management companies) | no | [KAG-Meldewesen](plugin-kag-meldewesen.md) |
-| ESMA Reporting (EMIR trade reports) | no | [ESMA Reporting](plugin-esma-reporting.md) |
+| ESMA Reporting (EMIR and SFTR reports) | no | [ESMA Reporting](plugin-esma-reporting.md) |
 
 A plugin can say it is off until the user switches it on (`enabledByDefault()`), and it can add
 XML Schemas to the Schema Library (`context.addSchema(new PluginSchema(namespace, url, description, null))`).

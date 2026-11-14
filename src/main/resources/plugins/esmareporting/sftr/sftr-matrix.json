@@ -1,0 +1,9974 @@
+{
+ "1.1": {
+  "name": "Reporting timestamp",
+  "codes": "SFT-001",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "M"
+   },
+   "TCTN.ML": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "M"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/RptgDtTm"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/RptgDtTm"
+   ],
+   "EROR": [
+    "CtrPtySpcfcData/RptgDtTm"
+   ],
+   "ETRM": [
+    "CtrPtySpcfcData/RptgDtTm"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/RptgDtTm"
+   ],
+   "COLU": [
+    "CtrPtySpcfcData/RptgDtTm"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/RptgDtTm"
+   ],
+   "VALU": [
+    "CtrPtySpcfcData/RptgDtTm"
+   ]
+  }
+ },
+ "1.2": {
+  "name": "Report submitting entity",
+  "codes": "SFT-002",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "M"
+   },
+   "TCTN.ML": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "M"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/RptSubmitgNtty"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/RptSubmitgNtty"
+   ],
+   "EROR": [
+    "CtrPtySpcfcData/RptSubmitgNtty"
+   ],
+   "ETRM": [
+    "CtrPtySpcfcData/RptSubmitgNtty"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/RptSubmitgNtty"
+   ],
+   "COLU": [
+    "CtrPtySpcfcData/RptSubmitgNtty"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/RptSubmitgNtty"
+   ],
+   "VALU": [
+    "CtrPtySpcfcData/RptSubmitgNtty"
+   ]
+  }
+ },
+ "1.3": {
+  "name": "Reporting counterparty",
+  "codes": "SFT-003",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "M"
+   },
+   "TCTN.ML": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "M"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Id"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Id"
+   ],
+   "EROR": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty"
+   ],
+   "ETRM": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Id"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Id"
+   ],
+   "COLU": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Id"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Id"
+   ],
+   "VALU": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Id"
+   ]
+  }
+ },
+ "1.4": {
+  "name": "Nature of the reporting counterparty",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "M"
+   },
+   "TCTN.ML": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "M"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr"
+   ],
+   "EROR": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr"
+   ],
+   "ETRM": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr"
+   ],
+   "COLU": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr"
+   ],
+   "VALU": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr"
+   ]
+  }
+ },
+ "1.5": {
+  "name": "Sector of the reporting counterparty",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "M"
+   },
+   "TCTN.ML": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "M"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/FI/Clssfctn",
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/Clssfctn"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/FI/Clssfctn",
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/Clssfctn"
+   ],
+   "EROR": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/FI/Clssfctn",
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/Clssfctn"
+   ],
+   "ETRM": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/FI/Clssfctn",
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/Clssfctn"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/FI/Clssfctn",
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/Clssfctn"
+   ],
+   "COLU": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/FI/Clssfctn",
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/Clssfctn"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/FI/Clssfctn",
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/Clssfctn"
+   ],
+   "VALU": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/FI/Clssfctn",
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/Clssfctn"
+   ]
+  }
+ },
+ "1.6": {
+  "name": "Additional sector classification",
+  "codes": "SFT-004",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "- C",
+    "ETRM": "- C",
+    "POSC": "C",
+    "COLU": "- C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "- C",
+    "ETRM": "- C",
+    "POSC": "C",
+    "COLU": "- C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "- C",
+    "ETRM": "- C",
+    "POSC": "C",
+    "COLU": "- C",
+    "CORR": "C",
+    "VALU": "- C"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "- C",
+    "ETRM": "- C",
+    "COLU": "- C",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "- C",
+    "ETRM": "- C",
+    "COLU": "- C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "- C",
+    "ETRM": "- C",
+    "COLU": "- C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "- C",
+    "ETRM": "- C",
+    "COLU": "- C",
+    "CORR": "C",
+    "VALU": "- C"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/FI/InvstmtFndClssfctn",
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/InvstmtFndClssfctn"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/FI/InvstmtFndClssfctn",
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/InvstmtFndClssfctn"
+   ],
+   "EROR": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/FI/InvstmtFndClssfctn",
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/InvstmtFndClssfctn"
+   ],
+   "ETRM": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/FI/InvstmtFndClssfctn",
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/InvstmtFndClssfctn"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/FI/InvstmtFndClssfctn",
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/InvstmtFndClssfctn"
+   ],
+   "COLU": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/FI/InvstmtFndClssfctn",
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/InvstmtFndClssfctn"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/FI/InvstmtFndClssfctn",
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/InvstmtFndClssfctn"
+   ],
+   "VALU": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/FI/InvstmtFndClssfctn",
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Ntr/NFI/InvstmtFndClssfctn"
+   ]
+  }
+ },
+ "1.7": {
+  "name": "Branch of the reporting counterparty",
+  "codes": "SFT-005",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "TCTN.BSB": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "TCTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "O",
+    "CORR": "O",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "PSTN.Repo": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "PSTN.BSB": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "PSTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Brnch"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Brnch"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Brnch"
+   ],
+   "COLU": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Brnch"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Brnch"
+   ]
+  }
+ },
+ "1.8": {
+  "name": "Branch of the other counterparty",
+  "codes": "SFT-006",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "TCTN.BSB": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "TCTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "O",
+    "CORR": "O",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "PSTN.Repo": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "PSTN.BSB": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "PSTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Brnch"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Brnch"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Brnch"
+   ],
+   "COLU": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Brnch"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Brnch"
+   ]
+  }
+ },
+ "1.9": {
+  "name": "Counterparty side",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Sd"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Sd"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Sd"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/RptgCtrPty/Sd"
+   ]
+  }
+ },
+ "1.10": {
+  "name": "Entity responsible for the report",
+  "codes": "SFT-007",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "M"
+   },
+   "TCTN.ML": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "M"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/NttyRspnsblForRpt"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/NttyRspnsblForRpt"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/NttyRspnsblForRpt"
+   ],
+   "COLU": [
+    "CtrPtySpcfcData/CtrPty/NttyRspnsblForRpt"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/NttyRspnsblForRpt"
+   ]
+  }
+ },
+ "1.11": {
+  "name": "Other counterparty",
+  "codes": "SFT-008",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "M"
+   },
+   "TCTN.ML": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "M"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Id"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Id"
+   ],
+   "EROR": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Id"
+   ],
+   "ETRM": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Id"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Id"
+   ],
+   "COLU": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Id"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Id"
+   ],
+   "VALU": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/Id"
+   ]
+  }
+ },
+ "1.12": {
+  "name": "Country of the other Counterparty",
+  "codes": "SFT-009, SFT-010",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/CtryCd"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/CtryCd"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/CtryCd"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/OthrCtrPty/CtryCd"
+   ]
+  }
+ },
+ "1.13": {
+  "name": "Beneficiary",
+  "codes": "SFT-011",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "TCTN.BSB": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "TCTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "-",
+    "CORR": "O",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "PSTN.BSB": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "PSTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "O",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/Bnfcry"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/Bnfcry"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/Bnfcry"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/Bnfcry"
+   ]
+  }
+ },
+ "1.14": {
+  "name": "Tri-party agent",
+  "codes": "SFT-012",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "TCTN.BSB": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "TCTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "O",
+    "CORR": "O",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "PSTN.BSB": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "PSTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/TrptyAgt"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/TrptyAgt"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/TrptyAgt"
+   ],
+   "COLU": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/TrptyAgt"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/TrptyAgt"
+   ]
+  }
+ },
+ "1.15": {
+  "name": "Broker",
+  "codes": "SFT-013",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "TCTN.BSB": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "TCTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "-",
+    "CORR": "O",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "PSTN.BSB": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "PSTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "O",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/Brkr"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/Brkr"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/Brkr"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/Brkr"
+   ]
+  }
+ },
+ "1.16": {
+  "name": "Clearing member",
+  "codes": "SFT-014",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/ClrMmb"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/ClrMmb"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/ClrMmb"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/ClrMmb"
+   ]
+  }
+ },
+ "1.17": {
+  "name": "Central Securities Depository (‘CSD’) participant or indirect participant",
+  "codes": "SFT-015",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "TCTN.BSB": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "TCTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "-",
+    "CORR": "O",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "PSTN.BSB": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "PSTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "O",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/SttlmPties"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/SttlmPties"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/SttlmPties"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/SttlmPties"
+   ]
+  }
+ },
+ "1.18": {
+  "name": "Agent lender",
+  "codes": "SFT-016",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "O",
+    "CORR": "O",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/AgtLndr"
+   ],
+   "MODI": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/AgtLndr"
+   ],
+   "POSC": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/AgtLndr"
+   ],
+   "COLU": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/AgtLndr"
+   ],
+   "CORR": [
+    "CtrPtySpcfcData/CtrPty/OthrPtyData/AgtLndr"
+   ]
+  }
+ },
+ "2.1": {
+  "name": "Unique Transaction Identifier ('UTI')",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "O",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "O",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "O",
+    "CORR": "M",
+    "VALU": "M"
+   },
+   "TCTN.ML": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "O",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "O",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "O",
+    "CORR": "M",
+    "VALU": "M"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/UnqTradIdr",
+    "LnData/BuySellBck/UnqTradIdr",
+    "LnData/SctiesLndg/UnqTradIdr",
+    "LnData/MrgnLndg/UnqTradIdr"
+   ],
+   "MODI": [
+    "LnData/RpTrad/UnqTradIdr",
+    "LnData/BuySellBck/UnqTradIdr",
+    "LnData/SctiesLndg/UnqTradIdr",
+    "LnData/MrgnLndg/UnqTradIdr"
+   ],
+   "EROR": [
+    "LnData/UnqTradIdr"
+   ],
+   "ETRM": [
+    "LnData/UnqTradIdr"
+   ],
+   "POSC": [
+    "LnData/RpTrad/UnqTradIdr",
+    "LnData/BuySellBck/UnqTradIdr",
+    "LnData/SctiesLndg/UnqTradIdr"
+   ],
+   "COLU": [
+    "LnData/RpTrad/UnqTradIdr",
+    "LnData/BuySellBck/UnqTradIdr",
+    "LnData/SctiesLndg/UnqTradIdr",
+    "LnData/MrgnLndg/UnqTradIdr"
+   ],
+   "CORR": [
+    "LnData/RpTrad/UnqTradIdr",
+    "LnData/BuySellBck/UnqTradIdr",
+    "LnData/SctiesLndg/UnqTradIdr",
+    "LnData/MrgnLndg/UnqTradIdr"
+   ],
+   "VALU": [
+    "LnData/UnqTradIdr"
+   ]
+  }
+ },
+ "2.2": {
+  "name": "Report tracking number",
+  "codes": "SFT-017",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/ClrSts/Clrd/RptTrckgNb",
+    "LnData/BuySellBck/ClrSts/Clrd/RptTrckgNb",
+    "LnData/SctiesLndg/ClrSts/Clrd/RptTrckgNb"
+   ],
+   "MODI": [
+    "LnData/RpTrad/ClrSts/Clrd/RptTrckgNb",
+    "LnData/BuySellBck/ClrSts/Clrd/RptTrckgNb",
+    "LnData/SctiesLndg/ClrSts/Clrd/RptTrckgNb"
+   ],
+   "CORR": [
+    "LnData/RpTrad/ClrSts/Clrd/RptTrckgNb",
+    "LnData/BuySellBck/ClrSts/Clrd/RptTrckgNb",
+    "LnData/SctiesLndg/ClrSts/Clrd/RptTrckgNb"
+   ]
+  }
+ },
+ "2.3": {
+  "name": "Event date",
+  "codes": "SFT-018, SFT-019, SFT-020",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "M"
+   },
+   "TCTN.ML": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "M"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/EvtDt",
+    "LnData/BuySellBck/EvtDt",
+    "LnData/SctiesLndg/EvtDt",
+    "LnData/MrgnLndg/EvtDt"
+   ],
+   "MODI": [
+    "LnData/RpTrad/EvtDt",
+    "LnData/BuySellBck/EvtDt",
+    "LnData/SctiesLndg/EvtDt",
+    "LnData/MrgnLndg/EvtDt"
+   ],
+   "ETRM": [
+    "LnData/EvtDt"
+   ],
+   "POSC": [
+    "LnData/RpTrad/EvtDt",
+    "LnData/BuySellBck/EvtDt",
+    "LnData/SctiesLndg/EvtDt"
+   ],
+   "COLU": [
+    "LnData/RpTrad/EvtDt",
+    "LnData/BuySellBck/EvtDt",
+    "LnData/SctiesLndg/EvtDt",
+    "LnData/MrgnLndg/EvtDt"
+   ],
+   "CORR": [
+    "LnData/RpTrad/EvtDt",
+    "LnData/BuySellBck/EvtDt",
+    "LnData/SctiesLndg/EvtDt",
+    "LnData/MrgnLndg/EvtDt"
+   ],
+   "VALU": [
+    "LnData/EvtDt"
+   ]
+  }
+ },
+ "2.4": {
+  "name": "Type of SFT",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad",
+    "LnData/BuySellBck",
+    "LnData/SctiesLndg",
+    "LnData/MrgnLndg"
+   ],
+   "MODI": [
+    "LnData/RpTrad",
+    "LnData/BuySellBck",
+    "LnData/SctiesLndg",
+    "LnData/MrgnLndg"
+   ],
+   "POSC": [
+    "LnData/RpTrad",
+    "LnData/BuySellBck",
+    "LnData/SctiesLndg"
+   ],
+   "COLU": [
+    "LnData/RpTrad",
+    "LnData/BuySellBck",
+    "LnData/SctiesLndg",
+    "LnData/MrgnLndg"
+   ],
+   "CORR": [
+    "LnData/RpTrad",
+    "LnData/BuySellBck",
+    "LnData/SctiesLndg",
+    "LnData/MrgnLndg"
+   ]
+  }
+ },
+ "2.5": {
+  "name": "Cleared",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/ClrSts/Clrd",
+    "LnData/RpTrad/ClrSts/NonClrd",
+    "LnData/BuySellBck/ClrSts/Clrd",
+    "LnData/BuySellBck/ClrSts/NonClrd",
+    "LnData/SctiesLndg/ClrSts/Clrd",
+    "LnData/SctiesLndg/ClrSts/NonClrd"
+   ],
+   "MODI": [
+    "LnData/RpTrad/ClrSts/Clrd",
+    "LnData/RpTrad/ClrSts/NonClrd",
+    "LnData/BuySellBck/ClrSts/Clrd",
+    "LnData/BuySellBck/ClrSts/NonClrd",
+    "LnData/SctiesLndg/ClrSts/Clrd",
+    "LnData/SctiesLndg/ClrSts/NonClrd"
+   ],
+   "POSC": [
+    "LnData/RpTrad/ClrSts/Clrd",
+    "LnData/RpTrad/ClrSts/NonClrd",
+    "LnData/BuySellBck/ClrSts/Clrd",
+    "LnData/BuySellBck/ClrSts/NonClrd",
+    "LnData/SctiesLndg/ClrSts/Clrd",
+    "LnData/SctiesLndg/ClrSts/NonClrd"
+   ],
+   "CORR": [
+    "LnData/RpTrad/ClrSts/Clrd",
+    "LnData/RpTrad/ClrSts/NonClrd",
+    "LnData/BuySellBck/ClrSts/Clrd",
+    "LnData/BuySellBck/ClrSts/NonClrd",
+    "LnData/SctiesLndg/ClrSts/Clrd",
+    "LnData/SctiesLndg/ClrSts/NonClrd"
+   ]
+  }
+ },
+ "2.6": {
+  "name": "Clearing timestamp",
+  "codes": "SFT-021",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/ClrSts/Clrd/ClrDtTm",
+    "LnData/BuySellBck/ClrSts/Clrd/ClrDtTm",
+    "LnData/SctiesLndg/ClrSts/Clrd/ClrDtTm"
+   ],
+   "MODI": [
+    "LnData/RpTrad/ClrSts/Clrd/ClrDtTm",
+    "LnData/BuySellBck/ClrSts/Clrd/ClrDtTm",
+    "LnData/SctiesLndg/ClrSts/Clrd/ClrDtTm"
+   ],
+   "POSC": [
+    "LnData/RpTrad/ClrSts/Clrd/ClrDtTm",
+    "LnData/BuySellBck/ClrSts/Clrd/ClrDtTm",
+    "LnData/SctiesLndg/ClrSts/Clrd/ClrDtTm"
+   ],
+   "CORR": [
+    "LnData/RpTrad/ClrSts/Clrd/ClrDtTm",
+    "LnData/BuySellBck/ClrSts/Clrd/ClrDtTm",
+    "LnData/SctiesLndg/ClrSts/Clrd/ClrDtTm"
+   ]
+  }
+ },
+ "2.7": {
+  "name": "CCP",
+  "codes": "SFT-022",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/ClrSts/Clrd/CCP",
+    "LnData/BuySellBck/ClrSts/Clrd/CCP",
+    "LnData/SctiesLndg/ClrSts/Clrd/CCP"
+   ],
+   "MODI": [
+    "LnData/RpTrad/ClrSts/Clrd/CCP",
+    "LnData/BuySellBck/ClrSts/Clrd/CCP",
+    "LnData/SctiesLndg/ClrSts/Clrd/CCP"
+   ],
+   "POSC": [
+    "LnData/RpTrad/ClrSts/Clrd/CCP",
+    "LnData/BuySellBck/ClrSts/Clrd/CCP",
+    "LnData/SctiesLndg/ClrSts/Clrd/CCP"
+   ],
+   "CORR": [
+    "LnData/RpTrad/ClrSts/Clrd/CCP",
+    "LnData/BuySellBck/ClrSts/Clrd/CCP",
+    "LnData/SctiesLndg/ClrSts/Clrd/CCP"
+   ]
+  }
+ },
+ "2.8": {
+  "name": "Trading venue",
+  "codes": "SFT-023",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/TradgVn",
+    "LnData/BuySellBck/TradgVn",
+    "LnData/SctiesLndg/TradgVn"
+   ],
+   "MODI": [
+    "LnData/RpTrad/TradgVn",
+    "LnData/BuySellBck/TradgVn",
+    "LnData/SctiesLndg/TradgVn"
+   ],
+   "POSC": [
+    "LnData/RpTrad/TradgVn",
+    "LnData/BuySellBck/TradgVn",
+    "LnData/SctiesLndg/TradgVn"
+   ],
+   "CORR": [
+    "LnData/RpTrad/TradgVn",
+    "LnData/BuySellBck/TradgVn",
+    "LnData/SctiesLndg/TradgVn"
+   ]
+  }
+ },
+ "2.9": {
+  "name": "Master agreement type",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/MstrAgrmt/Tp",
+    "LnData/BuySellBck/MstrAgrmt/Tp",
+    "LnData/BuySellBck/MstrAgrmt/Tp/Tp",
+    "LnData/SctiesLndg/MstrAgrmt/Tp",
+    "LnData/SctiesLndg/MstrAgrmt/Tp/Tp"
+   ],
+   "MODI": [
+    "LnData/RpTrad/MstrAgrmt/Tp",
+    "LnData/BuySellBck/MstrAgrmt/Tp",
+    "LnData/SctiesLndg/MstrAgrmt/Tp"
+   ],
+   "POSC": [
+    "LnData/RpTrad/MstrAgrmt/Tp",
+    "LnData/RpTrad/MstrAgrmt/Tp/Tp",
+    "LnData/BuySellBck/MstrAgrmt/Tp",
+    "LnData/BuySellBck/MstrAgrmt/Tp/Tp",
+    "LnData/SctiesLndg/MstrAgrmt/Tp"
+   ],
+   "COLU": [
+    "LnData/RpTrad/MstrAgrmt/Tp",
+    "LnData/BuySellBck/MstrAgrmt/Tp",
+    "LnData/SctiesLndg/MstrAgrmt/Tp"
+   ],
+   "CORR": [
+    "LnData/RpTrad/MstrAgrmt/Tp",
+    "LnData/BuySellBck/MstrAgrmt/Tp",
+    "LnData/SctiesLndg/MstrAgrmt/Tp"
+   ]
+  }
+ },
+ "2.10": {
+  "name": "Other master agreement type",
+  "codes": "SFT-024",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/MstrAgrmt/OthrMstrAgrmtDtls",
+    "LnData/BuySellBck/MstrAgrmt/OthrMstrAgrmtDtls",
+    "LnData/SctiesLndg/MstrAgrmt/OthrMstrAgrmtDtls"
+   ],
+   "MODI": [
+    "LnData/RpTrad/MstrAgrmt/OthrMstrAgrmtDtls",
+    "LnData/BuySellBck/MstrAgrmt/OthrMstrAgrmtDtls",
+    "LnData/SctiesLndg/MstrAgrmt/OthrMstrAgrmtDtls"
+   ],
+   "POSC": [
+    "LnData/RpTrad/MstrAgrmt/OthrMstrAgrmtDtls",
+    "LnData/BuySellBck/MstrAgrmt/OthrMstrAgrmtDtls",
+    "LnData/SctiesLndg/MstrAgrmt/OthrMstrAgrmtDtls"
+   ],
+   "COLU": [
+    "LnData/RpTrad/MstrAgrmt/OthrMstrAgrmtDtls",
+    "LnData/BuySellBck/MstrAgrmt/OthrMstrAgrmtDtls",
+    "LnData/SctiesLndg/MstrAgrmt/OthrMstrAgrmtDtls"
+   ],
+   "CORR": [
+    "LnData/RpTrad/MstrAgrmt/OthrMstrAgrmtDtls",
+    "LnData/BuySellBck/MstrAgrmt/OthrMstrAgrmtDtls",
+    "LnData/SctiesLndg/MstrAgrmt/OthrMstrAgrmtDtls"
+   ]
+  }
+ },
+ "2.11": {
+  "name": "Master agreement version",
+  "codes": "SFT-025",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/MstrAgrmt/Vrsn",
+    "LnData/BuySellBck/MstrAgrmt/Vrsn",
+    "LnData/SctiesLndg/MstrAgrmt/Vrsn"
+   ],
+   "MODI": [
+    "LnData/RpTrad/MstrAgrmt/Vrsn",
+    "LnData/BuySellBck/MstrAgrmt/Vrsn",
+    "LnData/SctiesLndg/MstrAgrmt/Vrsn"
+   ],
+   "POSC": [
+    "LnData/RpTrad/MstrAgrmt/Vrsn",
+    "LnData/BuySellBck/MstrAgrmt/Vrsn",
+    "LnData/SctiesLndg/MstrAgrmt/Vrsn"
+   ],
+   "COLU": [
+    "LnData/RpTrad/MstrAgrmt/Vrsn",
+    "LnData/BuySellBck/MstrAgrmt/Vrsn",
+    "LnData/SctiesLndg/MstrAgrmt/Vrsn"
+   ],
+   "CORR": [
+    "LnData/RpTrad/MstrAgrmt/Vrsn",
+    "LnData/BuySellBck/MstrAgrmt/Vrsn",
+    "LnData/SctiesLndg/MstrAgrmt/Vrsn"
+   ]
+  }
+ },
+ "2.12": {
+  "name": "Execution timestamp",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/ExctnDtTm",
+    "LnData/BuySellBck/ExctnDtTm",
+    "LnData/SctiesLndg/ExctnDtTm",
+    "LnData/MrgnLndg/ExctnDtTm"
+   ],
+   "MODI": [
+    "LnData/RpTrad/ExctnDtTm",
+    "LnData/BuySellBck/ExctnDtTm",
+    "LnData/SctiesLndg/ExctnDtTm",
+    "LnData/MrgnLndg/ExctnDtTm"
+   ],
+   "POSC": [
+    "LnData/RpTrad/ExctnDtTm",
+    "LnData/BuySellBck/ExctnDtTm",
+    "LnData/SctiesLndg/ExctnDtTm"
+   ],
+   "CORR": [
+    "LnData/RpTrad/ExctnDtTm",
+    "LnData/BuySellBck/ExctnDtTm",
+    "LnData/SctiesLndg/ExctnDtTm",
+    "LnData/MrgnLndg/ExctnDtTm"
+   ]
+  }
+ },
+ "2.13": {
+  "name": "Value date (Start date)",
+  "codes": "SFT-026",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/ValDt",
+    "LnData/BuySellBck/ValDt",
+    "LnData/SctiesLndg/ValDt"
+   ],
+   "MODI": [
+    "LnData/RpTrad/ValDt",
+    "LnData/BuySellBck/ValDt",
+    "LnData/SctiesLndg/ValDt"
+   ],
+   "POSC": [
+    "LnData/RpTrad/ValDt",
+    "LnData/BuySellBck/ValDt",
+    "LnData/SctiesLndg/ValDt"
+   ],
+   "CORR": [
+    "LnData/RpTrad/ValDt",
+    "LnData/BuySellBck/ValDt",
+    "LnData/SctiesLndg/ValDt"
+   ]
+  }
+ },
+ "2.14": {
+  "name": "Maturity date (End date)",
+  "codes": "SFT-027",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/Term/Fxd/MtrtyDt",
+    "LnData/BuySellBck/MtrtyDt",
+    "LnData/SctiesLndg/Term/Opn/MtrtyDt",
+    "LnData/SctiesLndg/Term/Fxd/MtrtyDt"
+   ],
+   "MODI": [
+    "LnData/RpTrad/Term/Fxd/MtrtyDt",
+    "LnData/BuySellBck/MtrtyDt",
+    "LnData/SctiesLndg/Term/Opn/MtrtyDt",
+    "LnData/SctiesLndg/Term/Fxd/MtrtyDt"
+   ],
+   "POSC": [
+    "LnData/RpTrad/Term/Fxd/MtrtyDt",
+    "LnData/BuySellBck/MtrtyDt",
+    "LnData/SctiesLndg/Term/Opn/MtrtyDt",
+    "LnData/SctiesLndg/Term/Fxd/MtrtyDt"
+   ],
+   "CORR": [
+    "LnData/RpTrad/Term/Fxd/MtrtyDt",
+    "LnData/BuySellBck/MtrtyDt",
+    "LnData/SctiesLndg/Term/Opn/MtrtyDt",
+    "LnData/SctiesLndg/Term/Fxd/MtrtyDt"
+   ]
+  }
+ },
+ "2.15": {
+  "name": "Termination date",
+  "codes": "SFT-028, SFT-029",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "M",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "M",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "M",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "O",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "M",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "M",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "M",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "M",
+    "COLU": "-",
+    "CORR": "O",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "ETRM": [
+    "LnData/TermntnDt"
+   ],
+   "POSC": [
+    "LnData/BuySellBck/TermntnDt"
+   ],
+   "CORR": [
+    "LnData/RpTrad/TermntnDt",
+    "LnData/BuySellBck/TermntnDt",
+    "LnData/SctiesLndg/TermntnDt",
+    "LnData/MrgnLndg/TermntnDt"
+   ]
+  }
+ },
+ "2.16": {
+  "name": "Minimum notice period",
+  "codes": "SFT-030",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/MinNtcePrd"
+   ],
+   "MODI": [
+    "LnData/RpTrad/MinNtcePrd"
+   ],
+   "CORR": [
+    "LnData/RpTrad/MinNtcePrd"
+   ]
+  }
+ },
+ "2.17": {
+  "name": "Earliest call-back date",
+  "codes": "SFT-031",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/EarlstCallBckDt"
+   ],
+   "MODI": [
+    "LnData/RpTrad/EarlstCallBckDt"
+   ],
+   "CORR": [
+    "LnData/RpTrad/EarlstCallBckDt"
+   ]
+  }
+ },
+ "2.18": {
+  "name": "General collateral indicator",
+  "codes": "SFT-032",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/GnlColl",
+    "LnData/BuySellBck/GnlColl",
+    "LnData/SctiesLndg/GnlColl"
+   ],
+   "MODI": [
+    "LnData/RpTrad/GnlColl",
+    "LnData/BuySellBck/GnlColl",
+    "LnData/SctiesLndg/GnlColl"
+   ],
+   "POSC": [
+    "LnData/RpTrad/GnlColl",
+    "LnData/BuySellBck/GnlColl",
+    "LnData/SctiesLndg/GnlColl"
+   ],
+   "CORR": [
+    "LnData/RpTrad/GnlColl",
+    "LnData/BuySellBck/GnlColl",
+    "LnData/SctiesLndg/GnlColl"
+   ]
+  }
+ },
+ "2.19": {
+  "name": "Delivery by Value ('DBV') indicator",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/DlvryByVal",
+    "LnData/SctiesLndg/DlvryByVal"
+   ],
+   "MODI": [
+    "LnData/RpTrad/DlvryByVal",
+    "LnData/SctiesLndg/DlvryByVal"
+   ],
+   "POSC": [
+    "LnData/RpTrad/DlvryByVal",
+    "LnData/SctiesLndg/DlvryByVal"
+   ],
+   "CORR": [
+    "LnData/RpTrad/DlvryByVal",
+    "LnData/SctiesLndg/DlvryByVal"
+   ]
+  }
+ },
+ "2.20": {
+  "name": "Method used to provide collateral",
+  "codes": "SFT-033",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/CollDlvryMtd",
+    "LnData/SctiesLndg/CollDlvryMtd",
+    "LnData/MrgnLndg/CollDlvryMtd"
+   ],
+   "MODI": [
+    "LnData/RpTrad/CollDlvryMtd",
+    "LnData/SctiesLndg/CollDlvryMtd",
+    "LnData/MrgnLndg/CollDlvryMtd"
+   ],
+   "POSC": [
+    "LnData/RpTrad/CollDlvryMtd",
+    "LnData/SctiesLndg/CollDlvryMtd"
+   ],
+   "CORR": [
+    "LnData/RpTrad/CollDlvryMtd",
+    "LnData/SctiesLndg/CollDlvryMtd",
+    "LnData/MrgnLndg/CollDlvryMtd"
+   ]
+  }
+ },
+ "2.21": {
+  "name": "Open term",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/Term",
+    "LnData/SctiesLndg/Term"
+   ],
+   "MODI": [
+    "LnData/RpTrad/Term",
+    "LnData/SctiesLndg/Term"
+   ],
+   "POSC": [
+    "LnData/RpTrad/Term",
+    "LnData/SctiesLndg/Term"
+   ],
+   "CORR": [
+    "LnData/RpTrad/Term",
+    "LnData/SctiesLndg/Term"
+   ]
+  }
+ },
+ "2.22": {
+  "name": "Termination optionality",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/Term/Opn/TermntnOptn",
+    "LnData/RpTrad/Term/Fxd/TermntnOptn",
+    "LnData/SctiesLndg/Term/Opn/TermntnOptn",
+    "LnData/SctiesLndg/Term/Fxd/TermntnOptn"
+   ],
+   "MODI": [
+    "LnData/RpTrad/Term/Opn/TermntnOptn",
+    "LnData/RpTrad/Term/Fxd/TermntnOptn",
+    "LnData/RpTrad/IntrstRate/Fltg/Sprd",
+    "LnData/SctiesLndg/Term/Opn/TermntnOptn",
+    "LnData/SctiesLndg/Term/Fxd/TermntnOptn"
+   ],
+   "CORR": [
+    "LnData/RpTrad/Term/Opn/TermntnOptn",
+    "LnData/RpTrad/Term/Fxd/TermntnOptn",
+    "LnData/SctiesLndg/Term/Opn/TermntnOptn",
+    "LnData/SctiesLndg/Term/Fxd/TermntnOptn"
+   ]
+  }
+ },
+ "2.23": {
+  "name": "Fixed rate",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/IntrstRate/Fxd/Rate",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fxd/Rate"
+   ],
+   "MODI": [
+    "LnData/RpTrad/IntrstRate/Fxd/Rate",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fxd/Rate"
+   ],
+   "POSC": [
+    "LnData/RpTrad/IntrstRate/Fxd/Rate"
+   ],
+   "CORR": [
+    "LnData/RpTrad/IntrstRate/Fxd/Rate",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fxd/Rate"
+   ]
+  }
+ },
+ "2.24": {
+  "name": "Day count convention",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/IntrstRate/Fxd/DayCntBsis",
+    "LnData/RpTrad/IntrstRate/Fltg/DayCntBsis",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fxd/DayCntBsis",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/DayCntBsis"
+   ],
+   "MODI": [
+    "LnData/RpTrad/IntrstRate/Fxd/DayCntBsis",
+    "LnData/RpTrad/IntrstRate/Fltg/DayCntBsis",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fxd/DayCntBsis",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/DayCntBsis"
+   ],
+   "POSC": [
+    "LnData/RpTrad/IntrstRate/Fxd/DayCntBsis",
+    "LnData/RpTrad/IntrstRate/Fltg/DayCntBsis"
+   ],
+   "CORR": [
+    "LnData/RpTrad/IntrstRate/Fxd/DayCntBsis",
+    "LnData/RpTrad/IntrstRate/Fltg/DayCntBsis",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fxd/DayCntBsis",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/DayCntBsis"
+   ]
+  }
+ },
+ "2.25": {
+  "name": "Floating rate",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/IntrstRate/Fltg/RefRate",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/RefRate"
+   ],
+   "MODI": [
+    "LnData/RpTrad/IntrstRate/Fltg/RefRate",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/RefRate"
+   ],
+   "POSC": [
+    "LnData/RpTrad/IntrstRate/Fltg/RefRate"
+   ],
+   "CORR": [
+    "LnData/RpTrad/IntrstRate/Fltg/RefRate",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/RefRate"
+   ]
+  }
+ },
+ "2.26": {
+  "name": "Floating rate reference period - time period",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/IntrstRate/Fltg/Term/Unit",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/Term/Unit"
+   ],
+   "MODI": [
+    "LnData/RpTrad/IntrstRate/Fltg/Term/Unit",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/Term/Unit"
+   ],
+   "POSC": [
+    "LnData/RpTrad/IntrstRate/Fltg/Term/Unit"
+   ],
+   "CORR": [
+    "LnData/RpTrad/IntrstRate/Fltg/Term/Unit",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/Term/Unit"
+   ]
+  }
+ },
+ "2.27": {
+  "name": "Floating rate reference period - multiplier",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/IntrstRate/Fltg/Term/Val",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/Term/Val"
+   ],
+   "MODI": [
+    "LnData/RpTrad/IntrstRate/Fltg/Term/Val",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/Term/Val"
+   ],
+   "POSC": [
+    "LnData/RpTrad/IntrstRate/Fltg/Term/Val"
+   ],
+   "CORR": [
+    "LnData/RpTrad/IntrstRate/Fltg/Term/Val",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/Term/Val"
+   ]
+  }
+ },
+ "2.28": {
+  "name": "Floating rate payment",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/IntrstRate/Fltg/PmtFrqcy/Unit",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/PmtFrqcy/Unit"
+   ],
+   "MODI": [
+    "LnData/RpTrad/IntrstRate/Fltg/PmtFrqcy/Unit",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/PmtFrqcy/Unit"
+   ],
+   "POSC": [
+    "LnData/RpTrad/IntrstRate/Fltg/PmtFrqcy/Unit"
+   ],
+   "CORR": [
+    "LnData/RpTrad/IntrstRate/Fltg/PmtFrqcy/Unit",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/PmtFrqcy/Unit"
+   ]
+  }
+ },
+ "2.29": {
+  "name": "Floating rate payment",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/IntrstRate/Fltg/PmtFrqcy/Val",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/PmtFrqcy/Val"
+   ],
+   "MODI": [
+    "LnData/RpTrad/IntrstRate/Fltg/PmtFrqcy/Val",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/PmtFrqcy/Val"
+   ],
+   "POSC": [
+    "LnData/RpTrad/IntrstRate/Fltg/PmtFrqcy/Val"
+   ],
+   "CORR": [
+    "LnData/RpTrad/IntrstRate/Fltg/PmtFrqcy/Val",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/PmtFrqcy/Val"
+   ]
+  }
+ },
+ "2.30": {
+  "name": "Floating rate reset",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/IntrstRate/Fltg/RstFrqcy/Unit",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/RstFrqcy/Unit"
+   ],
+   "MODI": [
+    "LnData/RpTrad/IntrstRate/Fltg/RstFrqcy/Unit",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/RstFrqcy/Unit"
+   ],
+   "POSC": [
+    "LnData/RpTrad/IntrstRate/Fltg/RstFrqcy/Unit"
+   ],
+   "CORR": [
+    "LnData/RpTrad/IntrstRate/Fltg/RstFrqcy/Unit",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/RstFrqcy/Unit"
+   ]
+  }
+ },
+ "2.31": {
+  "name": "Floating rate reset",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/IntrstRate/Fltg/RstFrqcy/Val",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/RstFrqcy/Val"
+   ],
+   "MODI": [
+    "LnData/RpTrad/IntrstRate/Fltg/RstFrqcy/Val",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/RstFrqcy/Val"
+   ],
+   "POSC": [
+    "LnData/RpTrad/IntrstRate/Fltg/RstFrqcy/Val"
+   ],
+   "CORR": [
+    "LnData/RpTrad/IntrstRate/Fltg/RstFrqcy/Val",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/RstFrqcy/Val"
+   ]
+  }
+ },
+ "2.32": {
+  "name": "Spread",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/IntrstRate/Fltg/Sprd",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/Sprd"
+   ],
+   "MODI": [
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/Sprd"
+   ],
+   "POSC": [
+    "LnData/RpTrad/IntrstRate/Fltg/Sprd"
+   ],
+   "CORR": [
+    "LnData/RpTrad/IntrstRate/Fltg/Sprd",
+    "LnData/MrgnLndg/MrgnLnAttr/IntrstRate/Fltg/Sprd"
+   ]
+  }
+ },
+ "2.33": {
+  "name": "Margin lending currency amount",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/MrgnLndg/MrgnLnAttr/Amt"
+   ],
+   "MODI": [
+    "LnData/MrgnLndg/MrgnLnAttr/Amt"
+   ],
+   "CORR": [
+    "LnData/MrgnLndg/MrgnLnAttr/Amt"
+   ]
+  }
+ },
+ "2.34": {
+  "name": "Margin lending currency",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/MrgnLndg/MrgnLnAttr/Amt/Amt/@Ccy"
+   ],
+   "MODI": [
+    "LnData/MrgnLndg/MrgnLnAttr/Amt/Amt/@Ccy"
+   ],
+   "CORR": [
+    "LnData/MrgnLndg/MrgnLnAttr/Amt/Amt/@Ccy"
+   ]
+  }
+ },
+ "2.35": {
+  "name": "Adjusted rate",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/IntrstRate/Fltg/RateAdjstmnt/Rate"
+   ],
+   "MODI": [
+    "LnData/RpTrad/IntrstRate/Fltg/RateAdjstmnt/Rate"
+   ],
+   "POSC": [
+    "LnData/RpTrad/IntrstRate/Fltg/RateAdjstmnt/Rate"
+   ],
+   "CORR": [
+    "LnData/RpTrad/IntrstRate/Fltg/RateAdjstmnt/Rate"
+   ]
+  }
+ },
+ "2.36": {
+  "name": "Rate date",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/IntrstRate/Fltg/RateAdjstmnt/AdjstmntDt"
+   ],
+   "MODI": [
+    "LnData/RpTrad/IntrstRate/Fltg/RateAdjstmnt/AdjstmntDt"
+   ],
+   "POSC": [
+    "LnData/RpTrad/IntrstRate/Fltg/RateAdjstmnt/AdjstmntDt"
+   ],
+   "CORR": [
+    "LnData/RpTrad/IntrstRate/Fltg/RateAdjstmnt/AdjstmntDt"
+   ]
+  }
+ },
+ "2.37": {
+  "name": "Principal amount on value date",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/PrncplAmt/ValDtAmt",
+    "LnData/BuySellBck/PrncplAmt/ValDtAmt"
+   ],
+   "MODI": [
+    "LnData/RpTrad/PrncplAmt/ValDtAmt",
+    "LnData/BuySellBck/PrncplAmt/ValDtAmt"
+   ],
+   "POSC": [
+    "LnData/RpTrad/PrncplAmt/ValDtAmt",
+    "LnData/BuySellBck/PrncplAmt/ValDtAmt"
+   ],
+   "CORR": [
+    "LnData/RpTrad/PrncplAmt/ValDtAmt",
+    "LnData/BuySellBck/PrncplAmt/ValDtAmt"
+   ]
+  }
+ },
+ "2.38": {
+  "name": "Principal amount on maturity date",
+  "codes": "SFT-034",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/PrncplAmt/MtrtyDtAmt",
+    "LnData/BuySellBck/PrncplAmt/MtrtyDtAmt"
+   ],
+   "MODI": [
+    "LnData/RpTrad/PrncplAmt/MtrtyDtAmt",
+    "LnData/BuySellBck/PrncplAmt/MtrtyDtAmt"
+   ],
+   "POSC": [
+    "LnData/RpTrad/PrncplAmt/MtrtyDtAmt",
+    "LnData/BuySellBck/PrncplAmt/MtrtyDtAmt"
+   ],
+   "CORR": [
+    "LnData/RpTrad/PrncplAmt/MtrtyDtAmt",
+    "LnData/BuySellBck/PrncplAmt/MtrtyDtAmt"
+   ]
+  }
+ },
+ "2.39": {
+  "name": "Principal amount currency",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/PrncplAmt/ValDtAmt/@Ccy",
+    "LnData/RpTrad/PrncplAmt/MtrtyDtAmt/@Ccy",
+    "LnData/BuySellBck/PrncplAmt/ValDtAmt/@Ccy",
+    "LnData/BuySellBck/PrncplAmt/MtrtyDtAmt/@Ccy"
+   ],
+   "MODI": [
+    "LnData/RpTrad/PrncplAmt/ValDtAmt/@Ccy",
+    "LnData/RpTrad/PrncplAmt/MtrtyDtAmt/@Ccy",
+    "LnData/BuySellBck/PrncplAmt/ValDtAmt/@Ccy",
+    "LnData/BuySellBck/PrncplAmt/MtrtyDtAmt/@Ccy"
+   ],
+   "POSC": [
+    "LnData/RpTrad/PrncplAmt/ValDtAmt/@Ccy",
+    "LnData/RpTrad/PrncplAmt/MtrtyDtAmt/@Ccy",
+    "LnData/BuySellBck/PrncplAmt/ValDtAmt/@Ccy",
+    "LnData/BuySellBck/PrncplAmt/MtrtyDtAmt/@Ccy"
+   ],
+   "CORR": [
+    "LnData/RpTrad/PrncplAmt/ValDtAmt/@Ccy",
+    "LnData/RpTrad/PrncplAmt/MtrtyDtAmt/@Ccy",
+    "LnData/BuySellBck/PrncplAmt/ValDtAmt/@Ccy",
+    "LnData/BuySellBck/PrncplAmt/MtrtyDtAmt/@Ccy"
+   ]
+  }
+ },
+ "2.40": {
+  "name": "Type of asset",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/AsstTp"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/AsstTp"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/AsstTp"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/AsstTp"
+   ]
+  }
+ },
+ "2.41": {
+  "name": "Security identifier",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/AsstTp/Scty/Id"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/AsstTp/Scty/Id"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/AsstTp/Scty/Id"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/AsstTp/Scty/Id"
+   ]
+  }
+ },
+ "2.42": {
+  "name": "Classification of a security",
+  "codes": "SFT-035",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/AsstTp/Scty/ClssfctnTp"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/AsstTp/Scty/ClssfctnTp"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/AsstTp/Scty/ClssfctnTp"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/AsstTp/Scty/ClssfctnTp"
+   ]
+  }
+ },
+ "2.43": {
+  "name": "Base product",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {}
+ },
+ "2.44": {
+  "name": "Sub - product",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {}
+ },
+ "2.45": {
+  "name": "Further sub - product",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {}
+ },
+ "2.46": {
+  "name": "Quantity or nominal amount",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/AsstTp/Scty/QtyOrNmnlVal",
+    "LnData/SctiesLndg/AsstTp/Cmmdty/Qty/Val"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/AsstTp/Scty/QtyOrNmnlVal",
+    "LnData/SctiesLndg/AsstTp/Cmmdty/Qty/Val"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/AsstTp/Scty/QtyOrNmnlVal"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/AsstTp/Scty/QtyOrNmnlVal",
+    "LnData/SctiesLndg/AsstTp/Cmmdty/Qty/Val"
+   ]
+  }
+ },
+ "2.47": {
+  "name": "Unit of measure",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/AsstTp/Cmmdty/Qty/UnitOfMeasr"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/AsstTp/Cmmdty/Qty/UnitOfMeasr"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/AsstTp/Cmmdty/Qty/UnitOfMeasr"
+   ]
+  }
+ },
+ "2.48": {
+  "name": "Currency of nominal amount",
+  "codes": "SFT-036",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "-",
+    "CORR": "O",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "O",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/AsstTp/Scty/QtyOrNmnlVal/NmnlVal/Amt/@Ccy"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/AsstTp/Scty/QtyOrNmnlVal/NmnlVal/Amt/@Ccy"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/AsstTp/Scty/QtyOrNmnlVal/NmnlVal/Amt/@Ccy"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/AsstTp/Scty/QtyOrNmnlVal/NmnlVal",
+    "LnData/SctiesLndg/AsstTp/Scty/QtyOrNmnlVal/NmnlVal/Amt/@Ccy"
+   ]
+  }
+ },
+ "2.49": {
+  "name": "Security or commodity price",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/BuySellBck/UnitPric",
+    "LnData/SctiesLndg/AsstTp/Scty/UnitPric",
+    "LnData/SctiesLndg/AsstTp/Cmmdty/UnitPric"
+   ],
+   "MODI": [
+    "LnData/BuySellBck/UnitPric",
+    "LnData/SctiesLndg/AsstTp/Scty/UnitPric",
+    "LnData/SctiesLndg/AsstTp/Cmmdty/UnitPric"
+   ],
+   "POSC": [
+    "LnData/BuySellBck/UnitPric",
+    "LnData/SctiesLndg/AsstTp/Scty/UnitPric",
+    "LnData/SctiesLndg/AsstTp/Cmmdty/UnitPric"
+   ],
+   "CORR": [
+    "LnData/BuySellBck/UnitPric",
+    "LnData/SctiesLndg/AsstTp/Scty/UnitPric",
+    "LnData/SctiesLndg/AsstTp/Cmmdty/UnitPric"
+   ]
+  }
+ },
+ "2.50": {
+  "name": "Price currency",
+  "codes": "SFT-037",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "TCTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "-",
+    "CORR": "O",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "O"
+   },
+   "PSTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "O",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/BuySellBck/UnitPric/MntryVal/Amt/@Ccy",
+    "LnData/SctiesLndg/AsstTp/Scty/UnitPric/MntryVal/Amt/@Ccy",
+    "LnData/SctiesLndg/AsstTp/Cmmdty/UnitPric/MntryVal/Amt/@Ccy"
+   ],
+   "MODI": [
+    "LnData/BuySellBck/UnitPric/MntryVal/Amt/@Ccy",
+    "LnData/SctiesLndg/AsstTp/Scty/UnitPric/MntryVal/Amt/@Ccy",
+    "LnData/SctiesLndg/AsstTp/Cmmdty/UnitPric/MntryVal/Amt/@Ccy"
+   ],
+   "POSC": [
+    "LnData/BuySellBck/UnitPric/MntryVal",
+    "LnData/BuySellBck/UnitPric/MntryVal/Amt/@Ccy",
+    "LnData/SctiesLndg/AsstTp/Scty/UnitPric/MntryVal/Amt/@Ccy",
+    "LnData/SctiesLndg/AsstTp/Cmmdty/UnitPric/MntryVal/Amt/@Ccy"
+   ],
+   "CORR": [
+    "LnData/BuySellBck/UnitPric/MntryVal/Amt/@Ccy",
+    "LnData/SctiesLndg/AsstTp/Scty/UnitPric/MntryVal",
+    "LnData/SctiesLndg/AsstTp/Scty/UnitPric/MntryVal/Amt/@Ccy",
+    "LnData/SctiesLndg/AsstTp/Cmmdty/UnitPric/MntryVal/Amt/@Ccy"
+   ]
+  }
+ },
+ "2.51": {
+  "name": "Security quality",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/AsstTp/Scty/Qlty"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/AsstTp/Scty/Qlty"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/AsstTp/Scty/Qlty"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/AsstTp/Scty/Qlty"
+   ]
+  }
+ },
+ "2.52": {
+  "name": "Maturity of the security",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/AsstTp/Scty/Mtrty"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/AsstTp/Scty/Mtrty"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/AsstTp/Scty/Mtrty"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/AsstTp/Scty/Mtrty"
+   ]
+  }
+ },
+ "2.53": {
+  "name": "Jurisdiction of the issuer",
+  "codes": "SFT-038",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/AsstTp/Scty/Issr/JursdctnCtry"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/AsstTp/Scty/Issr/JursdctnCtry"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/AsstTp/Scty/Issr/JursdctnCtry"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/AsstTp/Scty/Issr/JursdctnCtry"
+   ]
+  }
+ },
+ "2.54": {
+  "name": "LEI of the issuer",
+  "codes": "SFT-039",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/AsstTp/Scty/Issr/Id"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/AsstTp/Scty/Issr/Id"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/AsstTp/Scty/Issr/Id"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/AsstTp/Scty/Issr/Id"
+   ]
+  }
+ },
+ "2.55": {
+  "name": "Security type",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/AsstTp/Scty/Tp/Cd"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/AsstTp/Scty/Tp"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/AsstTp/Scty/Tp"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/AsstTp/Scty/Tp"
+   ]
+  }
+ },
+ "2.56": {
+  "name": "Loan value",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/LnVal"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/LnVal"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/LnVal"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/LnVal"
+   ]
+  }
+ },
+ "2.57": {
+  "name": "Market value",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "O",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "-",
+    "CORR": "O",
+    "VALU": "M"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "O",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "O",
+    "VALU": "M"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/AsstTp/Scty/MktVal",
+    "LnData/SctiesLndg/AsstTp/Cmmdty/MktVal"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/AsstTp/Scty/MktVal",
+    "LnData/SctiesLndg/AsstTp/Cmmdty/MktVal"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/AsstTp/Scty/MktVal",
+    "LnData/SctiesLndg/AsstTp/Cmmdty/MktVal"
+   ],
+   "VALU": [
+    "LnData/MktVal"
+   ]
+  }
+ },
+ "2.58": {
+  "name": "Fixed rebate rate",
+  "codes": "SFT-040",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/RbtRate/Fxd/Rate"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/RbtRate/Fxd/Rate"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/RbtRate/Fxd/Rate"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/RbtRate/Fxd/Rate"
+   ]
+  }
+ },
+ "2.59": {
+  "name": "Floating rebate rate",
+  "codes": "SFT-040",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/RbtRate/Fltg/RefRate"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/RbtRate/Fltg/RefRate"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/RbtRate/Fltg/RefRate"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/RbtRate/Fltg/RefRate"
+   ]
+  }
+ },
+ "2.60": {
+  "name": "Floating rebate rate reference period - time period",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/RbtRate/Fltg/Term/Unit"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/RbtRate/Fltg/Term/Unit"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/RbtRate/Fltg/Term/Unit"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/RbtRate/Fltg/Term/Unit"
+   ]
+  }
+ },
+ "2.61": {
+  "name": "Floating rebate rate reference period - multiplier",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/RbtRate/Fltg/Term/Val"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/RbtRate/Fltg/Term/Val"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/RbtRate/Fltg/Term/Val"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/RbtRate/Fltg/Term/Val"
+   ]
+  }
+ },
+ "2.62": {
+  "name": "Floating rebate rate payment frequency - time period",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "-",
+    "CORR": "O",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "O",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/RbtRate/Fltg/PmtFrqcy/Unit"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/RbtRate/Fltg/PmtFrqcy/Unit"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/RbtRate/Fltg/PmtFrqcy/Unit"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/RbtRate/Fltg/PmtFrqcy/Unit"
+   ]
+  }
+ },
+ "2.63": {
+  "name": "Floating rebate rate payment frequency - multiplier",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "-",
+    "CORR": "O",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "O",
+    "MODI": "O",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "O",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/RbtRate/Fltg/PmtFrqcy/Val"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/RbtRate/Fltg/PmtFrqcy/Val"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/RbtRate/Fltg/PmtFrqcy/Val"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/RbtRate/Fltg/PmtFrqcy/Val"
+   ]
+  }
+ },
+ "2.64": {
+  "name": "Floating rebate rate reset frequency - time period",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/RbtRate/Fltg/RstFrqcy/Unit"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/RbtRate/Fltg/RstFrqcy/Unit"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/RbtRate/Fltg/RstFrqcy/Unit"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/RbtRate/Fltg/RstFrqcy/Unit"
+   ]
+  }
+ },
+ "2.65": {
+  "name": "Floating rebate rate reset frequency - multiplier",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/RbtRate/Fltg/RstFrqcy/Val"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/RbtRate/Fltg/RstFrqcy/Val"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/RbtRate/Fltg/RstFrqcy/Val"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/RbtRate/Fltg/RstFrqcy/Val"
+   ]
+  }
+ },
+ "2.66": {
+  "name": "Spread of the rebate rate",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/RbtRate/Fltg/Sprd"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/RbtRate/Fltg/Sprd"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/RbtRate/Fltg/Sprd"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/RbtRate/Fltg/Sprd"
+   ]
+  }
+ },
+ "2.67": {
+  "name": "Lending fee",
+  "codes": "SFT-041",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/LndgFee"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/LndgFee"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/LndgFee"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/LndgFee"
+   ]
+  }
+ },
+ "2.68": {
+  "name": "Exclusive arrangements",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/SctiesLndg/AsstTp/Scty/ExclsvArrgmnt"
+   ],
+   "MODI": [
+    "LnData/SctiesLndg/AsstTp/Scty/ExclsvArrgmnt"
+   ],
+   "POSC": [
+    "LnData/SctiesLndg/AsstTp/Scty/ExclsvArrgmnt"
+   ],
+   "CORR": [
+    "LnData/SctiesLndg/AsstTp/Scty/ExclsvArrgmnt"
+   ]
+  }
+ },
+ "2.69": {
+  "name": "Outstanding margin loan",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/MrgnLndg/OutsdngMrgnLnAmt"
+   ],
+   "MODI": [
+    "LnData/MrgnLndg/OutsdngMrgnLnAmt"
+   ],
+   "CORR": [
+    "LnData/MrgnLndg/OutsdngMrgnLnAmt"
+   ]
+  }
+ },
+ "2.70": {
+  "name": "Base currency of outstanding margin loan",
+  "codes": "SFT-042",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/MrgnLndg/OutsdngMrgnLnAmt/@Ccy",
+    "LnData/MrgnLndg/ShrtMktValAmt/@Ccy"
+   ],
+   "MODI": [
+    "LnData/MrgnLndg/OutsdngMrgnLnAmt/@Ccy",
+    "LnData/MrgnLndg/ShrtMktValAmt/@Ccy"
+   ],
+   "CORR": [
+    "LnData/MrgnLndg/OutsdngMrgnLnAmt/@Ccy",
+    "LnData/MrgnLndg/ShrtMktValAmt/@Ccy"
+   ]
+  }
+ },
+ "2.71": {
+  "name": "Short market value",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/MrgnLndg/ShrtMktValAmt"
+   ],
+   "MODI": [
+    "LnData/MrgnLndg/ShrtMktValAmt"
+   ],
+   "CORR": [
+    "LnData/MrgnLndg/ShrtMktValAmt"
+   ]
+  }
+ },
+ "2.72": {
+  "name": "Uncollateralised Securities Lending ('SL') flag",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CollData/SctiesLndg"
+   ],
+   "MODI": [
+    "CollData/SctiesLndg"
+   ],
+   "COLU": [
+    "CollData/SctiesLndg"
+   ],
+   "CORR": [
+    "CollData/SctiesLndg"
+   ]
+  }
+ },
+ "2.73": {
+  "name": "Collateralisation of net exposure",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "C",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "M",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CollData/RpTrad/NetXpsrCollstnInd",
+    "CollData/BuySellBck/NetXpsrCollstnInd",
+    "CollData/SctiesLndg/Collsd/NetXpsrCollstnInd"
+   ],
+   "MODI": [
+    "CollData/RpTrad/NetXpsrCollstnInd",
+    "CollData/BuySellBck/NetXpsrCollstnInd",
+    "CollData/SctiesLndg/Collsd/NetXpsrCollstnInd"
+   ],
+   "POSC": [
+    "CollData/NetXpsrCollstnInd"
+   ],
+   "COLU": [
+    "CollData/RpTrad/NetXpsrCollstnInd",
+    "CollData/BuySellBck/NetXpsrCollstnInd",
+    "CollData/SctiesLndg/Collsd/NetXpsrCollstnInd"
+   ],
+   "CORR": [
+    "CollData/RpTrad/NetXpsrCollstnInd",
+    "CollData/BuySellBck/NetXpsrCollstnInd",
+    "CollData/SctiesLndg/Collsd/NetXpsrCollstnInd"
+   ]
+  }
+ },
+ "2.74": {
+  "name": "Value date of the collateral",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "TCTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "O",
+    "CORR": "O",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "PSTN.BSB": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "COLU": [
+    "CollData/RpTrad/CollValDt",
+    "CollData/BuySellBck/CollValDt",
+    "CollData/SctiesLndg/Collsd/CollValDt"
+   ],
+   "CORR": [
+    "CollData/RpTrad/CollValDt",
+    "CollData/BuySellBck/CollValDt",
+    "CollData/SctiesLndg/Collsd/CollValDt"
+   ]
+  }
+ },
+ "2.75": {
+  "name": "Type of collateral component",
+  "codes": "SFT-043",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "M",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CollData/RpTrad/AsstTp",
+    "CollData/BuySellBck/AsstTp",
+    "CollData/SctiesLndg/Collsd/AsstTp",
+    "CollData/MrgnLndg"
+   ],
+   "POSC": [
+    "CollData/AsstTp"
+   ],
+   "COLU": [
+    "CollData/RpTrad/AsstTp",
+    "CollData/BuySellBck/AsstTp",
+    "CollData/SctiesLndg/Collsd/AsstTp",
+    "CollData/MrgnLndg"
+   ],
+   "CORR": [
+    "CollData/RpTrad/AsstTp",
+    "CollData/BuySellBck/AsstTp",
+    "CollData/SctiesLndg/Collsd/AsstTp",
+    "CollData/MrgnLndg"
+   ]
+  }
+ },
+ "2.76": {
+  "name": "Cash collateral amount",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CollData/RpTrad/AsstTp/Csh/Amt",
+    "CollData/BuySellBck/AsstTp/Csh/Amt",
+    "CollData/SctiesLndg/Collsd/AsstTp/Csh/Amt"
+   ],
+   "POSC": [
+    "CollData/AsstTp/Csh/Amt"
+   ],
+   "COLU": [
+    "CollData/RpTrad/AsstTp/Csh/Amt",
+    "CollData/BuySellBck/AsstTp/Csh/Amt",
+    "CollData/SctiesLndg/Collsd/AsstTp/Csh"
+   ],
+   "CORR": [
+    "CollData/RpTrad/AsstTp/Csh/Amt",
+    "CollData/BuySellBck/AsstTp/Csh/Amt",
+    "CollData/SctiesLndg/Collsd/AsstTp/Csh/Amt"
+   ]
+  }
+ },
+ "2.77": {
+  "name": "Cash collateral currency",
+  "codes": "SFT-044",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {}
+ },
+ "2.78": {
+  "name": "Identification of a security used as collateral",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CollData/RpTrad/AsstTp/Scty/Id",
+    "CollData/BuySellBck/AsstTp/Scty/Id",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/Id",
+    "CollData/MrgnLndg/Id"
+   ],
+   "POSC": [
+    "CollData/AsstTp/Scty/Id"
+   ],
+   "COLU": [
+    "CollData/RpTrad/AsstTp/Scty/Id",
+    "CollData/BuySellBck/AsstTp/Scty/Id",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/Id",
+    "CollData/MrgnLndg/Id"
+   ],
+   "CORR": [
+    "CollData/RpTrad/AsstTp/Scty/Id",
+    "CollData/BuySellBck/AsstTp/Scty/Id",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/Id",
+    "CollData/MrgnLndg/Id"
+   ]
+  }
+ },
+ "2.79": {
+  "name": "Classification of a security used as collateral",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CollData/RpTrad/AsstTp/Scty/ClssfctnTp",
+    "CollData/BuySellBck/AsstTp/Scty/ClssfctnTp",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/ClssfctnTp",
+    "CollData/MrgnLndg/ClssfctnTp"
+   ],
+   "POSC": [
+    "CollData/AsstTp/Scty/ClssfctnTp"
+   ],
+   "COLU": [
+    "CollData/RpTrad/AsstTp/Scty/ClssfctnTp",
+    "CollData/BuySellBck/AsstTp/Scty/ClssfctnTp",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/ClssfctnTp",
+    "CollData/MrgnLndg/ClssfctnTp"
+   ],
+   "CORR": [
+    "CollData/RpTrad/AsstTp/Scty/ClssfctnTp",
+    "CollData/BuySellBck/AsstTp/Scty/ClssfctnTp",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/ClssfctnTp",
+    "CollData/MrgnLndg/ClssfctnTp"
+   ]
+  }
+ },
+ "2.80": {
+  "name": "Base product",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {}
+ },
+ "2.81": {
+  "name": "Sub - product",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {}
+ },
+ "2.82": {
+  "name": "Further sub - product",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-",
+    "VALU": "-"
+   }
+  },
+  "paths": {}
+ },
+ "2.83": {
+  "name": "Collateral quantity or nominal amount",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CollData/RpTrad/AsstTp/Scty/QtyOrNmnlVal",
+    "CollData/RpTrad/AsstTp/Cmmdty/Qty",
+    "CollData/BuySellBck/AsstTp/Scty/QtyOrNmnlVal",
+    "CollData/BuySellBck/AsstTp/Cmmdty/Qty",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/QtyOrNmnlVal",
+    "CollData/SctiesLndg/Collsd/AsstTp/Cmmdty/Qty",
+    "CollData/MrgnLndg/QtyOrNmnlVal"
+   ],
+   "POSC": [
+    "CollData/AsstTp/Scty/QtyOrNmnlVal",
+    "CollData/AsstTp/Cmmdty/Qty"
+   ],
+   "COLU": [
+    "CollData/RpTrad/AsstTp/Scty/QtyOrNmnlVal",
+    "CollData/RpTrad/AsstTp/Cmmdty/Qty",
+    "CollData/BuySellBck/AsstTp/Scty/QtyOrNmnlVal",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/QtyOrNmnlVal",
+    "CollData/SctiesLndg/Collsd/AsstTp/Cmmdty/Qty",
+    "CollData/MrgnLndg/QtyOrNmnlVal"
+   ],
+   "CORR": [
+    "CollData/RpTrad/AsstTp/Scty/QtyOrNmnlVal",
+    "CollData/RpTrad/AsstTp/Cmmdty/Qty",
+    "CollData/BuySellBck/AsstTp/Scty/QtyOrNmnlVal",
+    "CollData/BuySellBck/AsstTp/Cmmdty/Qty",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/QtyOrNmnlVal",
+    "CollData/SctiesLndg/Collsd/AsstTp/Cmmdty/Qty",
+    "CollData/MrgnLndg/QtyOrNmnlVal"
+   ]
+  }
+ },
+ "2.84": {
+  "name": "Collateral unit of measure",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C-",
+    "COLU": "C-",
+    "CORR": "C-",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C-",
+    "CORR": "C-",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CollData/RpTrad/AsstTp/Cmmdty/Qty/UnitOfMeasr",
+    "CollData/BuySellBck/AsstTp/Cmmdty/Qty/UnitOfMeasr",
+    "CollData/SctiesLndg/Collsd/AsstTp/Cmmdty/Qty/UnitOfMeasr"
+   ],
+   "POSC": [
+    "CollData/AsstTp/Cmmdty/Qty/UnitOfMeasr"
+   ],
+   "COLU": [
+    "CollData/RpTrad/AsstTp/Cmmdty/Qty/UnitOfMeasr",
+    "CollData/BuySellBck/AsstTp/Cmmdty/Qty/UnitOfMeasr",
+    "CollData/SctiesLndg/Collsd/AsstTp/Cmmdty/Qty/UnitOfMeasr"
+   ],
+   "CORR": [
+    "CollData/RpTrad/AsstTp/Cmmdty/Qty/UnitOfMeasr",
+    "CollData/BuySellBck/AsstTp/Cmmdty/Qty/UnitOfMeasr",
+    "CollData/SctiesLndg/Collsd/AsstTp/Cmmdty/Qty/UnitOfMeasr"
+   ]
+  }
+ },
+ "2.85": {
+  "name": "Currency of collateral nominal amount",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "O",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "TCTN.BSB": {
+    "NEWT": "O",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "TCTN.SL": {
+    "NEWT": "O",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "O",
+    "CORR": "O",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "O",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "PSTN.Repo": {
+    "NEWT": "O",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "PSTN.BSB": {
+    "NEWT": "O",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "PSTN.SL": {
+    "NEWT": "O",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CollData/RpTrad/AsstTp/Scty/QtyOrNmnlVal/NmnlVal/Amt/@Ccy",
+    "CollData/BuySellBck/AsstTp/Scty/QtyOrNmnlVal/NmnlVal/Amt/@Ccy",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/QtyOrNmnlVal/NmnlVal/Amt/@Ccy",
+    "CollData/MrgnLndg/QtyOrNmnlVal/NmnlVal/Amt/@Ccy"
+   ],
+   "POSC": [
+    "CollData/AsstTp/Scty/QtyOrNmnlVal/NmnlVal/Amt/@Ccy"
+   ],
+   "COLU": [
+    "CollData/RpTrad/AsstTp/Scty/QtyOrNmnlVal/NmnlVal/Amt/@Ccy",
+    "CollData/BuySellBck/AsstTp/Scty/QtyOrNmnlVal/NmnlVal/Amt/@Ccy",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/QtyOrNmnlVal/NmnlVal/Amt/@Ccy",
+    "CollData/MrgnLndg/QtyOrNmnlVal/NmnlVal/Amt/@Ccy"
+   ],
+   "CORR": [
+    "CollData/RpTrad/AsstTp/Scty/QtyOrNmnlVal/NmnlVal/Amt/@Ccy",
+    "CollData/BuySellBck/AsstTp/Scty/QtyOrNmnlVal/NmnlVal/Amt/@Ccy",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/QtyOrNmnlVal/NmnlVal/Amt/@Ccy",
+    "CollData/MrgnLndg/QtyOrNmnlVal/NmnlVal/Amt/@Ccy"
+   ]
+  }
+ },
+ "2.86": {
+  "name": "Price currency",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "O",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "TCTN.BSB": {
+    "NEWT": "O",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "TCTN.SL": {
+    "NEWT": "O",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "O",
+    "COLU": "O",
+    "CORR": "O",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "O",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "PSTN.Repo": {
+    "NEWT": "O",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "PSTN.BSB": {
+    "NEWT": "O",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O"
+   },
+   "PSTN.SL": {
+    "NEWT": "O",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "O",
+    "CORR": "O",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CollData/RpTrad/AsstTp/Scty/UnitPric/MntryVal/Amt/@Ccy",
+    "CollData/RpTrad/AsstTp/Cmmdty/UnitPric/MntryVal/Amt/@Ccy",
+    "CollData/BuySellBck/AsstTp/Scty/UnitPric/MntryVal/Amt/@Ccy",
+    "CollData/BuySellBck/AsstTp/Cmmdty/UnitPric/MntryVal/Amt/@Ccy",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/UnitPric/MntryVal/Amt/@Ccy",
+    "CollData/MrgnLndg/UnitPric/MntryVal",
+    "CollData/MrgnLndg/UnitPric/MntryVal/Amt/@Ccy"
+   ],
+   "POSC": [
+    "CollData/AsstTp/Scty/UnitPric/MntryVal/Amt/@Ccy",
+    "CollData/AsstTp/Cmmdty/UnitPric/MntryVal/Amt/@Ccy"
+   ],
+   "COLU": [
+    "CollData/RpTrad/AsstTp/Scty/UnitPric/MntryVal/Amt/@Ccy",
+    "CollData/RpTrad/AsstTp/Cmmdty/UnitPric/MntryVal/Amt/@Ccy",
+    "CollData/BuySellBck/AsstTp/Scty/UnitPric/MntryVal/Amt/@Ccy",
+    "CollData/BuySellBck/AsstTp/Cmmdty/UnitPric/MntryVal/Amt",
+    "CollData/BuySellBck/AsstTp/Cmmdty/UnitPric/MntryVal/Amt/@Ccy",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/UnitPric/MntryVal/Amt/@Ccy",
+    "CollData/MrgnLndg/UnitPric/MntryVal/Amt/@Ccy"
+   ],
+   "CORR": [
+    "CollData/RpTrad/AsstTp/Scty/UnitPric/MntryVal/Amt/@Ccy",
+    "CollData/RpTrad/AsstTp/Cmmdty/UnitPric/MntryVal/Amt/@Ccy",
+    "CollData/BuySellBck/AsstTp/Scty/UnitPric/MntryVal/Amt/@Ccy",
+    "CollData/BuySellBck/AsstTp/Cmmdty/UnitPric/MntryVal/Amt/@Ccy",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/UnitPric/MntryVal/Amt/@Ccy",
+    "CollData/MrgnLndg/UnitPric/MntryVal/Amt/@Ccy"
+   ]
+  }
+ },
+ "2.87": {
+  "name": "Price per unit",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CollData/RpTrad/AsstTp/Scty/UnitPric",
+    "CollData/RpTrad/AsstTp/Cmmdty/UnitPric",
+    "CollData/BuySellBck/AsstTp/Scty/UnitPric",
+    "CollData/BuySellBck/AsstTp/Cmmdty/UnitPric",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/UnitPric",
+    "CollData/SctiesLndg/Collsd/AsstTp/Cmmdty/UnitPric",
+    "CollData/MrgnLndg/UnitPric"
+   ],
+   "POSC": [
+    "CollData/AsstTp/Scty/UnitPric",
+    "CollData/AsstTp/Cmmdty/UnitPric"
+   ],
+   "COLU": [
+    "CollData/RpTrad/AsstTp/Scty/UnitPric",
+    "CollData/RpTrad/AsstTp/Cmmdty/UnitPric",
+    "CollData/BuySellBck/AsstTp/Scty/UnitPric",
+    "CollData/BuySellBck/AsstTp/Cmmdty/UnitPric",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/UnitPric",
+    "CollData/SctiesLndg/Collsd/AsstTp/Cmmdty/UnitPric",
+    "CollData/MrgnLndg/UnitPric"
+   ],
+   "CORR": [
+    "CollData/RpTrad/AsstTp/Scty/UnitPric",
+    "CollData/RpTrad/AsstTp/Cmmdty/UnitPric",
+    "CollData/BuySellBck/AsstTp/Scty/UnitPric",
+    "CollData/BuySellBck/AsstTp/Cmmdty/UnitPric",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/UnitPric",
+    "CollData/SctiesLndg/Collsd/AsstTp/Cmmdty/UnitPric",
+    "CollData/MrgnLndg/UnitPric"
+   ]
+  }
+ },
+ "2.88": {
+  "name": "Collateral market value",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CollData/RpTrad/AsstTp/Scty/MktVal",
+    "CollData/RpTrad/AsstTp/Cmmdty/MktVal",
+    "CollData/BuySellBck/AsstTp/Scty/MktVal",
+    "CollData/BuySellBck/AsstTp/Cmmdty/MktVal",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/MktVal",
+    "CollData/SctiesLndg/Collsd/AsstTp/Cmmdty/MktVal",
+    "CollData/MrgnLndg/MktVal"
+   ],
+   "POSC": [
+    "CollData/AsstTp/Scty/MktVal",
+    "CollData/AsstTp/Cmmdty/MktVal"
+   ],
+   "COLU": [
+    "CollData/RpTrad/AsstTp/Scty/MktVal",
+    "CollData/RpTrad/AsstTp/Cmmdty/MktVal",
+    "CollData/BuySellBck/AsstTp/Scty/MktVal",
+    "CollData/BuySellBck/AsstTp/Cmmdty/MktVal",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/MktVal",
+    "CollData/SctiesLndg/Collsd/AsstTp/Cmmdty/MktVal",
+    "CollData/MrgnLndg/MktVal"
+   ],
+   "CORR": [
+    "CollData/RpTrad/AsstTp/Scty/MktVal",
+    "CollData/RpTrad/AsstTp/Cmmdty/MktVal",
+    "CollData/BuySellBck/AsstTp/Scty/MktVal",
+    "CollData/BuySellBck/AsstTp/Cmmdty/MktVal",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/MktVal",
+    "CollData/SctiesLndg/Collsd/AsstTp/Cmmdty/MktVal",
+    "CollData/MrgnLndg/MktVal"
+   ]
+  }
+ },
+ "2.89": {
+  "name": "Haircut or margin",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CollData/RpTrad/AsstTp/Scty/HrcutOrMrgn",
+    "CollData/RpTrad/AsstTp/Csh/HrcutOrMrgn",
+    "CollData/BuySellBck/AsstTp/Scty/HrcutOrMrgn",
+    "CollData/BuySellBck/AsstTp/Csh/HrcutOrMrgn",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/HrcutOrMrgn",
+    "CollData/SctiesLndg/Collsd/AsstTp/Csh/HrcutOrMrgn",
+    "CollData/MrgnLndg/HrcutOrMrgn"
+   ],
+   "POSC": [
+    "CollData/AsstTp/Scty/HrcutOrMrgn",
+    "CollData/AsstTp/Csh/HrcutOrMrgn"
+   ],
+   "COLU": [
+    "CollData/RpTrad/AsstTp/Scty/HrcutOrMrgn",
+    "CollData/RpTrad/AsstTp/Csh/HrcutOrMrgn",
+    "CollData/BuySellBck/AsstTp/Scty/HrcutOrMrgn",
+    "CollData/BuySellBck/AsstTp/Csh/HrcutOrMrgn",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/HrcutOrMrgn",
+    "CollData/SctiesLndg/Collsd/AsstTp/Csh/HrcutOrMrgn",
+    "CollData/MrgnLndg/HrcutOrMrgn"
+   ],
+   "CORR": [
+    "CollData/RpTrad/AsstTp/Scty/HrcutOrMrgn",
+    "CollData/RpTrad/AsstTp/Csh/HrcutOrMrgn",
+    "CollData/BuySellBck/AsstTp/Scty/HrcutOrMrgn",
+    "CollData/BuySellBck/AsstTp/Csh/HrcutOrMrgn",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/HrcutOrMrgn",
+    "CollData/SctiesLndg/Collsd/AsstTp/Csh/HrcutOrMrgn",
+    "CollData/MrgnLndg/HrcutOrMrgn"
+   ]
+  }
+ },
+ "2.90": {
+  "name": "Collateral quality",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CollData/RpTrad/AsstTp/Scty/Qlty",
+    "CollData/BuySellBck/AsstTp/Scty/Qlty",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/Qlty",
+    "CollData/MrgnLndg/Qlty"
+   ],
+   "POSC": [
+    "CollData/AsstTp/Scty/Qlty"
+   ],
+   "COLU": [
+    "CollData/RpTrad/AsstTp/Scty/Qlty",
+    "CollData/BuySellBck/AsstTp/Scty/Qlty",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/Qlty",
+    "CollData/MrgnLndg/Qlty"
+   ],
+   "CORR": [
+    "CollData/RpTrad/AsstTp/Scty/Qlty",
+    "CollData/BuySellBck/AsstTp/Scty/Qlty",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/Qlty",
+    "CollData/MrgnLndg/Qlty"
+   ]
+  }
+ },
+ "2.91": {
+  "name": "Maturity date of the security",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CollData/RpTrad/AsstTp/Scty/Mtrty",
+    "CollData/BuySellBck/AsstTp/Scty/Mtrty",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/Mtrty",
+    "CollData/MrgnLndg/Mtrty"
+   ],
+   "POSC": [
+    "CollData/AsstTp/Scty/Mtrty"
+   ],
+   "COLU": [
+    "CollData/RpTrad/AsstTp/Scty/Mtrty",
+    "CollData/BuySellBck/AsstTp/Scty/Mtrty",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/Mtrty",
+    "CollData/MrgnLndg/Mtrty"
+   ],
+   "CORR": [
+    "CollData/RpTrad/AsstTp/Scty/Mtrty",
+    "CollData/BuySellBck/AsstTp/Scty/Mtrty",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/Mtrty",
+    "CollData/MrgnLndg/Mtrty"
+   ]
+  }
+ },
+ "2.92": {
+  "name": "Jurisdiction of the issuer",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CollData/RpTrad/AsstTp/Scty/Issr/JursdctnCtry",
+    "CollData/BuySellBck/AsstTp/Scty/Issr/JursdctnCtry",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/Issr/JursdctnCtry",
+    "CollData/MrgnLndg/Issr/JursdctnCtry"
+   ],
+   "POSC": [
+    "CollData/AsstTp/Scty/Issr/JursdctnCtry"
+   ],
+   "COLU": [
+    "CollData/RpTrad/AsstTp/Scty/Issr/JursdctnCtry",
+    "CollData/BuySellBck/AsstTp/Scty/Issr/JursdctnCtry",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/Issr/JursdctnCtry",
+    "CollData/MrgnLndg/Issr/JursdctnCtry"
+   ],
+   "CORR": [
+    "CollData/RpTrad/AsstTp/Scty/Issr/JursdctnCtry",
+    "CollData/BuySellBck/AsstTp/Scty/Issr/JursdctnCtry",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/Issr/JursdctnCtry",
+    "CollData/MrgnLndg/Issr/JursdctnCtry"
+   ]
+  }
+ },
+ "2.93": {
+  "name": "LEI of the issuer",
+  "codes": "SFT-044",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CollData/RpTrad/AsstTp/Scty/Issr/Id",
+    "CollData/BuySellBck/AsstTp/Scty/Issr/Id",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/Issr/Id",
+    "CollData/MrgnLndg/Issr/Id"
+   ],
+   "POSC": [
+    "CollData/AsstTp/Scty/Issr/Id"
+   ],
+   "COLU": [
+    "CollData/RpTrad/AsstTp/Scty/Issr/Id",
+    "CollData/BuySellBck/AsstTp/Scty/Issr/Id",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/Issr/Id",
+    "CollData/MrgnLndg/Issr/Id"
+   ],
+   "CORR": [
+    "CollData/RpTrad/AsstTp/Scty/Issr/Id",
+    "CollData/BuySellBck/AsstTp/Scty/Issr/Id",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/Issr/Id",
+    "CollData/MrgnLndg/Issr/Id"
+   ]
+  }
+ },
+ "2.94": {
+  "name": "Collateral type",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CollData/RpTrad/AsstTp/Scty/Tp",
+    "CollData/BuySellBck/AsstTp/Scty/Tp",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/Tp",
+    "CollData/MrgnLndg/Tp"
+   ],
+   "POSC": [
+    "CollData/AsstTp/Scty/Tp"
+   ],
+   "COLU": [
+    "CollData/RpTrad/AsstTp/Scty/Tp",
+    "CollData/BuySellBck/AsstTp/Scty/Tp",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/Tp",
+    "CollData/MrgnLndg/Tp"
+   ],
+   "CORR": [
+    "CollData/RpTrad/AsstTp/Scty/Tp",
+    "CollData/BuySellBck/AsstTp/Scty/Tp",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/Tp",
+    "CollData/MrgnLndg/Tp"
+   ]
+  }
+ },
+ "2.95": {
+  "name": "Availability for collateral reuse",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CollData/RpTrad/AsstTp/Scty/AvlblForCollReuse",
+    "CollData/BuySellBck/AsstTp/Scty/AvlblForCollReuse",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/AvlblForCollReuse",
+    "CollData/MrgnLndg/AvlblForCollReuse"
+   ],
+   "POSC": [
+    "CollData/AsstTp/Scty/AvlblForCollReuse"
+   ],
+   "COLU": [
+    "CollData/RpTrad/AsstTp/Scty/AvlblForCollReuse",
+    "CollData/BuySellBck/AsstTp/Scty/AvlblForCollReuse",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/AvlblForCollReuse",
+    "CollData/MrgnLndg/AvlblForCollReuse"
+   ],
+   "CORR": [
+    "CollData/RpTrad/AsstTp/Scty/AvlblForCollReuse",
+    "CollData/BuySellBck/AsstTp/Scty/AvlblForCollReuse",
+    "CollData/SctiesLndg/Collsd/AsstTp/Scty/AvlblForCollReuse",
+    "CollData/MrgnLndg/AvlblForCollReuse"
+   ]
+  }
+ },
+ "2.96": {
+  "name": "Collateral basket identifier",
+  "codes": "SFT-043",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "C",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "CollData/RpTrad/BsktIdr",
+    "CollData/BuySellBck/BsktIdr",
+    "CollData/SctiesLndg/Collsd/BsktIdr"
+   ],
+   "POSC": [
+    "CollData/BsktIdr"
+   ],
+   "COLU": [
+    "CollData/RpTrad/BsktIdr",
+    "CollData/BuySellBck/BsktIdr",
+    "CollData/SctiesLndg/Collsd/BsktIdr"
+   ],
+   "CORR": [
+    "CollData/RpTrad/BsktIdr",
+    "CollData/BuySellBck/BsktIdr",
+    "CollData/SctiesLndg/Collsd/BsktIdr"
+   ]
+  }
+ },
+ "2.97": {
+  "name": "Portfolio code",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "TCTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "C",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "-",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.BSB": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C"
+   },
+   "PSTN.SL": {
+    "NEWT": "C",
+    "MODI": "-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "C",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LnData/RpTrad/ClrSts/Clrd/PrtflCd",
+    "LnData/BuySellBck/ClrSts/Clrd/PrtflCd",
+    "LnData/SctiesLndg/ClrSts/Clrd/PrtflCd"
+   ],
+   "POSC": [
+    "LnData/RpTrad/ClrSts/Clrd/PrtflCd",
+    "LnData/BuySellBck/ClrSts/Clrd/PrtflCd",
+    "LnData/SctiesLndg/ClrSts/Clrd/PrtflCd"
+   ],
+   "CORR": [
+    "LnData/RpTrad/ClrSts/Clrd/PrtflCd",
+    "LnData/BuySellBck/ClrSts/Clrd/PrtflCd",
+    "LnData/SctiesLndg/ClrSts/Clrd/PrtflCd"
+   ]
+  }
+ },
+ "2.98": {
+  "name": "Action type",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "POSC": "M",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "M"
+   },
+   "TCTN.ML": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "M",
+    "ETRM": "M",
+    "COLU": "M",
+    "CORR": "M",
+    "VALU": "M"
+   }
+  },
+  "paths": {}
+ },
+ "2.99": {
+  "name": "Level",
+  "codes": "",
+  "obligations": {
+   "TCTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "TCTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "POSC": "M",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   },
+   "TCTN.ML": {
+    "NEWT": "M-",
+    "MODI": "M-",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "-"
+   },
+   "PSTN.Repo": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.BSB": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M"
+   },
+   "PSTN.SL": {
+    "NEWT": "M",
+    "MODI": "M",
+    "EROR": "-",
+    "ETRM": "-",
+    "COLU": "-",
+    "CORR": "M",
+    "VALU": "-"
+   }
+  },
+  "paths": {
+   "NEWT": [
+    "LvlTp"
+   ],
+   "MODI": [
+    "LvlTp"
+   ],
+   "POSC": [
+    "LvlTp"
+   ],
+   "CORR": [
+    "LvlTp"
+   ]
+  }
+ }
+}

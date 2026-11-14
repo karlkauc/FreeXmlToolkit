@@ -100,7 +100,8 @@ def main():
         json.dump({'format': 'EMIR Refit trade report (auth.030.001.03)',
                    'source': 'ESMA EMIR Refit incoming messages 1.1.0 (DATTAR) and validation rules (esma74-362-2683)',
                    'fields': fields}, f, ensure_ascii=False, indent=1)
-    out = {fid: {'name': info['name'], 'codes': info['codes'], 'TRAD': info['TRAD'], 'PSTN': info['PSTN'],
+    out = {fid: {'name': info['name'], 'codes': info['codes'],
+                 'obligations': {'TRAD': info['TRAD'], 'PSTN': info['PSTN']},
                  'paths': paths.get(fid, {})} for fid, info in m.items()}
     with open(os.path.join(out_dir, 'emir-matrix.json'), 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False, indent=1)

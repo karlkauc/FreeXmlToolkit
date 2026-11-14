@@ -74,6 +74,35 @@ public final class CatalogChecks {
         }
     }
 
+    /**
+     * Checks every element named {@code LEI} or {@code ISIN} of a record (for formats whose field
+     * tables number the parent elements only). Rule ids are {@code <prefix>-LEI} / {@code <prefix>-ISIN}.
+     */
+    public static RegRuleSet.Rule identifiersByName(String rulePrefix) {
+        return (record, ctx, out) -> byName(record, rulePrefix, out);
+    }
+
+    private static void byName(RecordNode node, String rulePrefix, RegRuleSet.Findings out) {
+        if (node.children().isEmpty()) {
+            String check = switch (node.name()) {
+                case "LEI" -> "lei";
+                case "ISIN" -> "isin";
+                default -> null;
+            };
+            if (check != null && !node.text().isEmpty()) {
+                String problem = problem(check, node.text());
+                if (problem != null) {
+                    out.error(rulePrefix + "-" + node.name(), node.line(), node.parent() == null ? problem
+                            : node.parent().name() + ": " + problem);
+                }
+            }
+            return;
+        }
+        for (RecordNode child : node.children()) {
+            byName(child, rulePrefix, out);
+        }
+    }
+
     /** @return why the value fails the check, or {@code null} */
     public static String problem(String check, String value) {
         return switch (check) {

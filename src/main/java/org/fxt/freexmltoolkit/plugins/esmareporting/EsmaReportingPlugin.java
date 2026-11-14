@@ -67,15 +67,17 @@ public final class EsmaReportingPlugin implements FxtPlugin {
     static final Supplier<FieldCatalog> EMIR_FIELDS = CatalogDescriber.lazy("/plugins/esmareporting/emir/emir-fields.json");
     private static volatile ActionMatrix emirMatrix;
     private static volatile RegRuleSet emirRules;
+    static final Supplier<FieldCatalog> SFTR_FIELDS = CatalogDescriber.lazy("/plugins/esmareporting/sftr/sftr-fields.json");
+    private static volatile RegRuleSet sftrRules;
 
     @Override public String id() { return ID; }
-    @Override public String name() { return "ESMA Reporting (EMIR)"; }
+    @Override public String name() { return "ESMA Reporting (EMIR, SFTR)"; }
     @Override public String version() { return "1.0"; }
     @Override public boolean enabledByDefault() { return false; }
 
     @Override
     public String description() {
-        return "ESMA transaction reports in ISO 20022: EMIR Refit trade reports with ESMA's validation rules.";
+        return "ESMA transaction reports in ISO 20022: EMIR Refit and SFTR reports with ESMA's validation rules.";
     }
 
     /** @return the report kind of a document ({@code EMIR}), or {@code null} */
@@ -86,10 +88,16 @@ public final class EsmaReportingPlugin implements FxtPlugin {
         if (EsmaSchemas.EMIR.equals(root.namespace())) {
             return "EMIR";
         }
+        if (EsmaSchemas.SFTR.equals(root.namespace())) {
+            return "SFTR";
+        }
         if (EsmaSchemas.ENVELOPE.equals(root.namespace())) {
             String head = content.length() > 8000 ? content.substring(0, 8000) : content;
             if (head.contains(EsmaSchemas.EMIR)) {
                 return "EMIR";
+            }
+            if (head.contains(EsmaSchemas.SFTR)) {
+                return "SFTR";
             }
         }
         return null;
@@ -104,11 +112,18 @@ public final class EsmaReportingPlugin implements FxtPlugin {
 
     /** @return the rules of a report, or {@code null} for other documents */
     static RegRuleSet rulesFor(RegValidator.Root root, String content) {
-        if ("EMIR".equals(kind(root, content))) {
+        String kind = kind(root, content);
+        if ("EMIR".equals(kind)) {
             if (emirRules == null) {
                 emirRules = EmirRules.rules(EMIR_FIELDS.get(), emirMatrix());
             }
             return emirRules;
+        }
+        if ("SFTR".equals(kind)) {
+            if (sftrRules == null) {
+                sftrRules = SftrRules.rules(SFTR_FIELDS.get(), ActionMatrix.load("/plugins/esmareporting/sftr/sftr-matrix.json"));
+            }
+            return sftrRules;
         }
         return null;
     }
@@ -118,9 +133,10 @@ public final class EsmaReportingPlugin implements FxtPlugin {
         RegValidator validator = new RegValidator("ESMA Reporting", () -> true,
                 (java.util.function.BiFunction<RegValidator.Root, String, RegRuleSet>) EsmaReportingPlugin::rulesFor);
         context.addValidator(validator);
-        context.addElementDescriber(new CatalogDescriber(() -> true, List.of(EMIR_FIELDS)));
+        context.addElementDescriber(new CatalogDescriber(() -> true, List.of(EMIR_FIELDS, SFTR_FIELDS)));
         try {
-            EsmaSchemas.register(context, EsmaSchemas.EMIR, "ESMA EMIR Refit derivatives trade report (auth.030.001.03)");
+            EsmaSchemas.register(context, EsmaSchemas.EMIR, "ESMA EMIR Refit derivatives trade report (auth.030.001.03)",
+                    EsmaSchemas.SFTR, "ESMA SFTR securities financing transaction report (auth.052.001.02)");
         } catch (RuntimeException e) {
             logger.warn("ESMA schemas not registered: {}", e.getMessage());
         }
@@ -134,25 +150,29 @@ public final class EsmaReportingPlugin implements FxtPlugin {
                 "bi-globe", ui -> ProjectLinks.openInBrowser(ESMA_EMIR_URL), null));
         context.addActivity(new PluginActivity(ID, "ESMA Reporting", "bi-arrow-left-right", Workflow.VALIDATION,
                 ui -> new IndustryPanel(ui, "ESMA REPORTING",
-                        "ESMA's transaction reports in ISO 20022. EMIR Refit trade reports (auth.030) are bound to "
-                                + "ESMA's schema - also in the BizData envelope - and checked with ESMA's validation rules: "
-                                + "which fields are mandatory or not applicable for each action type (NEWT, MODI, VALU, "
-                                + "CORR, TERM, EROR, REVI, POSC) at trade and position level, the record count, the UTI, "
-                                + "LEI, ISIN and ISO codes. The Inspector shows the EMIR field number of every element.",
+                        "ESMA's transaction reports in ISO 20022. EMIR Refit trade reports (auth.030) and SFTR "
+                                + "reports (auth.052) are bound to ESMA's schemas - also in the BizData envelope - and "
+                                + "checked with ESMA's validation rules: which fields are mandatory or not applicable for "
+                                + "each action type, level and (SFTR) type of SFT, the record count, the UTI, LEI, ISIN and "
+                                + "ISO codes. The Inspector shows the field number of every element.",
                         List.of(new IndustryPanel.Action("esma-new-emir", "New EMIR Error Report (Example)",
-                                "bi-file-earmark-plus", ActionColor.CREATE, ui2 -> openExample(ui2, "emir-eror-example.xml"))),
+                                        "bi-file-earmark-plus", ActionColor.CREATE, ui2 -> openExample(ui2, "emir-eror-example.xml")),
+                                new IndustryPanel.Action("esma-new-sftr", "New SFTR Error Report (Example)",
+                                        "bi-file-earmark-plus", ActionColor.CREATE, ui2 -> openExample(ui2, "sftr-eror-example.xml"))),
                         EsmaReportingPlugin::describe, validator, List.of(IdentifierKind.LEI, IdentifierKind.ISIN)),
                 null));
     }
 
-    private static final Pattern ACTION = Pattern.compile("<(?:\\w+:)?Rpt>\\s*<(?:\\w+:)?(New|Mod|Crrctn|Termntn|PosCmpnt|ValtnUpd|Err|Rvv)>");
+    private static final Pattern ACTION = Pattern.compile(
+            "<(?:\\w+:)?Rpt>\\s*<(?:\\w+:)?(New|Mod|Crrctn|Termntn|EarlyTermntn|PosCmpnt|ValtnUpd|CollUpd|Err|Rvv)>");
 
     /** @return the number of reports per action type, in order of appearance */
     static Map<String, Integer> actions(String content) {
         Map<String, Integer> counts = new LinkedHashMap<>();
         Matcher m = ACTION.matcher(content);
         while (m.find()) {
-            counts.merge(EmirRules.ACTIONS.get(m.group(1)), 1, Integer::sum);
+            String action = EmirRules.ACTIONS.getOrDefault(m.group(1), SftrRules.ACTIONS.get(m.group(1)));
+            counts.merge(action, 1, Integer::sum);
         }
         return counts;
     }
@@ -175,7 +195,9 @@ public final class EsmaReportingPlugin implements FxtPlugin {
         }
         List<String> parts = new ArrayList<>();
         actions(content).forEach((action, n) -> parts.add(n + " × " + action));
-        return "EMIR Refit trade report (auth.030.001.03)\n" + label + (parts.isEmpty() ? "" : "\n" + String.join(", ", parts));
+        String format = label.startsWith("SFTR") ? "SFTR securities financing transaction report (auth.052.001.02)"
+                : "EMIR Refit trade report (auth.030.001.03)";
+        return format + "\n" + label + (parts.isEmpty() ? "" : "\n" + String.join(", ", parts));
     }
 
     static void openExample(PluginUi ui, String name) {
