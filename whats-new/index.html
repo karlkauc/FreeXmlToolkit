@@ -2286,6 +2286,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugin-kag-meldewesen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KAG-Meldewesen (FMA)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugin-esma-reporting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ESMA Reporting (EMIR, SFTR, MiFIR)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -3460,6 +3516,24 @@ running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
 <li><strong>Export all records:</strong> all children of an element — not only the loaded 1,000 — to CSV or Excel.</li>
 <li>The viewer notices when the file changes on disk and offers to reload it; character references such as <code>&amp;#233;</code>
   are decoded in the tree and table.</li>
+</ul>
+<p><strong>ESMA Reporting</strong></p>
+<ul>
+<li><strong>EMIR Refit trade reports</strong> (auth.030): a new extension binds them to ESMA's schema (also in the BizData
+  envelope) and checks ESMA's table of mandatory and not applicable fields per action type and level, the record
+  count, UTI, LEI and ISIN; every element shows its EMIR field number. See <a href="../plugin-esma-reporting/">ESMA Reporting</a>.</li>
+<li><strong>SFTR reports</strong> (auth.052) are checked the same way, per action type, level and type of SFT.</li>
+<li><strong>MiFIR transaction reports</strong> (auth.016) are checked with ESMA's content rules: venue and trading capacity, LEIs,
+  ISINs, CONCAT codes, currencies and the instrument fields the CFI code requires or forbids.</li>
+</ul>
+<p><strong>KAG-Meldewesen (FMA)</strong></p>
+<ul>
+<li><strong>AIFMD reporting:</strong> a new extension for Austrian management companies binds the AIFM and AIF files to ESMA's
+  schema v1.2 and checks them with the FMA's rules (reporting period, content blocks, conditional fields, percentages,
+  rankings, LEI/ISIN) - each finding on its line, each element with its ESMA field number, guidance and FMA rule in the
+  Inspector. See <a href="../plugin-kag-meldewesen/">KAG-Meldewesen</a>.</li>
+<li><strong>Money market fund reports</strong> (ESMA auth.093) are validated in their BizData envelope and checked with ESMA's
+  application rules (periods, share classes, liquidity profile, stress tests, assets, codes).</li>
 </ul>
 <p><strong>PK-Meldewesen (FMA)</strong></p>
 <ul>

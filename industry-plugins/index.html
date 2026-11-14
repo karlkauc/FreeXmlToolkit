@@ -2361,6 +2361,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugin-kag-meldewesen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KAG-Meldewesen (FMA)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugin-esma-reporting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ESMA Reporting (EMIR, SFTR, MiFIR)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -3196,13 +3252,23 @@ page that explains its functions in detail:</p>
 <td>Austrian pension fund reports to the FMA: quarterly (PK-QMV), annual (PK-FJMV) and ECB report</td>
 <td><a href="../plugin-pk-meldewesen/">PK-Meldewesen</a></td>
 </tr>
+<tr>
+<td><strong>ESMA Reporting (EMIR, SFTR, MiFIR)</strong></td>
+<td>EMIR Refit trade reports (auth.030), SFTR reports (auth.052) and MiFIR transaction reports (auth.016) with ESMA's validation rules</td>
+<td><a href="../plugin-esma-reporting/">ESMA Reporting</a></td>
+</tr>
+<tr>
+<td><strong>KAG-Meldewesen (FMA)</strong></td>
+<td>Reports of Austrian management companies to the FMA: AIFMD reporting (AIFM and AIF file) with the FMA's rules, money market fund report</td>
+<td><a href="../plugin-kag-meldewesen/">KAG-Meldewesen</a></td>
+</tr>
 </tbody>
 </table>
 <p>The <a href="../fundsxml-extensions/">FundsXML extension</a> is an extension as well, with its own page.</p>
 <h2 id="switching-them-on">Switching them on<a class="headerlink" href="#switching-them-on" title="Permanent link">¶</a></h2>
 <p>The industry extensions are <strong>off by default</strong>: switch them on in <strong>Settings → Extensions → INSTALLED EXTENSIONS</strong>
 and restart. Administrators can keep an extension off for everyone with <code>plugin.&lt;id&gt;.enabled=false</code>
-(<code>iso20022</code>, <code>ebinterface</code>, <code>findatex</code>, <code>xbrl</code>), see <a href="../administration/">Administration</a>.</p>
+(<code>iso20022</code>, <code>ebinterface</code>, <code>findatex</code>, <code>xbrl</code>, <code>kag-meldewesen</code>, <code>esma-reporting</code>), see <a href="../administration/">Administration</a>.</p>
 <h2 id="what-every-industry-extension-adds">What every industry extension adds<a class="headerlink" href="#what-every-industry-extension-adds" title="Permanent link">¶</a></h2>
 <ul>
 <li>an <strong>activity</strong> in the Activity Bar with a side panel:<ul>
