@@ -36,6 +36,22 @@ public class OpenDocument {
         return new OpenDocument(path, fileName(path));
     }
 
+    /**
+     * Creates a document for a file whose extension names no type, with the type its content
+     * showed ({@link EditorFileType#sniffFile}).
+     *
+     * @param path        the file
+     * @param contentType the detected type ({@link EditorFileType#OTHER} = plain text)
+     */
+    public static OpenDocument forPath(Path path, EditorFileType contentType) {
+        OpenDocument document = forPath(path);
+        document.contentType = contentType;
+        return document;
+    }
+
+    /** The type the content showed, for a file whose extension names none; {@code null} = not sniffed. */
+    private EditorFileType contentType;
+
     /** Creates an untitled document not yet associated with a file. */
     public static OpenDocument untitled(String displayName, EditorFileType type) {
         OpenDocument doc = new OpenDocument(null, displayName);
@@ -66,7 +82,18 @@ public class OpenDocument {
 
     /** @return the file type, derived from the path (or the untitled type). */
     public EditorFileType getFileType() {
-        return path != null ? EditorFileType.fromFileName(fileName(path)) : untitledType;
+        if (path == null) {
+            return untitledType;
+        }
+        EditorFileType byName = EditorFileType.fromFileName(fileName(path));
+        // an unknown extension: the type the content showed (e.g. XML in a .config file)
+        return byName == EditorFileType.OTHER && contentType != null ? contentType : byName;
+    }
+
+    /** @return whether the type comes from the file's content, not its extension */
+    public boolean isTypeFromContent() {
+        return path != null && contentType != null && contentType != EditorFileType.OTHER
+                && EditorFileType.fromFileName(fileName(path)) == EditorFileType.OTHER;
     }
 
     public String getDisplayName() {

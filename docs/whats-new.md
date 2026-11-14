@@ -20,6 +20,12 @@ running is shown under **Help → About FreeXmlToolkit**.
 - The viewer notices when the file changes on disk and offers to reload it; character references such as `&#233;`
   are decoded in the tree and table.
 
+**Opening files**
+
+- **XML in files with other extensions:** a file whose extension the app does not know (`web.config`, `.xaml`, `.gpx`,
+  `.svg`, a file without extension, …) is opened by its content - as XML, HTML or JSON with all their features
+  instead of plain text.
+
 **JSON**
 
 - **Format detection fixed:** a plain JSON file with a URL or a time such as `10:30` in a string was taken for

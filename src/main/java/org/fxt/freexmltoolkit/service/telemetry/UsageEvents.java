@@ -149,9 +149,28 @@ public final class UsageEvents {
      */
     public static void fileOpened(DocKind kind, long inputBytes, String source, long startNanos,
                                   int elementCount, String charset) {
+        fileOpened(kind, inputBytes, source, startNanos, elementCount, charset, null, null);
+    }
+
+    /**
+     * A file was opened.
+     *
+     * @param extension the file's extension as {@link FileExtensions#telemetryValue} gives it
+     *                  (a well-known one, {@code other} or {@code none}); nullable
+     * @param content   for a file whose extension names no type: what its content showed
+     *                  ({@code xml}, {@code json}, {@code html} or {@code text}); nullable
+     */
+    public static void fileOpened(DocKind kind, long inputBytes, String source, long startNanos,
+                                  int elementCount, String charset, String extension, String content) {
         sessionFilesOpened.incrementAndGet();
         action("file_open", b -> {
             b.docKind(kind).meta("source", source);
+            if (extension != null) {
+                b.meta("ext", extension);
+            }
+            if (content != null) {
+                b.meta("content", content);
+            }
             charsetMeta(b, charset);
             if (inputBytes >= 0) {
                 b.inputBytes(inputBytes);

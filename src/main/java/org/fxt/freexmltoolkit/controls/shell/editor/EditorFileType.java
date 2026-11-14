@@ -293,4 +293,71 @@ public enum EditorFileType {
         }
         return OTHER;
     }
+
+    /** How many bytes {@link #sniffFile} reads. */
+    static final int SNIFF_BYTES = 2048;
+
+    /**
+     * The type of a file whose extension is unknown, from its first bytes: XML (an XML
+     * declaration, a start tag, a comment or a DOCTYPE), HTML ({@code <!DOCTYPE html>} /
+     * {@code <html>}) or JSON (an object starting with a key). Reads at most
+     * {@value #SNIFF_BYTES} bytes - call it off the FX thread.
+     *
+     * @param path the file
+     * @return the detected type, {@link #OTHER} when none (or the file cannot be read)
+     */
+    public static EditorFileType sniffFile(java.nio.file.Path path) {
+        byte[] head;
+        try (var in = java.nio.file.Files.newInputStream(path)) {
+            head = in.readNBytes(SNIFF_BYTES);
+        } catch (java.io.IOException | RuntimeException e) {
+            return OTHER;
+        }
+        java.nio.charset.Charset charset = java.nio.charset.StandardCharsets.UTF_8;
+        if (head.length >= 2 && ((head[0] == (byte) 0xFE && head[1] == (byte) 0xFF)
+                || (head[0] == (byte) 0xFF && head[1] == (byte) 0xFE))) {
+            charset = java.nio.charset.StandardCharsets.UTF_16;
+        }
+        return sniff(new String(head, charset));
+    }
+
+    /**
+     * @param head the start of a text
+     * @return XML, HTML or JSON when the text clearly starts like one, else {@link #OTHER}
+     */
+    public static EditorFileType sniff(String head) {
+        if (head == null) {
+            return OTHER;
+        }
+        int i = 0;
+        while (i < head.length() && (head.charAt(i) == '\uFEFF' || Character.isWhitespace(head.charAt(i)))) {
+            i++;
+        }
+        if (i >= head.length()) {
+            return OTHER;
+        }
+        String rest = head.substring(i);
+        String lower = rest.toLowerCase(Locale.ROOT);
+        if (lower.startsWith("<!doctype html") || lower.startsWith("<html")) {
+            return HTML;
+        }
+        if (rest.startsWith("<?xml") || rest.startsWith("<!--") || rest.startsWith("<!DOCTYPE")) {
+            return XML;
+        }
+        if (rest.length() > 1 && rest.charAt(0) == '<') {
+            char c = rest.charAt(1);
+            return Character.isLetter(c) || c == '_' ? XML : OTHER;
+        }
+        if (rest.charAt(0) == '{') {
+            int j = 1;
+            while (j < rest.length() && Character.isWhitespace(rest.charAt(j))) {
+                j++;
+            }
+            // '{' followed by a quoted key (or an empty object): JSON, not a template or code block
+            if (j < rest.length() && (rest.charAt(j) == '"' || (rest.charAt(j) == '}' && rest.strip().length() == j + 1))) {
+                return JSON;
+            }
+        }
+        return OTHER;
+    }
 }

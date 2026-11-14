@@ -27,6 +27,23 @@ final class EditorFileSync {
 
     private final EditorHost host;
 
+    /**
+     * @return for a file whose extension names no type, what its content showed ({@code xml},
+     *         {@code json}, {@code html}, or {@code text} for plain text); {@code null} otherwise
+     */
+    static String contentKind(OpenDocument document) {
+        if (document.getPath() == null || EditorFileType.fromFileName(
+                document.getPath().getFileName().toString()) != EditorFileType.OTHER) {
+            return null;
+        }
+        return switch (document.getFileType()) {
+            case XML -> "xml";
+            case JSON -> "json";
+            case HTML -> "html";
+            default -> "text";
+        };
+    }
+
     /** Watches the open documents' files for changes made by other programs. */
     final ExternalChangeMonitor externalChangeMonitor = new ExternalChangeMonitor(
             this::watchedDocuments, this::handleExternalChanges,
@@ -251,7 +268,10 @@ final class EditorFileSync {
             tab.loading = false;
             tab.attachDirtyTracking();
             UsageEvents.fileOpened(tab.document.getFileType().docKind(), fileSize,
-                    UsageEvents.SOURCE_FILE, openStart, elementCount, encoding.charset().name());
+                    UsageEvents.SOURCE_FILE, openStart, elementCount, encoding.charset().name(),
+                    org.fxt.freexmltoolkit.service.telemetry.FileExtensions.telemetryValue(
+                            path.getFileName() == null ? null : path.getFileName().toString()),
+                    contentKind(tab.document));
             if (tab.document.getFileType().isXmlFamily()) {
                 GridWarmup.start(); // the first switch to the Graphic view then skips class loading
             }

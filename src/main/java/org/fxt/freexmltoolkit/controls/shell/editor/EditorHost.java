@@ -1028,8 +1028,39 @@ public class EditorHost extends BorderPane {
                 return;
             }
         }
+        if (EditorFileType.fromFileName(path.getFileName() == null ? null : path.getFileName().toString())
+                == EditorFileType.OTHER) {
+            // An unknown extension: the first bytes decide (XML in a .config / .xaml / .gpx file opens
+            // as XML). Read off the FX thread - the file may be on a slow network drive.
+            if (sniffing.add(path)) {
+                org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+                    EditorFileType type = EditorFileType.sniffFile(path);
+                    Platform.runLater(() -> {
+                        sniffing.remove(path);
+                        openFile(path, select, type);
+                    });
+                });
+            }
+            return;
+        }
+        openFile(path, select, null);
+    }
+
+    /** Files of unknown extension whose first bytes are being read before their tab opens. */
+    private final java.util.Set<Path> sniffing = new java.util.HashSet<>();
+
+    private void openFile(Path path, boolean select, EditorFileType contentType) {
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && path.equals(et.document.getPath())) {
+                if (select) {
+                    tabPane.getSelectionModel().select(tab);
+                }
+                return;
+            }
+        }
         rememberRecentFile(path); // before addTab: open-document listeners read the list
-        EditorTab tab = new EditorTab(OpenDocument.forPath(path), this::refreshSelectedNode, nodeClipboard,
+        OpenDocument document = contentType == null ? OpenDocument.forPath(path) : OpenDocument.forPath(path, contentType);
+        EditorTab tab = new EditorTab(document, this::refreshSelectedNode, nodeClipboard,
                 this::openNamedTypeEditor, schemaLookup::goToXmlDefinition);
         addTab(tab, select);
         // HTML files open rendered; the preview fills once the async load lands.

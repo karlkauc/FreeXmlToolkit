@@ -66,7 +66,7 @@ collapsed to give the editor more room - the activity bar always stays visible.
 ### Key Features
 
 - **Multi-tab editing** - Open multiple files of different types in one view
-- **Automatic file type detection** - Files are recognized by extension (.xml/.wsdl, .xsd, .xsl/.xslt, .xpl/.xproc, .xq/.xquery/.xqm/.xqy, .xpath, .sch/.schematron, .json/.jsonc/.json5, .html/.htm/.xhtml); anything else opens as plain text
+- **Automatic file type detection** - Files are recognized by extension (.xml/.wsdl, .xsd, .xsl/.xslt, .xpl/.xproc, .xq/.xquery/.xqm/.xqy, .xpath, .sch/.schematron, .json/.jsonc/.json5, .html/.htm/.xhtml). A file with any other extension (or none) is recognized by its **content**: one that starts with an XML declaration, a start tag, a comment or a DOCTYPE opens as **XML** (for example `web.config`, `.xaml`, `.gpx`, `.svg`), an HTML page as **HTML** and a JSON object as **JSON** (`.geojson`, `.har`, …) - with grid, validation and every other feature of that type. Anything else opens as plain text
 - **View modes per document** - Text, Tree and Graphic, all over one shared model, plus a rendered **Preview** for HTML documents (see [View Modes](#view-modes))
 - **Inspector editing everywhere** - edit node properties from the Text, Tree and Graphic views, not just one
 - **Type picker with explanations** - the inspector's **Type** field and *Change Type…* in the
