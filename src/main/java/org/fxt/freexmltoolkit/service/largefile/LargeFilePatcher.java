@@ -53,6 +53,12 @@ public final class LargeFilePatcher {
     public record Result(long size, Path backup) {
     }
 
+    /**
+     * Setting: whether writing into a large file keeps the previous version as {@code <name>.bak}
+     * next to it ({@code true} / {@code false}, default {@code false}).
+     */
+    public static final String BACKUP_PROPERTY = "largefile.backup";
+
     private LargeFilePatcher() {
     }
 
@@ -115,7 +121,17 @@ public final class LargeFilePatcher {
             if (keepBackup) {
                 backup = file.resolveSibling(file.getFileName() + ".bak");
                 Files.move(file, backup, StandardCopyOption.REPLACE_EXISTING);
-                Files.move(temp, file);
+                try {
+                    Files.move(temp, file);
+                } catch (IOException e) {
+                    // put the original back so the file never goes missing
+                    try {
+                        Files.move(backup, file);
+                    } catch (IOException restore) {
+                        e.addSuppressed(restore);
+                    }
+                    throw e;
+                }
             } else {
                 try {
                     Files.move(temp, file, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);

@@ -217,6 +217,10 @@
                                                 <Label fx:id="memoryStatus" id="settings-memory-status" wrapText="true"/>
                                                 <Label text="%SettingsPanel.more-memory-lets-you-open.text"
                                                        wrapText="true" styleClass="fxt-placeholder-text"/>
+                                                <CheckBox fx:id="largeFileBackup" id="settings-large-file-backup"
+                                                          text="%SettingsPanel.largeFileBackup.text"/>
+                                                <Label text="%SettingsPanel.large-file-backup-hint.text"
+                                                       wrapText="true" styleClass="fxt-placeholder-text"/>
                                             </children>
                                         </SettingsCard>
                                             </children>

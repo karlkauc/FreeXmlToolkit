@@ -19,6 +19,9 @@ import javafx.stage.Stage;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetAttributeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.largefile.LargeFilePatcher;
 import org.fxt.freexmltoolkit.service.largefile.LargeXmlStructure.Node;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -227,6 +230,44 @@ class LargeFileViewEditingTest {
         WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS, () -> Files.readString(file).contains("id=\"three\""));
         assertTrue(Files.readString(file).startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<orders"),
                 "the prolog stays");
+    }
+
+    @Test
+    void theBackupSettingKeepsThePreviousVersion(@TempDir Path dir) throws Exception {
+        Path file = orders(dir, 10);
+        String before = Files.readString(file);
+        PropertiesService previous = ServiceRegistry.get(PropertiesService.class);
+        // the real settings, with the backup switched on (nothing is written to the settings file)
+        PropertiesService props = org.mockito.Mockito.mock(PropertiesService.class,
+                org.mockito.AdditionalAnswers.delegatesTo(previous));
+        org.mockito.Mockito.doReturn("true").when(props).get(LargeFilePatcher.BACKUP_PROPERTY);
+        ServiceRegistry.register(PropertiesService.class, props);
+        try {
+            LargeFileView view = open(file);
+            LargeFileWindowPane window = fx(view::windowPaneForTesting);
+            fxRun(view::selectGraphicForTesting);
+            WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS, () -> fx(() -> window.contextForTesting() != null));
+            XmlEditorContext context = fx(window::contextForTesting);
+            fxRun(() -> {
+                XmlElement first = context.getDocument().getRootElement().getChildElements().getFirst();
+                context.executeCommand(new SetAttributeCommand(first, "st", "closed"));
+                window.modelChangedForTesting();
+            });
+            fxRun(window::onApply);
+            waitIdle(view);
+            WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS, () -> Files.readString(file).contains("st=\"closed\""));
+            Path backup = dir.resolve("orders.xml.bak");
+            assertTrue(Files.exists(backup), "the previous version is kept");
+            assertEquals(before, Files.readString(backup));
+            assertTrue(fx(view::statusForTesting).contains("orders.xml.bak"), fx(view::statusForTesting));
+            // the whole document is shown again, read with its new length
+            WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS, () -> fx(() -> window.contextForTesting() != null
+                    && window.contextForTesting() != context));
+            assertEquals("closed", fx(() -> window.contextForTesting().getDocument().getRootElement()
+                    .getChildElements().getFirst().getAttribute("st")));
+        } finally {
+            ServiceRegistry.register(PropertiesService.class, previous);
+        }
     }
 
     @Test

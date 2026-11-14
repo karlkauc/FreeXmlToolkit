@@ -864,7 +864,9 @@ public class LargeFileView extends VBox {
     private static ShownWindow readWindow(LargeXmlStructure structure, WindowSpec spec, BooleanSupplier cancelled,
                                           LongConsumer progress) throws IOException {
         if (spec.parent() == null) {
-            return new ShownWindow(spec, LargeXmlWindow.ofRoot(structure, spec.subject()), List.of(), null);
+            // read the root again: after Apply to File its end moved with the edit, so the spec's
+            // node (from before the write) would cut the document
+            return new ShownWindow(spec, LargeXmlWindow.ofRoot(structure, structure.root()), List.of(), null);
         }
         LargeXmlStructure.Page page = structure.children(spec.parent(), spec.start(), spec.maxCount(), cancelled, progress);
         List<Node> fit = LargeXmlWindow.fitting(page.children(), LargeXmlWindow.MAX_WINDOW_BYTES);
@@ -1002,10 +1004,11 @@ public class LargeFileView extends VBox {
         onCancel();
         LargeFileIndex old = releaseIndex(); // NOPMD - closed by the write job below
         long t0 = System.nanoTime();
+        boolean keepBackup = keepBackup();
         background(I18n.t("LargeFileView.writing", path.getFileName()), window.fileSize(), (cancelled, progress) -> {
             closeQuietly(old);
             LargeFilePatcher.Result result = LargeFilePatcher.apply(path, window.fileSize(), window.fileModified(),
-                    List.of(patch), false, progress, cancelled);
+                    List.of(patch), keepBackup, progress, cancelled);
             DiskStamp written = DiskStamp.of(path);
             return Map.entry(result, Map.entry(written, LargeFileIndex.build(path, progress, () -> closed.get())));
         }, done -> {
@@ -1013,8 +1016,11 @@ public class LargeFileView extends VBox {
             windowPane.setBusy(false);
             installIndex(done.getValue().getValue(), done.getValue().getKey());
             long ms = (System.nanoTime() - t0) / 1_000_000;
-            status.setText(I18n.t("LargeFileView.written", path.getFileName(),
-                    LargeFileGuard.formatSize(done.getKey().size()), String.format(Locale.ROOT, "%,d", ms)));
+            String written = I18n.t("LargeFileView.written", path.getFileName(),
+                    LargeFileGuard.formatSize(done.getKey().size()), String.format(Locale.ROOT, "%,d", ms));
+            Path backup = done.getKey().backup();
+            status.setText(backup == null ? written
+                    : written + " " + I18n.t("LargeFileView.backup-kept", backup.getFileName()));
             WindowSpec spec = current.spec();
             loadWindow(spec, false);
             if (after != null) {
@@ -1026,6 +1032,16 @@ public class LargeFileView extends VBox {
             String reason = status.getText();
             index(() -> status.setText(reason));
         });
+    }
+
+    /** @return whether Settings ask to keep the previous version as {@code .bak} when writing */
+    private static boolean keepBackup() {
+        try {
+            var props = org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class);
+            return props != null && Boolean.parseBoolean(props.get(LargeFilePatcher.BACKUP_PROPERTY));
+        } catch (RuntimeException e) {
+            return false; // no settings (tests, CLI)
+        }
     }
 
     /**

@@ -125,6 +125,9 @@ Notes on writing:
   character references (`&#x20AC;`).
 - If another program changed the file since the window was read, **Apply to File** refuses; reload
   the file first.
+- With **Settings → Appearance → Memory → Large File Viewer: keep a backup (.bak) when writing**, the
+  previous version is kept as `<name>.bak` next to the file (the next write replaces it); the status
+  line names it.
 
 ## Statistics (XML)
 
@@ -176,4 +179,4 @@ written). The viewer's own **Apply to File** is no change from outside.
   the editor if it fits the memory limit.
 - UTF-8, ASCII and single-byte encodings such as ISO-8859-1 are supported; UTF-16 and UTF-32 files
   are not.
-- Writing needs free space for a second copy of the file in its folder.
+- Writing needs free space for a second copy of the file in its folder (a third one with the `.bak` backup).
