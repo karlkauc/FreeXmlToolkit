@@ -1,5 +1,5 @@
 {
- "about": "ESMA's conditional rules of the SFTR validation rules (ESMA74-362-1008, Cpty_Transaction) that need only the report, for the fields marked C. Checked by ConditionalRules; a rule applies to the action types and SFT types for which the matrix marks its field C. Not covered: GLEIF, the EEA list for the issuer's LEI, the comparison of reporting counterparty and CCP (2.2) and of dates.",
+ "about": "ESMA's conditional rules of the SFTR validation rules (ESMA74-362-1008, Cpty_Transaction) that need only the report, for the fields marked C, and ESMA's comparisons of dates and timestamps (ge/le/eq, wherever the field is reported). Checked by ConditionalRules; a C rule applies to the action types and SFT types for which the matrix marks its field C. Not covered: GLEIF, the EEA list for the issuer's LEI, the comparison of reporting counterparty and CCP (2.2), the time of receipt by the TR, working days and comparisons with earlier reports.",
  "values": {
   "2.5": {"Clrd": "true", "NonClrd": "false"},
   "2.21": {"Opn": "true", "Fxd": "false"},
@@ -111,6 +111,14 @@
   {"field": "2.95", "scope": "AsstTp", "when": "2.75 in SECU", "then": "required"},
   {"field": "2.95", "scope": "AsstTp", "when": "2.75 in CASH,COMM", "then": "blank"},
   {"field": "2.97", "when": "2.5 in true", "then": "required"},
-  {"field": "2.97", "when": "2.5 in false", "then": "blank"}
+  {"field": "2.97", "when": "2.5 in false", "then": "blank"},
+  {"field": "2.3", "then": "le 1.1"},
+  {"field": "2.3", "then": "ge 2.12"},
+  {"field": "2.3", "then": "le 2.15/2.14"},
+  {"field": "2.13", "then": "ge 2.12"},
+  {"field": "2.14", "then": "ge 2.13"},
+  {"field": "2.15", "then": "ge 2.12"},
+  {"field": "2.15", "then": "le 1.1"},
+  {"field": "2.15", "then": "le 2.14"}
  ]
 }

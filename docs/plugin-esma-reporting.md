@@ -37,9 +37,18 @@ The extension is **off by default**: switch it on in **Settings → Extensions �
       least one of" and "only one of" groups (2.13 / 2.79 / 2.85 for interest rates) and codes that must
       differ (report tracking number, prior and subsequent UTI).
 
+    - **dates and timestamps** in the order ESMA requires: execution before valuation, confirmation
+      and clearing, these not after the reporting timestamp nor after the expiration (or early
+      termination) date, expiration and settlement not before the execution, the valuation on the
+      event date, no dates before 2014-02-12 (`EMIR-2.23 Field 2.23 · Valuation timestamp … must not be
+      later than field 1.1 · Reporting timestamp (…)`). Where ESMA says "should" (event date on the
+      day of execution for NEWT and POSC, on the reporting day for REVI and EROR) it is a warning. Two
+      timestamps are compared to the second, a date with a timestamp by the day.
+
   Not checked are the conditions that need reference data - the kind of venue behind a MIC (regulated
-  market, systematic internaliser), GLEIF, the UPI database, the EIC code lists - and comparisons of
-  dates. ESMA's full rules text is in the Inspector.
+  market, systematic internaliser), GLEIF, the UPI database, the EIC code lists - the time the trade
+  repository receives the report, and comparisons with earlier reports of the same UTI. ESMA's full
+  rules text is in the Inspector.
 - **Field labels:** every element shows its EMIR field number and name, the obligation per action
   type, ESMA's rules text and the details to be reported in the Inspector's DOCUMENTATION and as grid
   tooltip - also inside the envelope.
@@ -60,7 +69,9 @@ lending, `MrgnLndg` margin lending) - `SFTR-2.3 Field 2.3 · Event date is manda
 COLU`. The conditional fields are checked as for EMIR, the collateral fields per collateral component
 (`SFTR-2.78 Field 2.78 · Identification of a security used as collateral must be reported when 2.75 Type of
 collateral component is SECU`); ESMA's "should" rules (lending fee, collateral or basket identifier) are
-warnings. UTI, LEI and ISIN are checked too; **New SFTR Error Report (Example)** opens a fictitious report.
+warnings. Dates too: the event date not after the reporting timestamp, not before the execution and not after
+the maturity (or termination) date, value date not before the execution, maturity not before the value date,
+termination date between execution and reporting. UTI, LEI and ISIN are checked too; **New SFTR Error Report (Example)** opens a fictitious report.
 
 ## MiFIR
 

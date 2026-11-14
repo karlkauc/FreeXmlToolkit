@@ -132,4 +132,56 @@ class ConditionalFieldsTest {
             }
         }
     }
+
+    @Test
+    void datesAndTimestampsInTheOrderEsmaRequires() throws Exception {
+        String xml = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <Document xmlns="urn:iso:std:iso:20022:tech:xsd:auth.030.001.03">
+                <DerivsTradRpt><RptHdr><NbRcrds>1</NbRcrds></RptHdr><TradData><Rpt><New>
+                <CtrPtySpcfcData><RptgTmStmp>2026-03-02T10:00:00Z</RptgTmStmp>
+                <Valtn><TmStmp>2026-03-02T12:00:00Z</TmStmp></Valtn></CtrPtySpcfcData>
+                <CmonTradData><TxData>
+                <ExctnTmStmp>2026-03-01T09:30:00Z</ExctnTmStmp>
+                <XprtnDt>2026-02-27</XprtnDt>
+                <DerivEvt><TmStmp><Dt>2026-03-01</Dt></TmStmp></DerivEvt>
+                </TxData></CmonTradData>
+                </New></Rpt></TradData></DerivsTradRpt></Document>
+                """;
+        List<RegRuleSet.Finding> findings = run(xml);
+        // valuation two hours after the reporting timestamp, and on another day than the event date
+        List<RegRuleSet.Finding> valuation = only(findings, "EMIR-2.23");
+        assertTrue(valuation.stream().anyMatch(f -> f.message().equals("Field 2.23 · Valuation timestamp 2026-03-02T12:00:00Z must not be "
+                + "later than field 1.1 · Reporting timestamp (2026-03-02T10:00:00Z).")), findings.toString());
+        assertTrue(valuation.stream().anyMatch(f -> f.message().contains("must be the same day as field 2.153")), findings.toString());
+        assertTrue(valuation.stream().anyMatch(f -> f.message().contains("must not be later than field 2.44")), findings.toString());
+        // the expiration date lies before the execution
+        RegRuleSet.Finding expiry = only(findings, "EMIR-2.44").getFirst();
+        assertEquals(lineOf(xml, "<XprtnDt>"), expiry.line());
+        assertTrue(expiry.message().contains("must not be earlier than field 2.42"), expiry.message());
+        // the event date is the day of the execution (NEWT): nothing to say
+        assertEquals(List.of(), only(findings, "EMIR-2.153"));
+
+        String sftr = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <Document xmlns="urn:iso:std:iso:20022:tech:xsd:auth.052.001.02">
+                <SctiesFincgRptgTxRpt><TradData><Rpt><New>
+                <CtrPtySpcfcData><RptgDtTm>2026-03-02T10:00:00Z</RptgDtTm></CtrPtySpcfcData>
+                <LnData><RpTrad><EvtDt>2026-03-03</EvtDt><ExctnDtTm>2026-03-01T09:00:00Z</ExctnDtTm>
+                <ValDt>2026-03-05</ValDt><Term><Fxd><MtrtyDt>2026-03-04</MtrtyDt></Fxd></Term></RpTrad></LnData>
+                </New></Rpt></TradData></SctiesFincgRptgTxRpt></Document>
+                """;
+        List<RegRuleSet.Finding> sftrFindings = run(sftr);
+        assertTrue(only(sftrFindings, "SFTR-2.3").getFirst().message().contains("must not be later than field 1.1"), sftrFindings.toString());
+        assertTrue(only(sftrFindings, "SFTR-2.14").getFirst().message().contains("must not be earlier than field 2.13"), sftrFindings.toString());
+        assertEquals(List.of(), only(sftrFindings, "SFTR-2.13"));
+    }
+
+    @Test
+    void timesAreComparedByDayWhenADateIsInvolved() {
+        assertEquals(0, ConditionalRules.compareTimes("2026-03-01T23:30:00Z", "2026-03-01", false));
+        assertTrue(ConditionalRules.compareTimes("2026-03-01T10:00:00+02:00", "2026-03-01T09:00:00Z", false) < 0);
+        assertEquals(0, ConditionalRules.compareTimes("2026-03-01T01:00:00Z", "2026-03-01T22:00:00Z", true));
+        assertEquals(null, ConditionalRules.compareTimes("not a date", "2026-03-01", false));
+    }
 }

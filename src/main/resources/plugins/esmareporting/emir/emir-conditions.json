@@ -1,5 +1,5 @@
 {
- "about": "ESMA's conditional rules of the EMIR Refit validation rules (esma74-362-2683) that need only the report, for the fields marked C. Checked by ConditionalRules; a rule applies to the action types for which the matrix marks its field C. Not covered: rules on the kind of venue (MIC register), GLEIF, the EIC code lists, the UPI database and comparisons of dates.",
+ "about": "ESMA's conditional rules of the EMIR Refit validation rules (esma74-362-2683) that need only the report, for the fields marked C, and ESMA's comparisons of dates and timestamps (ge/le/eq, wherever the field is reported). Checked by ConditionalRules; a C rule applies to the action types for which the matrix marks its field C. Not covered: rules on the kind of venue (MIC register), GLEIF, the EIC code lists, the UPI database, the time of receipt by the TR and comparisons with earlier reports of the UTI.",
  "values": {
   "1.5": {"FI": "F", "NFI": "N", "CntrlCntrPty": "C", "Othr": "O"},
   "1.8": {"Lgl": "TRUE", "Ntrl": "FALSE"},
@@ -182,6 +182,35 @@
   {"field": "2.149", "when": "2.148 in TRUE,true", "then": "required"},
   {"field": "2.149", "when": "2.148 in FALSE,false", "then": "blank"},
   {"field": "2.150", "when": "2.148 in TRUE,true", "then": "required"},
-  {"field": "2.150", "when": "2.148 in FALSE,false", "then": "blank"}
+  {"field": "2.150", "when": "2.148 in FALSE,false", "then": "blank"},
+  {"field": "1.1", "then": "ge 2.42", "severity": "warning"},
+  {"field": "1.1", "then": "ge 2024-04-29", "severity": "warning"},
+  {"field": "2.42", "then": "ge 1950-01-01"},
+  {"field": "2.43", "then": "ge 1950-01-01"},
+  {"field": "2.44", "then": "ge 2.42"},
+  {"field": "2.44", "then": "ge 2.43"},
+  {"field": "2.44", "then": "ge 2014-02-12", "severity": "warning"},
+  {"field": "2.45", "then": "ge 2.42"},
+  {"field": "2.45", "then": "le 1.1"},
+  {"field": "2.45", "then": "ge 2014-02-12", "severity": "warning"},
+  {"field": "2.46", "then": "ge 2.42"},
+  {"field": "2.46", "then": "ge 2014-02-12", "severity": "warning"},
+  {"field": "2.153", "then": "ge 2.42"},
+  {"field": "2.153", "when": "action in NEWT,POSC", "then": "eq 2.42", "severity": "warning"},
+  {"field": "2.153", "then": "ge 2014-02-12", "severity": "warning"},
+  {"field": "2.153", "then": "le 1.1", "severity": "warning"},
+  {"field": "2.153", "when": "action in REVI,EROR", "then": "eq 1.1", "severity": "warning"},
+  {"field": "2.23", "then": "ge 2014-02-12"},
+  {"field": "2.23", "then": "ge 2.42"},
+  {"field": "2.23", "then": "le 1.1"},
+  {"field": "2.23", "then": "le 2.45/2.44"},
+  {"field": "2.23", "then": "eq 2.153"},
+  {"field": "2.28", "then": "ge 2.42"},
+  {"field": "2.28", "then": "le 1.1"},
+  {"field": "2.28", "then": "le 2.45/2.44"},
+  {"field": "2.32", "then": "ge 2.42"},
+  {"field": "2.32", "then": "le 1.1"},
+  {"field": "2.32", "then": "le 2.45/2.44"},
+  {"field": "2.142", "then": "ge 2014-02-12", "severity": "warning"}
  ]
 }

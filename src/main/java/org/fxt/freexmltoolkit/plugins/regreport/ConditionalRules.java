@@ -48,7 +48,10 @@ import com.google.gson.Gson;
  *       {@code action in NEWT,MODI}, {@code sft in Repo,SL}; empty = always;</li>
  *   <li>{@code then}: {@code required}, {@code blank}, {@code values A,B} (when reported, one of them),
  *       {@code differs <field>,…} (not the value of another field), {@code anyof <field>,…},
- *       {@code oneof <field>,…} (exactly one), {@code atmostone <field>,…};</li>
+ *       {@code oneof <field>,…} (exactly one), {@code atmostone <field>,…}; comparisons of dates and
+ *       timestamps {@code ge}, {@code le}, {@code eq} (same day) with a date ({@code ge 2014-02-12}) or a
+ *       field ({@code le 1.1}; {@code le 2.45/2.44} = the first of them that is reported) - these hold
+ *       wherever the field is reported, not only for its C action types;</li>
  *   <li>{@code scope}: an element that repeats (a collateral component, a schedule period); the rule
  *       is checked inside each of them, with the fields' paths below it;</li>
  *   <li>{@code severity}: {@code warning} for ESMA's "should".</li>
@@ -87,6 +90,10 @@ public final class ConditionalRules {
     /** What a field holds at one place: whether it is reported, and its values (codes). */
     record Value(boolean filled, Set<String> values, boolean undecided, int line) {
     }
+
+    /** Comparisons of dates and timestamps: not earlier than, not later than, the same day as. */
+    static final Set<String> COMPARISONS = Set.of("ge", "le", "eq");
+    private static final java.util.regex.Pattern DATE = java.util.regex.Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
 
     private final List<Rule> rules;
     private final Map<String, Map<String, String>> codes;
@@ -131,7 +138,8 @@ public final class ConditionalRules {
             }
         }
         String[] then = raw.then.trim().split("\\s+", 2);
-        if (!Set.of("required", "blank", "values", "differs", "anyof", "oneof", "atmostone").contains(then[0])) {
+        if (!Set.of("required", "blank", "values", "differs", "anyof", "oneof", "atmostone").contains(then[0])
+                && !(COMPARISONS.contains(then[0]) && then.length == 2)) {
             throw new IllegalArgumentException("Rule of field " + raw.field + ": unknown consequence \"" + raw.then + "\"");
         }
         List<String> args = then.length > 1 ? List.of(then[1].trim().split(",")) : List.of();
@@ -144,7 +152,10 @@ public final class ConditionalRules {
         for (Rule rule : rules) {
             fields.add(rule.field());
             rule.when().stream().map(Atom::subject).filter(s -> !s.equals("action") && !s.equals("sft")).forEach(fields::add);
-            if (!rule.consequence().equals("values")) {
+            if (COMPARISONS.contains(rule.consequence())) {
+                rule.args().stream().filter(a -> !DATE.matcher(a).matches())
+                        .forEach(a -> fields.addAll(List.of(a.split("/"))));
+            } else if (!rule.consequence().equals("values")) {
                 fields.addAll(rule.args());
             }
         }
@@ -164,8 +175,9 @@ public final class ConditionalRules {
         Map<String, ActionMatrix.Entry> entries = matrix.entries();
         for (Rule rule : rules) {
             ActionMatrix.Entry entry = entries.get(rule.field());
-            // only a plain C: ESMA's table also has "- C" (EROR, ETRM, COLU) where the field is not applicable
-            if (entry == null || !"C".equals(entry.obligation(variant, action).trim())) {
+            // only a plain C: ESMA's table also has "- C" (EROR, ETRM, COLU) where the field is not applicable;
+            // a comparison of dates holds wherever the field is reported
+            if (entry == null || !COMPARISONS.contains(rule.consequence()) && !"C".equals(entry.obligation(variant, action).trim())) {
                 continue;
             }
             if (rule.scope() == null) {
@@ -255,6 +267,34 @@ public final class ConditionalRules {
                     message = "Only one of " + fields + " may be reported" + when + ".";
                 }
             }
+            case "ge", "le", "eq" -> {
+                String mine = target.values().isEmpty() ? null : target.values().iterator().next();
+                String other = null;
+                String otherLabel = null;
+                String ref = rule.args().getFirst();
+                if (DATE.matcher(ref).matches()) {
+                    other = ref;
+                    otherLabel = ref;
+                } else {
+                    for (String field : ref.split("/")) { // the first reported: "2.45/2.44"
+                        Value v = value(field, place, prefix, action, matrix);
+                        if (!v.values().isEmpty()) {
+                            other = v.values().iterator().next();
+                            otherLabel = label(matrix, field).replace("Field", "field") + " (" + other + ")";
+                            break;
+                        }
+                    }
+                }
+                Integer order = mine == null || other == null ? null : compareTimes(mine, other, rule.consequence().equals("eq"));
+                if (order != null && !(rule.consequence().equals("ge") ? order >= 0 : rule.consequence().equals("le") ? order <= 0 : order == 0)) {
+                    message = label + " " + mine + " must " + switch (rule.consequence()) {
+                        case "ge" -> "not be earlier than ";
+                        case "le" -> "not be later than ";
+                        default -> "be the same day as ";
+                    } + otherLabel + when + ".";
+                    at = target.line();
+                }
+            }
             default -> {
             }
         }
@@ -340,6 +380,31 @@ public final class ConditionalRules {
             }
         }
         return new Value(filled, values, undecided && values.isEmpty(), line);
+    }
+
+    /**
+     * Compares two ISO dates or timestamps: by the date when one of them is a date (or {@code byDay}), else by
+     * the instant.
+     *
+     * @return negative, zero or positive, or {@code null} when one of them is no date
+     */
+    public static Integer compareTimes(String a, String b, boolean byDay) {
+        try {
+            if (byDay || a.length() == 10 || b.length() == 10) {
+                return java.time.LocalDate.parse(a.substring(0, 10)).compareTo(java.time.LocalDate.parse(b.substring(0, 10)));
+            }
+            return instant(a).compareTo(instant(b));
+        } catch (java.time.DateTimeException | StringIndexOutOfBoundsException e) {
+            return null;
+        }
+    }
+
+    private static java.time.Instant instant(String value) {
+        try {
+            return java.time.OffsetDateTime.parse(value).toInstant();
+        } catch (java.time.DateTimeException e) {
+            return java.time.LocalDateTime.parse(value).toInstant(java.time.ZoneOffset.UTC);
+        }
     }
 
     private static List<String> paths(ActionMatrix matrix, String field, String action) {
