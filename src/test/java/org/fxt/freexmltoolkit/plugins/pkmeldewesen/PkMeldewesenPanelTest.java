@@ -109,4 +109,40 @@ class PkMeldewesenPanelTest {
         assertFalse(html.contains("INT_A02"), "additional checks were switched off");
         PkSettings.setRuleOptions(PkRuleCheck.Options.defaults());
     }
+
+    @Test
+    void submissionChecksTheReportAndWritesTheZip(@TempDir Path tmp) throws Exception {
+        Path report = tmp.resolve("rules-pfq.xml");
+        try (var in = getClass().getResourceAsStream("/pkmeldewesen/rules-pfq.xml")) {
+            Files.write(report, in.readAllBytes());
+        }
+        Files.writeString(tmp.resolve("99.pfq.20260331.00002.test.zip"), "earlier");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(report));
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> text("#pk-report-summary").startsWith("PK-QMV"));
+
+        java.util.concurrent.atomic.AtomicReference<String> checks = new java.util.concurrent.atomic.AtomicReference<>();
+        PkMeldewesenPanel.submissionAnswer = dialog -> {
+            checks.set(((Label) dialog.getDialogPane().lookup("#pk-submission-checks")).getText());
+            assertEquals("", dialog.errorText());
+            assertEquals(3, dialog.sequenceSpinner().getValue(), "the next free running number");
+            assertEquals("99.pfq.20260331.00003.test.xml", dialog.name());
+            dialog.sequenceSpinner().getValueFactory().setValue(2);
+            assertFalse(dialog.errorText().isEmpty(), "running number 2 exists already");
+            dialog.sequenceSpinner().getValueFactory().setValue(3);
+            return new PkSubmissionDialog.Choice(tmp, dialog.name());
+        };
+        try {
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                panel.onPrepareSubmission();
+                return null;
+            });
+            Path zip = tmp.resolve("99.pfq.20260331.00003.test.zip");
+            WaitForAsyncUtils.waitFor(60, TimeUnit.SECONDS, () -> Files.isRegularFile(zip));
+            assertTrue(checks.get().contains("FMA"), checks.get());
+            assertTrue(checks.get().contains("Blocking"), "the synthetic report has planted errors: " + checks.get());
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> text("#pk-status").contains("99.pfq.20260331.00003.test.zip"));
+        } finally {
+            PkMeldewesenPanel.submissionAnswer = null;
+        }
+    }
 }

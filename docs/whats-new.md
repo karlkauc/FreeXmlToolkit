@@ -34,6 +34,9 @@ running is shown under **Help → About FreeXmlToolkit**.
 - **FMA labels:** row, column and template codes show their FMA name, explanation and code-list values in the
   Inspector, as the grid tooltip and when hovering a code in the text. **Grid formulas and filters** for the quarterly
   report can be added to a copy and removed again before submission.
+- **Prepare Submission:** cleans the report (no grid formulas, UTF-8), checks it against the schema and the FMA
+  rules, proposes the next running number and writes the ZIP under the FMA's file name
+  (`34.pfq.20190331.00001.test.zip`).
 
 **Opening files**
 

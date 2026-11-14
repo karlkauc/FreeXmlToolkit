@@ -228,6 +228,129 @@ public final class PkMeldewesenPanel extends VBox {
         });
     }
 
+    /** Test hook: answers the submission dialog instead of showing it. */
+    static java.util.function.Function<PkSubmissionDialog, PkSubmissionDialog.Choice> submissionAnswer;
+
+    /**
+     * Prepares the active report for the FMA: checks the cleaned file against its schema and the FMA
+     * rules, asks for folder and running number and writes the ZIP.
+     */
+    @FXML
+    public void onPrepareSubmission() {
+        PkReport report = activeReport();
+        if (report == null) {
+            PanelStatus.precondition(status, I18n.t("PkMeldewesenPanel.no-report"));
+            return;
+        }
+        String xml = ui.editorHost().getActiveText().orElse(null);
+        if (xml == null) {
+            return;
+        }
+        Path file = ui.editorHost().getActiveDocument().map(doc -> doc.getPath()).orElse(null);
+        Path folder = file != null && file.getParent() != null ? file.getParent() : Path.of(System.getProperty("user.home"));
+        Path schema = taxonomy.schema(taxonomy.activeVersion(), report.module());
+        PanelStatus.info(status, I18n.t("PkMeldewesenPanel.submission-checking"));
+        showProgress(true);
+        FxtGui.executorService.submit(() -> {
+            String clean;
+            String checks;
+            try {
+                clean = PkSubmission.clean(xml);
+                checks = submissionChecks(xml, clean, schema, report);
+            } catch (java.io.IOException | RuntimeException | OutOfMemoryError e) {
+                Platform.runLater(() -> {
+                    showProgress(false);
+                    PanelStatus.failure(status, I18n.t("PkSubmissionDialog.title"), I18n.t("PkMeldewesenPanel.submission-failed"),
+                            I18n.t("PkMeldewesenPanel.report-remedy"), String.valueOf(e.getMessage()), false);
+                });
+                return;
+            }
+            Platform.runLater(() -> {
+                showProgress(false);
+                PkSubmissionDialog dialog = new PkSubmissionDialog(report, folder, checks);
+                PkSubmissionDialog.Choice choice = submissionAnswer != null ? submissionAnswer.apply(dialog)
+                        : dialog.showAndWait().orElse(null);
+                if (choice != null) {
+                    writeSubmission(clean, choice);
+                } else {
+                    PanelStatus.info(status, "");
+                }
+            });
+        });
+    }
+
+    /** @return the lines of the dialog's CHECKS: grid formulas removed, schema, FMA rules */
+    static String submissionChecks(String original, String clean, Path schema, PkReport report) {
+        java.util.List<String> lines = new java.util.ArrayList<>();
+        if (PkGridSetup.hasAnnotations(original)) {
+            lines.add(I18n.t("PkSubmissionDialog.grid-removed"));
+        }
+        var result = org.fxt.freexmltoolkit.controls.shell.editor.ValidationRunner.runWithReport(clean,
+                schema == null ? null : schema.toFile(), null, "report.xml");
+        long schemaErrors = result.problems().stream()
+                .filter(p -> !"PK-Meldewesen".equals(p.source()) && "error".equals(p.severity())).count();
+        lines.add(schemaErrors == 0 ? I18n.t("PkSubmissionDialog.schema-ok") : I18n.t("PkSubmissionDialog.schema-errors", schemaErrors));
+        if (PkRuleCheck.supports(report.module())) {
+            long errors = 0;
+            long warnings = 0;
+            boolean ranInValidation = org.fxt.freexmltoolkit.plugin.PluginManager.getInstance().validators().stream()
+                    .anyMatch(v -> v instanceof PkRuleValidator && v.accepts(clean, "report.xml"));
+            try {
+                if (ranInValidation) {
+                    // the validator's findings: code first, the additional checks start with their id INT_…
+                    for (var p : result.problems()) {
+                        if ("PK-Meldewesen".equals(p.source()) && !p.message().startsWith(PkRuleCatalog.ADDITIONAL_PREFIX)) {
+                            if ("error".equals(p.severity())) {
+                                errors++;
+                            } else {
+                                warnings++;
+                            }
+                        }
+                    }
+                } else {
+                    for (PkRuleCheck.Finding f : PkRuleCheck.run(clean, "report.xml", PkSettings.ruleOptions())) {
+                        if (f.rule().additional()) {
+                            continue;
+                        }
+                        if ("E".equals(f.status())) {
+                            errors++;
+                        } else {
+                            warnings++;
+                        }
+                    }
+                }
+                lines.add(I18n.t("PkSubmissionDialog.rules-result", errors, warnings));
+            } catch (Exception e) {
+                lines.add(I18n.t("PkSubmissionDialog.not-run", String.valueOf(e.getMessage())));
+            }
+            if (errors > 0 || schemaErrors > 0) {
+                lines.add(I18n.t("PkSubmissionDialog.errors-note"));
+            }
+        } else if (schemaErrors > 0) {
+            lines.add(I18n.t("PkSubmissionDialog.errors-note"));
+        }
+        return String.join("\n", lines);
+    }
+
+    private void writeSubmission(String clean, PkSubmissionDialog.Choice choice) {
+        showProgress(true);
+        FxtGui.executorService.submit(() -> {
+            try {
+                Path zip = PkSubmission.writeZip(clean, choice.folder(), choice.xmlName());
+                Platform.runLater(() -> {
+                    showProgress(false);
+                    PanelStatus.success(status, I18n.t("PkMeldewesenPanel.submission-done", zip.toString()));
+                });
+            } catch (java.io.IOException | RuntimeException e) {
+                Platform.runLater(() -> {
+                    showProgress(false);
+                    PanelStatus.failure(status, I18n.t("PkSubmissionDialog.title"), I18n.t("PkMeldewesenPanel.submission-failed"),
+                            I18n.t("PkMeldewesenPanel.submission-remedy"), String.valueOf(e.getMessage()), false);
+                });
+            }
+        });
+    }
+
     /** Adds grid formulas and saved filters to a copy of the active report and opens it in the grid. */
     @FXML
     public void onGridAdd() {

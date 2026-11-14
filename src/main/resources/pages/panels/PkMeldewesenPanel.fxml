@@ -63,6 +63,17 @@
             </children>
         </SidePanelSection>
 
+        <SidePanelSection title="%PkMeldewesenPanel.submission.title">
+            <children>
+                <PanelActionList>
+                    <children>
+                        <PanelActionButton id="pk-submission" iconLiteral="bi-file-earmark-zip"
+                                           text="%PkMeldewesenPanel.pk-submission.text" color="CREATE" onAction="#onPrepareSubmission"/>
+                    </children>
+                </PanelActionList>
+            </children>
+        </SidePanelSection>
+
         <SidePanelSection title="%PkMeldewesenPanel.options.title">
             <children>
                 <VBox spacing="6" styleClass="fxt-tp-section-body">

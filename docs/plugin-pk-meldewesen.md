@@ -36,6 +36,7 @@ Administrators can remove it completely with `plugin.pk-meldewesen.enabled=false
     - **CHECK** - **Validate Active Report** validates it against its schema and the FMA rules
       (as **F8** does); **Rule Report (HTML)** opens the rule report in the preview;
     - **GRID** - grid formulas and filters (see below);
+    - **SUBMISSION** - **Prepare Submission (ZIP)…** (see below);
     - **CHECK OPTIONS** - the additional plausibility checks and the limits of the rules (see below);
     - **TAXONOMY** - the taxonomy in use (a note appears when the report declares another one),
       **Open Schema in Editor** (the schema of the active report's module), **FMA Documentation
@@ -108,6 +109,26 @@ instructions (`<?fxt-formula …?>`, `<?fxt-filter …?>`) and change no data; s
 They must not be submitted: **Remove Grid Formulas (for Submission)** opens a copy without them
 (`<name>-clean.xml`). Running either again gives the same file.
 
+## Preparing the submission
+
+The FMA expects each report as a UTF-8 XML file packed in a ZIP file of the same name, both named
+`pk.modul.stichtag.lfd-nr[.zusatz]` in lower case - e.g. `34.pfq.20190331.00001.test.zip` with
+`34.pfq.20190331.00001.test.xml` inside. **SUBMISSION → Prepare Submission (ZIP)…**:
+
+1. cleans the active report: grid formulas and filters are removed and the XML declaration names
+   UTF-8 (the open document is not changed);
+2. checks the cleaned file against the schema of its module and the FMA rules (the additional
+   plausibility checks are not counted) and shows the result - the FMA rejects reports with
+   *Blocking* errors, but a ZIP can still be created, e.g. for a test report;
+3. proposes the folder of the report and the **next running number**: one more than the highest
+   number of an XML or ZIP file of the same pension fund, module and reference date in that folder
+   (the FMA counts test reports too). The suffix is `test` for a report whose `Typ_der_Meldung` is a
+   test report, and may be any word of letters (or empty);
+4. **Create ZIP** writes `<name>.zip` - never over an existing file.
+
+The reference date of the name is the end of the quarter (`Stichtag` Q1–Q4) or of the year (annual
+report). Submit the ZIP on the FMA Incoming Platform (**Help → FMA Incoming Platform**).
+
 ## Large reports
 
 Real quarterly reports can be 150 MB and more. The extension reads only the start of a document
@@ -116,6 +137,4 @@ which validates against the bound schema while streaming the file.
 
 ## Planned
 
-Preparing the file for submission (name convention
-`pk.modul.stichtag.lfd-nr[.zusatz].xml`, ZIP) and importing newer taxonomies follow in the next
-versions.
+Importing newer taxonomies follows in the next version.
