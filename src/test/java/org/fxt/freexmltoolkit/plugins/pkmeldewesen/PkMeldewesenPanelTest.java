@@ -78,4 +78,35 @@ class PkMeldewesenPanelTest {
         assertNotNull(opened);
         assertTrue(opened.getFileName().toString().startsWith("pk_meldung_pfq_"), String.valueOf(opened));
     }
+
+    @Test
+    void ruleReportOpensInThePreviewAndOptionsAreStored(@TempDir Path tmp) throws Exception {
+        Path report = tmp.resolve("rules-pfq.xml");
+        try (var in = getClass().getResourceAsStream("/pkmeldewesen/rules-pfq.xml")) {
+            Files.write(report, in.readAllBytes());
+        }
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(report));
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> text("#pk-report-summary").startsWith("PK-QMV"));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            ((javafx.scene.control.TextField) panel.lookup("#pk-tolerance")).setText("60,5");
+            ((javafx.scene.control.TextField) panel.lookup("#pk-tolerance")).fireEvent(new javafx.event.ActionEvent());
+            ((javafx.scene.control.CheckBox) panel.lookup("#pk-additional-checks")).setSelected(false);
+            return null;
+        });
+        PkRuleCheck.Options stored = PkSettings.ruleOptions();
+        assertEquals(new java.math.BigDecimal("60.5"), stored.tolerance());
+        assertFalse(stored.additional());
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.onRuleReport();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(60, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.getActiveDocument().map(d -> d.getDisplayName().equals("rules-pfq-pruefbericht.html")).orElse(false)));
+        String html = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveText().orElse(""));
+        assertTrue(html.contains("Prüfbericht"), "the report opened");
+        assertFalse(html.contains("INT_A02"), "additional checks were switched off");
+        PkSettings.setRuleOptions(PkRuleCheck.Options.defaults());
+    }
 }

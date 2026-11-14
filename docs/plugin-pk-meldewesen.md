@@ -33,7 +33,9 @@ Administrators can remove it completely with `plugin.pk-meldewesen.enabled=false
 - **PK-Meldewesen activity** (side panel):
     - **ACTIVE REPORT** - module, pension fund number, report type (e.g. *Testmeldung*), LEI and
       the taxonomy the report declares;
-    - **CHECK** - **Validate Active Report** validates it against its schema (as **F8** does);
+    - **CHECK** - **Validate Active Report** validates it against its schema and the FMA rules
+      (as **F8** does); **Rule Report (HTML)** opens the rule report in the preview;
+    - **CHECK OPTIONS** - the additional plausibility checks and the limits of the rules (see below);
     - **TAXONOMY** - the taxonomy in use (a note appears when the report declares another one),
       **Open Schema in Editor** (the schema of the active report's module), **FMA Documentation
       (PDF)** and **Open Taxonomy Folder** with the workbooks.
@@ -41,6 +43,39 @@ Administrators can remove it completely with `plugin.pk-meldewesen.enabled=false
   where the reports are submitted.
 
 The taxonomy is installed under `~/.freeXmlToolkit/pk-meldewesen/<version>/`.
+
+## FMA rules (quarterly report)
+
+The rules of the FMA's *PK-Meldewesen_Validierungen 2.9.0 Hotfix2* workbook (master data,
+Formblatt 800 sums and sign conventions, reconciliation of Formblatt 800 with the List of Assets
+and the look-through, asset fields, Formblatt 900, checks across VRG and of the report header)
+run on every quarterly report while the extension is on:
+
+- **Validation (F8, Validation panel, `fxt-cli validate`):** each finding is listed with its FMA
+  code (e.g. `VDL010`, `V80020`; the rule id when there is no code), the rule's name, the VRG, the
+  object (row code, asset id, look-through underlying) and the detail - for sums the actual and
+  expected amounts and the difference. A double-click jumps to the line: the fact of a row code,
+  the entry of an asset, or the template when the finding concerns the VRG as a whole. Errors are
+  *Blocking* rules, warnings *Non-Blocking* ones.
+- **Rule Report (HTML):** a dashboard per VRG, all findings, all results (also the passed checks)
+  and the rule catalogue with a comment and an XPath query per rule. It opens in the preview as
+  `<name>-pruefbericht.html`; save it with **File → Save As**. The report is in German, like the
+  FMA's rule texts.
+
+**CHECK OPTIONS** in the side panel (stored at once, used by validation and report):
+
+| Option | Default | Meaning |
+|---|---|---|
+| Additional plausibility checks | on | Checks that are not FMA rules (ids `INT_…`): VRG number and parent VRG, asset information without a position, market value vs. look-through, look-through ratios and allocation key figures |
+| Error above (EUR) | 3 | Amount differences above this value are errors |
+| Warning above (EUR) | 0.99 | Amount differences above this value (up to the error limit) are warnings |
+| Not looked through, one fund (%) | 2 | Warning when a fund's share not looked through exceeds this % of the VRG |
+| Not looked through, VRG (%) | 10 | Warning when the VRG's share not looked through exceeds this % |
+
+The settings keys are `pk.rules.additional`, `pk.rules.tolerance`, `pk.rules.toleranceWarning`,
+`pk.rules.lookThroughAsset` and `pk.rules.lookThroughTotal`. The annual and the ECB report are
+checked against their schema only. A 180 MB quarterly report takes about 20 seconds and needs
+about 2 GB of memory.
 
 ## Large reports
 
@@ -50,7 +85,6 @@ which validates against the bound schema while streaming the file.
 
 ## Planned
 
-The rule checks of the FMA's *Validierungen* workbook with a report, grid formulas and filters,
-labels for template, row and column codes, preparing the file for submission (name convention
+Grid formulas and filters, labels for template, row and column codes, preparing the file for submission (name convention
 `pk.modul.stichtag.lfd-nr[.zusatz].xml`, ZIP) and importing newer taxonomies follow in the next
 versions.

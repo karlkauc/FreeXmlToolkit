@@ -42,7 +42,8 @@ import org.fxt.freexmltoolkit.util.ProjectLinks;
  * turns it on, so it can offer itself once when a report is opened. While on it contributes the
  * activity, a status-bar badge and FMA links; the taxonomy's schemas are bound to the reports by
  * their root element (the reports have no namespace, and the schema location they declare is
- * usually a path on the sender's network).</p>
+ * usually a path on the sender's network), and the FMA rules of the quarterly report run as a
+ * document validator ({@link PkRuleValidator}).</p>
  */
 public final class PkMeldewesenPlugin implements FxtPlugin {
 
@@ -98,6 +99,7 @@ public final class PkMeldewesenPlugin implements FxtPlugin {
                 I18n.t("PkMeldewesenPlugin.fma-incoming"), "bi-box-arrow-up-right",
                 ui -> ProjectLinks.openInBrowser(FMA_INCOMING_URL), PkSettings::isEnabled));
         registerSchemas(context);
+        context.addValidator(new PkRuleValidator());
         context.addDocumentBadge(PkMeldewesenPlugin::badgeFor);
         context.addDocumentListener((ui, path, content) -> {
             if (shouldOfferHint(content)) {

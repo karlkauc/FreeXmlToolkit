@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.VBox?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionButton?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionList?>
@@ -33,8 +38,42 @@
                     <children>
                         <PanelActionButton id="pk-validate" iconLiteral="bi-check2-circle"
                                            text="%PkMeldewesenPanel.pk-validate.text" color="CREATE" onAction="#onValidate"/>
+                        <PanelActionButton id="pk-rule-report" iconLiteral="bi-clipboard-data"
+                                           text="%PkMeldewesenPanel.pk-rule-report.text" color="NAVIGATE" onAction="#onRuleReport"/>
                     </children>
                 </PanelActionList>
+                <VBox spacing="4" styleClass="fxt-tp-section-body">
+                    <children>
+                        <ProgressBar fx:id="progress" id="pk-progress" maxWidth="Infinity" visible="false" managed="false"/>
+                    </children>
+                </VBox>
+            </children>
+        </SidePanelSection>
+
+        <SidePanelSection title="%PkMeldewesenPanel.options.title">
+            <children>
+                <VBox spacing="6" styleClass="fxt-tp-section-body">
+                    <children>
+                        <CheckBox fx:id="additionalChecks" id="pk-additional-checks" wrapText="true"
+                                  text="%PkMeldewesenPanel.additionalChecks.text"/>
+                        <GridPane hgap="6" vgap="4">
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="ALWAYS"/>
+                                <ColumnConstraints prefWidth="64" maxWidth="80"/>
+                            </columnConstraints>
+                            <children>
+                                <Label text="%PkMeldewesenPanel.tolerance.text" wrapText="true" GridPane.rowIndex="0"/>
+                                <TextField fx:id="tolerance" id="pk-tolerance" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                                <Label text="%PkMeldewesenPanel.toleranceWarning.text" wrapText="true" GridPane.rowIndex="1"/>
+                                <TextField fx:id="toleranceWarning" id="pk-tolerance-warning" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                                <Label text="%PkMeldewesenPanel.lookThroughAsset.text" wrapText="true" GridPane.rowIndex="2"/>
+                                <TextField fx:id="lookThroughAsset" id="pk-look-through-asset" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                                <Label text="%PkMeldewesenPanel.lookThroughTotal.text" wrapText="true" GridPane.rowIndex="3"/>
+                                <TextField fx:id="lookThroughTotal" id="pk-look-through-total" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                            </children>
+                        </GridPane>
+                    </children>
+                </VBox>
             </children>
         </SidePanelSection>
 

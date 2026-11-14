@@ -34,6 +34,16 @@ public final class PkSettings {
     public static final String HINT_SHOWN = "pk.hint.shown";
     /** The taxonomy version in use (a folder name of {@link PkTaxonomy}); empty = the newest. */
     public static final String TAXONOMY_VERSION = "pk.taxonomy.version";
+    /** Whether the additional plausibility checks (INT_*, not FMA rules) run (default on). */
+    public static final String RULES_ADDITIONAL = "pk.rules.additional";
+    /** Amount differences above this value are errors (EUR, default 3). */
+    public static final String RULES_TOLERANCE = "pk.rules.tolerance";
+    /** Amount differences above this value are warnings (EUR, default 0.99). */
+    public static final String RULES_TOLERANCE_WARNING = "pk.rules.toleranceWarning";
+    /** Not looked-through share of one fund in % of the VRG above which a warning is given (default 2). */
+    public static final String RULES_LOOK_THROUGH_ASSET = "pk.rules.lookThroughAsset";
+    /** Not looked-through share of the VRG in % above which a warning is given (default 10). */
+    public static final String RULES_LOOK_THROUGH_TOTAL = "pk.rules.lookThroughTotal";
 
     private PkSettings() {
     }
@@ -46,6 +56,35 @@ public final class PkSettings {
     /** Switches the extension on or off. */
     public static void setEnabled(boolean enabled) {
         set(ENABLED, Boolean.toString(enabled));
+    }
+
+    /** @return the parameters of the rule check from the settings (defaults for missing or invalid values) */
+    public static PkRuleCheck.Options ruleOptions() {
+        PkRuleCheck.Options d = PkRuleCheck.Options.defaults();
+        return new PkRuleCheck.Options(decimal(RULES_TOLERANCE, d.tolerance()),
+                decimal(RULES_TOLERANCE_WARNING, d.toleranceWarning()),
+                decimal(RULES_LOOK_THROUGH_ASSET, d.lookThroughAsset()),
+                decimal(RULES_LOOK_THROUGH_TOTAL, d.lookThroughTotal()),
+                d.maxLookThroughRows(), Boolean.parseBoolean(get(RULES_ADDITIONAL, "true")));
+    }
+
+    /** Stores the parameters of the rule check. */
+    public static void setRuleOptions(PkRuleCheck.Options options) {
+        set(RULES_ADDITIONAL, Boolean.toString(options.additional()));
+        set(RULES_TOLERANCE, options.tolerance().toPlainString());
+        set(RULES_TOLERANCE_WARNING, options.toleranceWarning().toPlainString());
+        set(RULES_LOOK_THROUGH_ASSET, options.lookThroughAsset().toPlainString());
+        set(RULES_LOOK_THROUGH_TOTAL, options.lookThroughTotal().toPlainString());
+    }
+
+    /** @return a non-negative decimal setting, or the fallback */
+    static java.math.BigDecimal decimal(String key, java.math.BigDecimal fallback) {
+        try {
+            java.math.BigDecimal value = new java.math.BigDecimal(get(key, fallback.toPlainString()).strip().replace(',', '.'));
+            return value.signum() < 0 ? fallback : value;
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
     }
 
     /** @return a setting, or the fallback when it is unset or no settings are available (tests, CLI) */

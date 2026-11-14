@@ -86,6 +86,8 @@ Any key of the user's settings file works. These are the ones most often managed
 | `ai.localHosts` | host list | Hosts that count as local (a company gateway) |
 | `plugin.<id>.enabled` | `true` / `false` | An [extension](plugins.md) loaded or not (Settings → Extensions → Installed Extensions), e.g. `plugin.fundsxml.enabled`, `plugin.pk-meldewesen.enabled` |
 | `pk.enabled` | `true` / `false` | The [PK-Meldewesen](plugin-pk-meldewesen.md) extension switched on (default `false`) |
+| `pk.rules.additional` | `true` / `false` | PK-Meldewesen: run the additional plausibility checks besides the FMA rules (default `true`) |
+| `pk.rules.tolerance`, `pk.rules.toleranceWarning` | number (EUR) | PK-Meldewesen: amount differences above which a rule is an error / a warning (defaults `3` / `0.99`) |
 | `schemaLibrary.autoBind.enabled` | `true` / `false` | Bind schemas from the Schema Library automatically |
 | `xml.parser.type` | `XERCES` / `SAXON` | XSD validator (XSD 1.1 schemas always use Xerces) |
 | `memory.max.mb` | megabytes, `0` = automatic | Maximum memory (Settings → Memory) |

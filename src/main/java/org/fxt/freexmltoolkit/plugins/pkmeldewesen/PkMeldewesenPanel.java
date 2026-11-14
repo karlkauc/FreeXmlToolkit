@@ -22,10 +22,16 @@ import java.nio.file.Path;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 
+import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
+import org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType;
+import org.fxt.freexmltoolkit.controls.shell.editor.ViewMode;
 import org.fxt.freexmltoolkit.controls.shell.editor.PanelStatus;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.plugin.PluginUi;
@@ -33,7 +39,8 @@ import org.fxt.freexmltoolkit.util.DesktopActions;
 
 /**
  * The PK-Meldewesen side panel: what the active report is (module, pension fund, period,
- * taxonomy), the taxonomy in use with its schema and FMA documentation, and the checks.
+ * taxonomy), the taxonomy in use with its schema and FMA documentation, the checks (FMA rules
+ * as a validator and as an HTML report) and their options.
  */
 public final class PkMeldewesenPanel extends VBox {
 
@@ -43,6 +50,12 @@ public final class PkMeldewesenPanel extends VBox {
     @FXML private Label reportSummary;
     @FXML private Label taxonomyLabel;
     @FXML private Label status;
+    @FXML private ProgressBar progress;
+    @FXML private CheckBox additionalChecks;
+    @FXML private TextField tolerance;
+    @FXML private TextField toleranceWarning;
+    @FXML private TextField lookThroughAsset;
+    @FXML private TextField lookThroughTotal;
 
     /** The code area of the active document, watched for its text (it loads after the tab opens). */
     private org.fxmisc.richtext.CodeArea watched;
@@ -61,6 +74,7 @@ public final class PkMeldewesenPanel extends VBox {
         FxmlViews.load(this, "/pages/panels/PkMeldewesenPanel.fxml");
         getStyleClass().add("fxt-wf-pension");
         refreshDelay.setOnFinished(e -> refresh());
+        loadOptions();
         ui.editorHost().activeTabProperty().addListener((obs, o, n) -> Platform.runLater(this::watchActive));
         watchActive();
     }
@@ -121,6 +135,100 @@ public final class PkMeldewesenPanel extends VBox {
             return;
         }
         ui.editorHost().runValidation();
+    }
+
+    /** Shows the stored rule options and saves every change. */
+    private void loadOptions() {
+        PkRuleCheck.Options options = PkSettings.ruleOptions();
+        additionalChecks.setSelected(options.additional());
+        tolerance.setText(options.tolerance().toPlainString());
+        toleranceWarning.setText(options.toleranceWarning().toPlainString());
+        lookThroughAsset.setText(options.lookThroughAsset().toPlainString());
+        lookThroughTotal.setText(options.lookThroughTotal().toPlainString());
+        additionalChecks.selectedProperty().addListener((obs, o, n) -> saveOptions());
+        for (TextField field : new TextField[] {tolerance, toleranceWarning, lookThroughAsset, lookThroughTotal}) {
+            field.focusedProperty().addListener((obs, o, focused) -> {
+                if (!focused) {
+                    saveOptions();
+                }
+            });
+            field.setOnAction(e -> saveOptions());
+        }
+    }
+
+    /** @return the options shown in the panel; invalid numbers keep the stored value */
+    PkRuleCheck.Options options() {
+        PkRuleCheck.Options stored = PkSettings.ruleOptions();
+        return new PkRuleCheck.Options(number(tolerance, stored.tolerance()), number(toleranceWarning, stored.toleranceWarning()),
+                number(lookThroughAsset, stored.lookThroughAsset()), number(lookThroughTotal, stored.lookThroughTotal()),
+                stored.maxLookThroughRows(), additionalChecks.isSelected());
+    }
+
+    private static java.math.BigDecimal number(TextField field, java.math.BigDecimal fallback) {
+        try {
+            java.math.BigDecimal value = new java.math.BigDecimal(field.getText().strip().replace(',', '.'));
+            return value.signum() < 0 ? fallback : value;
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
+
+    private void saveOptions() {
+        PkRuleCheck.Options options = options();
+        PkSettings.setRuleOptions(options);
+        tolerance.setText(options.tolerance().toPlainString());
+        toleranceWarning.setText(options.toleranceWarning().toPlainString());
+        lookThroughAsset.setText(options.lookThroughAsset().toPlainString());
+        lookThroughTotal.setText(options.lookThroughTotal().toPlainString());
+    }
+
+    /** Renders the HTML report of the FMA rules for the active report and opens it in the preview. */
+    @FXML
+    public void onRuleReport() {
+        PkReport report = activeReport();
+        if (report == null) {
+            PanelStatus.precondition(status, I18n.t("PkMeldewesenPanel.no-report"));
+            return;
+        }
+        if (!PkRuleCheck.supports(report.module())) {
+            PanelStatus.precondition(status, I18n.t("PkMeldewesenPanel.no-rules", report.module().title()));
+            return;
+        }
+        String xml = ui.editorHost().getActiveText().orElse(null);
+        if (xml == null) {
+            return;
+        }
+        String name = ui.editorHost().getActiveDocument()
+                .map(doc -> doc.getPath() != null ? doc.getPath().getFileName().toString() : doc.getDisplayName())
+                .orElse("report.xml");
+        PkRuleCheck.Options options = options();
+        PanelStatus.info(status, I18n.t("PkMeldewesenPanel.checking"));
+        showProgress(true);
+        FxtGui.executorService.submit(() -> {
+            try {
+                String html = PkRuleCheck.htmlReport(xml, name, options);
+                Platform.runLater(() -> {
+                    showProgress(false);
+                    ui.editorHost().openGeneratedDocument(html, EditorFileType.HTML,
+                            name.replaceFirst("(?i)\\.xml$", "") + "-pruefbericht.html");
+                    ui.editorHost().setActiveViewMode(ViewMode.PREVIEW);
+                    PanelStatus.success(status, I18n.t("PkMeldewesenPanel.report-done"));
+                });
+            } catch (Exception | OutOfMemoryError e) {
+                Platform.runLater(() -> {
+                    showProgress(false);
+                    PanelStatus.failure(status, I18n.t("PkMeldewesenPanel.pk-rule-report.text"),
+                            I18n.t("PkMeldewesenPanel.report-failed"), I18n.t("PkMeldewesenPanel.report-remedy"),
+                            String.valueOf(e.getMessage()), false);
+                });
+            }
+        });
+    }
+
+    private void showProgress(boolean on) {
+        progress.setProgress(javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS);
+        progress.setVisible(on);
+        progress.setManaged(on);
     }
 
     @FXML

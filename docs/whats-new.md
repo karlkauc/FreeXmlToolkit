@@ -27,6 +27,10 @@ running is shown under **Help → About FreeXmlToolkit**.
   when the schema location in the file points to an unreachable network path. A status bar badge
   (**PK-QMV Q1/2026**) and a side panel show the report, its schema and the FMA documentation. See
   [PK-Meldewesen](plugin-pk-meldewesen.md).
+- **FMA rules:** the 180 rules of the FMA validation workbook (plus optional additional plausibility checks) run
+  on quarterly reports with **F8** and in `fxt-cli validate`; every finding names its FMA code, the VRG and the
+  object and jumps to its line. **Rule Report (HTML)** shows a dashboard per VRG, all results and the rule catalogue;
+  tolerances and look-through limits are set in the side panel.
 
 **Opening files**
 
