@@ -3268,6 +3268,7 @@ which counterparties (also management companies for their funds) send to a trade
 <p>The extension is <strong>off by default</strong>: switch it on in <strong>Settings → Extensions → INSTALLED EXTENSIONS</strong>
 (<code>plugin.esma-reporting.enabled</code>) and restart.</p>
 <h2 id="what-it-does">What it does<a class="headerlink" href="#what-it-does" title="Permanent link">¶</a></h2>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/plugin-esma-reporting.png" data-desc-position="bottom"><img alt="The ESMA Reporting panel with the example EMIR error report, checked" src="../img/plugin-esma-reporting.png"></a></p>
 <ul>
 <li><strong>Schema binding:</strong> a report that starts with <code>Document</code> in the <code>auth.030.001.03</code> namespace is
   bound to ESMA's schema; a report in the business data envelope (<code>BizData</code>, head.003, with the
@@ -3294,6 +3295,7 @@ which counterparties (also management companies for their funds) send to a trade
 - <strong>Status bar badge:</strong> <code>EMIR · 3 reports</code>, <code>SFTR · 1 report</code>, <code>MiFIR · 2 transactions</code>; the side panel lists the reports per action type.
 - <strong>ESMA Reporting activity:</strong> the document's summary, <strong>Check Active Document</strong>, an LEI/ISIN checker
   and an example error report (EROR) with fictitious data.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/plugin-esma-reporting-problems.png" data-desc-position="bottom"><img alt="ESMA's rules finding a counterparty LEI with wrong check digits" src="../img/plugin-esma-reporting-problems.png"></a></p>
 <h2 id="sftr">SFTR<a class="headerlink" href="#sftr" title="Permanent link">¶</a></h2>
 <p>SFTR reports (<code>Document</code> in the <code>auth.052.001.02</code> namespace or in the <code>BizData</code> envelope) are checked
 the same way, with ESMA's <em>SFTR validation rules</em> (ESMA74-362-1008): the table distinguishes the
