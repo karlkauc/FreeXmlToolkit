@@ -227,7 +227,8 @@ validate, bind), `ProjectSettingsDialog` (+ `ScenarioEditDialog`, `BindSchemaDia
 `plugin/`: `FxtPlugin` (ServiceLoader, `META-INF/services/org.fxt.freexmltoolkit.plugin.FxtPlugin`) registers
 through `PluginContext`: `PluginActivity` (rail button + side panel factory + visibility), `PluginMenuItem`
 (Tools/Help, ids `menu-tools-<id>` / `menu-help-<id>`), `DocumentValidator` (appended in
-`ValidationRunner.runWithReport`, so panel, F8 and CLI), startup tasks (`ShellBootstrap`), `DocumentListener`
+`ValidationRunner.runWithReport`, so panel, F8 and CLI), `ElementDescriber` (`PluginManager.describe` via
+`controls/v2/xmleditor/view/ElementDescriptions` → Inspector DOCUMENTATION + grid name tooltip `GridModelAdapter.describe`), startup tasks (`ShellBootstrap`), `DocumentListener`
 (`EditorHost` document-loaded hook → `PluginUi.showEditorBar`), stylesheets. `PluginManager` loads built-ins and
 the jars in `~/.freeXmlToolkit/plugins` (`-Dfxt.plugins.dir`, own `URLClassLoader` each; policy
 `plugins.external.allowed`), skips `plugin.<id>.enabled=false`, keeps a failing plugin's contributions out.

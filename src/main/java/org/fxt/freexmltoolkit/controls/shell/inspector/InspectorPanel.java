@@ -1644,6 +1644,11 @@ public class InspectorPanel extends VBox {
 
         // DOCUMENTATION & REFS
         String doc = formatSchemaDoc(editorHost.resolveActiveXmlElementDocs(xpath), info.documentation());
+        // Extensions that know the element (e.g. the FMA labels of a reporting code) come first.
+        String described = org.fxt.freexmltoolkit.controls.v2.xmleditor.view.ElementDescriptions.of(el);
+        if (described != null) {
+            doc = doc.isBlank() ? described : described + "\n\n" + doc;
+        }
         // An empty entry says so, so "no documentation" is not mistaken for missing information.
         xmlSchemaDocValue.setText(doc.isBlank() ? NO_SCHEMA_DOC : doc);
         xmlSchemaDocValue.getStyleClass().remove("fxt-inspector-doc-empty");

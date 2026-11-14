@@ -69,6 +69,8 @@ class PluginManagerTest {
                     return content.contains("<foo") ? List.of(new Problem("warning", 2, "foo is not allowed")) : List.of();
                 }
             });
+            context.addElementDescriber(element -> element.name().equals("foo")
+                    ? "Foo in " + element.rootName() : null);
             if (fail) {
                 throw new IllegalStateException("broken on purpose");
             }
@@ -104,6 +106,28 @@ class PluginManagerTest {
         assertTrue(manager.plugins().stream().anyMatch(p -> p.state() == PluginManager.State.FAILED
                 && p.error().contains("Another extension has the id test.ok")));
         assertEquals(PluginManager.State.DISABLED, state("test.off"));
+    }
+
+    @Test
+    @DisplayName("element describers answer for the elements they know; a failing one is skipped")
+    void describers() {
+        manager.registerForTesting(new TestPlugin("test.ok", false));
+        manager.registerForTesting(new FxtPlugin() {
+            @Override public String id() { return "test.describe-throws"; }
+            @Override public String name() { return "Throws"; }
+            @Override public void register(PluginContext context) {
+                context.addElementDescriber(element -> {
+                    throw new IllegalStateException("boom");
+                });
+            }
+        });
+        var root = new org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement("root");
+        var foo = new org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement("foo");
+        root.addChild(foo);
+        assertTrue(manager.hasElementDescribers());
+        assertEquals("Foo in root", org.fxt.freexmltoolkit.controls.v2.xmleditor.view.ElementDescriptions.of(foo));
+        assertEquals(null, org.fxt.freexmltoolkit.controls.v2.xmleditor.view.ElementDescriptions.of(root));
+        assertEquals(List.of(), manager.describe(null));
     }
 
     @Test

@@ -147,6 +147,19 @@ public final class PkTaxonomy {
         return firstMatching(dir(version), name -> name.toLowerCase(Locale.ROOT).endsWith(".pdf"));
     }
 
+    /**
+     * @param version a version folder name
+     * @param kind    a word in the workbook's name ({@code Positionsbeschreibung}, {@code Dictionary}, …)
+     * @return the workbook of a version, or {@code null}
+     */
+    public Path workbook(String version, String kind) {
+        String word = kind.toLowerCase(Locale.ROOT);
+        return firstMatching(dir(version), name -> {
+            String lower = name.toLowerCase(Locale.ROOT);
+            return lower.endsWith(".xlsx") && lower.contains(word);
+        });
+    }
+
     private static Path schemaIn(Path dir, PkModule module) {
         String prefix = "pk_meldung_" + module.code() + "_";
         return firstMatching(dir, name -> name.toLowerCase(Locale.ROOT).startsWith(prefix) && name.endsWith(".xsd"));

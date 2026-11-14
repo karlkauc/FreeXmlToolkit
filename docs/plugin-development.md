@@ -93,6 +93,7 @@ Everything a plugin adds goes through the `PluginContext` passed to `register`:
 | `addStartupTask(Runnable)` | A background task a few seconds after start (update checks, cache refresh) |
 | `addDocumentListener(DocumentListener)` | A callback when a document has been opened in the editor |
 | `addDocumentBadge(DocumentBadge)` | A small mark in the status bar while the active document is one your plugin recognises |
+| `addElementDescriber(ElementDescriber)` | A description of XML elements your plugin knows (Inspector documentation, grid tooltip) |
 | `addStylesheet(String url)` | A CSS file added to the window, for your panels |
 | `addSchema(PluginSchema)` | An XML Schema in the Schema Library (source *Plugin*) while the plugin is on |
 | `service(Class<T>)` | An application service (see [Application services](#application-services)) |
@@ -172,6 +173,20 @@ The status bar asks every badge when another document becomes active, a document
 or the settings were saved; return `null` when the document is not yours. It runs on the JavaFX
 thread, so look at the text only (no I/O). The chip uses the colours of the given `Workflow`; the
 click action and the icon are optional. FundsXML uses it to show that a document was recognised.
+
+### Element describers
+
+```java
+context.addElementDescriber(element -> element.rootName().equals("order") && element.name().equals("sku")
+        ? "Stock keeping unit, 8 digits" : null);
+```
+
+The describer gets an `ElementInfo`: the element names from the root to the element, the element's
+attributes, the texts of its leaf children and of its siblings, its own text and the ancestors'
+attributes. Its text is shown first in the Inspector's DOCUMENTATION section and as the tooltip of
+the element's name in the grid. It runs on the JavaFX thread: answer from memory and return `null`
+while your data is still loading. The PK-Meldewesen extension uses it for the FMA labels of row and
+column codes.
 
 ### Startup tasks
 

@@ -35,6 +35,7 @@ Administrators can remove it completely with `plugin.pk-meldewesen.enabled=false
       the taxonomy the report declares;
     - **CHECK** - **Validate Active Report** validates it against its schema and the FMA rules
       (as **F8** does); **Rule Report (HTML)** opens the rule report in the preview;
+    - **GRID** - grid formulas and filters (see below);
     - **CHECK OPTIONS** - the additional plausibility checks and the limits of the rules (see below);
     - **TAXONOMY** - the taxonomy in use (a note appears when the report declares another one),
       **Open Schema in Editor** (the schema of the active report's module), **FMA Documentation
@@ -77,6 +78,36 @@ The settings keys are `pk.rules.additional`, `pk.rules.tolerance`, `pk.rules.tol
 checked against their schema only. A 180 MB quarterly report takes about 20 seconds and needs
 about 2 GB of memory.
 
+## FMA labels
+
+The codes of a report get the names and explanations of the taxonomy's *Positionsbeschreibung*
+and *Dictionary* workbooks:
+
+- **Inspector:** select an element (in the text, the tree or the grid) and the DOCUMENTATION
+  section starts with its FMA label - for a fact (`Datenpunkt` with `RowCode`) the row and the
+  column (`R800-110 · Laufende Guthaben`, `C800-100 · Bilanzwert`), for a field of an open list its
+  column (`Wert_C1130PK` → `C1130PK · HTM`), for a template its name - followed by the domain, the
+  reporting obligation (*Meldepflicht*) and the FMA's explanation. A value from a code list is
+  named too (`N = Nein`, `1 = VRG ohne Sub-VG`).
+- **Grid:** the same text is the tooltip of an element's name.
+- **Text editor:** hover over a row code (`R800-110`), a column code (`C800-100`, `Wert_C0010PK`) or
+  a template code (`PK.006.02.01.01`); a column code is looked up in the template it is in.
+
+The workbooks are read once per taxonomy version (a few seconds, in the background, when the first
+report is opened) and kept as `labels.json` in the taxonomy folder.
+
+## Grid formulas and filters (quarterly report)
+
+**GRID → Add Grid Formulas and Filters** opens a copy of the report (`<name>-grid.xml`) in the
+Graphic view in which every table shows formulas with their live result - sums per hundred of
+Formblatt 800, the reconciliation with the List of Assets and the look-through, counts - and a saved
+filter per table (switched off; click its funnel line to switch it on). The formulas are processing
+instructions (`<?fxt-formula …?>`, `<?fxt-filter …?>`) and change no data; see
+[Grid formulas](grid.md).
+
+They must not be submitted: **Remove Grid Formulas (for Submission)** opens a copy without them
+(`<name>-clean.xml`). Running either again gives the same file.
+
 ## Large reports
 
 Real quarterly reports can be 150 MB and more. The extension reads only the start of a document
@@ -85,6 +116,6 @@ which validates against the bound schema while streaming the file.
 
 ## Planned
 
-Grid formulas and filters, labels for template, row and column codes, preparing the file for submission (name convention
+Preparing the file for submission (name convention
 `pk.modul.stichtag.lfd-nr[.zusatz].xml`, ZIP) and importing newer taxonomies follow in the next
 versions.

@@ -19,6 +19,10 @@ public interface PluginContext {
     /** Adds a validator that runs with every XML validation (Validation panel, F5 and fxt-cli). */
     void addValidator(DocumentValidator validator);
 
+    /** Adds a describer of XML elements (Inspector documentation, grid tooltip). */
+    default void addElementDescriber(ElementDescriber describer) {
+    }
+
     /** Adds a task that runs once on a background thread a few seconds after the window opened. */
     void addStartupTask(Runnable task);
 

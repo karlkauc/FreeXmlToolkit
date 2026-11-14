@@ -68,6 +68,14 @@ public interface GridModelAdapter<N> {
     }
 
     /**
+     * @return a description of the row's node from the extensions (tooltip of the name cell), or
+     *         {@code null}
+     */
+    default String describe(FlatRow row) {
+        return null;
+    }
+
+    /**
      * One-line preview of a collapsed container row (inline preview): a compact
      * serialization of the node, cut off after about {@code maxChars} characters. The canvas
      * caches the result on the row, so an implementation may serialize eagerly but must stop

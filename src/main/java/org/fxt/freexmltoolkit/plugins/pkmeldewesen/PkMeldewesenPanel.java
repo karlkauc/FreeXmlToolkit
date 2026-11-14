@@ -88,6 +88,9 @@ public final class PkMeldewesenPanel extends VBox {
         if (watched != null) {
             watched.lengthProperty().addListener(lengthListener);
         }
+        if (watched != null && PkSettings.isEnabled() && activeReport() != null) {
+            PkCodeHover.installOn(watched, () -> PkDictionary.active(taxonomy));
+        }
         refresh();
     }
 
@@ -219,6 +222,62 @@ public final class PkMeldewesenPanel extends VBox {
                     showProgress(false);
                     PanelStatus.failure(status, I18n.t("PkMeldewesenPanel.pk-rule-report.text"),
                             I18n.t("PkMeldewesenPanel.report-failed"), I18n.t("PkMeldewesenPanel.report-remedy"),
+                            String.valueOf(e.getMessage()), false);
+                });
+            }
+        });
+    }
+
+    /** Adds grid formulas and saved filters to a copy of the active report and opens it in the grid. */
+    @FXML
+    public void onGridAdd() {
+        transformCopy(xml -> PkGridSetup.add(xml, true, true), "-grid.xml", ViewMode.GRAPHIC,
+                I18n.t("PkMeldewesenPanel.grid-added"));
+    }
+
+    /** Removes the grid formulas and filters: a copy of the active report ready for submission. */
+    @FXML
+    public void onGridRemove() {
+        String xml = ui.editorHost().getActiveText().orElse(null);
+        if (xml != null && !PkGridSetup.hasAnnotations(xml)) {
+            PanelStatus.info(status, I18n.t("PkMeldewesenPanel.grid-none"));
+            return;
+        }
+        transformCopy(PkGridSetup::remove, "-clean.xml", ViewMode.TEXT, I18n.t("PkMeldewesenPanel.grid-removed"));
+    }
+
+    /** A transformation of the active quarterly report, opened as a new document. */
+    private interface ReportTransform {
+        String apply(String xml) throws java.io.IOException;
+    }
+
+    private void transformCopy(ReportTransform transform, String suffix, ViewMode mode, String done) {
+        PkReport report = activeReport();
+        if (report == null || report.module() != PkModule.PFQ) {
+            PanelStatus.precondition(status, I18n.t("PkMeldewesenPanel.pfq-only"));
+            return;
+        }
+        String xml = ui.editorHost().getActiveText().orElse(null);
+        if (xml == null) {
+            return;
+        }
+        String name = ui.editorHost().getActiveDocument().map(doc -> doc.getDisplayName()).orElse("report.xml")
+                .replaceFirst("(?i)(-grid)?\\.xml$", "");
+        showProgress(true);
+        FxtGui.executorService.submit(() -> {
+            try {
+                String result = transform.apply(xml);
+                Platform.runLater(() -> {
+                    showProgress(false);
+                    ui.editorHost().openGeneratedDocument(result, EditorFileType.XML, name + suffix);
+                    ui.editorHost().setActiveViewMode(mode);
+                    PanelStatus.success(status, done);
+                });
+            } catch (java.io.IOException | RuntimeException | OutOfMemoryError e) {
+                Platform.runLater(() -> {
+                    showProgress(false);
+                    PanelStatus.failure(status, I18n.t("PkMeldewesenPanel.grid.title"),
+                            I18n.t("PkMeldewesenPanel.grid-failed"), I18n.t("PkMeldewesenPanel.report-remedy"),
                             String.valueOf(e.getMessage()), false);
                 });
             }

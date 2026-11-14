@@ -53,6 +53,7 @@ public final class PluginManager {
     private final List<PluginActivity> activities = new CopyOnWriteArrayList<>();
     private final List<PluginMenuItem> menuItems = new CopyOnWriteArrayList<>();
     private final List<DocumentValidator> validators = new CopyOnWriteArrayList<>();
+    private final List<ElementDescriber> describers = new CopyOnWriteArrayList<>();
     private final List<Runnable> startupTasks = new CopyOnWriteArrayList<>();
     private final List<DocumentListener> documentListeners = new CopyOnWriteArrayList<>();
     private final List<DocumentBadge> documentBadges = new CopyOnWriteArrayList<>();
@@ -185,6 +186,7 @@ public final class PluginManager {
         activities.addAll(collector.activities);
         menuItems.addAll(collector.menuItems);
         validators.addAll(collector.validators);
+        describers.addAll(collector.describers);
         startupTasks.addAll(collector.startupTasks);
         documentListeners.addAll(collector.documentListeners);
         documentBadges.addAll(collector.documentBadges);
@@ -285,6 +287,36 @@ public final class PluginManager {
         return result;
     }
 
+    /** @return whether any plugin describes elements (cheap check before building an element's info) */
+    public boolean hasElementDescribers() {
+        ensureLoaded();
+        return !describers.isEmpty();
+    }
+
+    /**
+     * The plugins' descriptions of an element; a failing describer is skipped (and logged).
+     *
+     * @return the descriptions in plugin order, empty when no plugin knows the element
+     */
+    public List<String> describe(ElementDescriber.ElementInfo element) {
+        List<String> result = new ArrayList<>();
+        if (element == null) {
+            return result;
+        }
+        ensureLoaded();
+        for (ElementDescriber describer : describers) {
+            try {
+                String text = describer.describe(element);
+                if (text != null && !text.isBlank()) {
+                    result.add(text.strip());
+                }
+            } catch (RuntimeException | LinkageError e) {
+                logger.warn("Plugin element describer failed", e);
+            }
+        }
+        return result;
+    }
+
     public List<String> stylesheets() {
         ensureLoaded();
         return List.copyOf(stylesheets);
@@ -340,6 +372,7 @@ public final class PluginManager {
         activities.clear();
         menuItems.clear();
         validators.clear();
+        describers.clear();
         startupTasks.clear();
         documentListeners.clear();
         documentBadges.clear();
@@ -364,6 +397,7 @@ public final class PluginManager {
         final List<PluginActivity> activities = new ArrayList<>();
         final List<PluginMenuItem> menuItems = new ArrayList<>();
         final List<DocumentValidator> validators = new ArrayList<>();
+        final List<ElementDescriber> describers = new ArrayList<>();
         final List<Runnable> startupTasks = new ArrayList<>();
         final List<DocumentListener> documentListeners = new ArrayList<>();
         final List<DocumentBadge> documentBadges = new ArrayList<>();
@@ -378,6 +412,7 @@ public final class PluginManager {
         @Override public void addActivity(PluginActivity activity) { activities.add(activity); }
         @Override public void addMenuItem(PluginMenuItem item) { menuItems.add(item); }
         @Override public void addValidator(DocumentValidator validator) { validators.add(validator); }
+        @Override public void addElementDescriber(ElementDescriber describer) { describers.add(describer); }
         @Override public void addStartupTask(Runnable task) { startupTasks.add(task); }
         @Override public void addDocumentListener(DocumentListener listener) { documentListeners.add(listener); }
         @Override public void addDocumentBadge(DocumentBadge badge) { documentBadges.add(badge); }

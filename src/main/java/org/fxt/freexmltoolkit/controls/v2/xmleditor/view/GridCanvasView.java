@@ -2360,6 +2360,13 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 text = String.join("\n", problems);
             } else if (showsPreview(row) && mx >= row.getValueX() && my >= top && my < top + ROW_HEIGHT) {
                 target = row;
+            } else if (mx < row.getValueX() && my >= top && my < top + ROW_HEIGHT) {
+                // the name cell: what an extension knows about the node (e.g. a reporting code's label)
+                String described = adapter.describe(row);
+                if (described != null) {
+                    target = row;
+                    text = described;
+                }
             }
         }
         if (target == previewTooltipRow) {

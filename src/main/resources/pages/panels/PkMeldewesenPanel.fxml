@@ -50,6 +50,19 @@
             </children>
         </SidePanelSection>
 
+        <SidePanelSection title="%PkMeldewesenPanel.grid.title">
+            <children>
+                <PanelActionList>
+                    <children>
+                        <PanelActionButton id="pk-grid-add" iconLiteral="bi-calculator"
+                                           text="%PkMeldewesenPanel.pk-grid-add.text" color="CREATE" onAction="#onGridAdd"/>
+                        <PanelActionButton id="pk-grid-remove" iconLiteral="bi-eraser"
+                                           text="%PkMeldewesenPanel.pk-grid-remove.text" color="DELETE" onAction="#onGridRemove"/>
+                    </children>
+                </PanelActionList>
+            </children>
+        </SidePanelSection>
+
         <SidePanelSection title="%PkMeldewesenPanel.options.title">
             <children>
                 <VBox spacing="6" styleClass="fxt-tp-section-body">

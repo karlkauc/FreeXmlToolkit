@@ -83,6 +83,12 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
      * repeating element groups (2+ siblings with the same tag name).
      */
     @Override
+    public String describe(FlatRow row) {
+        return nodeOf(row) instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement element
+                ? ElementDescriptions.of(element) : null;
+    }
+
+    @Override
     public String collapsedPreview(FlatRow row, int maxChars) {
         if (row.isVirtual()) {
             return null;

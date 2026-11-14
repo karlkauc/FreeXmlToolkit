@@ -100,10 +100,14 @@ public final class PkMeldewesenPlugin implements FxtPlugin {
                 ui -> ProjectLinks.openInBrowser(FMA_INCOMING_URL), PkSettings::isEnabled));
         registerSchemas(context);
         context.addValidator(new PkRuleValidator());
+        context.addElementDescriber(new PkDescriber(this::dictionary));
         context.addDocumentBadge(PkMeldewesenPlugin::badgeFor);
         context.addDocumentListener((ui, path, content) -> {
             if (shouldOfferHint(content)) {
                 showHint(ui);
+            } else if (PkSettings.isEnabled() && PkReport.detect(content) != null) {
+                dictionary(); // starts loading the labels in the background
+                PkCodeHover.installOn(ui.editorHost().getActiveCodeArea(), this::dictionary);
             }
         });
     }
@@ -129,6 +133,11 @@ public final class PkMeldewesenPlugin implements FxtPlugin {
         } catch (RuntimeException e) {
             logger.warn("PK-Meldewesen schemas not registered: {}", e.getMessage());
         }
+    }
+
+    /** @return the labels of the taxonomy in use while the extension is on; {@code null} while loading */
+    PkDictionary dictionary() {
+        return PkSettings.isEnabled() ? PkDictionary.active(taxonomy) : null;
     }
 
     /** @return the status-bar badge of a PK report while the extension is on */

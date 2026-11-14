@@ -31,6 +31,9 @@ running is shown under **Help → About FreeXmlToolkit**.
   on quarterly reports with **F8** and in `fxt-cli validate`; every finding names its FMA code, the VRG and the
   object and jumps to its line. **Rule Report (HTML)** shows a dashboard per VRG, all results and the rule catalogue;
   tolerances and look-through limits are set in the side panel.
+- **FMA labels:** row, column and template codes show their FMA name, explanation and code-list values in the
+  Inspector, as the grid tooltip and when hovering a code in the text. **Grid formulas and filters** for the quarterly
+  report can be added to a copy and removed again before submission.
 
 **Opening files**
 
