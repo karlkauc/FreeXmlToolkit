@@ -188,3 +188,6 @@ bank_23/
 
 # Loose manual screenshots in the repo root (official docs screenshots live in docs/img/)
 /screenshot_*.png
+
+# Downloaded regulatory documents (ESMA/FMA), local working copies only
+/regdata/

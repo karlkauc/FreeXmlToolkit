@@ -1,0 +1,5 @@
+{"format": "Test format", "source": "test",
+ "fields": [
+  {"id": "1", "name": "Kind", "path": "Rpt/Rec/Kind", "obligation": "M", "guidance": "A or B."},
+  {"id": "2", "name": "Amount", "path": "Rpt/Rec/Amount", "obligation": "M", "guidance": "The amount.", "rule": "Must equal the sum of the parts"}
+ ]}
