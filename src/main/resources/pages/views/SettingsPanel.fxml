@@ -807,12 +807,8 @@
                                         <Label text="%SettingsPanel.extensions.text" styleClass="fxt-settings-group-title"/>
                                         <SettingsCardGrid color="#0ca678">
                                             <children>
-                                        <SettingsCard title="%SettingsPanel.fundsxml.title" iconLiteral="bi-file-earmark-code">
-                                            <children>
-                                                <CheckBox fx:id="fundsXmlEnabled" text="%SettingsPanel.fundsXmlEnabled.text"/>
-                                            </children>
-                                        </SettingsCard>
-                                        <!-- The plugins found at start (rows added by SettingsPanel); changes apply at the next start -->
+                                        <!-- The installed extensions (rows added by SettingsPanel). FundsXML's row is its
+                                             switch and applies at once; the others apply at the next start -->
                                         <SettingsCard title="%SettingsPanel.plugins.title" iconLiteral="bi-puzzle">
                                             <children>
                                                 <VBox fx:id="pluginRows" id="settings-plugins" spacing="6"/>

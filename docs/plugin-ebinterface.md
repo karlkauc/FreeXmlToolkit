@@ -2,22 +2,22 @@
 
 [ebInterface](https://www.ebinterface.at) is the Austrian XML standard for electronic invoices,
 accepted by the federal e-invoicing portal (e-Rechnung.gv.at) and many companies. The
-**ebInterface** plugin binds its schemas automatically, recalculates the invoice — line amounts,
+**ebInterface** extension binds its schemas automatically, recalculates the invoice — line amounts,
 taxes, totals, payable amount — checks VAT ids and bank details and gives you a sample invoice to
 start from.
 
-It is one of the [industry plugins](industry-plugins.md) and **off by default**.
+It is one of the [industry extensions](industry-plugins.md) and **off by default**.
 
 ![ebInterface side panel with the sample invoice](img/plugin-ebinterface.png)
 
 ## Switching it on
 
-1. Open **Settings → Extensions → PLUGINS**.
+1. Open **Settings → Extensions → INSTALLED EXTENSIONS**.
 2. Tick **ebInterface (Austrian e-invoice)** and save the settings.
 3. Restart FreeXmlToolkit.
 
 A receipt icon (**ebInterface**) then appears in the Activity Bar. Administrators can keep the
-plugin off with `plugin.ebinterface.enabled=false` (see [Administration](administration.md)).
+extension off with `plugin.ebinterface.enabled=false` (see [Administration](administration.md)).
 
 ## Which documents it handles
 
@@ -28,7 +28,7 @@ The version is taken from the namespace (`6p1` → 6.1). All document types shar
 
 ## Schemas
 
-While the plugin is on, the [Schema Library](schema-library.md) contains entries (source *Plugin*)
+While the extension is on, the [Schema Library](schema-library.md) contains entries (source *Extension*)
 for the versions **4.1, 4.2, 4.3, 5.0, 6.0 and 6.1**. Opening an invoice binds the schema of its
 version by namespace. The schemas are downloaded from the standard's repository on GitHub
 (`austriapro/ebinterface-standards`, file `schemas/ebInterface<version>/Invoice.xsd`) the first time
@@ -36,7 +36,7 @@ they are needed and cached; the schemas they import (e.g. XML Signature) are res
 
 ## The side panel
 
-**ABOUT** — what the plugin checks.
+**ABOUT** — what the extension checks.
 
 **ACTIVE DOCUMENT** — a summary of the open invoice:
 

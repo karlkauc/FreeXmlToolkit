@@ -2,10 +2,10 @@
 
 XBRL (eXtensible Business Reporting Language) is the XML standard for financial and regulatory
 reports — annual reports in ESEF, supervisory reports (COREP, FINREP, Solvency II QRTs) and many
-more. The **XBRL** plugin recognises XBRL instances and inline XBRL reports, shows what they contain
+more. The **XBRL** extension recognises XBRL instances and inline XBRL reports, shows what they contain
 and validates them with [Arelle](https://arelle.org), the open-source XBRL processor.
 
-It is one of the [industry plugins](industry-plugins.md) and **off by default**.
+It is one of the [industry extensions](industry-plugins.md) and **off by default**.
 
 ![XBRL side panel with an instance, before Arelle is installed](img/plugin-xbrl.png)
 
@@ -19,7 +19,7 @@ Arelle as a separate program. Arelle is **not bundled**; you install it once.
 
 ## Setting it up
 
-1. **Switch the plugin on:** **Settings → Extensions → PLUGINS**, tick **XBRL (with Arelle)**,
+1. **Switch the extension on:** **Settings → Extensions → INSTALLED EXTENSIONS**, tick **XBRL (with Arelle)**,
    save, restart. A chart icon (**XBRL**) appears in the Activity Bar.
 2. **Install Arelle** (Python 3.11 or later):
 
@@ -96,7 +96,7 @@ Arelle loads the taxonomies the document references (`link:schemaRef`) from the 
 caches them, with its **own** network settings. The proxy settings of FreeXmlToolkit do not apply
 to it; configure a proxy for Arelle with its `--proxy` option in a wrapper script, or through the
 `HTTP_PROXY` / `HTTPS_PROXY` environment variables. For offline machines, prepare Arelle's cache or
-taxonomy packages (`--packages`) and point the plugin to a wrapper script that adds these options.
+taxonomy packages (`--packages`) and point the extension to a wrapper script that adds these options.
 
 ## In scripts
 

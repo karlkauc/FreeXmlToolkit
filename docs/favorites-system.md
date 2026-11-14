@@ -162,9 +162,9 @@ Some optional features add their own files to your Favorites automatically:
 
 | Category | Source |
 |----------|--------|
-| **FundsXML Examples** | Sample XML documents (and the examples folder) downloaded by the [FundsXML Extensions](fundsxml-extensions.md) feature |
+| **FundsXML Examples** | Sample XML documents (and the examples folder) downloaded by the [FundsXML extension](fundsxml-extensions.md) |
 | **FundsXML Schema** | The active FundsXML XSD schema |
-| **FundsXML Schematron** | Schematron rule files downloaded by the FundsXML Extensions feature |
+| **FundsXML Schematron** | Schematron rule files downloaded by the FundsXML extension |
 | **FundsXML XSLT** | XSLT stylesheets shipped with the FundsXML examples |
 
 These categories are created **automatically**: right after you enable

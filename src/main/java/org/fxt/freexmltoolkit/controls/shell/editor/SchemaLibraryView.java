@@ -190,7 +190,9 @@ public class SchemaLibraryView extends VBox {
         locationColumn.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().location()));
         locationColumn.setCellFactory(c -> tooltipCell());
         kindColumn.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().kind().label()));
-        sourceColumn.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().source().name().toLowerCase(Locale.ROOT)));
+        sourceColumn.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
+                cd.getValue().source() == EntrySource.PLUGIN ? "extension"
+                        : cd.getValue().source().name().toLowerCase(Locale.ROOT)));
         enabledColumn.setCellValueFactory(cd -> new javafx.beans.property.SimpleBooleanProperty(cd.getValue().enabled()));
         enabledColumn.setCellFactory(c -> new CheckBoxTableCell<>(idx -> {
             SchemaLibraryEntry e = mappings.getItems().get(idx);

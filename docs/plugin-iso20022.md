@@ -1,30 +1,30 @@
 # ISO 20022 Payments (SEPA)
 
-The **ISO 20022** plugin helps with payment messages of the ISO 20022 standard — payment
+The **ISO 20022** extension helps with payment messages of the ISO 20022 standard — payment
 initiations (`pain`), interbank messages (`pacs`) and account reports (`camt`). It binds the
 official XML Schemas automatically, checks what a schema cannot check (check digits, control
 sums, the SEPA rules of the European Payments Council) and gives you SEPA sample messages to start
 from.
 
-It is one of the [industry plugins](industry-plugins.md) and **off by default**.
+It is one of the [industry extensions](industry-plugins.md) and **off by default**.
 
 ![ISO 20022 side panel with a SEPA credit transfer](img/plugin-iso20022.png)
 
 ## Switching it on
 
-1. Open **Settings → Extensions → PLUGINS**.
+1. Open **Settings → Extensions → INSTALLED EXTENSIONS**.
 2. Tick **ISO 20022 Payments (SEPA)** and save the settings.
 3. Restart FreeXmlToolkit.
 
 A bank icon (**ISO 20022**) then appears in the Activity Bar, above Settings. Administrators can
-keep the plugin off for everyone with `plugin.iso20022.enabled=false` in `policy.properties`
+keep the extension off for everyone with `plugin.iso20022.enabled=false` in `policy.properties`
 (see [Administration](administration.md)).
 
 ## Which documents it handles
 
 Every XML document whose root element is in a namespace starting with
 `urn:iso:std:iso:20022:tech:xsd:` — the rest of the namespace is the message id, for example
-`urn:iso:std:iso:20022:tech:xsd:pain.001.001.09`. The plugin knows the names of these message
+`urn:iso:std:iso:20022:tech:xsd:pain.001.001.09`. The extension knows the names of these message
 families:
 
 | Family | Name |
@@ -46,8 +46,8 @@ run on them, the control-sum and SEPA checks do not.
 
 ## Schemas
 
-While the plugin is on, the [Schema Library](schema-library.md) contains an entry (source
-*Plugin*) for each of these message versions:
+While the extension is on, the [Schema Library](schema-library.md) contains an entry (source
+*Extension*) for each of these message versions:
 
 | Area | Versions |
 |---|---|
@@ -63,13 +63,13 @@ first time it is needed and cached; afterwards it works offline. You get validat
 [Inspector](inspector.md) as with any other schema.
 
 For other versions add the schema to the Schema Library yourself (namespace → file). The entries
-of the plugin are never written to your own library; they disappear when the plugin is switched off.
+of the extension are never written to your own library; they disappear when the extension is switched off.
 
 ## The side panel
 
 The panel has four parts.
 
-**ABOUT** — a short description of what the plugin checks.
+**ABOUT** — a short description of what the extension checks.
 
 **ACTIVE DOCUMENT** — what the open document is, updated when you switch tabs:
 
@@ -85,7 +85,7 @@ pain.001.001.09 · Customer Credit Transfer Initiation
 - **SEPA** when a service level `SvcLvl/Cd` is `SEPA`;
 - "(not well-formed)" when the XML cannot be read.
 
-A document that is no ISO 20022 message shows "The active document is not one this plugin checks."
+A document that is no ISO 20022 message shows "The active document is not one this extension checks."
 and the check button is disabled.
 
 **Check Active Document** runs the checks below on the editor's text — also on an unsaved
@@ -161,7 +161,7 @@ The references of the group header (`MsgId`) are checked with every SEPA group.
 
 1. Click **New SEPA Credit Transfer (pain.001)** — the sample opens with its schema bound.
 2. Fill in debtor, creditors and amounts. Auto-completion offers the elements the schema allows.
-3. Press **F8** (or **Check Active Document**): schema errors and the plugin's checks appear
+3. Press **F8** (or **Check Active Document**): schema errors and the extension's checks appear
    together; a click on a problem jumps to the line.
 4. Correct `NbOfTxs` and `CtrlSum` when you add or remove transactions — the check tells you the
    right values.
@@ -171,7 +171,7 @@ The references of the group header (`MsgId`) are checked with every SEPA group.
 fxt-cli validate payments/2025-11-salaries.xml
 ```
 
-`fxt-cli validate` loads the switched-on plugins, so the same checks run there (exit code 1 on
+`fxt-cli validate` loads the switched-on extensions, so the same checks run there (exit code 1 on
 errors, see [Command Line](command-line.md)).
 
 ## What is not checked
@@ -189,5 +189,5 @@ errors, see [Command Line](command-line.md)).
 |---|---|
 | No schema is bound to my message | Check the version in the namespace: only the versions listed above are bound. Add others in the Schema Library. |
 | The schema cannot be loaded when it is first needed | iso20022.org must be reachable once (proxy settings in **Settings → Network & Security**). Afterwards the cached copy is used. See [Operation without Internet](offline-operation.md) for prepared machines. |
-| The ISO 20022 activity is missing | The plugin is off, or your administrator disabled it. Check **Settings → Extensions → PLUGINS**. |
+| The ISO 20022 activity is missing | The extension is off, or your administrator disabled it. Check **Settings → Extensions → INSTALLED EXTENSIONS**. |
 | The check button is disabled | The active document is not an ISO 20022 message (root namespace not `urn:iso:std:iso:20022:tech:xsd:…`). |

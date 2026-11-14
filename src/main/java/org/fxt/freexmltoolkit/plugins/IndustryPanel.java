@@ -119,12 +119,12 @@ public class IndustryPanel extends VBox {
         };
     }
 
-    /** Shows what the active document is for this plugin. */
+    /** Shows what the active document is for this extension. */
     void refreshDocument() {
         String text = ui.editorHost().getActiveText().orElse(null);
         String description = text == null ? null : describer.apply(text);
         documentSummary.setText(text == null ? "No document is open."
-                : description == null ? "The active document is not one this plugin checks." : description);
+                : description == null ? "The active document is not one this extension checks." : description);
         checkButton.setDisable(description == null);
         showCheckResult(null);
         showAllLink.setVisible(false);

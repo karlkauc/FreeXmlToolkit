@@ -102,7 +102,7 @@ class PluginManagerTest {
         assertEquals(PluginManager.State.ACTIVE, state("test.ok"));
         assertEquals(PluginManager.State.FAILED, state("test.broken"));
         assertTrue(manager.plugins().stream().anyMatch(p -> p.state() == PluginManager.State.FAILED
-                && p.error().contains("Another plugin has the id test.ok")));
+                && p.error().contains("Another extension has the id test.ok")));
         assertEquals(PluginManager.State.DISABLED, state("test.off"));
     }
 

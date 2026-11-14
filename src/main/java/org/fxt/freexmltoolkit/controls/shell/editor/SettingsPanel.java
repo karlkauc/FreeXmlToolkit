@@ -218,7 +218,8 @@ public class SettingsPanel extends VBox {
     @FXML private CheckBox execStatsEnabled;
     
     // FundsXML extension
-    @FXML private CheckBox fundsXmlEnabled;
+    /** The FundsXML extension's switch: its row in the list of installed extensions (applies at once). */
+    private final CheckBox fundsXmlEnabled = new CheckBox();
     @FXML private javafx.scene.control.ComboBox<org.fxt.freexmltoolkit.i18n.I18n.Language> uiLanguage;
     @FXML private VBox pluginRows;
     @FXML private FoProcessorsSettings foProcessors;
@@ -1177,7 +1178,11 @@ public class SettingsPanel extends VBox {
         });
     }
 
-    /** One row per plugin: a switch (name, version, origin) and its description or error. */
+    /**
+     * One row per installed extension: a switch (name, version, origin) and its description or error.
+     * FundsXML's row is its own switch ({@code fundsxml.enabled}, applies at once); the switch of
+     * any other extension loads or skips it at the next start.
+     */
     private void buildPluginRows() {
         var manager = org.fxt.freexmltoolkit.plugin.PluginManager.getInstance();
         var policy = org.fxt.freexmltoolkit.service.AdminPolicy.current();
@@ -1187,7 +1192,9 @@ public class SettingsPanel extends VBox {
             String title = info.name() + (info.version() == null || info.version().isBlank() ? "" : " " + info.version())
                     + (info.origin() == org.fxt.freexmltoolkit.plugin.PluginManager.Origin.EXTERNAL
                             ? " (" + (info.jar() != null ? info.jar().getFileName() : "external") + ")" : " (built-in)");
-            CheckBox box = new CheckBox(title);
+            boolean fundsXml = org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlPlugin.ID.equals(info.id());
+            CheckBox box = fundsXml ? fundsXmlEnabled : new CheckBox();
+            box.setText(title);
             box.setId("settings-plugin-" + info.id());
             box.setSelected(info.state() != org.fxt.freexmltoolkit.plugin.PluginManager.State.DISABLED);
             String detail = info.state() == org.fxt.freexmltoolkit.plugin.PluginManager.State.FAILED
@@ -1198,6 +1205,9 @@ public class SettingsPanel extends VBox {
             } else if (policy.isLocked(org.fxt.freexmltoolkit.plugin.PluginManager.enabledKey(info.id()))) {
                 box.setDisable(true);
                 box.getStyleClass().add("fxt-policy-locked");
+            } else if (fundsXml) {
+                box.setSelected(info.state() != org.fxt.freexmltoolkit.plugin.PluginManager.State.DISABLED
+                        && FundsXmlRunner.isEnabled());
             } else {
                 pluginSwitches.put(info.id(), box);
             }
@@ -1914,6 +1924,12 @@ public class SettingsPanel extends VBox {
                     org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED));
             props.set(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED,
                     String.valueOf(fundsXmlEnabled.isSelected()));
+            if (fundsXmlEnabled.isSelected() && !org.fxt.freexmltoolkit.service.AdminPolicy.current().isLocked(org.fxt.freexmltoolkit.plugin.PluginManager.enabledKey(
+                    org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlPlugin.ID))) {
+                // switched on: also loaded from the next start, should an older setting have unloaded it
+                props.set(org.fxt.freexmltoolkit.plugin.PluginManager.enabledKey(
+                        org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlPlugin.ID), "true");
+            }
             applyTemplatesDirectory(props);
             props.setSchemaLibraryAutoBindEnabled(schemaLibraryAutoBind.isSelected());
             // Only notify once every write above succeeded.

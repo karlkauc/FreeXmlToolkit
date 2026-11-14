@@ -201,7 +201,7 @@ Define custom business rules:
 
 Learn more: [Schematron Guide](schematron-support.md) | [Quick Fixes](schematron-quick-fixes.md)
 
-### FundsXML Extensions (Optional)
+### FundsXML Extension (Optional)
 
 Opt-in integration with the [FundsXML](https://fundsxml.org/) industry standard for fund data exchange:
 
@@ -217,7 +217,7 @@ Opt-in integration with the [FundsXML](https://fundsxml.org/) industry standard 
 
 This feature is **off by default**. Enable it from Settings only if you work with FundsXML files - when you open a FundsXML document, the app offers to enable it once.
 
-Learn more: [FundsXML Extensions Guide](fundsxml-extensions.md)
+Learn more: [FundsXML Extension Guide](fundsxml-extensions.md)
 
 ### AI Assistant and MCP Server (Optional)
 

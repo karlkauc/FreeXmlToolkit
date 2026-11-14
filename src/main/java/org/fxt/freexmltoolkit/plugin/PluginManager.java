@@ -135,7 +135,7 @@ public final class PluginManager {
                 if (!any) {
                     plugins.add(new PluginInfo(jar.getFileName().toString(), jar.getFileName().toString(), "", "",
                             Origin.EXTERNAL, jar, State.FAILED,
-                            "No plugin found (META-INF/services/" + FxtPlugin.class.getName() + " is missing)."));
+                            "No extension found in the jar (META-INF/services/" + FxtPlugin.class.getName() + " is missing)."));
                 }
             } catch (IOException | ServiceConfigurationError | LinkageError e) {
                 logger.warn("Plugin jar {} could not be loaded", jar, e);
@@ -165,7 +165,7 @@ public final class PluginManager {
         }
         if (id == null || id.isBlank() || !ids.add(id.toLowerCase(Locale.ROOT))) {
             plugins.add(new PluginInfo(String.valueOf(id), name, version, description, origin, jar, State.FAILED,
-                    id == null || id.isBlank() ? "The plugin has no id." : "Another plugin has the id " + id + "."));
+                    id == null || id.isBlank() ? "The extension has no id." : "Another extension has the id " + id + "."));
             return;
         }
         String enabled = setting(enabledKey(id));

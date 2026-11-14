@@ -1,12 +1,12 @@
-# FundsXML Extensions
+# FundsXML Extension
 
 Optional integration with the [FundsXML](https://fundsxml.org/) standard for the fund management industry. When enabled, FreeXmlToolkit automatically downloads and keeps up to date the official FundsXML schemas, sample documents, Schematron rules, and XPath/XQuery snippets - and uses them for quick validation of your own files.
 
 This feature is **off by default**. Enable it only if you work with FundsXML documents.
 
-The FundsXML integration is a built-in [plugin](plugins.md): **Settings → Extensions → PLUGINS**
-can switch it off completely (no FundsXML activity, Help links, update check or hint), and
-administrators can do the same with `plugin.fundsxml.enabled=false`.
+The FundsXML integration is a built-in [extension](plugins.md). Its switch is the **FundsXML**
+row in **Settings → Extensions → INSTALLED EXTENSIONS**; administrators can remove it completely with
+`plugin.fundsxml.enabled=false` (no FundsXML activity, Help links, update check or hint).
 
 ---
 
@@ -31,8 +31,8 @@ The feature is opt-in. Until you enable it, nothing in the application changes -
 one-time hint when you open a FundsXML document (see [The FundsXML hint bar](#the-fundsxml-hint-bar)).
 
 1. Open **Settings** (the gear icon at the bottom of the activity bar).
-2. Select the **Extensions** group in the side panel (or type *FundsXML* into the settings search field) to reach the **FUNDSXML** card.
-3. Check **Enable FundsXML extensions**.
+2. Select the **Extensions** group in the side panel (or type *FundsXML* into the settings search field) to reach the **INSTALLED EXTENSIONS** card.
+3. Tick **FundsXML**.
 4. Click **Save Settings** in the save bar at the bottom of the page.
 
 > Enabling the feature is all you need to do: the FundsXML content
@@ -67,7 +67,7 @@ appears above the editor:
 > *This looks like a FundsXML document. The FundsXML extension adds its schemas, examples and
 > quality checks.*
 
-- **Enable FundsXML extensions** - does the same as checking the box on the **FUNDSXML** Settings card
+- **Enable the FundsXML extension** - does the same as ticking **FundsXML** under **INSTALLED EXTENSIONS** in Settings
   and saving: the **FundsXML** activity appears in the activity bar and the content is
   downloaded in the background (or, if it was downloaded before, the cached content is used
   right away).
@@ -320,7 +320,7 @@ The feature's options and where to find them:
 
 | Setting | Where | Description | Default |
 |---------|-------|-------------|---------|
-| **Enable FundsXML extensions** | Settings page, FUNDSXML card | Master switch; enabling it starts the initial background download | Off |
+| **FundsXML** | Settings page, INSTALLED EXTENSIONS card | Master switch; enabling it starts the initial background download | Off |
 | **Active version** | FundsXML side panel | Which downloaded schema version is used for Quick-validate and Open Schema in Editor | Latest installed |
 | **Download / Update Content** | FundsXML side panel | Force a manual refresh from GitHub | - |
 | Daily update check | `fundsxml.update.check.enabled` property | Once-per-day background check that installs newer schema releases automatically | On |
@@ -344,7 +344,7 @@ The automatic background download has not finished yet (or it failed - for examp
 
 ### The FundsXML activity disappeared
 
-The feature was disabled. Re-enable it under **Settings → Extensions → FUNDSXML → Enable FundsXML extensions**. Your downloaded content is still on disk and will reappear immediately.
+The feature was disabled. Re-enable it by ticking **FundsXML** under **Settings → Extensions → INSTALLED EXTENSIONS**. Your downloaded content is still on disk and will reappear immediately.
 
 ### I want to remove everything
 

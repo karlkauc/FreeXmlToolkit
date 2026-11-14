@@ -2,10 +2,10 @@
 
 [FinDatEx](https://findatex.eu) (Financial Data Exchange Templates) publishes the data templates
 with which fund manufacturers pass product data to distributors and insurers. The **FinDatEx**
-plugin checks such template files against the field definitions of the official specifications,
+extension checks such template files against the field definitions of the official specifications,
 opens Excel template files and creates new, empty template files.
 
-It is one of the [industry plugins](industry-plugins.md) and **off by default**.
+It is one of the [industry extensions](industry-plugins.md) and **off by default**.
 
 ![FinDatEx side panel with a TPT file](img/plugin-findatex.png)
 
@@ -18,19 +18,19 @@ It is one of the [industry plugins](industry-plugins.md) and **off by default**.
 | **EPT** — European PRIIPs Template | V2.1 (version value `V21` or `V21UK`) | data for the PRIIPs KID | 144 |
 | **TPT** — Solvency II Tripartite Template | V7.0 and V8.0 | look-through of fund holdings for insurers | 152 / 154 |
 
-FinDatEx publishes no XML Schema: the templates are exchanged as CSV or Excel files. The plugin
+FinDatEx publishes no XML Schema: the templates are exchanged as CSV or Excel files. The extension
 carries, for every field, its code, definition, codification, the flag M(andatory) / O(ptional) /
 C(onditional) / I(ndicative) / N(o longer maintained) and — for TPT — the CIC categories the field
 applies to. The definitions are part of the application and are updated with it.
 
 **TPT V7 and V8:** TPT V7 is required for the production of December 2026, V8 becomes mandatory
-for the end-March 2027 production, and both may be used in the transition. The plugin checks a file
+for the end-March 2027 production, and both may be used in the transition. The extension checks a file
 against the version its `1000_TPT_Version` field names (`V7.0` or `V8.0`). A file naming another
 version is checked against V8, and the version is reported.
 
 ## Switching it on
 
-1. Open **Settings → Extensions → PLUGINS**.
+1. Open **Settings → Extensions → INSTALLED EXTENSIONS**.
 2. Tick **FinDatEx Templates (EMT, EET, EPT, TPT)** and save the settings.
 3. Restart FreeXmlToolkit.
 
@@ -39,7 +39,7 @@ A table icon (**FinDatEx**) then appears in the Activity Bar. Administrators can
 
 ## Opening a file
 
-**CSV files** open like any other file (File → Open, Explorer, drag & drop). The plugin recognises a
+**CSV files** open like any other file (File → Open, Explorer, drag & drop). The extension recognises a
 template file by its version field anywhere in the first 200 000 characters:
 
 | Template | Version field |
@@ -186,7 +186,7 @@ value problems; the rest is not listed."
 
 | Problem | Solution |
 |---|---|
-| "The active document is not one this plugin checks." | The version field (e.g. `1000_TPT_Version`) is missing or spelled differently. Check the header row / the first column. |
+| "The active document is not one this extension checks." | The version field (e.g. `1000_TPT_Version`) is missing or spelled differently. Check the header row / the first column. |
 | Many "is no field of" warnings | The file uses another version's field codes, or a header with descriptions instead of codes. |
 | All values of a row are shifted | The separator was detected wrongly — the first line must contain the separator that the file uses (e.g. no single-column title line above the header). |
 | Excel dates show as numbers | The cells are not formatted as dates in Excel; format them as dates, or correct the values in the CSV. |

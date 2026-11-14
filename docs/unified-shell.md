@@ -969,7 +969,7 @@ The panel offers three collapsible sections whose actions are labelled rows (ico
   rows show the cached examples, schema and Schematron files; **Open Online Docs**
   opens fundsxml.org.
 
-See the [FundsXML Extensions guide](fundsxml-extensions.md) for the full feature
+See the [FundsXML extension guide](fundsxml-extensions.md) for the full feature
 description, cache locations and troubleshooting.
 
 ## Schema Library Page {#schema-library-page}

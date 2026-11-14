@@ -315,7 +315,7 @@ plugin activity, menu item and editor bar inside the real shell.
 - The log (`~/.freeXmlToolkit/logs`, also **Settings → Files & Cache → Open log folder**) lists every
   plugin and its state at start (`Plugins: [fundsxml=ACTIVE, com.example.orders=FAILED]`) and the stack
   trace of a failed `register`, panel or validator.
-- **Settings → Extensions → PLUGINS** shows why a plugin failed.
+- **Settings → Extensions → INSTALLED EXTENSIONS** shows why a plugin failed.
 
 ## Security and administration
 
@@ -333,7 +333,7 @@ and `plugin.<id>.enabled=false` (a single plugin), and can move the plugins fold
 ## Updates
 
 FreeXmlToolkit has no update channel for plugins: users replace the jar in the plugins folder and
-restart. **Settings → Extensions → PLUGINS** shows `version()`, so raise it with every release.
+restart. **Settings → Extensions → INSTALLED EXTENSIONS** shows `version()`, so raise it with every release.
 
 Data that changes more often than your plugin can be fetched at run time, as the FundsXML plugin does:
 
