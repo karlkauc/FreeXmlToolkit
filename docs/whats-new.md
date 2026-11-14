@@ -26,6 +26,8 @@ running is shown under **Help → About FreeXmlToolkit**.
   envelope) and checks ESMA's table of mandatory and not applicable fields per action type and level, the record
   count, UTI, LEI and ISIN; every element shows its EMIR field number. See [ESMA Reporting](plugin-esma-reporting.md).
 - **SFTR reports** (auth.052) are checked the same way, per action type, level and type of SFT.
+- **MiFIR transaction reports** (auth.016) are checked with ESMA's content rules: venue and trading capacity, LEIs,
+  ISINs, CONCAT codes, currencies and the instrument fields the CFI code requires or forbids.
 
 **KAG-Meldewesen (FMA)**
 

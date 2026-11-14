@@ -50,11 +50,12 @@ import org.fxt.freexmltoolkit.plugins.regreport.RegValidator;
 import org.fxt.freexmltoolkit.util.ProjectLinks;
 
 /**
- * ESMA's transaction reports in ISO 20022: the EMIR Refit derivatives trade report (auth.030). The
- * reports are bound to ESMA's schemas (also inside the BizData envelope) and checked with ESMA's
- * validation rules: the fields that are mandatory or not applicable per action type and level,
- * header counts, UTI, codes and identifiers; the Inspector names every element with its field
- * number. Off by default (Settings → Extensions).
+ * ESMA's transaction reports in ISO 20022: the EMIR Refit derivatives trade report (auth.030), the SFTR
+ * report (auth.052) and the MiFIR transaction report (auth.016). The reports are bound to ESMA's schemas
+ * (also inside the BizData envelope) and checked with ESMA's validation rules - for EMIR and SFTR the
+ * fields that are mandatory or not applicable per action type and variant, for MiFIR the content rules
+ * that need no reference data; the Inspector names every element with its field number. Off by default
+ * (Settings → Extensions).
  */
 public final class EsmaReportingPlugin implements FxtPlugin {
 
@@ -69,15 +70,17 @@ public final class EsmaReportingPlugin implements FxtPlugin {
     private static volatile RegRuleSet emirRules;
     static final Supplier<FieldCatalog> SFTR_FIELDS = CatalogDescriber.lazy("/plugins/esmareporting/sftr/sftr-fields.json");
     private static volatile RegRuleSet sftrRules;
+    static final Supplier<FieldCatalog> MIFIR_FIELDS = CatalogDescriber.lazy("/plugins/esmareporting/mifir/mifir-fields.json");
+    private static volatile RegRuleSet mifirRules;
 
     @Override public String id() { return ID; }
-    @Override public String name() { return "ESMA Reporting (EMIR, SFTR)"; }
+    @Override public String name() { return "ESMA Reporting (EMIR, SFTR, MiFIR)"; }
     @Override public String version() { return "1.0"; }
     @Override public boolean enabledByDefault() { return false; }
 
     @Override
     public String description() {
-        return "ESMA transaction reports in ISO 20022: EMIR Refit and SFTR reports with ESMA's validation rules.";
+        return "ESMA transaction reports in ISO 20022: EMIR Refit, SFTR and MiFIR reports with ESMA's validation rules.";
     }
 
     /** @return the report kind of a document ({@code EMIR}), or {@code null} */
@@ -91,6 +94,9 @@ public final class EsmaReportingPlugin implements FxtPlugin {
         if (EsmaSchemas.SFTR.equals(root.namespace())) {
             return "SFTR";
         }
+        if (EsmaSchemas.MIFIR.equals(root.namespace())) {
+            return "MiFIR";
+        }
         if (EsmaSchemas.ENVELOPE.equals(root.namespace())) {
             String head = content.length() > 8000 ? content.substring(0, 8000) : content;
             if (head.contains(EsmaSchemas.EMIR)) {
@@ -98,6 +104,9 @@ public final class EsmaReportingPlugin implements FxtPlugin {
             }
             if (head.contains(EsmaSchemas.SFTR)) {
                 return "SFTR";
+            }
+            if (head.contains(EsmaSchemas.MIFIR)) {
+                return "MiFIR";
             }
         }
         return null;
@@ -125,6 +134,12 @@ public final class EsmaReportingPlugin implements FxtPlugin {
             }
             return sftrRules;
         }
+        if ("MiFIR".equals(kind)) {
+            if (mifirRules == null) {
+                mifirRules = MifirRules.rules(MIFIR_FIELDS.get());
+            }
+            return mifirRules;
+        }
         return null;
     }
 
@@ -133,10 +148,11 @@ public final class EsmaReportingPlugin implements FxtPlugin {
         RegValidator validator = new RegValidator("ESMA Reporting", () -> true,
                 (java.util.function.BiFunction<RegValidator.Root, String, RegRuleSet>) EsmaReportingPlugin::rulesFor);
         context.addValidator(validator);
-        context.addElementDescriber(new CatalogDescriber(() -> true, List.of(EMIR_FIELDS, SFTR_FIELDS)));
+        context.addElementDescriber(new CatalogDescriber(() -> true, List.of(EMIR_FIELDS, SFTR_FIELDS, MIFIR_FIELDS)));
         try {
             EsmaSchemas.register(context, EsmaSchemas.EMIR, "ESMA EMIR Refit derivatives trade report (auth.030.001.03)",
-                    EsmaSchemas.SFTR, "ESMA SFTR securities financing transaction report (auth.052.001.02)");
+                    EsmaSchemas.SFTR, "ESMA SFTR securities financing transaction report (auth.052.001.02)",
+                    EsmaSchemas.MIFIR, "ESMA MiFIR transaction report (auth.016.001.01)");
         } catch (RuntimeException e) {
             logger.warn("ESMA schemas not registered: {}", e.getMessage());
         }
@@ -154,11 +170,15 @@ public final class EsmaReportingPlugin implements FxtPlugin {
                                 + "reports (auth.052) are bound to ESMA's schemas - also in the BizData envelope - and "
                                 + "checked with ESMA's validation rules: which fields are mandatory or not applicable for "
                                 + "each action type, level and (SFTR) type of SFT, the record count, the UTI, LEI, ISIN and "
-                                + "ISO codes. The Inspector shows the field number of every element.",
+                                + "ISO codes. MiFIR transaction reports (auth.016) are checked with ESMA's content rules "
+                                + "(venue, trading capacity, identifiers, CONCAT, CFI-dependent fields, dates). The Inspector "
+                                + "shows the field number of every element.",
                         List.of(new IndustryPanel.Action("esma-new-emir", "New EMIR Error Report (Example)",
                                         "bi-file-earmark-plus", ActionColor.CREATE, ui2 -> openExample(ui2, "emir-eror-example.xml")),
                                 new IndustryPanel.Action("esma-new-sftr", "New SFTR Error Report (Example)",
-                                        "bi-file-earmark-plus", ActionColor.CREATE, ui2 -> openExample(ui2, "sftr-eror-example.xml"))),
+                                        "bi-file-earmark-plus", ActionColor.CREATE, ui2 -> openExample(ui2, "sftr-eror-example.xml")),
+                                new IndustryPanel.Action("esma-new-mifir", "New MiFIR Transaction (Example)",
+                                        "bi-file-earmark-plus", ActionColor.CREATE, ui2 -> openExample(ui2, "mifir-newt-example.xml"))),
                         EsmaReportingPlugin::describe, validator, List.of(IdentifierKind.LEI, IdentifierKind.ISIN)),
                 null));
     }
@@ -177,11 +197,17 @@ public final class EsmaReportingPlugin implements FxtPlugin {
         return counts;
     }
 
-    /** @return the badge text ({@code EMIR · 3 reports}), or {@code null} */
+    private static final Pattern MIFIR_TX = Pattern.compile("<(?:\\w+:)?Tx>\\s*<(?:\\w+:)?(New|Cxl)>");
+
+    /** @return the badge text ({@code EMIR · 3 reports}, {@code MiFIR · 2 transactions}), or {@code null} */
     static String label(String content) {
         String kind = content == null ? null : kind(RegValidator.rootOf(content), content);
         if (kind == null) {
             return null;
+        }
+        if (kind.equals("MiFIR")) {
+            long n = MIFIR_TX.matcher(content).results().count();
+            return kind + " · " + n + (n == 1 ? " transaction" : " transactions");
         }
         int reports = actions(content).values().stream().mapToInt(Integer::intValue).sum();
         return kind + " · " + reports + (reports == 1 ? " report" : " reports");
@@ -194,6 +220,12 @@ public final class EsmaReportingPlugin implements FxtPlugin {
             return null;
         }
         List<String> parts = new ArrayList<>();
+        if (label.startsWith("MiFIR")) {
+            Map<String, Integer> kinds = new LinkedHashMap<>();
+            MIFIR_TX.matcher(content).results().forEach(m -> kinds.merge(m.group(1).equals("New") ? "NEWT" : "CANC", 1, Integer::sum));
+            kinds.forEach((k, n) -> parts.add(n + " × " + k));
+            return "MiFIR transaction report (auth.016.001.01)\n" + label + (parts.isEmpty() ? "" : "\n" + String.join(", ", parts));
+        }
         actions(content).forEach((action, n) -> parts.add(n + " × " + action));
         String format = label.startsWith("SFTR") ? "SFTR securities financing transaction report (auth.052.001.02)"
                 : "EMIR Refit trade report (auth.030.001.03)";

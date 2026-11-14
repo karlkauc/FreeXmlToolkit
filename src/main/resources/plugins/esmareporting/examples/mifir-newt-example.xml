@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Example MiFIR transaction report (auth.016.001.01) with fictitious data: a management company buys shares for
+     one of its funds on a trading venue. Made-up LEIs and ISIN. -->
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:auth.016.001.01">
+	<FinInstrmRptgTxRpt>
+		<Tx>
+			<New>
+				<TxId>FXT20260115000001</TxId>
+				<ExctgPty>5299009FXTKAGFUND050</ExctgPty>
+				<InvstmtPtyInd>true</InvstmtPtyInd>
+				<SubmitgPty>5299009FXTKAGFUND050</SubmitgPty>
+				<Buyr>
+					<AcctOwnr>
+						<Id>
+							<LEI>5299009FXTFUND000156</LEI>
+						</Id>
+					</AcctOwnr>
+				</Buyr>
+				<Sellr>
+					<AcctOwnr>
+						<Id>
+							<LEI>5299009FXTBROKER0076</LEI>
+						</Id>
+					</AcctOwnr>
+				</Sellr>
+				<OrdrTrnsmssn>
+					<TrnsmssnInd>false</TrnsmssnInd>
+				</OrdrTrnsmssn>
+				<Tx>
+					<TradDt>2026-01-15T09:30:00Z</TradDt>
+					<TradgCpcty>AOTC</TradgCpcty>
+					<Qty>
+						<Unit>100</Unit>
+					</Qty>
+					<Pric>
+						<Pric>
+							<MntryVal>
+								<Amt Ccy="EUR">50.25</Amt>
+							</MntryVal>
+						</Pric>
+					</Pric>
+					<TradVn>XWBO</TradVn>
+					<CtryOfBrnch>AT</CtryOfBrnch>
+				</Tx>
+				<FinInstrm>
+					<Id>AT000FXT1056</Id>
+				</FinInstrm>
+				<ExctgPrsn>
+					<Algo>FXTALGO1</Algo>
+				</ExctgPrsn>
+				<AddtlAttrbts>
+					<SctiesFincgTxInd>false</SctiesFincgTxInd>
+				</AddtlAttrbts>
+			</New>
+		</Tx>
+	</FinInstrmRptgTxRpt>
+</Document>
