@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2014 (http://www.altova.com) by sgosso (esma) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:include schemaLocation="AIFMD_REPORTING_DataTypes_V1.2.xsd"/>
+	<!--	
+******************************************************************************
+	AIFReporting
+
+	Root element of the schema. There must be one (at least) or more
+	  of these two elements. Therefore there will be an unlimited
+	  number of any type of records.
+
+	AIFRecordInfo: contains data related to the AIFs 
+
+
+	CancellationAIFRecordInfo: contains the unique identifier for the 
+		AIF record to be cancelled.
+
+See AIFMD_REPORTING_DataTypes XML-Schema File for further information.
+
+And three attributes:
+
+	Version: version number of the schema.
+	Updated in version 2.0 for backward compatability reasons.
+	
+	ReportingMemberState: ISO 3166 country code alpha-2. Length: 2 characters.
+
+	CreationDateAndTime: Mandatory date in ISO 8601 extended format  
+		(YYYY-MM-DD HH:MM:SS) format.
+						
+
+******************************************************************************
+-->
+	<xs:element name="AIFReportingInfo">
+		<xs:annotation>
+			<xs:documentation>AIF Report Document XML Schema</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:choice maxOccurs="unbounded">
+				<xs:element name="CancellationAIFRecordInfo" type="ComplexCancellationAIFRecordInfoType"/>
+				<xs:element name="AIFRecordInfo" type="ComplexAIFRecordInfoType"/>
+			</xs:choice>
+			<xs:attribute name="ReportingMemberState" type="CountryCodeType" use="required">
+				<xs:annotation>
+					<xs:documentation>Articles 24(1) and 3(3)(d) - AIF - Item 1 - Country code standard ISO-3166-1 of the Member State to which the AIFM reports the AIFMD reporting.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="Version" type="VersionType" use="required">
+				<xs:annotation>
+					<xs:documentation>Articles 24(1) and 3(3)(d) - AIF - Item 2 - The version of the XML Schema Definition (XSD) used to generate the file.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="CreationDateAndTime" type="xs:dateTime" use="required">
+				<xs:annotation>
+					<xs:documentation>Articles 24(1) and 3(3)(d) - AIF - Item 3 - The date (ISO 8601 extended Date Format yyyy-mm-ddThh:mm:ss) at which the file was created. It shall be expressed as Coordinated Universal Time (UTC).</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<!-- 
+********************************************************************
+AIF RECORD TYPE
+
+************************************************************************
+-->
+	<xs:complexType name="ComplexAIFRecordInfoType">
+		<xs:sequence>
+			<xs:element name="FilingType" type="FilingTypeType">
+				<xs:annotation>
+					<xs:documentation>Articles 24(1) and 3(3)(d) - AIF - Item 4 - Flag indicating whether the AIF reporting is an initial filing for the reporting period or an amendment to a reporting previously submitted.
+The filling types admitted are:
+  - AMND for "amendment to one previously submitted reporting"
+  - INIT for "initial reporting for the reporting period"</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="AIFContentType" type="AIFContentTypeType">
+				<xs:annotation>
+					<xs:documentation>Articles 24(1) and 3(3)(d) - AIF - Item 5 - Code indicating the contents of the AIF reporting.
+The content types admitted are:
+  - 1 for "24(1) reporting obligation"
+  - 2 for "24(1) + 24(2) reporting obligation"
+  - 3 for "3(3) (d) reporting obligation"
+  - 4 for "24(1) + 24(2) + 24(4) reporting obligation"
+  - 5 for "24(1) + 24(4) reporting obligation"</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="ReportingPeriodStartDate" type="xs:date">
+				<xs:annotation>
+					<xs:documentation>Articles 24(1) and 3(3)(d) - AIF - Item 6 - The start date of the reporting period should begin on the first calendar day of January, April, July or October. yyyy-mm-dd (ISO 8601 Date Format)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="ReportingPeriodEndDate" type="xs:date">
+				<xs:annotation>
+					<xs:documentation>Articles 24(1) and 3(3)(d) - AIF - Item 7 - The end date of the reporting period may be the last calendar day of March, June, September, December or the last day the AIF exists. yyyy-mm-dd (ISO 8601 Date Format)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="ReportingPeriodType" type="ReportingPeriodTypeType">
+				<xs:annotation>
+					<xs:documentation>Articles 24(1) and 3(3)(d) - AIF - Item 8 - The reporting period types admitted are:
+   when reporting frequency is quarterly:
+   - Q1: for 1st quarter of the calendar year
+   - Q2: for 2nd quarter of the calendar year
+   - Q3: for 3rd quarter of the calendar year
+   - Q4: for 4th quarter of the calendar year
+   when reporting frequency is half yearly:
+   - H1: for 1st half of the calendar year
+   - H2: for 2nd half of the calendar year
+   when reporting frequency is yearly:
+   - Y1: for the calendar year  
+   when the specific reporting period is from 1st quarter to 3rd quarter due to change in the reporting obligation:
+	- X1: for period from 1st quarter to 3rd quarter
+	when the specific reporting period is from 2nd quarter to 4th quarter due to change in the reporting obligation:
+	- X2: for period from 2nd quarter to 4th quarter</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="ReportingPeriodYear" type="xs:gYear">
+				<xs:annotation>
+					<xs:documentation>Articles 24(1) and 3(3)(d) - AIF - Item 9 - The reporting period year (2013, 2014…).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="AIFReportingObligationChangeFrequencyCode" type="ReportingObligationChangeFrequencyCodeType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Articles 24(1) and 3(3)(d) - AIF - Item 10 - The codes to report a change in the AIF reporting obligation frequency are contained in Annex II - Table 9 and 10.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="AIFReportingObligationChangeContentsCode" type="AIFReportingObligationChangeContentsCodeType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Articles 24(1) and 3(3)(d) - AIF - Item 11 - The codes to report a change in the AIF reporting obligation contents are contained in Annex II - Table 9.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="AIFReportingObligationChangeQuarter" type="ReportingObligationChangeQuarterType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Articles 24(1) and 3(3)(d) - AIF - Item 12 - Code indicating the quarter during which the frequency and/or contents reporting obligation on the AIF changes.
+The codes for the reporting obligation change quarter are:
+			- Q1: for 1st quarter of the calendar year
+			- Q2: for 2nd quarter of the calendar year
+			- Q3: for 3rd quarter of the calendar year
+			- Q4: for 4th quarter of the calendar year</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="LastReportingFlag" type="BooleanType">
+				<xs:annotation>
+					<xs:documentation>Articles 24(1) and 3(3)(d) - AIF - Item 13 - Flag indicating whether the reporting is the last reporting. To be filled in when the AIF has been liquidated or merged during the reporting period.
+true for last reporting file.
+false otherwise</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Assumptions" type="ComplexAssumptionsType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Assumptions.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="AIFMNationalCode" type="AIFMNationalCodeType">
+				<xs:annotation>
+					<xs:documentation>Articles 24(1) and 3(3)(d) - AIF - Item 16 - National ID of the Entity in the register of the National Competent Authority of the Home Member State</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="AIFNationalCode" type="AIFNationalCodeType">
+				<xs:annotation>
+					<xs:documentation>Articles 24(1) and 3(3)(d) - AIF - Item 17 - Unique reference identifying each AIF allocated by the national competent authority of the reporting Member State of the AIFM to which the AIFM reports under AIFMD.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="AIFName" type="StringRestricted300Type">
+				<xs:annotation>
+					<xs:documentation>Articles 24(1) and 3(3)(d) - AIF - Item 18 - The legal name of the AIF (no standard).
+In the case of umbrella funds, the names of the umbrella fund and the sub-funds should be reported.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="AIFEEAFlag" type="BooleanType">
+				<xs:annotation>
+					<xs:documentation>Articles 24(1) and 3(3)(d) - AIF - Item 19 - Flag indicating whether the AIF is domiciled in the EEA.
+true for EEA AIFs
+false for non-EEA AIFs.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="AIFReportingCode" type="AIFReportingCodeType">
+				<xs:annotation>
+					<xs:documentation>Articles 24(1) and 3(3)(d) - AIF - Item 20 - Code indicating the reporting category of the AIF.
+The AIF reporting codes are contained in Annex II - Table 9:
+1 for "AIF (of an Registered AIFM)"
+2 for "Leveraged EU AIF (of an opt-in AIFM)"
+3 for "Leveraged non EU AIF (of an opt-in AIFM) marketed in the Union"
+4 for "Leveraged non EU AIF (of an opt-in AIFM), not marketed in the Union"
+5 for "Unleveraged EU AIF (of an opt-in AIFM)"
+6 for "Unleveraged non EU AIF (of an opt-in AIFM) marketed in the Union"
+7 for "Unleveraged non EU AIF (of an opt-in AIFM), not marketed in the Union"
+8 for "Unleveraged EU AIF (of an AIFM with only unleveraged AIFs investing in non-listed companies and issuers in order to acquire control)"
+9 for "Unleveraged non EU AIF (of an AIFM with only unleveraged AIFs investing in non-listed companies and issuers in order to acquire control) marketed in the Union"
+10 for "Unleveraged non EU AIF (of an AIFM with only unleveraged AIFs investing in non-listed companies and issuers in order to acquire control), not marketed in the Union"
+11 for "Under 500M Leveraged EU AIF (of an AIFM with half yearly obligation)"
+12 for "Under 500M Leveraged non EU AIF (of an AIFM with half yearly obligation) marketed in the Union"
+13 for "Under 500M Leveraged non EU AIF (of an AIFM with half yearly obligation), not marketed in the Union"
+14 for "Under 500M Unleveraged EU AIF (of an AIFM with half yearly obligation)"
+15 for "Under 500M Unleveraged non EU AIF (of an AIFM with half yearly obligation) marketed in the Union"
+16 for "Under 500M Unleveraged non EU AIF (of an AIFM with half yearly obligation), not marketed in the Union"
+17 for "Unleveraged EU AIF, investing in non-listed companies in order to acquire control (of an AIFM with half yearly obligation)"
+18 for "Unleveraged non EU AIF, investing in non-listed companies in order to acquire control (of an AIFM with half yearly obligation) marketed in the Union"
+19 for "Unleveraged non EU AIF, investing in non-listed companies in order to acquire control (of an AIFM with half yearly obligation) not marketed in the Union"
+20 for "Over 500M Leveraged EU AIF (of an AIFM with half yearly obligation)"
+21 for "Over 500M Leveraged non EU AIF (of an AIFM with half yearly obligation) marketed in the Union"
+22 for "Over 500M Leveraged non EU AIF (of an AIFM with half yearly obligation), not marketed in the Union"
+23 for "Over 500M Unleveraged EU AIF (of an AIFM with half yearly obligation)"
+24 for "Over 500M Unleveraged non EU AIF (of an AIFM with half yearly obligation) marketed in the Union"
+25 for "Over 500M Unleveraged non EU AIF (of an AIFM with half yearly obligation), not marketed in the Union"
+26 for "Unleveraged EU AIF, investing in non-listed companies in order to acquire control (of an AIFM with quarterly obligation)"
+27 for "Unleveraged non EU AIF, investing in non-listed companies in order to acquire control (of an AIFM with quarterly obligation) marketed in the Union"
+28 for "Unleveraged non EU AIF, investing in non-listed companies in order to acquire control (of an AIFM with quarterly obligation) not marketed in the Union"
+29 for "Leveraged EU AIF (of an AIFM with quarterly obligation)"
+30 for "Leveraged non EU AIF (of an AIFM with quarterly obligation) marketed in the Union"
+31 for "Leveraged non EU AIF (of an AIFM with quarterly obligation), not marketed in the Union"
+32 for "Unleveraged EU AIF (of an AIFM with quarterly obligation)"
+33 for "Unleveraged non EU AIF (of an AIFM with quarterly obligation) marketed in the Union"
+34 for "Unleveraged non EU AIF (of an AIFM with quarterly obligation), not marketed in the Union"
+35 for "Leveraged AIF (of an AIFM under Private Placement Regime with yearly obligation) marketed in the Union"
+36 for "Unleveraged AIF (of an AIFM under Private Placement Regime with yearly obligation) marketed in the Union"
+37 for "Unleveraged AIF (of an AIFM under Private Placement Regime with only unleveraged AIFs investing in non-listed companies and issuers in order to acquire control) marketed in the Union"
+38 for "Under 500M Leveraged AIF (of an AIFM under Private Placement Regime with half yearly obligation) marketed in the union"
+39 for "Under 500M Unleveraged AIF (of an AIFM under Private Placement Regime with half yearly obligation) marketed in the union"
+40 for "Unleveraged AIF, investing in non-listed companies in order to acquire control (of an AIFM under Private Placement Regime with half yearly obligation) marketed in the Union"
+41 for "Over 500M Leveraged AIF (of an AIFM under Private Placement Regime with half yearly obligation) marketed in the union"
+42 for "Over 500M Unleveraged AIF (of an AIFM under Private Placement Regime with half yearly obligation) marketed in the union"
+43 for "Unleveraged AIF, investing in non-listed companies in order to acquire control (of an AIFM under Private Placement Regime with quarterly obligation) marketed in the Union"
+44 for "Leveraged AIF (of an AIFM under Private Placement Regime with quarterly obligation) marketed in the Union"
+45 for "Unleveraged AIF (of an AIFM under Private Placement Regime with quarterly obligation) marketed in the Union"</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="AIFDomicile" type="CountryCodeType">
+				<xs:annotation>
+					<xs:documentation>Articles 24(1) and 3(3)(d) - AIF - Item 21 - For EU AIFs, the domicile of the AIF should be understood as the home Member State of the AIF as defined in Article 4(1)(p) of the AIFMD. For non-EU AIFs, the domicile of the AIF should be the coun-try where the AIF is authorised or registered or where it has its registered office.
+Country code standard ISO-3166-1</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="InceptionDate" type="xs:date">
+				<xs:annotation>
+					<xs:documentation>Articles 24(1) and 3(3)(d) - AIF - Item 22 - The date the AIF started business (yyyy-mm-dd (ISO 8601 Date Format)).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="AIFNoReportingFlag" type="BooleanType">
+				<xs:annotation>
+					<xs:documentation>Articles 24(1) and 3(3)(d) - AIF - Item 23 - Flag indicating whether the AIFM do not have any information to report on the AIF. Only header section should be filled in.
+true when no information to report for the reporting period
+false otherwise</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="AIFCompleteDescription" type="ComplexAIFCompleteDescriptionType" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<!--	
+**********************************************************************************
+	CANCELLATION RECORD INFO TYPE
+
+	CancelledAIFNationalCode, CancelledAIFMNationalCode, CancelledReportingPeriodType and CancelledReportingPeriodYear are mandatory elements that univocally identifies the 
+		AIF record to cancel among the AIF records sent.
+
+	CancelledRecordFlag: Mandatory Field. C (cancelled by the
+		Reporting Firm).
+
+**********************************************************************************
+-->
+	<xs:complexType name="ComplexCancellationAIFRecordInfoType">
+		<xs:sequence>
+			<xs:element name="CancelledAIFNationalCode" type="AIFNationalCodeType">
+				<xs:annotation>
+					<xs:documentation>Univocally identifies the AIF for which the cancellation has to be performed: national identification code of the AIF as allocated by the reporting Member State to which the AIFMD reporting was provided.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="CancelledAIFMNationalCode" type="AIFMNationalCodeType">
+				<xs:annotation>
+					<xs:documentation>Univocally identifies the AIFM for which the cancellation has to be performed: national identification code of the AIFM as allocated by the reporting Member State to which the AIFMD reporting was provided.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="CancelledReportingPeriodType" type="ReportingPeriodTypeType">
+				<xs:annotation>
+					<xs:documentation>Univocally identifies the reporting period for which the cancellation has to be performed. The reporting period types admitted are:
+   when reporting frequency is quarterly:
+   - Q1: for 1st quarter of the calendar year
+   - Q2: for 2nd quarter of the calendar year
+   - Q3: for 3rd quarter of the calendar year
+   - Q4: for 4th quarter of the calendar year
+   when reporting frequency is half yearly:
+   - H1: for 1st half of the calendar year
+   - H2: for 2nd half of the calendar year
+   when reporting frequency is yearly:
+   - Y1: for the calendar year</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="CancelledReportingPeriodYear" type="xs:gYear">
+				<xs:annotation>
+					<xs:documentation>Univocally identifies the reporting period for which the cancellation has to be performed: the reporting period year (2013, 2014…).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="CancelledRecordFlag" type="CancelledRecordFlagType">
+				<xs:annotation>
+					<xs:documentation>A field denoting whether the record is a cancellation: "C‟: cancellation by a firm.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

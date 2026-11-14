@@ -10,6 +10,7 @@ page that explains its functions in detail:
 | **FinDatEx Templates** | EMT, EET, EPT and TPT (V7/V8) files as CSV or Excel | [FinDatEx Templates](plugin-findatex.md) |
 | **XBRL (with Arelle)** | XBRL instances and inline XBRL reports, validated with Arelle | [XBRL](plugin-xbrl.md) |
 | **PK-Meldewesen (FMA)** | Austrian pension fund reports to the FMA: quarterly (PK-QMV), annual (PK-FJMV) and ECB report | [PK-Meldewesen](plugin-pk-meldewesen.md) |
+| **KAG-Meldewesen (FMA)** | Reports of Austrian management companies to the FMA: AIFMD reporting (AIFM and AIF file) with the FMA's rules | [KAG-Meldewesen](plugin-kag-meldewesen.md) |
 
 The [FundsXML extension](fundsxml-extensions.md) is an extension as well, with its own page.
 
@@ -17,7 +18,7 @@ The [FundsXML extension](fundsxml-extensions.md) is an extension as well, with i
 
 The industry extensions are **off by default**: switch them on in **Settings → Extensions → INSTALLED EXTENSIONS**
 and restart. Administrators can keep an extension off for everyone with `plugin.<id>.enabled=false`
-(`iso20022`, `ebinterface`, `findatex`, `xbrl`), see [Administration](administration.md).
+(`iso20022`, `ebinterface`, `findatex`, `xbrl`, `kag-meldewesen`), see [Administration](administration.md).
 
 ## What every industry extension adds
 

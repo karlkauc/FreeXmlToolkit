@@ -20,6 +20,13 @@ running is shown under **Help → About FreeXmlToolkit**.
 - The viewer notices when the file changes on disk and offers to reload it; character references such as `&#233;`
   are decoded in the tree and table.
 
+**KAG-Meldewesen (FMA)**
+
+- **AIFMD reporting:** a new extension for Austrian management companies binds the AIFM and AIF files to ESMA's
+  schema v1.2 and checks them with the FMA's rules (reporting period, content blocks, conditional fields, percentages,
+  rankings, LEI/ISIN) - each finding on its line, each element with its ESMA field number, guidance and FMA rule in the
+  Inspector. See [KAG-Meldewesen](plugin-kag-meldewesen.md).
+
 **PK-Meldewesen (FMA)**
 
 - **New extension for Austrian pension fund reports:** the quarterly report (PK-QMV), the annual report (PK-FJMV)

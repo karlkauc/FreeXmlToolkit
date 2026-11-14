@@ -1,0 +1,301 @@
+{
+ "format": "AIFMD AIFM reporting file",
+ "source": "ESMA AIFMD reporting XML documents v1.2 (2013-1361), IT technical guidance rev 6 (2013-1358), FMA Prüfregeln (Stand 29.01.2024)",
+ "fields": [
+  {
+   "id": "4",
+   "name": "Filing type",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/FilingType",
+   "obligation": "M",
+   "guidance": "The filling types admitted are:\n  - AMND for \"amendment to one reporting previously submitted \"\n  - INIT for \"initial reporting for the reporting period\""
+  },
+  {
+   "id": "5",
+   "name": "AIFM content type",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMContentType",
+   "obligation": "M",
+   "guidance": "Code indicating the contents of the AIFM reporting.\nThe AIFM content types admitted are:\n  - 1 for \"24(1) reporting contents for all AIFs managed\"\n  - 2 for \"3(3) (d) reporting  contents for all AIFs managed\"\n  - 3 for \"24(1) reporting contents for all AIFs marketed in the Member State\""
+  },
+  {
+   "id": "6",
+   "name": "Reporting period start date",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/ReportingPeriodStartDate",
+   "obligation": "M",
+   "guidance": "The start date of the reporting period should begin on  the first calendar of January, April, July or October.\nyyyy-mm-dd (ISO 8601 Date Format)",
+   "rule": "Das Feld ReportingPeriodStartDate muss mit dem Feld ReportingPeriodType übereinstimmen (Beginn des Jahres / Halbjahres / Quartals)"
+  },
+  {
+   "id": "7",
+   "name": "Reporting period end date",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/ReportingPeriodEndDate",
+   "obligation": "M",
+   "guidance": "The end date of the reporting period may be the last calendar day of March, June, September, December or the last day the AIFM exists.\nyyyy-mm-dd (ISO 8601 Date Format)",
+   "rule": "Das Feld ReportingPeriodEndDate muss größer sein als das Feld ReportingPeriodStartDate Das angegebene Datum muss innerhalb der im Feld ReportingPeriodType angegebenen Persiode liegen"
+  },
+  {
+   "id": "8",
+   "name": "Reporting period type",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/ReportingPeriodType",
+   "obligation": "M",
+   "guidance": "The reporting period types admitted are:\n   when reporting frequency is quarterly:\n   - Q1: for 1st quarter of the calendar year\n   - Q2: for 2nd quarter of the calendar year\n   - Q3: for 3rd quarter of the calendar year\n   - Q4: for 4th quarter of the calendar year\n   when reporting frequency is half yearly:\n   - H1: for 1st half of the calendar year\n   - H2: for 2nd half of the calendar year\n   when reporting frequency is yearly:\n   - Y1: for the calendar year\n   when the specific reporting period is from 1st quarter to 3rd quarter due to change in the reporting obligation:\n   - X1: for period from 1st quarter to 3rd quarter\n   when the specific reporting period is from 2nd quarter to 4th quarter due to change in the reporting obligation:\n   - X2: for period from 2nd quarter to 4th quarter\nFor one calendar year, it is not possible to have reporting overlap. Only acceptable subsequent reporting periods are: \n   - Q1, Q2, Q3, Q4\n   - Q1, Q2, H2\n   - Q1, X2\n   - H1, H2\n   - H1, Q3, Q4 \n   - Y1\n   - X1, Q4"
+  },
+  {
+   "id": "9",
+   "name": "Reporting period year",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/ReportingPeriodYear",
+   "obligation": "M",
+   "guidance": "The reporting period year (2013, 2014…)."
+  },
+  {
+   "id": "10",
+   "name": "Change in AIFM reporting obligation frequency Code",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMReportingObligationChangeFrequencyCode",
+   "obligation": "O",
+   "guidance": "The codes to report a change in the AIFM reporting obligation frequency are contained in Annex II - Table 8 and 10."
+  },
+  {
+   "id": "11",
+   "name": "Change in AIFM reporting obligation contents Code",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMReportingObligationChangeContentsCode",
+   "obligation": "O",
+   "guidance": "The codes to report a change in the AIFM reporting obligation contents are contained in Annex II - Table 8."
+  },
+  {
+   "id": "12",
+   "name": "Change in AIFM reporting obligation Quarter",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMReportingObligationChangeQuarter",
+   "obligation": "C\nM for <AIFMReportingObligationChangeFrequencyCode> or <AIFMReportingObligationChangeContentsCode> filled in\nF otherwise",
+   "guidance": "Code indicating the quarter during which the frequency and/or contents reporting obligation on the AIFM changes.\nThe codes for the reporting obligation change quarter are:\n   - Q1: for 1st quarter of the calendar year\n   - Q2: for 2nd quarter of the calendar year\n   - Q3: for 3rd quarter of the calendar year\n   - Q4: for 4th quarter of the calendar year\nThe field is mandatoty for <AIFMReportingObligationChangeFrequencyCode> or <AIFMReportingObligationChangeContentsCode> filled in and forbidden otherwise.",
+   "rule": "Wenn AIFMReportingObligationChangeFrequencyCode oder AIFMReportingObligationChangeContentsCode angegeben wurde muss auch AIFMReportingObligationChangeQuarter angegeben werden"
+  },
+  {
+   "id": "13",
+   "name": "Last reporting flag",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/LastReportingFlag",
+   "obligation": "M",
+   "guidance": "Flag indicating whether the reporting is the last reporting.\ntrue for last AIFM reporting file\nfalse otherwise"
+  },
+  {
+   "id": "14",
+   "name": "Question Number",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/Assumptions/Assumption/QuestionNumber",
+   "obligation": "C\nM for <AssumptionDescription> filled in\nF otherwise",
+   "guidance": "Question number for which assumption is provided.\nThe field is mandatoty for <AssumptionDescription> filled in and forbidden otherwise.",
+   "rule": "Es müssen immer beide Felder (QuestionNumber und AssumptionDescription) angegeben werden"
+  },
+  {
+   "id": "15",
+   "name": "Assumption description",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/Assumptions/Assumption/AssumptionDescription",
+   "obligation": "C\nM for <QuestionNumber> filled in\nF otherwise",
+   "guidance": "Free description for assumption.\nThe field is mandatoty for <QuestionNumber> filled in and forbidden otherwise.",
+   "rule": "Es müssen immer beide Felder (QuestionNumber und AssumptionDescription) angegeben werden"
+  },
+  {
+   "id": "16",
+   "name": "AIFM reporting code",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMReportingCode",
+   "obligation": "M",
+   "guidance": "Code indicating whether the AIFM is :\n- 1 for \"Registered AIFM\" under Article 3\n- 2 for \"Authorised AIFM (opt-in)\" under Article 7\n- 3 for \"Authorised AIFM with only unleveraged AIFs investing in non-listed companies and issuers in order to acquire control\" under Article 7\n- 4 for \"Authorised AIFM with half yearly obligation\" under Article 7\n- 5 for \"Authorised AIFM with quarterly obligation \" under Article 7\n- 6 for \"Non-EU AIFM under Private Placement Regime with annual obligation\" under Article 42\n- 7 for \"Non-EU AIFM under Private Placement Regime with only unleveraged AIFs investing in non-listed companies and issuers in order to acquire control\" under Article 42\n- 8 for \"Non-EU AIFM under Private Placement Regime with half yearly obligation\" under Article 42\n- 9 for \"Non-EU AIFM under Private Placement Regime with quarterly obligation\" under Article 42\nThe allowed AIFM reporting codes are contained in Annex II - Table 8\n\nThe reporting code of the AIFMs and AIFs should be consistent.\nAn error is generated when the AIF reporting code is not consistent with the AIFM reporting code:\n   - WHEN NOT(AIFReportingCode=1 AND AIFMReportingCode=1)\n   - OR NOT (2=<AIFReportingCode=<34 AND 2=<AIFMReportingCode<=5)\n   - OR NOT (AIFReportingCode>=35 AND 6<=AIFMReportingCode<=9)"
+  },
+  {
+   "id": "17",
+   "name": "AIFM jurisdiction",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMJurisdiction",
+   "obligation": "M",
+   "guidance": "Jurisdiction in which the AIFM is established (Country code standard ISO-3166-1)"
+  },
+  {
+   "id": "18",
+   "name": "AIFM National Code",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMNationalCode",
+   "obligation": "M",
+   "guidance": "Unique reference identifying each AIFM allocated by the national competent authority of the reporting Member State of the AIFM to which the AIFM reports under AIFMD",
+   "rule": "Der AIFMNationalCode muss mit dem angemeldeten Unternehmen in der IP übereinstimmen (FMACode)"
+  },
+  {
+   "id": "19",
+   "name": "AIFM Name",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMName",
+   "obligation": "M",
+   "guidance": "Alternative Investment Fund manager name. (no standard)\nIt is strongly recommended to provide the full name corresponding to the allocated LEI code (or BIC code if any and LEI not available)."
+  },
+  {
+   "id": "20",
+   "name": "AIFM EEA Flag",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMEEAFlag",
+   "obligation": "M",
+   "guidance": "Flag indicating whether the AIFM is domiciled in the EEA.EEA AIFMs should be understood as AIFMs established in one of the 28 EU Member States or Iceland, Norway and Liechtenstein.\ntrue for EEA AIFMs\nfalse for non-EEA AIFMs"
+  },
+  {
+   "id": "21",
+   "name": "AIFM no reporting flag",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMNoReportingFlag",
+   "obligation": "M",
+   "guidance": "Flag indicating whether the AIFM does not have any information to report on AIFs, such as where there is a delay between the authorisation or registration being granted to a new AIFM and the actual start of activity, or between the creation of an AIF and the first investments. Only header section should be filled in.\ntrue when no information to report for the reporting period\nfalse otherwise"
+  },
+  {
+   "id": "22",
+   "name": "AIFM LEI Code",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AIFMIdentifier/AIFMIdentifierLEI",
+   "obligation": "O",
+   "guidance": "Legal Entity Identifer (LEI) (ISO 17442 standard) of the Entity  or if not available the Interim Entity Identifier (IEI):\n•Characters 1-4: A four character prefix allocated uniquely to each LOU.\n•Characters 5-6: Two reserved characters set to zero.\n•Characters 7-18: Entity - specific part of the code generated and assigned by LOUs according to transparent, sound and robust allocation policies.\n•Characters 19-20: Two check digits"
+  },
+  {
+   "id": "23",
+   "name": "AIFM BIC Code",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AIFMIdentifier/AIFMIdentifierBIC",
+   "obligation": "O",
+   "guidance": "BIC code of the entity (ISO 9362 standard)"
+  },
+  {
+   "id": "24",
+   "name": "Old AIFM national identifier - Reporting Member State",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AIFMIdentifier/OldAIFMIdentifierNCA",
+   "obligation": "O",
+   "guidance": "Country code standard ISO-3166-1 of the reporting Member State which have allocated the former national identification code to provide when the national identification code changes (for the first reporting following the change of the national code and any subsequent reporting)."
+  },
+  {
+   "id": "24",
+   "name": "Old AIFM national identifier - Reporting Member State",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AIFMIdentifier/OldAIFMIdentifierNCA/ReportingMemberState",
+   "obligation": "O",
+   "guidance": "Country code standard ISO-3166-1 of the reporting Member State which have allocated the former national identification code to provide when the national identification code changes (for the first reporting following the change of the national code and any subsequent reporting)."
+  },
+  {
+   "id": "25",
+   "name": "Old AIFM national identifier - National code",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AIFMIdentifier/OldAIFMIdentifierNCA/AIFMNationalCode",
+   "obligation": "C\nM for old AIFM national identifier - Reporting Member State filled in",
+   "guidance": "Former national identification code to provide when the national identification code of the AIFM changes (for the first reporting following the change of the national code and any subsequent reporting).\nThe field is mandatory when the  old AIFM national identifier - Reporting Member State is filled in.",
+   "rule": "Wenn das Feld OldAIFMIdentifierNCA-ReportingMemberState angegeben wurde muss auch OldAIFMIdentifierNCA-AIFMNationalCode angegeben werden"
+  },
+  {
+   "id": "26",
+   "name": "Ranking (AIFM principal markets)",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AIFMPrincipalMarkets",
+   "obligation": "M",
+   "guidance": "Ranking of the five most important markets in which it trades on behalf of the AIF it manages.\nThe ranking admitted are:\n-     1 for “first main market”;\n-     2 for “second main market”;\n-     3 for “third main market”;\n-     4 for “fourth main market ”; and\n-     5 for “fifth main market”."
+  },
+  {
+   "id": "26",
+   "name": "Ranking (AIFM principal markets)",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AIFMPrincipalMarkets/AIFMFivePrincipalMarket/Ranking",
+   "obligation": "M",
+   "guidance": "Ranking of the five most important markets in which it trades on behalf of the AIF it manages.\nThe ranking admitted are:\n-     1 for “first main market”;\n-     2 for “second main market”;\n-     3 for “third main market”;\n-     4 for “fourth main market ”; and\n-     5 for “fifth main market”."
+  },
+  {
+   "id": "27",
+   "name": "Code type of the principal market in which the AIFM trades",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AIFMPrincipalMarkets/AIFMFivePrincipalMarket/MarketIdentification",
+   "obligation": "M",
+   "guidance": "The market codes types admitted are:\n    - MIC for markets with MIC codes;\n    - OTC for OTC transactions\n    - XXX for instruments that are not traded on a specific market; and\n    - NOT for “no market to report for the rank”."
+  },
+  {
+   "id": "27",
+   "name": "Code type of the principal market in which the AIFM trades",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AIFMPrincipalMarkets/AIFMFivePrincipalMarket/MarketIdentification/MarketCodeType",
+   "obligation": "M",
+   "guidance": "The market codes types admitted are:\n    - MIC for markets with MIC codes;\n    - OTC for OTC transactions\n    - XXX for instruments that are not traded on a specific market; and\n    - NOT for “no market to report for the rank”."
+  },
+  {
+   "id": "28",
+   "name": "MIC code of the principal market in which the AIFM trades",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AIFMPrincipalMarkets/AIFMFivePrincipalMarket/MarketIdentification/MarketCode",
+   "obligation": "C\nM for Code type of principal market in which AIFM trades equal to \"MIC\"",
+   "guidance": "The “MIC” code (ISO 10383) for trading venues where AIFMs trade.\nThe field is mandatory when the market code type is equal to \"MIC\" and forbidden otherwise.",
+   "rule": "Wenn das Feld MarketCodeType mit 'MIC' befüllt wurde, muss auch das Feld MarketCode befüllt werden Wenn das Feld MarketCodeType nicht mit 'MIC' befüllt wurde, darf das Feld MarketCode nicht befüllt werden"
+  },
+  {
+   "id": "29",
+   "name": "Aggregated value of the principal market in which the AIFM trades",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AIFMPrincipalMarkets/AIFMFivePrincipalMarket/AggregatedValueAmount",
+   "obligation": "C\nM for market code type different from  “NOT”",
+   "guidance": "Aggregated value of the instruments aggregated at the level of the five most important markets in which it trades on behalf of the AIF it manages.\nAggregated value expressed in EURO filled in without decimal places.\nThe field is mandatory for market code type different from  “NOT”.\nThe ranks that are assigned to the reported values should be consistent in relation to each other. First rank values are above or equal to the second rank values and so on.",
+   "rule": "Wenn das Feld MarketCodeType ungleich 'NOT' ist, muss das Feld AggregatedValueAmount befüllt werden Die angegebenen Werte im Feld AggregatedValueAmount müssen mit dem 'Ranking' übereinstimmen"
+  },
+  {
+   "id": "30",
+   "name": "Ranking (AIFM principal instruments)",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AIFMPrincipalInstruments",
+   "obligation": "M",
+   "guidance": "Ranking of the five sub-asset types in which the AIF manager trades on behalf of the AIFs it manages. The ranking should be based on the aggregated value of the instruments composing each sub-asset type.\nThe ranking admitted are:\n-     1 for “first main sub-asset type”;\n-     2 for “second main sub-asset type”;\n-     3 for “third main sub-asset type”;\n-     4 for “fourth main sub-asset type”; and\n-     5 for “fifth main sub-asset type”."
+  },
+  {
+   "id": "30",
+   "name": "Ranking (AIFM principal instruments)",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AIFMPrincipalInstruments/AIFMPrincipalInstrument/Ranking",
+   "obligation": "M",
+   "guidance": "Ranking of the five sub-asset types in which the AIF manager trades on behalf of the AIFs it manages. The ranking should be based on the aggregated value of the instruments composing each sub-asset type.\nThe ranking admitted are:\n-     1 for “first main sub-asset type”;\n-     2 for “second main sub-asset type”;\n-     3 for “third main sub-asset type”;\n-     4 for “fourth main sub-asset type”; and\n-     5 for “fifth main sub-asset type”."
+  },
+  {
+   "id": "31",
+   "name": "Sub-asset type code of the principal instrument",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AIFMPrincipalInstruments/AIFMPrincipalInstrument/SubAssetType",
+   "obligation": "M",
+   "guidance": "The 5 principal sub-asset types in which the AIF manager trades on behalf of the AIFs it manages. The sub-asset types admitted are listed in Annex II - Table 1  (i.e. highest level of detail available).\nIf the AIFM is trading less than five different sub-asset types, code “NTA_NTA_NOTA” should be indicated for each missing rank."
+  },
+  {
+   "id": "32",
+   "name": "Aggregated value of the principal instrument",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AIFMPrincipalInstruments/AIFMPrincipalInstrument/AggregatedValueAmount",
+   "obligation": "C\nM for Sub-asset type different from  “NTA_NTA_NOTA”",
+   "guidance": "Value of the instruments calculated as set out in Article 2 of the Regulation 231/2013 aggregated at the level of the sub-asset type expressed in EURO filled in without decimal places.\nThe value of the instruments should be calculated as of the last business day of the reporting period.\nThe field is mandatory for sub-asset type code different from “NTA_NTA_NOTA” and optional otherwise.\nThe ranks that are assigned to the reported values should be consistent in relation to each other. First rank values are above or equal to the second rank values and so on.\nEach rank should be reported once.",
+   "rule": "werden Die angegebenen Werte im Feld AggregatedValueAmount müssen mit dem 'Ranking' übereinstimmen"
+  },
+  {
+   "id": "33",
+   "name": "Total AuM Amount In Euro",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AUMAmountInEuro",
+   "obligation": "M",
+   "guidance": "Values in Euros of assets under management (AuM) for all AIFs managed using the method set out in Articles 2 and 10 of the Regulation 231/2013.\nAuM amount expressed in Euro is filled in without decimal places."
+  },
+  {
+   "id": "35",
+   "name": "AIFM Base currency",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AIFMBaseCurrencyDescription",
+   "obligation": "M",
+   "guidance": "Base currency code (3-character currency code according to the ISO 4217 ) for all AIFs managed by the AIFM.",
+   "rule": "Wenn das Feld BaseCurreny angegeben wurde und ungleich 'EUR' ist, muss auch das Feld"
+  },
+  {
+   "id": "35",
+   "name": "AIFM Base currency",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AIFMBaseCurrencyDescription/BaseCurrency",
+   "obligation": "M",
+   "guidance": "Base currency code (3-character currency code according to the ISO 4217 ) for all AIFs managed by the AIFM.",
+   "rule": "Wenn das Feld BaseCurreny angegeben wurde und ungleich 'EUR' ist, muss auch das Feld"
+  },
+  {
+   "id": "34",
+   "name": "Total AuM amount in base currency",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AIFMBaseCurrencyDescription/AUMAmountInBaseCurrency",
+   "obligation": "M",
+   "guidance": "Value in base currency of Assets under management (AuM) for all AIFs managed, (when all AIFs of the AIFM are denominated in one single same base currency that is not the Euro) using the method set out in Articles 2 and 10 of the Regulation 231/2013.\nThe total AuM amount expressed in base currency is filled in without decimal places and when available should be equal to the total AuM amount in Euro * Base currency / EUR FX rate."
+  },
+  {
+   "id": "36",
+   "name": "Base currency / EUR FX reference rate type",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AIFMBaseCurrencyDescription/FXEURReferenceRateType",
+   "obligation": "C\nM for AIFM base currency different from EUR",
+   "guidance": "-          “ECB” when the base currency is one of the currencies for which the exchange rates are euro reference rates published by the ECB\n-          “OTH” in other cases \nThe field is mandatory when the AIFM base currency is filled in and different from EUR and forbidden otherwise.\nThe ECB reference rates are published daily when TARGET system is open.",
+   "rule": "FXEURReferenceRateType angegeben werden Wenn das Feld BaseCurreny nicht angegeben wurde oder gleich 'EUR' ist darf das Feld FXEURReferenceRateType nicht angegeben werden"
+  },
+  {
+   "id": "37",
+   "name": "Base currency / EUR FX rate",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AIFMBaseCurrencyDescription/FXEURRate",
+   "obligation": "C\nM for AIFM base currency different from EUR",
+   "guidance": "ECB FX Rate used for converting base currency AuM amount into Euro AuM amount at the reporting date\nIt is filled in with 4 decimal places.\nThe field is mandatory when the AIFM base currency is filled in and different from EUR and forbidden otherwise.",
+   "rule": "Wenn das Feld BaseCurreny angegeben wurde und ungleich 'EUR' ist, muss auch das Feld FXEURRate angegeben werden Wenn das Feld BaseCurreny nicht angegeben wurde oder gleich 'EUR' ist darf das Feld FXEURRate nicht angegeben werden"
+  },
+  {
+   "id": "38",
+   "name": "Base currency / EUR FX reference rate description for no ECB rates",
+   "path": "AIFMReportingInfo/AIFMRecordInfo/AIFMCompleteDescription/AIFMBaseCurrencyDescription/FXEUROtherReferenceRateDescription",
+   "obligation": "C\nM for Base currency / EUR FX reference rate type equal to \"OTH\"",
+   "guidance": "Name of the source of the euro reference rates used according to the FX EUR conversion reference rate type reported\n-          Free text for “OTH” type when the corresponding euro reference rate is not published by the ECB\n-          Empty for “ECB” type when the corresponding euro reference rate is published by the ECB\nThe field is mandatory for Base currency / EUR FX reference rate type equal to \"OTH\" and forbidden otherwise",
+   "rule": "Wenn das Feld FXEURReferenceRateType mit 'OTH' befüllt wurde muss das Feld FXEUROtherReferenceRateDescription angegeben werden Wenn das Feld FXEURReferenceRateType nicht mit 'OTH' befüllt wurde darf das Feld FXEUROtherReferenceRateDescription nicht angegeben werden"
+  }
+ ]
+}

@@ -243,7 +243,10 @@ Industry plugins (`plugins/`, off by default via `enabledByDefault()`): `iso2002
 store `~/.freeXmlToolkit/pk-meldewesen/<version>/` + stable `_active/` schema copies, ZIP import; `PkRuleCheck` runs the
 bundled `rules/pk-pfq-rules.xslt` (`resultsOnly`, `internal` = INT_* checks) → `PkLocator` lines → `PkRuleValidator`;
 `PkDictionary` labels from the workbooks (`labels.json`) → `PkDescriber` / `PkCodeHover`; `PkGridSetup`, `PkSubmission`
-(FMA file name, ZIP); real reports are never in the repo — fixtures are synthetic). Shared: `IndustryPanel` (FXML), `IdentifierKind`,
+(FMA file name, ZIP); real reports are never in the repo — fixtures are synthetic). `kagmeldewesen` (AIFMD AIF/AIFM files on ESMA XSD v1.2, `AifmdRules` = FMA Prüfregeln) on the shared core
+`plugins/regreport/` (`RecordReader` → `RecordNode` records with lines, `RegRuleSet` + `FieldRules` builders, `RegValidator` by
+root element, `FieldCatalog` JSON from `scripts/aifmd-fields.py` + `CatalogDescriber`, `BundledSchemas`; source documents
+are downloaded into the gitignored `regdata/`). Shared: `IndustryPanel` (FXML), `IdentifierKind`,
 `service/finance/FinancialIdentifiers` (IBAN, BIC, LEI, ISIN, AT UID), `plugin/XmlScan`. Docs: `docs/industry-plugins.md` (overview) + one page per plugin `docs/plugin-<id>.md`; screenshots `PluginsDocScreenshotGenerator`.
 
 ## AI and MCP
