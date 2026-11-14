@@ -247,7 +247,8 @@ bundled `rules/pk-pfq-rules.xslt` (`resultsOnly`, `internal` = INT_* checks) →
 `plugins/regreport/` (`RecordReader` → `RecordNode` records with lines, `RegRuleSet` + `FieldRules` builders, `RegValidator` by
 root element, `FieldCatalog` JSON from `scripts/aifmd-fields.py` + `CatalogDescriber`, `BundledSchemas`; source documents
 are downloaded into the gitignored `regdata/`). `esmareporting` (EMIR auth.030: `ActionMatrix` = ESMA's M/C/O/- table per
-action type and level from `scripts/esma-emir-fields.py`, `EmirRules`); ESMA ISO 20022 schemas shared in
+action type and level from `scripts/esma-emir-fields.py`, `EmirRules`; the C fields of EMIR/SFTR via `regreport/ConditionalRules` from `emir|sftr-conditions.json`, hand-written
+from ESMA's rules text: `when`/`then` notation, choice elements → codes, `scope` = repeating block); ESMA ISO 20022 schemas shared in
 `resources/plugins/regreport/esma/` with one BizData driver `esma-envelope.xsd` (`EsmaSchemas`). Shared: `IndustryPanel` (FXML), `IdentifierKind`,
 `service/finance/FinancialIdentifiers` (IBAN, BIC, LEI, ISIN, AT UID), `plugin/XmlScan`. Docs: `docs/industry-plugins.md` (overview) + one page per plugin `docs/plugin-<id>.md`; screenshots `PluginsDocScreenshotGenerator`.
 

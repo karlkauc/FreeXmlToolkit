@@ -28,8 +28,18 @@ The extension is **off by default**: switch it on in **Settings → Extensions �
     - the UTI (an LEI followed by up to 32 letters or digits);
     - LEI and ISIN check digits, ISO 3166 country codes.
 
-  Conditional fields (*C* in ESMA's table) depend on other fields' values and are not checked yet;
-  ESMA's full rules text is in the Inspector.
+    - **conditional fields** (*C* in ESMA's table): whether they must or must not be reported depends
+      on other fields, and ESMA's rules say how - `EMIR-1.7 Field 1.7 · Clearing threshold of
+      counterparty 1 must be reported when 1.5 Nature of the counterparty 1 is N`, `EMIR-2.33 Field
+      2.33 · Central counterparty must not be reported when 2.31 Cleared is N`. Codes the schema
+      expresses by a choice of elements are read as ESMA's codes (`NFI` = N, `Clrd` = Y). Values within a
+      schedule period or another payment are compared with that period or payment only; also "at
+      least one of" and "only one of" groups (2.13 / 2.79 / 2.85 for interest rates) and codes that must
+      differ (report tracking number, prior and subsequent UTI).
+
+  Not checked are the conditions that need reference data - the kind of venue behind a MIC (regulated
+  market, systematic internaliser), GLEIF, the UPI database, the EIC code lists - and comparisons of
+  dates. ESMA's full rules text is in the Inspector.
 - **Field labels:** every element shows its EMIR field number and name, the obligation per action
   type, ESMA's rules text and the details to be reported in the Inspector's DOCUMENTATION and as grid
   tooltip - also inside the envelope.
@@ -47,7 +57,10 @@ action type (`New` = NEWT, `Mod` = MODI, `Err` = EROR, `EarlyTermntn` = ETRM, `P
 `CollUpd` = COLU, `Crrctn` = CORR, `ValtnUpd` = VALU), the level (`LvlTp`: TCTN or PSTN) and the type
 of SFT, read from the loan data (`RpTrad` repo, `BuySellBck` buy-sell back, `SctiesLndg` securities
 lending, `MrgnLndg` margin lending) - `SFTR-2.3 Field 2.3 · Event date is mandatory for action type
-COLU`. UTI, LEI and ISIN are checked too; **New SFTR Error Report (Example)** opens a fictitious report.
+COLU`. The conditional fields are checked as for EMIR, the collateral fields per collateral component
+(`SFTR-2.78 Field 2.78 · Identification of a security used as collateral must be reported when 2.75 Type of
+collateral component is SECU`); ESMA's "should" rules (lending fee, collateral or basket identifier) are
+warnings. UTI, LEI and ISIN are checked too; **New SFTR Error Report (Example)** opens a fictitious report.
 
 ## MiFIR
 

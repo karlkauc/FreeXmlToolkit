@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 
 import org.fxt.freexmltoolkit.plugins.regreport.ActionMatrix;
 import org.fxt.freexmltoolkit.plugins.regreport.CatalogChecks;
+import org.fxt.freexmltoolkit.plugins.regreport.ConditionalRules;
 import org.fxt.freexmltoolkit.plugins.regreport.FieldCatalog;
 import org.fxt.freexmltoolkit.plugins.regreport.RecordNode;
 import org.fxt.freexmltoolkit.plugins.regreport.RegRuleSet;
@@ -33,7 +34,8 @@ import org.fxt.freexmltoolkit.service.finance.FinancialIdentifiers;
  * ESMA's validation rules of the EMIR Refit trade report (auth.030.001.03) that need only the file:
  * for every report the fields that are mandatory or not applicable for its action type and level
  * ({@link ActionMatrix}, from ESMA's validation rules), the record count of the header, the UTI
- * format, and ISO code / LEI / ISIN checks. Rule ids are {@code EMIR-<field number>}.
+ * format, ISO code / LEI / ISIN checks, and the conditional fields ({@link ConditionalRules},
+ * {@code emir-conditions.json}). Rule ids are {@code EMIR-<field number>}.
  */
 public final class EmirRules {
 
@@ -45,6 +47,7 @@ public final class EmirRules {
     /** UTI (ISO 23897): the LEI of the generating entity followed by up to 32 characters. */
     static final Pattern UTI = Pattern.compile("[A-Z0-9]{18}[0-9]{2}[A-Z0-9]{0,32}");
     private static final String STATE_COUNT = "emir.count";
+    static final String CONDITIONS = "/plugins/esmareporting/emir/emir-conditions.json";
 
     private EmirRules() {
     }
@@ -54,6 +57,7 @@ public final class EmirRules {
         RegRuleSet rules = new RegRuleSet("Document/DerivsTradRpt/RptHdr", "BizData/Pyld/Document/DerivsTradRpt/RptHdr",
                 REPORT_PATHS.get(0), REPORT_PATHS.get(1));
         RegRuleSet.Rule codes = CatalogChecks.of(catalog, "EMIR", List.of("Document/DerivsTradRpt/TradData"));
+        ConditionalRules conditions = ConditionalRules.load(CONDITIONS);
         rules.record((rec, ctx, out) -> {
             if (rec.name().equals("RptHdr")) {
                 ctx.state().put("emir.header", rec);
@@ -70,6 +74,7 @@ public final class EmirRules {
             }
             String level = "PSTN".equals(action.text("Lvl")) ? "PSTN" : "TRAD";
             matrix.check(action, type, level, level.equals("PSTN") ? " at position level" : "", "EMIR", out);
+            conditions.check(action, type, level, null, matrix, "EMIR", out);
             codes.check(rec, ctx, out);
             String uti = action.text("CmonTradData/TxData/TxId/UnqTxIdr");
             if (!uti.isEmpty()) {

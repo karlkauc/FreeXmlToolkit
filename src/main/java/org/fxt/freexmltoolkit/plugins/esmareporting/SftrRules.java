@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.fxt.freexmltoolkit.plugins.regreport.ActionMatrix;
 import org.fxt.freexmltoolkit.plugins.regreport.CatalogChecks;
+import org.fxt.freexmltoolkit.plugins.regreport.ConditionalRules;
 import org.fxt.freexmltoolkit.plugins.regreport.FieldCatalog;
 import org.fxt.freexmltoolkit.plugins.regreport.RecordNode;
 import org.fxt.freexmltoolkit.plugins.regreport.RegRuleSet;
@@ -67,6 +68,7 @@ public final class SftrRules {
                 "BizData/Pyld/Document/SctiesFincgRptgTxRpt/TradData/Rpt");
         RegRuleSet.Rule codes = CatalogChecks.of(catalog, "SFTR", List.of("Document/SctiesFincgRptgTxRpt/TradData"));
         RegRuleSet.Rule identifiers = CatalogChecks.identifiersByName("SFTR");
+        ConditionalRules conditions = ConditionalRules.load("/plugins/esmareporting/sftr/sftr-conditions.json");
         rules.record((rec, ctx, out) -> {
             RecordNode action = rec.children().isEmpty() ? null : rec.children().getFirst();
             String type = action == null ? null : ACTIONS.get(action.name());
@@ -75,8 +77,10 @@ public final class SftrRules {
             }
             String level = "PSTN".equals(action.text("LvlTp")) ? "PSTN" : "TCTN";
             String sft = sftType(action);
+            String variant = level + "." + (sft != null ? sft : "SL");
+            conditions.check(action, type, variant, sft, matrix, "SFTR", out);
             if (sft != null) {
-                matrix.check(action, type, level + "." + sft, " for " + SFT_NAMES.get(sft)
+                matrix.check(action, type, variant, " for " + SFT_NAMES.get(sft)
                         + (level.equals("PSTN") ? " at position level" : ""), "SFTR", out);
             } else {
                 // reports without loan data of an SFT type (errors, collateral updates): the obligations do
