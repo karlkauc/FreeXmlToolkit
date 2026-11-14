@@ -149,6 +149,10 @@ class EditorHostRemoteImportRefreshTest {
 
         downloader.release.countDown();
         awaitRevision();
+        // The revision is raised as soon as the re-parse is started; in the Tree view the model is
+        // re-parsed in the background (setViewMode -> ensureModelParsedAsync) and installed with
+        // activeModelRevision, which the listings follow too - so wait for the model, as above.
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> typeNames().contains("RType"));
         assertTrue(typeNames().contains("RType"), "the Tree model must be re-parsed with the import");
         assertEquals(ViewMode.TREE, WaitForAsyncUtils.waitForAsyncFx(2000,
                 () -> host.activeViewModeProperty().get()));

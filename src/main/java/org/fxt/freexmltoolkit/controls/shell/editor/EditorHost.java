@@ -496,6 +496,9 @@ public class EditorHost extends BorderPane {
     /**
      * Runs on the FX thread after a background download made skipped remote imports
      * resolvable: re-parses the XSD tabs that were parsed without them, then signals observers.
+     * The re-parse may still run in the background when the revision rises (Tree/Graphic views parse
+     * asynchronously); it installs its model with {@link #activeModelRevisionProperty()}, so observers
+     * listen to both.
      */
     private void onRemoteImportsAvailable() {
         for (Tab tab : tabPane.getTabs()) {
