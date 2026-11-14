@@ -44,6 +44,7 @@ class PkMeldewesenDocScreenshotGenerator {
     @TempDir
     static Path store;
     private String previousEnabled;
+    private Path previousTemplates;
     private Parent root;
     private UnifiedShellView shell;
 
@@ -51,6 +52,10 @@ class PkMeldewesenDocScreenshotGenerator {
     void start(Stage stage) throws Exception {
         ServiceRegistry.initialize();
         System.setProperty("fxt.pk.dir", store.toString());
+        // the extension's templates go to a temporary folder, never into release/examples/templates
+        var templateFiles = org.fxt.freexmltoolkit.service.TemplateFileService.getInstance();
+        previousTemplates = templateFiles.getTemplatesDirectoryPath();
+        templateFiles.setTemplatesDirectory(store.resolve("templates"));
         PropertiesService props = ServiceRegistry.get(PropertiesService.class);
         props.set(org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlHint.SHOWN_KEY, "true");
         previousEnabled = props.get(PkSettings.ENABLED);
@@ -70,6 +75,7 @@ class PkMeldewesenDocScreenshotGenerator {
     void restore() {
         ServiceRegistry.get(PropertiesService.class).set(PkSettings.ENABLED, previousEnabled == null ? "" : previousEnabled);
         System.clearProperty("fxt.pk.dir");
+        org.fxt.freexmltoolkit.service.TemplateFileService.getInstance().setTemplatesDirectory(previousTemplates);
         PluginManager.getInstance().resetForTesting();
     }
 

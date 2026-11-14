@@ -51,7 +51,8 @@ import org.testfx.util.WaitForAsyncUtils;
 class PluginsDocScreenshotGenerator {
 
     private static final File IMG_DIR = new File("docs/img");
-    private static final List<String> PLUGINS = List.of("iso20022", "ebinterface", "findatex", "xbrl");
+    private static final List<String> PLUGINS = List.of("iso20022", "ebinterface", "findatex", "xbrl",
+            "kag-meldewesen", "esma-reporting");
 
     private final Map<String, String> previous = new java.util.HashMap<>();
     private Parent root;
@@ -144,6 +145,36 @@ class PluginsDocScreenshotGenerator {
         open(host, XBRL_INSTANCE, EditorFileType.XML, "report.xbrl");
         showActivity("xbrl");
         shot("plugin-xbrl");
+
+        // --- KAG-Meldewesen: the fictitious AIF file, checked; then with a broken LEI and period ---
+        String aif = resource("/plugins/kagmeldewesen/examples/aif-example.xml");
+        open(host, aif, EditorFileType.XML, "aif-example.xml");
+        IndustryPanel kag = showActivity("kag-meldewesen");
+        check(kag);
+        shot("plugin-kag-meldewesen");
+
+        String brokenAif = aif
+                .replaceFirst("<AIFIdentifierLEI>5299009FXTAIF0000045</AIFIdentifierLEI>",
+                        "<AIFIdentifierLEI>5299009FXTAIF0000046</AIFIdentifierLEI>")
+                .replaceFirst("<ReportingPeriodEndDate>2025-12-31</ReportingPeriodEndDate>",
+                        "<ReportingPeriodEndDate>2024-12-31</ReportingPeriodEndDate>");
+        open(host, brokenAif, EditorFileType.XML, "aif-with-errors.xml");
+        kag = showActivity("kag-meldewesen");
+        check(kag);
+        shot("plugin-kag-meldewesen-problems");
+
+        // --- ESMA Reporting: the fictitious EMIR error report, checked; then with a broken LEI ---
+        String emir = resource("/plugins/esmareporting/examples/emir-eror-example.xml");
+        open(host, emir, EditorFileType.XML, "emir-eror-example.xml");
+        IndustryPanel esma = showActivity("esma-reporting");
+        check(esma);
+        shot("plugin-esma-reporting");
+
+        String brokenEmir = emir.replace("<LEI>5299009FXTBANK000080</LEI>", "<LEI>5299009FXTBANK000081</LEI>");
+        open(host, brokenEmir, EditorFileType.XML, "emir-with-errors.xml");
+        esma = showActivity("esma-reporting");
+        check(esma);
+        shot("plugin-esma-reporting-problems");
     }
 
     /** A TPT V8.0 file with two instruments; the second has a German date, a short CIC and a bad LEI. */

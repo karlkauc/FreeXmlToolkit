@@ -11,6 +11,8 @@ The extension is **off by default**: switch it on in **Settings → Extensions �
 
 ## What it does
 
+![The ESMA Reporting panel with the example EMIR error report, checked](img/plugin-esma-reporting.png)
+
 - **Schema binding:** a report that starts with `Document` in the `auth.030.001.03` namespace is
   bound to ESMA's schema; a report in the business data envelope (`BizData`, head.003, with the
   business application header head.001) is bound to a driver schema that validates envelope, header
@@ -34,6 +36,8 @@ The extension is **off by default**: switch it on in **Settings → Extensions �
 - **Status bar badge:** `EMIR · 3 reports`, `SFTR · 1 report`, `MiFIR · 2 transactions`; the side panel lists the reports per action type.
 - **ESMA Reporting activity:** the document's summary, **Check Active Document**, an LEI/ISIN checker
   and an example error report (EROR) with fictitious data.
+
+![ESMA's rules finding a counterparty LEI with wrong check digits](img/plugin-esma-reporting-problems.png)
 
 ## SFTR
 

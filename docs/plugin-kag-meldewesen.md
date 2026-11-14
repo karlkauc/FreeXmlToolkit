@@ -19,6 +19,8 @@ The extension is **off by default**: switch it on in **Settings â†’ Extensions â
 
 ## What it does
 
+![The KAG-Meldewesen panel with the example AIF file, checked](img/plugin-kag-meldewesen.png)
+
 - **Schema binding:** both files are bound to ESMA's schemas v1.2 (shipped with the application) by
   their root element - validation (**F8**), IntelliSense, the grid and the Inspector use them.
 - **FMA rules:** the FMA's *PrÃ¼fregeln AIF / AIFM Reporting File* (as of 29.01.2024) run with every
@@ -50,6 +52,8 @@ The extension is **off by default**: switch it on in **Settings â†’ Extensions â
 - **KAG-Meldewesen activity:** what the active document is, **Check Active Document**, an identifier
   checker (LEI, ISIN, BIC) and two examples (**New AIF File**, **New AIFM File**) with fictitious data.
 - **Help menu:** **FMA AIFMD Reporting** opens the FMA's page with the rules and samples.
+
+![The FMA rules finding a reporting period that ends before it starts and an LEI with wrong check digits](img/plugin-kag-meldewesen-problems.png)
 
 Submit the files on the FMA Incoming Platform. The schemas are installed under
 `~/.freeXmlToolkit/kag-meldewesen/aifmd-1.2/`.
