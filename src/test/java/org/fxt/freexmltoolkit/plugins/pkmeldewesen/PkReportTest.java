@@ -36,6 +36,8 @@ class PkReportTest {
         PkReport ecb = PkReport.detect("<!-- c --><?pi x?>\n<EZB_Meldung_pfe GJ=\"2025\" Stichtag=\"Q4\"/>");
         assertEquals(PkModule.PFE, ecb.module());
         assertEquals("PK-EZB Q4/2025", ecb.label());
+        assertEquals("PK-EZB 2025", PkReport.detect("<EZB_Meldung_pfe GJ=\"2025\" Stichtag=\"JAHR\"/>").label(),
+                "the ECB report is annual (Stichtag JAHR)");
     }
 
     @Test

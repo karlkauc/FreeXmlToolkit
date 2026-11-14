@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.TextField?>
@@ -29,6 +30,12 @@
                         <Label fx:id="reportSummary" id="pk-report-summary" wrapText="true"/>
                     </children>
                 </VBox>
+                <PanelActionList>
+                    <children>
+                        <PanelActionButton id="pk-open-example" iconLiteral="bi-file-earmark-text"
+                                           text="%PkMeldewesenPanel.pk-open-example.text" color="NAVIGATE" onAction="#onOpenExample"/>
+                    </children>
+                </PanelActionList>
             </children>
         </SidePanelSection>
 
@@ -106,15 +113,21 @@
                 <VBox spacing="4" styleClass="fxt-tp-section-body">
                     <children>
                         <Label fx:id="taxonomyLabel" id="pk-taxonomy" wrapText="true"/>
+                        <Label text="%PkMeldewesenPanel.version.text"/>
+                        <ComboBox fx:id="versionCombo" id="pk-taxonomy-version" maxWidth="Infinity"/>
                     </children>
                 </VBox>
                 <PanelActionList>
                     <children>
                         <PanelActionButton id="pk-open-schema" iconLiteral="bi-file-earmark-code"
                                            text="%PkMeldewesenPanel.pk-open-schema.text" color="NAVIGATE" onAction="#onOpenSchema"/>
+                        <PanelActionButton id="pk-schema-doc" iconLiteral="bi-journal-code"
+                                           text="%PkMeldewesenPanel.pk-schema-doc.text" color="NAVIGATE" onAction="#onSchemaDocumentation"/>
                         <PanelActionButton id="pk-open-documentation" iconLiteral="bi-file-earmark-pdf"
                                            text="%PkMeldewesenPanel.pk-open-documentation.text" color="NAVIGATE"
                                            onAction="#onOpenDocumentation"/>
+                        <PanelActionButton id="pk-import-taxonomy" iconLiteral="bi-file-earmark-arrow-down"
+                                           text="%PkMeldewesenPanel.pk-import-taxonomy.text" color="CREATE" onAction="#onImportTaxonomy"/>
                         <PanelActionButton id="pk-open-folder" iconLiteral="bi-folder2-open"
                                            text="%PkMeldewesenPanel.pk-open-folder.text" color="NAVIGATE" onAction="#onOpenFolder"/>
                     </children>

@@ -37,6 +37,8 @@ running is shown under **Help → About FreeXmlToolkit**.
 - **Prepare Submission:** cleans the report (no grid formulas, UTF-8), checks it against the schema and the FMA
   rules, proposes the next running number and writes the ZIP under the FMA's file name
   (`34.pfq.20190331.00001.test.zip`).
+- **Newer taxonomies** are imported from the FMA's ZIP and chosen in the side panel (no restart); an example report,
+  the schema documentation, six Query Console snippets, new-file templates and favorites come with the extension.
 
 **Opening files**
 

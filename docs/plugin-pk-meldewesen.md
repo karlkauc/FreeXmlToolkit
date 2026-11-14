@@ -32,19 +32,44 @@ Administrators can remove it completely with `plugin.pk-meldewesen.enabled=false
   **PK-QMV Q1/2026**, **PK-FJMV 2025** or **PK-EZB Q4/2025**; a click opens the side panel.
 - **PK-Meldewesen activity** (side panel):
     - **ACTIVE REPORT** - module, pension fund number, report type (e.g. *Testmeldung*), LEI and
-      the taxonomy the report declares;
+      the taxonomy the report declares; **Open Example Report** opens a quarterly report of a
+      fictitious pension fund with a few rule violations to try everything out;
     - **CHECK** - **Validate Active Report** validates it against its schema and the FMA rules
       (as **F8** does); **Rule Report (HTML)** opens the rule report in the preview;
     - **GRID** - grid formulas and filters (see below);
     - **SUBMISSION** - **Prepare Submission (ZIP)…** (see below);
     - **CHECK OPTIONS** - the additional plausibility checks and the limits of the rules (see below);
-    - **TAXONOMY** - the taxonomy in use (a note appears when the report declares another one),
-      **Open Schema in Editor** (the schema of the active report's module), **FMA Documentation
-      (PDF)** and **Open Taxonomy Folder** with the workbooks.
+    - **TAXONOMY** - the taxonomy in use (a note appears when the report declares another one) and
+      the **Taxonomy version** to use, **Import FMA Taxonomy (ZIP)…** (see below), **Open Schema in
+      Editor** (the schema of the active report's module), **Schema Documentation (HTML)**, **FMA
+      Documentation (PDF)** and **Open Taxonomy Folder** with the workbooks.
 - **Help menu:** links to the FMA's pension fund reporting page and to the FMA Incoming Platform,
   where the reports are submitted.
 
 The taxonomy is installed under `~/.freeXmlToolkit/pk-meldewesen/<version>/`.
+
+## Newer taxonomies
+
+The FMA publishes each taxonomy as a ZIP file on its PK-Meldewesen page (an automatic download is not
+possible). **TAXONOMY → Import FMA Taxonomy (ZIP)…** takes the schemas (`pk_meldung_pf?_<version>.xsd`),
+the workbooks and the documentation from it - other files are skipped - into a folder named after
+the schemas' version, e.g. `2.10.0-hotfix1`. Importing the same version again replaces it.
+
+The newest installed version is used unless another is chosen under **Taxonomy version**. The
+choice applies at once: reports opened from then on are bound to its schemas (they are registered
+from a copy in `_active/`), and the FMA labels come from its workbooks. The FMA rules are those of
+taxonomy 2.9.0 Hotfix2 whatever version is chosen.
+
+## Query snippets, templates and favorites
+
+Once the extension is used, it adds:
+
+- six analysis queries to the **Query Console** snippets (tag `pk-meldewesen`): balance sheet total
+  per VRG, market value per CIC category, positions without ISIN, the ten largest positions, the
+  not looked-through share per fund and the derivatives;
+- three templates for **File → New** (category *PK-Meldewesen*): the quarterly, annual and ECB report
+  with the master data of the total VRG (PK.000.01);
+- favorites (folder *PK-Meldewesen*) for the three schemas and the FMA documentation.
 
 ## FMA rules (quarterly report)
 
@@ -135,6 +160,3 @@ Real quarterly reports can be 150 MB and more. The extension reads only the star
 to recognise it. For files above 50 MB the editor offers the [Large File Viewer](large-files.md),
 which validates against the bound schema while streaming the file.
 
-## Planned
-
-Importing newer taxonomies follows in the next version.

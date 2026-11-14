@@ -1,0 +1,44 @@
+[
+  {
+    "key": "balance-per-vrg",
+    "name": "PK: Balance sheet total per VRG (PNR 800)",
+    "description": "Formblatt 800: R800-800 (Bilanzwert) of every VRG, with the VRG's name and kind (PK.000.01).",
+    "category": "ANALYSIS",
+    "query": "for $t in /*/*[starts-with(name(), 'PK.800.01_')]\nlet $v := string($t/@VRG)\nlet $stamm := /*/*[starts-with(name(), 'PK.000.01_')][@VRG = $v]\norder by xs:integer(($v[. castable as xs:integer], 0)[1])\nreturn string-join(('VRG ' || $v, normalize-space($stamm/*[RowCode = 'R000-110']/Wert), 'Art ' || normalize-space($stamm/*[RowCode = 'R000-120']/Wert), format-number(sum($t/*[normalize-space(RowCode) = 'R800-800']/Wert[. castable as xs:decimal] ! xs:decimal(.)), '#,##0.00')), ' | ')"
+  },
+  {
+    "key": "market-value-per-cic",
+    "name": "PK: Market value per CIC category",
+    "description": "List of Assets: market value (C1110PK) of the positions per VRG and CIC category (3rd character of the CIC in PK.006.02.01.02).",
+    "category": "ANALYSIS",
+    "query": "for $t in /*/*[starts-with(name(), 'PK.006.02.01.01_')]\nlet $v := string($t/@VRG)\nlet $info := /*/*[starts-with(name(), 'PK.006.02.01.02_')][@VRG = $v]/Datenpunkt\nfor $p in $t/Datenpunkt\nlet $cic := normalize-space(($info[Wert_C0010PK = $p/Wert_C0010PK]/Wert_C0230)[1])\ngroup by $v, $cat := substring($cic, 3, 1)\norder by number($v), $cat\nreturn string-join(('VRG ' || $v, 'CIC ##' || $cat || '#', count($p) || ' positions', format-number(sum($p/Wert_C1110PK[. castable as xs:decimal] ! xs:decimal(.)), '#,##0.00')), ' | ')"
+  },
+  {
+    "key": "positions-without-isin",
+    "name": "PK: Positions without ISIN",
+    "description": "List of Assets: positions whose type of code (C0020PK) is not ISIN.",
+    "category": "FILTERING",
+    "query": "for $p in /*/*[starts-with(name(), 'PK.006.02.01.01_')]/Datenpunkt[normalize-space(Wert_C0020PK) ne 'ISIN']\nreturn string-join(('VRG ' || $p/../@VRG, normalize-space($p/Wert_C0010PK), normalize-space($p/Wert_C0020PK), normalize-space($p/Wert_C1120PK)), ' | ')"
+  },
+  {
+    "key": "top-positions",
+    "name": "PK: Top 10 positions by balance sheet value",
+    "description": "List of Assets: the ten largest positions (C1100PK) over all VRG, with their name from PK.006.02.01.02.",
+    "category": "ANALYSIS",
+    "query": "let $info := /*/*[starts-with(name(), 'PK.006.02.01.02_')]/Datenpunkt\nlet $top := (for $p in /*/*[starts-with(name(), 'PK.006.02.01.01_')]/Datenpunkt[Wert_C1100PK castable as xs:decimal]\n  order by xs:decimal($p/Wert_C1100PK) descending\n  return $p)[position() le 10]\nfor $p in $top\nreturn string-join(('VRG ' || $p/../@VRG, normalize-space($p/Wert_C0010PK), normalize-space(($info[../@VRG = $p/../@VRG][Wert_C0010PK = $p/Wert_C0010PK]/Wert_C0130)[1]), format-number(xs:decimal($p/Wert_C1100PK), '#,##0.00')), ' | ')"
+  },
+  {
+    "key": "look-through-ratio",
+    "name": "PK: Not looked-through share per fund",
+    "description": "Look-through (PK.006.03): per VRG and fund the market value, the part reported as category 4 (not looked through) and its share.",
+    "category": "ANALYSIS",
+    "query": "for $d in /*/*[starts-with(name(), 'PK.006.03_')]/Datenpunkt\nlet $mw := ($d/Wert_C1110PK[. castable as xs:decimal] ! xs:decimal(.), 0)[1]\ngroup by $v := string($d/../@VRG), $fund := normalize-space($d/Wert_C0010PK)\nlet $total := sum($mw)\nlet $open := sum(for $x in $d[normalize-space(Wert_C0030PK) eq '4'] return ($x/Wert_C1110PK[. castable as xs:decimal] ! xs:decimal(.), 0)[1])\norder by number($v), $open descending\nreturn string-join(('VRG ' || $v, $fund, format-number($total, '#,##0.00'), format-number($open, '#,##0.00'), if ($total ne 0) then format-number($open div $total * 100, '0.00') || ' %' else '-'), ' | ')"
+  },
+  {
+    "key": "derivatives",
+    "name": "PK: Derivatives",
+    "description": "Derivatives (PK.008.01.01.01) per VRG with their asset id and all reported fields.",
+    "category": "EXTRACTION",
+    "query": "for $d in /*/*[starts-with(name(), 'PK.008.01.01.01_')]/Datenpunkt\nreturn string-join(('VRG ' || $d/../@VRG, for $f in $d/*[starts-with(name(), 'Wert_')] return substring-after(name($f), 'Wert_') || '=' || normalize-space($f)), ' | ')"
+  }
+]

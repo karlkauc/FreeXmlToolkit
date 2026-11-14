@@ -51,6 +51,9 @@ public final class PkMeldewesenPanel extends VBox {
     @FXML private Label taxonomyLabel;
     @FXML private Label status;
     @FXML private ProgressBar progress;
+    @FXML private javafx.scene.control.ComboBox<String> versionCombo;
+    /** Set while the combo is filled, so filling it does not choose a version. */
+    private boolean fillingVersions;
     @FXML private CheckBox additionalChecks;
     @FXML private TextField tolerance;
     @FXML private TextField toleranceWarning;
@@ -75,6 +78,15 @@ public final class PkMeldewesenPanel extends VBox {
         getStyleClass().add("fxt-wf-pension");
         refreshDelay.setOnFinished(e -> refresh());
         loadOptions();
+        fillVersions();
+        if (PkSettings.isEnabled()) {
+            PkExtras.registerOnce(taxonomy);
+        }
+        versionCombo.valueProperty().addListener((obs, o, n) -> {
+            if (!fillingVersions && n != null && !n.equals(taxonomy.activeVersion())) {
+                chooseVersion(n);
+            }
+        });
         ui.editorHost().activeTabProperty().addListener((obs, o, n) -> Platform.runLater(this::watchActive));
         watchActive();
     }
@@ -138,6 +150,66 @@ public final class PkMeldewesenPanel extends VBox {
             return;
         }
         ui.editorHost().runValidation();
+    }
+
+    /** Lists the installed taxonomy versions, the one in use selected. */
+    private void fillVersions() {
+        fillingVersions = true;
+        try {
+            versionCombo.getItems().setAll(taxonomy.versions());
+            versionCombo.getSelectionModel().select(taxonomy.activeVersion());
+        } finally {
+            fillingVersions = false;
+        }
+    }
+
+    /** Uses another taxonomy version: its schemas are bound from now on (reports opened again pick them up). */
+    void chooseVersion(String version) {
+        FxtGui.executorService.submit(() -> {
+            taxonomy.setActiveVersion(version);
+            PkDictionary.active(taxonomy);
+            Platform.runLater(() -> {
+                refresh();
+                PanelStatus.success(status, I18n.t("PkMeldewesenPanel.version-chosen", version));
+            });
+        });
+    }
+
+    /** Imports a taxonomy from the FMA's download ZIP and uses it when it is the newest. */
+    @FXML
+    public void onImportTaxonomy() {
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle(I18n.t("PkMeldewesenPanel.pk-import-taxonomy.text"));
+        chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("ZIP", "*.zip"));
+        java.io.File zip = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, ui.window());
+        if (zip != null) {
+            importTaxonomy(zip.toPath());
+        }
+    }
+
+    /** Imports a taxonomy ZIP in the background (also the test entry point). */
+    void importTaxonomy(Path zip) {
+        showProgress(true);
+        FxtGui.executorService.submit(() -> {
+            try {
+                String version = taxonomy.importZip(zip);
+                PkDictionary.forget(taxonomy.dir(version));
+                taxonomy.syncActive();
+                Platform.runLater(() -> {
+                    showProgress(false);
+                    fillVersions();
+                    refresh();
+                    PanelStatus.success(status, I18n.t("PkMeldewesenPanel.imported", version, taxonomy.activeVersion()));
+                });
+            } catch (java.io.IOException | RuntimeException e) {
+                Platform.runLater(() -> {
+                    showProgress(false);
+                    PanelStatus.failure(status, I18n.t("PkMeldewesenPanel.pk-import-taxonomy.text"),
+                            I18n.t("PkMeldewesenPanel.import-failed"), I18n.t("PkMeldewesenPanel.import-remedy"),
+                            String.valueOf(e.getMessage()), false);
+                });
+            }
+        });
     }
 
     /** Shows the stored rule options and saves every change. */
@@ -411,6 +483,54 @@ public final class PkMeldewesenPanel extends VBox {
         progress.setProgress(javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS);
         progress.setVisible(on);
         progress.setManaged(on);
+    }
+
+    /** The bundled example report (a fictitious pension fund with a few rule violations). */
+    static final String EXAMPLE = "/plugins/pkmeldewesen/examples/99.pfq.20260331.00001.test.xml";
+
+    /** Opens the example quarterly report as a new document. */
+    @FXML
+    public void onOpenExample() {
+        try (var in = PkMeldewesenPanel.class.getResourceAsStream(EXAMPLE)) {
+            String xml = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+            ui.editorHost().openGeneratedDocument(xml, EditorFileType.XML, "99.pfq.20260331.00001.test.xml");
+        } catch (java.io.IOException | RuntimeException e) {
+            PanelStatus.info(status, String.valueOf(e.getMessage()));
+        }
+    }
+
+    /** Generates the HTML documentation of the active report's schema (once per version) and opens it. */
+    @FXML
+    public void onSchemaDocumentation() {
+        PkReport report = activeReport();
+        PkModule module = report != null ? report.module() : PkModule.PFQ;
+        String version = taxonomy.activeVersion();
+        Path schema = taxonomy.schema(version, module);
+        if (schema == null) {
+            PanelStatus.info(status, I18n.t("PkMeldewesenPanel.no-schema"));
+            return;
+        }
+        java.io.File out = taxonomy.dir(version).resolve("schema-doc-" + module.code()).toFile();
+        java.io.File index = new java.io.File(out, "index.html");
+        if (index.isFile()) {
+            DesktopActions.open(index, e -> PanelStatus.info(status, String.valueOf(e.getMessage())));
+            return;
+        }
+        PanelStatus.info(status, I18n.t("PkMeldewesenPanel.schema-doc-running"));
+        showProgress(true);
+        FxtGui.executorService.submit(() -> {
+            String result = org.fxt.freexmltoolkit.controls.shell.editor.DocumentationRunner.exportHtml(schema.toFile(), out);
+            Platform.runLater(() -> {
+                showProgress(false);
+                if (result.startsWith("OK:")) {
+                    PanelStatus.success(status, I18n.t("PkMeldewesenPanel.schema-doc-done"));
+                    DesktopActions.open(index, e -> PanelStatus.info(status, String.valueOf(e.getMessage())));
+                } else {
+                    PanelStatus.failure(status, I18n.t("PkMeldewesenPanel.pk-schema-doc.text"),
+                            I18n.t("PkMeldewesenPanel.schema-doc-failed"), I18n.t("PkMeldewesenPanel.report-remedy"), result, false);
+                }
+            });
+        });
     }
 
     @FXML

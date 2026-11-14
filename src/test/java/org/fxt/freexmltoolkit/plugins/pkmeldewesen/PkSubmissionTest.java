@@ -31,6 +31,7 @@ class PkSubmissionTest {
         assertEquals("20260331", PkSubmission.referenceDate(Q1));
         assertEquals("20251231", PkSubmission.referenceDate(report("Nationale_Meldung_pfa", "GJ=\"2025\" Stichtag=\"J\"")));
         assertEquals("20250930", PkSubmission.referenceDate(report("EZB_Meldung_pfe", "GJ=\"2025\" Stichtag=\"q3\"")));
+        assertEquals("20251231", PkSubmission.referenceDate(report("EZB_Meldung_pfe", "GJ=\"2025\" Stichtag=\"JAHR\"")));
         assertNull(PkSubmission.referenceDate(report("Nationale_Meldung_pfq", "GJ=\"2025\" Stichtag=\"X\"")));
         assertNull(PkSubmission.referenceDate(report("Nationale_Meldung_pfq", "Stichtag=\"Q1\"")));
     }

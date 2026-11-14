@@ -102,6 +102,11 @@ public final class PkDictionary {
         return CACHE.computeIfAbsent(taxonomyDir.toAbsolutePath().normalize(), PkDictionary::load);
     }
 
+    /** Drops a loaded dictionary (after its taxonomy was imported again). */
+    static synchronized void forget(Path taxonomyDir) {
+        CACHE.remove(taxonomyDir.toAbsolutePath().normalize());
+    }
+
     /** @return the dictionary if it is loaded already, else {@code null} (never reads) */
     static synchronized PkDictionary ifLoaded(Path taxonomyDir) {
         return CACHE.get(taxonomyDir.toAbsolutePath().normalize());

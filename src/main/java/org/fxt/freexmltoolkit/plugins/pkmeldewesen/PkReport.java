@@ -69,7 +69,9 @@ public record PkReport(PkModule module, Map<String, String> attributes) {
         StringBuilder text = new StringBuilder(module.shortName());
         String period = period();
         String year = year();
-        if (period != null && !period.isBlank() && module != PkModule.PFA) {
+        boolean annual = period == null || period.isBlank() || module == PkModule.PFA
+                || period.strip().equalsIgnoreCase("JAHR") || period.strip().equalsIgnoreCase("J");
+        if (!annual) {
             text.append(' ').append(period);
             if (year != null && !year.isBlank()) {
                 text.append('/').append(year);

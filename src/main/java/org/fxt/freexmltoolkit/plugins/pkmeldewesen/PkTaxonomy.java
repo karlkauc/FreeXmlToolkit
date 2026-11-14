@@ -108,7 +108,8 @@ public final class PkTaxonomy {
         List<String> versions = new ArrayList<>();
         if (Files.isDirectory(baseDir)) {
             try (Stream<Path> dirs = Files.list(baseDir)) {
-                dirs.filter(d -> Files.isDirectory(d) && schemaIn(d, PkModule.PFQ) != null)
+                dirs.filter(d -> Files.isDirectory(d) && !d.getFileName().toString().startsWith("_")
+                                && schemaIn(d, PkModule.PFQ) != null)
                         .map(d -> d.getFileName().toString()).forEach(versions::add);
             } catch (IOException e) {
                 logger.debug("Could not list PK taxonomies: {}", e.getMessage());
@@ -158,6 +159,150 @@ public final class PkTaxonomy {
             String lower = name.toLowerCase(Locale.ROOT);
             return lower.endsWith(".xlsx") && lower.contains(word);
         });
+    }
+
+    /** The folder of the stable copies of the active version's schemas (registered in the Schema Library). */
+    static final String ACTIVE_DIR = "_active";
+    /** The largest file taken from a taxonomy ZIP. */
+    static final long MAX_ENTRY = 64L * 1024 * 1024;
+    private static final java.util.regex.Pattern XSD_NAME =
+            java.util.regex.Pattern.compile("pk_meldung_(pf[qae])_(.+)\\.xsd", java.util.regex.Pattern.CASE_INSENSITIVE);
+
+    /** Chooses the version in use (empty or {@code null}: the newest) and updates the active schemas. */
+    public void setActiveVersion(String version) {
+        PkSettings.set(PkSettings.TAXONOMY_VERSION, version == null ? "" : version);
+        syncActive();
+    }
+
+    /**
+     * The schema of a module as registered in the Schema Library: a copy of the active version's
+     * schema at a path that does not change with the version, so choosing another version needs no
+     * restart (open reports pick it up when they are opened again).
+     *
+     * @return the stable schema path, or {@code null} when the active version has no schema for the module
+     */
+    public Path activeSchema(PkModule module) {
+        syncActive();
+        Path stable = baseDir.resolve(ACTIVE_DIR).resolve("pk_meldung_" + module.code() + ".xsd");
+        return Files.isRegularFile(stable) ? stable : null;
+    }
+
+    /** Copies the active version's schemas to {@link #ACTIVE_DIR} unless they are there already. */
+    synchronized void syncActive() {
+        String version = activeVersion();
+        Path active = baseDir.resolve(ACTIVE_DIR);
+        Path marker = active.resolve("VERSION");
+        try {
+            if (Files.isRegularFile(marker) && Files.readString(marker).strip().equals(version)) {
+                return;
+            }
+            Files.createDirectories(active);
+            for (PkModule module : PkModule.values()) {
+                Path source = schema(version, module);
+                Path target = active.resolve("pk_meldung_" + module.code() + ".xsd");
+                if (source == null) {
+                    Files.deleteIfExists(target);
+                    continue;
+                }
+                Path temp = Files.createTempFile(active, "pk", ".part");
+                Files.copy(source, temp, StandardCopyOption.REPLACE_EXISTING);
+                Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            }
+            Files.writeString(marker, version);
+        } catch (IOException e) {
+            logger.warn("Could not update the active PK schemas: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * @param xsdName a schema file name of the FMA ({@code pk_meldung_pfq_2.9.0_Hotfix2.xsd})
+     * @return the version folder name ({@code 2.9.0-hotfix2}), or {@code null} for another file
+     */
+    static String versionOf(String xsdName) {
+        java.util.regex.Matcher m = XSD_NAME.matcher(xsdName);
+        if (!m.matches()) {
+            return null;
+        }
+        String version = m.group(2).strip().toLowerCase(Locale.ROOT).replace('_', '-').replace(' ', '-');
+        return version.matches("[0-9a-z.\\-]+") ? version : null;
+    }
+
+    /**
+     * Imports a taxonomy from the FMA's download ZIP: its schemas, workbooks and documentation go into
+     * a version folder named after the schemas' version. Only the file names count (folders in the
+     * ZIP are ignored, so nothing can be written outside the store); other files are skipped. An
+     * existing version folder is replaced.
+     *
+     * @return the imported version
+     * @throws IOException when the ZIP holds no FMA schema or cannot be read
+     */
+    public String importZip(Path zip) throws IOException {
+        Path staging = Files.createTempDirectory(Files.createDirectories(baseDir), "_import");
+        try {
+            String version = null;
+            try (java.util.zip.ZipInputStream in = new java.util.zip.ZipInputStream(Files.newInputStream(zip))) {
+                java.util.zip.ZipEntry entry;
+                while ((entry = in.getNextEntry()) != null) {
+                    if (entry.isDirectory()) {
+                        continue;
+                    }
+                    String name = entry.getName().replace('\\', '/');
+                    name = name.substring(name.lastIndexOf('/') + 1);
+                    String lower = name.toLowerCase(Locale.ROOT);
+                    if (name.isEmpty() || name.startsWith(".") || name.startsWith("~")
+                            || !(lower.endsWith(".xsd") || lower.endsWith(".xlsx") || lower.endsWith(".pdf"))) {
+                        continue;
+                    }
+                    String xsdVersion = lower.endsWith(".xsd") ? versionOf(name) : null;
+                    if (xsdVersion != null) {
+                        if (version != null && !version.equals(xsdVersion)) {
+                            throw new IOException("The ZIP holds schemas of two versions: " + version + ", " + xsdVersion);
+                        }
+                        version = xsdVersion;
+                    }
+                    copyLimited(in, staging.resolve(name));
+                }
+            }
+            if (version == null) {
+                throw new IOException("The ZIP holds no FMA schema (pk_meldung_pfq_<version>.xsd).");
+            }
+            Path target = baseDir.resolve(version);
+            deleteTree(target);
+            Files.move(staging, target, StandardCopyOption.ATOMIC_MOVE);
+            if (version.equals(activeVersion())) {
+                Files.deleteIfExists(baseDir.resolve(ACTIVE_DIR).resolve("VERSION"));
+                syncActive();
+            }
+            return version;
+        } finally {
+            deleteTree(staging);
+        }
+    }
+
+    private static void copyLimited(InputStream in, Path target) throws IOException {
+        try (var out = Files.newOutputStream(target)) {
+            byte[] buffer = new byte[65_536];
+            long total = 0;
+            int read;
+            while ((read = in.read(buffer)) > 0) {
+                total += read;
+                if (total > MAX_ENTRY) {
+                    throw new IOException(target.getFileName() + " is larger than " + MAX_ENTRY / (1024 * 1024) + " MB.");
+                }
+                out.write(buffer, 0, read);
+            }
+        }
+    }
+
+    private static void deleteTree(Path dir) throws IOException {
+        if (!Files.exists(dir)) {
+            return;
+        }
+        try (Stream<Path> walk = Files.walk(dir)) {
+            for (Path p : walk.sorted(Comparator.reverseOrder()).toList()) {
+                Files.deleteIfExists(p);
+            }
+        }
     }
 
     private static Path schemaIn(Path dir, PkModule module) {

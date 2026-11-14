@@ -107,6 +107,7 @@ public final class PkMeldewesenPlugin implements FxtPlugin {
                 showHint(ui);
             } else if (PkSettings.isEnabled() && PkReport.detect(content) != null) {
                 dictionary(); // starts loading the labels in the background
+                PkExtras.registerOnce(taxonomy); // snippets, templates, favorites
                 PkCodeHover.installOn(ui.editorHost().getActiveCodeArea(), this::dictionary);
             }
         });
@@ -121,12 +122,12 @@ public final class PkMeldewesenPlugin implements FxtPlugin {
             if (taxonomy.schema(PkTaxonomy.BUNDLED_VERSION, PkModule.PFQ) == null) {
                 taxonomy.ensureBundled();
             }
-            String version = taxonomy.activeVersion();
             for (PkModule module : PkModule.values()) {
-                Path schema = taxonomy.schema(version, module);
+                // a stable copy: choosing another version updates it without a restart
+                Path schema = taxonomy.activeSchema(module);
                 if (schema != null) {
                     context.addSchema(new PluginSchema(null, schema.toAbsolutePath().toString(),
-                            "FMA PK-Meldewesen " + module.title() + " (" + module.shortName() + "), Taxonomie " + version,
+                            "FMA PK-Meldewesen " + module.title() + " (" + module.shortName() + "), active taxonomy",
                             module.rootElement()));
                 }
             }

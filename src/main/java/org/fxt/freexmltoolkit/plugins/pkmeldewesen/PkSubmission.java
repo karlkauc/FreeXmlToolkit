@@ -52,8 +52,8 @@ public final class PkSubmission {
     }
 
     /**
-     * @return the reference date of the report as {@code YYYYMMDD} (Q1 → 0331 … Q4 → 1231, annual →
-     *         1231), or {@code null} when the year or period is missing
+     * @return the reference date of the report as {@code YYYYMMDD} (Q1 → 0331 … Q4 → 1231; {@code JAHR},
+     *         the annual and the ECB report → 1231), or {@code null} when the year or period is missing
      */
     public static String referenceDate(PkReport report) {
         String year = report.year();
@@ -65,7 +65,7 @@ public final class PkSubmission {
             case "Q1" -> "0331";
             case "Q2" -> "0630";
             case "Q3" -> "0930";
-            case "Q4" -> "1231";
+            case "Q4", "J", "JAHR" -> "1231";
             default -> report.module() == PkModule.PFA ? "1231" : null;
         };
         return day == null ? null : year + day;
