@@ -3525,6 +3525,8 @@ running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
 <li><strong>SFTR reports</strong> (auth.052) are checked the same way, per action type, level and type of SFT.</li>
 <li><strong>Conditional EMIR and SFTR fields:</strong> ESMA's rules for the fields marked <em>C</em> - reported only when other fields
   say so, or never then - are checked too (174 rules for EMIR, 104 for SFTR; SFTR collateral per component).</li>
+<li><strong>Dates in EMIR and SFTR reports</strong> are checked in the order ESMA requires - execution, valuation, confirmation,
+  clearing, event, expiration, maturity and termination against each other and against the reporting timestamp.</li>
 <li><strong>MiFIR transaction reports</strong> (auth.016) are checked with ESMA's content rules: venue and trading capacity, LEIs,
   ISINs, CONCAT codes, currencies and the instrument fields the CFI code requires or forbids.</li>
 </ul>
