@@ -56,4 +56,58 @@ class SpreadsheetConverterDialogTest {
         var settings = WaitForAsyncUtils.waitForAsyncFx(2000, () -> dialog.currentSettings());
         assertEquals(',', settings.delimiter().config().getDelimiter());
     }
+
+    @Test
+    void startsWithTheGivenDirectionAndOffersTheActiveCsv() {
+        java.io.File csv = new java.io.File("/tmp/orders.csv");
+        var settings = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            dialog.setActiveInput(csv);
+            dialog.setDirection(SpreadsheetConverterDialog.Direction.SPREADSHEET_TO_XML);
+            return dialog.currentSettings();
+        });
+        assertEquals(SpreadsheetConverterDialog.Direction.SPREADSHEET_TO_XML, settings.direction());
+        assertEquals(csv, settings.input(), "the active CSV is read without asking for a file");
+        var useActive = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> (javafx.scene.control.CheckBox) dialog.getDialogPane().lookup("#spreadsheet-use-active-input"));
+        assertTrue(useActive.isVisible());
+        assertTrue(useActive.getText().contains("orders.csv"));
+
+        var unchecked = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            useActive.setSelected(false);
+            return dialog.currentSettings();
+        });
+        assertNull(unchecked.input(), "unchecked: the import asks for a file");
+        var export = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            useActive.setSelected(true);
+            dialog.setDirection(SpreadsheetConverterDialog.Direction.XML_TO_SPREADSHEET);
+            return dialog.currentSettings();
+        });
+        assertNull(export.input(), "an export has no input file");
+        assertTrue(useActive.isDisabled());
+    }
+
+    @Test
+    void theActiveInputOptionIsHiddenWithoutACsv() {
+        var useActive = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> (javafx.scene.control.CheckBox) dialog.getDialogPane().lookup("#spreadsheet-use-active-input"));
+        assertFalse(useActive.isVisible());
+        assertNull(WaitForAsyncUtils.waitForAsyncFx(2000, () -> dialog.currentSettings()).input());
+    }
+
+    @Test
+    void theActiveCsvSetsFormatAndItsDelimiter(@org.junit.jupiter.api.io.TempDir java.nio.file.Path tmp)
+            throws Exception {
+        var csv = java.nio.file.Files.writeString(tmp.resolve("orders.csv"), "id;name;qty\n1;a,b;2\n").toFile();
+        var settings = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            dialog.setActiveInput(csv);
+            dialog.setDirection(SpreadsheetConverterDialog.Direction.SPREADSHEET_TO_XML);
+            return dialog.currentSettings();
+        });
+        assertEquals(SpreadsheetConverterDialog.Format.CSV, settings.format());
+        assertEquals(SpreadsheetConverterDialog.Delimiter.SEMICOLON, settings.delimiter());
+        assertEquals(SpreadsheetConverterDialog.Delimiter.TAB,
+                SpreadsheetConverterDialog.guessDelimiter(tmp.resolve("x.tsv").toFile()));
+        assertEquals(SpreadsheetConverterDialog.Delimiter.COMMA,
+                SpreadsheetConverterDialog.guessDelimiter(tmp.resolve("missing.csv").toFile()));
+    }
 }

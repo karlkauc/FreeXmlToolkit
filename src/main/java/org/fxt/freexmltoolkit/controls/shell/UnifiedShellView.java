@@ -2477,6 +2477,16 @@ public class UnifiedShellView extends BorderPane {
     private boolean spreadsheetConversionRunning;
 
     private void convertSpreadsheet() {
+        convertSpreadsheet(null);
+    }
+
+    /**
+     * Opens the Spreadsheet Converter. Without a {@code direction} it starts with Spreadsheet → XML when the
+     * active document is no XML (a CSV file was converted "to a spreadsheet" and failed as malformed XML,
+     * telemetry 3.2.0); a saved active CSV document is offered as the import's input.
+     */
+    private void convertSpreadsheet(
+            org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetConverterDialog.Direction direction) {
         if (spreadsheetConversionRunning) {
             org.fxt.freexmltoolkit.util.DialogHelper.showInformation(I18n.t("UnifiedShellView.spreadsheet-converter"),
                     I18n.t("UnifiedShellView.a-conversion-is-still-running"), I18n.t("UnifiedShellView.wait-until-it-has-finished"));
@@ -2486,7 +2496,25 @@ public class UnifiedShellView extends BorderPane {
         if (getScene() != null) {
             dialog.initOwner(getScene().getWindow());
         }
+        var doc = editorHost.getActiveDocument().orElse(null);
+        java.io.File activeCsv = activeCsvFile(doc);
+        dialog.setActiveInput(activeCsv);
+        if (direction != null) {
+            dialog.setDirection(direction);
+        } else if (doc != null && (activeCsv != null || !doc.getFileType().isXmlFamily())) {
+            dialog.setDirection(
+                    org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetConverterDialog.Direction.SPREADSHEET_TO_XML);
+        }
         dialog.showAndWait().ifPresent(this::performConversion);
+    }
+
+    /** The active document's file when it is a saved CSV/TSV file, else {@code null}. */
+    static java.io.File activeCsvFile(org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument doc) {
+        if (doc == null || doc.getPath() == null || doc.isDirty()) {
+            return null;
+        }
+        String name = doc.getPath().getFileName().toString().toLowerCase(java.util.Locale.ROOT);
+        return name.endsWith(".csv") || name.endsWith(".tsv") ? doc.getPath().toFile() : null;
     }
 
     private void performConversion(
@@ -2523,9 +2551,16 @@ public class UnifiedShellView extends BorderPane {
                                 .exportToCsv(xml, out, settings.delimiter().config(), settings.config(), cellTypes);
                 org.fxt.freexmltoolkit.service.telemetry.UsageEvents.spreadsheetConverted("to_spreadsheet", format,
                         result.telemetryStatus(), start, xml.length(), result.error());
+                // no element at all: the document is no XML (a CSV opened in the editor), not a broken one
+                boolean notXml = result.error() instanceof org.xml.sax.SAXParseException
+                        && org.fxt.freexmltoolkit.service.telemetry.ElementCounter.countStartTags(xml) == 0;
                 javafx.application.Platform.runLater(() -> {
                     done.run();
-                    reportConversion(result, out, false);
+                    if (notXml) {
+                        reportNotXml();
+                    } else {
+                        reportConversion(result, out, false);
+                    }
                 });
             });
         } else {
@@ -2533,7 +2568,8 @@ public class UnifiedShellView extends BorderPane {
             chooser.setTitle(I18n.t("UnifiedShellView.import-spreadsheet"));
             chooser.getExtensionFilters().add(
                     new javafx.stage.FileChooser.ExtensionFilter("Excel / CSV", "*.xlsx", "*.csv"));
-            java.io.File in = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, window);
+            java.io.File in = settings.input() != null ? settings.input()
+                    : org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, window);
             if (in == null) {
                 return;
             }
@@ -2587,6 +2623,22 @@ public class UnifiedShellView extends BorderPane {
                 statusLastRun.setText(previousText);
             }
         };
+    }
+
+    /**
+     * The document to export contains no XML element: it is no XML, so "fix the document" is the wrong
+     * advice. Offers the other direction instead.
+     */
+    private void reportNotXml() {
+        String title = I18n.t("UnifiedShellView.spreadsheet-converter");
+        boolean switchDirection = org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation(title,
+                        I18n.t("UnifiedShellView.spreadsheet-not-xml"),
+                        I18n.t("UnifiedShellView.spreadsheet-not-xml-hint"),
+                        I18n.t("UnifiedShellView.spreadsheet-to-xml"), I18n.t("UnifiedShellView.close"));
+        if (switchDirection) {
+            convertSpreadsheet(
+                    org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetConverterDialog.Direction.SPREADSHEET_TO_XML);
+        }
     }
 
     private void reportConversion(org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner.Result result,

@@ -534,6 +534,11 @@ Choose **Tools → Spreadsheet Converter…** (Ctrl+E) to open the converter dia
 - **Excel to XML**: Import Excel data as XML
 - **CSV to XML**: Import CSV data as XML
 
+When the active document is no XML (a CSV file, for example), the dialog starts with **Spreadsheet → XML**. A saved
+CSV or TSV document is offered as the input (**Convert the active document**, on by default), with the format set to
+CSV and the delimiter taken from its first line; untick it to pick another file. Exporting a document that contains
+no XML element at all says so and offers **Convert Spreadsheet → XML…** instead of reporting it as malformed XML.
+
 The Excel workbook looks like the Data Dictionary export: a dark header row that stays in
 view while you scroll, striped rows, XPaths in a monospace font, and container elements in
 bold. It also has an AutoFilter and prints one page wide.

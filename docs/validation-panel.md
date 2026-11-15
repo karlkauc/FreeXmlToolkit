@@ -91,7 +91,8 @@ Inspector's badge: bind an XSD in SOURCES to validate against a schema).
 The **RESULTS** list and the panel's own **PROBLEMS** list are only shown in **Batch**
 mode. In **Single file** mode the problems are listed in the PROBLEMS panel below the
 editor, and the side panel shows a single row such as *"3 problems — show below the
-editor"* - click it to expand and focus that PROBLEMS panel.
+editor"* - click it to expand that PROBLEMS panel and show the first problem (or the one selected there) in the
+editor; every click shows it again.
 
 ## Problems
 

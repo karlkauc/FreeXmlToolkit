@@ -96,9 +96,19 @@ public class ProblemsPanel extends VBox {
         editorHost.problemsRevealRequestsProperty().addListener((obs, oldV, newV) -> {
             setCollapsed(false);
             list.requestFocus();
-            if (!items.isEmpty() && list.getSelectionModel().isEmpty()) {
-                list.getFocusModel().focus(0);
+            if (items.isEmpty()) {
+                return;
             }
+            // Every request shows a problem in the editor: with the dock already open, only expanding
+            // and focusing changed nothing visible (telemetry: "show problems" clicked 13 times in a row).
+            ValidationProblem selected = list.getSelectionModel().getSelectedItem();
+            if (selected == null) {
+                list.getSelectionModel().select(0); // the selection listener reveals it
+                list.getFocusModel().focus(0);
+            } else if (selected.line() > 0) {
+                editorHost.revealProblem(selected.line(), selected.column(), selected.message());
+            }
+            list.scrollTo(list.getSelectionModel().getSelectedIndex());
         });
         refresh();
     }

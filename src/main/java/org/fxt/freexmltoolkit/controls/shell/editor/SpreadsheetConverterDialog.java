@@ -53,13 +53,24 @@ public class SpreadsheetConverterDialog extends Dialog<SpreadsheetConverterDialo
         }
     }
 
-    /** The settings chosen by the user. */
+    /**
+     * The settings chosen by the user.
+     *
+     * @param input for an import, the file to read without asking (the active CSV document), or {@code null}
+     *              to ask for one
+     */
     public record Settings(Direction direction, Format format, Delimiter delimiter, ConversionConfig config,
-                           File schema) {
+                           File schema, File input) {
 
         /** Settings without an import schema. */
         public Settings(Direction direction, Format format, Delimiter delimiter, ConversionConfig config) {
-            this(direction, format, delimiter, config, null);
+            this(direction, format, delimiter, config, null, null);
+        }
+
+        /** Settings that ask for the import file. */
+        public Settings(Direction direction, Format format, Delimiter delimiter, ConversionConfig config,
+                        File schema) {
+            this(direction, format, delimiter, config, schema, null);
         }
     }
 
@@ -74,6 +85,10 @@ public class SpreadsheetConverterDialog extends Dialog<SpreadsheetConverterDialo
     @FXML private CheckBox prettyPrintXml;
     @FXML private TextField schemaFile;
     @FXML private Button browseSchema;
+    @FXML private CheckBox useActiveInput;
+
+    /** The active CSV document offered as the import's input, or {@code null}. */
+    private File activeInput;
 
     public SpreadsheetConverterDialog() {
         DialogHelper.prepare(this);
@@ -106,7 +121,59 @@ public class SpreadsheetConverterDialog extends Dialog<SpreadsheetConverterDialo
                 ? Direction.SPREADSHEET_TO_XML : Direction.XML_TO_SPREADSHEET;
         String schema = schemaFile.getText() == null ? "" : schemaFile.getText().strip();
         File schemaChoice = direction == Direction.SPREADSHEET_TO_XML && !schema.isEmpty() ? new File(schema) : null;
-        return new Settings(direction, format.getValue(), delimiter.getValue(), config, schemaChoice);
+        File input = direction == Direction.SPREADSHEET_TO_XML && activeInput != null && useActiveInput.isSelected()
+                ? activeInput : null;
+        return new Settings(direction, format.getValue(), delimiter.getValue(), config, schemaChoice, input);
+    }
+
+    /** Pre-selects the direction (Spreadsheet → XML when the active document is no XML). */
+    public void setDirection(Direction direction) {
+        (direction == Direction.SPREADSHEET_TO_XML ? toXml : toSpreadsheet).setSelected(true);
+    }
+
+    /**
+     * Offers the active CSV document as the import's input ("Convert the active document (orders.csv)",
+     * checked): the import then reads it instead of asking for a file. {@code null} hides the option.
+     */
+    public void setActiveInput(File csv) {
+        activeInput = csv;
+        boolean show = csv != null;
+        useActiveInput.setVisible(show);
+        useActiveInput.setManaged(show);
+        if (show) {
+            useActiveInput.setText(I18n.t("SpreadsheetConverterDialog.use-active-input", csv.getName()));
+            useActiveInput.disableProperty().bind(toXml.selectedProperty().not());
+            // the delimiter is only editable for CSV, and the file's own one is the likely choice
+            format.setValue(Format.CSV);
+            delimiter.setValue(guessDelimiter(csv));
+        }
+    }
+
+    /** The delimiter that occurs most often in the first line of {@code csv} (tab for .tsv), comma by default. */
+    static Delimiter guessDelimiter(File csv) {
+        if (csv.getName().toLowerCase(java.util.Locale.ROOT).endsWith(".tsv")) {
+            return Delimiter.TAB;
+        }
+        String first;
+        try (var reader = java.nio.file.Files.newBufferedReader(csv.toPath(), java.nio.charset.StandardCharsets.UTF_8)) {
+            first = reader.readLine();
+        } catch (java.io.IOException | java.io.UncheckedIOException e) {
+            return Delimiter.COMMA;
+        }
+        if (first == null) {
+            return Delimiter.COMMA;
+        }
+        Delimiter best = Delimiter.COMMA;
+        long bestCount = 0;
+        for (Delimiter d : Delimiter.values()) {
+            char c = d.config().getDelimiter();
+            long count = first.chars().filter(ch -> ch == c).count();
+            if (count > bestCount) {
+                best = d;
+                bestCount = count;
+            }
+        }
+        return best;
     }
 
     /** Picks the XSD the import reads its values with. */

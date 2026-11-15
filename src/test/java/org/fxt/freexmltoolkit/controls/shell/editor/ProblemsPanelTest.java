@@ -138,6 +138,37 @@ class ProblemsPanelTest {
                 "selecting the problem must move the caret to its line");
     }
 
+    @Test
+    void revealJumpsToTheFirstProblemAndAgainOnEveryRequest(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root>\n<a/>\n<b/>\n<c/>\n</root>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveProblems(List.of(
+                    new ValidationProblem("XSD", "error", 4, "broken element"),
+                    new ValidationProblem("XSD", "error", 5, "another error")));
+            host.revealProblems();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> host.getActiveCaretLineColumn()[0] == 4);
+        assertEquals(4, host.getActiveCaretLineColumn()[0], "the first problem is shown in the editor");
+
+        // the caret moves away; a second request (dock already open) shows the problem again
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.goToLine(1);
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> host.getActiveCaretLineColumn()[0] == 1);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.revealProblems();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> host.getActiveCaretLineColumn()[0] == 4);
+        assertEquals(4, host.getActiveCaretLineColumn()[0], "every request shows the selected problem");
+    }
+
     /** Selects the first problem of {@code line} in a document opened in {@code mode}. */
     private void openInModeAndSelectProblem(Path xml, ViewMode mode, int line, String message) throws Exception {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
