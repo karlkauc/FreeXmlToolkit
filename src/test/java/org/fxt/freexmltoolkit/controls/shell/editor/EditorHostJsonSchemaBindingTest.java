@@ -160,13 +160,21 @@ class EditorHostJsonSchemaBindingTest {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(json));
         awaitStatus(SchemaStatus.READY);
 
+        // The result is published and then reset at once: the Validation tab it opens becomes the active tab,
+        // and switching tabs clears the status. Record the published result instead of polling for it.
+        var published = new java.util.concurrent.atomic.AtomicReference<EditorHost.ValidationStatus>();
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.validationStatusProperty().addListener((obs, oldV, newV) -> {
+                if (newV.state() == EditorHost.ValidationState.INVALID || newV.state() == EditorHost.ValidationState.VALID) {
+                    published.compareAndSet(null, newV);
+                }
+            });
             new EditorActions(host).validateActive();
             return null;
         });
-        WaitForAsyncUtils.waitFor(6, TimeUnit.SECONDS, () ->
-                host.validationStatusProperty().get().state() == EditorHost.ValidationState.INVALID);
-        assertTrue(host.validationStatusProperty().get().problemCount() > 0,
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> published.get() != null);
+        assertEquals(EditorHost.ValidationState.INVALID, published.get().state());
+        assertTrue(published.get().problemCount() > 0,
                 "toolbar/F8 validation must validate against the bound JSON Schema");
     }
 
