@@ -343,6 +343,8 @@
                 <!-- Plugin marks of the active document ("FundsXML"), filled by UnifiedShellView.updateDocumentBadges -->
                 <HBox fx:id="statusBadges" id="status-document-badges" alignment="CENTER_LEFT" spacing="6"/>
                 <Region HBox.hgrow="ALWAYS"/>
+                <!-- "Saved a.xml (12:55:18)" for a few seconds after a save, see SaveFeedback -->
+                <Label fx:id="statusSaved" id="status-saved" styleClass="fxt-status-item"/>
                 <Label fx:id="statusLastRun" styleClass="fxt-status-item"/>
                 <Label fx:id="statusMemory" styleClass="fxt-status-item"/>
                 <Label fx:id="statusFile" text="%shell.statusFile.text" styleClass="fxt-status-item"/>

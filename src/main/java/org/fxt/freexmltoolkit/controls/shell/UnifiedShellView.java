@@ -127,6 +127,8 @@ public class UnifiedShellView extends BorderPane {
     @FXML private Label statusSchema;
     @FXML private Label statusFile;
     @FXML private Label statusLastRun;
+    @FXML private Label statusSaved;
+    private SaveFeedback saveFeedback;
     @FXML private Label statusMemory;
 
     /** Property keys for the persisted side-panel visibility (editable in Settings). */
@@ -329,6 +331,7 @@ public class UnifiedShellView extends BorderPane {
             updateStatusBar();
             updateDocumentBadges();
         });
+        saveFeedback = new SaveFeedback(statusSaved);
         statusBadges.managedProperty().bind(javafx.beans.binding.Bindings.isNotEmpty(statusBadges.getChildren()));
         statusBadges.visibleProperty().bind(statusBadges.managedProperty());
         installStandardsBadge();
@@ -1631,7 +1634,10 @@ public class UnifiedShellView extends BorderPane {
     }
     @FXML public void onSave() { toolbar("save"); saveActive(); }
     @FXML public void onSaveAs() { toolbar("save_as"); saveActiveAs(); }
-    @FXML public void onSaveAll() { toolbar("save_all"); editorHost.saveAll(); }
+    @FXML public void onSaveAll() {
+        toolbar("save_all");
+        editorHost.saveAll().thenAccept(count -> onFx(() -> saveFeedback.savedAll(count)));
+    }
     @FXML public void onUndo() { toolbar("undo"); editorHost.undoActive(); }
     @FXML public void onRedo() { toolbar("redo"); editorHost.redoActive(); }
     @FXML public void onFormat() { toolbar("format"); editorHost.formatActive(); }
@@ -2290,9 +2296,28 @@ public class UnifiedShellView extends BorderPane {
             if (doc.isUntitled()) {
                 saveActiveAs();
             } else {
-                editorHost.saveActive();
+                String name = doc.getDisplayName();
+                editorHost.saveActive().thenAccept(saved -> {
+                    if (Boolean.TRUE.equals(saved)) {
+                        onFx(() -> saveFeedback.saved(name));
+                    }
+                });
             }
         });
+    }
+
+    /** Runs {@code action} on the FX thread (the save futures complete there; this guards the exceptions). */
+    private static void onFx(Runnable action) {
+        if (javafx.application.Platform.isFxApplicationThread()) {
+            action.run();
+        } else {
+            javafx.application.Platform.runLater(action);
+        }
+    }
+
+    /** The status-bar save confirmation (tests). */
+    SaveFeedback saveFeedback() {
+        return saveFeedback;
     }
 
     private void saveActiveAs() {
@@ -2305,7 +2330,12 @@ public class UnifiedShellView extends BorderPane {
         doc.get().getFileType().configureSaveChooser(chooser, doc.get().getDisplayName());
         java.io.File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
-            editorHost.saveActiveAs(file.toPath());
+            String name = file.getName();
+            editorHost.saveActiveAs(file.toPath()).thenAccept(saved -> {
+                if (Boolean.TRUE.equals(saved)) {
+                    onFx(() -> saveFeedback.saved(name));
+                }
+            });
         }
     }
 

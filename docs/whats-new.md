@@ -100,6 +100,8 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 **Editing**
 
+- **Save confirmation:** after a save the status bar shows **Saved orders.xml (12:55:18)** for a few seconds, also
+  when the file had no changes. See [Status Bar](unified-shell.md#status-bar).
 - **"Edited with FreeXmlToolkit" comment:** saved XML, XSD, XSLT, Schematron and XProc files carry a comment after
   the XML declaration with the version and the user from Settings → User Info, as other XML editors do. It is
   updated on every save, not repeated, and can be switched off (Settings → Editor → Mark saved XML files). See

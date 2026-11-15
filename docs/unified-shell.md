@@ -1155,6 +1155,9 @@ The status bar at the bottom of the window includes (left to right):
   UTF-8 and declares nothing is read as **windows-1252**). Saving writes the file back in that
   encoding; change the `encoding` of the XML declaration to save in another one. Characters the
   encoding cannot hold are saved as character references such as `&#x20AC;`.
+- A **save confirmation** (right-hand side, green check) for three seconds after a save: **Saved orders.xml
+  (12:55:18)**, after **Save All** **Saved 3 files (…)** or **No unsaved changes**. It is shown again on every
+  save, also when the file had no changes.
 - A **last run** item (right-hand side) showing the last recorded XSLT/XQuery/validation run -
   it appears only while **Record execution statistics** (**Settings → Extensions → DEVELOPER**) is on;
   **click it** to open the **Execution Statistics** tool tab.
