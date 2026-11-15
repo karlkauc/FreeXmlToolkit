@@ -892,8 +892,8 @@ fun prepareWindowsInstallerResources(javaHome: String, projectDir: File, outDir:
     // kept next to the result, to see what jpackage ships when something goes wrong
     File(outDir, "main.original.wxs").writeText(original)
 
-    File(outDir, "main.wxs").writeText(withInstallerImages(original,
-        listOf("WixUIBannerBmp" to banner.absolutePath, "WixUIDialogBmp" to dialog.absolutePath)))
+    File(outDir, "main.wxs").writeText(withWarmUpAction(withInstallerImages(original,
+        listOf("WixUIBannerBmp" to banner.absolutePath, "WixUIDialogBmp" to dialog.absolutePath))))
     return outDir
 }
 
@@ -902,21 +902,37 @@ fun prepareWindowsInstallerResources(javaHome: String, projectDir: File, outDir:
  * sources, which jpackage converts for WiX 4+, or {@code Package}), before its {@code UIRef}.
  * Parsed as XML, not searched as text; the preprocessor instructions stay as they are.
  */
-fun withInstallerImages(mainWxs: String, variables: List<Pair<String, String>>): String {
+fun parseMainWxs(mainWxs: String): org.w3c.dom.Document {
     val factory = javax.xml.parsers.DocumentBuilderFactory.newInstance()
     factory.isNamespaceAware = true
     factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
-    val document = try {
+    return try {
         factory.newDocumentBuilder().parse(org.xml.sax.InputSource(StringReader(mainWxs)))
     } catch (e: Exception) {
         throw GradleException("jpackage's main.wxs is not well-formed XML: ${e.message}", e)
     }
-    val wix = document.documentElement
-    val children = wix.childNodes
-    val product = (0 until children.length).map { children.item(it) }
+}
+
+/** The product element of a parsed main.wxs: {@code Product} (WiX 3) or {@code Package} (WiX 4+). */
+fun productOf(document: org.w3c.dom.Document): org.w3c.dom.Element {
+    val children = document.documentElement.childNodes
+    return (0 until children.length).map { children.item(it) }
         .filterIsInstance<org.w3c.dom.Element>()
         .firstOrNull { it.localName == "Product" || it.localName == "Package" }
         ?: throw GradleException("jpackage's main.wxs has no Product/Package element under <Wix>")
+}
+
+fun serializeMainWxs(document: org.w3c.dom.Document): String {
+    val transformer = javax.xml.transform.TransformerFactory.newInstance().newTransformer()
+    transformer.setOutputProperty(javax.xml.transform.OutputKeys.ENCODING, "utf-8")
+    val out = StringWriter()
+    transformer.transform(javax.xml.transform.dom.DOMSource(document), javax.xml.transform.stream.StreamResult(out))
+    return out.toString()
+}
+
+fun withInstallerImages(mainWxs: String, variables: List<Pair<String, String>>): String {
+    val document = parseMainWxs(mainWxs)
+    val product = productOf(document)
     val elements = product.childNodes
     val uiRef = (0 until elements.length).map { elements.item(it) }
         .firstOrNull { it is org.w3c.dom.Element && it.localName == "UIRef" }
@@ -932,16 +948,48 @@ fun withInstallerImages(mainWxs: String, variables: List<Pair<String, String>>):
         variable.setAttribute("Value", value)
         insert(variable)
     }
-    val transformer = javax.xml.transform.TransformerFactory.newInstance().newTransformer()
-    transformer.setOutputProperty(javax.xml.transform.OutputKeys.ENCODING, "utf-8")
-    val out = StringWriter()
-    transformer.transform(javax.xml.transform.dom.DOMSource(document), javax.xml.transform.stream.StreamResult(out))
-    return out.toString()
+    return serializeMainWxs(document)
+}
+
+/**
+ * jpackage's main.wxs with a last installation step that runs {@code fxt-cli warm-up} on the
+ * installation folder: it opens every installed file once, so that a virus scanner checks the files
+ * during the installation and not at the first start (13 s and more on Windows just to open the
+ * JARs, telemetry phase_cp_open_ms). A deferred action without impersonation (per-machine: runs as
+ * LocalSystem in session 0, so the console launcher shows no window), before InstallFinalize, on
+ * install and upgrade but not on removal; its exit code is ignored, so it can never fail an
+ * installation. {@code [INSTALLDIR]} ends with a backslash, which would escape the closing quote:
+ * hence {@code [INSTALLDIR].}.
+ */
+fun withWarmUpAction(mainWxs: String): String {
+    val document = parseMainWxs(mainWxs)
+    val product = productOf(document)
+    val ns = product.namespaceURI
+    val qualified = { local: String -> if (product.prefix != null) "${product.prefix}:$local" else local }
+    product.appendChild(document.createComment(
+        " FreeXmlToolkit: open every installed file once (build.gradle.kts, withWarmUpAction) "))
+    val action = document.createElementNS(ns, qualified("CustomAction"))
+    action.setAttribute("Id", "FxtWarmUp")
+    action.setAttribute("Directory", "INSTALLDIR")
+    action.setAttribute("ExeCommand", "\"[INSTALLDIR]fxt-cli.exe\" warm-up \"[INSTALLDIR].\" --timeout 120")
+    action.setAttribute("Execute", "deferred")
+    action.setAttribute("Impersonate", "no")
+    action.setAttribute("Return", "ignore")
+    product.appendChild(action)
+    val sequences = product.getElementsByTagNameNS(ns, "InstallExecuteSequence")
+    val sequence = if (sequences.length > 0) sequences.item(0) as org.w3c.dom.Element
+        else document.createElementNS(ns, qualified("InstallExecuteSequence")).also { product.appendChild(it) }
+    val custom = document.createElementNS(ns, qualified("Custom"))
+    custom.setAttribute("Action", "FxtWarmUp")
+    custom.setAttribute("Before", "InstallFinalize")
+    custom.appendChild(document.createTextNode("NOT REMOVE~=\"ALL\""))
+    sequence.appendChild(custom)
+    return serializeMainWxs(document)
 }
 
 tasks.register("checkInstallerOverrides") {
     group = "verification"
-    description = "Checks withInstallerImages on the forms jpackage's main.wxs can take (no Windows JDK needed)"
+    description = "Checks withInstallerImages and withWarmUpAction on the forms jpackage's main.wxs can take (no Windows JDK needed)"
     doLast {
         val v3 = "http://schemas.microsoft.com/wix/2006/wi"
         val v4 = "http://wixtoolset.org/schemas/v4/wxs"
@@ -973,6 +1021,35 @@ tasks.register("checkInstallerOverrides") {
             }
         }
         println("withInstallerImages: OK")
+        for ((ns, main) in forms) {
+            val result = withWarmUpAction(withInstallerImages(main, images))
+            println(result)
+            val doc = javax.xml.parsers.DocumentBuilderFactory.newInstance().apply { isNamespaceAware = true }
+                .newDocumentBuilder().parse(org.xml.sax.InputSource(StringReader(result)))
+            val actions = doc.getElementsByTagNameNS(ns, "CustomAction")
+            val action = (0 until actions.length).map { actions.item(it) as org.w3c.dom.Element }
+                .singleOrNull { it.getAttribute("Id") == "FxtWarmUp" }
+                ?: throw GradleException("no FxtWarmUp CustomAction:\n$result")
+            if (action.parentNode.localName != "Product" && action.parentNode.localName != "Package") {
+                throw GradleException("FxtWarmUp not under the product:\n$result")
+            }
+            if (action.getAttribute("ExeCommand") != "\"[INSTALLDIR]fxt-cli.exe\" warm-up \"[INSTALLDIR].\" --timeout 120"
+                || action.getAttribute("Return") != "ignore" || action.getAttribute("Execute") != "deferred") {
+                throw GradleException("FxtWarmUp has the wrong attributes:\n$result")
+            }
+            val sequences = doc.getElementsByTagNameNS(ns, "InstallExecuteSequence")
+            if (sequences.length != 1) {
+                throw GradleException("expected one InstallExecuteSequence, got ${sequences.length}:\n$result")
+            }
+            val customs = (sequences.item(0) as org.w3c.dom.Element).getElementsByTagNameNS(ns, "Custom")
+            val custom = (0 until customs.length).map { customs.item(it) as org.w3c.dom.Element }
+                .singleOrNull { it.getAttribute("Action") == "FxtWarmUp" }
+                ?: throw GradleException("FxtWarmUp is not scheduled:\n$result")
+            if (custom.getAttribute("Before") != "InstallFinalize" || custom.textContent != "NOT REMOVE~=\"ALL\"") {
+                throw GradleException("FxtWarmUp is scheduled wrongly:\n$result")
+            }
+        }
+        println("withWarmUpAction: OK")
     }
 }
 

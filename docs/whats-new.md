@@ -170,6 +170,9 @@ running is shown under **Help → About FreeXmlToolkit**.
   longer treated as a failure.
 - **Grid tables after sorting:** sorting a table column no longer collapses the table, and the selected row stays
   selected.
+- **First start after installing on Windows:** the virus scanner checked every program file when the application
+  first opened it, so the first start took 13 seconds or more. The installer now opens every file once as its last
+  step, so this check happens during the installation.
 
 ## 3.1.0 (2026-11-11)
 

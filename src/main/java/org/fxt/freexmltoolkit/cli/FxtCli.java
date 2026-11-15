@@ -46,6 +46,7 @@ import picocli.CommandLine.Spec;
                 EncryptCommand.class,
                 DecryptCommand.class,
                 McpCommand.class,
+                WarmUpCommand.class,
                 CommandLine.HelpCommand.class
         },
         exitCodeListHeading = "%nExit codes:%n",
