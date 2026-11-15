@@ -1299,7 +1299,9 @@ On the command line, also as a Git merge driver: [`fxt-cli merge`](command-line.
 ## Jump to Validation Errors
 
 Validation errors appear in the **PROBLEMS** panel below the editor and in the **Validation**
-side panel. **Select** a problem to show it **in the view you are in** - the view does not change
+side panel. The result stays with its document: switch to another tab (or to the Validation result that
+**Validate** / F8 opens) and back, and the status and problems are shown again, as long as you have not
+changed the text since. **Select** a problem to show it **in the view you are in** - the view does not change
 (with the [AI assistant](ai-assistant.md) on, the right-click menu also offers **Fix with AI** and **Explain with AI**):
 
 - In the **Text** view the caret moves to the problem's line (and, for XML and XSD errors, its column).

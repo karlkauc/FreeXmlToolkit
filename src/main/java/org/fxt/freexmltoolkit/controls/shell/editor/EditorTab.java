@@ -81,6 +81,8 @@ final class EditorTab extends Tab {
      * comparing the whole document text on every caret move.
      */
     long textRevision;
+    /** The last validation result published for this document, kept across tab switches. */
+    EditorHost.ValidationResult lastValidation;
     private long lastParsedRevision = -1;
     private long lastParsedXmlRevision = -1;
     private long lastParsedJsonRevision = -1;

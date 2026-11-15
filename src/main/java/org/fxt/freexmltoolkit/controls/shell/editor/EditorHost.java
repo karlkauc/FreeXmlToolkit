@@ -92,6 +92,26 @@ public class EditorHost extends BorderPane {
     }
 
     /**
+     * The document a validation run reads, taken when the run starts: its result is published to that
+     * document even when the user switched tabs meanwhile.
+     *
+     * @param tab      the document's tab
+     * @param revision the text revision the run read
+     */
+    public record ValidationTarget(EditorTab tab, long revision) {
+    }
+
+    /**
+     * A validation result kept with its document, so it is shown again when the user comes back to the tab
+     * (as long as the text is the one that was validated).
+     *
+     * @param problems the problems of the run, or {@code null} when the run did not list them (Validate / F8
+     *                 shows them in a result tab)
+     */
+    record ValidationResult(ValidationStatus status, java.util.List<ValidationProblem> problems, long revision) {
+    }
+
+    /**
      * Lifecycle of the active document's XSD binding, surfaced in the status bar so the user
      * can tell whether schema-aware IntelliSense is available yet.
      * <ul>
@@ -224,11 +244,18 @@ public class EditorHost extends BorderPane {
                 activeSchemaSource.set(SchemaSource.NONE);
                 activeSchemaSourceDetail.set(null);
             }
-            // A different document's last result must not linger; validation re-runs
-            // (continuous, or via Validate/F8) for the newly active document.
+            // A different document's result must not linger: the newly active document shows its own last
+            // result while its text is the validated one, else none (validation re-runs, continuous or via F8).
             validationStatus.set(ValidationStatus.NONE);
             activeProblems.clear();
             rebuildQuickFixGutter(java.util.List.of());
+            if (newT instanceof EditorTab et && et.lastValidation != null
+                    && et.lastValidation.revision() == et.textRevision) {
+                validationStatus.set(et.lastValidation.status());
+                if (et.lastValidation.problems() != null) {
+                    setActiveProblems(et.lastValidation.problems());
+                }
+            }
             refreshSelectedNode();
         });
         // Delete key removes the selected node in structured views (not in Text mode).
@@ -577,14 +604,58 @@ public class EditorHost extends BorderPane {
         return validationStatus.getReadOnlyProperty();
     }
 
-    /** Publishes a validation result for the active document (called by the Validation panel). */
+    /** Publishes a validation result for the active document. */
     public void setValidationStatus(ValidationState state, int problemCount, String summary) {
-        validationStatus.set(new ValidationStatus(state, problemCount, summary));
+        ValidationTarget target = validationTarget();
+        if (target == null) {
+            validationStatus.set(new ValidationStatus(state, problemCount, summary));
+        } else {
+            publishValidation(target, state, problemCount, summary, null);
+        }
+    }
+
+    /** @return the active document as the target of a validation run starting now, or {@code null} */
+    public ValidationTarget validationTarget() {
+        return tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                ? new ValidationTarget(et, et.textRevision) : null;
+    }
+
+    /** @return whether {@code target}'s document is the active one */
+    public boolean isActive(ValidationTarget target) {
+        return target != null && tabPane.getSelectionModel().getSelectedItem() == target.tab();
+    }
+
+    /**
+     * Publishes a validation result for the document the run read: it is kept with that document (shown
+     * again when the user comes back to its tab, while the text is unchanged) and shown now when it is the
+     * active one. FX thread.
+     *
+     * @param problems the run's problems for the PROBLEMS panel, or {@code null} to leave them as they are
+     */
+    public void publishValidation(ValidationTarget target, ValidationState state, int problemCount, String summary,
+                                  java.util.List<ValidationProblem> problems) {
+        ValidationStatus status = new ValidationStatus(state, problemCount, summary);
+        if (target == null) {
+            validationStatus.set(status);
+            return;
+        }
+        EditorTab tab = target.tab();
+        java.util.List<ValidationProblem> kept = problems != null ? java.util.List.copyOf(problems)
+                : tab.lastValidation != null && tab.lastValidation.revision() == target.revision()
+                        ? tab.lastValidation.problems() : null;
+        tab.lastValidation = new ValidationResult(status, kept, target.revision());
+        if (isActive(target)) {
+            validationStatus.set(status);
+            if (problems != null && !activeProblems.equals(problems)) { // the panel may have shown them already
+                setActiveProblems(problems);
+            }
+        }
     }
 
     /**
      * @return the active document's validation problems (read-only by convention) —
-     * the data behind the PROBLEMS panel below the editor. Cleared on tab switch.
+     * the data behind the PROBLEMS panel below the editor. On a tab switch they are replaced by the newly
+     * active document's kept result (while its text is the validated one), else cleared.
      */
     public ObservableList<ValidationProblem> getActiveProblems() {
         return activeProblems;

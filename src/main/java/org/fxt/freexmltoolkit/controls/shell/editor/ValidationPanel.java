@@ -419,6 +419,7 @@ public class ValidationPanel extends VBox {
         java.nio.file.Path documentPath = editorHost.getActiveDocument().map(OpenDocument::getPath).orElse(null);
         var docKind = editorHost.getActiveDocument().map(d -> d.getFileType().docKind()).orElse(null);
         PanelStatus.info(status, I18n.t("ValidationPanel.validating"));
+        EditorHost.ValidationTarget target = editorHost.validationTarget(); // the result belongs to this document
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
@@ -439,14 +440,20 @@ public class ValidationPanel extends VBox {
                     result.isEmpty() ? "" : result.get(0).message());
             boolean showStats = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().isEnabled();
             Platform.runLater(() -> {
-                setProblems(result);
-                lastSchematronReport = runResult.schematronReport();
-                schematronReportButton.setDisable(lastSchematronReport == null);
                 boolean hasSchema = json ? schema != null : (schema != null || schematron != null);
                 String summary = (result.isEmpty()
                         ? (hasSchema ? "Valid" : EditorActions.WELL_FORMED_NO_SCHEMA)
                         : EditorActions.problemCount(result.size()))
                         + (showStats ? " · " + elapsedMs + " ms" : "");
+                var state = result.isEmpty() ? EditorHost.ValidationState.VALID : EditorHost.ValidationState.INVALID;
+                if (target != null && !editorHost.isActive(target)) {
+                    // the user switched documents meanwhile: keep the result with the one validated
+                    editorHost.publishValidation(target, state, result.size(), summary, result);
+                    return;
+                }
+                setProblems(result);
+                lastSchematronReport = runResult.schematronReport();
+                schematronReportButton.setDisable(lastSchematronReport == null);
                 if (result.isEmpty() && hasSchema) {
                     PanelStatus.success(status, summary);
                 } else {
@@ -454,9 +461,7 @@ public class ValidationPanel extends VBox {
                     // SOURCES slot above — "No XSD bound — choose or drop a file" — is the next step).
                     PanelStatus.info(status, summary);
                 }
-                editorHost.setValidationStatus(
-                        result.isEmpty() ? EditorHost.ValidationState.VALID : EditorHost.ValidationState.INVALID,
-                        result.size(), summary);
+                editorHost.publishValidation(target, state, result.size(), summary, result);
                 if (runResult.failed() && !live) {
                     // the validate event already carries the failure; the dialog explains it
                     PanelStatus.failure(status, I18n.t("ValidationPanel.validation"), I18n.t("ValidationPanel.validation-could-not-run"),

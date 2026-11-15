@@ -184,6 +184,7 @@ public final class EditorActions {
         File schematron = editorHost.getActiveSchematron();
         var docKind = editorHost.getActiveDocument().map(d -> d.getFileType().docKind()).orElse(null);
         java.nio.file.Path documentPath = editorHost.getActiveDocument().map(OpenDocument::getPath).orElse(null);
+        EditorHost.ValidationTarget target = editorHost.validationTarget(); // the result belongs to this document
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
             File schema = schemaSupplier.get();
@@ -199,9 +200,9 @@ public final class EditorActions {
                 String summary = result.isEmpty()
                         ? (hasSchema ? "Valid" : WELL_FORMED_NO_SCHEMA)
                         : problemCount(result.size());
-                editorHost.setValidationStatus(
+                editorHost.publishValidation(target,
                         result.isEmpty() ? EditorHost.ValidationState.VALID : EditorHost.ValidationState.INVALID,
-                        result.size(), summary);
+                        result.size(), summary, null);
                 editorHost.openToolTab(I18n.t("EditorActions.validation"), "bi-check2-circle",
                         validationResultRegion(result, summary));
                 if (runResult.failed()) {

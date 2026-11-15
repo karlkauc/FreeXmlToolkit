@@ -106,6 +106,9 @@ running is shown under **Help → About FreeXmlToolkit**.
   documentation, and previews the table or the XML before anything is written. With a CSV document open it
   starts with Spreadsheet → XML; a malformed document's message has **Go to Error**. See
   [XML Editor](xml-editor.md#xmlexcelcsv-converter).
+- **Validation results stay with their document:** after Validate / F8 or a run of the Validation panel,
+  switching to another tab and back shows the result and the problems again (until the text changes). A run that
+  finishes after you switched tabs goes to the document it checked.
 - **Show problems:** the Validation panel's "N problems — show below the editor" now also shows the first problem in
   the editor, on every click.
 - **Save confirmation:** after a save the status bar shows **Saved orders.xml (12:55:18)** for a few seconds, also
