@@ -4882,6 +4882,10 @@ into the query panel or the <a href="../query-console/#query-console">Query Cons
 <li><strong>Excel to XML</strong>: Import Excel data as XML</li>
 <li><strong>CSV to XML</strong>: Import CSV data as XML</li>
 </ul>
+<p>When the active document is no XML (a CSV file, for example), the dialog starts with <strong>Spreadsheet → XML</strong>. A saved
+CSV or TSV document is offered as the input (<strong>Convert the active document</strong>, on by default), with the format set to
+CSV and the delimiter taken from its first line; untick it to pick another file. Exporting a document that contains
+no XML element at all says so and offers <strong>Convert Spreadsheet → XML…</strong> instead of reporting it as malformed XML.</p>
 <p>The Excel workbook looks like the Data Dictionary export: a dark header row that stays in
 view while you scroll, striped rows, XPaths in a monospace font, and container elements in
 bold. It also has an AutoFilter and prints one page wide.</p>
