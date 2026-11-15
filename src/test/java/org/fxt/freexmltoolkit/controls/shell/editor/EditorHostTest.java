@@ -158,11 +158,15 @@ class EditorHostTest {
         Path f2 = tmp.resolve("b.xml");
         Files.writeString(f2, "<b/>");
 
+        // Wait until each text is loaded: loading a file marks it clean, so a document marked dirty while it
+        // was still being read came out clean and was skipped (CI: 1 of 2 saved).
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(f1));
-        WaitForAsyncUtils.waitForFxEvents();
+        WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.getActiveText().map(t -> t.contains("<a/>")).orElse(false)));
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(f2));
-        WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
-                () -> host.getOpenDocuments().size() == 2);
+        WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.getActiveText().map(t -> t.contains("<b/>")).orElse(false)));
+        assertEquals(2, host.getOpenDocuments().size());
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             host.getOpenDocuments().forEach(d -> d.setDirty(true));
