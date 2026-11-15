@@ -323,6 +323,23 @@ public class DialogHelper {
     }
 
     /**
+     * Shows a warning with an action button next to the close button (e.g. "Go to Error").
+     *
+     * @param actionText the action button's text
+     * @param closeText  the close button's text
+     * @return true when the user chose the action
+     */
+    public static boolean showWarningWithAction(String title, String header, String content,
+                                                String actionText, String closeText) {
+        Alert alert = createAlert(Alert.AlertType.WARNING, title, header, content, "bi-exclamation-triangle");
+        ButtonType action = new ButtonType(actionText, ButtonBar.ButtonData.OK_DONE);
+        ButtonType close = new ButtonType(closeText, ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(action, close);
+        Optional<ButtonType> result = alert.showAndWait();
+        return result.isPresent() && result.get() == action;
+    }
+
+    /**
      * Shows an error alert with icon.
      *
      * @param title the alert title

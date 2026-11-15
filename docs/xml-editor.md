@@ -538,6 +538,8 @@ When the active document is no XML (a CSV file, for example), the dialog starts 
 CSV or TSV document is offered as the input (**Convert the active document**, on by default), with the format set to
 CSV and the delimiter taken from its first line; untick it to pick another file. Exporting a document that contains
 no XML element at all says so and offers **Convert Spreadsheet → XML…** instead of reporting it as malformed XML.
+A malformed XML document is reported with line, column and the parser's message; **Go to Error** shows that place
+in the editor.
 
 The Excel workbook looks like the Data Dictionary export: a dark header row that stays in
 view while you scroll, striped rows, XPaths in a monospace font, and container elements in

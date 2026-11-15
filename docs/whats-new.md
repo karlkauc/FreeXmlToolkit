@@ -102,7 +102,8 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 - **CSV to XML from the editor:** with a CSV document open, the Spreadsheet Converter starts with Spreadsheet → XML,
   converts that document with its own delimiter, and an export of a document without XML elements offers the other
-  direction instead of "not well-formed". See [XML Editor](xml-editor.md#xmlexcelcsv-converter).
+  direction instead of "not well-formed"; a malformed document's message has **Go to Error**. See
+  [XML Editor](xml-editor.md#xmlexcelcsv-converter).
 - **Show problems:** the Validation panel's "N problems — show below the editor" now also shows the first problem in
   the editor, on every click.
 - **Save confirmation:** after a save the status bar shows **Saved orders.xml (12:55:18)** for a few seconds, also

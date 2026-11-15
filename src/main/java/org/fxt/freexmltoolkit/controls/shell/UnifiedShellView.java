@@ -2541,6 +2541,7 @@ public class UnifiedShellView extends BorderPane {
                 return;
             }
             String format = excel ? (out.getName().toLowerCase().endsWith(".xls") ? "xls" : "xlsx") : "csv";
+            var exported = editorHost.getActiveDocument().orElse(null); // where "Go to Error" jumps
             Runnable done = beginSpreadsheetConversion("Exporting spreadsheet…");
             long start = System.nanoTime();
             org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
@@ -2559,7 +2560,7 @@ public class UnifiedShellView extends BorderPane {
                     if (notXml) {
                         reportNotXml();
                     } else {
-                        reportConversion(result, out, false);
+                        reportConversion(result, out, false, exported);
                     }
                 });
             });
@@ -2625,6 +2626,12 @@ public class UnifiedShellView extends BorderPane {
         };
     }
 
+    /** Shows the place a conversion failed to parse: selects the document's tab and moves the caret there. */
+    void goToConversionError(org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument document, int line, int column) {
+        editorHost.selectDocument(document);
+        editorHost.goToLine(line, column);
+    }
+
     /**
      * The document to export contains no XML element: it is no XML, so "fix the document" is the wrong
      * advice. Offers the other direction instead.
@@ -2643,6 +2650,13 @@ public class UnifiedShellView extends BorderPane {
 
     private void reportConversion(org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner.Result result,
                                   java.io.File file, boolean imported) {
+        reportConversion(result, file, imported, null);
+    }
+
+    /** @param exported the document an export read (the target of "Go to Error"), or {@code null} */
+    private void reportConversion(org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner.Result result,
+                                  java.io.File file, boolean imported,
+                                  org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument exported) {
         if (!result.isError()) {
             org.fxt.freexmltoolkit.util.DialogHelper.showInformation(I18n.t("UnifiedShellView.spreadsheet-converter"),
                     I18n.t("UnifiedShellView.conversion-finished"), I18n.t("UnifiedShellView.done", file.getAbsolutePath()));
@@ -2659,9 +2673,19 @@ public class UnifiedShellView extends BorderPane {
         } else if (!imported && result.error() instanceof org.xml.sax.SAXParseException parse) {
             // A malformed document is an input problem, not a failure of the converter: say where
             // it is instead of raising an error dialog (and an error report) with a stack trace.
-            org.fxt.freexmltoolkit.util.DialogHelper.showWarning(I18n.t("UnifiedShellView.spreadsheet-converter"),
-                    I18n.t("UnifiedShellView.the-document-is-not-well"),
-                    I18n.t("UnifiedShellView.line-column-fix-the-document", parse.getLineNumber(), parse.getColumnNumber(), parse.getMessage()));
+            String title = I18n.t("UnifiedShellView.spreadsheet-converter");
+            String header = I18n.t("UnifiedShellView.the-document-is-not-well");
+            String content = I18n.t("UnifiedShellView.line-column-fix-the-document",
+                    parse.getLineNumber(), parse.getColumnNumber(), parse.getMessage());
+            boolean open = exported != null && editorHost.getOpenDocuments().contains(exported);
+            if (open && parse.getLineNumber() > 0) {
+                if (org.fxt.freexmltoolkit.util.DialogHelper.showWarningWithAction(title, header, content,
+                        I18n.t("UnifiedShellView.go-to-error"), I18n.t("UnifiedShellView.close"))) {
+                    goToConversionError(exported, parse.getLineNumber(), parse.getColumnNumber());
+                }
+            } else {
+                org.fxt.freexmltoolkit.util.DialogHelper.showWarning(title, header, content);
+            }
         } else {
             org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("UnifiedShellView.spreadsheet-converter"),
                     I18n.t("UnifiedShellView.the-conversion-could-not-be"),
