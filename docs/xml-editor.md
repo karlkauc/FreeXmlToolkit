@@ -527,19 +527,65 @@ into the query panel or the [Query Console](query-console.md#query-console) - th
 
 ## XML/Excel/CSV Converter
 
-Choose **Tools → Spreadsheet Converter…** (Ctrl+E) to open the converter dialog:
+Choose **Tools → Spreadsheet Converter…** (Ctrl+E) to turn an XML document into an Excel workbook or a CSV
+file, or a spreadsheet into XML. The text at the top of the dialog says what the chosen direction does, every
+option explains itself in a tooltip, **?** opens this page, and the **preview** on the right shows the result
+before anything is written.
 
-- **XML to Excel**: Export XML data to Excel spreadsheet
-- **XML to CSV**: Export XML data to CSV file
-- **Excel to XML**: Import Excel data as XML
-- **CSV to XML**: Import CSV data as XML
+### XML to a spreadsheet
 
-When the active document is no XML (a CSV file, for example), the dialog starts with **Spreadsheet → XML**. A saved
-CSV or TSV document is offered as the input (**Convert the active document**, on by default), with the format set to
-CSV and the delimiter taken from its first line; untick it to pick another file. Exporting a document that contains
-no XML element at all says so and offers **Convert Spreadsheet → XML…** instead of reporting it as malformed XML.
-A malformed XML document is reported with line, column and the parser's message; **Go to Error** shows that place
-in the editor.
+![Spreadsheet Converter: export as a table with preview](img/spreadsheet-converter-export.png)
+
+Two layouts:
+
+- **Table – one row per record** (the default). A *record* is an element that repeats, such as every
+  `<Order>`. Each record becomes one row, each value inside it one column:
+
+    | @id | Date | Customer/Name | Customer/City | Item[1]/Product | Item[1]/Qty | Item[2]/Product | Item[2]/Qty |
+    |-----|------|---------------|---------------|-----------------|-------------|-----------------|-------------|
+    | A-1001 | 2026-11-02 | Berg GmbH | Wien | Desk | 2 | Lamp | 4 |
+    | A-1002 | 2026-11-03 | Ott & Söhne | Graz | Chair | 6 | | |
+
+    How to read the column names: `Date` is a child element, `Customer/Name` an element inside another one,
+    `@id` an attribute, `Item[2]/Qty` the `Qty` of the second `Item`, `#text` a record's own text. **One row per**
+    lists the repeating elements with the rows and columns each would give; the default is the one that shows
+    most of the document while staying readable. When the records sit in several places (orders under several
+    customers), a **Parent** column says where each one belongs.
+
+    The Excel workbook has three sheets: **Records**; **Other data** – the values outside the records (a header,
+    the document element's attributes) as XPath, value and type; and **Info**, which explains the workbook. You
+    can change values, add or delete rows, sort and filter, then convert it back; keep the header row, the sheet
+    names and the Other data sheet. A CSV file has the records only.
+
+    The table does not keep empty elements inside a record (an empty cell means "no element"), and the columns
+    give one order for all records.
+
+- **XPath list – one row per value**: each node becomes a row with its XPath (its place in the document, such as
+  `/Orders/Order[2]/Date`), its value and its kind (**Include type column**). Harder to read, but converting back
+  gives exactly the same document. The workbook gets an Info sheet as well.
+
+The last layout you chose is remembered. **Include comments** and **Include CDATA** also write XML comments and
+CDATA sections as values.
+
+### A spreadsheet to XML
+
+![Spreadsheet Converter: a CSV file converted to XML](img/spreadsheet-converter-import.png)
+
+Choose the file under **Spreadsheet**; a saved CSV or TSV document that is open in the editor is filled in, with
+the delimiter taken from its first line. The layout is read from the file:
+
+- a workbook exported as a table or an XPath list is read back as it was;
+- **any other table** – a CSV file or a sheet from elsewhere – becomes one element per row (**Element per row**,
+  e.g. `Customer`) inside the **Document element** (e.g. `Customers`). The column headers become the element
+  names: `Customer no` becomes `Customer_no`, `@status` an attribute, `Address/City` a nested element. Empty
+  cells create nothing.
+
+The XML opens in a new tab. When the active document is no XML (a CSV file, for example), the dialog starts with
+**Spreadsheet → XML**. Exporting a document that contains no XML element at all says so and offers
+**Convert Spreadsheet → XML…** instead of reporting it as malformed XML. A malformed XML document is reported with
+line, column and the parser's message; **Go to Error** shows that place in the editor.
+
+### Excel look and types
 
 The Excel workbook looks like the Data Dictionary export: a dark header row that stays in
 view while you scroll, striped rows, XPaths in a monospace font, and container elements in

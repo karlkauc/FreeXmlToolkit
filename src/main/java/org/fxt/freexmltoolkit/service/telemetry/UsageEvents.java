@@ -940,14 +940,32 @@ public final class UsageEvents {
      */
     public static void spreadsheetConverted(String direction, String format, TelemetryEvent.Status status,
                                             long startNanos, long inputBytes, Throwable error) {
-        spreadsheetConverted(direction, format, status, startNanos, inputBytes,
+        spreadsheetConverted(direction, format, null, status, startNanos, inputBytes, error);
+    }
+
+    /**
+     * As {@link #spreadsheetConverted(String, String, TelemetryEvent.Status, long, long, Throwable)} with the
+     * export's layout ({@code table} or {@code xpath}; {@code null} for an import, which reads it from the file).
+     */
+    public static void spreadsheetConverted(String direction, String format, String layout, TelemetryEvent.Status status,
+                                            long startNanos, long inputBytes, Throwable error) {
+        spreadsheetConverted(direction, format, layout, status, startNanos, inputBytes,
                 error != null ? error.getClass().getSimpleName() : null, error);
     }
 
     private static void spreadsheetConverted(String direction, String format, TelemetryEvent.Status status,
                                              long startNanos, long inputBytes, String errorCode, Throwable error) {
+        spreadsheetConverted(direction, format, null, status, startNanos, inputBytes, errorCode, error);
+    }
+
+    private static void spreadsheetConverted(String direction, String format, String layout,
+                                             TelemetryEvent.Status status, long startNanos, long inputBytes,
+                                             String errorCode, Throwable error) {
         action("spreadsheet_convert", b -> {
             b.status(status).meta("direction", direction).meta("format", format);
+            if (layout != null) {
+                b.meta("layout", layout);
+            }
             if (inputBytes >= 0) {
                 b.inputBytes(inputBytes);
             }

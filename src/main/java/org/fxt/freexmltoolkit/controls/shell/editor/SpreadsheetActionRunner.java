@@ -256,6 +256,99 @@ public final class SpreadsheetActionRunner {
         }
     }
 
+    // ----- previews (Spreadsheet Converter dialog) ---------------------------
+
+    /** Documents larger than this get no export preview (it parses the whole document). */
+    public static final int PREVIEW_MAX_CHARS = 5 * 1024 * 1024;
+    /** Files larger than this get no import preview. */
+    public static final long PREVIEW_MAX_FILE_BYTES = 10L * 1024 * 1024;
+
+    /**
+     * What an export would write, for the dialog's preview.
+     *
+     * @param candidates the repeating elements that can be the record (table layout), default first
+     * @param recordPath the record used, or {@code null} (XPath list)
+     * @param headers    the header row
+     * @param rows       the first rows
+     * @param totalRows  all data rows
+     * @param otherData  whether values outside the records exist (only in the Excel workbook)
+     * @param error      why there is no preview, or {@code null}
+     */
+    public record ExportPreview(java.util.List<org.fxt.freexmltoolkit.service.spreadsheet.RecordTableLayout.Candidate> candidates,
+                                String recordPath, java.util.List<String> headers,
+                                java.util.List<java.util.List<String>> rows, int totalRows, boolean otherData,
+                                String error) {
+
+        static ExportPreview failed(String error) {
+            return new ExportPreview(java.util.List.of(), null, java.util.List.of(), java.util.List.of(), 0, false, error);
+        }
+    }
+
+    /**
+     * Builds the preview of an export of {@code xml} with {@code config} (layout, record, type column).
+     * Never throws: a failure is the preview's {@code error}.
+     */
+    public static ExportPreview exportPreview(String xml, ConversionConfig config, int maxRows) {
+        if (xml == null || xml.isBlank()) {
+            return ExportPreview.failed(org.fxt.freexmltoolkit.i18n.I18n.t("SpreadsheetActionRunner.preview-no-document"));
+        }
+        if (xml.length() > PREVIEW_MAX_CHARS) {
+            return ExportPreview.failed(org.fxt.freexmltoolkit.i18n.I18n.t("SpreadsheetActionRunner.preview-too-large"));
+        }
+        try {
+            var service = new XmlSpreadsheetConverterService();
+            var rows = service.extractRowsFromXml(parseXml(xml), config);
+            if (config.getLayout() != XmlSpreadsheetConverterService.Layout.TABLE) {
+                java.util.List<String> headers = config.isIncludeTypeColumn()
+                        ? java.util.List.of("XPath", "Value", "Type") : java.util.List.of("XPath", "Value");
+                java.util.List<java.util.List<String>> values = new java.util.ArrayList<>();
+                for (var row : rows.subList(0, Math.min(maxRows, rows.size()))) {
+                    values.add(config.isIncludeTypeColumn()
+                            ? java.util.List.of(row.getXpath(), row.getValue(), row.getNodeType())
+                            : java.util.List.of(row.getXpath(), row.getValue()));
+                }
+                return new ExportPreview(java.util.List.of(), null, headers, values, rows.size(), false, null);
+            }
+            var candidates = org.fxt.freexmltoolkit.service.spreadsheet.RecordTableLayout.candidates(rows);
+            var table = service.toTable(rows, config);
+            java.util.List<java.util.List<String>> values = new java.util.ArrayList<>();
+            for (var record : table.records().subList(0, Math.min(maxRows, table.records().size()))) {
+                java.util.List<String> line = new java.util.ArrayList<>();
+                for (var cell : table.cellsOf(record)) {
+                    line.add(cell == null ? "" : cell.getValue());
+                }
+                values.add(line);
+            }
+            return new ExportPreview(candidates, table.recordPath(), table.headerRow(), values,
+                    table.records().size(), table.hasOtherData(), null);
+        } catch (org.xml.sax.SAXParseException e) {
+            return ExportPreview.failed(org.fxt.freexmltoolkit.i18n.I18n.t("SpreadsheetActionRunner.preview-not-well-formed",
+                    e.getLineNumber(), e.getMessage()));
+        } catch (Exception | OutOfMemoryError e) {
+            return ExportPreview.failed(org.fxt.freexmltoolkit.i18n.I18n.t("SpreadsheetActionRunner.preview-failed", String.valueOf(e.getMessage())));
+        }
+    }
+
+    /**
+     * The first {@code lines} lines of the XML an import of {@code input} would give (without a schema).
+     * Never throws: a failure is returned as the text.
+     */
+    public static String importPreview(File input, CsvHandler.CsvConfig csvConfig, ConversionConfig config, int lines) {
+        if (input == null || !input.isFile()) {
+            return org.fxt.freexmltoolkit.i18n.I18n.t("SpreadsheetActionRunner.preview-choose-input");
+        }
+        if (input.length() > PREVIEW_MAX_FILE_BYTES) {
+            return org.fxt.freexmltoolkit.i18n.I18n.t("SpreadsheetActionRunner.preview-file-too-large");
+        }
+        String name = input.getName().toLowerCase(java.util.Locale.ROOT);
+        Result result = name.endsWith(".xlsx") || name.endsWith(".xls")
+                ? excelToXml(input, config) : csvToXml(input, csvConfig, config);
+        if (result.isError()) {
+            return org.fxt.freexmltoolkit.i18n.I18n.t("SpreadsheetActionRunner.preview-unreadable", String.valueOf(result.error().getMessage()));
+        }
+        return result.text().lines().limit(lines).collect(java.util.stream.Collectors.joining("\n"));
+    }
+
     // ----- helpers ---------------------------------------------------------
 
     /**

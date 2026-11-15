@@ -48,6 +48,7 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.excel.FxtExcelTheme;
+import org.fxt.freexmltoolkit.service.spreadsheet.RecordTableLayout;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -162,6 +163,23 @@ public class XmlSpreadsheetConverterService {
         }
     }
 
+    /** How an export lays out the spreadsheet. */
+    public enum Layout {
+        /** One row per node: XPath, value, type - the exact way back. */
+        XPATH_LIST,
+        /** One row per record, one column per value ({@link RecordTableLayout}). */
+        TABLE
+    }
+
+    /** Sheet of the records in the table layout. */
+    public static final String RECORDS_SHEET = "Records";
+    /** Sheet of the values outside the records (XPath form) in the table layout. */
+    public static final String OTHER_SHEET = "Other data";
+    /** Sheet explaining the workbook. */
+    public static final String INFO_SHEET = "Info";
+    /** Label of the info row naming the record path; read back by the import. */
+    public static final String INFO_RECORD_LABEL = "Record element";
+
     /**
      * Configuration for conversion options
      */
@@ -171,6 +189,46 @@ public class XmlSpreadsheetConverterService {
         private boolean includeCData = true;
         private boolean includeTypeColumn = true;
         private boolean prettyPrintXml = true;
+        private Layout layout = Layout.XPATH_LIST;
+        private String recordPath;
+        private String rootName = "Records";
+        private String recordName = "Record";
+
+        /** @return how an export lays out the spreadsheet (an import reads the layout from the file) */
+        public Layout getLayout() {
+            return layout;
+        }
+
+        public void setLayout(Layout layout) {
+            this.layout = layout == null ? Layout.XPATH_LIST : layout;
+        }
+
+        /** @return the record of a table export (path without positions), {@code null} for the default */
+        public String getRecordPath() {
+            return recordPath;
+        }
+
+        public void setRecordPath(String recordPath) {
+            this.recordPath = recordPath == null || recordPath.isBlank() ? null : recordPath;
+        }
+
+        /** @return the document element a foreign table (no XPath column, no info sheet) is imported into */
+        public String getRootName() {
+            return rootName;
+        }
+
+        public void setRootName(String rootName) {
+            this.rootName = rootName == null || rootName.isBlank() ? "Records" : rootName.strip();
+        }
+
+        /** @return the element each row of a foreign table becomes */
+        public String getRecordName() {
+            return recordName;
+        }
+
+        public void setRecordName(String recordName) {
+            this.recordName = recordName == null || recordName.isBlank() ? "Record" : recordName.strip();
+        }
 
         // Getters and setters
         public boolean isIncludeComments() {
@@ -236,6 +294,10 @@ public class XmlSpreadsheetConverterService {
 
         boolean isXlsx = outputFile.getName().toLowerCase().endsWith(".xlsx");
         int maxRows = isXlsx ? maxXlsxRows : maxXlsRows;
+        if (config.getLayout() == Layout.TABLE) {
+            writeTableWorkbook(toTable(rows, config), outputFile, config, resolver, isXlsx, maxRows);
+            return;
+        }
         if (rows.size() + 1 > maxRows) { // + header row
             throw new RowLimitExceededException(rows.size() + 1, maxRows);
         }
@@ -254,6 +316,7 @@ public class XmlSpreadsheetConverterService {
             createExcelHeader(sheet, config, styles);
             populateExcelSheet(sheet, rows, config, styles, resolver);
             formatExcelSheet(sheet, rows, config);
+            writeInfoSheet(workbook, streaming != null, null, rows.size());
 
             try (FileOutputStream fos = new FileOutputStream(outputFile)) {
                 workbook.write(fos);
@@ -283,6 +346,10 @@ public class XmlSpreadsheetConverterService {
         List<RowData> rows = extractRowsFromXml(doc, config);
 
         CsvHandler csvHandler = new CsvHandler();
+        if (config.getLayout() == Layout.TABLE) {
+            csvHandler.writeTableCsv(toTable(rows, config), outputFile, csvConfig);
+            return;
+        }
         csvHandler.writeCsv(rows, outputFile, csvConfig, config, types == null ? SpreadsheetTypeResolver.NONE : types);
 
         logger.info("Successfully converted XML to CSV with {} rows", rows.size());
@@ -315,6 +382,11 @@ public class XmlSpreadsheetConverterService {
              Workbook workbook = WorkbookFactory.create(fis)) {
 
             Sheet sheet = workbook.getSheetAt(0);
+            if (!isXPathList(sheet)) {
+                Document doc = buildXmlFromRows(readTableWorkbook(workbook, config, typesFor), config);
+                logger.info("Converted the Excel table to XML");
+                return doc;
+            }
             SpreadsheetTypeResolver types = typesFor == null ? null : typesFor.apply(rootElementXml(sheet, config));
             readExcelSheet(sheet, rows, types == null ? SpreadsheetTypeResolver.NONE : types);
         }
@@ -372,7 +444,10 @@ public class XmlSpreadsheetConverterService {
         logger.info("Converting CSV to XML: {}", csvFile.getName());
 
         CsvHandler csvHandler = new CsvHandler();
-        List<RowData> rows = csvHandler.readCsv(csvFile, csvConfig, config);
+        List<List<String>> records = csvHandler.readAllRecords(csvFile, csvConfig);
+        List<RowData> rows = !records.isEmpty() && isXPathHeader(records.getFirst().isEmpty() ? "" : records.getFirst().getFirst())
+                ? csvHandler.readCsv(csvFile, csvConfig, config)
+                : csvTableRows(records, config);
 
         SpreadsheetTypeResolver types = typesFor == null ? null : typesFor.apply(rootElementXml(rows, config));
         if (types != null && types.isSchemaBased()) {
@@ -783,6 +858,319 @@ public class XmlSpreadsheetConverterService {
             return "cdata";
         }
         return "element";
+    }
+
+    // ------------------------------------------------------------------ table layout
+
+    /** @return the table of {@code rows} with the configured record, or the default one */
+    public RecordTableLayout.Table toTable(List<RowData> rows, ConversionConfig config) {
+        String recordPath = config.getRecordPath() != null ? config.getRecordPath()
+                : RecordTableLayout.defaultRecordPath(rows);
+        return RecordTableLayout.toTable(rows, recordPath);
+    }
+
+    /**
+     * Writes the table layout: sheet {@value #RECORDS_SHEET} (one row per record), {@value #OTHER_SHEET} (the
+     * values outside the records as XPath / Value / Type, with the placeholders the import puts the records
+     * back at) and {@value #INFO_SHEET} (what the workbook holds, how to edit it, the record path).
+     */
+    private void writeTableWorkbook(RecordTableLayout.Table table, File outputFile, ConversionConfig config,
+                                    SpreadsheetTypeResolver types, boolean isXlsx, int maxRows) throws Exception {
+        int records = table.records().size() + 1;
+        int other = table.otherRows().size() + 1;
+        if (Math.max(records, other) > maxRows) {
+            throw new RowLimitExceededException(Math.max(records, other), maxRows);
+        }
+        SXSSFWorkbook streaming = isXlsx ? new SXSSFWorkbook(STREAMING_WINDOW_ROWS) : null;
+        try (Workbook workbook = isXlsx ? streaming : new HSSFWorkbook()) {
+            if (streaming != null) {
+                ServiceRegistry.get(ExportMetadataService.class)
+                        .setExcelMetadata(streaming.getXSSFWorkbook(), "XML to Excel Conversion");
+            }
+            XmlSpreadsheetExcelStyles styles = new XmlSpreadsheetExcelStyles(workbook);
+            Sheet sheet = workbook.createSheet(RECORDS_SHEET);
+            FxtExcelTheme.tableSheet(sheet);
+            List<String> headers = table.headerRow();
+            Row header = sheet.createRow(0);
+            header.setHeightInPoints(22);
+            int[] widths = new int[headers.size()];
+            for (int c = 0; c < headers.size(); c++) {
+                Cell cell = header.createCell(c);
+                cell.setCellValue(headers.get(c));
+                cell.setCellStyle(styles.header);
+                widths[c] = headers.get(c).length();
+            }
+            int r = 1;
+            for (RecordTableLayout.Record record : table.records()) {
+                Row row = sheet.createRow(r);
+                boolean stripe = r % 2 == 0;
+                List<RowData> cells = table.cellsOf(record);
+                for (int c = 0; c < cells.size(); c++) {
+                    RowData data = cells.get(c);
+                    Cell cell = row.createCell(c);
+                    if (data == null) {
+                        cell.setCellStyle(styles.body(XmlSpreadsheetExcelStyles.Role.TEXT, stripe, null));
+                    } else if (RecordTableLayout.PARENT.equals(data.getNodeType())) {
+                        cell.setCellValue(data.getValue());
+                        cell.setCellStyle(styles.body(XmlSpreadsheetExcelStyles.Role.XPATH, stripe, null));
+                    } else {
+                        writeValue(cell, data, styles, stripe, types);
+                    }
+                    if (r <= WIDTH_SAMPLE_ROWS && data != null) {
+                        widths[c] = Math.max(widths[c], Math.min(length(data.getValue()), MAX_VALUE_CHARS));
+                    }
+                }
+                r++;
+            }
+            for (int c = 0; c < widths.length; c++) {
+                sheet.setColumnWidth(c, columnWidth(widths[c]));
+            }
+            FxtExcelTheme.finishTable(sheet, 0, table.records().size(), Math.max(0, headers.size() - 1));
+
+            if (!table.otherRows().isEmpty()) {
+                // the import needs the type column (placeholders), whatever the option says
+                ConversionConfig typed = new ConversionConfig();
+                typed.setIncludeTypeColumn(true);
+                Sheet otherSheet = workbook.createSheet(OTHER_SHEET);
+                FxtExcelTheme.tableSheet(otherSheet);
+                createExcelHeader(otherSheet, typed, styles);
+                populateExcelSheet(otherSheet, table.otherRows(), typed, styles, types);
+                formatExcelSheet(otherSheet, table.otherRows(), typed);
+            }
+            writeInfoSheet(workbook, isXlsx, table, table.records().size());
+            try (FileOutputStream fos = new FileOutputStream(outputFile)) {
+                workbook.write(fos);
+            }
+            logger.info("Converted XML to an Excel table with {} records", table.records().size());
+        }
+    }
+
+    /**
+     * Writes the {@value #INFO_SHEET} sheet: what the workbook holds, how to read it and how to edit it so the
+     * way back works. In English like the column headers; {@value #INFO_RECORD_LABEL} is read by the import.
+     *
+     * @param table the table layout's table, or {@code null} for the XPath list
+     * @param rows  the data rows written
+     */
+    private static void writeInfoSheet(Workbook workbook, boolean xlsx, RecordTableLayout.Table table, int rows) {
+        Sheet sheet = workbook.createSheet(INFO_SHEET);
+        List<String[]> lines = new ArrayList<>();
+        String created = "Created with FreeXmlToolkit on "
+                + java.time.LocalDateTime.now().withNano(0).toString().replace('T', ' ');
+        if (table != null) {
+            String name = table.recordPath().substring(table.recordPath().lastIndexOf('/') + 1);
+            lines.add(new String[]{"#", "Contents"});
+            lines.add(new String[]{"Layout", "Table - one row per record"});
+            lines.add(new String[]{INFO_RECORD_LABEL, table.recordPath()});
+            lines.add(new String[]{"Records", Integer.toString(rows)});
+            lines.add(new String[]{"Columns", Integer.toString(table.headerRow().size())});
+            lines.add(new String[]{"#", "How to read the table"});
+            lines.add(new String[]{"Row", "One record: one <" + name + "> element of the XML document."});
+            lines.add(new String[]{"Column", "One value inside the record. \"Date\" is a child element, "
+                    + "\"Customer/Name\" an element inside another one, \"@id\" an attribute, "
+                    + "\"Item[2]/Qty\" the Qty of the second Item, \"#text\" the record's own text."});
+            if (table.hasParentColumn()) {
+                lines.add(new String[]{RecordTableLayout.PARENT,
+                        "Where in the document the record sits (the records sit in several places)."});
+            }
+            if (!table.otherRows().isEmpty()) {
+                lines.add(new String[]{OTHER_SHEET, "The values outside the records, one per row: the XPath "
+                        + "(their place in the document), the value and the kind of node."});
+            }
+            lines.add(new String[]{"#", "Editing and converting back"});
+            lines.add(new String[]{"Allowed", "Change values, add or delete rows, sort and filter."});
+            lines.add(new String[]{"Keep", "The header row, the sheet names and the \"" + OTHER_SHEET
+                    + "\" sheet: converting back needs them."});
+            lines.add(new String[]{"Empty cell", "No element or attribute is created for it."});
+        } else {
+            lines.add(new String[]{"#", "Contents"});
+            lines.add(new String[]{"Layout", "XPath list - one row per node of the XML document"});
+            lines.add(new String[]{"Rows", Integer.toString(rows)});
+            lines.add(new String[]{"#", "How to read the list"});
+            lines.add(new String[]{"XPath", "The node's place in the document: /Orders/Order[2]/Date is the Date "
+                    + "of the second Order, /Orders/@version an attribute."});
+            lines.add(new String[]{"Value", "The element's text or the attribute's value; empty for elements that "
+                    + "only contain other elements."});
+            lines.add(new String[]{"Type", "element, attribute, text, comment or cdata."});
+            lines.add(new String[]{"#", "Editing and converting back"});
+            lines.add(new String[]{"Allowed", "Change values; add rows with a new XPath to add nodes."});
+            lines.add(new String[]{"Keep", "The XPath column and the header row: converting back needs them."});
+        }
+        lines.add(new String[]{"Convert back", "Tools > Spreadsheet Converter > Spreadsheet -> XML."});
+        if (xlsx) {
+            FxtExcelTheme theme = new FxtExcelTheme(workbook);
+            FxtExcelTheme.infoSheet(sheet);
+            int r = theme.writeTitle(sheet, 0, "XML as a spreadsheet");
+            r = theme.writeSubtitle(sheet, r, created);
+            for (String[] line : lines) {
+                r = "#".equals(line[0]) ? theme.writeSection(sheet, r + 1, line[1], 1)
+                        : theme.writeLabelValue(sheet, r, line[0], line[1], theme.note());
+            }
+        } else {
+            int r = 0;
+            sheet.createRow(r++).createCell(0).setCellValue("XML as a spreadsheet");
+            sheet.createRow(r++).createCell(0).setCellValue(created);
+            for (String[] line : lines) {
+                Row row = sheet.createRow(r++);
+                row.createCell(0).setCellValue("#".equals(line[0]) ? line[1] : line[0]);
+                if (!"#".equals(line[0])) {
+                    row.createCell(1).setCellValue(line[1]);
+                }
+            }
+            sheet.setColumnWidth(0, FxtExcelTheme.INFO_LABEL_WIDTH);
+            sheet.setColumnWidth(1, FxtExcelTheme.INFO_VALUE_WIDTH);
+        }
+    }
+
+    /** @return whether the sheet is an XPath list (header "XPath" in A1) */
+    private boolean isXPathList(Sheet sheet) {
+        Row header = sheet.getRow(0);
+        return header != null && isXPathHeader(getCellValueAsString(header.getCell(0)));
+    }
+
+    /** @return whether a first header cell names the XPath list's first column */
+    static boolean isXPathHeader(String header) {
+        return header != null && header.strip().replace("\uFEFF", "").equalsIgnoreCase("XPath");
+    }
+
+    /** @return the record path the info sheet names, or {@code null} (a foreign workbook) */
+    private String infoRecordPath(Workbook workbook) {
+        Sheet info = workbook.getSheet(INFO_SHEET);
+        if (info == null) {
+            return null;
+        }
+        for (Row row : info) {
+            if (INFO_RECORD_LABEL.equals(getCellValueAsString(row.getCell(0)).strip())) {
+                String path = getCellValueAsString(row.getCell(1)).strip();
+                return path.startsWith("/") ? path : null;
+            }
+        }
+        return null;
+    }
+
+    /** @return the record path of a foreign table: {@code /<root>/<record>} from the options */
+    static String foreignRecordPath(ConversionConfig config) {
+        return "/" + RecordTableLayout.xmlName(config.getRootName()) + "/"
+                + RecordTableLayout.xmlName(config.getRecordName());
+    }
+
+    /** Reads a workbook in the table layout (ours, or a foreign one: first sheet, one row per record). */
+    private List<RowData> readTableWorkbook(Workbook workbook, ConversionConfig config,
+                                            java.util.function.Function<String, SpreadsheetTypeResolver> typesFor)
+            throws Exception {
+        String recordPath = infoRecordPath(workbook);
+        Sheet otherSheet = recordPath == null ? null : workbook.getSheet(OTHER_SHEET);
+        Sheet sheet = recordPath != null && workbook.getSheet(RECORDS_SHEET) != null
+                ? workbook.getSheet(RECORDS_SHEET) : workbook.getSheetAt(0);
+        if (recordPath == null) {
+            recordPath = foreignRecordPath(config);
+        }
+        String rootXml = "";
+        if (otherSheet != null) {
+            List<RowData> rootRows = new ArrayList<>();
+            readExcelSheet(otherSheet, rootRows, SpreadsheetTypeResolver.NONE, XmlSpreadsheetConverterService::isRootRow);
+            rootXml = rootElementXml(rootRows, config);
+        }
+        SpreadsheetTypeResolver resolved = typesFor == null ? null : typesFor.apply(rootXml);
+        SpreadsheetTypeResolver types = resolved == null ? SpreadsheetTypeResolver.NONE : resolved;
+        List<RowData> other = new ArrayList<>();
+        if (otherSheet != null) {
+            readExcelSheet(otherSheet, other, types);
+        }
+        Row headerRow = sheet.getRow(0);
+        List<String> headers = new ArrayList<>();
+        if (headerRow != null) {
+            for (int c = 0; c < headerRow.getLastCellNum(); c++) {
+                headers.add(getCellValueAsString(headerRow.getCell(c)));
+            }
+        }
+        List<Row> dataRows = new ArrayList<>();
+        List<List<String>> parentValues = new ArrayList<>();
+        for (int r = 1; r <= sheet.getLastRowNum(); r++) {
+            Row row = sheet.getRow(r);
+            if (row != null) {
+                dataRows.add(row);
+                List<String> texts = new ArrayList<>();
+                for (int c = 0; c < headers.size(); c++) {
+                    texts.add(RecordTableLayout.PARENT.equals(headers.get(c).strip())
+                            ? getCellValueAsString(row.getCell(c)) : "");
+                }
+                parentValues.add(texts);
+            }
+        }
+        int parentColumn = RecordTableLayout.parentColumn(headers, parentValues);
+        return tableRows(recordPath, headers, parentColumn, dataRows.size(), other,
+                (r, c) -> parentColumn == c ? getCellValueAsString(dataRows.get(r).getCell(c)) : null,
+                (r, c, xpath, nodeType) -> ExcelCellLexical.lexical(dataRows.get(r).getCell(c),
+                        SpreadsheetCellKind.fromBuiltin(builtinTypeOf(xpath, nodeType, types))));
+    }
+
+    /** The rows of a CSV file in the table layout (no XPath column): a foreign table, records from the options. */
+    private List<RowData> csvTableRows(List<List<String>> records, ConversionConfig config) {
+        if (records.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<String> headers = records.getFirst();
+        List<List<String>> values = records.subList(1, records.size());
+        int parentColumn = RecordTableLayout.parentColumn(headers, values);
+        return tableRows(foreignRecordPath(config), headers, parentColumn, values.size(), List.of(),
+                (r, c) -> c < values.get(r).size() ? values.get(r).get(c) : "",
+                (r, c, xpath, nodeType) -> c < values.get(r).size() ? values.get(r).get(c) : "");
+    }
+
+    /** Reads one cell's text. */
+    @FunctionalInterface
+    private interface TextCell {
+        String text(int row, int column);
+    }
+
+    /** Reads one value cell, knowing the XPath and node type it becomes (for schema typing). */
+    @FunctionalInterface
+    private interface ValueCell {
+        String value(int row, int column, String xpath, String nodeType);
+    }
+
+    /**
+     * Turns table rows back into XPath rows: each row a record under its parent (the {@link
+     * RecordTableLayout#PARENT} column, else the default), numbered per parent; empty cells and empty rows
+     * create nothing; the records go where the placeholders in {@code other} are.
+     */
+    private static List<RowData> tableRows(String recordPath, List<String> headers, int parentColumn, int rows,
+                                           List<RowData> other, TextCell parentCell, ValueCell valueCell) {
+        List<String> paths = RecordTableLayout.columnPaths(headers, parentColumn);
+        String defaultParent = RecordTableLayout.defaultParent(recordPath, other);
+        Map<String, List<List<RowData>>> byParent = new java.util.LinkedHashMap<>();
+        Map<String, Integer> ordinals = new HashMap<>();
+        for (int r = 0; r < rows; r++) {
+            String parent = parentColumn < 0 ? "" : parentCell.text(r, parentColumn);
+            parent = parent == null || parent.isBlank() ? defaultParent : parent.strip();
+            String instance = RecordTableLayout.instancePath(recordPath, parent, ordinals.getOrDefault(parent, 0) + 1);
+            RowData element = new RowData(instance, "", "element");
+            List<RowData> record = new ArrayList<>();
+            record.add(element);
+            for (int c = 0; c < paths.size(); c++) {
+                String path = paths.get(c);
+                if (path == null) {
+                    continue;
+                }
+                String xpath = RecordTableLayout.cellXPath(instance, path);
+                String nodeType = RecordTableLayout.nodeTypeOf(path);
+                String value = valueCell.value(r, c, xpath, nodeType);
+                if (value == null || value.isEmpty()) {
+                    continue;
+                }
+                if (RecordTableLayout.OWN_VALUE.equals(path)) {
+                    element.setValue(value);
+                } else {
+                    record.add(new RowData(xpath, value, nodeType));
+                }
+            }
+            if (record.size() > 1 || !element.getValue().isEmpty()) {
+                ordinals.merge(parent, 1, Integer::sum);
+                byParent.computeIfAbsent(parent, k -> new ArrayList<>()).add(record);
+            }
+        }
+        return new ArrayList<>(RecordTableLayout.assemble(other, byParent));
     }
 
     /**

@@ -51,7 +51,11 @@ for results; no telemetry. Exit codes in `cli/ExitCodes`. Packaged as a second j
 
 UI-free services in `service/`: `XmlStructuralDiff` (XMLUnit 2; DOM built from SAX with line numbers
 as user data), `FolderComparison`, `ThreeWayMerge` (diff3 on java-diff-utils, Git markers),
-`DataFormatConverter` (XML ↔ JSON ↔ YAML). `XmlStructuralDiff.Options` also takes ignore XPaths (node/attribute
+`DataFormatConverter` (XML ↔ JSON ↔ YAML), `XmlSpreadsheetConverterService` (XML ↔ Excel/CSV: `ConversionConfig.layout`
+XPATH_LIST = one row per node, TABLE = `service/spreadsheet/RecordTableLayout` – one row per record, values as relative
+paths, the rest in sheet "Other data" with `records` placeholders, record path in the "Info" sheet; an import detects the
+layout from the file, a foreign table becomes `/<rootName>/<recordName>` rows; dialog `SpreadsheetConverterDialog` with
+background preview via `SpreadsheetActionRunner.exportPreview/importPreview`). `XmlStructuralDiff.Options` also takes ignore XPaths (node/attribute
 filters on both DOMs), XMLUnit placeholders in the LEFT/expected document (`xmlunit-placeholders`) and a
 numeric tolerance (own `DifferenceEvaluator`); `Difference.similar` marks XMLUnit's SIMILAR outcomes
 (moves, CDATA) — they still count for `equivalent()`. XSLT profiler: `XsltProfilingTraceListener` → `XsltProfile`

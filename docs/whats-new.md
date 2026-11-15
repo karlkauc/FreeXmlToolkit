@@ -100,9 +100,11 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 **Editing**
 
-- **CSV to XML from the editor:** with a CSV document open, the Spreadsheet Converter starts with Spreadsheet → XML,
-  converts that document with its own delimiter, and an export of a document without XML elements offers the other
-  direction instead of "not well-formed"; a malformed document's message has **Go to Error**. See
+- **Spreadsheet Converter for everyone:** XML becomes a **table** – one row per record (every `<Order>`), one
+  column per value – instead of only the XPath list. Edit it in Excel and convert it back; any other CSV file or
+  sheet becomes XML too, one element per row. The dialog explains each choice, has tooltips and a **?** to the
+  documentation, and previews the table or the XML before anything is written. With a CSV document open it
+  starts with Spreadsheet → XML; a malformed document's message has **Go to Error**. See
   [XML Editor](xml-editor.md#xmlexcelcsv-converter).
 - **Show problems:** the Validation panel's "N problems — show below the editor" now also shows the first problem in
   the editor, on every click.

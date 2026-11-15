@@ -2499,6 +2499,11 @@ public class UnifiedShellView extends BorderPane {
         var doc = editorHost.getActiveDocument().orElse(null);
         java.io.File activeCsv = activeCsvFile(doc);
         dialog.setActiveInput(activeCsv);
+        if (doc != null && doc.getFileType().isXmlFamily()) {
+            // read here, on the FX thread; the dialog's preview reads the copy on a worker
+            String activeXml = editorHost.getActiveText().orElse(null);
+            dialog.setSource(() -> activeXml);
+        }
         if (direction != null) {
             dialog.setDirection(direction);
         } else if (doc != null && (activeCsv != null || !doc.getFileType().isXmlFamily())) {
@@ -2551,6 +2556,8 @@ public class UnifiedShellView extends BorderPane {
                         : org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
                                 .exportToCsv(xml, out, settings.delimiter().config(), settings.config(), cellTypes);
                 org.fxt.freexmltoolkit.service.telemetry.UsageEvents.spreadsheetConverted("to_spreadsheet", format,
+                        settings.config().getLayout()
+                                == org.fxt.freexmltoolkit.service.XmlSpreadsheetConverterService.Layout.TABLE ? "table" : "xpath",
                         result.telemetryStatus(), start, xml.length(), result.error());
                 // no element at all: the document is no XML (a CSV opened in the editor), not a broken one
                 boolean notXml = result.error() instanceof org.xml.sax.SAXParseException

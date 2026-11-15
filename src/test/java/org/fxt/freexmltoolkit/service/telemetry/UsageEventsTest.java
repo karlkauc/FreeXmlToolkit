@@ -820,4 +820,13 @@ class UsageEventsTest {
         UsageEvents.quickFixOffered(doc, DocKind.XML, 1, UsageEvents.QUICK_FIX_VIA_GUTTER);
         assertEquals(2, telemetry.events("quick_fix_offered").size());
     }
+
+    @Test
+    void spreadsheetExportCarriesItsLayout() {
+        UsageEvents.spreadsheetConverted("to_spreadsheet", "xlsx", "table", TelemetryEvent.Status.OK, 0, 10, null);
+        UsageEvents.spreadsheetConverted("to_xml", "csv", TelemetryEvent.Status.OK, 0, -1, (Throwable) null);
+        List<TelemetryEvent> events = telemetry.events("spreadsheet_convert");
+        assertEquals("table", events.get(0).meta().get("layout"));
+        assertFalse(events.get(1).meta().containsKey("layout"), "an import reads the layout from the file");
+    }
 }

@@ -349,6 +349,52 @@ public class CsvHandler {
     }
 
     /**
+     * Reads every record of a CSV file (header included), skipping a byte order mark.
+     *
+     * @return the records, each a list of fields
+     * @throws IOException If an I/O error occurs.
+     */
+    public List<List<String>> readAllRecords(File csvFile, CsvConfig csvConfig) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                new FileInputStream(csvFile), StandardCharsets.UTF_8))) {
+            reader.mark(1);
+            if (reader.read() != 0xFEFF) {
+                reader.reset();
+            }
+            return readRecords(reader, csvConfig);
+        }
+    }
+
+    /**
+     * Writes the table layout: the header row, then one line per record ({@link
+     * org.fxt.freexmltoolkit.service.spreadsheet.RecordTableLayout}). Values outside the records are not part
+     * of a CSV file (it has one table only); the Excel workbook keeps them.
+     *
+     * @throws IOException If an I/O error occurs.
+     */
+    public void writeTableCsv(org.fxt.freexmltoolkit.service.spreadsheet.RecordTableLayout.Table table, File outputFile,
+                              CsvConfig csvConfig) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
+                new FileOutputStream(outputFile), StandardCharsets.UTF_8))) {
+            if (csvConfig.isIncludeBOM()) {
+                writer.write('\uFEFF');
+            }
+            List<String> headers = table.headerRow();
+            boolean[] bare = new boolean[headers.size()];
+            writeCsvLine(writer, headers, bare, false, csvConfig);
+            List<String> fields = new ArrayList<>(headers.size());
+            for (var record : table.records()) {
+                fields.clear();
+                for (RowData cell : table.cellsOf(record)) {
+                    fields.add(cell == null ? "" : cell.getValue());
+                }
+                writeCsvLine(writer, fields, bare, false, csvConfig);
+            }
+        }
+        logger.info("Wrote a CSV table with {} records", table.records().size());
+    }
+
+    /**
      * Writes one record.
      *
      * @param bare        per field: written as is (a typed value) unless it must be quoted

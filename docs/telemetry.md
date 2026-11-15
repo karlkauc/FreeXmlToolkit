@@ -91,7 +91,8 @@ for a failure, the exception class in `error_code`; a schema that does not parse
 (`SAXParseException`) has status `invalid_input`.
 
 The **spreadsheet converter** (`spreadsheet_convert`) records the direction in `meta.direction`
-(`to_spreadsheet` or `to_xml`), the format in `meta.format` (`xlsx`, `xls` or `csv`), the duration,
+(`to_spreadsheet` or `to_xml`), the format in `meta.format` (`xlsx`, `xls` or `csv`), for an export the
+layout in `meta.layout` (`table` or `xpath`), the duration,
 the size of the exported document in characters (`input_bytes`) and, for a failure, the exception
 class in `error_code`. A document that is not well-formed has status `invalid_input`; one with more
 rows than a sheet holds, or too large for the memory limit, has status `unsupported`.

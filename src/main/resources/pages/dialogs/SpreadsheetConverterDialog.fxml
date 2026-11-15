@@ -6,62 +6,147 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.RadioButton?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 
 <!--
-  Content of the "Spreadsheet Converter" dialog: direction, format, CSV delimiter and the
-  conversion options (defaults mirror the service: everything on). Loaded by
-  SpreadsheetConverterDialog (FxmlViews.loadContent), which is the controller, fills the two
-  choice boxes from its enums and adds title and buttons. The schema row is enabled for an
-  import only (an export uses the XSD bound to the document).
+  Content of the "Spreadsheet Converter" dialog. Top: a short explanation of what the chosen direction and
+  layout do, with a "?" button to the documentation. Left: the settings; rows that do not apply to the
+  direction are hidden by SpreadsheetConverterDialog (an export: layout, record, format, options; an import:
+  input file, the names a foreign table's rows get, schema). Right: a preview of the result, computed in the
+  background (a table for an export, the start of the XML for an import). The class is the controller and
+  adds title and buttons.
 -->
-<GridPane hgap="10" vgap="8" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+<VBox spacing="12" prefWidth="1040" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <fx:define>
         <ToggleGroup fx:id="directionGroup"/>
+        <ToggleGroup fx:id="layoutGroup"/>
     </fx:define>
     <padding>
         <Insets topRightBottomLeft="16"/>
     </padding>
     <children>
-        <Label text="%SpreadsheetConverterDialog.direction.text" GridPane.rowIndex="0"/>
-        <RadioButton fx:id="toSpreadsheet" text="%SpreadsheetConverterDialog.toSpreadsheet.text" toggleGroup="$directionGroup" selected="true"
-                     GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-        <VBox spacing="4" GridPane.rowIndex="1" GridPane.columnIndex="1">
+        <HBox spacing="8" alignment="TOP_LEFT" styleClass="dialog-info-box, dialog-info-box-info">
             <children>
-                <RadioButton fx:id="toXml" text="%SpreadsheetConverterDialog.toXml.text" toggleGroup="$directionGroup"/>
-                <!-- shown when the active document is a CSV file: convert it instead of picking a file -->
-                <CheckBox fx:id="useActiveInput" id="spreadsheet-use-active-input" selected="true" visible="false" managed="false">
-                    <padding><Insets left="22"/></padding>
-                </CheckBox>
-            </children>
-        </VBox>
-        <Label text="%SpreadsheetConverterDialog.format.text" GridPane.rowIndex="2"/>
-        <ComboBox fx:id="format" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-        <Label text="%SpreadsheetConverterDialog.csv-delimiter.text" GridPane.rowIndex="3"/>
-        <ComboBox fx:id="delimiter" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
-        <Label text="%SpreadsheetConverterDialog.schema-xsd.text" GridPane.rowIndex="4"/>
-        <HBox spacing="6" GridPane.rowIndex="4" GridPane.columnIndex="1">
-            <children>
-                <TextField fx:id="schemaFile" id="spreadsheet-import-schema" prefColumnCount="28"
-                           promptText="%SpreadsheetConverterDialog.schemaFile.promptText"/>
-                <Button fx:id="browseSchema" id="spreadsheet-import-schema-browse" text="%SpreadsheetConverterDialog.browseSchema.text"
-                        onAction="#onBrowseSchema"/>
+                <Label fx:id="helpText" id="spreadsheet-help-text" wrapText="true" minHeight="-Infinity"
+                       maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                <Button fx:id="helpButton" id="spreadsheet-help-docs" onAction="#onHelp"
+                        accessibleText="%SpreadsheetConverterDialog.helpButton.accessibleText">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-question-circle" iconSize="16"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="%SpreadsheetConverterDialog.helpButton.tooltip"/>
+                    </tooltip>
+                </Button>
             </children>
         </HBox>
-        <Label text="%SpreadsheetConverterDialog.options.text" GridPane.rowIndex="5"/>
-        <CheckBox fx:id="includeComments" text="%SpreadsheetConverterDialog.includeComments.text" selected="true"
-                  GridPane.rowIndex="5" GridPane.columnIndex="1"/>
-        <CheckBox fx:id="includeNamespaces" text="%SpreadsheetConverterDialog.includeNamespaces.text" selected="true"
-                  GridPane.rowIndex="6" GridPane.columnIndex="1"/>
-        <CheckBox fx:id="includeCData" text="%SpreadsheetConverterDialog.includeCData.text" selected="true"
-                  GridPane.rowIndex="7" GridPane.columnIndex="1"/>
-        <CheckBox fx:id="includeTypeColumn" text="%SpreadsheetConverterDialog.includeTypeColumn.text" selected="true"
-                  GridPane.rowIndex="8" GridPane.columnIndex="1"/>
-        <CheckBox fx:id="prettyPrintXml" text="%SpreadsheetConverterDialog.prettyPrintXml.text" selected="true"
-                  GridPane.rowIndex="9" GridPane.columnIndex="1"/>
+        <HBox spacing="20" VBox.vgrow="ALWAYS">
+            <children>
+                <GridPane hgap="10" vgap="8" minWidth="460">
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="-Infinity"/>
+                        <ColumnConstraints hgrow="ALWAYS" prefWidth="320" maxWidth="340"/>
+                    </columnConstraints>
+                    <children>
+                        <Label text="%SpreadsheetConverterDialog.direction.text" GridPane.rowIndex="0"/>
+                        <VBox spacing="4" GridPane.rowIndex="0" GridPane.columnIndex="1">
+                            <children>
+                                <RadioButton fx:id="toSpreadsheet" id="spreadsheet-to-spreadsheet"
+                                             text="%SpreadsheetConverterDialog.toSpreadsheet.text"
+                                             toggleGroup="$directionGroup" selected="true"/>
+                                <RadioButton fx:id="toXml" id="spreadsheet-to-xml"
+                                             text="%SpreadsheetConverterDialog.toXml.text" toggleGroup="$directionGroup"/>
+                            </children>
+                        </VBox>
+
+                        <Label fx:id="layoutLabel" text="%SpreadsheetConverterDialog.layout.text" GridPane.rowIndex="1"/>
+                        <VBox fx:id="layoutBox" spacing="4" GridPane.rowIndex="1" GridPane.columnIndex="1">
+                            <children>
+                                <RadioButton fx:id="layoutTable" id="spreadsheet-layout-table"
+                                             text="%SpreadsheetConverterDialog.layoutTable.text"
+                                             toggleGroup="$layoutGroup" selected="true"/>
+                                <RadioButton fx:id="layoutList" id="spreadsheet-layout-list"
+                                             text="%SpreadsheetConverterDialog.layoutList.text" toggleGroup="$layoutGroup"/>
+                            </children>
+                        </VBox>
+
+                        <Label fx:id="recordLabel" text="%SpreadsheetConverterDialog.record.text" GridPane.rowIndex="2"/>
+                        <ComboBox fx:id="recordChoice" id="spreadsheet-record" maxWidth="Infinity" prefWidth="320" minWidth="160"
+                                  GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                        <Label fx:id="inputLabel" text="%SpreadsheetConverterDialog.input.text" GridPane.rowIndex="3"/>
+                        <HBox fx:id="inputBox" spacing="6" GridPane.rowIndex="3" GridPane.columnIndex="1">
+                            <children>
+                                <TextField fx:id="inputFile" id="spreadsheet-input" HBox.hgrow="ALWAYS"
+                                           promptText="%SpreadsheetConverterDialog.inputFile.promptText"/>
+                                <Button fx:id="browseInput" id="spreadsheet-input-browse"
+                                        text="%SpreadsheetConverterDialog.browseInput.text" onAction="#onBrowseInput"/>
+                            </children>
+                        </HBox>
+
+                        <Label fx:id="rootLabel" text="%SpreadsheetConverterDialog.root.text" GridPane.rowIndex="4"/>
+                        <TextField fx:id="rootName" id="spreadsheet-root-name"
+                                   GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+                        <Label fx:id="recordNameLabel" text="%SpreadsheetConverterDialog.recordName.text" GridPane.rowIndex="5"/>
+                        <TextField fx:id="recordName" id="spreadsheet-record-name"
+                                   GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+                        <Label fx:id="formatLabel" text="%SpreadsheetConverterDialog.format.text" GridPane.rowIndex="6"/>
+                        <ComboBox fx:id="format" id="spreadsheet-format" GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+                        <Label fx:id="delimiterLabel" text="%SpreadsheetConverterDialog.csv-delimiter.text" GridPane.rowIndex="7"/>
+                        <ComboBox fx:id="delimiter" id="spreadsheet-delimiter" GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+
+                        <Label fx:id="schemaLabel" text="%SpreadsheetConverterDialog.schema-xsd.text" GridPane.rowIndex="8"/>
+                        <HBox fx:id="schemaBox" spacing="6" GridPane.rowIndex="8" GridPane.columnIndex="1">
+                            <children>
+                                <TextField fx:id="schemaFile" id="spreadsheet-import-schema" HBox.hgrow="ALWAYS"
+                                           promptText="%SpreadsheetConverterDialog.schemaFile.promptText"/>
+                                <Button fx:id="browseSchema" id="spreadsheet-import-schema-browse"
+                                        text="%SpreadsheetConverterDialog.browseSchema.text" onAction="#onBrowseSchema"/>
+                            </children>
+                        </HBox>
+
+                        <Label text="%SpreadsheetConverterDialog.options.text" GridPane.rowIndex="9"/>
+                        <VBox spacing="6" GridPane.rowIndex="9" GridPane.columnIndex="1">
+                            <children>
+                                <CheckBox fx:id="includeComments" id="spreadsheet-comments"
+                                          text="%SpreadsheetConverterDialog.includeComments.text" selected="true"/>
+                                <CheckBox fx:id="includeCData" id="spreadsheet-cdata"
+                                          text="%SpreadsheetConverterDialog.includeCData.text" selected="true"/>
+                                <CheckBox fx:id="includeTypeColumn" id="spreadsheet-type-column"
+                                          text="%SpreadsheetConverterDialog.includeTypeColumn.text" selected="true"/>
+                                <CheckBox fx:id="prettyPrintXml" id="spreadsheet-pretty-print"
+                                          text="%SpreadsheetConverterDialog.prettyPrintXml.text" selected="true"/>
+                            </children>
+                        </VBox>
+                    </children>
+                </GridPane>
+
+                <VBox spacing="6" HBox.hgrow="ALWAYS" minWidth="440">
+                    <children>
+                        <Label text="%SpreadsheetConverterDialog.preview.text" styleClass="fxt-text-sm"/>
+                        <Label fx:id="previewNote" id="spreadsheet-preview-note" wrapText="true" minHeight="-Infinity"
+                               styleClass="fxt-text-xs"/>
+                        <StackPane VBox.vgrow="ALWAYS" prefHeight="340">
+                            <children>
+                                <TableView fx:id="previewTable" id="spreadsheet-preview-table"/>
+                                <TextArea fx:id="previewText" id="spreadsheet-preview-xml" editable="false"
+                                          wrapText="false" styleClass="fxt-mono-text"/>
+                            </children>
+                        </StackPane>
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
     </children>
-</GridPane>
+</VBox>
