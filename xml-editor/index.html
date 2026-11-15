@@ -1620,6 +1620,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="XML/Excel/CSV Converter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#xml-to-a-spreadsheet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XML to a spreadsheet
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-spreadsheet-to-xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A spreadsheet to XML
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#excel-look-and-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Excel look and types
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -4245,6 +4284,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="XML/Excel/CSV Converter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#xml-to-a-spreadsheet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XML to a spreadsheet
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-spreadsheet-to-xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A spreadsheet to XML
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#excel-look-and-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Excel look and types
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -4875,19 +4953,89 @@ into the query panel or the <a href="../query-console/#query-console">Query Cons
 <code>README.md</code> describing every example.</p>
 <hr>
 <h2 id="xmlexcelcsv-converter">XML/Excel/CSV Converter<a class="headerlink" href="#xmlexcelcsv-converter" title="Permanent link">¶</a></h2>
-<p>Choose <strong>Tools → Spreadsheet Converter…</strong> (Ctrl+E) to open the converter dialog:</p>
+<p>Choose <strong>Tools → Spreadsheet Converter…</strong> (Ctrl+E) to turn an XML document into an Excel workbook or a CSV
+file, or a spreadsheet into XML. The text at the top of the dialog says what the chosen direction does, every
+option explains itself in a tooltip, <strong>?</strong> opens this page, and the <strong>preview</strong> on the right shows the result
+before anything is written.</p>
+<h3 id="xml-to-a-spreadsheet">XML to a spreadsheet<a class="headerlink" href="#xml-to-a-spreadsheet" title="Permanent link">¶</a></h3>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/spreadsheet-converter-export.png" data-desc-position="bottom"><img alt="Spreadsheet Converter: export as a table with preview" src="../img/spreadsheet-converter-export.png"></a></p>
+<p>Two layouts:</p>
 <ul>
-<li><strong>XML to Excel</strong>: Export XML data to Excel spreadsheet</li>
-<li><strong>XML to CSV</strong>: Export XML data to CSV file</li>
-<li><strong>Excel to XML</strong>: Import Excel data as XML</li>
-<li><strong>CSV to XML</strong>: Import CSV data as XML</li>
+<li>
+<p><strong>Table – one row per record</strong> (the default). A <em>record</em> is an element that repeats, such as every
+  <code>&lt;Order&gt;</code>. Each record becomes one row, each value inside it one column:</p>
+<table>
+<thead>
+<tr>
+<th>@id</th>
+<th>Date</th>
+<th>Customer/Name</th>
+<th>Customer/City</th>
+<th>Item[1]/Product</th>
+<th>Item[1]/Qty</th>
+<th>Item[2]/Product</th>
+<th>Item[2]/Qty</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A-1001</td>
+<td>2026-11-02</td>
+<td>Berg GmbH</td>
+<td>Wien</td>
+<td>Desk</td>
+<td>2</td>
+<td>Lamp</td>
+<td>4</td>
+</tr>
+<tr>
+<td>A-1002</td>
+<td>2026-11-03</td>
+<td>Ott &amp; Söhne</td>
+<td>Graz</td>
+<td>Chair</td>
+<td>6</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>How to read the column names: <code>Date</code> is a child element, <code>Customer/Name</code> an element inside another one,
+<code>@id</code> an attribute, <code>Item[2]/Qty</code> the <code>Qty</code> of the second <code>Item</code>, <code>#text</code> a record's own text. <strong>One row per</strong>
+lists the repeating elements with the rows and columns each would give; the default is the one that shows
+most of the document while staying readable. When the records sit in several places (orders under several
+customers), a <strong>Parent</strong> column says where each one belongs.</p>
+<p>The Excel workbook has three sheets: <strong>Records</strong>; <strong>Other data</strong> – the values outside the records (a header,
+the document element's attributes) as XPath, value and type; and <strong>Info</strong>, which explains the workbook. You
+can change values, add or delete rows, sort and filter, then convert it back; keep the header row, the sheet
+names and the Other data sheet. A CSV file has the records only.</p>
+<p>The table does not keep empty elements inside a record (an empty cell means "no element"), and the columns
+give one order for all records.</p>
+</li>
+<li>
+<p><strong>XPath list – one row per value</strong>: each node becomes a row with its XPath (its place in the document, such as
+  <code>/Orders/Order[2]/Date</code>), its value and its kind (<strong>Include type column</strong>). Harder to read, but converting back
+  gives exactly the same document. The workbook gets an Info sheet as well.</p>
+</li>
 </ul>
-<p>When the active document is no XML (a CSV file, for example), the dialog starts with <strong>Spreadsheet → XML</strong>. A saved
-CSV or TSV document is offered as the input (<strong>Convert the active document</strong>, on by default), with the format set to
-CSV and the delimiter taken from its first line; untick it to pick another file. Exporting a document that contains
-no XML element at all says so and offers <strong>Convert Spreadsheet → XML…</strong> instead of reporting it as malformed XML.
-A malformed XML document is reported with line, column and the parser's message; <strong>Go to Error</strong> shows that place
-in the editor.</p>
+<p>The last layout you chose is remembered. <strong>Include comments</strong> and <strong>Include CDATA</strong> also write XML comments and
+CDATA sections as values.</p>
+<h3 id="a-spreadsheet-to-xml">A spreadsheet to XML<a class="headerlink" href="#a-spreadsheet-to-xml" title="Permanent link">¶</a></h3>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/spreadsheet-converter-import.png" data-desc-position="bottom"><img alt="Spreadsheet Converter: a CSV file converted to XML" src="../img/spreadsheet-converter-import.png"></a></p>
+<p>Choose the file under <strong>Spreadsheet</strong>; a saved CSV or TSV document that is open in the editor is filled in, with
+the delimiter taken from its first line. The layout is read from the file:</p>
+<ul>
+<li>a workbook exported as a table or an XPath list is read back as it was;</li>
+<li><strong>any other table</strong> – a CSV file or a sheet from elsewhere – becomes one element per row (<strong>Element per row</strong>,
+  e.g. <code>Customer</code>) inside the <strong>Document element</strong> (e.g. <code>Customers</code>). The column headers become the element
+  names: <code>Customer no</code> becomes <code>Customer_no</code>, <code>@status</code> an attribute, <code>Address/City</code> a nested element. Empty
+  cells create nothing.</li>
+</ul>
+<p>The XML opens in a new tab. When the active document is no XML (a CSV file, for example), the dialog starts with
+<strong>Spreadsheet → XML</strong>. Exporting a document that contains no XML element at all says so and offers
+<strong>Convert Spreadsheet → XML…</strong> instead of reporting it as malformed XML. A malformed XML document is reported with
+line, column and the parser's message; <strong>Go to Error</strong> shows that place in the editor.</p>
+<h3 id="excel-look-and-types">Excel look and types<a class="headerlink" href="#excel-look-and-types" title="Permanent link">¶</a></h3>
 <p>The Excel workbook looks like the Data Dictionary export: a dark header row that stays in
 view while you scroll, striped rows, XPaths in a monospace font, and container elements in
 bold. It also has an AutoFilter and prints one page wide.</p>

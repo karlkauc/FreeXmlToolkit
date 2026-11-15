@@ -3574,7 +3574,8 @@ has status <code>invalid_input</code>; the error dialog of such a run is not rep
 for a failure, the exception class in <code>error_code</code>; a schema that does not parse
 (<code>SAXParseException</code>) has status <code>invalid_input</code>.</p>
 <p>The <strong>spreadsheet converter</strong> (<code>spreadsheet_convert</code>) records the direction in <code>meta.direction</code>
-(<code>to_spreadsheet</code> or <code>to_xml</code>), the format in <code>meta.format</code> (<code>xlsx</code>, <code>xls</code> or <code>csv</code>), the duration,
+(<code>to_spreadsheet</code> or <code>to_xml</code>), the format in <code>meta.format</code> (<code>xlsx</code>, <code>xls</code> or <code>csv</code>), for an export the
+layout in <code>meta.layout</code> (<code>table</code> or <code>xpath</code>), the duration,
 the size of the exported document in characters (<code>input_bytes</code>) and, for a failure, the exception
 class in <code>error_code</code>. A document that is not well-formed has status <code>invalid_input</code>; one with more
 rows than a sheet holds, or too large for the memory limit, has status <code>unsupported</code>.</p>
