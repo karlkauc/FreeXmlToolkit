@@ -503,8 +503,12 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
         afterSetText(text);
     }
 
-    /** From this length on, {@link #prepareText} builds the document off the FX thread. */
-    public static final int PREPARE_THRESHOLD_CHARS = 2 * 1024 * 1024;
+    /**
+     * From this length on, {@link #prepareText} builds the document off the FX thread. 256 KB, not
+     * more: on slow (virus-scanned) machines the line split alone took 2 s for a 0.5 MB file
+     * (telemetry, 3.1.0); below this the work is a few ms even there.
+     */
+    public static final int PREPARE_THRESHOLD_CHARS = 256 * 1024;
 
     /**
      * A document built off the FX thread for {@link #setText(PreparedText)}.
