@@ -62,7 +62,9 @@ fxt-cli validate [options] FILE|FOLDER...
 | `-r`, `--report FILE` | Write the report to a file; the text summary still goes to standard output |
 | `-p`, `--project FXTPROJ` | Use a [project's](projects.md) bindings (schema, Schematron, JSON Schema) and catalogs |
 | `--fail-on-warning` | Warnings make a file invalid too |
-| `--gleif` | Also check every LEI of the files at GLEIF ([LEI Lookup at GLEIF](gleif.md)); sends the LEIs to `api.gleif.org` |
+| `--gleif` | Also check every LEI of the files at GLEIF ([Online Identifier Lookup](identifier-lookup.md)); sends the LEIs to `api.gleif.org` |
+| `--isin` | Also check every ISIN of the files at ESMA FIRDS, OpenFIGI for the ISINs FIRDS does not know; sends the ISINs to these services |
+| `--no-openfigi` | With `--isin`: ask only ESMA FIRDS |
 | `--xsd-version VERSION` | `auto` (default: XSD 1.1 when the schema uses it), `1.0` or `1.1` |
 | `--xml-version VERSION` | `auto` (default: as declared), `1.0` (a document declared as XML 1.1 is an error) or `1.1` |
 | `--schematron-binding BINDING` | Query binding of a Schematron without `@queryBinding`: `xslt`, `xslt2` (default) or `xslt3`; with `xslt` / `xslt2` every context and test must be XPath 1.0 / 2.0 |
@@ -590,7 +592,7 @@ Exit code `0` when everything selected was decrypted, `1` when no key fits or da
 ## lei
 
 Looks LEIs up at GLEIF: legal name, country, registration and entity status, next renewal. See
-[LEI Lookup at GLEIF](gleif.md).
+[Online Identifier Lookup](identifier-lookup.md).
 
 ```bash
 fxt-cli lei [LEI...] [--file FILE]... [-f text|json]
@@ -605,6 +607,26 @@ fxt-cli lei [LEI...] [--file FILE]... [-f text|json]
 Exit code `0` when every LEI is issued and its entity active, `1` when one is invalid, unknown, lapsed, retired or
 annulled or its entity inactive, `3` when GLEIF cannot be reached or the administrator turned lookups off
 (`gleif.allowed=false`).
+
+## isin
+
+Looks ISINs up at ESMA FIRDS (name, CFI code, issuer LEI, currency, EU trading venues), the ISINs FIRDS does not know
+at OpenFIGI (name, security type, ticker, FIGI). See [Online Identifier Lookup](identifier-lookup.md).
+
+```bash
+fxt-cli isin [ISIN...] [--file FILE]... [--no-openfigi] [-f text|json]
+```
+
+| Option | Meaning |
+|---|---|
+| `ISIN...` | ISINs to look up |
+| `--file FILE` | Look up every ISIN found in the file (repeatable) |
+| `--no-openfigi` | Ask only ESMA FIRDS |
+| `-f`, `--format FORMAT` | `text` (default) or `json` |
+
+An OpenFIGI API key in `FXT_OPENFIGI_APIKEY` raises OpenFIGI's limits. Exit code `0` when every ISIN is known, `1`
+when one is invalid or known to neither service, `3` when a service cannot be reached or the administrator turned
+lookups off (`isin.allowed=false`).
 
 ## mcp
 

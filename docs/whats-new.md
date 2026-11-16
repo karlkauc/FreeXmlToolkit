@@ -6,14 +6,15 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
-**LEI lookup at GLEIF**
+**Online identifier lookup (GLEIF, ESMA FIRDS, OpenFIGI)**
 
-- **Is the LEI registered?** The identifier checker of the industry extensions looks an LEI up at GLEIF (name, address,
-  registration and entity status, next renewal); **Check LEIs at GLEIF** (the industry, FundsXML and PK-Meldewesen
-  panels, Tools menu) checks every LEI of
-  a document and reports unknown, lapsed, retired or annulled LEIs in the Problems panel. Optionally with every
-  validation and as a hover in the editor (Settings → GLEIF, both off by default); on the command line
-  `fxt-cli lei` and `fxt-cli validate --gleif`. See [LEI Lookup at GLEIF](gleif.md).
+- **Is the LEI registered, does the ISIN exist?** The identifier checker of the industry, FundsXML and PK-Meldewesen
+  panels looks an LEI up at GLEIF (name, address, registration and entity status, next renewal) and an ISIN at ESMA
+  FIRDS (name, CFI code, issuer LEI, EU trading) or, when FIRDS does not know it, at OpenFIGI. **Check Identifiers
+  Online** (panels, Tools menu) checks every LEI and ISIN of a document and reports unknown, lapsed, retired or annulled
+  LEIs and unknown or no longer traded ISINs in the Problems panel. Optionally with every validation and as a hover in
+  the editor (Settings → Network & Security, off by default); on the command line `fxt-cli lei`, `fxt-cli isin` and
+  `fxt-cli validate --gleif --isin`. See [Online Identifier Lookup](identifier-lookup.md).
 
 **External XSLT processors**
 

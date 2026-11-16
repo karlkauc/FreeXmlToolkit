@@ -244,22 +244,32 @@ validate, bind), `ProjectSettingsDialog` (+ `ScenarioEditDialog`, `BindSchemaDia
 (`ValidationRunner.batchProject`), Welcome "Projects" cards. CLI: `scenario` (`--input`), `validate --project`
 (also Schematron / JSON Schema). Docs: `docs/projects.md`.
 
-## GLEIF (LEI lookup)
+## Online identifier lookup (GLEIF, ESMA FIRDS, OpenFIGI)
 
-`service/finance/gleif/`: `GleifClient` (`api.gleif.org/api/v1/lei-records?filter[lei]=…`, 200 per request, ≤ 1
-request/s, `Fetcher` = `ConnectionService.fetchBinary`, only LEIs with valid check digits), `LeiRecord` (+ `problem()`:
-unknown/RETIRED/ANNULLED… = error, LAPSED/INACTIVE = warning, PENDING = info), `LeiCache` (memory +
-`~/.freeXmlToolkit/gleif/cache.json`, `gleif.cacheHours`), `LeiScanner` (LEIs in any text, `at(text, offset)`),
-`GleifCheck` (findings per occurrence, never throws), `Gleif` (shared cache + `setCache` test hook, settings
-`gleif.onValidation` / `gleif.hover`, policy `gleif.allowed`, `setValidationOverride` for the CLI). Users:
-`ValidationRunner.gleifProblems` (stage at the end of `runWithReport` when `Gleif.onValidation()`), `plugins/IdentifierChecker`
-(identifier checker control with Look up at GLEIF, in `IndustryPanel`, `FundsXmlPanel`, `PkMeldewesenPanel`; `IndustryPanel` tool "Check LEIs at GLEIF" for panels offering `IdentifierKind.LEI`),
-`GleifDocumentCheck` (`runOnActive(host, done)` → `Outcome`, merge into the Problems panel via
-`EditorHost.publishGleifCheck`; a later validation of the same text keeps the GLEIF findings; used by Tools menu
-`menu-tools-gleif`, `IndustryPanel`, `FundsXmlPanel` `fundsxml-gleif`, `PkMeldewesenPanel` `pk-gleif`), `LeiHover`, Settings card
-`GleifSettings`, CLI `lei` (`LeiCommand`) and `validate --gleif` (the CLI ignores `gleif.onValidation`). LEIs leave the
-computer only on a click or with those settings on. Tests use the saved answer `src/test/resources/gleif/lei-records.json`.
-Docs: `docs/gleif.md`.
+Shared cache `service/finance/lookup/LookupCache<R>` (memory + JSON file, codec, `Fetcher`).
+LEIs, `service/finance/gleif/`: `GleifClient` (`api.gleif.org/api/v1/lei-records?filter[lei]=…`, 200 per request, ≤ 1
+request/s, `ConnectionService.fetchBinary`, only valid check digits), `LeiRecord` (+ `problem()`: unknown/RETIRED/
+ANNULLED… = error, LAPSED/INACTIVE = warning, PENDING = info), `LeiCache` (`~/.freeXmlToolkit/gleif/cache.json`),
+`LeiScanner`, `GleifCheck`, `Gleif` (shared cache + `setCache`, `gleif.onValidation` / `gleif.hover` / `gleif.cacheHours`,
+policy `gleif.allowed`, `setValidationOverride`).
+ISINs, `service/finance/isin/`: `IsinLookup` (ESMA FIRDS Solr `registers.esma.europa.eu/solr/esma_registers_firds/select`,
+100 ISINs per request grouped by isin + `facet.pivot=isin,status` (TERM/CANC = ended venues); the rest at OpenFIGI
+`POST api.openfigi.com/v3/mapping` - 10 jobs/request and 25 requests/min without key, 100 with `X-OPENFIGI-APIKEY` via
+`ConnectionService.postJson(…, headers)` (32 MB answers)), `IsinRecord` (+ `problem()`: unknown to both = warning, no EU
+venue / not in FIRDS without OpenFIGI = info), `IsinScanner` (country prefix + check digit), `Isin` (shared `Isin.Cache`
+keyed per OpenFIGI mode (`#firds`), `~/.freeXmlToolkit/isin/cache.json`, settings `isin.onValidation` / `isin.hover` /
+`isin.openfigi` (default on) / `isin.openfigi.apiKey` (encrypted, env `FXT_OPENFIGI_APIKEY`) / `isin.cacheHours`, policy
+`isin.allowed`, `isin.openfigi.allowed`, CLI overrides).
+Combined: `service/finance/IdentifierCheck` (LEIs + ISINs, findings with source `GLEIF` / `ISIN`, `Failure` per source,
+never throws). Users: `ValidationRunner.identifierProblems` / `toProblems` (stage at the end of `runWithReport`),
+`plugins/IdentifierChecker` (control in `IndustryPanel`, `FundsXmlPanel`, `PkMeldewesenPanel`: Look up at GLEIF / Look up
+online, issuer LEI link), `IdentifierDocumentCheck` (`runOnActive(host, done)` → `Outcome`; merge via
+`EditorHost.publishIdentifierCheck`; a later validation of the same text keeps the online findings per source unless it
+checked that source itself; "Check Identifiers Online": Tools `menu-tools-identifiers-online`, `industry-identifiers-online`,
+`fundsxml-identifiers-online`, `pk-identifiers-online`), `IdentifierHover`, Settings cards `GleifSettings` / `IsinSettings`,
+CLI `lei`, `isin` (`--no-openfigi`), `validate --gleif --isin` (the CLI ignores the "on validation" settings). Values leave
+the computer only on a click or with those settings on. Tests: `OnlineFakes` (saved answers `gleif/lei-records.json`,
+`isin/firds-select.json`, `isin/openfigi-mapping.json`). Docs: `docs/identifier-lookup.md`.
 
 ## Plugins
 

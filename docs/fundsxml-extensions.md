@@ -208,8 +208,8 @@ sections:
 | Section | What you can do |
 |---------|-----------------|
 | **MANAGEMENT** | Pick the **Active version** and force a manual **Download / Update Content**. A **progress bar with stage text** at the bottom of the panel tracks running downloads - including automatic background downloads. |
-| **VALIDATE** | **Validate active document** - check the open XML against the active FundsXML schema. **Run Data Quality Checks**, **Check LEIs at GLEIF** (is every LEI of the document registered and valid? Findings in the Problems panel - see [LEI Lookup at GLEIF](gleif.md)) and **Add Grid Formulas & Filters**. |
-| **CHECK AN IDENTIFIER** | Checks a pasted ISIN, LEI, BIC or IBAN; an LEI can be looked up at GLEIF ([LEI Lookup at GLEIF](gleif.md)). |
+| **VALIDATE** | **Validate active document** - check the open XML against the active FundsXML schema. **Run Data Quality Checks**, **Check Identifiers Online** (are the LEIs registered and valid, do the ISINs exist and are they still traded? Findings in the Problems panel - see [Online Identifier Lookup](identifier-lookup.md)) and **Add Grid Formulas & Filters**. |
+| **CHECK AN IDENTIFIER** | Checks a pasted ISIN, LEI, BIC or IBAN; LEIs and ISINs can be looked up online ([Online Identifier Lookup](identifier-lookup.md)). |
 | **DOCS & RESOURCES** | Open the schema and browse the downloaded content (see below). |
 
 The DOCS & RESOURCES buttons:
