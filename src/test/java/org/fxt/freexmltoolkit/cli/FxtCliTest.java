@@ -974,6 +974,23 @@ class FxtCliTest {
             assertTrue(err.contains("No Such Formatter"), err);
             assertEquals(ExitCodes.OK, run("fop", "--list-processors"), err);
             assertTrue(out.contains("builtin"), out);
+
+            Path xml = write("fo-in.xml", "<doc/>");
+            Path xsl = write("to-fo.xsl", """
+                    <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                                    xmlns:fo="http://www.w3.org/1999/XSL/Format">
+                      <xsl:template match="/">
+                        <fo:root><fo:layout-master-set><fo:simple-page-master master-name="p"><fo:region-body/></fo:simple-page-master>
+                        </fo:layout-master-set><fo:page-sequence master-reference="p"><fo:flow flow-name="xsl-region-body">
+                        <fo:block>x</fo:block></fo:flow></fo:page-sequence></fo:root>
+                      </xsl:template>
+                    </xsl:stylesheet>
+                    """);
+            assertEquals(ExitCodes.FAILED, run("fop", "-i", xml, "-s", xsl, "-o", dir.resolve("out/x.pdf"),
+                    "--xslt-processor", "No Such XSLT"));
+            assertTrue(err.contains("No XSLT processor named"), err);
+            assertEquals(ExitCodes.OK, run("fop", "-i", xml, "-s", xsl, "-o", dir.resolve("out/x.pdf"),
+                    "--xslt-processor", "builtin"), err);
         }
     }
 

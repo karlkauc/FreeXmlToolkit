@@ -89,7 +89,20 @@ public class FopPanel extends VBox {
         prefillAuthor();
         pageSize.getSelectionModel().selectFirst();
         setUpProcessorChoice();
+        // the XSLT stage: Saxon HE or an external XSLT processor (starts at the default of the settings)
+        if (processorBox.getParent() instanceof javafx.scene.layout.Pane parentBox) {
+            parentBox.getChildren().add(parentBox.getChildren().indexOf(processorBox), xsltProcessorChoice);
+        }
+        sceneProperty().addListener((obs, o, scene) -> {
+            if (scene != null) {
+                xsltProcessorChoice.refresh();
+            }
+        });
     }
+
+    /** The processor of the XSLT stage (XML + stylesheet → XSL-FO). */
+    private final XsltProcessorChoice xsltProcessorChoice = new XsltProcessorChoice("fop-xslt-processor", false,
+            "XsltProcessorChoice.label.xslt");
 
     // ----- XSL-FO processor --------------------------------------------------
 
@@ -474,7 +487,10 @@ public class FopPanel extends VBox {
         return new FopRunner.PdfOptions(titleField.getText(), authorField.getText(), subjectField.getText(),
                 pdfACompliant.isSelected() && !pdfACompliant.isDisabled(),
                 parts.length > 0 ? parts[0] : "", parts.length > 1 ? parts[1] : "",
-                processorChoice.getValue());
+                processorChoice.getValue())
+                .withXsltProcessor(xsltProcessorChoice.selected() == null
+                        ? org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorStore.BUILTIN_ID
+                        : xsltProcessorChoice.selected().id());
     }
 
     /** Sets the PDF metadata fields (for tests/observers). */

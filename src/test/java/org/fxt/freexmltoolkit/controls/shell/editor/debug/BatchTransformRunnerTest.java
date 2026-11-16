@@ -170,4 +170,21 @@ class BatchTransformRunnerTest {
         Files.writeString(p, content);
         return p.toFile();
     }
+
+    @org.junit.jupiter.api.Test
+    void anExternalProcessorRunsOncePerFile(@org.junit.jupiter.api.io.TempDir java.nio.file.Path tmp) throws Exception {
+        java.io.File a = java.nio.file.Files.writeString(tmp.resolve("a.xml"), "<v>1</v>").toFile();
+        java.io.File b = java.nio.file.Files.writeString(tmp.resolve("b.xml"), "<v>2</v>").toFile();
+        String xsl = """
+                <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                  <xsl:output method="text"/>
+                  <xsl:template match="/">v=<xsl:value-of select="/v"/></xsl:template>
+                </xsl:stylesheet>
+                """;
+        var results = BatchTransformRunner.runXsltBatch(java.util.List.of(a, b), xsl, null, java.util.Map.of(),
+                org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.TEXT,
+                org.fxt.freexmltoolkit.service.xsltproc.ExternalXsltRunnerTest.fake("ok", 60));
+        org.junit.jupiter.api.Assertions.assertEquals(java.util.List.of("v=1", "v=2"),
+                results.stream().map(r -> r.output().strip()).toList(), results.toString());
+    }
 }

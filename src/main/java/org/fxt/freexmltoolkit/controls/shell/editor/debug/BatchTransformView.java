@@ -44,6 +44,9 @@ public class BatchTransformView extends VBox {
     private final TextArea resultArea = new TextArea();
     private final Label summary = new Label(I18n.t("BatchTransformView.no-files-selected"));
     private List<BatchFileResult> lastResults = List.of();
+    /** The XSLT processor of the batch (starts at the Transform panel's choice). */
+    private final org.fxt.freexmltoolkit.controls.shell.editor.XsltProcessorChoice processorChoice =
+            new org.fxt.freexmltoolkit.controls.shell.editor.XsltProcessorChoice("batch-xslt-processor", true);
 
     public BatchTransformView(Kind kind, String transformContent,
             Map<String, Object> parameters, OutputFormat format) {
@@ -85,6 +88,9 @@ public class BatchTransformView extends VBox {
                 resultArea.setText(sel == null ? "" : (sel.ok() ? sel.output() : sel.error())));
         VBox.setVgrow(table, Priority.ALWAYS);
 
+        if (kind != Kind.XQUERY) {
+            getChildren().add(processorChoice); // added before the rest below: shown above the file buttons
+        }
         Button run = button("Run Batch", "bi-play-fill", this::run);
         Button saveAll = button("Save All…", "bi-save", this::saveAll);
         HBox runButtons = new HBox(8, run, saveAll, summary);
@@ -94,7 +100,8 @@ public class BatchTransformView extends VBox {
         resultArea.setPrefRowCount(8);
         resultArea.getStyleClass().add("fxt-transform-output");
 
-        getChildren().addAll(title, fileButtons, table, runButtons,
+        getChildren().add(0, title);
+        getChildren().addAll(fileButtons, table, runButtons,
                 new Label(I18n.t("BatchTransformView.result")), resultArea);
         refreshFileTable();
     }
@@ -157,11 +164,13 @@ public class BatchTransformView extends VBox {
             return;
         }
         List<File> files = new ArrayList<>(inputFiles);
+        org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorConfig processor = processorChoice.selected();
         summary.setText(I18n.t("BatchTransformView.running"));
         FxtGui.executorService.submit(() -> {
             List<BatchFileResult> results = kind == Kind.XQUERY
                     ? BatchTransformRunner.runXQueryBatch(files, transformContent, transformSystemId, parameters, format)
-                    : BatchTransformRunner.runXsltBatch(files, transformContent, transformSystemId, parameters, format);
+                    : BatchTransformRunner.runXsltBatch(files, transformContent, transformSystemId, parameters, format,
+                            processor);
             long ok = results.stream().filter(BatchFileResult::ok).count();
             Platform.runLater(() -> {
                 lastResults = results;

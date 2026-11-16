@@ -38,11 +38,16 @@ public final class XsltProcessorChoice extends HBox {
      *                 otherwise it starts at the default processor and is not stored
      */
     public XsltProcessorChoice(String id, boolean remember) {
+        this(id, remember, "XsltProcessorChoice.label");
+    }
+
+    /** @param labelKey the i18n key of the label ("Processor", or "XSLT processor" next to an XSL-FO processor) */
+    public XsltProcessorChoice(String id, boolean remember, String labelKey) {
         super(6);
         this.remember = remember;
         setId(id);
         setAlignment(Pos.CENTER_LEFT);
-        Label label = new Label(I18n.t("XsltProcessorChoice.label"));
+        Label label = new Label(I18n.t(labelKey));
         label.setMinWidth(Label.USE_PREF_SIZE);
         combo.setId(id + "-combo");
         combo.setMaxWidth(Double.MAX_VALUE);

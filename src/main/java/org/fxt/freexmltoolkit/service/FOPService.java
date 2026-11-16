@@ -112,6 +112,17 @@ public class FOPService {
      */
     public XsltTransformationResult transformToFo(File xmlFile, File xslFile, Map<String, String> customParameters)
             throws FOPServiceException {
+        return transformToFo(xmlFile, xslFile, customParameters, null);
+    }
+
+    /**
+     * As {@link #transformToFo(File, File, Map)} on an external XSLT processor ({@code null} = Saxon HE).
+     *
+     * @throws FOPServiceException if either input file does not exist or cannot be read
+     */
+    public XsltTransformationResult transformToFo(File xmlFile, File xslFile, Map<String, String> customParameters,
+                                                  org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorConfig xsltProcessor)
+            throws FOPServiceException {
         if (!xmlFile.exists()) {
             throw new FOPServiceException("XML file does not exist: " + xmlFile.getAbsolutePath());
         }
@@ -132,6 +143,20 @@ public class FOPService {
             throw new FOPServiceException("I/O error while reading the inputs: " + e.getMessage(), e);
         }
         logger.debug("Transforming {} with {} to XSL-FO", xmlFile, xslFile);
+        if (xsltProcessor != null) {
+            if (!AdminPolicy.current().externalXsltProcessorsAllowed()) {
+                return XsltTransformationResult.error("External XSLT processors are disabled by the administrator ("
+                        + AdminPolicy.KEY_XSLT_EXTERNAL_ALLOWED + "=false).");
+            }
+            try {
+                return org.fxt.freexmltoolkit.service.xsltproc.ExternalXsltRunner.transform(xsltProcessor,
+                        new org.fxt.freexmltoolkit.service.xsltproc.ExternalXsltRunner.Request(null, xmlFile.toPath(), null,
+                                xslFile.toPath(), parameters, XsltTransformationEngine.OutputFormat.XML));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return XsltTransformationResult.error(xsltProcessor.name() + " was stopped.");
+            }
+        }
         return XsltTransformationEngine.getInstance().transform(xml, xsl,
                 xslFile.toURI().toString(), xmlFile.toURI().toString(),
                 parameters, XsltTransformationEngine.OutputFormat.XML);

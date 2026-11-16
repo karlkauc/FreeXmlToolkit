@@ -66,6 +66,21 @@ public final class BatchTransformRunner {
      */
     public static List<BatchFileResult> runXsltBatch(List<File> files, String xsltContent, String xsltSystemId,
             Map<String, Object> parameters, OutputFormat format) {
+        return runXsltBatch(files, xsltContent, xsltSystemId, parameters, format, null);
+    }
+
+    /**
+     * As {@link #runXsltBatch(List, String, String, Map, OutputFormat)} on an external XSLT processor (one process per
+     * file; {@code null} = Saxon HE).
+     */
+    public static List<BatchFileResult> runXsltBatch(List<File> files, String xsltContent, String xsltSystemId,
+            Map<String, Object> parameters, OutputFormat format,
+            org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorConfig processor) {
+        if (processor != null) {
+            return runBatch(files, org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XSLT,
+                    (file, xml) -> org.fxt.freexmltoolkit.controls.shell.editor.TransformRunner.xsltTransformResult(
+                            xml, file.toURI().toString(), xsltContent, xsltSystemId, parameters, format, null, processor));
+        }
         return runBatch(files, org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XSLT,
                 (file, xml) -> org.fxt.freexmltoolkit.service.XsltTransformationEngine.getInstance()
                         .transform(xml, xsltContent, xsltSystemId, file.toURI().toString(), parameters, format));

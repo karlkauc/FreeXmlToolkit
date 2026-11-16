@@ -45,6 +45,32 @@ class FopRunnerExternalProcessorTest {
     }
 
     @Test
+    void anExternalXsltProcessorRunsTheXsltStage(@TempDir Path tmp) throws Exception {
+        org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
+        var store = org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorStore.settings();
+        var fakeXslt = org.fxt.freexmltoolkit.service.xsltproc.ExternalXsltRunnerTest.fake("ok", 60);
+        store.save(java.util.List.of(fakeXslt));
+        try {
+            useProcessors(FakeProcessors.config("Fake XEP", "ok", null, 60));
+            Path xml = Files.writeString(tmp.resolve("doc.xml"), "<doc/>");
+            Path xsl = Files.writeString(tmp.resolve("to-fo.xsl"), XSLT_FO);
+            FopRunner.FopResult result = FopRunner.generateResult(xml.toFile(), xsl.toFile(), tmp.resolve("out.pdf").toFile(),
+                    FopRunner.PdfOptions.none().withProcessor("fake xep").withXsltProcessor(fakeXslt.name()));
+            assertTrue(result.ok(), result.error());
+            assertTrue(result.foXml().contains("fo:root"), result.foXml());
+            assertTrue(result.messages().stream().anyMatch(m -> m.getMessage().equals("Message: started")),
+                    "the external XSLT processor's output: " + result.messages());
+
+            FopRunner.FopResult unknown = FopRunner.generateResult(xml.toFile(), xsl.toFile(), tmp.resolve("x.pdf").toFile(),
+                    FopRunner.PdfOptions.none().withXsltProcessor("No Such XSLT"));
+            assertFalse(unknown.ok());
+            assertTrue(unknown.error().contains("No XSLT processor named"), unknown.error());
+        } finally {
+            store.save(java.util.List.of());
+        }
+    }
+
+    @Test
     void theXsltStageStaysInternalAndTheExternalProcessorRenders(@TempDir Path tmp) throws Exception {
         useProcessors(FakeProcessors.config("Fake XEP", "ok", "${xml} ${xsl}", 60));
         Path xml = Files.writeString(tmp.resolve("doc.xml"), "<doc/>");

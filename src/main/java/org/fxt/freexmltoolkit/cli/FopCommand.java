@@ -61,6 +61,12 @@ final class FopCommand implements Callable<Integer> {
                     + "processor configured in the settings. Default: the default processor of the settings.")
     String processor;
 
+    @Option(names = "--xslt-processor", paramLabel = "NAME",
+            description = "The processor of the XSLT stage (--input + --stylesheet): \"builtin\" (the bundled Saxon HE) "
+                    + "or the name or id of an external XSLT processor configured in the settings. Default: the default "
+                    + "XSLT processor of the settings.")
+    String xsltProcessor;
+
     @Option(names = "--list-processors", description = "List the configured XSL-FO processors and exit.")
     boolean listProcessors;
 
@@ -112,7 +118,7 @@ final class FopCommand implements Callable<Integer> {
         }
         String chosen = processor != null ? processor : FoProcessorStore.settings().defaultId();
         FopRunner.PdfOptions options = new FopRunner.PdfOptions(title, author, subject, pdfA, pageSize, orientation,
-                chosen);
+                chosen).withXsltProcessor(xsltProcessor);
         FopRunner.FopResult result = fromFo
                 ? FopRunner.renderFo(CliSupport.read(fo), output.toFile(), options,
                         new FopRunner.RenderContext(null, null, fo.toAbsolutePath()))

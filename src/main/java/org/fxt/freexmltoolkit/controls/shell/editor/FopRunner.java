@@ -76,7 +76,14 @@ public final class FopRunner {
      * bundled Apache FOP, otherwise the id or name of a configured external processor.
      */
     public record PdfOptions(String title, String author, String subject,
-                             boolean pdfACompliant, String pageSize, String orientation, String processor) {
+                             boolean pdfACompliant, String pageSize, String orientation, String processor,
+                             String xsltProcessor) {
+
+        /** Options whose XSLT stage runs on the default XSLT processor of the settings. */
+        public PdfOptions(String title, String author, String subject,
+                          boolean pdfACompliant, String pageSize, String orientation, String processor) {
+            this(title, author, subject, pdfACompliant, pageSize, orientation, processor, null);
+        }
 
         /** Options rendered by the bundled Apache FOP. */
         public PdfOptions(String title, String author, String subject,
@@ -90,7 +97,18 @@ public final class FopRunner {
 
         /** @return these options rendered by another processor */
         public PdfOptions withProcessor(String processorIdOrName) {
-            return new PdfOptions(title, author, subject, pdfACompliant, pageSize, orientation, processorIdOrName);
+            return new PdfOptions(title, author, subject, pdfACompliant, pageSize, orientation, processorIdOrName,
+                    xsltProcessor);
+        }
+
+        /**
+         * @param xsltProcessorIdOrName the processor of the XSLT stage: {@code builtin} (Saxon HE), the id or name of an
+         *                              external XSLT processor, or {@code null} for the default of the settings
+         * @return these options with the XSLT stage on that processor
+         */
+        public PdfOptions withXsltProcessor(String xsltProcessorIdOrName) {
+            return new PdfOptions(title, author, subject, pdfACompliant, pageSize, orientation, processor,
+                    xsltProcessorIdOrName);
         }
 
         /** @return the stylesheet parameters this option set contributes. */
@@ -194,7 +212,10 @@ public final class FopRunner {
         FOPService service = new FOPService();
         XsltTransformationResult fo;
         try {
-            fo = service.transformToFo(xmlFile, xslFile, opts.stylesheetParameters());
+            var xsltStore = org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorStore.settings();
+            var xsltProcessor = xsltStore.resolve(opts.xsltProcessor() != null ? opts.xsltProcessor()
+                    : xsltStore.defaultId()).orElse(null);
+            fo = service.transformToFo(xmlFile, xslFile, opts.stylesheetParameters(), xsltProcessor);
         } catch (Exception e) {
             return new FopResult(false, null, null, List.of(), List.of(), e.getMessage(),
                     STAGE_TRANSFORM, QueryFailure.of(e));
