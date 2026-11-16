@@ -638,18 +638,18 @@ public class EditorHost extends BorderPane {
     }
 
     /**
-     * Publishes the result of a GLEIF check ("Check LEIs at GLEIF"): its problems already hold the current GLEIF
-     * findings, the earlier ones are not carried over.
+     * Publishes the result of an online identifier check ("Check identifiers online"): its problems already hold the
+     * current GLEIF / ISIN findings, the earlier ones are not carried over.
      */
-    public void publishGleifCheck(ValidationTarget target, ValidationState state, int problemCount, String summary,
+    public void publishIdentifierCheck(ValidationTarget target, ValidationState state, int problemCount, String summary,
                                   java.util.List<ValidationProblem> problems) {
         publishValidation(target, state, problemCount, summary, problems, false);
     }
 
     private void publishValidation(ValidationTarget target, ValidationState state, int problemCount, String summary,
-                                   java.util.List<ValidationProblem> problems, boolean carryGleif) {
-        if (carryGleif && target != null && problems != null) {
-            java.util.List<ValidationProblem> carried = carriedGleifFindings(target, problems);
+                                   java.util.List<ValidationProblem> problems, boolean carryOnline) {
+        if (carryOnline && target != null && problems != null) {
+            java.util.List<ValidationProblem> carried = carriedOnlineFindings(target, problems);
             if (!carried.isEmpty()) {
                 java.util.List<ValidationProblem> all = new java.util.ArrayList<>(problems);
                 all.addAll(carried);
@@ -678,20 +678,29 @@ public class EditorHost extends BorderPane {
     }
 
     /**
-     * The GLEIF findings of the last result of the same text, when a new result has none of its own: a validation
-     * without the GLEIF stage (live validation after a caret move, F8 with the setting off) must not drop the
-     * findings of an explicit "Check LEIs at GLEIF". A changed text drops them (their lines may be stale).
+     * The online findings (GLEIF, ISIN) of the last result of the same text, per source, when a new result has none of
+     * that source: a validation without the online stage (live validation after a caret move, F8 with the setting off)
+     * must not drop the findings of an explicit "Check identifiers online". A changed text drops them (their lines may
+     * be stale); a validation that checked that source itself replaces them.
      */
-    private static java.util.List<ValidationProblem> carriedGleifFindings(ValidationTarget target,
-                                                                          java.util.List<ValidationProblem> problems) {
-        String gleif = org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.SOURCE;
+    private static java.util.List<ValidationProblem> carriedOnlineFindings(ValidationTarget target,
+                                                                           java.util.List<ValidationProblem> problems) {
         ValidationResult last = target.tab().lastValidation;
-        if (last == null || last.problems() == null || last.revision() != target.revision()
-                || org.fxt.freexmltoolkit.service.finance.gleif.Gleif.onValidation() // the validation asked GLEIF itself
-                || problems.stream().anyMatch(p -> gleif.equals(p.source()))) {
+        if (last == null || last.problems() == null || last.revision() != target.revision()) {
             return java.util.List.of();
         }
-        return last.problems().stream().filter(p -> gleif.equals(p.source())).toList();
+        java.util.List<ValidationProblem> carried = new java.util.ArrayList<>();
+        java.util.Map<String, Boolean> checkedByValidation = java.util.Map.of(
+                org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.SOURCE,
+                org.fxt.freexmltoolkit.service.finance.gleif.Gleif.onValidation(),
+                org.fxt.freexmltoolkit.service.finance.IdentifierCheck.ISIN_SOURCE,
+                org.fxt.freexmltoolkit.service.finance.isin.Isin.onValidation());
+        checkedByValidation.forEach((source, checked) -> {
+            if (!checked && problems.stream().noneMatch(p -> source.equals(p.source()))) {
+                last.problems().stream().filter(p -> source.equals(p.source())).forEach(carried::add);
+            }
+        });
+        return carried;
     }
 
     /**

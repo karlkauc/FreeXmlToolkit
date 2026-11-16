@@ -134,13 +134,13 @@ public class IndustryPanel extends VBox {
         for (Action action : extraActions) {
             addTool(action);
         }
-        boolean gleif = identifiers.contains(IdentifierKind.LEI)
-                && org.fxt.freexmltoolkit.service.finance.gleif.Gleif.allowed();
-        if (gleif) {
-            addTool(new Action("industry-gleif-check", I18n.t("IndustryPanel.gleif-check"), "bi-globe2",
-                    ActionColor.NEUTRAL, u -> checkLeisAtGleif()));
+        boolean online = (identifiers.contains(IdentifierKind.LEI) && org.fxt.freexmltoolkit.service.finance.gleif.Gleif.allowed())
+                || (identifiers.contains(IdentifierKind.ISIN) && org.fxt.freexmltoolkit.service.finance.isin.Isin.allowed());
+        if (online) {
+            addTool(new Action("industry-identifiers-online", I18n.t("IdentifierDocumentCheck.title"), "bi-globe2",
+                    ActionColor.NEUTRAL, u -> checkIdentifiersOnline()));
         }
-        show(toolsSection, !extraActions.isEmpty() || gleif);
+        show(toolsSection, !extraActions.isEmpty() || online);
         show(reportButton, false);
         show(optionsSection, false);
         show(identifierSection, !identifiers.isEmpty());
@@ -460,11 +460,11 @@ public class IndustryPanel extends VBox {
     }
 
     /**
-     * Checks every LEI of the active document at GLEIF; the findings replace earlier GLEIF findings in the PROBLEMS
-     * panel and keep the others (schema, rules).
+     * Checks the LEIs (GLEIF) and ISINs (ESMA FIRDS, OpenFIGI) of the active document online; the findings replace
+     * earlier online findings in the PROBLEMS panel and keep the others (schema, rules).
      */
-    void checkLeisAtGleif() {
-        String what = I18n.t("IndustryPanel.gleif-check");
+    void checkIdentifiersOnline() {
+        String what = I18n.t("IdentifierDocumentCheck.title");
         if (!running.add(what)) {
             PanelStatus.info(status, I18n.t("IndustryPanel.already-running", what));
             return;
@@ -473,7 +473,7 @@ public class IndustryPanel extends VBox {
         Busy busy = Busy.start(button);
         showProgress(true);
         PanelStatus.info(status, I18n.t("IndustryPanel.working", what));
-        org.fxt.freexmltoolkit.controls.shell.editor.GleifDocumentCheck.runOnActive(ui.editorHost(), outcome -> {
+        org.fxt.freexmltoolkit.controls.shell.editor.IdentifierDocumentCheck.runOnActive(ui.editorHost(), outcome -> {
             running.remove(what);
             busy.end();
             showProgress(!running.isEmpty() || checkPending);

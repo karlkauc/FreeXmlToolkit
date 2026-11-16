@@ -47,7 +47,7 @@ import picocli.CommandLine.Spec;
                 "  fxt-cli validate orders/ --xsd order.xsd --xsd-version 1.0 --xml-version 1.0",
                 "",
                 "  # Regulatory reports, with every LEI checked at GLEIF",
-                "  fxt-cli validate reports/ --gleif"
+                "  fxt-cli validate reports/ --gleif --isin"
         },
         description = {
                 "Validate XML against XML Schema and/or Schematron, JSON against JSON Schema.",
@@ -138,6 +138,16 @@ final class ValidateCommand implements Callable<Integer> {
                     + "annulled LEIs and inactive entities are findings. Sends the LEIs to GLEIF; answers are cached.")
     boolean gleif;
 
+    @Option(names = "--isin",
+            description = "Also check every ISIN of the files at ESMA FIRDS (OpenFIGI for ISINs FIRDS does not know): "
+                    + "unknown ISINs and instruments no longer traded in the EU are findings. Sends the ISINs to these "
+                    + "services; answers are cached.")
+    boolean isin;
+
+    @Option(names = "--no-openfigi",
+            description = "With --isin: ask only ESMA FIRDS, never OpenFIGI.")
+    boolean noOpenFigi;
+
     @Option(names = "--fail-on-warning",
             description = "Warnings make a file invalid too (exit code 1).")
     boolean failOnWarning;
@@ -148,6 +158,8 @@ final class ValidateCommand implements Callable<Integer> {
             return run();
         } finally {
             org.fxt.freexmltoolkit.service.finance.gleif.Gleif.setValidationOverride(null);
+            org.fxt.freexmltoolkit.service.finance.isin.Isin.setValidationOverride(null);
+            org.fxt.freexmltoolkit.service.finance.isin.Isin.setOpenFigiOverride(null);
         }
     }
 
@@ -177,6 +189,15 @@ final class ValidateCommand implements Callable<Integer> {
         CliSupport.initServices();
         // the command line ignores the GUI's "check LEIs on validation" setting; --gleif adds the stage below
         org.fxt.freexmltoolkit.service.finance.gleif.Gleif.setValidationOverride(false);
+        org.fxt.freexmltoolkit.service.finance.isin.Isin.setValidationOverride(false);
+        if (noOpenFigi) {
+            org.fxt.freexmltoolkit.service.finance.isin.Isin.setOpenFigiOverride(false);
+        }
+        if (isin && !org.fxt.freexmltoolkit.service.finance.isin.Isin.allowed()) {
+            throw new CommandLine.ParameterException(commandLine,
+                    "--isin: ISIN lookups are turned off by the administrator ("
+                            + org.fxt.freexmltoolkit.service.AdminPolicy.KEY_ISIN_ALLOWED + "=false)");
+        }
         if (gleif && !org.fxt.freexmltoolkit.service.finance.gleif.Gleif.allowed()) {
             throw new CommandLine.ParameterException(commandLine,
                     "--gleif: GLEIF lookups are turned off by the administrator ("
@@ -203,7 +224,7 @@ final class ValidateCommand implements Callable<Integer> {
         List<FileResult> results = new ArrayList<>();
         for (Path file : files) {
             FileResult result = validate(file);
-            results.add(gleif ? withGleif(result) : result);
+            results.add(gleif || isin ? withOnlineChecks(result) : result);
         }
         ValidationReport report = new ValidationReport(results, (System.nanoTime() - start) / 1_000_000);
 
@@ -273,8 +294,8 @@ final class ValidateCommand implements Callable<Integer> {
         return new FileResult(file, schema, findings, notRun, millisSince(start));
     }
 
-    /** Adds the GLEIF findings of the file's LEIs (files below the streaming size only). */
-    private FileResult withGleif(FileResult result) {
+    /** Adds the online findings of the file's LEIs (GLEIF) and ISINs (FIRDS, OpenFIGI) - files below the streaming size. */
+    private FileResult withOnlineChecks(FileResult result) {
         if (sizeOf(result.file()) >= streamingBytes) {
             return result;
         }
@@ -284,19 +305,17 @@ final class ValidateCommand implements Callable<Integer> {
         } catch (Exception e) {
             return result;
         }
-        var check = org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.check(content);
-        if (check.leis() == 0) {
+        var check = org.fxt.freexmltoolkit.service.finance.IdentifierCheck.check(content, gleif, isin);
+        if (check.leis() + check.isins() == 0) {
             return result;
         }
         List<Finding> findings = new ArrayList<>(result.findings());
-        if (check.failure() != null) {
-            findings.add(new Finding(org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.SOURCE, Severity.INFO, 0, 0,
-                    "The LEIs were not checked at GLEIF: " + check.failure(), null, null));
+        for (var f : check.failures()) {
+            findings.add(new Finding(f.source(), Severity.INFO, 0, 0, "Not checked online: " + f.message(), null, null));
         }
         for (var f : check.findings()) {
-            findings.add(new Finding(org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.SOURCE,
-                    Severity.of(f.severity().name()), f.line(), f.column(), f.message(),
-                    org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.RULE, null));
+            findings.add(new Finding(f.source(), Severity.of(f.severity().name()), f.line(), f.column(), f.message(),
+                    f.rule(), null));
         }
         return new FileResult(result.file(), result.schema(), findings, result.notRun(), result.millis());
     }

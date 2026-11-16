@@ -19,9 +19,9 @@ public class FundsXmlPanel extends VBox {
     @FXML private ComboBox<String> versionCombo;
     @FXML private Label status;
     @FXML private ProgressBar progress;
-    @FXML private PanelActionButton gleifButton;
+    @FXML private PanelActionButton onlineButton;
     @FXML private org.fxt.freexmltoolkit.plugins.IdentifierChecker identifierChecker;
-    private boolean gleifRunning;
+    private boolean onlineRunning;
     private final FundsXmlDownloadCoordinator.Listener downloadListener = new FundsXmlDownloadCoordinator.Listener() {
         @Override
         public void onStarted() {
@@ -59,9 +59,9 @@ public class FundsXmlPanel extends VBox {
         this.editorHost = editorHost;
         FxmlViews.load(this, "/pages/panels/FundsXmlPanel.fxml");
         hideProgress();
-        boolean gleif = org.fxt.freexmltoolkit.service.finance.gleif.Gleif.allowed();
-        gleifButton.setVisible(gleif);
-        gleifButton.setManaged(gleif);
+        boolean online = org.fxt.freexmltoolkit.service.finance.IdentifierCheck.anyAllowed();
+        onlineButton.setVisible(online);
+        onlineButton.setManaged(online);
         identifierChecker.setKinds(java.util.List.of(org.fxt.freexmltoolkit.plugins.IdentifierKind.ISIN,
                 org.fxt.freexmltoolkit.plugins.IdentifierKind.LEI, org.fxt.freexmltoolkit.plugins.IdentifierKind.BIC,
                 org.fxt.freexmltoolkit.plugins.IdentifierKind.IBAN));
@@ -180,23 +180,23 @@ public class FundsXmlPanel extends VBox {
         });
     }
 
-    /** Checks every LEI of the active FundsXML document at GLEIF; findings go to the PROBLEMS panel. */
+    /** Checks the LEIs and ISINs of the active FundsXML document online; findings go to the PROBLEMS panel. */
     @FXML
-    public void onGleifCheck() {
+    public void onIdentifiersOnline() {
         String xml = editorHost.getActiveText().orElse(null);
         if (xml == null || !org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.isFundsXml(xml)) {
             PanelStatus.precondition(status, I18n.t("FundsXmlPanel.notFundsXml"));
             return;
         }
-        if (gleifRunning) {
-            PanelStatus.info(status, I18n.t("IndustryPanel.already-running", I18n.t("IndustryPanel.gleif-check")));
+        if (onlineRunning) {
+            PanelStatus.info(status, I18n.t("IndustryPanel.already-running", I18n.t("IdentifierDocumentCheck.title")));
             return;
         }
-        gleifRunning = true;
+        onlineRunning = true;
         showProgress(-1);
-        PanelStatus.info(status, I18n.t("IndustryPanel.working", I18n.t("IndustryPanel.gleif-check")));
-        GleifDocumentCheck.runOnActive(editorHost, outcome -> {
-            gleifRunning = false;
+        PanelStatus.info(status, I18n.t("IndustryPanel.working", I18n.t("IdentifierDocumentCheck.title")));
+        IdentifierDocumentCheck.runOnActive(editorHost, outcome -> {
+            onlineRunning = false;
             hideProgress();
             outcome.showIn(status);
         });

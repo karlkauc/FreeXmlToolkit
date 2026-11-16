@@ -1,0 +1,134 @@
+{
+ "responseHeader": {
+  "status": 0,
+  "QTime": 13206,
+  "params": {
+   "q": "isin:(US0378331005 OR IE00B4L5Y983 OR AT000FXTST04)",
+   "group.sort": "status desc",
+   "facet.pivot": "isin,status",
+   "group.limit": "1",
+   "fl": "isin,gnr_full_name,gnr_short_name,gnr_cfi_code,lei,gnr_notional_curr_code,status,mrkt_trdng_trmination_date",
+   "fq": "type_s:parent",
+   "rows": "100",
+   "wt": "json",
+   "facet": "true",
+   "group.field": "isin",
+   "group": "true"
+  }
+ },
+ "grouped": {
+  "isin": {
+   "matches": 150,
+   "groups": [
+    {
+     "groupValue": "us0378331005",
+     "doclist": {
+      "numFound": 63,
+      "start": 0,
+      "numFoundExact": true,
+      "docs": [
+       {
+        "isin": "US0378331005",
+        "gnr_full_name": "Apple Inc. Registered Shares o.N.",
+        "gnr_cfi_code": "ESVUFR",
+        "gnr_short_name": "APPLE INC/SH SH",
+        "gnr_notional_curr_code": "USD",
+        "lei": "HWUPKR0MPOU8FGXBT394",
+        "status": "UNCH"
+       }
+      ]
+     }
+    },
+    {
+     "groupValue": "ie00b4l5y983",
+     "doclist": {
+      "numFound": 87,
+      "start": 0,
+      "numFoundExact": true,
+      "docs": [
+       {
+        "isin": "IE00B4L5Y983",
+        "gnr_full_name": "iShares Core MSCI World UCITS ETF",
+        "gnr_cfi_code": "CEOGES",
+        "gnr_short_name": "ISHS III/SHS CL-ACC USD",
+        "gnr_notional_curr_code": "USD",
+        "lei": "549300QS4Q1IT6XCA514",
+        "status": "UNCH"
+       }
+      ]
+     }
+    }
+   ]
+  }
+ },
+ "facet_counts": {
+  "facet_queries": {},
+  "facet_fields": {},
+  "facet_ranges": {},
+  "facet_intervals": {},
+  "facet_heatmaps": {},
+  "facet_pivot": {
+   "isin,status": [
+    {
+     "field": "isin",
+     "value": "ie00b4l5y983",
+     "count": 87,
+     "pivot": [
+      {
+       "field": "status",
+       "value": "unch",
+       "count": 49
+      },
+      {
+       "field": "status",
+       "value": "term",
+       "count": 34
+      },
+      {
+       "field": "status",
+       "value": "canc",
+       "count": 2
+      },
+      {
+       "field": "status",
+       "value": "modf",
+       "count": 2
+      }
+     ]
+    },
+    {
+     "field": "isin",
+     "value": "us0378331005",
+     "count": 63,
+     "pivot": [
+      {
+       "field": "status",
+       "value": "unch",
+       "count": 46
+      },
+      {
+       "field": "status",
+       "value": "term",
+       "count": 13
+      },
+      {
+       "field": "status",
+       "value": "canc",
+       "count": 2
+      },
+      {
+       "field": "status",
+       "value": "modf",
+       "count": 1
+      },
+      {
+       "field": "status",
+       "value": "news",
+       "count": 1
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

@@ -157,6 +157,7 @@ class PkMeldewesenPanelTest {
     @Test
     void checksTheReportsLeisAtGleif() throws Exception {
         fakeGleif();
+        org.fxt.freexmltoolkit.service.finance.OnlineFakes.install();
         try {
             String xml;
             try (var in = getClass().getResourceAsStream("/pkmeldewesen/synthetic-pfq.xml")) {
@@ -168,22 +169,24 @@ class PkMeldewesenPanelTest {
                     org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XML, "gleif-pfq.xml"));
             WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> text("#pk-report-summary").startsWith("PK-QMV"));
             WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-                panel.onGleifCheck();
+                panel.onIdentifiersOnline();
                 return null;
             });
             WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> !host.getActiveProblems().isEmpty());
-            var problem = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveProblems().getFirst());
+            var problem = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveProblems().stream()
+                    .filter(p -> "GLEIF".equals(p.source())).findFirst().orElseThrow());
             org.junit.jupiter.api.Assertions.assertEquals("GLEIF", problem.source());
             assertTrue(problem.message().contains("5299009FXTMMFCP00069"), problem.message());
             WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> text("#pk-status").contains("1 LEIs"));
         } finally {
-            org.fxt.freexmltoolkit.service.finance.gleif.Gleif.setCache(null);
+            org.fxt.freexmltoolkit.service.finance.OnlineFakes.reset();
         }
     }
 
     @Test
     void identifierCheckerLooksAnLeiUpAtGleif() throws Exception {
         fakeGleif();
+        org.fxt.freexmltoolkit.service.finance.OnlineFakes.install();
         try {
             javafx.scene.Node checker = panel;
             WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
@@ -208,7 +211,7 @@ class PkMeldewesenPanelTest {
                             .anyMatch(n -> n instanceof javafx.scene.control.Label l
                                     && "Global Legal Entity Identifier Foundation".equals(l.getText()))));
         } finally {
-            org.fxt.freexmltoolkit.service.finance.gleif.Gleif.setCache(null);
+            org.fxt.freexmltoolkit.service.finance.OnlineFakes.reset();
         }
     }
 }

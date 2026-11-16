@@ -50,7 +50,7 @@ public final class PkMeldewesenPanel extends VBox {
     @FXML private Label reportSummary;
     @FXML private Label taxonomyLabel;
     @FXML private Label status;
-    @FXML private org.fxt.freexmltoolkit.controls.shell.editor.PanelActionButton gleifButton;
+    @FXML private org.fxt.freexmltoolkit.controls.shell.editor.PanelActionButton onlineButton;
     @FXML private org.fxt.freexmltoolkit.plugins.IdentifierChecker identifierChecker;
     @FXML private ProgressBar progress;
     @FXML private javafx.scene.control.ComboBox<String> versionCombo;
@@ -78,9 +78,9 @@ public final class PkMeldewesenPanel extends VBox {
         this.taxonomy = taxonomy;
         FxmlViews.load(this, "/pages/panels/PkMeldewesenPanel.fxml");
         getStyleClass().add("fxt-wf-pension");
-        boolean gleif = org.fxt.freexmltoolkit.service.finance.gleif.Gleif.allowed();
-        gleifButton.setVisible(gleif);
-        gleifButton.setManaged(gleif);
+        boolean online = org.fxt.freexmltoolkit.service.finance.IdentifierCheck.anyAllowed();
+        onlineButton.setVisible(online);
+        onlineButton.setManaged(online);
         identifierChecker.setKinds(java.util.List.of(org.fxt.freexmltoolkit.plugins.IdentifierKind.LEI,
                 org.fxt.freexmltoolkit.plugins.IdentifierKind.ISIN));
         refreshDelay.setOnFinished(e -> refresh());
@@ -264,20 +264,20 @@ public final class PkMeldewesenPanel extends VBox {
         lookThroughTotal.setText(options.lookThroughTotal().toPlainString());
     }
 
-    /** Checks every LEI of the active report at GLEIF; findings go to the PROBLEMS panel. */
+    /** Checks the LEIs and ISINs of the active report online; findings go to the PROBLEMS panel. */
     @FXML
-    public void onGleifCheck() {
+    public void onIdentifiersOnline() {
         if (activeReport() == null) {
             PanelStatus.precondition(status, I18n.t("PkMeldewesenPanel.no-report"));
             return;
         }
-        Runnable done = busy("#pk-gleif");
+        Runnable done = busy("#pk-identifiers-online");
         if (done == null) {
             return; // already running
         }
         showProgress(true);
-        PanelStatus.info(status, I18n.t("IndustryPanel.working", I18n.t("IndustryPanel.gleif-check")));
-        org.fxt.freexmltoolkit.controls.shell.editor.GleifDocumentCheck.runOnActive(ui.editorHost(), outcome -> {
+        PanelStatus.info(status, I18n.t("IndustryPanel.working", I18n.t("IdentifierDocumentCheck.title")));
+        org.fxt.freexmltoolkit.controls.shell.editor.IdentifierDocumentCheck.runOnActive(ui.editorHost(), outcome -> {
             done.run();
             showProgress(false);
             outcome.showIn(status);

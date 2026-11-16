@@ -227,6 +227,7 @@ public class SettingsPanel extends VBox {
     @FXML private FoProcessorsSettings foProcessors;
     @FXML private XsltProcessorsSettings xsltProcessors;
     @FXML private GleifSettings gleifSettings;
+    @FXML private IsinSettings isinSettings;
     @FXML private VBox aiGroup;
     @FXML private org.fxt.freexmltoolkit.controls.shell.editor.ai.AiSettingsPane aiSettings;
     /** One switch per plugin that can be switched (built-in and external, not failed ones). */
@@ -1375,6 +1376,10 @@ public class SettingsPanel extends VBox {
         keys.put(gleifSettings, new String[] {org.fxt.freexmltoolkit.service.finance.gleif.Gleif.KEY_ON_VALIDATION,
                 org.fxt.freexmltoolkit.service.finance.gleif.Gleif.KEY_HOVER,
                 org.fxt.freexmltoolkit.service.finance.gleif.Gleif.KEY_CACHE_HOURS});
+        keys.put(isinSettings, new String[] {org.fxt.freexmltoolkit.service.finance.isin.Isin.KEY_ON_VALIDATION,
+                org.fxt.freexmltoolkit.service.finance.isin.Isin.KEY_HOVER,
+                org.fxt.freexmltoolkit.service.finance.isin.Isin.KEY_OPENFIGI,
+                org.fxt.freexmltoolkit.service.finance.isin.Isin.KEY_CACHE_HOURS});
         keys.put(xsltProcessors, new String[] {org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorStore.KEY_PROCESSORS,
                 org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorStore.KEY_DEFAULT});
         return keys;

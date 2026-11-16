@@ -141,6 +141,17 @@ public interface ConnectionService {
     }
 
     /**
+     * Like {@link #postJson(URI, String, Duration)} with extra request headers (e.g. an API key) and room for larger
+     * answers (data APIs).
+     *
+     * @param headers extra headers; never logged
+     */
+    default HttpPostResult postJson(URI uri, String jsonBody, Duration timeout, java.util.Map<String, String> headers)
+            throws IOException {
+        throw new UnsupportedOperationException("postJson not supported");
+    }
+
+    /**
      * A connection to {@code uri} configured like every other one of this service (proxy for the URL,
      * proxy authentication, timeouts, User-Agent, certificate settings) but not yet connected: for
      * callers that set their own method and headers or stream a large download. Code that needs an

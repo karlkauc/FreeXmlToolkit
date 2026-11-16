@@ -24,6 +24,20 @@ class ValidationRunnerGleifTest {
     void reset() {
         Gleif.setCache(null);
         Gleif.setValidationOverride(null);
+        org.fxt.freexmltoolkit.service.finance.isin.Isin.setValidationOverride(null);
+        org.fxt.freexmltoolkit.service.finance.OnlineFakes.reset();
+    }
+
+    @Test
+    void isinStageOnlyWhenTurnedOn() {
+        org.fxt.freexmltoolkit.service.finance.OnlineFakes.install();
+        Gleif.setValidationOverride(false);
+        org.fxt.freexmltoolkit.service.finance.isin.Isin.setValidationOverride(true);
+        String xml = "<r>\n  <ISIN>IE00B4L5Y983</ISIN>\n  <ISIN>AT000FXTST04</ISIN>\n  <LEI>5299009FXTMMFCP00069</LEI>\n</r>\n";
+        List<ValidationProblem> problems = ValidationRunner.runWithReport(xml, null, null, "r.xml").problems().stream()
+                .filter(p -> !"Well-formed".equals(p.source())).toList();
+        assertEquals(List.of("ISIN:3"), problems.stream().map(p -> p.source() + ":" + p.line()).toList(), problems.toString());
+        assertEquals("warning", problems.getFirst().severity());
     }
 
     private static void fake(GleifClient.Fetcher fetcher) {

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Settings → Instrument lookup (ESMA FIRDS, OpenFIGI): when ISINs are sent besides an explicit lookup, the OpenFIGI
+  fallback and its API key, how long answers are kept. Loaded by IsinSettings (fx:root); changes are saved at once.
+-->
+<fx:root type="javafx.scene.layout.VBox" spacing="6"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <Label text="%IsinSettings.intro.text" wrapText="true" minHeight="-Infinity" styleClass="fxt-placeholder-text"/>
+        <Label fx:id="policyNote" id="settings-isin-policy" text="%IsinSettings.policyNote.text" wrapText="true"
+               minHeight="-Infinity"/>
+        <CheckBox fx:id="onValidation" id="settings-isin-validation" text="%IsinSettings.onValidation.text"
+                  onAction="#onValidationChanged">
+            <tooltip>
+                <Tooltip text="%IsinSettings.onValidation.tooltip"/>
+            </tooltip>
+        </CheckBox>
+        <CheckBox fx:id="hover" id="settings-isin-hover" text="%IsinSettings.hover.text" onAction="#onHoverChanged">
+            <tooltip>
+                <Tooltip text="%IsinSettings.hover.tooltip"/>
+            </tooltip>
+        </CheckBox>
+        <CheckBox fx:id="openFigi" id="settings-isin-openfigi" text="%IsinSettings.openFigi.text" onAction="#onOpenFigiChanged">
+            <tooltip>
+                <Tooltip text="%IsinSettings.openFigi.tooltip"/>
+            </tooltip>
+        </CheckBox>
+        <HBox spacing="8" alignment="CENTER_LEFT">
+            <children>
+                <Label fx:id="apiKeyLabel" text="%IsinSettings.apiKey.text"/>
+                <PasswordField fx:id="apiKey" id="settings-isin-openfigi-key" prefWidth="240"
+                               promptText="%IsinSettings.apiKey.promptText"/>
+            </children>
+        </HBox>
+        <HBox spacing="8" alignment="CENTER_LEFT">
+            <children>
+                <Label fx:id="hoursLabel" text="%GleifSettings.hours.text"/>
+                <Spinner fx:id="hours" id="settings-isin-hours" prefWidth="90" editable="true"/>
+                <Button fx:id="clearButton" id="settings-isin-clear" text="%GleifSettings.clearButton.text"
+                        styleClass="fxt-tool-button" onAction="#onClear">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>
+                    </graphic>
+                </Button>
+            </children>
+        </HBox>
+    </children>
+</fx:root>

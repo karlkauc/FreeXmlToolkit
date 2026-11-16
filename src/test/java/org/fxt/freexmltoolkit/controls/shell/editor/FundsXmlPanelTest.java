@@ -158,16 +158,17 @@ class FundsXmlPanelTest {
     @Test
     void checksTheLeisAtGleif() throws Exception {
         fakeGleif();
+        org.fxt.freexmltoolkit.service.finance.OnlineFakes.install();
         try {
             FundsXmlPanel panel = WaitForAsyncUtils.waitForAsyncFx(3000, () -> new FundsXmlPanel(host));
-            assertNotNull(WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.lookup("#fundsxml-gleif")));
+            assertNotNull(WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.lookup("#fundsxml-identifiers-online")));
             WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openGeneratedDocument(
                     "<FundsXML4>\n<Funds><Fund><Identifiers><LEI>506700GE1G29325QX363</LEI></Identifiers></Fund>\n"
                             + "<Fund><Identifiers><LEI>5299009FXTMMFCP00069</LEI></Identifiers></Fund></Funds>\n</FundsXML4>",
                     EditorFileType.XML, "funds.xml"));
             WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS, () -> host.getActiveText().orElse("").contains("FundsXML4"));
             WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-                panel.onGleifCheck();
+                panel.onIdentifiersOnline();
                 return null;
             });
             WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS, () -> !host.getActiveProblems().isEmpty());
@@ -175,13 +176,14 @@ class FundsXmlPanelTest {
             assertTrue(problem.message().contains("5299009FXTMMFCP00069"), problem.message());
             org.junit.jupiter.api.Assertions.assertEquals(3, problem.line());
         } finally {
-            org.fxt.freexmltoolkit.service.finance.gleif.Gleif.setCache(null);
+            org.fxt.freexmltoolkit.service.finance.OnlineFakes.reset();
         }
     }
 
     @Test
     void identifierCheckerLooksAnLeiUpAtGleif() throws Exception {
         fakeGleif();
+        org.fxt.freexmltoolkit.service.finance.OnlineFakes.install();
         try {
             javafx.scene.Node checker = WaitForAsyncUtils.waitForAsyncFx(3000, () -> new FundsXmlPanel(host));
             WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
@@ -206,7 +208,34 @@ class FundsXmlPanelTest {
                             .anyMatch(n -> n instanceof javafx.scene.control.Label l
                                     && "Global Legal Entity Identifier Foundation".equals(l.getText()))));
         } finally {
-            org.fxt.freexmltoolkit.service.finance.gleif.Gleif.setCache(null);
+            org.fxt.freexmltoolkit.service.finance.OnlineFakes.reset();
+        }
+    }
+
+    @Test
+    void identifierCheckerLooksAnIsinUpAtFirds() throws Exception {
+        org.fxt.freexmltoolkit.service.finance.OnlineFakes.install();
+        try {
+            javafx.scene.Node checker = WaitForAsyncUtils.waitForAsyncFx(3000, () -> new FundsXmlPanel(host));
+            WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
+                @SuppressWarnings("unchecked")
+                var kind = (javafx.scene.control.ComboBox<org.fxt.freexmltoolkit.plugins.IdentifierKind>) checker.lookup("#industry-identifier-kind");
+                kind.setValue(org.fxt.freexmltoolkit.plugins.IdentifierKind.ISIN);
+                ((javafx.scene.control.TextField) checker.lookup("#industry-identifier")).setText("IE00B4L5Y983");
+                javafx.scene.control.Button button = (javafx.scene.control.Button) checker.lookup("#industry-identifier-gleif");
+                org.junit.jupiter.api.Assertions.assertTrue(button.isVisible());
+                org.junit.jupiter.api.Assertions.assertEquals("Look up online", button.getText());
+                button.fire();
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                    () -> ((javafx.scene.layout.VBox) checker.lookup("#industry-identifier-gleif-result")).getChildren().stream()
+                            .anyMatch(n -> n instanceof javafx.scene.control.Label l && "CFI CEOGES".equals(l.getText()))));
+            String issuer = WaitForAsyncUtils.waitForAsyncFx(2000,
+                    () -> ((javafx.scene.control.Hyperlink) checker.lookup("#industry-identifier-issuer-lei")).getText());
+            org.junit.jupiter.api.Assertions.assertTrue(issuer.contains("549300QS4Q1IT6XCA514"), issuer);
+        } finally {
+            org.fxt.freexmltoolkit.service.finance.OnlineFakes.reset();
         }
     }
 }

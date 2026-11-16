@@ -40,16 +40,16 @@ class GleifUiTest {
         String text = "<a>\n<LEI>506700GE1G29325QX363</LEI>\n</a>";
         CodeArea area = WaitForAsyncUtils.waitForAsyncFx(5000, () -> new CodeArea(text));
         int inside = text.indexOf("506700") + 10;
-        assertEquals("506700GE1G29325QX363", LeiHover.leiAt(area, inside));
-        assertNull(LeiHover.leiAt(area, 1));
-        assertNull(LeiHover.leiAt(area, text.length() + 5));
+        assertEquals("506700GE1G29325QX363", IdentifierHover.leiAt(area, inside));
+        assertNull(IdentifierHover.leiAt(area, 1));
+        assertNull(IdentifierHover.leiAt(area, text.length() + 5));
 
         LeiRecord lapsed = new LeiRecord("506700GE1G29325QX363", true, "Example AG", "AT", "Wien", "ACTIVE", "LAPSED",
                 LocalDate.of(2025, 3, 1), null, Instant.now());
-        String[] shown = LeiHover.texts(lapsed);
+        String[] shown = IdentifierHover.texts(lapsed);
         assertEquals("Example AG", shown[0]);
         assertTrue(shown[1].contains("Wien (AT)") && shown[1].contains("LAPSED") && shown[1].contains("has lapsed"), shown[1]);
-        assertTrue(LeiHover.texts(LeiRecord.notFound("5299009FXTMMFCP00069", Instant.now()))[1].contains("not registered"));
+        assertTrue(IdentifierHover.texts(LeiRecord.notFound("5299009FXTMMFCP00069", Instant.now()))[1].contains("not registered"));
     }
 
     @Test
@@ -78,21 +78,32 @@ class GleifUiTest {
 
     @Test
     void outcomesOfACheck() {
-        var none = GleifDocumentCheck.outcomeOf(new org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.Result(0, Map.of(),
-                java.util.List.of(), null));
-        assertEquals(GleifDocumentCheck.Kind.NONE, none.kind());
-        var failed = GleifDocumentCheck.outcomeOf(new org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.Result(2, Map.of(),
-                java.util.List.of(), "GLEIF could not be reached: offline"));
-        assertEquals(GleifDocumentCheck.Kind.FAILED, failed.kind());
+        assertEquals(IdentifierDocumentCheck.Kind.NONE, IdentifierDocumentCheck.outcomeOf(result(0, 0, 0)).kind());
+        var failed = IdentifierDocumentCheck.outcomeOf(new org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Result(2, 0,
+                java.util.List.of(), java.util.List.of(new org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Failure("GLEIF",
+                "GLEIF could not be reached: offline")), Map.of(), Map.of()));
+        assertEquals(IdentifierDocumentCheck.Kind.FAILED, failed.kind());
         assertTrue(failed.message().contains("offline"));
-        var ok = GleifDocumentCheck.outcomeOf(new org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.Result(3, Map.of(),
-                java.util.List.of(), null));
-        assertEquals(GleifDocumentCheck.Kind.OK, ok.kind());
-        assertTrue(ok.message().contains("3 LEIs"), ok.message());
-        var findings = GleifDocumentCheck.outcomeOf(new org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.Result(3, Map.of(),
-                java.util.List.of(new org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.Finding(
-                        LeiRecord.Severity.ERROR, 2, 5, "5299009FXTMMFCP00069", "not registered")), null));
-        assertEquals(GleifDocumentCheck.Kind.FINDINGS, findings.kind());
+        // one service failed, the other ran: the outcome counts, the failure is named
+        var half = IdentifierDocumentCheck.outcomeOf(new org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Result(2, 3,
+                java.util.List.of(), java.util.List.of(new org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Failure("ISIN",
+                "ESMA FIRDS could not be reached")), Map.of(), Map.of()));
+        assertEquals(IdentifierDocumentCheck.Kind.FINDINGS, half.kind());
+        assertTrue(half.message().contains("ESMA FIRDS could not be reached"), half.message());
+        var ok = IdentifierDocumentCheck.outcomeOf(result(3, 2, 0));
+        assertEquals(IdentifierDocumentCheck.Kind.OK, ok.kind());
+        assertTrue(ok.message().contains("3 LEIs, 2 ISINs"), ok.message());
+        var findings = IdentifierDocumentCheck.outcomeOf(result(3, 0, 1));
+        assertEquals(IdentifierDocumentCheck.Kind.FINDINGS, findings.kind());
         assertEquals(1, findings.findings());
+    }
+
+    private static org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Result result(int leis, int isins, int findings) {
+        java.util.List<org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Finding> list = new java.util.ArrayList<>();
+        for (int i = 0; i < findings; i++) {
+            list.add(new org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Finding("GLEIF", "GLEIF-LEI",
+                    org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Severity.ERROR, 2, 5, "5299009FXTMMFCP00069", "not registered"));
+        }
+        return new org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Result(leis, isins, list, java.util.List.of(), Map.of(), Map.of());
     }
 }

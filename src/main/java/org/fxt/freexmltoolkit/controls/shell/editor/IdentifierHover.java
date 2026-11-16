@@ -19,16 +19,18 @@ import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.finance.gleif.Gleif;
 import org.fxt.freexmltoolkit.service.finance.gleif.LeiRecord;
 import org.fxt.freexmltoolkit.service.finance.gleif.LeiScanner;
+import org.fxt.freexmltoolkit.service.finance.isin.Isin;
+import org.fxt.freexmltoolkit.service.finance.isin.IsinRecord;
 
 /**
- * Shows what GLEIF knows about an LEI when the mouse rests on it in a text editor: legal name, country, registration
- * and entity status. Known answers (the shared cache) show at once; an unknown LEI is looked up only when the user
+ * Shows what GLEIF knows about an LEI, or ESMA FIRDS / OpenFIGI about an ISIN, when the mouse rests on it in a text
+ * editor (LEI: legal name, country, registration and entity status; ISIN: name, CFI, issuer LEI, EU trading). Known answers (the shared cache) show at once; an unknown LEI is looked up only when the user
  * turned on {@link Gleif#KEY_HOVER}, otherwise the hover offers nothing. Installed on every code area while GLEIF
  * lookups are allowed; works in any text (XML, CSV, JSON).
  */
-public final class LeiHover {
+public final class IdentifierHover {
 
-    private static final Map<CodeArea, LeiHover> INSTALLED = new WeakHashMap<>();
+    private static final Map<CodeArea, IdentifierHover> INSTALLED = new WeakHashMap<>();
 
     private final CodeArea area;
     private final Popup popup = new Popup();
@@ -39,7 +41,7 @@ public final class LeiHover {
     /** The LEI the mouse rests on (a lookup that returns later shows only when it is still this one). */
     private String current;
 
-    private LeiHover(CodeArea area) {
+    private IdentifierHover(CodeArea area) {
         this.area = area;
         title.getStyleClass().add("fxt-debug-hover-title");
         body.getStyleClass().add("fxt-debug-hover-value");
@@ -57,12 +59,12 @@ public final class LeiHover {
         });
     }
 
-    /** Installs the hover on a code area once; does nothing when the administrator turned GLEIF off. */
+    /** Installs the hover on a code area once; does nothing when the administrator turned both lookups off. */
     public static synchronized void installOn(CodeArea area) {
-        if (area == null || INSTALLED.containsKey(area) || !Gleif.allowed()) {
+        if (area == null || INSTALLED.containsKey(area) || !(Gleif.allowed() || Isin.allowed())) {
             return;
         }
-        LeiHover hover = new LeiHover(area);
+        IdentifierHover hover = new IdentifierHover(area);
         INSTALLED.put(area, hover);
         if (area.getMouseOverTextDelay() == null) {
             area.setMouseOverTextDelay(Duration.ofMillis(500));
@@ -72,35 +74,83 @@ public final class LeiHover {
     }
 
     private void onBegin(MouseOverTextEvent e) {
-        String lei = leiAt(area, e.getCharacterIndex());
-        if (lei == null) {
-            return;
-        }
-        current = lei;
         double x = e.getScreenPosition().getX();
         double y = e.getScreenPosition().getY() + 14;
-        var known = Gleif.cache().cached(lei);
-        if (known.isPresent()) {
-            show(known.get(), x, y);
+        String lei = Gleif.allowed() ? leiAt(area, e.getCharacterIndex()) : null;
+        if (lei != null) {
+            current = lei;
+            hover(lei, Gleif.cache().cached(lei).orElse(null), Gleif.hoverLookups(),
+                    () -> Gleif.cache().lookup(List.of(lei)).get(lei), IdentifierHover::texts, x, y);
             return;
         }
-        if (!Gleif.hoverLookups()) {
+        String isin = Isin.allowed() ? isinAt(area, e.getCharacterIndex()) : null;
+        if (isin != null) {
+            current = isin;
+            hover(isin, Isin.cache().cached(isin).orElse(null), Isin.hoverLookups(),
+                    () -> Isin.cache().lookup(List.of(isin)).get(isin), IdentifierHover::texts, x, y);
+        }
+    }
+
+    /** Shows a known answer at once; asks the service only when lookups on hover are on. */
+    private <R> void hover(String id, R known, boolean lookUp, java.util.concurrent.Callable<R> fetch,
+                           java.util.function.Function<R, String[]> texts, double x, double y) {
+        if (known != null) {
+            show(texts.apply(known), x, y);
+            return;
+        }
+        if (!lookUp) {
             return;
         }
         FxtGui.executorService.submit(() -> {
-            LeiRecord r;
+            R r;
             try {
-                r = Gleif.cache().lookup(List.of(lei)).get(lei);
+                r = fetch.call();
             } catch (Exception ex) {
                 r = null;
             }
-            LeiRecord found = r;
+            R found = r;
             Platform.runLater(() -> {
-                if (found != null && lei.equals(current)) {
-                    show(found, x, y);
+                if (found != null && id.equals(current)) {
+                    show(texts.apply(found), x, y);
                 }
             });
         });
+    }
+
+    /** @return the ISIN at a character of the area, or {@code null} (reads only the characters around it) */
+    static String isinAt(CodeArea area, int index) {
+        int length = area.getLength();
+        if (index < 0 || index >= length) {
+            return null;
+        }
+        int from = Math.max(0, index - 13);
+        int to = Math.min(length, index + 14);
+        return org.fxt.freexmltoolkit.service.finance.isin.IsinScanner.at(area.getText(from, to), index - from);
+    }
+
+    /** @return title and body for an ISIN answer */
+    static String[] texts(IsinRecord r) {
+        if (!r.found()) {
+            return new String[] {"ISIN " + r.isin(), r.problem() == null ? "" : r.problem().message()};
+        }
+        StringBuilder body = new StringBuilder();
+        if (r.source() == IsinRecord.Source.FIRDS) {
+            if (r.cfi() != null) {
+                body.append(I18n.t("IdentifierChecker.isin-cfi", r.cfi())).append('\n');
+            }
+            if (r.issuerLei() != null) {
+                body.append("Issuer LEI ").append(r.issuerLei()).append('\n');
+            }
+            body.append(r.activeVenues() > 0 ? I18n.t("IdentifierChecker.isin-venues", r.activeVenues(), r.totalVenues())
+                    : I18n.t("IdentifierChecker.isin-ended") + (r.terminatedSince() == null ? "" : " (" + r.terminatedSince() + ")"));
+            body.append('\n').append(I18n.t("IdentifierChecker.isin-source-firds"));
+        } else {
+            if (r.securityType() != null) {
+                body.append(r.securityType()).append(r.ticker() == null ? "" : " · " + r.ticker()).append('\n');
+            }
+            body.append(I18n.t("IdentifierChecker.isin-source-openfigi"));
+        }
+        return new String[] {r.name(), body.toString()};
     }
 
     /** @return the LEI at a character of the area, or {@code null} (reads only the characters around it) */
@@ -117,7 +167,7 @@ public final class LeiHover {
     /** @return title and body for a record */
     static String[] texts(LeiRecord r) {
         if (!r.found()) {
-            return new String[] {"GLEIF: " + r.lei(), I18n.t("LeiHover.not-found")};
+            return new String[] {"GLEIF: " + r.lei(), I18n.t("IdentifierHover.not-found")};
         }
         StringBuilder body = new StringBuilder();
         body.append(I18n.t("IndustryPanel.gleif-place", r.city() == null ? "" : r.city(), r.country() == null ? "" : r.country()))
@@ -132,19 +182,18 @@ public final class LeiHover {
         return new String[] {r.legalName(), body.toString()};
     }
 
-    private void show(LeiRecord r, double x, double y) {
+    private void show(String[] t, double x, double y) {
         if (area.getScene() == null || area.getScene().getWindow() == null) {
             return;
         }
         hideDelay.stop();
-        String[] t = texts(r);
         title.setText(t[0]);
         body.setText(t[1]);
         box.getStyleClass().removeAll("fxt-theme-dark", "fxt-theme-light");
         box.getStyleClass().add(ThemeManager.currentIsDark() ? "fxt-theme-dark" : "fxt-theme-light");
         if (box.getStylesheets().isEmpty()) {
             for (String sheet : new String[] {"/css/design-tokens.css", "/css/unified-shell.css"}) {
-                var url = LeiHover.class.getResource(sheet);
+                var url = IdentifierHover.class.getResource(sheet);
                 if (url != null) {
                     box.getStylesheets().add(url.toExternalForm());
                 }

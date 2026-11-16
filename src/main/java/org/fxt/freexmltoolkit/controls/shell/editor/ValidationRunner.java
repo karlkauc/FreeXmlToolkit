@@ -337,29 +337,34 @@ public final class ValidationRunner {
                 problems.add(new ValidationProblem(found.source(), found.severity(), found.line(), found.message()));
             }
         }
-        if (org.fxt.freexmltoolkit.service.finance.gleif.Gleif.onValidation()) {
-            problems.addAll(gleifProblems(xml));
+        boolean leis = org.fxt.freexmltoolkit.service.finance.gleif.Gleif.onValidation();
+        boolean isins = org.fxt.freexmltoolkit.service.finance.isin.Isin.onValidation();
+        if (leis || isins) {
+            problems.addAll(identifierProblems(xml, leis, isins));
         }
         return new RunResult(problems, reportData, xsdMillis, schematronMillis, failure, error);
     }
 
     /**
-     * The GLEIF stage: the text's LEIs checked at GLEIF (only when the user or {@code fxt-cli validate --gleif} turned
-     * it on). The Problems panel knows errors and warnings only, so GLEIF's infos (pending registrations, GLEIF not
-     * reachable) are warnings here.
+     * The online stage: the text's LEIs (GLEIF) and/or ISINs (ESMA FIRDS, OpenFIGI) checked online - only when the user
+     * or {@code fxt-cli validate --gleif/--isin} turned it on. The Problems panel knows errors and warnings only, so
+     * infos (pending registrations, instruments no longer traded, a service not reachable) are warnings here.
      */
-    public static List<ValidationProblem> gleifProblems(String text) {
-        var result = org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.check(text);
+    public static List<ValidationProblem> identifierProblems(String text, boolean leis, boolean isins) {
+        var result = org.fxt.freexmltoolkit.service.finance.IdentifierCheck.check(text, leis, isins);
+        return toProblems(result);
+    }
+
+    /** @return the findings and failures of an online check as problems */
+    public static List<ValidationProblem> toProblems(org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Result result) {
         List<ValidationProblem> problems = new ArrayList<>();
-        if (result.failure() != null) {
-            problems.add(new ValidationProblem(org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.SOURCE, "warning", 0,
-                    "The LEIs were not checked at GLEIF: " + result.failure()));
+        for (var f : result.failures()) {
+            problems.add(new ValidationProblem(f.source(), "warning", 0, "Not checked online: " + f.message()));
         }
         for (var f : result.findings()) {
-            problems.add(new ValidationProblem(org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.SOURCE,
-                    f.severity() == org.fxt.freexmltoolkit.service.finance.gleif.LeiRecord.Severity.ERROR ? "error" : "warning",
-                    f.line(), f.message(),
-                    org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.RULE, null).withColumn(f.column()));
+            problems.add(new ValidationProblem(f.source(),
+                    f.severity() == org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Severity.ERROR ? "error" : "warning",
+                    f.line(), f.message(), f.rule(), null).withColumn(f.column()));
         }
         return problems;
     }

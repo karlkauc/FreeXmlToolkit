@@ -61,6 +61,10 @@ public final class AdminPolicy {
     public static final String KEY_XSLT_EXTERNAL_ALLOWED = "xslt.external.allowed";
     /** {@code false} disables GLEIF lookups of LEIs (panels, validation, hover, {@code fxt-cli lei}). */
     public static final String KEY_GLEIF_ALLOWED = "gleif.allowed";
+    /** {@code false} disables ISIN lookups (ESMA FIRDS and OpenFIGI). */
+    public static final String KEY_ISIN_ALLOWED = "isin.allowed";
+    /** {@code false} keeps ISIN lookups at ESMA FIRDS: OpenFIGI (Bloomberg) is never asked. */
+    public static final String KEY_OPENFIGI_ALLOWED = "isin.openfigi.allowed";
     /** Policy only: {@code false} removes every AI feature, including {@code fxt-cli mcp}. */
     public static final String KEY_AI_ALLOWED = "ai.allowed";
     /** Policy only: {@code false} refuses {@code fxt-cli mcp}. */
@@ -290,6 +294,16 @@ public final class AdminPolicy {
     /** @return {@code false} when the administrator disabled external XSLT processors */
     public boolean externalXsltProcessorsAllowed() {
         return !"false".equalsIgnoreCase(locked.getProperty(KEY_XSLT_EXTERNAL_ALLOWED, "true"));
+    }
+
+    /** @return {@code false} when the administrator disabled ISIN lookups */
+    public boolean isinLookupsAllowed() {
+        return !"false".equalsIgnoreCase(locked.getProperty(KEY_ISIN_ALLOWED, "true"));
+    }
+
+    /** @return {@code false} when the administrator disabled the OpenFIGI fallback of ISIN lookups */
+    public boolean openFigiAllowed() {
+        return !"false".equalsIgnoreCase(locked.getProperty(KEY_OPENFIGI_ALLOWED, "true"));
     }
 
     /** @return {@code false} when the administrator disabled GLEIF lookups */

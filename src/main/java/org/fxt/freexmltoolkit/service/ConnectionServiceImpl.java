@@ -213,6 +213,20 @@ public class ConnectionServiceImpl implements ConnectionService {
      */
     @Override
     public HttpPostResult postJson(URI uri, String jsonBody, Duration timeout) throws IOException {
+        return post(uri, jsonBody, timeout, java.util.Map.of(), MAX_POST_RESPONSE_BYTES);
+    }
+
+    /** Larger answers of data APIs (OpenFIGI: about 80 KB per instrument with many listings). */
+    private static final int MAX_DATA_POST_RESPONSE_BYTES = 32 * 1024 * 1024;
+
+    @Override
+    public HttpPostResult postJson(URI uri, String jsonBody, Duration timeout, java.util.Map<String, String> headers)
+            throws IOException {
+        return post(uri, jsonBody, timeout, headers == null ? java.util.Map.of() : headers, MAX_DATA_POST_RESPONSE_BYTES);
+    }
+
+    private HttpPostResult post(URI uri, String jsonBody, Duration timeout, java.util.Map<String, String> headers,
+                                int maxResponseBytes) throws IOException {
         Properties properties = propertiesService.loadProperties();
         HttpURLConnection connection = null;
         int timeoutMs = (int) Math.max(1, Math.min(Integer.MAX_VALUE, timeout == null ? 10_000 : timeout.toMillis()));
@@ -225,13 +239,14 @@ public class ConnectionServiceImpl implements ConnectionService {
             connection.setReadTimeout(timeoutMs);
             connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
             connection.setRequestProperty("Accept", "application/json");
+            headers.forEach(connection::setRequestProperty);
             byte[] bytes = (jsonBody == null ? "" : jsonBody).getBytes(StandardCharsets.UTF_8);
             connection.setFixedLengthStreamingMode(bytes.length);
             try (OutputStream os = connection.getOutputStream()) {
                 os.write(bytes);
             }
             int status = connection.getResponseCode();
-            String body = readPostResponse(connection, status);
+            String body = readPostResponse(connection, status, maxResponseBytes);
             logger.debug("HTTP POST completed: {} - Status: {}", uri, status);
             return new HttpPostResult(status, body);
         } catch (IOException e) {
@@ -284,12 +299,12 @@ public class ConnectionServiceImpl implements ConnectionService {
         return copy;
     }
 
-    private static String readPostResponse(HttpURLConnection connection, int status) {
+    private static String readPostResponse(HttpURLConnection connection, int status, int maxBytes) {
         try (InputStream in = status >= 400 ? connection.getErrorStream() : connection.getInputStream()) {
             if (in == null) {
                 return "";
             }
-            return new String(in.readNBytes(MAX_POST_RESPONSE_BYTES), StandardCharsets.UTF_8);
+            return new String(in.readNBytes(maxBytes), StandardCharsets.UTF_8);
         } catch (IOException e) {
             return "";
         }

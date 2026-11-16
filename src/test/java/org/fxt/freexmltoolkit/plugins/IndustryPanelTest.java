@@ -168,6 +168,7 @@ class IndustryPanelTest {
 
     @Test
     void leisAtGleif() throws Exception {
+        org.fxt.freexmltoolkit.service.finance.OnlineFakes.install();
         org.fxt.freexmltoolkit.service.finance.gleif.Gleif.setCache(new org.fxt.freexmltoolkit.service.finance.gleif.LeiCache(
                 new org.fxt.freexmltoolkit.service.finance.gleif.GleifClient(uri -> {
                     try (var in = IndustryPanelTest.class.getResourceAsStream("/gleif/lei-records.json")) {
@@ -198,7 +199,7 @@ class IndustryPanelTest {
                     "<funds>\n<LEI>506700GE1G29325QX363</LEI>\n<LEI>5299009FXTMMFCP00069</LEI>\n</funds>", EditorFileType.XML, "f.xml"));
             WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.getActiveText().orElse("").contains("funds"));
             WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
-                withLei.checkLeisAtGleif();
+                withLei.checkIdentifiersOnline();
                 return null;
             });
             WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> !host.getActiveProblems().isEmpty());
@@ -219,13 +220,14 @@ class IndustryPanelTest {
 
             // a new GLEIF check without findings replaces them
             WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
-                org.fxt.freexmltoolkit.controls.shell.editor.GleifDocumentCheck.publish(host, host.validationTarget(),
-                        new org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.Result(2, java.util.Map.of(), List.of(), null));
+                org.fxt.freexmltoolkit.controls.shell.editor.IdentifierDocumentCheck.publish(host, host.validationTarget(),
+                        new org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Result(2, 0, List.of(), List.of(),
+                                java.util.Map.of(), java.util.Map.of()));
                 return null;
             });
             assertTrue(WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.getActiveProblems().isEmpty()));
         } finally {
-            org.fxt.freexmltoolkit.service.finance.gleif.Gleif.setCache(null);
+            org.fxt.freexmltoolkit.service.finance.OnlineFakes.reset();
         }
     }
 }

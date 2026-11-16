@@ -26,6 +26,7 @@
 <?import org.fxt.freexmltoolkit.controls.shell.editor.ai.AiSettingsPane?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.FoProcessorsSettings?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.GleifSettings?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.IsinSettings?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.XsltProcessorsSettings?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.SettingsCard?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.SettingsCardGrid?>
@@ -747,6 +748,12 @@
                                         <SettingsCard title="%SettingsPanel.gleif.title" iconLiteral="bi-globe2">
                                             <children>
                                                 <GleifSettings fx:id="gleifSettings"/>
+                                            </children>
+                                        </SettingsCard>
+                                        <!-- ISIN lookups (IsinSettings saves its changes itself) -->
+                                        <SettingsCard title="%SettingsPanel.isin.title" iconLiteral="bi-bank">
+                                            <children>
+                                                <IsinSettings fx:id="isinSettings"/>
                                             </children>
                                         </SettingsCard>
                                         <SettingsCard title="%SettingsPanel.updates.title" iconLiteral="bi-arrow-repeat">

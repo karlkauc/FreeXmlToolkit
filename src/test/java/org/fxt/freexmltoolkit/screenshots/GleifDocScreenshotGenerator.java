@@ -26,9 +26,6 @@ import org.fxt.freexmltoolkit.controls.shell.editor.SettingsCard;
 import org.fxt.freexmltoolkit.plugin.PluginUi;
 import org.fxt.freexmltoolkit.plugins.IdentifierKind;
 import org.fxt.freexmltoolkit.plugins.IndustryPanel;
-import org.fxt.freexmltoolkit.service.finance.gleif.Gleif;
-import org.fxt.freexmltoolkit.service.finance.gleif.GleifClient;
-import org.fxt.freexmltoolkit.service.finance.gleif.LeiCache;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +35,8 @@ import org.testfx.util.WaitForAsyncUtils;
 
 /**
  * Captures the GLEIF images for {@code docs/gleif.md}: the identifier checker of an extension panel after a lookup
- * (GLEIF's own, public LEI from a saved answer - no network) and the Settings card.
+ * (GLEIF's own, public LEI from a saved answer - no network), the same checker with an ISIN from ESMA FIRDS, and the
+ * Settings cards.
  *
  * <pre>{@code
  * xvfb-run -a -s "-screen 0 1680x1050x24" ./gradlew docScreenshots --tests "*GleifDocScreenshotGenerator*"
@@ -63,17 +61,13 @@ class GleifDocScreenshotGenerator {
 
     @AfterEach
     void realGleif() {
-        Gleif.setCache(null);
+        org.fxt.freexmltoolkit.service.finance.OnlineFakes.reset();
     }
 
     @Test
     void generateGleifScreenshots() throws Exception {
         IMG_DIR.mkdirs();
-        Gleif.setCache(new LeiCache(new GleifClient(uri -> {
-            try (var in = getClass().getResourceAsStream("/gleif/lei-records.json")) {
-                return new GleifClient.Response(200, in.readAllBytes());
-            }
-        }, java.time.Clock.systemUTC()), null, java.time.Clock.systemUTC(), java.time.Duration.ofHours(1)));
+        org.fxt.freexmltoolkit.service.finance.OnlineFakes.install();
 
         IndustryPanel panel = ScreenshotFx.call("gleif-screenshot", () -> {
             EditorHost host = new EditorHost();
@@ -108,6 +102,19 @@ class GleifDocScreenshotGenerator {
         settle(600);
         write(ScreenshotFx.call("gleif-screenshot", () -> panel.snapshot(new SnapshotParameters(), null)), "gleif-identifier-checker");
 
+        // the same checker with an ISIN looked up at ESMA FIRDS
+        ScreenshotFx.run("gleif-screenshot", () -> {
+            @SuppressWarnings("unchecked")
+            ComboBox<IdentifierKind> kind = (ComboBox<IdentifierKind>) panel.lookup("#industry-identifier-kind");
+            kind.setValue(IdentifierKind.ISIN);
+            ((TextField) panel.lookup("#industry-identifier")).setText("IE00B4L5Y983");
+            ((Button) panel.lookup("#industry-identifier-gleif")).fire();
+        });
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> ScreenshotFx.call("gleif-screenshot",
+                () -> panel.lookup("#industry-identifier-issuer-lei") != null));
+        settle(600);
+        write(ScreenshotFx.call("gleif-screenshot", () -> panel.snapshot(new SnapshotParameters(), null)), "isin-identifier-checker");
+
         VBox card = ScreenshotFx.call("gleif-screenshot", () -> {
             SettingsCard settingsCard = new SettingsCard();
             settingsCard.setTitle("GLEIF (LEI lookup)");
@@ -127,6 +134,26 @@ class GleifDocScreenshotGenerator {
         });
         settle(600);
         write(ScreenshotFx.call("gleif-screenshot", () -> card.snapshot(new SnapshotParameters(), null)), "gleif-settings");
+
+        VBox isinCard = ScreenshotFx.call("gleif-screenshot", () -> {
+            SettingsCard settingsCard = new SettingsCard();
+            settingsCard.setTitle("Instrument lookup (ESMA FIRDS, OpenFIGI)");
+            settingsCard.setIconLiteral("bi-bank");
+            settingsCard.getChildren().add(new org.fxt.freexmltoolkit.controls.shell.editor.IsinSettings());
+            VBox box = new VBox(settingsCard);
+            box.setStyle("-fx-padding: 16; -fx-pref-width: 560;");
+            box.getStyleClass().add("fxt-settings-page");
+            Scene scene = new Scene(box);
+            for (String sheet : new String[] {"/css/design-tokens.css", "/css/unified-shell.css"}) {
+                scene.getStylesheets().add(getClass().getResource(sheet).toExternalForm());
+            }
+            ThemeManager.apply(scene, false);
+            stage.setScene(scene);
+            stage.sizeToScene();
+            return box;
+        });
+        settle(600);
+        write(ScreenshotFx.call("gleif-screenshot", () -> isinCard.snapshot(new SnapshotParameters(), null)), "isin-settings");
     }
 
     private void settle(long millis) {
