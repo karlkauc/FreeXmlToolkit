@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.plugins;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
@@ -23,12 +24,16 @@ import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
-/** The industry plugins' side panel: document summary, the check, the identifier checker. */
+/**
+ * The industry plugins' side panel: document summary, the check (problems go to the PROBLEMS panel, the panel
+ * shows counts), the optional report, the identifier checker.
+ */
 @ExtendWith(ApplicationExtension.class)
 class IndustryPanelTest {
 
     private EditorHost host;
     private IndustryPanel panel;
+    private IndustryPanel reporting;
 
     @Start
     void start(Stage stage) {
@@ -52,7 +57,11 @@ class IndustryPanelTest {
         };
         panel = new IndustryPanel(ui, "ORDERS", "Checks orders.", List.of(), c -> c.contains("<order") ? "An order" : null,
                 validator, List.of(IdentifierKind.IBAN, IdentifierKind.AT_UID));
-        stage.setScene(new Scene(new HBox(host, panel), 1100, 700));
+        reporting = new IndustryPanel(ui, "REPORTS", "With a report.", List.of(), c -> c.contains("<order") ? "An order" : null,
+                (content, path, name) -> List.of(new DocumentValidator.Problem("warning", 1, "Check the total."),
+                        new DocumentValidator.Problem("error", 1, "No customer."), new DocumentValidator.Problem("error", 1, "No date.")),
+                List.of()).withReport((content, name) -> "<html><body>Report of " + name + "</body></html>", "-report.html");
+        stage.setScene(new Scene(new HBox(host, panel, reporting), 1300, 700));
         stage.show();
     }
 
@@ -66,11 +75,24 @@ class IndustryPanelTest {
             panel.onCheck();
             return null;
         });
-        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> {
-            String r = panel.checkResultForTesting();
-            return r != null && r.startsWith("1 problem");
+        // without a shell validation the panel runs the plugin's check itself and publishes to PROBLEMS
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> "✗ 1 error".equals(panel.checkCountsForTesting()));
+        assertEquals(1, WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.getActiveProblems().size()));
+        assertEquals("The total is zero.", WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.getActiveProblems().getFirst().message()));
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(5000, panel::reportAvailableForTesting), "no report builder");
+
+        // a checker's warnings and errors are counted apart; the report opens in the preview
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            reporting.onCheck();
+            return null;
         });
-        assertEquals("1 problem:\n• Line 1: The total is zero.", panel.checkResultForTesting());
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> "✗ 2 errors · ⚠ 1 warning".equals(reporting.checkCountsForTesting()));
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(5000, reporting::reportAvailableForTesting));
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            reporting.onReport();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.getActiveText().orElse("").contains("Report of o.xml"));
 
         WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
             panel.checkIdentifierForTesting(IdentifierKind.AT_UID, "ATU13585627");
@@ -86,5 +108,6 @@ class IndustryPanelTest {
         WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.openGeneratedDocument("<x/>", EditorFileType.XML, "x.xml"));
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
                 () -> panel.documentSummaryForTesting().startsWith("The active document is not one"));
+        assertEquals(null, panel.checkCountsForTesting());
     }
 }

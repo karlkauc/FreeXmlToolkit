@@ -286,8 +286,10 @@ class PluginsDocScreenshotGenerator {
     private void check(IndustryPanel panel) throws Exception {
         onFx(panel::onCheck);
         WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS, () -> ScreenshotFx.call("plugin-screenshot", () -> {
-            Node result = panel.lookup("#industry-check-result");
-            return result instanceof javafx.scene.control.Label label && !label.getText().startsWith("Checking");
+            Node result = panel.lookup("#industry-check-counts");
+            Node progress = panel.lookup("#industry-progress");
+            return result instanceof javafx.scene.control.Label label && label.isVisible()
+                    && !label.getText().startsWith("Not checked") && (progress == null || !progress.isVisible());
         }));
         settle(400);
     }

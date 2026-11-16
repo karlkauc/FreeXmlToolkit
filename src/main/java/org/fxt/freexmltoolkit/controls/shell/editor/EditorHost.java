@@ -3055,6 +3055,14 @@ public class EditorHost extends BorderPane {
      */
     public void setValidateHandler(Runnable handler) {
         this.validateHandler = handler != null ? handler : () -> { };
+        this.validateHandlerSet = handler != null;
+    }
+
+    private boolean validateHandlerSet;
+
+    /** @return whether a shell validation (F8) is installed; without one {@link #runValidation()} does nothing */
+    public boolean hasValidateHandler() {
+        return validateHandlerSet;
     }
 
     /** Validates the active document the way F8 does (Validation panel, problems in the editor). */

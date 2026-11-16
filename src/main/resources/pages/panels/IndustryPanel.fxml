@@ -3,6 +3,7 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.VBox?>
@@ -12,10 +13,10 @@
 <?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelSection?>
 
 <!--
-  Side panel of the industry plugins (ISO 20022, ebInterface, FinDatEx, XBRL): about text, the
-  plugin's actions, the active document (what it is, result of the plugin's checks) and an
-  identifier checker. Loaded by IndustryPanel (fx:root); title, texts, the plugin's action rows and
-  the identifier kinds are set in code.
+  Side panel of the industry plugins (ISO 20022, ebInterface, FinDatEx, XBRL, KAG, ESMA): about text,
+  the active document (what it is, counts of its last check, check + optional HTML report), the
+  plugin's tools, optional settings and an identifier checker. Loaded by IndustryPanel (fx:root);
+  title, texts, the tool rows, the options and the identifier kinds are set in code.
 -->
 <fx:root type="javafx.scene.layout.VBox" styleClass="fxt-industry-panel"
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
@@ -41,19 +42,33 @@
                                     <children>
                                         <Label fx:id="documentSummary" id="industry-document" wrapText="true"
                                                minHeight="-Infinity"/>
-                                        <Label fx:id="checkResult" id="industry-check-result" wrapText="true"
+                                        <Label fx:id="checkCounts" id="industry-check-counts" wrapText="true"
                                                minHeight="-Infinity" visible="false" managed="false"/>
-                                        <Hyperlink fx:id="showAllLink" id="industry-show-all" text="%IndustryPanel.showAllLink.text"
-                                                   visible="false" managed="false" onAction="#onShowAll"/>
+                                        <Hyperlink fx:id="showProblemsLink" id="industry-show-problems"
+                                                   text="%IndustryPanel.showProblemsLink.text"
+                                                   visible="false" managed="false" onAction="#onShowProblems"/>
                                     </children>
                                 </VBox>
-                                <PanelActionList fx:id="actions" id="industry-actions">
+                                <PanelActionList id="industry-check-actions">
                                     <children>
                                         <PanelActionButton fx:id="checkButton" id="industry-check" iconLiteral="bi-check2-circle"
                                                            text="%IndustryPanel.checkButton.text" color="CREATE" primary="true"
                                                            onAction="#onCheck"/>
+                                        <PanelActionButton fx:id="reportButton" id="industry-report" iconLiteral="bi-clipboard-data"
+                                                           text="%IndustryPanel.reportButton.text" color="NAVIGATE"
+                                                           onAction="#onReport"/>
                                     </children>
                                 </PanelActionList>
+                            </children>
+                        </SidePanelSection>
+                        <SidePanelSection fx:id="toolsSection" title="%IndustryPanel.toolsSection.title">
+                            <children>
+                                <PanelActionList fx:id="actions" id="industry-actions"/>
+                            </children>
+                        </SidePanelSection>
+                        <SidePanelSection fx:id="optionsSection" title="%IndustryPanel.optionsSection.title">
+                            <children>
+                                <VBox fx:id="optionsBody" spacing="6" styleClass="fxt-tp-section-body"/>
                             </children>
                         </SidePanelSection>
                         <SidePanelSection fx:id="identifierSection" title="%IndustryPanel.identifierSection.title">
@@ -73,5 +88,12 @@
                 </VBox>
             </content>
         </ScrollPane>
+        <VBox spacing="4" styleClass="fxt-tp-section-body">
+            <children>
+                <ProgressBar fx:id="progress" id="industry-progress" maxWidth="Infinity" visible="false" managed="false"/>
+                <Label fx:id="status" id="industry-status" wrapText="true" minHeight="-Infinity"
+                       styleClass="fxt-placeholder-text"/>
+            </children>
+        </VBox>
     </children>
 </fx:root>

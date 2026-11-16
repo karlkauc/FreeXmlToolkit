@@ -1,29 +1,50 @@
 package org.fxt.freexmltoolkit.plugins;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 
+import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
+import org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType;
+import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionButton;
 import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionList;
+import org.fxt.freexmltoolkit.controls.shell.editor.PanelStatus;
 import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelHeader;
 import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelSection;
+import org.fxt.freexmltoolkit.controls.shell.editor.ValidationProblem;
+import org.fxt.freexmltoolkit.controls.shell.editor.ViewMode;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.plugin.DocumentValidator;
 import org.fxt.freexmltoolkit.plugin.PluginUi;
 
 /**
  * The side panel of an industry plugin: what the plugin does, the active document (what the plugin
- * recognises it as, and the result of its checks), the plugin's own actions (new sample document …)
- * and a checker for identifiers (IBAN, BIC, LEI, ISIN …).
+ * recognises it as and how many problems its last check found), the check itself, an optional HTML
+ * check report, the plugin's tools (new sample document, import …), optional settings and a checker
+ * for identifiers (IBAN, BIC, LEI, ISIN …).
+ *
+ * <p>The check runs like F8: the shell validates the document (schema + every plugin validator) and the
+ * problems go to the PROBLEMS panel below the editor, where a click jumps to the line; the panel shows
+ * only the counts. A plugin whose check needs the saved file (an external program) passes a
+ * {@link Checker}; its problems are published to the PROBLEMS panel the same way.
  */
 public class IndustryPanel extends VBox {
 
@@ -37,60 +58,83 @@ public class IndustryPanel extends VBox {
         List<DocumentValidator.Problem> check(String content, java.nio.file.Path path, String name) throws Exception;
     }
 
-    /** An action row of the panel. */
+    /** Renders a check report of the active document as HTML (run off the FX thread). */
+    @FunctionalInterface
+    public interface ReportBuilder {
+        /**
+         * @param name the document's file or display name
+         * @return the report, or {@code null} when the document is not one the plugin reports on
+         */
+        String html(String content, String name) throws Exception;
+    }
+
+    /** An action row of the panel's TOOLS section. */
     public record Action(String id, String text, String icon, ActionColor color, java.util.function.Consumer<PluginUi> run) {
     }
 
     @FXML private SidePanelHeader header;
     @FXML private Label about;
     @FXML private Label documentSummary;
-    @FXML private Label checkResult;
-    @FXML private PanelActionList actions;
+    @FXML private Label checkCounts;
+    @FXML private Hyperlink showProblemsLink;
     @FXML private PanelActionButton checkButton;
+    @FXML private PanelActionButton reportButton;
+    @FXML private SidePanelSection toolsSection;
+    @FXML private PanelActionList actions;
+    @FXML private SidePanelSection optionsSection;
+    @FXML private VBox optionsBody;
     @FXML private SidePanelSection identifierSection;
     @FXML private ComboBox<IdentifierKind> identifierKind;
     @FXML private TextField identifierField;
     @FXML private Label identifierResult;
+    @FXML private ProgressBar progress;
+    @FXML private Label status;
 
     private final PluginUi ui;
     private final Function<String, String> describer;
     private final Checker checker;
-    private List<DocumentValidator.Problem> lastProblems = List.of();
-    @FXML private javafx.scene.control.Hyperlink showAllLink;
+    /** The plugin's validator when the check is the shell's validation; {@code null} for a {@link Checker}. */
+    private final DocumentValidator validator;
+    private ReportBuilder reportBuilder;
+    private String reportSuffix = "-report.html";
+    private boolean recognised;
 
     /**
      * @param describer   what the document is ({@code "pain.001.001.09 — 2 payments …"}), or {@code null}
      *                    when the plugin does not recognise it
-     * @param validator   the plugin's checks
+     * @param validator   the plugin's checks (they also run with F8; registered by the plugin)
      * @param identifiers the kinds the identifier checker offers (none hides it)
      */
     public IndustryPanel(PluginUi ui, String title, String aboutText, List<Action> extraActions,
                          Function<String, String> describer, DocumentValidator validator,
                          List<IdentifierKind> identifiers) {
-        this(ui, title, aboutText, extraActions, describer,
+        this(ui, title, aboutText, extraActions, describer, validator,
                 (content, path, name) -> validator.validate(content, name), identifiers);
     }
 
     /** @param checker the check of "Check Active Document" (for checks that need the saved file) */
     public IndustryPanel(PluginUi ui, String title, String aboutText, List<Action> extraActions,
                          Function<String, String> describer, Checker checker, List<IdentifierKind> identifiers) {
+        this(ui, title, aboutText, extraActions, describer, null, checker, identifiers);
+    }
+
+    private IndustryPanel(PluginUi ui, String title, String aboutText, List<Action> extraActions,
+                          Function<String, String> describer, DocumentValidator validator, Checker checker,
+                          List<IdentifierKind> identifiers) {
         this.ui = ui;
         this.describer = describer;
+        this.validator = validator;
         this.checker = checker;
         FxmlViews.load(this, "/pages/panels/IndustryPanel.fxml");
         header.setTitle(title);
         about.setText(aboutText);
         for (Action action : extraActions) {
-            PanelActionButton button = new PanelActionButton();
-            button.setId(action.id());
-            button.setText(action.text());
-            button.setIconLiteral(action.icon());
-            button.setColor(action.color());
-            button.setOnAction(e -> action.run().accept(ui));
-            actions.getChildren().add(button);
+            addTool(action);
         }
-        identifierSection.setVisible(!identifiers.isEmpty());
-        identifierSection.setManaged(!identifiers.isEmpty());
+        show(toolsSection, !extraActions.isEmpty());
+        show(reportButton, false);
+        show(optionsSection, false);
+        show(identifierSection, !identifiers.isEmpty());
         identifierKind.getItems().setAll(identifiers);
         identifierKind.setButtonCell(kindCell());
         identifierKind.setCellFactory(list -> kindCell());
@@ -99,14 +143,86 @@ public class IndustryPanel extends VBox {
         }
         identifierKind.valueProperty().addListener((obs, o, n) -> checkIdentifier());
         identifierField.textProperty().addListener((obs, o, n) -> checkIdentifier());
+        EditorHost host = ui.editorHost();
         // Deferred: the new tab's text is in place only after the tab switch has been processed
-        ui.editorHost().activeTabProperty().addListener((obs, o, n) -> Platform.runLater(this::refreshDocument));
+        host.activeTabProperty().addListener((obs, o, n) -> Platform.runLater(this::refreshDocument));
+        host.getActiveProblems().addListener((ListChangeListener<ValidationProblem>) c -> refreshCounts());
+        host.validationStatusProperty().addListener((obs, o, n) -> refreshCounts());
         sceneProperty().addListener((obs, o, scene) -> {
             if (scene != null) {
                 refreshDocument();
             }
         });
         refreshDocument();
+    }
+
+    /** Adds the action <b>Check Report (HTML)</b>; the report opens in the preview. */
+    public IndustryPanel withReport(ReportBuilder builder, String fileSuffix) {
+        this.reportBuilder = builder;
+        this.reportSuffix = fileSuffix;
+        show(reportButton, true);
+        reportButton.setDisable(!recognised);
+        return this;
+    }
+
+    /** Shows the plugin's settings in an OPTIONS section. */
+    public IndustryPanel withOptions(Node options) {
+        optionsBody.getChildren().setAll(options);
+        show(optionsSection, true);
+        return this;
+    }
+
+    /** Adds a row to the TOOLS section. */
+    public IndustryPanel withTool(Action action) {
+        addTool(action);
+        show(toolsSection, true);
+        return this;
+    }
+
+    private void addTool(Action action) {
+        PanelActionButton button = new PanelActionButton();
+        button.setId(action.id());
+        button.setText(action.text());
+        button.setIconLiteral(action.icon());
+        button.setColor(action.color());
+        button.setOnAction(e -> action.run().accept(ui));
+        actions.getChildren().add(button);
+    }
+
+    /** The panel's status line (for the plugin's tools). */
+    public Label status() {
+        return status;
+    }
+
+    /**
+     * Runs a tool's work off the FX thread with the panel's progress bar; {@code done} gets the result
+     * on the FX thread, a failure is shown in the status line and as error dialog.
+     */
+    public <T> void background(String what, Callable<T> job, Consumer<T> done) {
+        showProgress(true);
+        PanelStatus.info(status, I18n.t("IndustryPanel.working", what));
+        FxtGui.executorService.submit(() -> {
+            try {
+                T result = job.call();
+                Platform.runLater(() -> {
+                    showProgress(false);
+                    status.setText("");
+                    status.setGraphic(null);
+                    done.accept(result);
+                });
+            } catch (Exception | OutOfMemoryError e) {
+                Platform.runLater(() -> {
+                    showProgress(false);
+                    PanelStatus.failure(status, what, I18n.t("IndustryPanel.failed", what),
+                            I18n.t("IndustryPanel.failed-remedy"), String.valueOf(e.getMessage()), false);
+                });
+            }
+        });
+    }
+
+    private static void show(Node node, boolean visible) {
+        node.setVisible(visible);
+        node.setManaged(visible);
     }
 
     private static ListCell<IdentifierKind> kindCell() {
@@ -123,78 +239,142 @@ public class IndustryPanel extends VBox {
     void refreshDocument() {
         String text = ui.editorHost().getActiveText().orElse(null);
         String description = text == null ? null : describer.apply(text);
-        documentSummary.setText(text == null ? "No document is open."
-                : description == null ? "The active document is not one this extension checks." : description);
-        checkButton.setDisable(description == null);
-        showCheckResult(null);
-        showAllLink.setVisible(false);
-        showAllLink.setManaged(false);
+        recognised = description != null;
+        documentSummary.setText(text == null ? I18n.t("IndustryPanel.no-document")
+                : description == null ? I18n.t("IndustryPanel.not-recognised") : description);
+        checkButton.setDisable(!recognised);
+        reportButton.setDisable(!recognised);
+        refreshCounts();
+    }
+
+    /** The counts of the active document's last check (the PROBLEMS panel's content). */
+    void refreshCounts() {
+        EditorHost host = ui.editorHost();
+        EditorHost.ValidationStatus state = host.validationStatusProperty().get();
+        if (!recognised || state == null || state.state() == EditorHost.ValidationState.NOT_VALIDATED) {
+            checkCounts.setText(recognised ? I18n.t("IndustryPanel.not-checked") : "");
+            show(checkCounts, recognised);
+            show(showProblemsLink, false);
+            return;
+        }
+        int errors = 0;
+        int warnings = 0;
+        for (ValidationProblem p : host.getActiveProblems()) {
+            if ("warning".equalsIgnoreCase(p.severity())) {
+                warnings++;
+            } else if (!"info".equalsIgnoreCase(p.severity())) {
+                errors++;
+            }
+        }
+        if (errors + warnings == 0 && state.state() == EditorHost.ValidationState.INVALID) {
+            errors = state.problemCount();
+        }
+        checkCounts.setText(counts(errors, warnings));
+        show(checkCounts, true);
+        show(showProblemsLink, errors + warnings > 0);
+    }
+
+    /** @return {@code ✗ 2 errors · ⚠ 1 warning}, or the all-clear text */
+    static String counts(int errors, int warnings) {
+        if (errors == 0 && warnings == 0) {
+            return I18n.t("IndustryPanel.no-problems");
+        }
+        List<String> parts = new ArrayList<>();
+        if (errors > 0) {
+            parts.add("✗ " + I18n.t(errors == 1 ? "IndustryPanel.one-error" : "IndustryPanel.errors", errors));
+        }
+        if (warnings > 0) {
+            parts.add("⚠ " + I18n.t(warnings == 1 ? "IndustryPanel.one-warning" : "IndustryPanel.warnings", warnings));
+        }
+        return String.join(" · ", parts);
     }
 
     @FXML
     public void onCheck() {
-        String text = ui.editorHost().getActiveText().orElse(null);
+        EditorHost host = ui.editorHost();
+        String text = host.getActiveText().orElse(null);
         if (text == null) {
             return;
         }
-        var document = ui.editorHost().getActiveDocument();
+        if (validator != null && host.hasValidateHandler()) {
+            host.runValidation(); // schema + every plugin validator, problems to the PROBLEMS panel
+            return;
+        }
+        var document = host.getActiveDocument();
         String name = document.map(d -> d.getDisplayName()).orElse(null);
         java.nio.file.Path path = document.map(d -> d.getPath()).orElse(null);
+        EditorHost.ValidationTarget target = host.validationTarget();
         checkButton.setDisable(true);
-        showCheckResult("Checking…");
-        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-            String result;
-            List<DocumentValidator.Problem> problems = List.of();
+        showProgress(true);
+        FxtGui.executorService.submit(() -> {
+            List<DocumentValidator.Problem> problems = null;
+            String failure = null;
             try {
                 problems = checker.check(text, path, name);
-                result = summary(problems);
             } catch (Exception e) {
-                result = "The check could not run: " + e.getMessage();
+                failure = e.getMessage();
             }
-            String shown = result;
             List<DocumentValidator.Problem> found = problems;
+            String error = failure;
             Platform.runLater(() -> {
-                checkButton.setDisable(false);
-                lastProblems = found;
-                showCheckResult(shown);
-                showAllLink.setVisible(found.size() > 10);
-                showAllLink.setManaged(found.size() > 10);
+                checkButton.setDisable(!recognised);
+                showProgress(false);
+                if (found == null) {
+                    PanelStatus.failure(status, header.getTitle(), I18n.t("IndustryPanel.check-failed", error),
+                            I18n.t("IndustryPanel.failed-remedy"), error, false);
+                    return;
+                }
+                status.setText("");
+                status.setGraphic(null);
+                publish(host, target, found);
             });
         });
     }
 
-    /** @return the problems as text: a count and the first ten */
-    static String summary(List<DocumentValidator.Problem> problems) {
-        if (problems.isEmpty()) {
-            return "✓ No problems found.";
+    /** Puts a check's problems into the PROBLEMS panel of the document the check read. */
+    private void publish(EditorHost host, EditorHost.ValidationTarget target, List<DocumentValidator.Problem> found) {
+        String source = header.getTitle();
+        List<ValidationProblem> problems = found.stream()
+                .map(p -> new ValidationProblem(source, p.severity(), p.line(), p.message())).toList();
+        host.publishValidation(target, problems.isEmpty() ? EditorHost.ValidationState.VALID : EditorHost.ValidationState.INVALID,
+                problems.size(), problems.isEmpty() ? I18n.t("IndustryPanel.no-problems") : counts(problems.size(), 0),
+                problems);
+        refreshCounts();
+        if (!problems.isEmpty()) {
+            host.revealProblems();
         }
-        StringBuilder text = new StringBuilder(problems.size() == 1 ? "1 problem:" : problems.size() + " problems:");
-        problems.stream().limit(10).forEach(p -> text.append("\n• ")
-                .append(p.line() > 0 ? "Line " + p.line() + ": " : "").append(p.message()));
-        if (problems.size() > 10) {
-            text.append("\n… and ").append(problems.size() - 10).append(" more.");
-        }
-        return text.toString();
     }
 
-    /** Opens all problems of the last check as a text document. */
+    /** Opens the PROBLEMS panel below the editor. */
     @FXML
-    public void onShowAll() {
-        StringBuilder text = new StringBuilder(header.getTitle()).append(" — ").append(lastProblems.size())
-                .append(" problems\n\n");
-        for (DocumentValidator.Problem p : lastProblems) {
-            text.append(p.severity()).append('\t').append(p.line() > 0 ? "line " + p.line() : "").append('\t')
-                    .append(p.message()).append('\n');
-        }
-        ui.editorHost().openGeneratedDocument(text.toString(),
-                org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.OTHER, "problems.txt");
+    public void onShowProblems() {
+        ui.editorHost().revealProblems();
     }
 
-    private void showCheckResult(String text) {
-        boolean show = text != null;
-        checkResult.setText(show ? text : "");
-        checkResult.setVisible(show);
-        checkResult.setManaged(show);
+    /** Renders the plugin's check report of the active document and opens it in the preview. */
+    @FXML
+    public void onReport() {
+        EditorHost host = ui.editorHost();
+        String text = host.getActiveText().orElse(null);
+        if (text == null || reportBuilder == null) {
+            return;
+        }
+        String name = host.getActiveDocument()
+                .map(doc -> doc.getPath() != null ? doc.getPath().getFileName().toString() : doc.getDisplayName())
+                .orElse("document.xml");
+        background(I18n.t("IndustryPanel.reportButton.text"), () -> reportBuilder.html(text, name), html -> {
+            if (html == null) {
+                PanelStatus.precondition(status, I18n.t("IndustryPanel.not-recognised"));
+                return;
+            }
+            host.openGeneratedDocument(html, EditorFileType.HTML, name.replaceFirst("(?i)\\.xml$", "") + reportSuffix);
+            host.setActiveViewMode(ViewMode.PREVIEW);
+        });
+    }
+
+    private void showProgress(boolean on) {
+        progress.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
+        show(progress, on);
     }
 
     private void checkIdentifier() {
@@ -213,8 +393,12 @@ public class IndustryPanel extends VBox {
         return documentSummary.getText();
     }
 
-    String checkResultForTesting() {
-        return checkResult.isVisible() ? checkResult.getText() : null;
+    String checkCountsForTesting() {
+        return checkCounts.isVisible() ? checkCounts.getText() : null;
+    }
+
+    boolean reportAvailableForTesting() {
+        return reportButton.isVisible() && !reportButton.isDisabled();
     }
 
     void checkIdentifierForTesting(IdentifierKind kind, String value) {
