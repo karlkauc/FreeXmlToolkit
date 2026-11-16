@@ -91,6 +91,41 @@ class FxtProjectTest {
     }
 
     @Test
+    @DisplayName("an XSLT scenario names its external XSLT processor; an unknown name is an error, not a fallback")
+    void scenarioWithExternalXsltProcessor() throws Exception {
+        org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
+        var store = org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorStore.settings();
+        var fake = org.fxt.freexmltoolkit.service.xsltproc.ExternalXsltRunnerTest.fake("ok", 60);
+        store.save(List.of(fake));
+        try {
+            Files.writeString(dir.resolve("v.xsl"), """
+                    <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                      <xsl:param name="label" select="'n'"/>
+                      <xsl:output method="text"/>
+                      <xsl:template match="/"><xsl:value-of select="$label"/>=<xsl:value-of select="system-property('xsl:vendor')"/></xsl:template>
+                    </xsl:stylesheet>
+                    """);
+            Files.writeString(dir.resolve("data.xml"), "<r/>");
+            FxtProject project = FxtProject.create(dir.resolve("p.fxtproj"), "P");
+            FxtProject.Scenario scenario = new FxtProject.Scenario("ext", "v.xsl", "data.xml", Map.of("label", "by"), null, null);
+            scenario.xsltProcessor = fake.name();
+            var result = ScenarioRunner.run(project, scenario);
+            assertTrue(result.ok(), result.error());
+            assertTrue(result.text().startsWith("by=") && !result.text().contains("Saxonica"), result.text());
+            assertEquals(fake.name(), scenario.copy().xsltProcessor);
+
+            scenario.xsltProcessor = "builtin";
+            assertTrue(ScenarioRunner.run(project, scenario).text().contains("Saxonica"));
+            scenario.xsltProcessor = "Gone";
+            var gone = ScenarioRunner.run(project, scenario);
+            assertFalse(gone.ok());
+            assertTrue(gone.error().contains("No XSLT processor named \"Gone\""), gone.error());
+        } finally {
+            store.save(List.of());
+        }
+    }
+
+    @Test
     @DisplayName("scenarios run XSLT and XQuery and write their output")
     void scenarios() throws Exception {
         Files.createDirectories(dir.resolve("xsl"));

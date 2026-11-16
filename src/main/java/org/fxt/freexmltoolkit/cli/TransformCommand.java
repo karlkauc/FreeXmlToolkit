@@ -45,7 +45,11 @@ import picocli.CommandLine.Spec;
                 "  # Develop for an older processor: XSLT 1.0 runs on the JDK's XSLT 1.0 processor,",
                 "  # XSLT 2.0 / XQuery 1.0 fail on any newer construct before running",
                 "  fxt-cli transform order.xml -s invoice.xsl --lang-version 1.0",
-                "  fxt-cli transform catalog.xml -s report.xq --lang-version 1.0"
+                "  fxt-cli transform catalog.xml -s report.xq --lang-version 1.0",
+                "",
+                "  # XSLT with an external processor configured in Settings > XSLT Processors",
+                "  fxt-cli transform --list-processors",
+                "  fxt-cli transform order.xml -s invoice.xsl --processor \"Saxon PE/EE (Java)\""
         },
         description = {
                 "Run an XSLT stylesheet, an XQuery or an XProc pipeline.",
@@ -64,7 +68,7 @@ final class TransformCommand implements Callable<Integer> {
     @ParentCommand
     FxtCli parent;
 
-    @Option(names = {"-s", "--stylesheet"}, required = true, paramLabel = "FILE",
+    @Option(names = {"-s", "--stylesheet"}, paramLabel = "FILE",
             description = "XSLT stylesheet, XQuery or XProc pipeline.")
     Path stylesheet;
 
@@ -101,6 +105,14 @@ final class TransformCommand implements Callable<Integer> {
                     + "text; '-' for standard error). One input (an XQuery may have none).")
     String profileReport;
 
+    @Option(names = "--processor", paramLabel = "NAME",
+            description = "XSLT: \"builtin\" (the bundled Saxon HE) or the name or id of an external XSLT processor "
+                    + "configured in the settings. Default: the default XSLT processor of the settings.")
+    String processor;
+
+    @Option(names = "--list-processors", description = "List the configured XSLT processors and exit.")
+    boolean listProcessors;
+
     @Option(names = "--warmup", paramLabel = "N", defaultValue = "1",
             description = "With --profile: runs before the measured one, so the JIT has warmed up (default: ${DEFAULT-VALUE}).")
     int warmupRuns;
@@ -108,6 +120,13 @@ final class TransformCommand implements Callable<Integer> {
     @Override
     public Integer call() throws Exception {
         CommandLine commandLine = spec.commandLine();
+        if (listProcessors) {
+            CliSupport.initServices();
+            return listProcessors(commandLine.getOut());
+        }
+        if (stylesheet == null) {
+            throw new CommandLine.ParameterException(commandLine, "Missing required option: '--stylesheet=FILE'");
+        }
         CliSupport.requireFile(commandLine, stylesheet, "Stylesheet");
         for (Path input : inputs) {
             CliSupport.requireFile(commandLine, input, "Input");
@@ -146,11 +165,30 @@ final class TransformCommand implements Callable<Integer> {
                         "--profile is not available for XSLT 1.0 (it runs on the JDK's XSLT 1.0 processor)");
             }
         }
+        if (processor != null && lang != Language.XSLT) {
+            throw new CommandLine.ParameterException(commandLine, "--processor is for XSLT stylesheets only");
+        }
         PrintWriter err = commandLine.getErr(); // NOPMD - picocli's stream, owned by CommandLine
         if (lang == Language.XPROC && (!parameters.isEmpty() || method != null)) {
             err.println("fxt-cli: --param and --method are ignored for XProc pipelines");
         }
         CliSupport.initServices();
+        if (lang == Language.XSLT) {
+            try {
+                var store = org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorStore.settings();
+                xsltProcessor = store.resolve(processor != null ? processor : store.defaultId()).orElse(null);
+            } catch (IllegalArgumentException e) {
+                throw new CommandLine.ParameterException(commandLine, e.getMessage());
+            }
+            if (xsltProcessor != null && profileReport != null) {
+                throw new CommandLine.ParameterException(commandLine, "--profile needs the bundled Saxon HE "
+                        + "(--processor builtin); " + xsltProcessor.name() + " is an external processor");
+            }
+            if (xsltProcessor != null && langVersion != null) {
+                throw new CommandLine.ParameterException(commandLine, "--lang-version applies to the bundled Saxon HE "
+                        + "(--processor builtin); " + xsltProcessor.name() + " has its own XSLT version");
+            }
+        }
 
         String code = CliSupport.read(stylesheet);
         List<Path> runs = new ArrayList<>(inputs);
@@ -183,6 +221,22 @@ final class TransformCommand implements Callable<Integer> {
         return exitCode;
     }
 
+    private int listProcessors(PrintWriter out) {
+        var store = org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorStore.settings();
+        String defaultId = store.defaultId();
+        out.println((org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorStore.BUILTIN_ID.equals(defaultId) ? "* " : "  ")
+                + org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorStore.BUILTIN_ID + "\tSaxon HE (bundled)");
+        for (var p : store.list()) {
+            String program = p.resolveExecutable().map(Path::toString).orElse("not found");
+            out.println((p.id().equals(defaultId) ? "* " : "  ") + p.name() + "\t" + program + "\t" + p.id());
+        }
+        if (!store.externalAllowed()) {
+            out.println("  (external processors are disabled by the administrator)");
+        }
+        out.flush();
+        return ExitCodes.OK;
+    }
+
     private void writeProfile(org.fxt.freexmltoolkit.service.XsltProfile profile) throws java.io.IOException {
         boolean json = profileReport.toLowerCase(java.util.Locale.ROOT).endsWith(".json");
         String report = json ? profile.toJson() : profile.toText(30);
@@ -201,6 +255,9 @@ final class TransformCommand implements Callable<Integer> {
     private record Outcome(String text, OutputFormat format, String error, List<String> messages) {
     }
 
+    /** The external XSLT processor of the runs ({@code null} = Saxon HE). */
+    private org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorConfig xsltProcessor;
+
     /** The chosen versions ({@code null} = the newest). */
     private org.fxt.freexmltoolkit.service.standards.XsltVersion xsltVersion;
     private org.fxt.freexmltoolkit.service.standards.XQueryVersion xqueryVersion;
@@ -213,8 +270,8 @@ final class TransformCommand implements Callable<Integer> {
         switch (lang) {
             case XSLT -> {
                 OutputFormat format = method != null ? method : TransformRunner.detectXsltOutputFormat(code);
-                XsltTransformationResult incompatible = TransformRunner.xsltIncompatibility(code, codeUri,
-                        xsltVersion);
+                XsltTransformationResult incompatible = xsltProcessor != null ? null
+                        : TransformRunner.xsltIncompatibility(code, codeUri, xsltVersion);
                 if (incompatible != null) {
                     return outcome(incompatible, format);
                 }
@@ -226,7 +283,7 @@ final class TransformCommand implements Callable<Integer> {
                     return outcome(profiled.result(), format);
                 }
                 XsltTransformationResult result = TransformRunner.xsltTransformResult(
-                        xml, inputUri, code, codeUri, params, format, xsltVersion);
+                        xml, inputUri, code, codeUri, params, format, xsltVersion, xsltProcessor);
                 return outcome(result, format);
             }
             case XQUERY -> {

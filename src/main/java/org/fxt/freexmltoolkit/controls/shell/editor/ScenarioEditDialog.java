@@ -48,6 +48,8 @@ public class ScenarioEditDialog extends Dialog<FxtProject.Scenario> {
     @FXML private Label error;
     /** Optional language version of the scenario's stylesheet / query (expert mode only). */
     private javafx.scene.control.ComboBox<String> languageVersionChoice;
+    /** The XSLT processor (empty = the default of the settings, {@code builtin} = Saxon HE, else a name). */
+    private final javafx.scene.control.ComboBox<String> xsltProcessorChoice = new javafx.scene.control.ComboBox<>();
 
     private final FxtProject project;
     private final Set<String> otherNames;
@@ -72,6 +74,7 @@ public class ScenarioEditDialog extends Dialog<FxtProject.Scenario> {
         if (content instanceof javafx.scene.layout.GridPane grid) {
             org.fxt.freexmltoolkit.controls.shell.editor.standards.OptionalVersionRows.addRow(grid,
                     I18n.t("ScenarioEditDialog.languageVersion"), languageVersionChoice, "scenario-language-version");
+            addXsltProcessorRow(grid, scenario.xsltProcessor);
         }
         formatChoice.getItems().setAll(FORMATS);
         formatChoice.setConverter(new javafx.util.StringConverter<>() {
@@ -131,7 +134,52 @@ public class ScenarioEditDialog extends Dialog<FxtProject.Scenario> {
         scenario.compare = compare.isDefault() ? null : compare;
         scenario.languageVersion = org.fxt.freexmltoolkit.controls.shell.editor.standards.OptionalVersionRows.value(
                 languageVersionChoice);
+        String xsltProcessor = xsltProcessorChoice.getValue();
+        scenario.xsltProcessor = scenario.stylesheet.toLowerCase(Locale.ROOT).matches(".*\\.(xsl|xslt)$")
+                ? blankToNull(xsltProcessor) : null;
         return scenario;
+    }
+
+    /** The row "XSLT processor": empty (default of the settings), builtin (Saxon HE) or a configured processor's name. */
+    private void addXsltProcessorRow(javafx.scene.layout.GridPane grid, String current) {
+        List<String> items = new java.util.ArrayList<>();
+        items.add("");
+        items.add(org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorStore.BUILTIN_ID);
+        try {
+            org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorStore.settings().list().forEach(p -> items.add(p.name()));
+        } catch (RuntimeException e) {
+            // no settings (tests): Saxon HE only
+        }
+        String value = current == null ? "" : current.strip();
+        if (!items.contains(value)) {
+            items.add(value); // a name the settings do not know (yet): kept, the run reports it
+        }
+        xsltProcessorChoice.getItems().setAll(items);
+        xsltProcessorChoice.setValue(value);
+        xsltProcessorChoice.setMaxWidth(Double.MAX_VALUE);
+        xsltProcessorChoice.setId("scenario-xslt-processor");
+        xsltProcessorChoice.setConverter(new javafx.util.StringConverter<>() {
+            @Override
+            public String toString(String name) {
+                return name == null || name.isEmpty() ? I18n.t("ScenarioEditDialog.xsltProcessor.default")
+                        : org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorStore.BUILTIN_ID.equals(name)
+                        ? I18n.t("XsltProcessorsSettings.builtin") : name;
+            }
+
+            @Override
+            public String fromString(String text) {
+                return text;
+            }
+        });
+        xsltProcessorChoice.setTooltip(new javafx.scene.control.Tooltip(I18n.t("ScenarioEditDialog.xsltProcessor.tooltip")));
+        int row = grid.getChildren().stream().mapToInt(n -> {
+            Integer r = javafx.scene.layout.GridPane.getRowIndex(n);
+            return r == null ? 0 : r;
+        }).max().orElse(-1) + 1;
+        javafx.scene.control.Label label = new javafx.scene.control.Label(I18n.t("ScenarioEditDialog.xsltProcessor"));
+        label.setLabelFor(xsltProcessorChoice);
+        grid.add(label, 0, row);
+        grid.add(xsltProcessorChoice, 1, row);
     }
 
     /** @return the processors a PDF scenario can name: the bundled FOP and the configured ones */

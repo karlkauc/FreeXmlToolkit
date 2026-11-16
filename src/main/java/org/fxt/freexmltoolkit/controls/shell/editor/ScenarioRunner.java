@@ -146,7 +146,8 @@ public final class ScenarioRunner {
                     XsltTransformationResult result = TransformRunner.xsltTransformResult(xml,
                             input.toUri().toString(), codeText, code.toUri().toString(), parameters, format,
                             org.fxt.freexmltoolkit.service.standards.StandardVersion.parseStrict(
-                                    org.fxt.freexmltoolkit.service.standards.XsltVersion.class, scenario.languageVersion));
+                                    org.fxt.freexmltoolkit.service.standards.XsltVersion.class, scenario.languageVersion),
+                            xsltProcessorOf(scenario));
                     text = result.isSuccess() ? result.getOutputContent() : null;
                     error = result.isSuccess() ? null : result.getErrorMessage();
                 }
@@ -192,6 +193,18 @@ public final class ScenarioRunner {
         }
     }
 
+    /**
+     * @return the scenario's external XSLT processor, or {@code null} for Saxon HE: its {@code xsltProcessor}, else
+     *         the default of the settings
+     * @throws IllegalArgumentException when the named processor is not configured or not allowed
+     */
+    static org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorConfig xsltProcessorOf(FxtProject.Scenario scenario) {
+        var store = org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorStore.settings();
+        String name = scenario.xsltProcessor != null && !scenario.xsltProcessor.isBlank() ? scenario.xsltProcessor
+                : store.defaultId();
+        return store.resolve(name).orElse(null);
+    }
+
     /** XSLT to XSL-FO with the scenario's parameters, then FOP renders the PDF to the output file. */
     private static Result runPdf(FxtProject project, FxtProject.Scenario scenario) {
         if (languageOf(scenario.stylesheet) != Language.XSLT) {
@@ -218,7 +231,8 @@ public final class ScenarioRunner {
                     Files.readString(input, StandardCharsets.UTF_8), input.toUri().toString(),
                     Files.readString(code, StandardCharsets.UTF_8), code.toUri().toString(), parameters, OutputFormat.XML,
                     org.fxt.freexmltoolkit.service.standards.StandardVersion.parseStrict(
-                            org.fxt.freexmltoolkit.service.standards.XsltVersion.class, scenario.languageVersion));
+                            org.fxt.freexmltoolkit.service.standards.XsltVersion.class, scenario.languageVersion),
+                    xsltProcessorOf(scenario));
             if (!fo.isSuccess()) {
                 return new Result(null, null, null, fo.getErrorMessage());
             }

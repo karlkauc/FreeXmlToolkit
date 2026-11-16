@@ -125,7 +125,9 @@ public final class FxtProject {
      * {@code ${name}} / {@code ${dir}} / {@code ${file}} as in the output), {@code compare} how
      * (optional, see {@link CompareSettings}) and, for PDF, {@code processor} the XSL-FO processor
      * (optional: the default of the settings; {@code builtin} or the name of an external processor
-     * configured in the settings — a project file names a processor, it never carries a command line).
+     * configured in the settings — a project file names a processor, it never carries a command line);
+     * {@code xsltProcessor} the XSLT processor of an XSLT or PDF scenario (optional: the default of the settings;
+     * {@code builtin} = Saxon HE or the name of an external XSLT processor from the settings).
      */
     public static final class Scenario {
         public String name;
@@ -137,6 +139,8 @@ public final class FxtProject {
         public String expected;
         public CompareSettings compare;
         public String processor;
+        /** Optional XSLT processor: {@code builtin} or the name of an external one (Settings → XSLT Processors). */
+        public String xsltProcessor;
         /** Optional language version of the stylesheet / query (XSLT 1.0/2.0/3.0, XQuery 1.0/3.0/3.1). */
         public String languageVersion;
 
@@ -159,6 +163,7 @@ public final class FxtProject {
             copy.expected = expected;
             copy.compare = compare == null ? null : compare.copy();
             copy.processor = processor;
+            copy.xsltProcessor = xsltProcessor;
             copy.languageVersion = languageVersion;
             return copy;
         }

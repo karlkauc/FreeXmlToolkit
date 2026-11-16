@@ -779,6 +779,28 @@ class FxtCliTest {
         }
 
         @Test
+        @DisplayName("--processor runs an external XSLT processor from the settings; --list-processors lists them")
+        void externalProcessor() throws Exception {
+            var store = org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorStore.settings();
+            var fake = org.fxt.freexmltoolkit.service.xsltproc.ExternalXsltRunnerTest.fake("ok", 60);
+            store.save(java.util.List.of(fake));
+            try {
+                Path xsl = write("v1.xsl", XSLT.replace("version=\"3.0\"", "version=\"1.0\"").replace("sum(//n)", "count(//n)"));
+                assertEquals(ExitCodes.OK, run("transform", "-s", xsl, "-p", "label=n", "--processor", fake.name(), valid), err);
+                assertEquals("n=1", out.strip());
+                assertTrue(err.contains("Message: started"), "the program's messages: " + err);
+                assertEquals(ExitCodes.OK, run("transform", "--list-processors"), err);
+                assertTrue(out.contains("builtin") && out.contains(fake.name()), out);
+                assertEquals(ExitCodes.USAGE, run("transform", "-s", xsl, "--processor", "No Such Processor", valid));
+                assertTrue(err.contains("No XSLT processor named"), err);
+                assertEquals(ExitCodes.USAGE, run("transform", "-s", xsl, "--processor", fake.name(), "--profile", "-", valid));
+                assertEquals(ExitCodes.USAGE, run("transform", "-s", xsl, "--processor", fake.name(), "--lang-version", "1.0", valid));
+            } finally {
+                store.save(java.util.List.of());
+            }
+        }
+
+        @Test
         @DisplayName("several inputs need --output-dir; results are named after the inputs")
         void outputDir() throws Exception {
             Path xsl = write("t.xsl", XSLT);
