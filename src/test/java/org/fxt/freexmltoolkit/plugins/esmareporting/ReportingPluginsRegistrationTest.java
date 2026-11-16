@@ -72,5 +72,9 @@ class ReportingPluginsRegistrationTest {
         var problems = manager.validate(emir.replaceFirst("\\s*<RptgTmStmp>[^<]*</RptgTmStmp>", ""), "emir.xml");
         assertTrue(problems.stream().anyMatch(p -> p.source().equals("ESMA Reporting") && p.message().startsWith("EMIR-1.1 ")),
                 problems.toString());
+
+        // the HTML check report of the same finding
+        String html = EsmaReportingPlugin.report(emir.replaceFirst("\\s*<RptgTmStmp>[^<]*</RptgTmStmp>", ""), "emir.xml");
+        assertTrue(html.contains("EMIR report") && html.contains(">EMIR-1.1<"), html);
     }
 }

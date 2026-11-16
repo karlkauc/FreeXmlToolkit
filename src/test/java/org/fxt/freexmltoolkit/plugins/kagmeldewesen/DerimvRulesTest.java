@@ -107,6 +107,20 @@ class DerimvRulesTest {
     }
 
     @Test
+    void checkReportListsFindingsAndTheFundTable() throws Exception {
+        String xml = example().replace("<MaxRisikoangabe>6.85</MaxRisikoangabe>", "<MaxRisikoangabe>9.50</MaxRisikoangabe>")
+                .replace("<ISIN>AT0000A1B2E0</ISIN>", "<ISIN>AT0000A1B2E1</ISIN>");
+        String html = KagMeldewesenPlugin.report(xml, "derimv.xml");
+        assertTrue(html.contains("Derivative risk report (4. DeRiMV)"), html);
+        assertTrue(html.contains(">DeRiMV-4<") && html.contains("Field 4 · ISIN"), html);
+        assertTrue(html.contains("<h2>Funds and limits</h2>"), html);
+        // the absolute VaR fund uses 9.5 of its own 10 %: 95 % → marked from 90 %, listed first
+        assertTrue(html.contains("<span class=\"badge warning\">95 %</span>"), html);
+        assertTrue(html.indexOf("AT0000A1B2E1") < html.indexOf("AT0000A1B2C4"), html);
+        assertEquals(null, KagMeldewesenPlugin.report("<x/>", "x.xml"));
+    }
+
+    @Test
     void fieldLabels() {
         FieldCatalog catalog = KagMeldewesenPlugin.DERIMV_FIELDS.get();
         assertEquals("Field 6 · Risikoangabe", catalog.byPath("Derivatemeldung/InvestmentFonds/Risikoangabe").label());

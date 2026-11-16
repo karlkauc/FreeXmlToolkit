@@ -44,6 +44,7 @@ import org.fxt.freexmltoolkit.plugins.IndustryPanel;
 import org.fxt.freexmltoolkit.plugins.regreport.BundledSchemas;
 import org.fxt.freexmltoolkit.plugins.regreport.CatalogDescriber;
 import org.fxt.freexmltoolkit.plugins.regreport.FieldCatalog;
+import org.fxt.freexmltoolkit.plugins.regreport.RegReportHtml;
 import org.fxt.freexmltoolkit.plugins.regreport.RegRuleSet;
 import org.fxt.freexmltoolkit.plugins.regreport.RegValidator;
 import org.fxt.freexmltoolkit.util.ProjectLinks;
@@ -173,7 +174,8 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
                                 new IndustryPanel.Action("kag-new-derimv", "New Derivative Risk Report (Example)",
                                         "bi-file-earmark-plus", ActionColor.CREATE, ui2 -> openExample(ui2, "derimv-example.xml"))),
                         KagMeldewesenPlugin::describe, validator,
-                        List.of(IdentifierKind.LEI, IdentifierKind.ISIN, IdentifierKind.BIC)),
+                        List.of(IdentifierKind.LEI, IdentifierKind.ISIN, IdentifierKind.BIC))
+                        .withReport(KagMeldewesenPlugin::report, "-pruefbericht.html"),
                 null));
     }
 
@@ -269,6 +271,26 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
         Matcher m = FIRST_RECORD.matcher(content.length() > 20_000 ? content.substring(0, 20_000) : content);
         String period = m.find() ? m.group(1) + " · " + m.group(2) + "/" + m.group(3) + " · " : "";
         return "AIFMD " + kind + " file (ESMA schema v1.2)\n" + period + records + (records == 1 ? " record" : " records");
+    }
+
+    /** @return the HTML check report of a KAG report, or {@code null} for other documents */
+    static String report(String content, String name) throws Exception {
+        String kind = kind(content);
+        RegValidator.Root root = content == null ? null : RegValidator.rootOf(content);
+        RegRuleSet rules = root == null ? null : rulesFor(root, content);
+        if (kind == null || rules == null) {
+            return null;
+        }
+        List<RegRuleSet.Finding> findings = rules.run(content, name);
+        String summary = describe(content).replace('\n', ' ');
+        return switch (kind) {
+            case "DeRiMV" -> RegReportHtml.render("Derivative risk report (4. DeRiMV)", name, summary, findings,
+                    List.of(DERIMV_FIELDS.get()),
+                    List.of(DerimvReport.fundTable(content, DerimvRules.RELATIVE_VAR_LIMIT, new java.math.BigDecimal(90))));
+            case "MMF" -> RegReportHtml.render("Money market fund report", name, summary, findings, List.of(MMF_FIELDS.get()), List.of());
+            case "AIF" -> RegReportHtml.render("AIFMD AIF file", name, summary, findings, List.of(AIF_FIELDS.get()), List.of());
+            default -> RegReportHtml.render("AIFMD AIFM file", name, summary, findings, List.of(AIFM_FIELDS.get()), List.of());
+        };
     }
 
     static void openExample(PluginUi ui, String name) {

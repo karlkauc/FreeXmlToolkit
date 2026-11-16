@@ -179,7 +179,8 @@ public final class EsmaReportingPlugin implements FxtPlugin {
                                         "bi-file-earmark-plus", ActionColor.CREATE, ui2 -> openExample(ui2, "sftr-eror-example.xml")),
                                 new IndustryPanel.Action("esma-new-mifir", "New MiFIR Transaction (Example)",
                                         "bi-file-earmark-plus", ActionColor.CREATE, ui2 -> openExample(ui2, "mifir-newt-example.xml"))),
-                        EsmaReportingPlugin::describe, validator, List.of(IdentifierKind.LEI, IdentifierKind.ISIN)),
+                        EsmaReportingPlugin::describe, validator, List.of(IdentifierKind.LEI, IdentifierKind.ISIN))
+                        .withReport(EsmaReportingPlugin::report, "-check-report.html"),
                 null));
     }
 
@@ -230,6 +231,24 @@ public final class EsmaReportingPlugin implements FxtPlugin {
         String format = label.startsWith("SFTR") ? "SFTR securities financing transaction report (auth.052.001.02)"
                 : "EMIR Refit trade report (auth.030.001.03)";
         return format + "\n" + label + (parts.isEmpty() ? "" : "\n" + String.join(", ", parts));
+    }
+
+    /** @return the HTML check report of an ESMA report, or {@code null} for other documents */
+    static String report(String content, String name) throws Exception {
+        RegValidator.Root root = content == null ? null : RegValidator.rootOf(content);
+        String kind = kind(root, content);
+        RegRuleSet rules = kind == null ? null : rulesFor(root, content);
+        if (rules == null) {
+            return null;
+        }
+        FieldCatalog catalog = switch (kind) {
+            case "EMIR" -> EMIR_FIELDS.get();
+            case "SFTR" -> SFTR_FIELDS.get();
+            default -> MIFIR_FIELDS.get();
+        };
+        String summary = describe(content);
+        return org.fxt.freexmltoolkit.plugins.regreport.RegReportHtml.render(kind + " report", name,
+                summary == null ? null : summary.replace('\n', ' '), rules.run(content, name), List.of(catalog), List.of());
     }
 
     static void openExample(PluginUi ui, String name) {
