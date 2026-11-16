@@ -3554,6 +3554,9 @@
 running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
 <h2 id="unreleased">Unreleased<a class="headerlink" href="#unreleased" title="Permanent link">¶</a></h2>
 <ul>
+<li><strong>Wrong LEI check digits in the online check.</strong> In XML, <strong>Check Identifiers Online</strong> now also reports a value with
+  wrong check digits in an LEI element (<code>&lt;LEI&gt;</code>, <code>IssuerLEI</code>, …) as an error. Before, such a value was not recognised
+  as an LEI and silently skipped. See <a href="../identifier-lookup/#check-every-identifier-of-a-document">Online Identifier Lookup</a>.</li>
 <li><strong>Only real FundsXML examples.</strong> The FundsXML download keeps FundsXML documents, XSLT stylesheets, Schematron
   files and XPath/XQuery snippets; Maven <code>pom.xml</code> files and other code of the examples repository no longer show up
   as examples, and an existing cache is cleaned at startup. See <a href="../fundsxml-extensions/">FundsXML Extensions</a>.</li>
