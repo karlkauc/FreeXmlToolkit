@@ -2850,10 +2850,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#unreleased" class="md-nav__link">
+  <a href="#330-2026-11-16" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Unreleased
+        3.3.0 (2026-11-16)
       
     </span>
   </a>
@@ -3342,10 +3342,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#unreleased" class="md-nav__link">
+  <a href="#330-2026-11-16" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Unreleased
+        3.3.0 (2026-11-16)
       
     </span>
   </a>
@@ -3530,7 +3530,7 @@
 <p>The highlights of each release. The complete notes and all downloads are on the
 <a href="https://github.com/karlkauc/FreeXmlToolkit/releases">GitHub Releases page</a>; the version you are
 running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
-<h2 id="unreleased">Unreleased<a class="headerlink" href="#unreleased" title="Permanent link">¶</a></h2>
+<h2 id="330-2026-11-16">3.3.0 (2026-11-16)<a class="headerlink" href="#330-2026-11-16" title="Permanent link">¶</a></h2>
 <p><strong>Online identifier lookup (GLEIF, ESMA FIRDS, OpenFIGI)</strong></p>
 <ul>
 <li><strong>Is the LEI registered, does the ISIN exist?</strong> The identifier checker of the industry, FundsXML and PK-Meldewesen
@@ -3649,6 +3649,30 @@ running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
 <li><strong>Newer taxonomies</strong> are imported from the FMA's ZIP and chosen in the side panel (no restart); an example report,
   the schema documentation, six Query Console snippets, new-file templates and favorites come with the extension.</li>
 </ul>
+<p><strong>Editing</strong></p>
+<ul>
+<li><strong>Spreadsheet Converter for everyone:</strong> XML becomes a <strong>table</strong> – one row per record (every <code>&lt;Order&gt;</code>), one
+  column per value – instead of only the XPath list. Edit it in Excel and convert it back; any other CSV file or
+  sheet becomes XML too, one element per row. The dialog explains each choice, has tooltips and a <strong>?</strong> to the
+  documentation, and previews the table or the XML before anything is written. With a CSV document open it
+  starts with Spreadsheet → XML; a malformed document's message has <strong>Go to Error</strong>. See
+  <a href="../xml-editor/#xmlexcelcsv-converter">XML Editor</a>.</li>
+<li><strong>Validation results stay with their document:</strong> after Validate / F8 or a run of the Validation panel,
+  switching to another tab and back shows the result and the problems again (until the text changes). A run that
+  finishes after you switched tabs goes to the document it checked.</li>
+<li><strong>Show problems:</strong> the Validation panel's "N problems — show below the editor" now also shows the first problem in
+  the editor, on every click.</li>
+<li><strong>Save confirmation:</strong> after a save the status bar shows <strong>Saved orders.xml (12:55:18)</strong> for a few seconds, also
+  when the file had no changes. See <a href="../unified-shell/#status-bar">Status Bar</a>.</li>
+</ul>
+<p><strong>Fixes</strong></p>
+<ul>
+<li><strong>First start after installing on Windows:</strong> the virus scanner checked every program file when the application
+  first opened it, so the first start took 13 seconds or more. The installer now opens every file once as its last
+  step, so this check happens during the installation.</li>
+<li><strong>Very large documents in the text editor:</strong> resting the mouse on a document over 2 MB no longer freezes the
+  application (the hover context is skipped there), and files from 256 KB are prepared off the UI thread when opened.</li>
+</ul>
 <p><strong>Opening files</strong></p>
 <ul>
 <li><strong>XML in files with other extensions:</strong> a file whose extension the app does not know (<code>web.config</code>, <code>.xaml</code>, <code>.gpx</code>,
@@ -3686,19 +3710,6 @@ running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
 <h2 id="320-2026-11-13">3.2.0 (2026-11-13)<a class="headerlink" href="#320-2026-11-13" title="Permanent link">¶</a></h2>
 <p><strong>Editing</strong></p>
 <ul>
-<li><strong>Spreadsheet Converter for everyone:</strong> XML becomes a <strong>table</strong> – one row per record (every <code>&lt;Order&gt;</code>), one
-  column per value – instead of only the XPath list. Edit it in Excel and convert it back; any other CSV file or
-  sheet becomes XML too, one element per row. The dialog explains each choice, has tooltips and a <strong>?</strong> to the
-  documentation, and previews the table or the XML before anything is written. With a CSV document open it
-  starts with Spreadsheet → XML; a malformed document's message has <strong>Go to Error</strong>. See
-  <a href="../xml-editor/#xmlexcelcsv-converter">XML Editor</a>.</li>
-<li><strong>Validation results stay with their document:</strong> after Validate / F8 or a run of the Validation panel,
-  switching to another tab and back shows the result and the problems again (until the text changes). A run that
-  finishes after you switched tabs goes to the document it checked.</li>
-<li><strong>Show problems:</strong> the Validation panel's "N problems — show below the editor" now also shows the first problem in
-  the editor, on every click.</li>
-<li><strong>Save confirmation:</strong> after a save the status bar shows <strong>Saved orders.xml (12:55:18)</strong> for a few seconds, also
-  when the file had no changes. See <a href="../unified-shell/#status-bar">Status Bar</a>.</li>
 <li><strong>"Edited with FreeXmlToolkit" comment:</strong> saved XML, XSD, XSLT, Schematron and XProc files carry a comment after
   the XML declaration with the version and the user from Settings → User Info, as other XML editors do. It is
   updated on every save, not repeated, and can be switched off (Settings → Editor → Mark saved XML files). See
@@ -3756,9 +3767,6 @@ running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
   longer treated as a failure.</li>
 <li><strong>Grid tables after sorting:</strong> sorting a table column no longer collapses the table, and the selected row stays
   selected.</li>
-<li><strong>First start after installing on Windows:</strong> the virus scanner checked every program file when the application
-  first opened it, so the first start took 13 seconds or more. The installer now opens every file once as its last
-  step, so this check happens during the installation.</li>
 </ul>
 <h2 id="310-2026-11-11">3.1.0 (2026-11-11)<a class="headerlink" href="#310-2026-11-11" title="Permanent link">¶</a></h2>
 <p><strong>AI</strong></p>
