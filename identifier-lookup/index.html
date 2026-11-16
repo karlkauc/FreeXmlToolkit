@@ -3407,6 +3407,10 @@ occurrence into the <strong>Problems</strong> panel, at its line:</p>
 <td>Warning</td>
 </tr>
 <tr>
+<td>Reported issuer LEI differs from the one in ESMA FIRDS</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>ISIN not in FIRDS while OpenFIGI is switched off</td>
 <td>Warning (<em>info</em> on the command line)</td>
 </tr>
@@ -3417,6 +3421,11 @@ occurrence into the <strong>Problems</strong> panel, at its line:</p>
 e.g. MMF <code>AsstId</code>, SFTR <code>Scty</code>) - is compared with the CFI code FIRDS has for that ISIN, position by position; an <code>X</code>
 on either side (a construct such as <code>DBXXXX</code>, or "not applicable") matches anything. A difference is a warning at the
 CFI field (rule <code>ISIN-CFI</code>). CFI fields next to several ISINs are not compared.</p>
+<p><strong>Issuer LEIs.</strong> Likewise, an LEI inside an issuer element (a name containing <code>Issr</code>, <code>Issuer</code> or <code>Emittent</code> up to three
+levels above it: MMF <code>IssrData/PtyId/LEI</code>, SFTR <code>Scty/Issr/Id</code>) is compared with the issuer LEI FIRDS has for the one ISIN
+in its nearest enclosing elements (up to five levels). Other LEIs next to an ISIN - counterparties, sponsors, the
+reporting fund - are not compared. A difference is a warning at the LEI (rule <code>ISIN-ISSUER</code>); the LEI itself is still
+checked at GLEIF.</p>
 <p>An ISIN only OpenFIGI knows is no finding. The findings have the source <strong>GLEIF</strong> or <strong>ISIN</strong> and replace the online
 findings of an earlier check; schema and rule findings stay, also when the document is validated again while its text
 is unchanged. When one service cannot be reached, the panel says so and the other part still counts.</p>
