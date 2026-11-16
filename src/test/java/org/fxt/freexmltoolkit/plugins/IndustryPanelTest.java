@@ -206,6 +206,24 @@ class IndustryPanelTest {
             assertEquals("GLEIF", problem.source());
             assertEquals(3, problem.line());
             assertTrue(withLei.status().getText().contains("2 LEIs"), withLei.status().getText());
+
+            // the reveal moves the caret, live validation runs again without GLEIF: the findings stay
+            WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+                host.publishValidation(host.validationTarget(), EditorHost.ValidationState.VALID, 0, "Valid", List.of());
+                return null;
+            });
+            assertEquals(List.of("GLEIF"), WaitForAsyncUtils.waitForAsyncFx(5000,
+                    () -> host.getActiveProblems().stream().map(org.fxt.freexmltoolkit.controls.shell.editor.ValidationProblem::source).toList()));
+            assertEquals(EditorHost.ValidationState.INVALID,
+                    WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.validationStatusProperty().get().state()));
+
+            // a new GLEIF check without findings replaces them
+            WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+                org.fxt.freexmltoolkit.controls.shell.editor.GleifDocumentCheck.publish(host, host.validationTarget(),
+                        new org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.Result(2, java.util.Map.of(), List.of(), null));
+                return null;
+            });
+            assertTrue(WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.getActiveProblems().isEmpty()));
         } finally {
             org.fxt.freexmltoolkit.service.finance.gleif.Gleif.setCache(null);
         }

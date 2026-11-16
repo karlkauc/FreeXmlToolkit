@@ -37,7 +37,7 @@ public final class GleifDocumentCheck {
         List<ValidationProblem> problems = merge(host.isActive(target) ? List.copyOf(host.getActiveProblems()) : List.of(), result);
         int warnings = (int) problems.stream().filter(p -> "warning".equalsIgnoreCase(p.severity())).count();
         int errors = problems.size() - warnings;
-        host.publishValidation(target, problems.isEmpty() ? EditorHost.ValidationState.VALID : EditorHost.ValidationState.INVALID,
+        host.publishGleifCheck(target, problems.isEmpty() ? EditorHost.ValidationState.VALID : EditorHost.ValidationState.INVALID,
                 problems.size(), summary(errors, warnings), problems);
         if (!result.findings().isEmpty()) {
             host.revealProblems();

@@ -634,6 +634,31 @@ public class EditorHost extends BorderPane {
      */
     public void publishValidation(ValidationTarget target, ValidationState state, int problemCount, String summary,
                                   java.util.List<ValidationProblem> problems) {
+        publishValidation(target, state, problemCount, summary, problems, true);
+    }
+
+    /**
+     * Publishes the result of a GLEIF check ("Check LEIs at GLEIF"): its problems already hold the current GLEIF
+     * findings, the earlier ones are not carried over.
+     */
+    public void publishGleifCheck(ValidationTarget target, ValidationState state, int problemCount, String summary,
+                                  java.util.List<ValidationProblem> problems) {
+        publishValidation(target, state, problemCount, summary, problems, false);
+    }
+
+    private void publishValidation(ValidationTarget target, ValidationState state, int problemCount, String summary,
+                                   java.util.List<ValidationProblem> problems, boolean carryGleif) {
+        if (carryGleif && target != null && problems != null) {
+            java.util.List<ValidationProblem> carried = carriedGleifFindings(target, problems);
+            if (!carried.isEmpty()) {
+                java.util.List<ValidationProblem> all = new java.util.ArrayList<>(problems);
+                all.addAll(carried);
+                problems = all;
+                state = ValidationState.INVALID;
+                problemCount = all.size();
+                summary = EditorActions.problemCount(all.size());
+            }
+        }
         ValidationStatus status = new ValidationStatus(state, problemCount, summary);
         if (target == null) {
             validationStatus.set(status);
@@ -650,6 +675,23 @@ public class EditorHost extends BorderPane {
                 setActiveProblems(problems);
             }
         }
+    }
+
+    /**
+     * The GLEIF findings of the last result of the same text, when a new result has none of its own: a validation
+     * without the GLEIF stage (live validation after a caret move, F8 with the setting off) must not drop the
+     * findings of an explicit "Check LEIs at GLEIF". A changed text drops them (their lines may be stale).
+     */
+    private static java.util.List<ValidationProblem> carriedGleifFindings(ValidationTarget target,
+                                                                          java.util.List<ValidationProblem> problems) {
+        String gleif = org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.SOURCE;
+        ValidationResult last = target.tab().lastValidation;
+        if (last == null || last.problems() == null || last.revision() != target.revision()
+                || org.fxt.freexmltoolkit.service.finance.gleif.Gleif.onValidation() // the validation asked GLEIF itself
+                || problems.stream().anyMatch(p -> gleif.equals(p.source()))) {
+            return java.util.List.of();
+        }
+        return last.problems().stream().filter(p -> gleif.equals(p.source())).toList();
     }
 
     /**
