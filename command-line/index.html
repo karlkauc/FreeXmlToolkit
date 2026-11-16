@@ -4385,7 +4385,7 @@ prefixes do not count.</p>
 </tr>
 <tr>
 <td><code>--bytes</code></td>
-<td>Folders: compare XML files by their bytes only</td>
+<td>Folders: compare XML, JSON and YAML files by their bytes only</td>
 </tr>
 <tr>
 <td><code>-f</code>, <code>--format FORMAT</code></td>
@@ -4405,9 +4405,12 @@ by a key member, <code>--tolerance</code> applies to numbers. Locations are JSON
 <code>left.xml:LINE: Attribute 'qty' changed: "1" → "2" (/order[1]/item[1]/@qty)</code> and a summary;
 differences XMLUnit rates <em>similar</em> (a moved element, CDATA instead of text) are marked <code>[similar]</code>
 (JSON: <code>"similar": true</code>) and still count. For
-two folders it lists every file that differs or exists on one side only, then the counts. The exit
-code is 0 when the files are equivalent or the folders match, 1 when they differ, 3 when a file is
-not well-formed XML.</p>
+two folders it lists every file that differs or exists on one side only - XML files compared by
+structure, JSON and YAML files by their data (<code>differs    deploy.yaml (2 data differences)</code>) - then
+the counts; in the JSON report the count is <code>xmlDifferences</code> for both kinds. The exit
+code is 0 when the files are equivalent or the folders match, 1 when they differ, 3 when one of two
+compared files is not well-formed XML or not valid JSON / YAML (inside folders such a file counts as
+different, with a note).</p>
 <h2 id="merge">merge<a class="headerlink" href="#merge" title="Permanent link">¶</a></h2>
 <p>Three-way merge of a base and two changed versions, like <strong>Tools → Merge Files…</strong> (see
 <a href="../unified-shell/#merging-three-files">Merging three files</a>). Conflicts are written with Git's

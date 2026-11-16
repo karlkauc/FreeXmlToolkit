@@ -6459,12 +6459,12 @@ differ:</p>
 <td>Same bytes</td>
 </tr>
 <tr>
-<td><strong>Equivalent as XML</strong></td>
-<td>An XML file whose bytes differ, but not its content: formatting, attribute order, prefixes (the <a href="#comparing-as-xml">XML Options</a> of the Compare view apply)</td>
+<td><strong>Equivalent</strong></td>
+<td>The bytes differ, but not the content. XML: formatting, attribute order, prefixes (the <a href="#comparing-as-xml">XML Options</a> of the Compare view apply). JSON and YAML (<code>.json</code>, <code>.jsonc</code>, <code>.json5</code>, <code>.yaml</code>, <code>.yml</code>): compared by their data - member order, formatting, comments, quoting and anchors do not count; <em>Ignore element order</em>, <em>Key attributes</em> (key members of array items) and <em>Numeric tolerance</em> apply</td>
 </tr>
 <tr>
 <td><strong>Different</strong></td>
-<td>The content differs; for XML files with the number of differences</td>
+<td>The content differs; for XML, JSON and YAML files with the number of differences</td>
 </tr>
 <tr>
 <td><strong>Only left</strong> / <strong>Only right</strong></td>
@@ -6474,9 +6474,11 @@ differ:</p>
 </table>
 <p>Identical and equivalent files are hidden until you tick <strong>Show identical files</strong>. Double-click a
 file to open the pair in the Compare view, or to open a file that exists on one side only. Untick
-<strong>Compare XML files by structure</strong> to compare every file by its bytes. <strong>Change…</strong> picks another
-folder, <strong>Compare</strong> runs the comparison again. XML files above 32 MB and files that are not
-well-formed are compared by their bytes (the <strong>Note</strong> column says so).</p>
+<strong>Compare XML files by structure, JSON and YAML by data</strong> to compare every file by its bytes.
+<strong>Change…</strong> picks another folder, <strong>Compare</strong> runs the comparison again. XML, JSON and YAML files
+above 32 MB and files that cannot be read as such (not well-formed XML, a YAML syntax error) are
+compared by their bytes (the <strong>Note</strong> column says so). A JSON or YAML pair opens in the Compare
+view's <strong>Data</strong> mode.</p>
 <p>On the command line: <a href="../command-line/#compare"><code>fxt-cli compare</code></a>.</p>
 <h3 id="merging-three-files">Merging three files<a class="headerlink" href="#merging-three-files" title="Permanent link">¶</a></h3>
 <p>When two people changed the same file, <strong>Tools → Merge Files…</strong> combines both versions with their
