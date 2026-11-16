@@ -78,6 +78,7 @@ public final class MmfRules {
                 .record(only("FndRpt", MmfRules::baseCurrencyAmounts))
                 .record(only("FndRpt", f.identifier("ESMA-MMF-LEI", "Upd/RptData/QttvData/AsstInf/*/PtyData/*/PtyId/LEI",
                         FinancialIdentifiers::checkLei)));
+        MmfContentRules.addTo(rules);
         return rules;
     }
 

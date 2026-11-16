@@ -91,7 +91,7 @@
 								</RegdDstrbtnCtry>
 								<BaseCcy>EUR</BaseCcy>
 								<DpstryId>
-									<LEI>5299009FXTMMFCP00069</LEI>
+									<LEI>5299009FXTDEPOSIT173</LEI>
 									<NtlRegnNb>
 										<Id>DEP-TEST1</Id>
 									</NtlRegnNb>
@@ -311,8 +311,7 @@
 										<PtyData>
 											<IssrData>
 												<PtyId>
-													<!--<LEI>00008900000001000001</LEI>-->
-													<Nm>TEST NAME</Nm>
+													<LEI>5299009FXTISSUER0104</LEI>
 												</PtyId>
 												<Sctr>SRPB</Sctr>
 											</IssrData>
@@ -363,7 +362,7 @@
 										<PtyData>
 											<IssrData>
 												<PtyId>
-													<LEI>5299009FXTMMFCP00069</LEI>
+													<LEI>5299009FXTISSUER0298</LEI>
 													<!--<Nm>Regression test Issued</Nm>-->
 												</PtyId>
 												<Sctr>SRSN</Sctr>
@@ -415,8 +414,7 @@
 										<PtyData>
 											<SpnsrData>
 												<PtyId>
-													<!--<LEI>253400LL9EMESVGBB783</LEI>-->
-													<Nm>TEST NAME</Nm>
+													<LEI>5299009FXTSPNSR00139</LEI>
 												</PtyId>
 											</SpnsrData>
 										</PtyData>
@@ -465,7 +463,7 @@
 										<PtyData>
 											<SpnsrData>
 												<PtyId>
-													<LEI>5299009FXTMMFCP00069</LEI>
+													<LEI>5299009FXTSPNSR00236</LEI>
 													<Nm>TEST NAME</Nm>
 												</PtyId>
 											</SpnsrData>
@@ -518,7 +516,7 @@
 										<PtyData>
 											<CtrPtyData>
 												<PtyId>
-													<Nm>TEST NAME</Nm>
+													<LEI>5299009FXTCTRPY00112</LEI>
 												</PtyId>
 											</CtrPtyData>
 										</PtyData>
@@ -573,7 +571,7 @@
 										<PtyData>
 											<CtrPtyData>
 												<PtyId>
-												<LEI>5299009FXTMMFCP00069</LEI>
+												<LEI>5299009FXTCTRPY00209</LEI>
 													<!--<Nm>Name counterparty 1</Nm>-->
 												</PtyId>
 											</CtrPtyData>
@@ -624,7 +622,7 @@
 									<InstrmId>
 										<ISIN>AT000FXTM106</ISIN>
 									</InstrmId>
-									<!--<AsstLEI>00008900000001000001</AsstLEI>-->
+									<AsstLEI>5299009FXTMMFHLD0170</AsstLEI>
 								</AsstId>
 								<AsstCtry>
 									<Ctry>DE</Ctry>
@@ -658,7 +656,7 @@
 								<PtyData>
 									<CtrPtyData>
 										<PtyId>
-											<Nm>TEST NAME</Nm>
+											<LEI>5299009FXTDPSTCP0187</LEI>
 										</PtyId>
 									</CtrPtyData>
 								</PtyData>
@@ -688,7 +686,7 @@
 										<PtyData>
 											<CtrPtyData>
 												<PtyId>
-													<LEI>5299009FXTMMFCP00069</LEI>
+													<LEI>5299009FXTREPOCP0159</LEI>
 												</PtyId>
 												<Sctr>SRSN</Sctr>
 											</CtrPtyData>
@@ -727,7 +725,7 @@
 										<PtyData>
 											<CtrPtyData>
 												<PtyId>
-													<LEI>5299009FXTMMFCP00069</LEI>
+													<LEI>5299009FXTREPOCP0256</LEI>
 													<Nm>TEST NAME</Nm>
 												</PtyId>
 												<Sctr>SRPB</Sctr>
