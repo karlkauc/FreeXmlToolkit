@@ -4580,7 +4580,9 @@ document type.</p>
   shows a read-only view with the node's name and XPath. In large files (from 8 MB) the
   inspector follows the caret right away after edits in the grid. After you type, it shows no
   node until you pause for about 1.5 seconds. The file is then parsed again in the background,
-  which takes a few seconds for very large files (about 5 seconds for 150 MB).</li>
+  which takes a few seconds for very large files (about 5 seconds for 150 MB). The hover tip
+  that names the element and XPath under the mouse is not shown in files of more than 2 MB:
+  use the inspector or <strong>Copy XPath</strong> there.</li>
 <li><strong>Tree view</strong> - Click a node in the tree (element, text, comment, CDATA, or processing
   instruction).</li>
 <li><strong>Graphic view</strong> - Select a row in the grid.</li>
