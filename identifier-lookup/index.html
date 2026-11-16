@@ -9,7 +9,7 @@
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/gleif/">
+        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/identifier-lookup/">
       
       
         <link rel="prev" href="../plugin-esma-reporting/">
@@ -26,7 +26,7 @@
     
     
       
-        <title>LEI Lookup at GLEIF - FreeXmlToolkit Documentation</title>
+        <title>Online Identifier Lookup - FreeXmlToolkit Documentation</title>
       
     
     
@@ -89,7 +89,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#lei-lookup-at-gleif" class="md-skip">
+        <a href="#online-identifier-lookup-gleif-esma-firds-openfigi" class="md-skip">
           Skip to content
         </a>
       
@@ -145,7 +145,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              LEI Lookup at GLEIF
+              Online Identifier Lookup
             
           </span>
         </div>
@@ -2379,7 +2379,7 @@
   <span class="md-ellipsis">
     
   
-    LEI Lookup at GLEIF
+    Online Identifier Lookup
   
 
     
@@ -2397,7 +2397,7 @@
   <span class="md-ellipsis">
     
   
-    LEI Lookup at GLEIF
+    Online Identifier Lookup
   
 
     
@@ -2423,10 +2423,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#look-up-one-lei" class="md-nav__link">
+  <a href="#look-up-one-identifier" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Look up one LEI
+        Look up one identifier
       
     </span>
   </a>
@@ -2434,10 +2434,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#check-every-lei-of-a-document" class="md-nav__link">
+  <a href="#check-every-identifier-of-a-document" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Check every LEI of a document
+        Check every identifier of a document
       
     </span>
   </a>
@@ -3246,10 +3246,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#look-up-one-lei" class="md-nav__link">
+  <a href="#look-up-one-identifier" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Look up one LEI
+        Look up one identifier
       
     </span>
   </a>
@@ -3257,10 +3257,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#check-every-lei-of-a-document" class="md-nav__link">
+  <a href="#check-every-identifier-of-a-document" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Check every LEI of a document
+        Check every identifier of a document
       
     </span>
   </a>
@@ -3331,76 +3331,98 @@
   
 
 
-<h1 id="lei-lookup-at-gleif">LEI Lookup at GLEIF<a class="headerlink" href="#lei-lookup-at-gleif" title="Permanent link">¶</a></h1>
-<p>The check digits of an LEI only say that it is well-formed. Whether it is registered, to whom it belongs and
-whether its registration is still valid is known to the <a href="https://www.gleif.org">Global Legal Entity Identifier Foundation</a>
-(GLEIF). FreeXmlToolkit asks GLEIF's public API (<code>api.gleif.org</code>, no account or key needed) in four places:
-the identifier checker of the industry extensions, a check of every LEI of a document, a hover in the editor and the
-command line.</p>
-<div class="admonition note">
-<p class="admonition-title">LEIs leave your computer</p>
-<p>A lookup sends the LEIs to GLEIF (and nothing else from the document). It happens when you click, or - only if
-you turn it on - with every validation and when the mouse rests on an LEI. Administrators can switch all of it off
-with <code>gleif.allowed=false</code> (<a href="../administration/">Administration</a>).</p>
-</div>
-<h2 id="look-up-one-lei">Look up one LEI<a class="headerlink" href="#look-up-one-lei" title="Permanent link">¶</a></h2>
-<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/gleif-identifier-checker.png" data-desc-position="bottom"><img alt="The identifier checker after a GLEIF lookup" src="../img/gleif-identifier-checker.png"></a></p>
-<p>In the side panel of an extension that checks LEIs (KAG-Meldewesen, ESMA Reporting, FinDatEx, ISO 20022, FundsXML,
-PK-Meldewesen), choose
-<strong>LEI</strong> under <strong>CHECK AN IDENTIFIER</strong> and paste the LEI. When its check digits are right, <strong>Look up at GLEIF</strong> shows:</p>
+<h1 id="online-identifier-lookup-gleif-esma-firds-openfigi">Online Identifier Lookup (GLEIF, ESMA FIRDS, OpenFIGI)<a class="headerlink" href="#online-identifier-lookup-gleif-esma-firds-openfigi" title="Permanent link">¶</a></h1>
+<p>Check digits only say that an identifier is well-formed. Whether it exists and what it stands for is known online:</p>
 <ul>
-<li>the legal name and the city and country of the legal address;</li>
-<li>the registration status (<code>ISSUED</code>, <code>LAPSED</code>, <code>RETIRED</code>, <code>ANNULLED</code>, <code>PENDING_TRANSFER</code> …) and the entity status
-  (<code>ACTIVE</code> / <code>INACTIVE</code>);</li>
-<li>the next renewal date;</li>
-<li><strong>Open at GLEIF</strong> - the LEI's page in GLEIF's search.</li>
+<li><strong>LEIs</strong> at the <a href="https://www.gleif.org">Global Legal Entity Identifier Foundation</a> (GLEIF, <code>api.gleif.org</code>): legal
+  name, address, registration and entity status;</li>
+<li><strong>ISINs</strong> at <strong>ESMA FIRDS</strong> (<code>registers.esma.europa.eu</code>, the EU reference data of financial instruments the
+  supervisors check against): name, CFI code, issuer LEI, currency, EU trading venues - and, for ISINs FIRDS does
+  not know (fund units not traded on an EU venue, instruments outside the EU), at <strong>OpenFIGI</strong> (<code>api.openfigi.com</code>,
+  Bloomberg): name, security type, ticker, FIGI.</li>
 </ul>
-<h2 id="check-every-lei-of-a-document">Check every LEI of a document<a class="headerlink" href="#check-every-lei-of-a-document" title="Permanent link">¶</a></h2>
-<p><strong>Check LEIs at GLEIF</strong> - in the TOOLS section of those panels, in the VALIDATE section of the FundsXML panel and the
-CHECK section of the PK-Meldewesen panel, and in <strong>Tools → Check LEIs at GLEIF</strong> for any document - finds every LEI in the text (XML, CSV, JSON …: 20 characters with valid check digits), asks GLEIF about all
-of them at once (200 per request) and puts a finding for each occurrence into the <strong>Problems</strong> panel, at its line:</p>
+<p>None of the services needs an account. FreeXmlToolkit asks them from the identifier checker of the extensions, for
+every identifier of a document, in a hover in the editor and on the command line.</p>
+<div class="admonition note">
+<p class="admonition-title">Identifiers leave your computer</p>
+<p>A lookup sends the LEIs or ISINs to these services (and nothing else from the document). It happens when you click,
+or - only if you turn it on - with every validation and when the mouse rests on an identifier. Administrators can
+switch it off: <code>gleif.allowed=false</code>, <code>isin.allowed=false</code>, <code>isin.openfigi.allowed=false</code>
+(<a href="../administration/">Administration</a>).</p>
+</div>
+<h2 id="look-up-one-identifier">Look up one identifier<a class="headerlink" href="#look-up-one-identifier" title="Permanent link">¶</a></h2>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/gleif-identifier-checker.png" data-desc-position="bottom"><img alt="The identifier checker after a GLEIF lookup" src="../img/gleif-identifier-checker.png"></a>
+<a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/isin-identifier-checker.png" data-desc-position="bottom"><img alt="The identifier checker after an ESMA FIRDS lookup" src="../img/isin-identifier-checker.png"></a></p>
+<p>In the side panel of an extension that checks identifiers (KAG-Meldewesen, ESMA Reporting, FinDatEx, ISO 20022,
+FundsXML, PK-Meldewesen), choose the kind under <strong>CHECK AN IDENTIFIER</strong> and paste the value. When its check digits are
+right:</p>
+<ul>
+<li><strong>LEI → Look up at GLEIF</strong> shows the legal name, the city and country of the legal address, the registration status
+  (<code>ISSUED</code>, <code>LAPSED</code>, <code>RETIRED</code>, <code>ANNULLED</code>, <code>PENDING_TRANSFER</code> …), the entity status (<code>ACTIVE</code> / <code>INACTIVE</code>), the next
+  renewal date and <strong>Open at GLEIF</strong>.</li>
+<li><strong>ISIN → Look up online</strong> shows the name, CFI code, currency and on how many EU trading venues it is traded now (or
+  that it is no longer traded in the EU), with the issuer's LEI as a link that looks it up at GLEIF. An ISIN FIRDS does
+  not know shows OpenFIGI's name, security type, ticker and FIGI.</li>
+</ul>
+<h2 id="check-every-identifier-of-a-document">Check every identifier of a document<a class="headerlink" href="#check-every-identifier-of-a-document" title="Permanent link">¶</a></h2>
+<p><strong>Check Identifiers Online</strong> - in the TOOLS section of the extension panels, in the VALIDATE section of the FundsXML
+panel, the CHECK section of the PK-Meldewesen panel, and in <strong>Tools → Check Identifiers Online (LEI, ISIN)</strong> for any
+document - finds every LEI (20 characters with valid check digits) and every ISIN (country prefix and valid check
+digit) in the text (XML, CSV, JSON …), asks the services about all of them at once and puts a finding for each
+occurrence into the <strong>Problems</strong> panel, at its line:</p>
 <table>
 <thead>
 <tr>
-<th>GLEIF says</th>
+<th>Answer</th>
 <th>Finding</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Not registered</td>
+<td>LEI not registered at GLEIF</td>
 <td>Error</td>
 </tr>
 <tr>
-<td><code>RETIRED</code>, <code>ANNULLED</code>, <code>DUPLICATE</code>, <code>MERGED</code>, <code>TRANSFERRED</code></td>
-<td>Error - the LEI must not be used any more</td>
+<td>LEI <code>RETIRED</code>, <code>ANNULLED</code>, <code>DUPLICATE</code>, <code>MERGED</code>, <code>TRANSFERRED</code></td>
+<td>Error - must not be used any more</td>
 </tr>
 <tr>
-<td><code>LAPSED</code> (registration not renewed)</td>
+<td>LEI <code>LAPSED</code> (registration not renewed), entity <code>INACTIVE</code></td>
 <td>Warning</td>
 </tr>
 <tr>
-<td>Entity <code>INACTIVE</code></td>
+<td>LEI <code>PENDING_…</code></td>
+<td>Warning (<em>info</em> on the command line)</td>
+</tr>
+<tr>
+<td>ISIN known neither to ESMA FIRDS nor to OpenFIGI</td>
 <td>Warning</td>
 </tr>
 <tr>
-<td><code>PENDING_…</code></td>
+<td>ISIN no longer traded on any EU trading venue</td>
+<td>Warning (<em>info</em> on the command line)</td>
+</tr>
+<tr>
+<td>ISIN not in FIRDS while OpenFIGI is switched off</td>
 <td>Warning (<em>info</em> on the command line)</td>
 </tr>
 </tbody>
 </table>
-<p>The findings have the source <strong>GLEIF</strong> and replace the GLEIF findings of an earlier check; schema and rule findings
-stay. Answers are kept for 24 hours (see below), so a second check asks GLEIF only about new LEIs.</p>
+<p>An ISIN only OpenFIGI knows is no finding. The findings have the source <strong>GLEIF</strong> or <strong>ISIN</strong> and replace the online
+findings of an earlier check; schema and rule findings stay, also when the document is validated again while its text
+is unchanged. When one service cannot be reached, the panel says so and the other part still counts.</p>
 <h2 id="with-every-validation">With every validation<a class="headerlink" href="#with-every-validation" title="Permanent link">¶</a></h2>
-<p><strong>Settings → Network &amp; Security → GLEIF (LEI lookup) → Check LEIs at GLEIF on every validation (F8)</strong> adds the same
-check to every validation of an XML document (F8, Validation panel, the extensions' <strong>Check Active Document</strong>). Off by
-default. When GLEIF cannot be reached, the validation shows one warning and goes on.</p>
+<p><strong>Settings → Network &amp; Security</strong> has a card for each kind: <strong>Check LEIs at GLEIF on every validation (F8)</strong> and
+<strong>Check ISINs online on every validation (F8)</strong> add the same checks to every validation of an XML document (F8,
+Validation panel, the extensions' <strong>Check Active Document</strong>). Both are off by default. When a service cannot be
+reached, the validation shows one warning and goes on.</p>
 <h2 id="hover">Hover<a class="headerlink" href="#hover" title="Permanent link">¶</a></h2>
-<p>When the mouse rests on an LEI in the text editor, a tooltip shows what GLEIF said about it - from the answers already
-known. <strong>Look up LEIs at GLEIF when the mouse rests on them</strong> (off by default) also asks GLEIF about LEIs it does not
-know yet.</p>
+<p>When the mouse rests on an LEI or ISIN in the text editor, a tooltip shows what the services said about it - from
+the answers already known. <strong>Look up LEIs at GLEIF when the mouse rests on them</strong> / <strong>Look up ISINs when the mouse
+rests on them</strong> (off by default) also ask about identifiers not known yet.</p>
 <h2 id="settings">Settings<a class="headerlink" href="#settings" title="Permanent link">¶</a></h2>
-<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/gleif-settings.png" data-desc-position="bottom"><img alt="GLEIF settings" src="../img/gleif-settings.png"></a></p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/gleif-settings.png" data-desc-position="bottom"><img alt="GLEIF settings" src="../img/gleif-settings.png"></a>
+<a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/isin-settings.png" data-desc-position="bottom"><img alt="Instrument lookup settings" src="../img/isin-settings.png"></a></p>
 <table>
 <thead>
 <tr>
@@ -3421,23 +3443,55 @@ know yet.</p>
 <td>off</td>
 </tr>
 <tr>
-<td>Keep answers (hours)</td>
+<td>Keep answers (hours), GLEIF</td>
 <td><code>gleif.cacheHours</code></td>
+<td>24</td>
+</tr>
+<tr>
+<td>Check ISINs online on every validation (F8)</td>
+<td><code>isin.onValidation</code></td>
+<td>off</td>
+</tr>
+<tr>
+<td>Look up ISINs when the mouse rests on them</td>
+<td><code>isin.hover</code></td>
+<td>off</td>
+</tr>
+<tr>
+<td>Ask OpenFIGI about ISINs that ESMA FIRDS does not know</td>
+<td><code>isin.openfigi</code></td>
+<td>on</td>
+</tr>
+<tr>
+<td>OpenFIGI API key (stored encrypted)</td>
+<td><code>isin.openfigi.apiKey</code></td>
+<td>-</td>
+</tr>
+<tr>
+<td>Keep answers (hours), ISINs</td>
+<td><code>isin.cacheHours</code></td>
 <td>24</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Forget answers</strong> empties the cache (<code>~/.freeXmlToolkit/gleif/cache.json</code>). Requests go through the proxy of
-<em>Settings → HTTP Proxy</em>. GLEIF allows 60 requests a minute; the application sends at most one a second.</p>
+<p><strong>Forget answers</strong> empties the caches (<code>~/.freeXmlToolkit/gleif/cache.json</code>, <code>~/.freeXmlToolkit/isin/cache.json</code>).
+Requests go through the proxy of <em>Settings → HTTP Proxy</em>. Limits: GLEIF 60 requests a minute (the application sends
+at most one a second, 200 LEIs each); FIRDS one request a second with 100 ISINs; OpenFIGI without an API key 25
+requests a minute with 10 ISINs each, with a key (free at <a href="https://www.openfigi.com/api">openfigi.com</a>) 100 ISINs per
+request and shorter pauses.</p>
 <h2 id="command-line">Command line<a class="headerlink" href="#command-line" title="Permanent link">¶</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>fxt-cli<span class="w"> </span>lei<span class="w"> </span>506700GE1G29325QX363<span class="w">              </span><span class="c1"># one or more LEIs</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>fxt-cli<span class="w"> </span>lei<span class="w"> </span>--file<span class="w"> </span>report.xml<span class="w"> </span>-f<span class="w"> </span>json<span class="w">          </span><span class="c1"># every LEI of a file, as JSON</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>fxt-cli<span class="w"> </span>validate<span class="w"> </span>reports/<span class="w"> </span>--gleif<span class="w">              </span><span class="c1"># validation plus the GLEIF check</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>fxt-cli<span class="w"> </span>lei<span class="w"> </span>506700GE1G29325QX363<span class="w">                  </span><span class="c1"># one or more LEIs</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>fxt-cli<span class="w"> </span>lei<span class="w"> </span>--file<span class="w"> </span>report.xml<span class="w"> </span>-f<span class="w"> </span>json<span class="w">              </span><span class="c1"># every LEI of a file, as JSON</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>fxt-cli<span class="w"> </span>isin<span class="w"> </span>IE00B4L5Y983<span class="w">                          </span><span class="c1"># one or more ISINs</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>fxt-cli<span class="w"> </span>isin<span class="w"> </span>--file<span class="w"> </span>holdings.xml<span class="w"> </span>--no-openfigi<span class="w">     </span><span class="c1"># every ISIN of a file, FIRDS only</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>fxt-cli<span class="w"> </span>validate<span class="w"> </span>reports/<span class="w"> </span>--gleif<span class="w"> </span>--isin<span class="w">           </span><span class="c1"># validation plus the online checks</span>
 </code></pre></div>
-<p><code>fxt-cli lei</code> exits with <code>1</code> when an LEI is invalid, unknown, lapsed, retired or annulled or its entity inactive, and
-with <code>3</code> when GLEIF cannot be reached. <code>validate --gleif</code> adds the findings to the report (source <code>GLEIF</code>, rule
-<code>GLEIF-LEI</code>); an unreachable GLEIF is an <em>info</em> there. The command line ignores the GUI setting "on every
-validation" - only <code>--gleif</code> turns the check on. See <a href="../command-line/#lei">Command Line</a>.</p>
+<p><code>fxt-cli lei</code> exits with <code>1</code> when an LEI is invalid, unknown, lapsed, retired or annulled or its entity inactive;
+<code>fxt-cli isin</code> with <code>1</code> when an ISIN is invalid or known to neither service; both with <code>3</code> when a service cannot be
+reached. <code>validate --gleif</code> / <code>--isin</code> add the findings to the report (sources <code>GLEIF</code> / <code>ISIN</code>, rules <code>GLEIF-LEI</code> /
+<code>ISIN-LOOKUP</code>); an unreachable service is an <em>info</em> there. The OpenFIGI API key comes from <code>FXT_OPENFIGI_APIKEY</code> or
+the setting. The command line ignores the GUI settings "on every validation" - only <code>--gleif</code> / <code>--isin</code> turn the
+checks on. See <a href="../command-line/#lei">Command Line</a>.</p>
 
 
 

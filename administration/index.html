@@ -2357,14 +2357,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../gleif/" class="md-nav__link">
+      <a href="../identifier-lookup/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    LEI Lookup at GLEIF
+    Online Identifier Lookup
   
 
     
@@ -3602,7 +3602,7 @@ forward slashes (<code>C:/Schemas</code>). Characters outside Latin-1 have to be
 <tr>
 <td><code>gleif.allowed</code></td>
 <td><code>false</code></td>
-<td>No <a href="../gleif/">LEI lookups at GLEIF</a>: no panel buttons, menu item, hover or validation stage; <code>fxt-cli lei</code> and <code>validate --gleif</code> refuse</td>
+<td>No <a href="../identifier-lookup/">LEI lookups at GLEIF</a>: no LEI lookup buttons, hover or validation stage; <code>fxt-cli lei</code> and <code>validate --gleif</code> refuse</td>
 </tr>
 <tr>
 <td><code>gleif.onValidation</code>, <code>gleif.hover</code></td>
@@ -3613,6 +3613,26 @@ forward slashes (<code>C:/Schemas</code>). Characters outside Latin-1 have to be
 <td><code>gleif.cacheHours</code></td>
 <td><code>1</code>–<code>720</code></td>
 <td>How long GLEIF's answers are used (default 24)</td>
+</tr>
+<tr>
+<td><code>isin.allowed</code></td>
+<td><code>false</code></td>
+<td>No <a href="../identifier-lookup/">ISIN lookups</a> at ESMA FIRDS or OpenFIGI: no ISIN lookup buttons, hover or validation stage; <code>fxt-cli isin</code> and <code>validate --isin</code> refuse</td>
+</tr>
+<tr>
+<td><code>isin.openfigi.allowed</code></td>
+<td><code>false</code></td>
+<td>ISINs are looked up at ESMA FIRDS only, never at OpenFIGI (Bloomberg)</td>
+</tr>
+<tr>
+<td><code>isin.onValidation</code>, <code>isin.hover</code>, <code>isin.openfigi</code></td>
+<td><code>true</code> / <code>false</code></td>
+<td>Check ISINs online with every validation / when hovering (default off); ask OpenFIGI about ISINs FIRDS does not know (default on)</td>
+</tr>
+<tr>
+<td><code>isin.cacheHours</code></td>
+<td><code>1</code>–<code>720</code></td>
+<td>How long ISIN answers are used (default 24); the OpenFIGI API key <code>isin.openfigi.apiKey</code> is read from the user's settings only</td>
 </tr>
 <tr>
 <td><code>xmlenc.allowed</code></td>

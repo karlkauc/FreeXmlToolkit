@@ -2357,14 +2357,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../gleif/" class="md-nav__link">
+      <a href="../identifier-lookup/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    LEI Lookup at GLEIF
+    Online Identifier Lookup
   
 
     
@@ -3435,9 +3435,17 @@ back to its cache; the application is never blocked.</p>
 <tr>
 <td>LEI lookup</td>
 <td><code>api.gleif.org</code> (only the LEIs)</td>
-<td>When you click <strong>Look up at GLEIF</strong> / <strong>Check LEIs at GLEIF</strong>, run <code>fxt-cli lei</code> or <code>validate --gleif</code>; with the settings on also on every validation and on hover</td>
+<td>When you click <strong>Look up at GLEIF</strong> / <strong>Check Identifiers Online</strong>, run <code>fxt-cli lei</code> or <code>validate --gleif</code>; with the settings on also on every validation and on hover</td>
 <td><strong>Off</strong> (automatic lookups)</td>
 <td>Settings → GLEIF; <code>gleif.allowed=false</code> (policy)</td>
+<td>Error in the panel, a warning in the validation</td>
+</tr>
+<tr>
+<td>ISIN lookup</td>
+<td><code>registers.esma.europa.eu</code> (ESMA FIRDS), <code>api.openfigi.com</code> (OpenFIGI, for ISINs FIRDS does not know) - only the ISINs</td>
+<td>When you click <strong>Look up online</strong> / <strong>Check Identifiers Online</strong>, run <code>fxt-cli isin</code> or <code>validate --isin</code>; with the settings on also on every validation and on hover</td>
+<td><strong>Off</strong> (automatic lookups); OpenFIGI fallback on</td>
+<td>Settings → Instrument lookup; <code>isin.allowed=false</code>, <code>isin.openfigi.allowed=false</code> (policy)</td>
 <td>Error in the panel, a warning in the validation</td>
 </tr>
 <tr>

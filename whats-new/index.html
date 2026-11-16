@@ -2357,14 +2357,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../gleif/" class="md-nav__link">
+      <a href="../identifier-lookup/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    LEI Lookup at GLEIF
+    Online Identifier Lookup
   
 
     
@@ -3531,14 +3531,15 @@
 <a href="https://github.com/karlkauc/FreeXmlToolkit/releases">GitHub Releases page</a>; the version you are
 running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
 <h2 id="unreleased">Unreleased<a class="headerlink" href="#unreleased" title="Permanent link">¶</a></h2>
-<p><strong>LEI lookup at GLEIF</strong></p>
+<p><strong>Online identifier lookup (GLEIF, ESMA FIRDS, OpenFIGI)</strong></p>
 <ul>
-<li><strong>Is the LEI registered?</strong> The identifier checker of the industry extensions looks an LEI up at GLEIF (name, address,
-  registration and entity status, next renewal); <strong>Check LEIs at GLEIF</strong> (the industry, FundsXML and PK-Meldewesen
-  panels, Tools menu) checks every LEI of
-  a document and reports unknown, lapsed, retired or annulled LEIs in the Problems panel. Optionally with every
-  validation and as a hover in the editor (Settings → GLEIF, both off by default); on the command line
-  <code>fxt-cli lei</code> and <code>fxt-cli validate --gleif</code>. See <a href="../gleif/">LEI Lookup at GLEIF</a>.</li>
+<li><strong>Is the LEI registered, does the ISIN exist?</strong> The identifier checker of the industry, FundsXML and PK-Meldewesen
+  panels looks an LEI up at GLEIF (name, address, registration and entity status, next renewal) and an ISIN at ESMA
+  FIRDS (name, CFI code, issuer LEI, EU trading) or, when FIRDS does not know it, at OpenFIGI. <strong>Check Identifiers
+  Online</strong> (panels, Tools menu) checks every LEI and ISIN of a document and reports unknown, lapsed, retired or annulled
+  LEIs and unknown or no longer traded ISINs in the Problems panel. Optionally with every validation and as a hover in
+  the editor (Settings → Network &amp; Security, off by default); on the command line <code>fxt-cli lei</code>, <code>fxt-cli isin</code> and
+  <code>fxt-cli validate --gleif --isin</code>. See <a href="../identifier-lookup/">Online Identifier Lookup</a>.</li>
 </ul>
 <p><strong>External XSLT processors</strong></p>
 <ul>
