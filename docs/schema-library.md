@@ -150,6 +150,9 @@ Register `catalog.xml` in the Catalogs tab, open the documents and validate; the
 
 ## 4. SchemaStore
 
+![Schema Library - SchemaStore](img/unified-shell-schema-library-schemastore.png)
+*The SchemaStore tab: switched on, the catalog's state, and a file name tried against it.*
+
 The [SchemaStore](https://www.schemastore.org) catalog names the public JSON Schema of hundreds of
 file types by their file name: `docker-compose.yml`, GitHub workflows and actions, `package.json`,
 `tsconfig.json`, `.gitlab-ci.yml`, OpenAPI and AsyncAPI files, Ansible, Helm charts and many more.

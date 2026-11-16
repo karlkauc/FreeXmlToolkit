@@ -182,8 +182,8 @@ class SchemaLibraryVisualDocScreenshotGenerator {
         onFx(() -> dlg[0].close());
         settle(300);
 
-        // 5. Cache tab
-        onFx(() -> tabs.getSelectionModel().select(2));
+        // 5. Cache tab (after Mappings, Catalogs, SchemaStore)
+        onFx(() -> tabs.getSelectionModel().select(3));
         settle(800);
         shot("05-cache");
 

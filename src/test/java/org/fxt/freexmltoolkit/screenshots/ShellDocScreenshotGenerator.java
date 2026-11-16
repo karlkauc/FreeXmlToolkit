@@ -57,6 +57,42 @@ class ShellDocScreenshotGenerator {
         org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class)
                 .set(org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlHint.SHOWN_KEY, "true");
         org.fxt.freexmltoolkit.controls.v2.view.XsdTypeIconPaths.registerAll();
+        // The bundled fonts, as the application loads them (else the shots fall back to a system font).
+        for (String font : new String[]{"Inter-Regular", "Inter-Medium", "Inter-SemiBold", "Inter-Bold",
+                "JetBrainsMono-Regular", "JetBrainsMono-Medium", "JetBrainsMono-Bold"}) {
+            javafx.scene.text.Font.loadFont(getClass().getResourceAsStream("/css/fonts/" + font + ".ttf"), 10);
+        }
+        // A schema cache of its own with one example entry (no local paths of the machine in the Cache tab).
+        Path cacheDir = Files.createTempDirectory("schema-library-cache");
+        var cache = new org.fxt.freexmltoolkit.service.SchemaResourceCache(cacheDir.resolve("cache"));
+        Path cached = cache.getCacheDirectory().resolve("abc123.xsd");
+        Files.createDirectories(cached.getParent());
+        Files.writeString(cached, """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="urn:example:orders">
+                  <xs:element name="order" type="xs:string"/>
+                </xs:schema>
+                """);
+        cache.getCacheIndex().addOrUpdateEntry(org.fxt.freexmltoolkit.service.SchemaCacheEntry.builder()
+                .localFilename("abc123.xsd").remoteUrl("https://example.org/orders.xsd")
+                .downloadTimestamp(java.time.Instant.now()).fileSizeBytes(Files.size(cached)).build());
+        cache.saveIndex();
+        org.fxt.freexmltoolkit.di.ServiceRegistry.register(org.fxt.freexmltoolkit.service.SchemaResourceCache.class, cache);
+        // A small offline SchemaStore catalog for the Schema Library's SchemaStore tab (nothing is downloaded).
+        Path catalog = Files.createTempDirectory("fxt-doc-schemastore").resolve("catalog.json");
+        Files.writeString(catalog, """
+                {"schemas": [
+                  {"name": "GitHub Workflow", "fileMatch": [".github/workflows/*.yml", ".github/workflows/*.yaml"],
+                   "url": "https://www.schemastore.org/github-workflow.json"},
+                  {"name": "Docker Compose", "fileMatch": ["docker-compose.yml", "compose.yaml"],
+                   "url": "https://www.schemastore.org/compose-spec.json"},
+                  {"name": "package.json", "fileMatch": ["package.json"],
+                   "url": "https://www.schemastore.org/package.json"}
+                ]}
+                """);
+        org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog.setShared(
+                new org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog(catalog, uri -> {
+                    throw new java.io.IOException("offline");
+                }));
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_unified_shell.fxml"));
         root = loader.load();
         stage.setScene(new Scene(root, 1680, 1000));
@@ -233,7 +269,7 @@ class ShellDocScreenshotGenerator {
         settle();
         shot("unified-shell-signature");
 
-        // --- Schema Library activity: Mappings, Catalogs and Cache tabs ---
+        // --- Schema Library activity: Mappings, Catalogs, SchemaStore and Cache tabs ---
         try {
             onFx(() -> shell.getSelectionModel().select(Activity.SCHEMA_LIBRARY));
             settle();
@@ -244,7 +280,24 @@ class ShellDocScreenshotGenerator {
                 onFx(() -> libraryTabs.getSelectionModel().select(1));
                 settle();
                 shot("unified-shell-schema-library-catalogs");
-                onFx(() -> libraryTabs.getSelectionModel().select(2));
+                // SchemaStore tab: switched on (catalog above), a file name tried
+                onFx(() -> {
+                    libraryTabs.getSelectionModel().select(2);
+                    if (shell.lookup("#library-schemastore-enabled") instanceof javafx.scene.control.CheckBox enabled) {
+                        enabled.setSelected(true);
+                    }
+                    if (shell.lookup("#library-schemastore-try") instanceof javafx.scene.control.TextField tryName) {
+                        tryName.setText(".github/workflows/build.yml");
+                    }
+                });
+                settle(600);
+                shot("unified-shell-schema-library-schemastore");
+                onFx(() -> {
+                    if (shell.lookup("#library-schemastore-enabled") instanceof javafx.scene.control.CheckBox enabled) {
+                        enabled.setSelected(false);
+                    }
+                });
+                onFx(() -> libraryTabs.getSelectionModel().select(3));
                 settle(600); // let the cache tab load
                 shot("unified-shell-schema-library-cache");
             }
