@@ -3779,6 +3779,9 @@ bar. The panel is organized into these sections plus the primary action:</p>
   <a href="#external-xsl-fo-processors">external XSL-FO processor</a> you configured. <strong>Manage processors…</strong>
   opens the list. With an external processor, the metadata fields and PDF/A are only available
   when its arguments pass them on (<code>${title}</code>, <code>${pdfa}</code> …).</li>
+<li><strong>XSLT processor</strong> - shown once an <a href="../transform-panel/#external-xslt-processors">external XSLT processor</a> is
+  configured: which program turns the XML into XSL-FO, the bundled Saxon HE or one of yours. Starts at the
+  default XSLT processor of the settings.</li>
 </ul>
 <h3 id="step-4-generate-the-pdf">Step 4: Generate the PDF<a class="headerlink" href="#step-4-generate-the-pdf" title="Permanent link">¶</a></h3>
 <p>Click <strong>Generate PDF</strong>. You are asked where to save the output file, and the PDF is
@@ -3933,9 +3936,10 @@ FO you just debugged to a PDF of your choice.</p>
 <p>Instead of the bundled Apache FOP, the PDF can be rendered by any formatter that has a command
 line: <strong>Antenna House Formatter</strong> (<code>AHFCmd</code>), <strong>RenderX XEP</strong> (<code>xep</code>), a separately installed
 <strong>Apache FOP</strong> (another version, your own <code>fop.xconf</code> with fonts), or a script of your own. The
-XSLT stage (XML → XSL-FO) still runs inside FreeXmlToolkit with Saxon, so <strong>Show intermediate
+XSLT stage (XML → XSL-FO) still runs inside FreeXmlToolkit, so <strong>Show intermediate
 FO</strong>, the stylesheet's messages and the debugger work the same; only the rendering is handed to
-the external program.</p>
+the external program. The XSLT stage itself runs on Saxon HE or on an
+<a href="../transform-panel/#external-xslt-processors">external XSLT processor</a> (<strong>XSLT processor</strong> in the panel).</p>
 <p><strong>Set one up:</strong> <em>Settings → Extensions → XSL-FO Processors</em> (or <strong>Manage processors…</strong> in the
 PDF/FOP panel) → <strong>Add…</strong></p>
 <table>

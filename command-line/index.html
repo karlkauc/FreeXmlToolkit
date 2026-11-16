@@ -3862,6 +3862,14 @@ every newer construct listed (exit code 1) before anything runs.</p>
 <td><code>--lang-version VERSION</code></td>
 <td>XSLT <code>1.0</code>, <code>2.0</code>, <code>3.0</code> (default) or XQuery <code>1.0</code>, <code>3.0</code>, <code>3.1</code> (default); see <a href="../language-versions/">Language Versions</a></td>
 </tr>
+<tr>
+<td><code>--processor NAME</code></td>
+<td>XSLT: <code>builtin</code> (the bundled Saxon HE) or the name or id of an <a href="../transform-panel/#external-xslt-processors">external XSLT processor</a> from <em>Settings → XSLT Processors</em>. Default: the default XSLT processor of the settings. Not with <code>--profile</code> or <code>--lang-version</code></td>
+</tr>
+<tr>
+<td><code>--list-processors</code></td>
+<td>Lists the XSLT processors (<code>*</code> marks the default) and exits</td>
+</tr>
 </tbody>
 </table>
 <p>Without <code>-o</code> and <code>-d</code> the result goes to standard output. <code>xsl:message</code> output goes to standard
@@ -4548,6 +4556,10 @@ like the <a href="../pdf-generator/">PDF Generator</a>.</p>
 <tr>
 <td><code>--list-processors</code></td>
 <td>Lists the processors (<code>*</code> marks the default) and exits</td>
+</tr>
+<tr>
+<td><code>--xslt-processor NAME</code></td>
+<td>The processor of the XSLT stage (<code>-i</code> + <code>-s</code>): <code>builtin</code> (Saxon HE) or an <a href="../transform-panel/#external-xslt-processors">external XSLT processor</a>. Default: the default XSLT processor of the settings</td>
 </tr>
 </tbody>
 </table>

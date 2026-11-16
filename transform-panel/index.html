@@ -1781,6 +1781,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#external-xslt-processors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        External XSLT Processors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#xslt-debugger" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3347,6 +3358,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#external-xslt-processors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        External XSLT Processors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#xslt-debugger" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3545,6 +3567,8 @@ active editor</strong> all keep working exactly as before.</p>
 <p>A single dropdown with <strong>Auto, XML, HTML, XHTML, Text, JSON</strong>. <strong>Auto</strong> (the
 default) detects the output format from the stylesheet's <code>xsl:output</code> declaration; pick a
 concrete format to override the detection.</p>
+<p>Once an <a href="#external-xslt-processors">external XSLT processor</a> is configured, a <strong>Processor</strong> dropdown appears below it:
+the bundled <strong>Saxon HE</strong> or one of your processors. The choice is remembered.</p>
 <h2 id="parameters">PARAMETERS<a class="headerlink" href="#parameters" title="Permanent link">¶</a></h2>
 <p>Define XSLT parameters as <strong>name = value</strong> rows:</p>
 <ul>
@@ -3564,6 +3588,134 @@ automatic run that starts when you drop a stylesheet or input, pick one from you
 or browse with ◀ / ▶. Uncheck it to only set the file and run with <strong>Run Transform</strong> yourself.</p>
 <p>The result appears in the <strong>OUTPUT panel</strong> below the editor - see
 <a href="#the-output-panel-results">The OUTPUT Panel</a> below.</p>
+<h2 id="external-xslt-processors">External XSLT Processors<a class="headerlink" href="#external-xslt-processors" title="Permanent link">¶</a></h2>
+<p>Instead of the bundled Saxon HE a transformation can run on any XSLT processor with a command line:
+<strong>Saxon PE/EE</strong> (the licensed editions - schema-aware processing, extension functions, higher-order functions in
+older versions), <strong>xsltproc</strong> (libxslt, XSLT 1.0), <strong>Altova RaptorXML</strong>, or a script of your own - for example to
+check that a stylesheet gives the same result on the processor your production system uses.</p>
+<p><strong>Set one up:</strong> <em>Settings → Extensions → XSLT Processors</em> (or the gear button next to <strong>Processor</strong>) → <strong>Add…</strong></p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/xslt-processors-settings.png" data-desc-position="bottom"><img alt="Settings → XSLT Processors with Saxon EE as default and xsltproc" src="../img/xslt-processors-settings.png"></a></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Preset</strong></td>
+<td>Fills arguments and parameter syntax for Saxon PE/EE, xsltproc, RaptorXML or <em>Custom</em></td>
+</tr>
+<tr>
+<td><strong>Name</strong></td>
+<td>Shown in the panels; also used by scenarios and <code>fxt-cli transform --processor</code></td>
+</tr>
+<tr>
+<td><strong>Program</strong></td>
+<td>The executable or script. Empty: the preset's program is looked up on the <code>PATH</code> (<strong>Find on PATH</strong>)</td>
+</tr>
+<tr>
+<td><strong>Arguments</strong></td>
+<td>The argument template (below)</td>
+</tr>
+<tr>
+<td><strong>Parameters</strong></td>
+<td>How one stylesheet parameter is passed (below)</td>
+</tr>
+<tr>
+<td><strong>Working folder</strong></td>
+<td>Where the program runs. Empty: the stylesheet's folder</td>
+</tr>
+<tr>
+<td><strong>Time limit</strong></td>
+<td>The program is stopped after this many seconds (default 300)</td>
+</tr>
+</tbody>
+</table>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/xslt-processor-dialog.png" data-desc-position="bottom"><img alt="The dialog with the xsltproc preset after a successful Test" src="../img/xslt-processor-dialog.png"></a></p>
+<p><strong>Test</strong> transforms a small document with one parameter and says whether the transformation worked and the
+parameter arrived. <strong>Use as Default</strong> makes a processor the default for scenarios, the PDF/FOP panel and the
+command line.</p>
+<p><strong>Argument template</strong> - arguments are separated by spaces, an argument with spaces goes in double quotes, the
+program is started directly (never through a shell), <code>[ … ]</code> is an optional group as for the
+<a href="../pdf-generator/#argument-template">XSL-FO processors</a>:</p>
+<table>
+<thead>
+<tr>
+<th>Placeholder</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>${xsl}</code></td>
+<td>The stylesheet (required)</td>
+</tr>
+<tr>
+<td><code>${out}</code></td>
+<td>The result file to write (required)</td>
+</tr>
+<tr>
+<td><code>${xml}</code></td>
+<td>The input document</td>
+</tr>
+<tr>
+<td><code>${baseDir}</code></td>
+<td>The stylesheet's folder</td>
+</tr>
+<tr>
+<td><code>${params}</code></td>
+<td>The stylesheet parameters, each written with the parameter template - several arguments</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Parameter template</strong> - repeated for every parameter: <code>{name}</code> and <code>{value}</code> are replaced, e.g.
+<code>--stringparam {name} {value}</code> gives three arguments per parameter.</p>
+<table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>Program</th>
+<th>Arguments</th>
+<th>Parameters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Saxon PE/EE (Java)</td>
+<td><code>java</code></td>
+<td><code>-cp "saxon-pe-12.jar" net.sf.saxon.Transform -s:${xml} -xsl:${xsl} -o:${out} ${params}</code></td>
+<td><code>{name}={value}</code></td>
+</tr>
+<tr>
+<td>xsltproc (libxslt)</td>
+<td><code>xsltproc</code></td>
+<td><code>${params} --output ${out} ${xsl} ${xml}</code></td>
+<td><code>--stringparam {name} {value}</code></td>
+</tr>
+<tr>
+<td>Altova RaptorXML</td>
+<td><code>raptorxml</code></td>
+<td><code>xslt --input=${xml} --output=${out} ${params} ${xsl}</code></td>
+<td><code>--param={name}:'{value}'</code></td>
+</tr>
+</tbody>
+</table>
+<p>For Saxon replace <code>saxon-pe-12.jar</code> with the path of your jar (the licence file goes next to it).</p>
+<p><strong>How a run works:</strong> the stylesheet and input text you have in the editor - saved or not - are written to hidden
+temporary files <strong>next to the originals</strong> (<code>.fxt-xslt-…</code>, deleted afterwards), so relative <code>xsl:include</code>,
+<code>xsl:import</code> and <code>document()</code> references resolve as they do for the files. The program runs in the working
+folder; it succeeded when it exits with code 0 and wrote the result. Its console output becomes the run's
+messages (<code>xsl:message</code>); for an error the first line, error code and phase are read from the output of Saxon,
+xsltproc and RaptorXML, so the error shows its line as with Saxon HE.</p>
+<p><strong>What stays on Saxon HE:</strong> the live preview, <strong>Profile</strong>, <strong>Trace</strong>, the debugger, XSpec, XProc and the AI tools
+need Saxon's internals; with an external processor chosen, Profile and Trace are off and the XSLT version setting
+does not apply (the program has its own).</p>
+<p><strong>Where it applies:</strong> the Transform panel and the editor's Run Transform, <a href="../projects/">scenarios</a> (field
+<code>xsltProcessor</code>), the batch transform, the XSLT stage of the <a href="../pdf-generator/">PDF/FOP panel</a> and the command
+line (<code>fxt-cli transform --processor</code>, <code>fxt-cli fop --xslt-processor</code>). An administrator can turn external
+processors off with <code>xslt.external.allowed=false</code> - see <a href="../administration/">Administration</a>.</p>
 <h2 id="xslt-debugger">Debugging a Stylesheet<a class="headerlink" href="#xslt-debugger" title="Permanent link">¶</a></h2>
 <p><strong>Debug</strong> (next to <strong>Run Transform</strong>) runs the same stylesheet over the same input as <strong>Run
 Transform</strong> (the INPUT file when one is set by dropping, a favorite or ◀ / ▶ browsing, otherwise
