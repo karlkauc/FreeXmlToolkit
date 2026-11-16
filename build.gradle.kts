@@ -39,7 +39,7 @@ plugins {
     id("com.diffplug.spotless") version "8.11.0"
     id("io.github.ben-manes.versions") version "0.67.0"
     // Software bill of materials (CycloneDX) for every release: ./gradlew cyclonedxBom
-    id("org.cyclonedx.bom") version "3.5.1"
+    id("org.cyclonedx.bom") version "3.6.1"
 }
 
 version = "3.3.0"
@@ -84,7 +84,7 @@ dependencies {
     implementation("net.sf.saxon:Saxon-HE:12.10")
 
     // XProc 3.0/3.1 pipeline engine (MIT)
-    implementation("com.xmlcalabash:xmlcalabash:3.0.54") {
+    implementation("com.xmlcalabash:xmlcalabash:3.1.0") {
         // project routes SLF4J -> Log4j2 (log4j-slf4j2-impl); Calabash's log4j-to-slf4j would recurse
         exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
         // CLI-only dead weight (interactive debugger terminal)
@@ -153,7 +153,7 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.26.1")
 
     implementation("org.apache.santuario:xmlsec:4.0.4")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.86")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.87")
 
     implementation("org.controlsfx:controlsfx:11.2.6")
     // Native macOS application/window menu (only touched on macOS, see app/MacMenuIntegration)
@@ -171,23 +171,23 @@ dependencies {
     implementation("org.apache.poi:poi:6.0.0")
     implementation("org.apache.poi:poi-ooxml:6.0.0")
 
-    implementation("org.apache.commons:commons-lang3:3.21.0")
+    implementation("org.apache.commons:commons-lang3:3.22.0")
     implementation("commons-io:commons-io:2.22.0")
     implementation("org.apache.commons:commons-text:1.15.0")
     implementation("commons-validator:commons-validator:1.11.0")
 
     implementation("fr.brouillard.oss:cssfx:11.5.1")
-    implementation("org.thymeleaf:thymeleaf:3.1.5.RELEASE")
+    implementation("org.thymeleaf:thymeleaf:3.1.7.RELEASE")
     implementation("com.vladsch.flexmark:flexmark-all:0.64.8")
     implementation("jakarta.activation:jakarta.activation-api:2.1.4")
 
     // Security: transitive versions with known vulnerabilities lifted (OSV scan, November 2026).
     // ognl 3.3.4 (via Thymeleaf) stays: 3.4 breaks Thymeleaf 3.1, and its CVE-2026-113730 needs
     // attacker-written OGNL expressions; the documentation templates are bundled, no preprocessing.
-    implementation(platform("com.fasterxml.jackson:jackson-bom:2.22.4")) // via XML Calabash
+    implementation(platform("com.fasterxml.jackson:jackson-bom:2.23.0")) // via XML Calabash
     constraints {
-        implementation("tools.jackson.core:jackson-core:3.2.4") { because("CVE fix; via json-schema-validator") }
-        implementation("tools.jackson.core:jackson-databind:3.2.4") { because("CVE fix; via json-schema-validator") }
+        implementation("tools.jackson.core:jackson-core:3.3.0") { because("CVE fix; via json-schema-validator") }
+        implementation("tools.jackson.core:jackson-databind:3.3.0") { because("CVE fix; via json-schema-validator") }
         implementation("org.jsoup:jsoup:1.24.1") { because("CVE fix; via flexmark") }
         testImplementation("org.assertj:assertj-core:3.27.7") { because("CVE fix; via TestFX") }
     }
