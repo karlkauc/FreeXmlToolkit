@@ -53,7 +53,7 @@ class FolderCompareViewTest {
         assertEquals(List.of("diff.xml", "only.txt"), shown.stream().map(Entry::relativePath).toList(),
                 "identical files are hidden by default");
         assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, view::summaryForTesting)
-                .startsWith("3 files: 1 identical, 0 equivalent as XML, 1 different, 1 only left"));
+                .startsWith("3 files: 1 identical, 0 equivalent, 1 different, 1 only left"));
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             view.setShowIdenticalForTesting(true);

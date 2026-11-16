@@ -1248,15 +1248,17 @@ differ:
 | Status | Meaning |
 |---|---|
 | **Identical** | Same bytes |
-| **Equivalent as XML** | An XML file whose bytes differ, but not its content: formatting, attribute order, prefixes (the [XML Options](#comparing-as-xml) of the Compare view apply) |
-| **Different** | The content differs; for XML files with the number of differences |
+| **Equivalent** | The bytes differ, but not the content. XML: formatting, attribute order, prefixes (the [XML Options](#comparing-as-xml) of the Compare view apply). JSON and YAML (`.json`, `.jsonc`, `.json5`, `.yaml`, `.yml`): compared by their data - member order, formatting, comments, quoting and anchors do not count; *Ignore element order*, *Key attributes* (key members of array items) and *Numeric tolerance* apply |
+| **Different** | The content differs; for XML, JSON and YAML files with the number of differences |
 | **Only left** / **Only right** | The file exists in one folder only |
 
 Identical and equivalent files are hidden until you tick **Show identical files**. Double-click a
 file to open the pair in the Compare view, or to open a file that exists on one side only. Untick
-**Compare XML files by structure** to compare every file by its bytes. **Change…** picks another
-folder, **Compare** runs the comparison again. XML files above 32 MB and files that are not
-well-formed are compared by their bytes (the **Note** column says so).
+**Compare XML files by structure, JSON and YAML by data** to compare every file by its bytes.
+**Change…** picks another folder, **Compare** runs the comparison again. XML, JSON and YAML files
+above 32 MB and files that cannot be read as such (not well-formed XML, a YAML syntax error) are
+compared by their bytes (the **Note** column says so). A JSON or YAML pair opens in the Compare
+view's **Data** mode.
 
 On the command line: [`fxt-cli compare`](command-line.md#compare).
 

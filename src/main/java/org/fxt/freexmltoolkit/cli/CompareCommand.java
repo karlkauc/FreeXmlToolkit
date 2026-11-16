@@ -98,7 +98,7 @@ final class CompareCommand implements Callable<Integer> {
             description = "Numbers in text or attribute values that differ by at most N are equal. Default: exact.")
     double tolerance;
 
-    @Option(names = "--bytes", description = "Folders: compare XML files by their bytes only.")
+    @Option(names = "--bytes", description = "Folders: compare XML, JSON and YAML files by their bytes only.")
     boolean bytesOnly;
 
     @Option(names = {"-f", "--format"}, paramLabel = "FORMAT", defaultValue = "text",
@@ -234,7 +234,9 @@ final class CompareCommand implements Callable<Integer> {
                     default -> e.status().label();
                 };
                 out.println(String.format("%-10s %s%s", status, e.relativePath(),
-                        e.xmlDifferences() > 0 ? " (" + e.xmlDifferences() + " XML differences)"
+                        e.xmlDifferences() > 0 ? " (" + e.xmlDifferences()
+                                + (FolderComparison.isData(e.relativePath()) ? " data" : " XML")
+                                + (e.xmlDifferences() == 1 ? " difference)" : " differences)")
                                 : e.note().isEmpty() ? "" : " (" + e.note() + ")"));
             }
             out.println(Arrays.stream(FolderComparison.Status.values())

@@ -221,7 +221,7 @@ public class FolderCompareView extends VBox {
         }
         String text = files + (files == 1 ? " file: " : " files: ")
                 + result.count(Status.IDENTICAL) + " identical, "
-                + result.count(Status.EQUIVALENT) + " equivalent as XML, "
+                + result.count(Status.EQUIVALENT) + " equivalent, "
                 + result.count(Status.DIFFERENT) + " different, "
                 + result.count(Status.ONLY_LEFT) + " only left, "
                 + result.count(Status.ONLY_RIGHT) + " only right";

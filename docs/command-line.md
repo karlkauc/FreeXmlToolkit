@@ -394,7 +394,7 @@ fxt-cli compare [options] LEFT RIGHT
 | `--ignore XPATH` | Leave out the nodes or attributes this XPath 1.0 selects, on both sides, e.g. `--ignore '//@created'`; repeatable |
 | `--tolerance N` | Numbers in text or attribute values that differ by at most `N` are equal (default: exact) |
 | `--[no-]placeholders` | Evaluate XMLUnit placeholders in LEFT: `${xmlunit.ignore}`, `${xmlunit.isNumber}`, `${xmlunit.isDateTime}`, `${xmlunit.matchesRegex(REGEX)}` (default: on) |
-| `--bytes` | Folders: compare XML files by their bytes only |
+| `--bytes` | Folders: compare XML, JSON and YAML files by their bytes only |
 | `-f`, `--format FORMAT` | `text` (default) or `json` |
 
 LEFT is the expected document. With placeholders it can describe a result whose values change from
@@ -411,9 +411,12 @@ For two files, the text report has one line per difference in the form
 `left.xml:LINE: Attribute 'qty' changed: "1" → "2" (/order[1]/item[1]/@qty)` and a summary;
 differences XMLUnit rates *similar* (a moved element, CDATA instead of text) are marked `[similar]`
 (JSON: `"similar": true`) and still count. For
-two folders it lists every file that differs or exists on one side only, then the counts. The exit
-code is 0 when the files are equivalent or the folders match, 1 when they differ, 3 when a file is
-not well-formed XML.
+two folders it lists every file that differs or exists on one side only - XML files compared by
+structure, JSON and YAML files by their data (`differs    deploy.yaml (2 data differences)`) - then
+the counts; in the JSON report the count is `xmlDifferences` for both kinds. The exit
+code is 0 when the files are equivalent or the folders match, 1 when they differ, 3 when one of two
+compared files is not well-formed XML or not valid JSON / YAML (inside folders such a file counts as
+different, with a note).
 
 ## merge
 

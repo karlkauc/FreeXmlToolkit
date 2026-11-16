@@ -676,6 +676,21 @@ class FxtCliTest {
             assertEquals(ExitCodes.FAILED, run("compare", dir.resolve("l"), dir.resolve("r")), err);
             assertTrue(out.contains("only right y.txt"), out);
         }
+
+        @Test
+        @DisplayName("folders: JSON and YAML files by their data")
+        void dataFolders() throws Exception {
+            write("dl/c.yaml", "# c\nname: api\nport: 80\n");
+            write("dr/c.yaml", "port: 80\nname: \"api\"\n");
+            write("dl/d.json", "{\"a\": 1}");
+            write("dr/d.json", "{\n  \"a\": 2\n}");
+            assertEquals(ExitCodes.FAILED, run("compare", dir.resolve("dl"), dir.resolve("dr")), err);
+            assertFalse(out.contains("c.yaml"), out);
+            assertTrue(out.contains("differs    d.json (1 data difference)"), out);
+            assertTrue(out.contains("1 equivalent"), out);
+            Files.writeString(dir.resolve("dr/d.json"), "{\"a\" : 1}");
+            assertEquals(ExitCodes.OK, run("compare", dir.resolve("dl"), dir.resolve("dr")), err);
+        }
     }
 
     @Nested

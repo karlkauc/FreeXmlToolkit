@@ -28,7 +28,8 @@ running is shown under **Help → About FreeXmlToolkit**.
   (new arguments `format`, `json_schema_path`). See [Command Line](command-line.md#validate).
 - **Compare JSON and YAML by their data:** the Compare view's new **Data** mode and `fxt-cli compare` ignore member
   order, formatting, comments and anchors, compare a JSON file against a YAML file, match array items by key members
-  and report JSONPath locations. See [YAML](json-editor.md#yaml).
+  and report JSONPath locations. **Compare Folders** and `fxt-cli compare` on two folders also compare JSON and YAML
+  files by their data. See [YAML](json-editor.md#yaml).
 - **New YAML files** start with `---`; templates for a schema-bound YAML document, a Docker Compose file and a GitHub
   Actions workflow.
 

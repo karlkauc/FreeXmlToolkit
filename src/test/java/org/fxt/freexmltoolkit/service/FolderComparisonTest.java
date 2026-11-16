@@ -73,6 +73,37 @@ class FolderComparisonTest {
     }
 
     @Test
+    @DisplayName("JSON and YAML files are compared by their data")
+    void jsonAndYamlByData() throws Exception {
+        write("l/config.yaml", "# settings\nname: api\nports: [80, 443]\n");
+        write("r/config.yaml", "ports:\n  - 80\n  - 443\nname: 'api'\n");
+        write("l/deploy.yml", "replicas: 2\nimage: web\n");
+        write("r/deploy.yml", "replicas: 3\nimage: web\ntag: v2\n");
+        write("l/data.json", "{\"a\": 1.0, \"b\": [1, 2]}");
+        write("r/data.json", "{\n  \"b\": [1, 2],\n  \"a\": 1\n}\n");
+        write("l/broken.json", "{\"a\": ");
+        write("r/broken.json", "{\"a\": 1}");
+
+        Result result = FolderComparison.compare(dir.resolve("l"), dir.resolve("r"), Options.DEFAULTS, null, null);
+        Map<String, Entry> byPath = result.entries().stream().collect(Collectors.toMap(Entry::relativePath, e -> e));
+        assertEquals(Status.EQUIVALENT, byPath.get("config.yaml").status());
+        assertEquals(Status.EQUIVALENT, byPath.get("data.json").status());
+        assertEquals(Status.DIFFERENT, byPath.get("deploy.yml").status());
+        assertEquals(2, byPath.get("deploy.yml").xmlDifferences(), "replicas changed, tag added");
+        assertEquals(Status.DIFFERENT, byPath.get("broken.json").status());
+        assertTrue(byPath.get("broken.json").note().startsWith("Left: "), byPath.get("broken.json").note());
+        assertTrue(FolderComparison.isData("a/b.YML"));
+        assertFalse(FolderComparison.isData("a/b.xml"));
+
+        Result keyed = FolderComparison.compare(dir.resolve("l"), dir.resolve("r"), new Options(true,
+                XmlStructuralDiff.Options.DEFAULTS.withBasics(true, false, false, true, java.util.List.of("id"))), null, null);
+        assertEquals(Status.EQUIVALENT, keyed.entries().stream()
+                .filter(e -> e.relativePath().equals("config.yaml")).findFirst().orElseThrow().status());
+        Result bytesOnly = FolderComparison.compare(dir.resolve("l"), dir.resolve("r"), new Options(false, null), null, null);
+        assertEquals(0, bytesOnly.count(Status.EQUIVALENT));
+    }
+
+    @Test
     @DisplayName("matching folders, progress and cancellation")
     void sameProgressCancel() throws Exception {
         write("l/a.xml", "<a/>");

@@ -25,15 +25,16 @@ import java.util.function.IntConsumer;
  * Compares two folders file by file (recursively, hidden folders such as {@code .git} skipped):
  * which files exist on one side only, which are byte-identical, which differ. With
  * {@link Options#compareXml()}, XML files whose bytes differ are compared by structure
- * ({@link XmlStructuralDiff}); files that differ only in formatting count as
- * {@link Status#EQUIVALENT}. UI-free; used by Tools → Compare Folders and {@code fxt-cli compare}.
+ * ({@link XmlStructuralDiff}) and JSON / YAML files by their data ({@link DataStructuralDiff});
+ * files that differ only in formatting count as {@link Status#EQUIVALENT}. UI-free; used by Tools → Compare Folders and {@code fxt-cli compare}.
  */
 public final class FolderComparison {
 
     /** The result for one relative path. */
     public enum Status {
         IDENTICAL("Identical"),
-        EQUIVALENT("Equivalent as XML"),
+        /** The bytes differ, the content does not: XML by structure, JSON / YAML by data. */
+        EQUIVALENT("Equivalent"),
         DIFFERENT("Different"),
         ONLY_LEFT("Only left"),
         ONLY_RIGHT("Only right");
@@ -53,8 +54,8 @@ public final class FolderComparison {
     /**
      * Options.
      *
-     * @param compareXml  compare XML files whose bytes differ by structure
-     * @param xmlOptions  what the XML comparison ignores
+     * @param compareXml  compare XML files whose bytes differ by structure, JSON and YAML files by data
+     * @param xmlOptions  what the XML comparison ignores (order, keys and tolerance also for the data)
      */
     public record Options(boolean compareXml, XmlStructuralDiff.Options xmlOptions) {
 
@@ -75,8 +76,9 @@ public final class FolderComparison {
      * @param rightSize       likewise on the right
      * @param leftModified    last modification on the left, or {@code null}
      * @param rightModified   likewise on the right
-     * @param xmlDifferences  number of XML differences for a {@link Status#DIFFERENT} XML file, else -1
-     * @param note            why an XML file was compared by bytes only (not well-formed, too large), or empty
+     * @param xmlDifferences  number of structural differences for a {@link Status#DIFFERENT} XML, JSON or YAML
+     *                        file, else -1
+     * @param note            why such a file was compared by bytes only (not well-formed, too large), or empty
      */
     public record Entry(String relativePath, Status status, long leftSize, long rightSize, Instant leftModified,
                         Instant rightModified, int xmlDifferences, String note) {
@@ -185,15 +187,20 @@ public final class FolderComparison {
             return new Entry(path, Status.DIFFERENT, leftSize, rightSize, leftModified, rightModified, -1,
                     "Cannot read: " + e.getMessage());
         }
-        if (!options.compareXml() || !isXml(path)) {
+        DataStructuralDiff.Format data = DataStructuralDiff.formatOf(path, null);
+        if (!options.compareXml() || (!isXml(path) && data == null)) {
             return new Entry(path, Status.DIFFERENT, leftSize, rightSize, leftModified, rightModified, -1, "");
         }
+        String as = data == null ? "XML" : "data";
         if (leftSize > MAX_XML_COMPARE_BYTES || rightSize > MAX_XML_COMPARE_BYTES) {
             return new Entry(path, Status.DIFFERENT, leftSize, rightSize, leftModified, rightModified, -1,
-                    "Too large to compare as XML");
+                    "Too large to compare as " + as);
         }
         try {
-            XmlStructuralDiff.Result xml = XmlStructuralDiff.compare(read(left), read(right), options.xmlOptions());
+            XmlStructuralDiff.Result xml = data == null
+                    ? XmlStructuralDiff.compare(read(left), read(right), options.xmlOptions())
+                    : DataStructuralDiff.compare(read(left), data, read(right), data,
+                            DataStructuralDiff.Options.of(options.xmlOptions()));
             if (!xml.compared()) {
                 return new Entry(path, Status.DIFFERENT, leftSize, rightSize, leftModified, rightModified, -1,
                         xml.leftError() != null ? "Left: " + xml.leftError() : "Right: " + xml.rightError());
@@ -202,8 +209,13 @@ public final class FolderComparison {
                     leftModified, rightModified, xml.equivalent() ? -1 : xml.differences().size(), "");
         } catch (IOException | RuntimeException | OutOfMemoryError e) {
             return new Entry(path, Status.DIFFERENT, leftSize, rightSize, leftModified, rightModified, -1,
-                    "Not compared as XML: " + e.getMessage());
+                    "Not compared as " + as + ": " + e.getMessage());
         }
+    }
+
+    /** @return whether the path is a JSON or YAML file (compared by its data) */
+    public static boolean isData(String path) {
+        return DataStructuralDiff.formatOf(path, null) != null;
     }
 
     /** @return whether the path has an XML extension */
