@@ -1028,6 +1028,9 @@ public class ValidationPanel extends VBox {
                 menu.getItems().add(org.fxt.freexmltoolkit.controls.shell.editor.quickfix.QuickFixMenuFactory
                         .buildQuickFixMenu(item, fix -> editorHost.getQuickFixController().applyFix(item, fix)));
             }
+            if (item.hasLink()) {
+                menu.getItems().add(ProblemsPanel.openLinkItem("validation-ctx-open-link", item));
+            }
             var ai = org.fxt.freexmltoolkit.controls.shell.editor.ai.AiActions.problemItems(editorHost, item);
             // the separator AiActions puts first is only needed after the quick fixes
             menu.getItems().addAll(menu.getItems().isEmpty() && !ai.isEmpty() ? ai.subList(1, ai.size()) : ai);

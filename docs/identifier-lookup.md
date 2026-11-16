@@ -70,6 +70,13 @@ An ISIN only OpenFIGI knows is no finding. The findings have the source **GLEIF*
 findings of an earlier check; schema and rule findings stay, also when the document is validated again while its text
 is unchanged. When one service cannot be reached, the panel says so and the other part still counts.
 
+**Open the entry.** A finding row carries a link to the identifier's entry at the service that answered - **GLEIF**
+(the LEI's record at `search.gleif.org`), **ESMA FIRDS** (the instrument's record in the ESMA register, as shown in the
+register's details page) or **OpenFIGI** (a search for the ISIN, also for an ISIN neither service knows). Click it, or
+right-click the row → **Open at …**, to see the entry in the browser; **Copy Problem** includes the address. The
+Validation panel's problem list offers the same menu item. Answers cached by version 3.3.0 or earlier know no FIRDS
+record yet and open the register's search page until they are looked up again.
+
 ## With every validation
 
 **Settings → Network & Security** has a card for each kind: **Check LEIs at GLEIF on every validation (F8)** and

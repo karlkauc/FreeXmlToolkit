@@ -20,10 +20,11 @@ import java.time.LocalDate;
  * @param securityType    the security type (OpenFIGI)
  * @param openFigiAsked   whether OpenFIGI was asked about an ISIN that FIRDS does not know
  * @param fetchedAt       when the answer arrived
+ * @param firdsId         the FIRDS document id of the record shown (its page in the ESMA register), or {@code null}
  */
 public record IsinRecord(String isin, Source source, String name, String cfi, String issuerLei, String currency,
                          int activeVenues, int totalVenues, LocalDate terminatedSince, String figi, String ticker,
-                         String securityType, boolean openFigiAsked, Instant fetchedAt) {
+                         String securityType, boolean openFigiAsked, Instant fetchedAt, String firdsId) {
 
     /** Where an answer comes from. */
     public enum Source { FIRDS, OPENFIGI, NONE }
@@ -37,18 +38,25 @@ public record IsinRecord(String isin, Source source, String name, String cfi, St
 
     /** @return a record for an ISIN neither service knows */
     public static IsinRecord notFound(String isin, boolean openFigiAsked, Instant fetchedAt) {
-        return new IsinRecord(isin, Source.NONE, null, null, null, null, 0, 0, null, null, null, null, openFigiAsked, fetchedAt);
+        return new IsinRecord(isin, Source.NONE, null, null, null, null, 0, 0, null, null, null, null, openFigiAsked, fetchedAt, null);
     }
 
     public boolean found() {
         return source != Source.NONE;
     }
 
-    /** @return the page of the instrument: FIRDS search or OpenFIGI */
+    /**
+     * @return the page of the instrument: its record in the ESMA FIRDS register (the register's search when the
+     *         document id is not known, e.g. an answer cached by an older version), or the OpenFIGI search
+     *         for an ISIN FIRDS does not know
+     */
     public String searchUrl() {
-        return source == Source.OPENFIGI
-                ? "https://www.openfigi.com/search#!?simpleSearchString=" + isin
-                : "https://registers.esma.europa.eu/publication/searchRegister?core=esma_registers_firds";
+        if (source == Source.FIRDS) {
+            return firdsId != null && firdsId.matches("[0-9A-Za-z_-]+")
+                    ? "https://registers.esma.europa.eu/publication/details?core=esma_registers_firds&docId=" + firdsId
+                    : "https://registers.esma.europa.eu/publication/searchRegister?core=esma_registers_firds";
+        }
+        return "https://www.openfigi.com/search#!?simpleSearchString=" + isin;
     }
 
     /** @return what deserves a look, or {@code null} */

@@ -364,9 +364,23 @@ public final class ValidationRunner {
         for (var f : result.findings()) {
             problems.add(new ValidationProblem(f.source(),
                     f.severity() == org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Severity.ERROR ? "error" : "warning",
-                    f.line(), f.message(), f.rule(), null).withColumn(f.column()));
+                    f.line(), f.message(), f.rule(), null).withColumn(f.column()).withLink(entryUrl(result, f)));
         }
         return problems;
+    }
+
+    /** @return the page of the identifier a finding is about at the service that answered, or {@code null} */
+    private static String entryUrl(org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Result result,
+                                   org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Finding f) {
+        if (f.id() == null) {
+            return null;
+        }
+        if (org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.SOURCE.equals(f.source())) {
+            var r = result.leiRecords() == null ? null : result.leiRecords().get(f.id());
+            return r == null ? null : r.searchUrl();
+        }
+        var r = result.isinRecords() == null ? null : result.isinRecords().get(f.id());
+        return r == null ? null : r.searchUrl();
     }
 
     /**

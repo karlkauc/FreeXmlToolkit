@@ -50,9 +50,13 @@ class IsinTest {
         assertEquals(87, etf.totalVenues());
         assertEquals(51, etf.activeVenues(), "UNCH + MODF, not TERM/CANC");
         assertNull(etf.problem());
+        assertEquals("10000002", etf.firdsId());
+        assertEquals("https://registers.esma.europa.eu/publication/details?core=esma_registers_firds&docId=10000002",
+                etf.searchUrl(), "the record's own page in the ESMA register");
         assertEquals("ESVUFR", records.get(APPLE).cfi());
         IsinRecord unknown = records.get(UNKNOWN);
         assertFalse(unknown.found());
+        assertEquals("https://www.openfigi.com/search#!?simpleSearchString=" + UNKNOWN, unknown.searchUrl());
         assertEquals(IsinRecord.Severity.WARNING, unknown.problem().severity());
         assertEquals(2, OnlineFakes.REQUESTS.size());
         assertTrue(OnlineFakes.REQUESTS.get(1).contains(UNKNOWN) && !OnlineFakes.REQUESTS.get(1).contains(APPLE),
@@ -129,7 +133,18 @@ class IsinTest {
             throw new AssertionError("no request");
         });
         assertEquals("CEOGES", reopened.cached(ETF).orElseThrow().cfi());
+        assertEquals("10000002", reopened.cached(ETF).orElseThrow().firdsId());
         assertFalse(reopened.cached(UNKNOWN).orElseThrow().found());
+    }
+
+    @Test
+    void anAnswerWithoutDocumentIdLinksTheRegisterSearch() {
+        IsinRecord old = new IsinRecord(ETF, IsinRecord.Source.FIRDS, "ETF", null, null, null, 1, 1, null, null, null, null,
+                false, java.time.Instant.now(), null);
+        assertEquals("https://registers.esma.europa.eu/publication/searchRegister?core=esma_registers_firds", old.searchUrl());
+        IsinRecord odd = new IsinRecord(ETF, IsinRecord.Source.FIRDS, "ETF", null, null, null, 1, 1, null, null, null, null,
+                false, java.time.Instant.now(), "1&x=<b>");
+        assertEquals(old.searchUrl(), odd.searchUrl(), "an id that is not a plain token never goes into the URL");
     }
 
     @Test
@@ -143,6 +158,10 @@ class IsinTest {
         assertEquals(2, result.isins());
         assertEquals(List.of("GLEIF:2", "ISIN:3"), result.findings().stream().map(f -> f.source() + ":" + f.line()).toList());
         assertTrue(result.failures().isEmpty());
+        List<String> links = org.fxt.freexmltoolkit.controls.shell.editor.ValidationRunner.toProblems(result).stream()
+                .map(org.fxt.freexmltoolkit.controls.shell.editor.ValidationProblem::link).toList();
+        assertEquals(List.of("https://search.gleif.org/#/record/5299009FXTMMFCP00069",
+                "https://www.openfigi.com/search#!?simpleSearchString=" + UNKNOWN), links);
 
         Isin.Cache offline = new Isin.Cache(null, Clock.systemUTC(), Duration.ofHours(1), () -> new IsinLookup(uri -> {
             throw new IOException("offline");
@@ -150,6 +169,8 @@ class IsinTest {
         IdentifierCheck.Result half = IdentifierCheck.check(text, leis, offline);
         assertEquals(List.of("GLEIF"), half.findings().stream().map(IdentifierCheck.Finding::source).toList());
         assertEquals("ISIN", half.failures().getFirst().source());
+        assertNull(org.fxt.freexmltoolkit.controls.shell.editor.ValidationRunner.toProblems(half).getFirst().link(),
+                "a service that could not be asked has no entry to open");
         assertNotNull(IdentifierCheck.check(text, null, null));
     }
 

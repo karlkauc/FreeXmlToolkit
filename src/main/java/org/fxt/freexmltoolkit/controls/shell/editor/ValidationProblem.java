@@ -16,9 +16,16 @@ import org.fxt.freexmltoolkit.service.sqf.SqfFixSuggestion;
  * @param context  the failing node's XPath (Schematron SVRL {@code location}), or {@code null}
  * @param fixes    the SQF quick fixes offered for this finding (empty when none)
  * @param column   1-based column number, or 0 if unknown (the jump then goes to the line start)
+ * @param link     a web page about the finding (an online lookup's entry at GLEIF, ESMA FIRDS, OpenFIGI), or {@code null}
  */
 public record ValidationProblem(String source, String severity, int line, String message,
-                                String ruleId, String context, List<SqfFixSuggestion> fixes, int column) {
+                                String ruleId, String context, List<SqfFixSuggestion> fixes, int column, String link) {
+
+    /** Constructor for findings without a link. */
+    public ValidationProblem(String source, String severity, int line, String message,
+                             String ruleId, String context, List<SqfFixSuggestion> fixes, int column) {
+        this(source, severity, line, message, ruleId, context, fixes, column, null);
+    }
 
     /** Constructor for findings without a known column. */
     public ValidationProblem(String source, String severity, int line, String message,
@@ -39,7 +46,17 @@ public record ValidationProblem(String source, String severity, int line, String
 
     /** @return a copy of this problem with the given 1-based column (values below 1 mean unknown) */
     public ValidationProblem withColumn(int col) {
-        return new ValidationProblem(source, severity, line, message, ruleId, context, fixes, Math.max(0, col));
+        return new ValidationProblem(source, severity, line, message, ruleId, context, fixes, Math.max(0, col), link);
+    }
+
+    /** @return a copy of this problem with the given web page ({@code null} = none) */
+    public ValidationProblem withLink(String url) {
+        return new ValidationProblem(source, severity, line, message, ruleId, context, fixes, column, url);
+    }
+
+    /** @return {@code true} when the problem names a web page to open */
+    public boolean hasLink() {
+        return link != null && !link.isBlank();
     }
 
     /** @return {@code true} when the problem carries Schematron rule/XPath details. */

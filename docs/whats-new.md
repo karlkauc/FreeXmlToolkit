@@ -4,6 +4,12 @@ The highlights of each release. The complete notes and all downloads are on the
 [GitHub Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases); the version you are
 running is shown under **Help → About FreeXmlToolkit**.
 
+## Unreleased
+
+- **Open the entry of an online finding.** Findings of **Check Identifiers Online** in the Problems panel link to the
+  identifier's entry at GLEIF, in the ESMA FIRDS register or at OpenFIGI (row link and **Open at …** in the row menu).
+  See [Online Identifier Lookup](identifier-lookup.md#check-every-identifier-of-a-document).
+
 ## 3.3.0 (2026-11-16)
 
 **Online identifier lookup (GLEIF, ESMA FIRDS, OpenFIGI)**

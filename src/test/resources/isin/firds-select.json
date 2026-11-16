@@ -7,7 +7,7 @@
    "group.sort": "status desc",
    "facet.pivot": "isin,status",
    "group.limit": "1",
-   "fl": "isin,gnr_full_name,gnr_short_name,gnr_cfi_code,lei,gnr_notional_curr_code,status,mrkt_trdng_trmination_date",
+   "fl": "id,isin,gnr_full_name,gnr_short_name,gnr_cfi_code,lei,gnr_notional_curr_code,status,mrkt_trdng_trmination_date",
    "fq": "type_s:parent",
    "rows": "100",
    "wt": "json",
@@ -28,6 +28,7 @@
       "numFoundExact": true,
       "docs": [
        {
+        "id": "10000001",
         "isin": "US0378331005",
         "gnr_full_name": "Apple Inc. Registered Shares o.N.",
         "gnr_cfi_code": "ESVUFR",
@@ -47,6 +48,7 @@
       "numFoundExact": true,
       "docs": [
        {
+        "id": "10000002",
         "isin": "IE00B4L5Y983",
         "gnr_full_name": "iShares Core MSCI World UCITS ETF",
         "gnr_cfi_code": "CEOGES",

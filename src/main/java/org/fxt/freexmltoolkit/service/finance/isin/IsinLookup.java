@@ -138,7 +138,7 @@ public final class IsinLookup {
         URI uri = URI.create(FIRDS + "?q=" + enc(query) + "&fq=" + enc("type_s:parent") + "&wt=json&rows=" + batch.size()
                 + "&group=true&group.field=isin&group.limit=1&group.sort=" + enc("status desc")
                 + "&facet=true&facet.pivot=isin,status&facet.limit=-1&fl="
-                + enc("isin,gnr_full_name,gnr_short_name,gnr_cfi_code,lei,gnr_notional_curr_code,status,mrkt_trdng_trmination_date"));
+                + enc("id,isin,gnr_full_name,gnr_short_name,gnr_cfi_code,lei,gnr_notional_curr_code,status,mrkt_trdng_trmination_date"));
         Response r;
         try {
             r = get.get(uri);
@@ -191,7 +191,7 @@ public final class IsinLookup {
             String name = string(d, "gnr_full_name");
             records.put(isin, new IsinRecord(isin, IsinRecord.Source.FIRDS, name != null ? name : string(d, "gnr_short_name"),
                     string(d, "gnr_cfi_code"), string(d, "lei"), string(d, "gnr_notional_curr_code"), v[0], v[1], ended,
-                    null, null, null, false, fetchedAt));
+                    null, null, null, false, fetchedAt, string(d, "id")));
         }
         return records;
     }
@@ -244,7 +244,7 @@ public final class IsinLookup {
             JsonObject d = a.getAsJsonArray("data").get(0).getAsJsonObject();
             String isin = batch.get(i);
             records.put(isin, new IsinRecord(isin, IsinRecord.Source.OPENFIGI, string(d, "name"), null, null, null, 0, 0, null,
-                    string(d, "figi"), string(d, "ticker"), string(d, "securityType"), true, fetchedAt));
+                    string(d, "figi"), string(d, "ticker"), string(d, "securityType"), true, fetchedAt, null));
         }
         return records;
     }

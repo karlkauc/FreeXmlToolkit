@@ -268,7 +268,7 @@ never throws). Users: `ValidationRunner.identifierProblems` / `toProblems` (stag
 online, issuer LEI link), `IdentifierDocumentCheck` (`runOnActive(host, done)` → `Outcome`; merge via
 `EditorHost.publishIdentifierCheck`; a later validation of the same text keeps the online findings per source unless it
 checked that source itself; "Check Identifiers Online": Tools `menu-tools-identifiers-online`, `industry-identifiers-online`,
-`fundsxml-identifiers-online`, `pk-identifiers-online`), `IdentifierHover`, Settings cards `GleifSettings` / `IsinSettings`,
+`fundsxml-identifiers-online`, `pk-identifiers-online`), `IdentifierHover`, links of the findings (`ValidationProblem.link` from `LeiRecord`/`IsinRecord.searchUrl` in `ValidationRunner.toProblems`; FIRDS record page = Solr `id` as `docId`, `IsinRecord.firdsId`; row link + "Open at …" in `ProblemsPanel`, test hook `linkOpener`), Settings cards `GleifSettings` / `IsinSettings`,
 CLI `lei`, `isin` (`--no-openfigi`), `validate --gleif --isin` (the CLI ignores the "on validation" settings). Values leave
 the computer only on a click or with those settings on. Tests: `OnlineFakes` (saved answers `gleif/lei-records.json`,
 `isin/firds-select.json`, `isin/openfigi-mapping.json`). Docs: `docs/identifier-lookup.md`.

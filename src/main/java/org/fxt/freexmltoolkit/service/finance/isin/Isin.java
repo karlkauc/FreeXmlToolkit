@@ -236,18 +236,18 @@ public final class Isin {
     /** The file form of a record. */
     private record Stored(String isin, String source, String name, String cfi, String issuerLei, String currency,
                           int activeVenues, int totalVenues, String terminatedSince, String figi, String ticker,
-                          String securityType, boolean openFigiAsked, String fetchedAt) {
+                          String securityType, boolean openFigiAsked, String fetchedAt, String firdsId) {
 
         static Stored of(IsinRecord r) {
             return new Stored(r.isin(), r.source().name(), r.name(), r.cfi(), r.issuerLei(), r.currency(), r.activeVenues(),
                     r.totalVenues(), r.terminatedSince() == null ? null : r.terminatedSince().toString(), r.figi(), r.ticker(),
-                    r.securityType(), r.openFigiAsked(), r.fetchedAt().toString());
+                    r.securityType(), r.openFigiAsked(), r.fetchedAt().toString(), r.firdsId());
         }
 
         IsinRecord toRecord() {
             return new IsinRecord(isin, IsinRecord.Source.valueOf(source), name, cfi, issuerLei, currency, activeVenues,
                     totalVenues, terminatedSince == null ? null : LocalDate.parse(terminatedSince), figi, ticker,
-                    securityType, openFigiAsked, Instant.parse(fetchedAt));
+                    securityType, openFigiAsked, Instant.parse(fetchedAt), firdsId);
         }
     }
 }

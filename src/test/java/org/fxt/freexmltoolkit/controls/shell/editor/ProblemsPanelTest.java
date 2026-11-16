@@ -316,6 +316,46 @@ class ProblemsPanelTest {
     }
 
     @Test
+    void anOnlineFindingLinksToItsEntry() throws Exception {
+        String url = "https://registers.esma.europa.eu/publication/details?core=esma_registers_firds&docId=1016711936";
+        ValidationProblem isin = new ValidationProblem("ISIN", "warning", 4,
+                "ISIN XS1555094066 (DVB 1 04/25/22 BOND) is no longer traded on any EU trading venue.").withLink(url);
+        ValidationProblem xsd = new ValidationProblem("XSD", "error", 3, "broken element");
+        List<String> opened = new java.util.ArrayList<>();
+        var before = ProblemsPanel.linkOpener;
+        ProblemsPanel.linkOpener = opened::add;
+        try {
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                panel.setMinHeight(240);
+                host.setActiveProblems(List.of(xsd, isin));
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                    () -> panel.lookupAll("#problems-open-link").size() == 1));
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                var link = (javafx.scene.control.Hyperlink) panel.lookup("#problems-open-link");
+                assertEquals("ESMA FIRDS", link.getText());
+                assertEquals("Open at ESMA FIRDS", link.getAccessibleText());
+                link.fire();
+                var menu = panel.contextMenu(isin);
+                assertEquals("problems-ctx-open-link", menu.getItems().getFirst().getId());
+                assertEquals("Open at ESMA FIRDS", menu.getItems().getFirst().getText());
+                menu.getItems().getFirst().fire();
+                assertTrue(panel.contextMenu(xsd).getItems().stream().noneMatch(i -> "problems-ctx-open-link".equals(i.getId())));
+                return null;
+            });
+            assertEquals(List.of(url, url), opened);
+            assertTrue(ProblemsPanel.describe(isin, "fund.xml").endsWith("\n    Link: " + url));
+            assertFalse(ProblemsPanel.describe(xsd, "fund.xml").contains("Link:"));
+        } finally {
+            ProblemsPanel.linkOpener = before;
+        }
+        assertEquals("GLEIF", ProblemsPanel.linkService("https://search.gleif.org/#/record/5299009FXTMMFCP00069"));
+        assertEquals("OpenFIGI", ProblemsPanel.linkService("https://www.openfigi.com/search#!?simpleSearchString=X"));
+        assertEquals("example.org", ProblemsPanel.linkService("https://example.org/a"));
+    }
+
+    @Test
     void rowMenuCopiesMessageProblemAndAllProblems() throws Exception {
         ValidationProblem first = new ValidationProblem("XSD", "error", 3, "a very long message that the row cuts off");
         ValidationProblem second = new ValidationProblem("XSD", "warning", 4, "second");

@@ -9,6 +9,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -20,6 +21,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -30,6 +32,7 @@ import org.fxt.freexmltoolkit.controls.shell.editor.quickfix.QuickFixMenuFactory
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.util.ProjectLinks;
 
 /**
  * The PROBLEMS panel below the editor (Figma "Redesign · Unified — Validation",
@@ -174,6 +177,9 @@ public class ProblemsPanel extends VBox {
                     QuickFixMenuFactory.buildQuickFixMenu(item, fix -> editorHost.getQuickFixController().applyFix(item, fix)),
                     new SeparatorMenuItem());
         }
+        if (item.hasLink()) {
+            menu.getItems().addAll(openLinkItem("problems-ctx-open-link", item), new SeparatorMenuItem());
+        }
         menu.getItems().addAll(
                 menuItem("problems-ctx-copy-message", I18n.t("ProblemsPanel.copy-message"), "bi-clipboard",
                         () -> copyToClipboard(item.message() == null ? "" : item.message())),
@@ -213,7 +219,42 @@ public class ProblemsPanel extends VBox {
         if (item.context() != null && !item.context().isBlank()) {
             text.append("\n    Context: ").append(item.context());
         }
+        if (item.hasLink()) {
+            text.append("\n    Link: ").append(item.link());
+        }
         return text.toString();
+    }
+
+    /** Opens a problem's web page; tests replace it to keep the browser closed. */
+    static java.util.function.Consumer<String> linkOpener = ProjectLinks::openInBrowser;
+
+    /** @return the name of the service behind a problem's web page (GLEIF, ESMA FIRDS, OpenFIGI, else the host) */
+    static String linkService(String url) {
+        String host;
+        try {
+            host = java.net.URI.create(url).getHost();
+        } catch (IllegalArgumentException e) {
+            host = null;
+        }
+        if (host == null) {
+            return "Web";
+        }
+        if (host.endsWith("gleif.org")) {
+            return "GLEIF";
+        }
+        if (host.endsWith("esma.europa.eu")) {
+            return "ESMA FIRDS";
+        }
+        if (host.endsWith("openfigi.com")) {
+            return "OpenFIGI";
+        }
+        return host;
+    }
+
+    /** "Open at GLEIF / ESMA FIRDS / OpenFIGI" for a problem with a web page (also used by the Validation panel). */
+    static MenuItem openLinkItem(String id, ValidationProblem item) {
+        return menuItem(id, I18n.t("ProblemsPanel.open-at", linkService(item.link())), "bi-box-arrow-up-right",
+                () -> linkOpener.accept(item.link()));
     }
 
     /** All problems, one {@link #describe described} problem per line. */
@@ -260,13 +301,37 @@ public class ProblemsPanel extends VBox {
         if (item.context() != null && !item.context().isBlank()) {
             text.append("\nContext: ").append(item.context());
         }
+        if (item.hasLink()) {
+            text.append("\n\n").append(item.link());
+        }
         javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip(text.toString());
         tooltip.setWrapText(true);
         tooltip.setMaxWidth(640);
         return tooltip;
     }
 
-    /** A problem row: severity icon · message (grows, ellipsis) · "file : line" in mono. */
+    /**
+     * The row's link to the finding's entry at the online service ("↗ GLEIF"); a click opens it without selecting the
+     * row (the press would otherwise jump to the line first).
+     */
+    private static Hyperlink linkButton(ValidationProblem item) {
+        String service = linkService(item.link());
+        Hyperlink link = new Hyperlink(service, icon("bi-box-arrow-up-right", 12));
+        link.setId("problems-open-link");
+        link.getStyleClass().add("fxt-problems-link");
+        link.setFocusTraversable(false);
+        String text = I18n.t("ProblemsPanel.open-at", service);
+        link.setAccessibleText(text);
+        link.setTooltip(new javafx.scene.control.Tooltip(text + "\n" + item.link()));
+        link.addEventHandler(MouseEvent.MOUSE_PRESSED, MouseEvent::consume);
+        link.setOnAction(e -> {
+            linkOpener.accept(item.link());
+            link.setVisited(false);
+        });
+        return link;
+    }
+
+    /** A problem row: severity icon · message (grows, ellipsis) · link to the entry (online lookups) · "file : line" in mono. */
     private final class ProblemRowCell extends ListCell<ValidationProblem> {
         private ProblemRowCell() {
             // Follow the ListView width (ellipsize) instead of forcing a horizontal scrollbar.
@@ -302,7 +367,11 @@ public class ProblemsPanel extends VBox {
             Label location = new Label(item.line() > 0 ? name + " : " + item.line() : name);
             location.getStyleClass().add("fxt-problems-loc");
 
-            HBox row = new HBox(10, severityIcon, source, message, location);
+            HBox row = new HBox(10, severityIcon, source, message);
+            if (item.hasLink()) {
+                row.getChildren().add(linkButton(item));
+            }
+            row.getChildren().add(location);
             row.setAlignment(Pos.CENTER_LEFT);
             setText(null);
             setGraphic(row);

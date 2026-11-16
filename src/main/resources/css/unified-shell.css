@@ -2747,6 +2747,23 @@
     -fx-text-fill: -fxt-text-muted;
 }
 
+/* link to an online lookup's entry (GLEIF, ESMA FIRDS, OpenFIGI) */
+.fxt-problems-link {
+    -fx-font-size: 11px;
+    -fx-padding: 0 2px;
+    -fx-text-fill: -fxt-primary-text;
+    -fx-border-color: transparent;
+    -fx-graphic-text-gap: 3px;
+}
+
+.fxt-problems-link .iconify-icon {
+    -fx-icon-color: -fxt-primary-text;
+}
+
+.fxt-problems-link:hover {
+    -fx-underline: true;
+}
+
 /* ----- Validation side panel (Figma node 40:48) ------------------------ */
 .fxt-validation-panel {
     -fx-background-color: -fxt-bg-surface;
