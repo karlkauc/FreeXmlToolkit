@@ -361,6 +361,8 @@ public final class EditorActions {
         // The target's schema (its open tab's binding), so the result's own tab can get one too
         java.io.File openTargetSchema = editorHost.schemaFileOf(target.file());
         final int gen = ++queryRunGeneration;
+        // the Transform panel's processor choice (remembered in the settings) applies here too
+        org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorConfig processor = rememberedXsltProcessor();
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
@@ -377,7 +379,7 @@ public final class EditorActions {
                 return;
             }
             var fullResult = TransformRunner.xsltTransformResult(xml, xmlBaseUri, xslt, xsltSystemId, Map.of(), format,
-                    standards(org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_TRANSFORM).xslt());
+                    standards(org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_TRANSFORM).xslt(), processor);
             String result = fullResult.isSuccess()
                     ? fullResult.getOutputContent()
                     : "ERROR: " + fullResult.getErrorMessage();
@@ -746,5 +748,15 @@ public final class EditorActions {
     /** The language versions a run from the editor uses: the tool's choice, else the global default. */
     private static org.fxt.freexmltoolkit.service.standards.StandardsProfile standards(String tool) {
         return org.fxt.freexmltoolkit.service.standards.StandardsSettings.current().forTool(tool, null);
+    }
+
+    /** @return the external XSLT processor last chosen in the Transform panel, or {@code null} for Saxon HE */
+    static org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorConfig rememberedXsltProcessor() {
+        try {
+            var store = org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorStore.settings();
+            return store.byId(store.lastId()).orElse(null);
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 }

@@ -163,6 +163,14 @@ public class TransformPanel extends VBox {
                     org.fxt.freexmltoolkit.service.standards.XsltVersion.class, "xslt",
                     () -> org.fxt.freexmltoolkit.service.standards.StandardsSettings.current().global().xslt());
 
+    /** The XSLT processor of the panel's runs: Saxon HE or an external one (Settings → XSLT Processors). */
+    private final XsltProcessorChoice processorChoice = new XsltProcessorChoice("transform-xslt-processor", true);
+
+    /** @return the external processor of a run started from the panel, or {@code null} for Saxon HE */
+    public org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorConfig xsltProcessor() {
+        return processorChoice.selected();
+    }
+
     /** The XSLT version a run of this panel uses (tool choice, else the global default; 3.0 without expert mode). */
     org.fxt.freexmltoolkit.service.standards.XsltVersion xsltVersion() {
         return org.fxt.freexmltoolkit.service.standards.StandardsSettings.current().forTool(
@@ -178,7 +186,16 @@ public class TransformPanel extends VBox {
         xsltVersionChoice.setMaxWidth(Double.MAX_VALUE);
         if (formatChoice.getParent() instanceof javafx.scene.layout.Pane formatBox) {
             formatBox.getChildren().add(xsltVersionChoice);
+            formatBox.getChildren().add(processorChoice);
         }
+        // an external processor has its own XSLT version and no profile or trace (those need Saxon HE)
+        processorChoice.selectedProperty().addListener((obs, o, external) -> updateForProcessor());
+        updateForProcessor();
+        sceneProperty().addListener((obs, o, scene) -> {
+            if (scene != null) {
+                processorChoice.refresh(); // processors may have changed in Settings
+            }
+        });
         generateStylesheetButton.visibleProperty().bind(org.fxt.freexmltoolkit.controls.shell.editor.ai.AiState.availableProperty());
         generateStylesheetButton.managedProperty().bind(generateStylesheetButton.visibleProperty());
 
@@ -1675,6 +1692,17 @@ public class TransformPanel extends VBox {
         });
     }
 
+    /** Profile, trace and the XSLT version apply to Saxon HE only. */
+    private void updateForProcessor() {
+        boolean external = processorChoice.selected() != null;
+        String tip = external ? I18n.t("XsltProcessorChoice.saxonOnly") : null;
+        for (javafx.scene.control.Control c : new javafx.scene.control.Control[] {profileCheck, traceCheck, xsltVersionChoice}) {
+            c.setDisable(external);
+        }
+        profileCheck.setTooltip(tip == null ? null : new javafx.scene.control.Tooltip(tip));
+        traceCheck.setTooltip(tip == null ? null : new javafx.scene.control.Tooltip(tip));
+    }
+
     private void transformNow(boolean live) {
         if (!hasXslt()) {
             out.showError(I18n.t("TransformPanel.select-an-xslt-stylesheet-first"));
@@ -1722,8 +1750,10 @@ public class TransformPanel extends VBox {
         File openInputSchema = inputFile != null ? editorHost.schemaFileOf(inputFile)
                 : sourceDocument != null ? editorHost.schemaFileOf(sourceDocument) : null;
         Map<String, Object> params = collectParameters();
-        boolean wantProfile = profileCheck.isSelected();
-        boolean wantTrace = traceCheck.isSelected();
+        // the live preview always runs on Saxon HE (a process per keystroke would be too slow)
+        org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorConfig processor = live ? null : processorChoice.selected();
+        boolean wantProfile = profileCheck.isSelected() && processor == null;
+        boolean wantTrace = traceCheck.isSelected() && processor == null;
         OutputFormat chosen = chosenFormat(null); // null = Auto, resolved from the stylesheet below
         out.showPending(I18n.t("TransformPanel.transforming"));
         // A transform is a single opaque call; cancellation frees the UI and abandons
@@ -1776,12 +1806,15 @@ public class TransformPanel extends VBox {
                         : Files.readString(xslt.toPath(), StandardCharsets.UTF_8);
                 // Auto: detect the format from the stylesheet's xsl:output declaration.
                 format = chosen != null ? chosen : TransformRunner.detectXsltOutputFormat(xsltContent);
-                org.fxt.freexmltoolkit.service.XsltTransformationResult incompatible =
-                        TransformRunner.xsltIncompatibility(xsltContent, xsltSystemId, xsltVersion);
+                org.fxt.freexmltoolkit.service.XsltTransformationResult incompatible = processor != null ? null
+                        : TransformRunner.xsltIncompatibility(xsltContent, xsltSystemId, xsltVersion);
                 // One single run: the full result feeds the output view, the statistics
                 // probe, and (when requested) the Profile/Trace report tabs.
                 if (incompatible != null) {
                     fullResult = incompatible;
+                } else if (processor != null) {
+                    fullResult = TransformRunner.xsltTransformResult(xmlInput, xmlBaseUri, xsltContent, xsltSystemId,
+                            params, format, xsltVersion, processor);
                 } else if (xsltVersion == org.fxt.freexmltoolkit.service.standards.XsltVersion.V1_0) {
                     // the JDK's XSLT 1.0 processor: no profile or trace (those need Saxon)
                     fullResult = TransformRunner.xsltTransformResult(xmlInput, xmlBaseUri, xsltContent,
