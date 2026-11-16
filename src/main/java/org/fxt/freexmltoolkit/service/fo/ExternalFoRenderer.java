@@ -1,24 +1,18 @@
 package org.fxt.freexmltoolkit.service.fo;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.FopEvent;
-import org.fxt.freexmltoolkit.util.ExternalCommands;
+import org.fxt.freexmltoolkit.service.external.ExternalProcess;
 
 /**
  * Renders XSL-FO with an external processor ({@link FoProcessorConfig}): writes the FO to a file,
@@ -34,7 +28,7 @@ public final class ExternalFoRenderer {
     private static final Logger logger = LogManager.getLogger(ExternalFoRenderer.class);
 
     /** Output lines kept per run (the oldest are dropped). */
-    static final int MAX_OUTPUT_LINES = 2000;
+    static final int MAX_OUTPUT_LINES = ExternalProcess.MAX_OUTPUT_LINES;
 
     private ExternalFoRenderer() {
     }
@@ -104,10 +98,9 @@ public final class ExternalFoRenderer {
             foFile = temporaryFo ? writeFo(request, baseDir) : request.foFile().toAbsolutePath();
 
             List<String> arguments = ArgumentTemplate.expand(config.arguments(), values(request, foFile, output, baseDir));
-            if (ExternalCommands.unsafeForBatch(command, arguments)) {
-                throw new FoProcessorException(config.name() + ": an argument contains characters that cmd.exe would "
-                        + "interpret (& | < > ^ % ! \"). Rename the file, or configure the program's .exe instead of a "
-                        + ".cmd/.bat script.", List.of());
+            String unsafe = ExternalProcess.unsafeArguments(config.name(), command, arguments);
+            if (unsafe != null) {
+                throw new FoProcessorException(unsafe, List.of());
             }
             List<String> commandLine = new ArrayList<>();
             commandLine.add(command.toString());
@@ -128,37 +121,15 @@ public final class ExternalFoRenderer {
 
     private static List<FopEvent> run(FoProcessorConfig config, List<String> commandLine, Path workingDir, Path output)
             throws IOException, FoProcessorException, InterruptedException {
-        logger.info("Running external FO processor {}: {}", config.name(), commandLine);
-        ProcessBuilder builder = new ProcessBuilder(commandLine)
-                .directory(workingDir.toFile())
-                .redirectErrorStream(true);
-        builder.redirectInput(ProcessBuilder.Redirect.from(nullDevice()));
-        Process process = builder.start();
-        Deque<String> lines = new ArrayDeque<>();
-        Thread reader = Thread.ofVirtual().name("fo-processor-output").start(() -> readLines(process, lines));
-        boolean finished;
-        try {
-            finished = process.waitFor(config.timeoutSeconds(), TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            stop(process);
-            throw e;
-        }
-        if (!finished) {
-            stop(process);
-        }
-        reader.join(TimeUnit.SECONDS.toMillis(5));
-        List<String> collected;
-        synchronized (lines) {
-            collected = new ArrayList<>(lines);
-        }
-        List<FopEvent> events = OutputLineParser.parse(collected, config.preset(), config.name());
-        if (!finished) {
+        ExternalProcess.Outcome outcome = ExternalProcess.run("external FO processor " + config.name(), commandLine,
+                workingDir, config.timeoutSeconds());
+        List<FopEvent> events = OutputLineParser.parse(outcome.lines(), config.preset(), config.name());
+        if (!outcome.finished()) {
             throw new FoProcessorException(config.name() + " did not finish within " + config.timeoutSeconds()
                     + " seconds and was stopped.", events);
         }
-        int exit = process.exitValue();
-        if (exit != 0) {
-            throw new FoProcessorException(config.name() + " failed (exit code " + exit + ")" + summary(events), events);
+        if (outcome.exitCode() != 0) {
+            throw new FoProcessorException(config.name() + " failed (exit code " + outcome.exitCode() + ")" + summary(events), events);
         }
         if (!Files.isRegularFile(output) || Files.size(output) == 0) {
             throw new FoProcessorException(config.name() + " finished without writing " + output.getFileName()
@@ -198,38 +169,6 @@ public final class ExternalFoRenderer {
         return values;
     }
 
-    private static void readLines(Process process, Deque<String> lines) {
-        Charset charset = consoleCharset();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), charset))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                synchronized (lines) {
-                    lines.addLast(line);
-                    if (lines.size() > MAX_OUTPUT_LINES) {
-                        lines.removeFirst();
-                    }
-                }
-            }
-        } catch (IOException e) {
-            logger.debug("Reading the FO processor's output stopped: {}", e.getMessage());
-        }
-    }
-
-    private static Charset consoleCharset() {
-        try {
-            String name = System.getProperty("native.encoding");
-            return name == null ? Charset.defaultCharset() : Charset.forName(name);
-        } catch (RuntimeException e) {
-            return Charset.defaultCharset();
-        }
-    }
-
-    /** Stops the program and whatever it started (wrapper scripts start a JVM). */
-    private static void stop(Process process) {
-        process.descendants().forEach(ProcessHandle::destroyForcibly);
-        process.destroyForcibly();
-    }
-
     /** @return ": " + the error lines (or the last lines) of the output, or "." */
     private static String summary(List<FopEvent> events) {
         List<String> picked = events.stream().filter(FopEvent::isWarningOrWorse)
@@ -239,10 +178,6 @@ public final class ExternalFoRenderer {
             picked = events.subList(from, events.size()).stream().map(FopEvent::message).toList();
         }
         return picked.isEmpty() ? "." : ": " + String.join("\n", picked);
-    }
-
-    private static java.io.File nullDevice() {
-        return new java.io.File(ExternalCommands.isWindows() ? "NUL" : "/dev/null");
     }
 
     private static String nullToEmpty(String value) {

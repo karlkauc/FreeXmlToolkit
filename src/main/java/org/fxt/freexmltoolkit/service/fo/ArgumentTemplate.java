@@ -1,12 +1,10 @@
 package org.fxt.freexmltoolkit.service.fo;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import org.fxt.freexmltoolkit.service.external.CommandTemplate;
 
 /**
  * The argument template of an external XSL-FO processor, turned into the argument list of one run.
@@ -51,9 +49,9 @@ public final class ArgumentTemplate {
     public static final List<String> NAMES = List.of(FO, PDF, OUT, XML, XSL, BASE_DIR, TITLE, AUTHOR, SUBJECT, PDFA);
 
     /** Marker value of {@value #PDFA} when PDF/A is asked for: present, but expands to nothing. */
-    public static final String FLAG_ON = "\u0000on";
+    public static final String FLAG_ON = CommandTemplate.FLAG_ON;
 
-    private static final Pattern PLACEHOLDER = Pattern.compile("\\$\\{([A-Za-z]+)}");
+    private static final CommandTemplate TEMPLATE = new CommandTemplate(NAMES);
 
     private ArgumentTemplate() {
     }
@@ -67,35 +65,7 @@ public final class ArgumentTemplate {
      * @throws IllegalArgumentException for an unknown placeholder, an unclosed quote or bracket
      */
     public static List<String> expand(String template, Map<String, String> values) {
-        List<String> result = new ArrayList<>();
-        for (Token token : tokenize(template)) {
-            if (token.group().isEmpty()) {
-                String expanded = substitute(token.text(), values);
-                if (!expanded.isEmpty()) {
-                    result.add(expanded);
-                }
-                continue;
-            }
-            boolean complete = true;
-            List<String> parts = new ArrayList<>();
-            for (String part : token.group()) {
-                Matcher m = PLACEHOLDER.matcher(part);
-                while (m.find()) {
-                    String value = values.get(m.group(1));
-                    if (value == null || value.isEmpty()) {
-                        complete = false;
-                    }
-                }
-                String expanded = substitute(part, values);
-                if (!expanded.isEmpty()) {
-                    parts.add(expanded);
-                }
-            }
-            if (complete) {
-                result.addAll(parts);
-            }
-        }
-        return result;
+        return TEMPLATE.expand(template, values);
     }
 
     /**
@@ -103,17 +73,7 @@ public final class ArgumentTemplate {
      * @throws IllegalArgumentException for an unknown placeholder or a syntax error
      */
     public static Set<String> placeholders(String template) {
-        Set<String> names = new TreeSet<>();
-        for (Token token : tokenize(template)) {
-            List<String> texts = token.group().isEmpty() ? List.of(token.text()) : token.group();
-            for (String text : texts) {
-                Matcher m = PLACEHOLDER.matcher(text);
-                while (m.find()) {
-                    names.add(m.group(1));
-                }
-            }
-        }
-        return names;
+        return TEMPLATE.placeholders(template);
     }
 
     /** @return {@code null} when the template is valid, else the problem in plain words */
@@ -129,94 +89,6 @@ public final class ArgumentTemplate {
             return null;
         } catch (IllegalArgumentException e) {
             return e.getMessage();
-        }
-    }
-
-    private static String substitute(String text, Map<String, String> values) {
-        Matcher m = PLACEHOLDER.matcher(text);
-        StringBuilder sb = new StringBuilder();
-        while (m.find()) {
-            String value = values.get(m.group(1));
-            if (value == null || FLAG_ON.equals(value)) {
-                value = "";
-            }
-            m.appendReplacement(sb, Matcher.quoteReplacement(value));
-        }
-        m.appendTail(sb);
-        return sb.toString();
-    }
-
-    /** One argument, or an optional group of arguments. */
-    private record Token(String text, List<String> group) {
-    }
-
-    private static List<Token> tokenize(String template) {
-        List<Token> tokens = new ArrayList<>();
-        if (template == null) {
-            return tokens;
-        }
-        List<String> group = null;
-        StringBuilder current = new StringBuilder();
-        boolean inQuotes = false;
-        boolean hasToken = false;
-        for (int i = 0; i < template.length(); i++) {
-            char c = template.charAt(i);
-            if (inQuotes) {
-                if (c == '"') {
-                    inQuotes = false;
-                } else {
-                    current.append(c);
-                }
-            } else if (c == '"') {
-                inQuotes = true;
-                hasToken = true;
-            } else if (Character.isWhitespace(c) || c == '[' || c == ']') {
-                if (hasToken) {
-                    addToken(tokens, group, current.toString());
-                    current.setLength(0);
-                    hasToken = false;
-                }
-                if (c == '[') {
-                    if (group != null) {
-                        throw new IllegalArgumentException("Optional groups [ … ] cannot be nested.");
-                    }
-                    group = new ArrayList<>();
-                } else if (c == ']') {
-                    if (group == null) {
-                        throw new IllegalArgumentException("A ] has no matching [.");
-                    }
-                    tokens.add(new Token("", List.copyOf(group)));
-                    group = null;
-                }
-            } else {
-                current.append(c);
-                hasToken = true;
-            }
-        }
-        if (inQuotes) {
-            throw new IllegalArgumentException("A double quote is not closed.");
-        }
-        if (hasToken) {
-            addToken(tokens, group, current.toString());
-        }
-        if (group != null) {
-            throw new IllegalArgumentException("A [ has no matching ].");
-        }
-        return tokens;
-    }
-
-    private static void addToken(List<Token> tokens, List<String> group, String text) {
-        Matcher m = PLACEHOLDER.matcher(text);
-        while (m.find()) {
-            if (!NAMES.contains(m.group(1))) {
-                throw new IllegalArgumentException("Unknown placeholder ${" + m.group(1) + "}. Known: "
-                        + String.join(", ", NAMES.stream().map(n -> "${" + n + "}").toList()) + ".");
-            }
-        }
-        if (group != null) {
-            group.add(text);
-        } else {
-            tokens.add(new Token(text, List.of()));
         }
     }
 }
