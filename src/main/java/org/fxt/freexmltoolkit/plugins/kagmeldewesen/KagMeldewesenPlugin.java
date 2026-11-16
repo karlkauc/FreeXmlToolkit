@@ -155,7 +155,7 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
         context.addMenuItem(new PluginMenuItem(PluginMenuItem.Menu.HELP, "kag-fma-aifmd", "FMA AIFMD Reporting",
                 "bi-globe", ui -> ProjectLinks.openInBrowser(FMA_AIFMD_URL), null));
         context.addActivity(new PluginActivity(ID, "KAG-Meldewesen", "bi-briefcase", Workflow.VALIDATION,
-                ui -> new IndustryPanel(ui, "KAG-MELDEWESEN",
+                ui -> KagPanelTools.install(new IndustryPanel(ui, "KAG-MELDEWESEN",
                         "Reports of management companies to the FMA. AIFMD reporting: the AIFM file and the AIF file are "
                                 + "bound to ESMA's schema v1.2 and checked with the FMA's rules (reporting member state AT, "
                                 + "reporting period, content blocks, conditional fields, percentages adding up to 100, "
@@ -175,7 +175,7 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
                                         "bi-file-earmark-plus", ActionColor.CREATE, ui2 -> openExample(ui2, "derimv-example.xml"))),
                         KagMeldewesenPlugin::describe, validator,
                         List.of(IdentifierKind.LEI, IdentifierKind.ISIN, IdentifierKind.BIC))
-                        .withReport(KagMeldewesenPlugin::report, "-pruefbericht.html"),
+                        .withReport(KagMeldewesenPlugin::report, "-pruefbericht.html")),
                 null));
     }
 

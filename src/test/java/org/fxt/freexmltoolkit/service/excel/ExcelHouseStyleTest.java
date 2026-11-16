@@ -142,6 +142,23 @@ class ExcelHouseStyleTest {
         }
     }
 
+    @Test
+    void derivativeRiskReport() throws Exception {
+        String xml;
+        try (InputStream in = getClass().getResourceAsStream("/plugins/kagmeldewesen/examples/derimv-example.xml")) {
+            xml = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        }
+        Path target = dir.resolve("derimv.xlsx");
+        try (var out = Files.newOutputStream(target)) {
+            org.fxt.freexmltoolkit.plugins.kagmeldewesen.DerimvSpreadsheet.writeXlsx(
+                    org.fxt.freexmltoolkit.plugins.kagmeldewesen.DerimvSpreadsheet.fromXml(xml), "derimv-example.xml", out);
+        }
+        try (XSSFWorkbook workbook = open(target)) {
+            assertInfoSheet(workbook.getSheet("Info"));
+            assertTableSheet(workbook.getSheet("Funds"), 0);
+        }
+    }
+
     // ------------------------------------------------------------------ shared assertions
 
     @Test
