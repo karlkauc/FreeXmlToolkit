@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fictitious derivative risk report under the 4. DeRiMV (§ 2a): one file per management company,
+     one InvestmentFonds per UCITS share class. Names, codes and ISINs are made up. -->
+<Derivatemeldung Verwaltungsgesellschaft="Beispiel Kapitalanlagegesellschaft m.b.H." BLZ="12345" Jahr="2025" Quartal="4"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="Derivatemeldung.xsd">
+   <InvestmentFonds>
+      <FMACode>B1000001</FMACode>
+      <ISIN>AT0000A1B2C4</ISIN>
+      <FondsName>Beispiel Anleihefonds (A)</FondsName>
+      <Risikoangabe>12.50</Risikoangabe>
+      <MaxRisikoangabe>18.75</MaxRisikoangabe>
+      <Berechnungsmethode>Comm</Berechnungsmethode>
+      <GrenzenGesamtrisiko>50.00</GrenzenGesamtrisiko>
+   </InvestmentFonds>
+   <InvestmentFonds>
+      <FMACode>B1000001</FMACode>
+      <ISIN>AT0000A1B2D2</ISIN>
+      <FondsName>Beispiel Anleihefonds (T)</FondsName>
+      <Risikoangabe>12.50</Risikoangabe>
+      <MaxRisikoangabe>18.75</MaxRisikoangabe>
+      <Berechnungsmethode>Comm</Berechnungsmethode>
+      <GrenzenGesamtrisiko>50.00</GrenzenGesamtrisiko>
+   </InvestmentFonds>
+   <InvestmentFonds>
+      <FMACode>B1000002</FMACode>
+      <ISIN>AT0000A1B2E0</ISIN>
+      <FondsName>Beispiel Absolute Return (T)</FondsName>
+      <Risikoangabe>4.10</Risikoangabe>
+      <MaxRisikoangabe>6.85</MaxRisikoangabe>
+      <Berechnungsmethode>aVaR</Berechnungsmethode>
+      <GrenzenGesamtrisiko>10.00</GrenzenGesamtrisiko>
+   </InvestmentFonds>
+   <InvestmentFonds>
+      <FMACode>B1000003</FMACode>
+      <ISIN>AT0000A1B2F7</ISIN>
+      <FondsName>Beispiel Aktienfonds Global (T)</FondsName>
+      <Risikoangabe>105.20</Risikoangabe>
+      <MaxRisikoangabe>131.40</MaxRisikoangabe>
+      <Berechnungsmethode>rVaR</Berechnungsmethode>
+   </InvestmentFonds>
+</Derivatemeldung>

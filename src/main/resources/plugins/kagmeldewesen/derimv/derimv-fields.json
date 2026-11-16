@@ -1,0 +1,78 @@
+{
+ "format": "FMA derivative risk report (4. DeRiMV, XSD 2016)",
+ "source": "4. DeRiMV § 2a Abs. 2 as amended by BGBl. II Nr. 242/2016; FMA XSD Derivatemeldung.xsd / DerivateTypes.xsd (2016-10-06)",
+ "fields": [
+  {
+   "id": "1–2",
+   "name": "Derivatemeldung (management company)",
+   "path": "Derivatemeldung",
+   "obligation": "M",
+   "guidance": "The whole report of one management company in one XML file (§ 2a Abs. 1), reported quarterly through the FMA Incoming Platform. Attributes: Verwaltungsgesellschaft (Z 1, name, max. 150 characters), BLZ (Z 2, bank code, 5 digits), Jahr and Quartal (reporting period).",
+   "rule": "One file per management company; first applied to the reporting date 31 December 2016."
+  },
+  {
+   "id": "3–9",
+   "name": "Investmentfonds",
+   "path": "Derivatemeldung/InvestmentFonds",
+   "obligation": "M",
+   "guidance": "One entry per UCITS (per ISIN).",
+   "rule": "An ISIN is reported once per file."
+  },
+  {
+   "id": "3",
+   "name": "FMA-Code",
+   "path": "Derivatemeldung/InvestmentFonds/FMACode",
+   "obligation": "M",
+   "guidance": "FMA code of the investment fund, max. 30 characters, alphanumeric. The FMA provides the codes on the Incoming Platform (as for the AIFMD reporting).",
+   "rule": "1 to 30 characters."
+  },
+  {
+   "id": "4",
+   "name": "ISIN",
+   "path": "Derivatemeldung/InvestmentFonds/ISIN",
+   "obligation": "M",
+   "guidance": "International Securities Identification Number (ISO 6166) of the investment fund, 12 characters.",
+   "rule": "Valid ISIN check digit; unique in the file."
+  },
+  {
+   "id": "5",
+   "name": "Fondsname",
+   "path": "Derivatemeldung/InvestmentFonds/FondsName",
+   "obligation": "M",
+   "guidance": "Name of the investment fund, max. 100 characters.",
+   "rule": "1 to 100 characters."
+  },
+  {
+   "id": "6",
+   "name": "Risikoangabe",
+   "path": "Derivatemeldung/InvestmentFonds/Risikoangabe",
+   "obligation": "M",
+   "guidance": "Global exposure in percent at the reporting date, max. three digits and two decimals.",
+   "rule": "0 to 999.99; not above the maximum of the reporting period (field 7)."
+  },
+  {
+   "id": "7",
+   "name": "Maximale Risikoangabe",
+   "path": "Derivatemeldung/InvestmentFonds/MaxRisikoangabe",
+   "obligation": "M",
+   "guidance": "Maximum global exposure of the reporting period in percent, max. three digits and two decimals.",
+   "rule": "Commitment approach: at most 100 % of the net asset value; absolute VaR: at most 20 %; relative VaR: at most twice the VaR of the reference portfolio."
+  },
+  {
+   "id": "8",
+   "name": "Berechnungsmethode",
+   "path": "Derivatemeldung/InvestmentFonds/Berechnungsmethode",
+   "obligation": "M",
+   "guidance": "Method used to calculate the global exposure: Comm = commitment approach, aVaR = absolute value at risk, rVaR = relative value at risk.",
+   "rule": "One of Comm, aVaR, rVaR."
+  },
+  {
+   "id": "9",
+   "name": "Grenzen des Gesamtrisikos",
+   "path": "Derivatemeldung/InvestmentFonds/GrenzenGesamtrisiko",
+   "obligation": "O",
+   "guidance": "Special limits of the global exposure under the fund rules (maximum global exposure of derivatives under the commitment approach, or maximum attributable risk amount under the VaR approach), in percent, max. three digits and two decimals.",
+   "rule": "Absolute VaR: the maximum of the period (field 7) should not exceed it, and it should not exceed the legal 20 %."
+  }
+ ]
+}

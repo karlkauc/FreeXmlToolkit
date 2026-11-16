@@ -68,6 +68,9 @@ running is shown under **Help → About FreeXmlToolkit**.
   Inspector. See [KAG-Meldewesen](plugin-kag-meldewesen.md).
 - **Money market fund reports** (ESMA auth.093) are validated in their BizData envelope and checked with ESMA's
   application rules (periods, share classes, liquidity profile, stress tests, assets, codes).
+- **Derivative risk report (4. DeRiMV):** the UCITS report `Derivatemeldung` is bound to the FMA's schema and checked
+  against the limits of the global exposure (commitment 100 %, absolute VaR 20 %, relative VaR 200 %), the fund's own
+  limit, the period maximum and ISIN check digits. **New Derivative Risk Report (Example)** opens a fictitious report.
 
 **PK-Meldewesen (FMA)**
 

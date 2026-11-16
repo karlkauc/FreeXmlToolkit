@@ -21,6 +21,7 @@ package org.fxt.freexmltoolkit.plugins.kagmeldewesen;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -51,8 +52,9 @@ import org.fxt.freexmltoolkit.util.ProjectLinks;
  * Reports of Austrian management companies (KAG / AIFM) to the FMA. So far the AIFMD reporting
  * (Annex IV): the AIFM file ({@code AIFMReportingInfo}) and the AIF file ({@code AIFReportingInfo}) on
  * ESMA's XML schemas v1.2, checked with the FMA's rules, with the field labels of ESMA's technical
- * guidance; and ESMA's money market fund report (MMFR Art. 37, auth.093) with its application rules. Off by
- * default (Settings → Extensions).
+ * guidance; ESMA's money market fund report (MMFR Art. 37, auth.093) with its application rules; and the
+ * derivative risk report of UCITS management companies under the 4. DeRiMV ({@code Derivatemeldung}, FMA XSD
+ * of 2016). Off by default (Settings → Extensions).
  */
 public final class KagMeldewesenPlugin implements FxtPlugin {
 
@@ -75,6 +77,11 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
     static final Supplier<FieldCatalog> MMF_FIELDS = CatalogDescriber.lazy(MMF_RESOURCES + "/mmf-fields.json");
     private static volatile RegRuleSet mmfRules;
 
+    static final String DERIMV_RESOURCES = "/plugins/kagmeldewesen/derimv";
+    static final List<String> DERIMV_SCHEMAS = List.of("Derivatemeldung.xsd", "DerivateTypes.xsd");
+    static final Supplier<FieldCatalog> DERIMV_FIELDS = CatalogDescriber.lazy(DERIMV_RESOURCES + "/derimv-fields.json");
+    private static final RegRuleSet DERIMV_RULES = DerimvRules.rules(LocalDate::now);
+
     private static volatile RegRuleSet aifRules;
     private static volatile RegRuleSet aifmRules;
 
@@ -85,7 +92,8 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
 
     @Override
     public String description() {
-        return "Reports of Austrian management companies to the FMA: AIFMD reporting (AIFM and AIF file) with the FMA's rules.";
+        return "Reports of Austrian management companies to the FMA: AIFMD reporting (AIFM and AIF file) with the FMA's rules, "
+                + "money market fund reports and the derivative risk report (4. DeRiMV).";
     }
 
     /** @return the rules of a report, or {@code null} for other documents */
@@ -112,6 +120,7 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
                 }
                 yield aifmRules;
             }
+            case DerimvRules.ROOT -> DERIMV_RULES;
             default -> null;
         };
     }
@@ -121,13 +130,16 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
         RegValidator validator = new RegValidator("KAG-Meldewesen", () -> true,
                 (java.util.function.BiFunction<RegValidator.Root, String, RegRuleSet>) KagMeldewesenPlugin::rulesFor);
         context.addValidator(validator);
-        context.addElementDescriber(new CatalogDescriber(() -> true, List.of(AIF_FIELDS, AIFM_FIELDS, MMF_FIELDS)));
+        context.addElementDescriber(new CatalogDescriber(() -> true, List.of(AIF_FIELDS, AIFM_FIELDS, MMF_FIELDS, DERIMV_FIELDS)));
         try {
             Path dir = BundledSchemas.install(ID, "aifmd-1.2", AIFMD_RESOURCES, AIFMD_SCHEMAS);
             context.addSchema(new PluginSchema(null, dir.resolve("AIFMD_DATAIF_V1.2.xsd").toAbsolutePath().toString(),
                     "ESMA AIFMD reporting, AIF file (v1.2)", AifmdRules.AIF_ROOT));
             context.addSchema(new PluginSchema(null, dir.resolve("AIFMD_DATMAN_V1.2.xsd").toAbsolutePath().toString(),
                     "ESMA AIFMD reporting, AIFM file (v1.2)", AifmdRules.AIFM_ROOT));
+            Path derimv = BundledSchemas.install(ID, "derimv-2016", DERIMV_RESOURCES, DERIMV_SCHEMAS);
+            context.addSchema(new PluginSchema(null, derimv.resolve("Derivatemeldung.xsd").toAbsolutePath().toString(),
+                    "FMA derivative risk report (4. DeRiMV, 2016)", DerimvRules.ROOT));
             org.fxt.freexmltoolkit.plugins.regreport.EsmaSchemas.register(context,
                     org.fxt.freexmltoolkit.plugins.regreport.EsmaSchemas.MMF, "ESMA money market fund report (auth.093, v04.1)");
         } catch (RuntimeException e) {
@@ -136,7 +148,7 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
         context.addDocumentBadge((path, content) -> {
             String label = label(content);
             return label == null ? null : new DocumentBadge.Badge(label, "bi-briefcase",
-                    "Recognised as report to the FMA; the ESMA schema and the rules apply.", Workflow.VALIDATION,
+                    "Recognised as report to the FMA; its schema and the rules apply.", Workflow.VALIDATION,
                     ui -> ui.showActivity(ID));
         });
         context.addMenuItem(new PluginMenuItem(PluginMenuItem.Menu.HELP, "kag-fma-aifmd", "FMA AIFMD Reporting",
@@ -147,14 +159,19 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
                                 + "bound to ESMA's schema v1.2 and checked with the FMA's rules (reporting member state AT, "
                                 + "reporting period, content blocks, conditional fields, percentages adding up to 100, "
                                 + "rankings, LEI and ISIN check digits). Money market fund reports (ESMA auth.093) are "
-                                + "checked with ESMA's application rules. The Inspector shows the field number, "
+                                + "checked with ESMA's application rules. The derivative risk report (4. DeRiMV) is bound to "
+                                + "the FMA's schema and checked against the limits of the global exposure (commitment 100 %, "
+                                + "absolute VaR 20 %, relative VaR 200 %), the fund's own limit and ISIN check digits. "
+                                + "The Inspector shows the field number, "
                                 + "guidance and rule of every element.",
                         List.of(new IndustryPanel.Action("kag-new-aif", "New AIF File (Example)", "bi-file-earmark-plus",
                                         ActionColor.CREATE, ui2 -> openExample(ui2, "aif-example.xml")),
                                 new IndustryPanel.Action("kag-new-aifm", "New AIFM File (Example)", "bi-file-earmark-plus",
                                         ActionColor.CREATE, ui2 -> openExample(ui2, "aifm-example.xml")),
                                 new IndustryPanel.Action("kag-new-mmf", "New Money Market Fund Report (Example)",
-                                        "bi-file-earmark-plus", ActionColor.CREATE, ui2 -> openExample(ui2, "mmf-example.xml"))),
+                                        "bi-file-earmark-plus", ActionColor.CREATE, ui2 -> openExample(ui2, "mmf-example.xml")),
+                                new IndustryPanel.Action("kag-new-derimv", "New Derivative Risk Report (Example)",
+                                        "bi-file-earmark-plus", ActionColor.CREATE, ui2 -> openExample(ui2, "derimv-example.xml"))),
                         KagMeldewesenPlugin::describe, validator,
                         List.of(IdentifierKind.LEI, IdentifierKind.ISIN, IdentifierKind.BIC)),
                 null));
@@ -185,15 +202,39 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
         return switch (root.localName()) {
             case AifmdRules.AIF_ROOT -> "AIF";
             case AifmdRules.AIFM_ROOT -> "AIFM";
+            case DerimvRules.ROOT -> "DeRiMV";
             default -> null;
         };
     }
 
-    /** @return the badge text ({@code AIFMD AIF Y1/2025}, {@code MMF Q1–Q2/2026}), or {@code null} */
+    private static final Pattern DERIMV_ROOT = Pattern.compile("<Derivatemeldung\\s[^>]*>");
+    private static final Pattern ATTRIBUTE = Pattern.compile("(\\w+)\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)')");
+    private static final Pattern FUND = Pattern.compile("<InvestmentFonds[\\s>]");
+
+    /** @return the attributes of the DeRiMV root element (Verwaltungsgesellschaft, BLZ, Jahr, Quartal) */
+    private static java.util.Map<String, String> derimvHeader(String content) {
+        java.util.Map<String, String> attributes = new java.util.HashMap<>();
+        Matcher root = DERIMV_ROOT.matcher(content.length() > 20_000 ? content.substring(0, 20_000) : content);
+        if (root.find()) {
+            Matcher a = ATTRIBUTE.matcher(root.group());
+            while (a.find()) {
+                attributes.put(a.group(1), a.group(2) != null ? a.group(2) : a.group(3));
+            }
+        }
+        return attributes;
+    }
+
+    /** @return the badge text ({@code AIFMD AIF Y1/2025}, {@code MMF Q1–Q2/2026}, {@code DeRiMV Q4/2025}), or {@code null} */
     static String label(String content) {
         String kind = kind(content);
         if (kind == null) {
             return null;
+        }
+        if (kind.equals("DeRiMV")) {
+            java.util.Map<String, String> h = derimvHeader(content);
+            String year = h.getOrDefault("Jahr", "").strip();
+            String quarter = h.getOrDefault("Quartal", "").strip();
+            return "DeRiMV" + (year.isEmpty() || quarter.isEmpty() ? "" : " Q" + quarter + "/" + year);
         }
         if (kind.equals("MMF")) {
             Matcher p = MMF_PERIOD.matcher(content.length() > 20_000 ? content.substring(0, 20_000) : content);
@@ -208,6 +249,12 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
         String kind = kind(content);
         if (kind == null) {
             return null;
+        }
+        if (kind.equals("DeRiMV")) {
+            long funds = FUND.matcher(content).results().count();
+            String company = derimvHeader(content).getOrDefault("Verwaltungsgesellschaft", "").strip();
+            return "FMA derivative risk report (4. DeRiMV)\n" + label(content) + (company.isEmpty() ? "" : " · " + company)
+                    + " · " + funds + (funds == 1 ? " fund" : " funds");
         }
         if (kind.equals("MMF")) {
             long reports = FUND_REPORT.matcher(content).results().count();

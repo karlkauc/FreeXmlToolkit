@@ -55,6 +55,9 @@ class ReportingPluginsRegistrationTest {
         var aif = SchemaLibraryServiceImpl.shared().resolveByRootElement("AIFReportingInfo").orElseThrow();
         assertEquals(EntrySource.PLUGIN, aif.source());
         assertTrue(Files.isRegularFile(Path.of(aif.location())), aif.location());
+        var derimv = SchemaLibraryServiceImpl.shared().resolveByRootElement("Derivatemeldung").orElseThrow();
+        assertTrue(Files.isRegularFile(Path.of(derimv.location())), derimv.location());
+        assertTrue(Files.isRegularFile(Path.of(derimv.location()).resolveSibling("DerivateTypes.xsd")), "include installed too");
         for (String namespace : new String[] {EsmaSchemas.ENVELOPE, EsmaSchemas.MMF, EsmaSchemas.EMIR, EsmaSchemas.SFTR, EsmaSchemas.MIFIR}) {
             var entry = SchemaLibraryServiceImpl.shared().resolveNamespace(namespace, SchemaKind.XSD).orElseThrow(
                     () -> new AssertionError("no schema for " + namespace));

@@ -13,26 +13,11 @@ Plan: [2026-11-14-regulatory-reporting-extensions.md](2026-11-14-regulatory-repo
     - MiFIR.
 - User docs: `docs/plugin-kag-meldewesen.md`, `docs/plugin-esma-reporting.md`, `docs/plugin-pk-meldewesen.md`.
 
-## 1. 4. DeRiMV (derivative risk report) – not built
-The XSD is only on the FMA Incoming Platform and is not public. Needed:
-1. The current FMA XSD, with every XSD it includes (a ZIP is fine).
-2. If possible, a sample report. It is for local cross-checks only and never goes into the repo; anonymise it or make one up.
-3. The FMA's technical description: field descriptions, validation rules, deadline and reporting period.
-4. The file-name convention for submissions on the Incoming Platform.
-5. Whether one file is reported per management company or per UCITS, and which fields are mandatory for commitment, relative VaR and absolute VaR.
-
-Put the files in `regdata/fma/`, which is gitignored.
-
-Planned checks:
-- the XSD;
-- the risk method per UCITS (commitment, relative VaR or absolute VaR);
-- limits:
-  - commitment ≤ 100 % of NAV;
-  - absolute VaR ≤ 20 %;
-  - relative VaR ≤ 2 × the reference portfolio;
-- confidence level 99 %, holding period 20 days;
-- whether the leverage is plausible;
-- date logic.
+## 1. 4. DeRiMV (derivative risk report) – done 2026-11-16
+Built from the FMA's XSD of 2016 (`regdata/fma/DeRiMV - Novelle 2016-Okt.zip`): `DerimvRules`, bundled schema,
+field labels, example, badge. The report has no confidence level, holding period, reference portfolio or NAV, so
+those planned checks were dropped. Still unknown: the Incoming Platform's file-name convention and the submission
+deadline; the FMA has no rule catalogue for this report.
 
 ## 2. AIFMD submission dialog – blocked
 - The FMA's file-name convention for AIFMD reports (AIF and AIFM). No public source was found.

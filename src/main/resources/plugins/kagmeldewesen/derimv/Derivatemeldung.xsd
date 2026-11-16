@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:annotation>
+		<xs:documentation>Derivatemeldung</xs:documentation>
+	</xs:annotation>
+	<xs:include schemaLocation="DerivateTypes.xsd"/>
+	<xs:element name="Derivatemeldung">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="InvestmentFonds" type="InvestmentFondsType" maxOccurs="unbounded"/>
+			</xs:sequence>
+			<xs:attribute name="Verwaltungsgesellschaft" type="VerwaltungsNameType" use="required"/>
+			<xs:attribute name="BLZ" type="BLZType" use="required"/>
+			<xs:attribute name="Jahr" type="JahrType" use="required"/>
+			<xs:attribute name="Quartal" type="QuartalType" use="required"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:complexType name="InvestmentFondsType">
+		<xs:sequence>
+                        <xs:element name="FMACode" type="FMACodeType"/>
+			<xs:element name="ISIN" type="ISINInstrumentType"/>
+			<xs:element name="FondsName" type="FondsNameType"/>
+			<xs:element name="Risikoangabe" type="RisikoangabeType"/>
+			<xs:element name="MaxRisikoangabe" type="RisikoangabeType"/>
+			<xs:element name="Berechnungsmethode" type="MethodeType"/>
+			<xs:element name="GrenzenGesamtrisiko" type="RisikoangabeType" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

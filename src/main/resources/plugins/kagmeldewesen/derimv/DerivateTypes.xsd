@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xs:simpleType name="VerwaltungsNameType">
+		<xs:annotation>
+			<xs:documentation> Name der Verwaltungsgesellschaft, max. 150 Stellen </xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="150"/>
+			<xs:whiteSpace value="collapse"/>
+			<xs:pattern value=".{1,150}"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="BLZType">
+		<xs:annotation>
+			<xs:documentation> Bankleitzahl der Verwaltungsgesellschaft </xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer">
+			<xs:pattern value="[0-9]{5}"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="QuartalType">
+		<xs:annotation>
+			<xs:documentation> Quartal der Meldung (1-4) </xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer">
+			<xs:fractionDigits value ="0"/>
+			<xs:minInclusive value="1" />
+			<xs:maxInclusive value="4" />
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="JahrType">
+		<xs:annotation>
+			<xs:documentation> Jahr der Meldung </xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer">
+			<xs:pattern value="(19|20)[0-9]{2}"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+        <xs:simpleType name="FMACodeType">
+		<xs:annotation>
+			<xs:documentation> FMA Code, max. 30 Stellen </xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="30"/>
+			<xs:whiteSpace value="collapse"/>
+			<xs:pattern value=".{1,30}"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="ISINInstrumentType">
+		<xs:annotation>
+			<xs:documentation> ISO 6166 ISIN. Format: 2(a)9(x)1(n) </xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:whiteSpace value="collapse"/>
+			<xs:pattern value="[A-Z]{2}([A-Z]|[0-9]){9}[0-9]"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="FondsNameType">
+		<xs:annotation>
+			<xs:documentation> Name des Investmentfonds, max. 100 Stellen </xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="100"/>
+			<xs:whiteSpace value="collapse"/>
+			<xs:pattern value=".{1,100}"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="RisikoangabeType">
+		<xs:annotation>
+			<xs:documentation> Risikoangabe in Prozent </xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:decimal">
+			<xs:totalDigits value="5"/>
+			<xs:fractionDigits value="2"/>
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="999"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+        <xs:simpleType name="MethodeType">
+                <xs:restriction base="xs:string">
+      			<xs:enumeration value="Comm"/>
+			<xs:enumeration value="aVaR"/>
+		        <xs:enumeration value="rVaR"/>
+		</xs:restriction>
+        </xs:simpleType>
+
+</xs:schema>
