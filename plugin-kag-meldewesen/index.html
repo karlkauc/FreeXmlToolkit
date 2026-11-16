@@ -2381,10 +2381,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sources" class="md-nav__link">
+  <a href="#derivative-risk-report-4-derimv" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sources
+        Derivative risk report (4. DeRiMV)
       
     </span>
   </a>
@@ -2392,10 +2392,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#planned" class="md-nav__link">
+  <a href="#sources" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Planned
+        Sources
       
     </span>
   </a>
@@ -3218,10 +3218,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sources" class="md-nav__link">
+  <a href="#derivative-risk-report-4-derimv" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sources
+        Derivative risk report (4. DeRiMV)
       
     </span>
   </a>
@@ -3229,10 +3229,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#planned" class="md-nav__link">
+  <a href="#sources" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Planned
+        Sources
       
     </span>
   </a>
@@ -3266,7 +3266,9 @@ Austrian Financial Market Authority (FMA):</p>
 <li>the <strong>AIFMD reporting</strong> (Annex IV of Regulation (EU) 231/2013, § 22 AIFMG): the <strong>AIFM file</strong> and
   the <strong>AIF file</strong> in ESMA's XML format;</li>
 <li>the <strong>money market fund report</strong> (Article 37 of Regulation (EU) 2017/1131, quarterly via the FMA
-  to ESMA) in ESMA's ISO 20022 format.</li>
+  to ESMA) in ESMA's ISO 20022 format;</li>
+<li>the <strong>derivative risk report</strong> of UCITS management companies (§ 2a of the 4. DeRiMV, quarterly) in
+  the FMA's XML format.</li>
 </ul>
 <table>
 <thead>
@@ -3291,6 +3293,11 @@ Austrian Financial Market Authority (FMA):</p>
 <td>Money market fund report</td>
 <td><code>BizData</code> (head.003) with <code>Document</code> (auth.093), or <code>Document</code> alone</td>
 <td>ESMA MMF schemas v04.1</td>
+</tr>
+<tr>
+<td>Derivative risk report</td>
+<td><code>Derivatemeldung</code> (no namespace)</td>
+<td>FMA <code>Derivatemeldung.xsd</code> + <code>DerivateTypes.xsd</code> (2016)</td>
 </tr>
 </tbody>
 </table>
@@ -3328,7 +3335,8 @@ Austrian Financial Market Authority (FMA):</p>
 - <strong>Field labels:</strong> select an element (text, tree or grid) and the Inspector's DOCUMENTATION starts
   with its ESMA field number and name, the M/C/O/F obligation, the FMA's rule and ESMA's technical
   guidance; the grid shows the same as tooltip of the element's name.
-- <strong>Status bar badge:</strong> <code>AIFMD AIF Y1/2025</code>, <code>AIFMD AIFM Q4/2025</code>; a click opens the side panel.
+- <strong>Status bar badge:</strong> <code>AIFMD AIF Y1/2025</code>, <code>AIFMD AIFM Q4/2025</code>, <code>MMF Q1–Q4/2026</code>, <code>DeRiMV Q4/2025</code>; a click
+  opens the side panel.
 - <strong>KAG-Meldewesen activity:</strong> what the active document is, <strong>Check Active Document</strong>, an identifier
   checker (LEI, ISIN, BIC) and two examples (<strong>New AIF File</strong>, <strong>New AIFM File</strong>) with fictitious data.
 - <strong>Help menu:</strong> <strong>FMA AIFMD Reporting</strong> opens the FMA's page with the rules and samples.</p>
@@ -3355,15 +3363,68 @@ rules of ESMA's <em>MMF validation rules v07</em> that need only the file (<code
 </ul>
 <p>Checks against ESMA's register (authorised MMFs, earlier reports) only run at ESMA. <strong>New Money
 Market Fund Report (Example)</strong> opens a fictitious report.</p>
+<h2 id="derivative-risk-report-4-derimv">Derivative risk report (4. DeRiMV)<a class="headerlink" href="#derivative-risk-report-4-derimv" title="Permanent link">¶</a></h2>
+<p>The whole report of a management company is one XML file (§ 2a Abs. 1): the company's name, bank code
+(BLZ), year and quarter as attributes of <code>Derivatemeldung</code>, then one <code>InvestmentFonds</code> per UCITS with the
+items of § 2a Abs. 2 (as amended by BGBl. II Nr. 242/2016): FMA code, ISIN, fund name, global exposure at
+the reporting date and the maximum of the period in percent, the method (<code>Comm</code>, <code>aVaR</code>, <code>rVaR</code>) and,
+optionally, the fund's own limit. It is bound to the FMA's schema of 2016 (installed under
+<code>~/.freeXmlToolkit/kag-meldewesen/derimv-2016/</code>) and checked with these rules (<code>DeRiMV-&lt;item&gt;</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Check</th>
+<th>Severity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DeRiMV-4</code></td>
+<td>ISIN check digit; every ISIN once in the file</td>
+<td>error</td>
+</tr>
+<tr>
+<td><code>DeRiMV-7</code></td>
+<td>exposure at the reporting date not above the period maximum</td>
+<td>error</td>
+</tr>
+<tr>
+<td><code>DeRiMV-7</code></td>
+<td>commitment approach at most 100 % of the net asset value, absolute VaR at most 20 %</td>
+<td>error</td>
+</tr>
+<tr>
+<td><code>DeRiMV-7</code></td>
+<td>relative VaR at most 200 % (twice the reference portfolio's VaR)</td>
+<td>warning</td>
+</tr>
+<tr>
+<td><code>DeRiMV-9</code></td>
+<td>absolute VaR: period maximum not above the fund's own limit, own limit not above 20 %</td>
+<td>warning</td>
+</tr>
+<tr>
+<td><code>DeRiMV-period</code></td>
+<td>the quarter has ended; reports from the reporting date 31 December 2016</td>
+<td>warning</td>
+</tr>
+</tbody>
+</table>
+<p>The FMA publishes no rule catalogue for this report, so the rules follow the regulation. The report
+carries no confidence level, holding period, reference portfolio or net asset value - these VaR
+parameters cannot be checked on the file. The relative VaR check is only a warning: reports give the
+ratio to the reference portfolio (limit 200 %), while the formula of § 16 Abs. 1 Z 3 since 2016 measures
+the excess over it (limit 100 %), and the regulation does not say which of the two the field holds. The
+FMA codes per fund are provided on the Incoming
+Platform. <strong>New Derivative Risk Report (Example)</strong> opens a fictitious report.</p>
 <h2 id="sources">Sources<a class="headerlink" href="#sources" title="Permanent link">¶</a></h2>
 <p>ESMA: AIFMD reporting XML documents v1.2 (2013-1361) and IT technical guidance rev 6 (2013-1358).
 FMA: <em>Informationen zum Inhalt und zur Übermittlung des AIFMD-Reportings</em> (December 2023) and the
 <em>Prüfregeln</em> (29.01.2024). ESMA: MMF reporting XML schemas v04.1 and validation rules v07
 (esma65-8-6480). The field catalogues are generated with <code>scripts/aifmd-fields.py</code> and
-<code>scripts/esma-mmf-fields.py</code>.</p>
-<h2 id="planned">Planned<a class="headerlink" href="#planned" title="Permanent link">¶</a></h2>
-<p>The UCITS derivative risk report under the 4. DeRiMV follows once its XSD (published on the Incoming
-Platform only) is available.</p>
+<code>scripts/esma-mmf-fields.py</code>. 4. DeRiMV (BGBl. II Nr. 266/2011 as amended by BGBl. II Nr. 242/2016) and
+the FMA's XSD of 6 October 2016; its field labels (<code>derimv/derimv-fields.json</code>) are written by hand.</p>
 
 
 
