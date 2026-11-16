@@ -97,6 +97,9 @@ public final class DiffView extends Tab {
     private Mode mode = Mode.TEXT;
     private XmlStructuralDiff.Options xmlOptions = loadXmlOptions();
     private final XmlDiffPanel xmlPanel = new XmlDiffPanel(this::showDifference);
+    /** The data formats of both sides when they are JSON / YAML (structure mode compares data), else null. */
+    private org.fxt.freexmltoolkit.service.DataStructuralDiff.Format leftData;
+    private org.fxt.freexmltoolkit.service.DataStructuralDiff.Format rightData;
     private final SplitPane verticalSplit = new SplitPane();
     private final ToggleGroup modeGroup = new ToggleGroup();
     private final ToggleButton textModeButton = new ToggleButton(I18n.t("DiffView.text"));
@@ -220,8 +223,17 @@ public final class DiffView extends Tab {
         setOnCloseRequest(this::handleCloseRequest);
 
         updateHeaders();
-        boolean bothXml = XmlStructuralDiff.looksLikeXml(leftArea.getText())
-                && XmlStructuralDiff.looksLikeXml(rightArea.getText());
+        leftData = org.fxt.freexmltoolkit.service.DataStructuralDiff.formatOf(leftDisplayName, leftArea.getText());
+        rightData = org.fxt.freexmltoolkit.service.DataStructuralDiff.formatOf(rightFile.getName(), rightArea.getText());
+        boolean bothData = leftData != null && rightData != null;
+        boolean bothXml = bothData || (XmlStructuralDiff.looksLikeXml(leftArea.getText())
+                && XmlStructuralDiff.looksLikeXml(rightArea.getText()));
+        if (bothData) {
+            // JSON / YAML: the structure button compares the data
+            xmlModeButton.setText(I18n.t("DiffView.data"));
+            xmlModeButton.setTooltip(new Tooltip(I18n.t("DiffView.compare-as-data")));
+            xmlPanel.setDataMode(true);
+        }
         xmlModeButton.setDisable(!bothXml);
         if (bothXml && Mode.XML.name().equals(preference(PREF_MODE))) {
             applyMode(Mode.XML);
@@ -549,6 +561,15 @@ public final class DiffView extends Tab {
         moveCaretToLine(area, paragraph);
     }
 
+    /** Structure mode: XML by elements and attributes, JSON / YAML by their data. */
+    private XmlStructuralDiff.Result compareStructure(String left, String right, XmlStructuralDiff.Options options) {
+        if (leftData != null && rightData != null) {
+            return org.fxt.freexmltoolkit.service.DataStructuralDiff.compare(left, leftData, right, rightData,
+                    org.fxt.freexmltoolkit.service.DataStructuralDiff.Options.of(options));
+        }
+        return XmlStructuralDiff.compare(left, right, options);
+    }
+
     private void applyXmlResult(XmlStructuralDiff.Result result) {
         leftArea.clearStyle(0, leftArea.getLength());
         rightArea.clearStyle(0, rightArea.getLength());
@@ -635,7 +656,7 @@ public final class DiffView extends Tab {
         String left = leftArea.getText();
         String right = rightArea.getText();
         if (mode == Mode.XML) {
-            applyXmlResult(XmlStructuralDiff.compare(left, right, xmlOptions));
+            applyXmlResult(compareStructure(left, right, xmlOptions));
             return;
         }
         List<DiffChunk> result = DiffEngine.compute(left, right);
@@ -661,7 +682,7 @@ public final class DiffView extends Tab {
             org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
                 XmlStructuralDiff.Result result;
                 try {
-                    result = XmlStructuralDiff.compare(left, right, options);
+                    result = compareStructure(left, right, options);
                 } catch (OutOfMemoryError | RuntimeException e) {
                     logger.warn("XML comparison failed: {}", e.toString());
                     result = new XmlStructuralDiff.Result(List.of(), "The comparison failed: " + e.getMessage(), null);

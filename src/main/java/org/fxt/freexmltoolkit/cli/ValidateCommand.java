@@ -73,14 +73,27 @@ final class ValidateCommand implements Callable<Integer> {
     Path schematron;
 
     @Option(names = {"-j", "--json-schema"}, paramLabel = "SCHEMA",
-            description = "JSON Schema for all JSON files.")
+            description = "JSON Schema for all JSON and YAML files.")
     Path jsonSchema;
 
+    @Option(names = "--schemastore",
+            description = "Find the JSON Schema of a JSON or YAML file that declares none by its name in the "
+                    + "SchemaStore catalog (downloaded into the cache, refreshed after 7 days).")
+    boolean schemaStore;
+
+    @Option(names = "--schemastore-url", paramLabel = "URL",
+            description = "Address of the SchemaStore catalog (a mirror; default: the public catalog).")
+    String schemaStoreUrl;
+
+    /** The catalog in use with {@link #schemaStore}, else {@code null}. */
+    private org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog catalog;
+
     @Option(names = "--no-schema-lookup",
-            description = "Do not use the schema, DTD or RELAX NG schema an XML file declares; without --xsd only well-formedness is checked.")
+            description = "Do not use the schema an XML, JSON or YAML file declares or its file name chooses; "
+                    + "without --xsd / --json-schema only well-formedness is checked.")
     boolean noSchemaLookup;
 
-    @Option(names = "--include", split = ",", paramLabel = "GLOB", defaultValue = "*.xml,*.json",
+    @Option(names = "--include", split = ",", paramLabel = "GLOB", defaultValue = "*.xml,*.json,*.yaml,*.yml",
             description = "File names to validate inside folders (default: ${DEFAULT-VALUE}).")
     List<String> include;
 
@@ -146,6 +159,9 @@ final class ValidateCommand implements Callable<Integer> {
                     "No files to validate (folders are searched for " + String.join(", ", include) + ")");
         }
         CliSupport.initServices();
+        if (schemaStore && !noSchemaLookup) {
+            catalog = openSchemaStore(commandLine);
+        }
         if (projectFile != null) {
             CliSupport.requireFile(commandLine, projectFile, "Project");
             try {
@@ -193,7 +209,7 @@ final class ValidateCommand implements Callable<Integer> {
         long start = System.nanoTime();
         Path schematron = this.schematron != null ? this.schematron
                 : project == null ? null : project.schematronFor(file).orElse(null);
-        if (!isJson(file) && schematron == null && sizeOf(file) >= streamingBytes
+        if (!isJson(file) && !isYaml(file) && schematron == null && sizeOf(file) >= streamingBytes
                 && (xsd == null || org.fxt.freexmltoolkit.service.grammar.GrammarKind.ofFile(xsd)
                         .orElse(org.fxt.freexmltoolkit.service.grammar.GrammarKind.XSD) == org.fxt.freexmltoolkit.service.grammar.GrammarKind.XSD)) {
             return validateStreaming(file, start);
@@ -206,11 +222,18 @@ final class ValidateCommand implements Callable<Integer> {
             return new FileResult(file, null, List.of(new Finding("File", Severity.ERROR, 0, 0, reason, null, null)),
                     reason, millisSince(start));
         }
-        if (isJson(file)) {
-            Path schemaOfJson = jsonSchema != null ? jsonSchema : projectSchema(file);
-            List<ValidationProblem> problems = ValidationRunner.validateJson(content,
-                    schemaOfJson != null ? schemaOfJson.toFile() : null);
-            return new FileResult(file, schemaOfJson, findings(problems), null, millisSince(start));
+        if (isYaml(file) || isJson(file)) {
+            boolean yaml = isYaml(file);
+            JsonSchemaChoice choice = jsonSchemaOf(file, content, yaml);
+            Path schemaOfData = choice.schema();
+            List<ValidationProblem> problems = yaml
+                    ? ValidationRunner.validateYaml(content, schemaOfData != null ? schemaOfData.toFile() : null)
+                    : ValidationRunner.validateJson(content, schemaOfData != null ? schemaOfData.toFile() : null);
+            List<Finding> findings = new ArrayList<>(findings(problems));
+            if (choice.notLoaded() != null) {
+                findings.add(0, new Finding("JSON Schema", Severity.ERROR, 0, 0, choice.notLoaded(), null, null));
+            }
+            return new FileResult(file, schemaOfData, findings, choice.notLoaded(), millisSince(start));
         }
         Path schema = xsd != null ? xsd : projectSchema(file);
         if (schema == null && !noSchemaLookup) {
@@ -293,7 +316,102 @@ final class ValidateCommand implements Callable<Integer> {
 
     private static boolean isJson(Path file) {
         String extension = CliSupport.extension(file);
-        return extension.equals("json") || extension.equals("json5");
+        return extension.equals("json") || extension.equals("json5") || extension.equals("jsonc");
+    }
+
+    private static boolean isYaml(Path file) {
+        String extension = CliSupport.extension(file);
+        return extension.equals("yaml") || extension.equals("yml");
+    }
+
+    /**
+     * The JSON Schema of a JSON or YAML file and, when one was chosen but does not load, why.
+     *
+     * @param schema    the schema file, {@code null} for a well-formedness check only
+     * @param notLoaded the reason a declared or file-name schema is missing, else {@code null}
+     */
+    record JsonSchemaChoice(Path schema, String notLoaded) {
+    }
+
+    /**
+     * The JSON Schema of a JSON or YAML file: {@code --json-schema}, the project's binding, the
+     * schema the file declares (YAML modeline or {@code $schema}), then its file name (Schema
+     * Library patterns, the SchemaStore catalog with {@code --schemastore}).
+     */
+    private JsonSchemaChoice jsonSchemaOf(Path file, String content, boolean yaml) {
+        Path chosen = jsonSchema != null ? jsonSchema : projectSchema(file);
+        if (chosen != null || noSchemaLookup) {
+            return new JsonSchemaChoice(chosen, null);
+        }
+        var json = new org.fxt.freexmltoolkit.service.JsonService();
+        java.util.Optional<String> declared = yaml
+                ? org.fxt.freexmltoolkit.service.yaml.YamlSchemaDeclaration.find(content)
+                : json.getSchemaLocationFromJsonContent(content);
+        if (declared.isPresent()) {
+            Path parent = file.toAbsolutePath().getParent();
+            File schema = json.resolveJsonSchemaLocation(declared.get(), parent != null ? parent.toFile() : null);
+            return schema != null && schema.exists() ? new JsonSchemaChoice(schema.toPath(), null)
+                    : new JsonSchemaChoice(null, "The declared JSON Schema cannot be loaded: " + declared.get());
+        }
+        var library = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
+        var hit = org.fxt.freexmltoolkit.service.schemastore.JsonSchemaByFileName
+                .find(file.toAbsolutePath(), library, catalog);
+        if (hit.isEmpty()) {
+            return new JsonSchemaChoice(null, null);
+        }
+        var entry = hit.get().entry();
+        java.util.Optional<Path> schema = org.fxt.freexmltoolkit.service.SchemaLibraryLookup
+                .materializeIfAllowed(library, entry, library.isRemoteDownloadAllowed());
+        if (schema.isEmpty() && entry.isRemote() && library.isRemoteDownloadAllowed()) {
+            schema = java.util.Optional.ofNullable(json.resolveJsonSchemaLocation(entry.location(), null))
+                    .map(File::toPath);
+        }
+        String what = hit.get().fromSchemaStore()
+                ? "SchemaStore schema \"" + hit.get().catalogName() + "\""
+                : "Schema Library schema";
+        return schema.filter(java.nio.file.Files::isRegularFile)
+                .map(p -> new JsonSchemaChoice(p, null))
+                .orElseGet(() -> new JsonSchemaChoice(null, "The " + what + " for the file name pattern "
+                        + hit.get().pattern() + " cannot be loaded: " + entry.location()));
+    }
+
+    /**
+     * The SchemaStore catalog for {@code --schemastore}: refused when the administrator turned it
+     * off; downloaded when there is none or it is older than 7 days (a failed refresh keeps the old one).
+     */
+    private org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog openSchemaStore(CommandLine commandLine) {
+        var policy = org.fxt.freexmltoolkit.service.AdminPolicy.current();
+        String enabledKey = org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog.ENABLED_KEY;
+        String urlKey = org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog.URL_KEY;
+        if (policy.isLocked(enabledKey) && !Boolean.parseBoolean(policy.lockedValue(enabledKey))) {
+            throw new CommandLine.ParameterException(commandLine,
+                    "--schemastore: the SchemaStore catalog is turned off by the administrator (" + enabledKey + ")");
+        }
+        String url = schemaStoreUrl;
+        if (policy.isLocked(urlKey)) {
+            if (url != null && !url.strip().equals(policy.lockedValue(urlKey).strip())) {
+                throw new CommandLine.ParameterException(commandLine,
+                        "--schemastore-url: the administrator set the catalog address (" + urlKey + ")");
+            }
+            url = policy.lockedValue(urlKey);
+        } else if (url == null) {
+            url = policy.defaultValue(urlKey);
+        }
+        var store = org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog.shared();
+        if (store.isStale() || schemaStoreUrl != null) {
+            try {
+                store.refresh(url);
+            } catch (java.io.IOException | RuntimeException e) {
+                String reason = FxtCli.messageOf(e);
+                if (store.lastUpdated().isEmpty()) {
+                    throw new CommandLine.ParameterException(commandLine,
+                            "--schemastore: the catalog cannot be downloaded: " + reason, e, null, null);
+                }
+                commandLine.getErr().println("warning: the SchemaStore catalog was not updated (" + reason
+                        + "); the cached one is used");
+            }
+        }
+        return store;
     }
 
     /** Converts the problems; a fatal parse error the parser reports twice is listed once. */

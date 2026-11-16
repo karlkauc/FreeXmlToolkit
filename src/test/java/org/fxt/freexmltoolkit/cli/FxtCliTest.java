@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.cli;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -181,6 +182,91 @@ class FxtCliTest {
             assertEquals(ExitCodes.OK, run("validate", "-j", schema, good), out + err);
             assertEquals(ExitCodes.FAILED, run("validate", "-j", schema, bad));
             assertTrue(out.contains("[JSON Schema]"), out);
+        }
+
+        @Test
+        @DisplayName("YAML files: syntax, --json-schema and the schema they declare")
+        void yaml() throws Exception {
+            Path schema = write("y.schema.json", "{\"type\":\"object\",\"properties\":{\"a\":{\"type\":\"string\"}}}");
+            Path good = write("good.yaml", "a: x\n");
+            Path bad = write("bad.yml", "# comment\na: 1\n");
+            Path declared = write("declared.yaml", "# yaml-language-server: $schema=y.schema.json\na: 1\n");
+            Path broken = write("broken.yaml", "a: [1, 2\n");
+            assertEquals(ExitCodes.OK, run("validate", "-j", schema, good), out + err);
+            assertEquals(ExitCodes.FAILED, run("validate", "-j", schema, bad));
+            assertTrue(out.contains("[JSON Schema]") && out.contains(":2"), out);
+            assertEquals(ExitCodes.FAILED, run("validate", declared));
+            assertTrue(out.contains("[JSON Schema]"), out);
+            assertEquals(ExitCodes.OK, run("validate", "--no-schema-lookup", declared), out + err);
+            assertEquals(ExitCodes.FAILED, run("validate", broken));
+            assertTrue(out.contains("[YAML]"), out);
+        }
+
+        @Test
+        @DisplayName("JSON and YAML files: a declared $schema and a Schema Library file-name pattern")
+        void jsonSchemaByDeclarationAndFileName() throws Exception {
+            Path schema = write("n.schema.json", "{\"type\":\"object\",\"properties\":{\"n\":{\"type\":\"string\"}}}");
+            Path declaredJson = write("declared.json", "{\"$schema\": \"n.schema.json\", \"n\": 1}");
+            assertEquals(ExitCodes.FAILED, run("validate", declaredJson));
+            assertTrue(out.contains("[JSON Schema]"), out);
+            assertEquals(ExitCodes.OK, run("validate", "--no-schema-lookup", declaredJson), out + err);
+            Path missing = write("missing.json", "{\"$schema\": \"nowhere.schema.json\"}");
+            assertNotEquals(ExitCodes.OK, run("validate", missing));
+            assertTrue(out.contains("nowhere.schema.json"), out);
+
+            var original = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
+            var library = new org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl(dir.resolve("lib.json"),
+                    new org.fxt.freexmltoolkit.service.SchemaResourceCache(dir.resolve("cache")),
+                    () -> new java.io.ByteArrayInputStream("{\"version\":1,\"entries\":[]}".getBytes(StandardCharsets.UTF_8)));
+            library.addEntry(org.fxt.freexmltoolkit.domain.SchemaLibraryEntry.user("", schema.toString(),
+                    org.fxt.freexmltoolkit.domain.SchemaKind.JSON_SCHEMA, "n", null)
+                    .withFileMatch(java.util.List.of("settings*.yml")));
+            org.fxt.freexmltoolkit.di.ServiceRegistry.register(org.fxt.freexmltoolkit.service.SchemaLibraryService.class, library);
+            try {
+                Path byName = write("conf/settings.prod.yml", "n: 1\n");
+                Path other = write("conf/other.yml", "n: 1\n");
+                assertEquals(ExitCodes.FAILED, run("validate", byName));
+                assertTrue(out.contains("[JSON Schema]"), out);
+                assertEquals(ExitCodes.OK, run("validate", other), out + err);
+                assertEquals(ExitCodes.OK, run("validate", "--no-schema-lookup", byName), out + err);
+                // folders include YAML by default
+                assertEquals(ExitCodes.FAILED, run("validate", dir.resolve("conf")));
+                assertTrue(out.contains("settings.prod.yml") && out.contains("2 files"), out);
+            } finally {
+                org.fxt.freexmltoolkit.di.ServiceRegistry.register(org.fxt.freexmltoolkit.service.SchemaLibraryService.class, original);
+            }
+        }
+
+        @Test
+        @DisplayName("--schemastore: the catalog chooses the schema by file name")
+        void schemaStore() throws Exception {
+            Path catalogFile = dir.resolve("catalog/catalog.json");
+            Files.createDirectories(catalogFile.getParent());
+            Files.writeString(catalogFile, """
+                    {"schemas": [{"name": "GitHub Workflow", "fileMatch": [".github/workflows/*.yml"],
+                                  "url": "https://json.schemastore.org/github-workflow.json"}]}
+                    """);
+            Files.setLastModifiedTime(catalogFile, java.nio.file.attribute.FileTime.from(java.time.Instant.now()));
+            java.util.concurrent.atomic.AtomicInteger downloads = new java.util.concurrent.atomic.AtomicInteger();
+            org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog.setShared(
+                    new org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog(catalogFile, uri -> {
+                        downloads.incrementAndGet();
+                        throw new java.io.IOException("offline");
+                    }));
+            try {
+                Path workflow = write(".github/workflows/ci.yml", "on: push\n");
+                assertEquals(ExitCodes.OK, run("validate", workflow), out + err);
+                // tests do not download: the schema the catalog names is reported as not loaded
+                assertNotEquals(ExitCodes.OK, run("validate", "--schemastore", workflow));
+                assertTrue(out.contains("GitHub Workflow") && out.contains(".github/workflows/*.yml"), out);
+                assertEquals(0, downloads.get(), "a fresh catalog is not downloaded again");
+                assertNotEquals(ExitCodes.OK, run("validate", "--schemastore", "--schemastore-url",
+                        "https://mirror.example/catalog.json", workflow));
+                assertEquals(1, downloads.get());
+                assertTrue(err.contains("not updated"), err);
+            } finally {
+                org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog.setShared(null);
+            }
         }
 
         @Test
@@ -531,6 +617,25 @@ class FxtCliTest {
         }
 
         @Test
+        @DisplayName("JSON and YAML files by their data, also JSON against YAML")
+        void dataFiles() throws Exception {
+            Path a = write("a.yaml", "# deploy\nname: api\nreplicas: 2\nports: [80, 443]\n");
+            Path b = write("b.json", "{\"ports\": [80, 443], \"replicas\": 2.0, \"name\": \"api\"}");
+            Path c = write("c.yml", "name: api\nreplicas: 3\nports:\n  - 80\n  - 8443\n  - 443\n");
+            assertEquals(ExitCodes.OK, run("compare", a, b), err);
+            assertTrue(out.contains("same data"), out);
+            assertEquals(ExitCodes.FAILED, run("compare", a, c), err);
+            assertTrue(out.contains(a + ":3: Member 'replicas' changed: \"2\" → \"3\" ($.replicas)"), out);
+            assertTrue(out.contains("Item 1 added"), out);
+            assertTrue(out.contains("2 differences"), out);
+            assertEquals(ExitCodes.FAILED, run("compare", "-f", "json", a, c), err);
+            assertTrue(out.contains("\"node\": \"member\""), out);
+            assertEquals(ExitCodes.USAGE, run("compare", "--ignore", "//x", a, c));
+            Path broken = write("broken.yaml", "a: [1");
+            assertEquals(ExitCodes.NOT_RUN, run("compare", a, broken));
+        }
+
+        @Test
         @DisplayName("placeholders in LEFT, --ignore, --tolerance; similar differences are marked")
         void xmlunitOptions() throws Exception {
             Path expected = write("expected.xml", """
@@ -873,6 +978,20 @@ class FxtCliTest {
             Path broken = write("x/broken.xml", "<r>");
             assertEquals(ExitCodes.NOT_RUN, run("query", "-l", "xquery", "-e", "count(//i)", broken));
             assertTrue(err.contains("error:"), err);
+        }
+
+        @Test
+        @DisplayName("JSONPath for YAML files; XPath on YAML is refused")
+        void yamlInputs() throws Exception {
+            Path yaml = write("y/ci.yml", "# a workflow\njobs:\n  build: {runs-on: ubuntu-latest}\n  test:\n    runs-on: windows-latest\n");
+            assertEquals(ExitCodes.OK, run("query", "-e", "$.jobs.*.runs-on", yaml), err);
+            assertTrue(out.contains("ubuntu-latest") && out.contains("windows-latest"), out);
+            assertEquals(ExitCodes.OK, run("query", "-e", "$.jobs.build.runs-on", dir.resolve("y")), err);
+            assertTrue(out.contains("ubuntu-latest"), out);
+            assertEquals(ExitCodes.NOT_RUN, run("query", "-l", "xpath", "-e", "//jobs", yaml));
+            assertTrue(err.contains("JSONPath"), err);
+            Path broken = write("y/broken.yaml", "a: [1, 2\n");
+            assertEquals(ExitCodes.NOT_RUN, run("query", "-e", "$.a", broken));
         }
 
         @Test

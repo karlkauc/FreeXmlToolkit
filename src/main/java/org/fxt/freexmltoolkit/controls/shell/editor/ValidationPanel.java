@@ -352,10 +352,10 @@ public class ValidationPanel extends VBox {
         }).orElse(false);
     }
 
-    /** @return {@code true} if the active document is JSON (validated against a JSON Schema). */
+    /** @return {@code true} if the active document is JSON or YAML (validated against a JSON Schema). */
     private boolean isJsonActive() {
         return editorHost.getActiveDocument()
-                .map(d -> d.getFileType() == EditorFileType.JSON).orElse(false);
+                .map(d -> d.getFileType().usesJsonSchema()).orElse(false);
     }
 
     /**
@@ -392,8 +392,7 @@ public class ValidationPanel extends VBox {
         // Re-check the type at run time: the debounce timer may fire after the user
         // switched to a non-XML tab (e.g. an XQuery document) — validating that as
         // XML would report bogus "not well-formed" problems.
-        boolean validatable = isXmlFamilyActive() || editorHost.getActiveDocument()
-                .map(d -> d.getFileType() == EditorFileType.JSON).orElse(false);
+        boolean validatable = isXmlFamilyActive() || isJsonActive();
         if (!validatable) {
             PanelStatus.precondition(status, I18n.t("ValidationPanel.not-a-validatable-document-type"));
             setProblems(List.of());
@@ -409,6 +408,7 @@ public class ValidationPanel extends VBox {
             return;
         }
         boolean json = isJsonActive();
+        boolean yaml = editorHost.getActiveDocument().map(d -> d.getFileType() == EditorFileType.YAML).orElse(false);
         // Resolved on the worker thread: reconciles the binding with the schema location
         // declared in the buffer (added/changed/removed references take effect this run) —
         // the xsi:* declarations for the XML family, a top-level "$schema" for JSON.
@@ -427,8 +427,8 @@ public class ValidationPanel extends VBox {
                     documentName != null ? documentName : "document");
             File schema = schemaSupplier.get();
             ValidationRunner.RunResult runResult = json
-                    ? new ValidationRunner.RunResult(
-                            ValidationRunner.validateJson(content, schema), null)
+                    ? new ValidationRunner.RunResult(yaml ? ValidationRunner.validateYaml(content, schema)
+                            : ValidationRunner.validateJson(content, schema), null)
                     : ValidationRunner.runWithReport(content, schema, schematron, documentName, documentPath, true,
                             standardsFor(documentPath));
             List<ValidationProblem> result = runResult.problems();

@@ -30,6 +30,7 @@ public class SchemaLibraryEntryDialog extends Dialog<SchemaLibraryEntry> {
     @FXML private ComboBox<SchemaKind> kind;
     @FXML private TextField description;
     @FXML private TextField rootElement;
+    @FXML private TextField fileMatch;
     @FXML private Label error;
     private final SchemaLibraryService library;
 
@@ -54,7 +55,7 @@ public class SchemaLibraryEntryDialog extends Dialog<SchemaLibraryEntry> {
 
         setTitle(editing == null ? "Add Schema Mapping" : "Edit Schema Mapping");
         setHeaderText(editing == null
-                ? "Map a namespace (or JSON $schema URI) to a local schema file or URL."
+                ? "Map a namespace, JSON $schema URI or file names to a local schema file or URL."
                 : "Change the mapping for " + (editing.namespace().isEmpty() ? editing.rootElement() : editing.namespace()));
         DialogHelper.prepare(this);
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -70,6 +71,7 @@ public class SchemaLibraryEntryDialog extends Dialog<SchemaLibraryEntry> {
             kind.setValue(prefill.kind());
             description.setText(prefill.description());
             rootElement.setText(prefill.rootElement() == null ? "" : prefill.rootElement());
+            fileMatch.setText(String.join(", ", prefill.fileMatch()));
         }
 
         // Validate on OK without closing when invalid.
@@ -108,6 +110,7 @@ public class SchemaLibraryEntryDialog extends Dialog<SchemaLibraryEntry> {
         String id = editing != null ? editing.id() : UUID.randomUUID().toString();
         return new SchemaLibraryEntry(id, namespace.getText(), locationField.getText().trim(), kind.getValue(),
                 editing != null ? editing.source() : EntrySource.USER,
-                editing == null || editing.enabled(), description.getText(), rootElement.getText());
+                editing == null || editing.enabled(), description.getText(), rootElement.getText(),
+                org.fxt.freexmltoolkit.service.schemastore.FileNamePatterns.parseList(fileMatch.getText()));
     }
 }

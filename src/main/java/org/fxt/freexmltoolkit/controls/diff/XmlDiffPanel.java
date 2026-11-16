@@ -99,7 +99,16 @@ final class XmlDiffPanel extends VBox {
             case PROCESSING_INSTRUCTION -> "<?" + d.name() + "?>";
             case NAMESPACE -> "namespace of <" + d.name() + ">";
             case DOCUMENT -> d.name();
+            case MEMBER -> d.name();
+            case ITEM -> "[" + d.name() + "]";
         };
+    }
+
+    /** Whether the panel shows a JSON / YAML data comparison (texts say "data" instead of "XML"). */
+    private boolean dataMode;
+
+    void setDataMode(boolean data) {
+        dataMode = data;
     }
 
     /** Shows a comparison result; keeps nothing selected. */
@@ -107,7 +116,7 @@ final class XmlDiffPanel extends VBox {
         summary.getStyleClass().remove("diff-xml-error");
         if (!result.compared()) {
             summary.getStyleClass().add("diff-xml-error");
-            StringBuilder text = new StringBuilder("Cannot compare as XML. ");
+            StringBuilder text = new StringBuilder(dataMode ? "Cannot compare the data. " : "Cannot compare as XML. ");
             if (result.leftError() != null) {
                 text.append("Left: ").append(result.leftError()).append(' ');
             }
@@ -121,7 +130,8 @@ final class XmlDiffPanel extends VBox {
         }
         List<Difference> differences = result.differences();
         long similar = result.similarCount();
-        summary.setText((differences.isEmpty() ? "The documents are equivalent as XML."
+        summary.setText((differences.isEmpty()
+                ? (dataMode ? "The documents have the same data." : "The documents are equivalent as XML.")
                 : differences.size() == 1 ? "1 difference" : differences.size() + " differences")
                 + (similar > 0 ? " (" + similar + " similar)" : ""));
         all = differences;

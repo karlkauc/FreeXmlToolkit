@@ -60,6 +60,27 @@ class DiffViewXmlModeTest {
     }
 
     @Test
+    void yamlAgainstJsonComparesTheData(@TempDir Path tmp) throws Exception {
+        Path rightFile = tmp.resolve("right.json");
+        Files.writeString(rightFile, "{\"replicas\": 3, \"name\": \"api\"}");
+        DiffView diff = WaitForAsyncUtils.waitForAsyncFx(10000, () -> {
+            DiffView d = new DiffView("left.yaml", "# deployment\nname: api\nreplicas: 2\n", text -> { }, rightFile.toFile());
+            tabs.getTabs().add(d);
+            tabs.getSelectionModel().select(d);
+            return d;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(diff.isXmlModeAvailableForTesting());
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> diff.setModeForTesting(DiffView.Mode.XML));
+        WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS,
+                () -> "1 difference".equals(WaitForAsyncUtils.waitForAsyncFx(2000, diff::getXmlSummaryForTesting)));
+        List<XmlStructuralDiff.Difference> differences = WaitForAsyncUtils.waitForAsyncFx(2000,
+                diff::getXmlDifferencesForTesting);
+        assertEquals("$.replicas", differences.getFirst().leftXPath());
+        assertEquals(3, differences.getFirst().leftLine());
+    }
+
+    @Test
     void xmlModeListsOnlyRealDifferences(@TempDir Path tmp) throws Exception {
         DiffView diff = open(tmp, LEFT, RIGHT);
         assertTrue(diff.isXmlModeAvailableForTesting());

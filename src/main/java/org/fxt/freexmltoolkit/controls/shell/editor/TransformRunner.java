@@ -394,6 +394,22 @@ public final class TransformRunner {
         return jsonPath(json, jsonPath).text();
     }
 
+    /**
+     * Evaluates a JSONPath expression against a YAML document (read as its data, like the
+     * conversions: several documents form an array). The result is JSON.
+     */
+    public static QueryRun yamlPath(String yaml, String jsonPath) {
+        String json;
+        try {
+            json = org.fxt.freexmltoolkit.service.DataFormatConverter.writeJson(
+                    org.fxt.freexmltoolkit.service.DataFormatConverter.parseYaml(yaml),
+                    org.fxt.freexmltoolkit.service.DataFormatConverter.Options.DEFAULTS.withIndent(0));
+        } catch (org.fxt.freexmltoolkit.service.DataFormatConverter.ConversionException e) {
+            return new QueryRun("ERROR: " + e.getMessage(), QueryFailure.invalidInput("yaml.invalid"));
+        }
+        return jsonPath(json, jsonPath);
+    }
+
     /** As {@link #runJsonPath}, additionally reporting why a failed run failed. */
     public static QueryRun jsonPath(String json, String jsonPath) {
         try {

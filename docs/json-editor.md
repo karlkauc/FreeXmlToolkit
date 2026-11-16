@@ -172,6 +172,11 @@ JSON documents bind a JSON Schema the same way XML documents bind an XSD:
   meta-schema URI in the Schema Library yourself; none are bundled.) If the
   `$schema` URI isn't directly resolvable, the Schema Library is consulted next -
   see [Schema Library](schema-library.md).
+- **By file name:** a document without `"$schema"` gets the schema of a Schema Library
+  mapping whose [file names](schema-library.md#file-names-json-and-yaml) match it
+  (`tsconfig*.json`), or - when switched on - the one the
+  [SchemaStore catalog](schema-library.md#4-schemastore) knows for its name
+  (`package.json`, `.eslintrc.json`, `composer.json`, …).
 - **Manual:** click the **JSON Schema** indicator in the status bar, use the
   **JSON Schema** source row in the **Validation** panel (Change link, favorites
   star, or drag & drop a `.json` schema onto the row or the status bar).
@@ -255,6 +260,76 @@ unquoted keys, trailing commas or JSON5 numbers (`0x1F`, `.5`, `+1`, `Infinity`)
 }
 ```
 
+## YAML
+
+YAML files (`.yaml`, `.yml`) open in the same editor as JSON, with what YAML needs:
+
+- **Syntax colours** for keys, strings, numbers, booleans, null, comments, anchors and aliases
+  (`&base`, `*base`), tags (`!Ref`, `!!str`), directives and document markers (`---`).
+- **Folding** by indentation: a key folds with everything indented below it (also a sequence
+  written at the key's own indentation), a block scalar (`|`, `>`) with its key, and each document
+  from its `---`.
+- **Syntax check while you type.** A YAML error (wrong indentation, a missing bracket, a duplicate
+  key) is underlined at its line and column and listed in the Problems panel.
+- **Validation against a JSON Schema**, with the same validator as JSON. Problems are underlined on
+  the key they concern. The schema is found like this:
+    1. a [project](projects.md) binding for the file,
+    2. a comment `# yaml-language-server: $schema=<url or path>` anywhere in the file (the
+       convention of the YAML language server, so files prepared for VS Code work as they are),
+    3. a top-level `$schema: <url or path>` key,
+    4. the file's **name**: a [Schema Library](schema-library.md#file-names-json-and-yaml) mapping
+       with file names (`docker-compose*.yml`), then - when switched on - the
+       [SchemaStore catalog](schema-library.md#4-schemastore), which knows GitHub workflows,
+       docker-compose, GitLab CI, OpenAPI and hundreds of other file types,
+    5. **Set Schema…** (or a JSON Schema dropped on the schema indicator in the status bar).
+
+  A declared `$schema` id is looked up in the [Schema Library](schema-library.md) and catalogs
+  first, like JSON's. A file with several documents is validated as an array of them.
+- **Completion from the schema** (Ctrl+Space, or typing `:`): the keys a mapping may still get
+  (required ones first, each with its description and type), the allowed values of a key
+  (`enum`, `const`, `default`, examples, `true`/`false`, `null`), and for a new sequence item
+  (`- `) the keys of its mapping. A new key of type object or array starts its block on the next
+  line. Hovering a key shows its path (JSONPath), its type and what the schema says about it.
+- **Format** (Shift+Alt+F) writes the document again in block style with the indentation of
+  Settings. It only runs when nothing would be lost: a document with comments, anchors and
+  aliases, tags or directives is left as it is, with a note. **Minify** is not offered for YAML.
+- **JSONPath** in the [Query Console](unified-shell.md): a YAML document is queried as its data
+  (`$.spec.containers[*].image`); the result is JSON. **Copy JSONPath** in the context menu and
+  the Properties Inspector show the path of the key or value at the caret.
+- **Generate Sample** (Schema ▾) writes a sample YAML document from the bound JSON Schema.
+- **New File** (type YAML) starts with `---`; the templates *YAML document with a JSON Schema*
+  (writes the `# yaml-language-server: $schema=…` comment), *Docker Compose file* and *GitHub
+  Actions workflow* give a ready skeleton.
+- **Compare with File…** compares two JSON or YAML documents - also a JSON file against a YAML file -
+  by their data in the **Data** mode of the Compare view: member order, formatting, comments, quoting
+  and anchors do not count, `1.0` equals `1`, and an inserted array item is one difference. Each
+  difference names its JSONPath and selects its lines on both sides. The options *Ignore element
+  order*, *Key attributes* (here: key members such as `id` that pair the objects of an array) and
+  *Numeric tolerance* apply to it.
+- **Command line:** `fxt-cli validate` checks YAML files (declared schema, file-name patterns, with
+  `--schemastore` the SchemaStore catalog), `fxt-cli query -e '$.jobs.*.runs-on' ci.yml` runs
+  JSONPath on them and `fxt-cli compare` compares them by their data - see [Command Line](command-line.md).
+  The MCP tool `validate` checks JSON and YAML too ([MCP server](mcp-server.md#validate)).
+- **Convert to JSON / XML** (Tools menu), see below.
+
+### Tree and Grid for YAML
+
+YAML documents have the same **Tree** and **Graphic** (grid) views as JSON, over the document's
+data: edit values, rename keys, add, delete, move and retype entries, use the table view for
+sequences of mappings, filters and the Properties Inspector. A file with several documents shows
+them as an array (`$[0]`, `$[1]`, …).
+
+Every edit is written back **into the YAML text at its place**: only the changed value, key, entry
+or item is replaced, so comments, blank lines, quoting, flow collections (`[a, b]`), block scalars,
+anchors and tags elsewhere stay as they are. A new entry takes the indentation of its neighbours.
+Undo (Ctrl+Z) takes the edit back in the text as well.
+
+A few changes cannot be placed in the text like this: moving entries in a part that holds comments,
+changing a value that is shared through an alias (`*base`), adding or removing a whole document.
+For those the editor asks once per document whether it may write the whole document again in block
+style (as **Format** does), which removes comments, anchors, tags and directives; **Cancel** takes the
+change back. Validation markers of the grid point at the YAML lines.
+
 ## Converting between XML, JSON and YAML
 
 The **Tools** menu converts the active document:
@@ -271,12 +346,12 @@ document (`order.xml` → `order.json`). The converter reads the text of the edi
 changes that are not saved yet. The indentation follows Settings (XML for XML output, JSON for
 JSON and YAML output).
 
-YAML files (`.yaml`, `.yml`) open in the editor as text. They are read as YAML 1.2 (core schema:
-`yes` and `on` stay strings); a file with several documents (`---`) becomes an array. YAML is
-written in block style. Strings that would otherwise read back as a number, boolean or null are
-quoted (`'007'`, `'true'`), so a conversion to YAML and back returns the same data. XML goes to
-YAML through its JSON form, with the same mapping. Comments and anchors of a YAML file are not
-kept.
+YAML is read as YAML 1.2 (core schema: `yes` and `on` stay strings); a file with several
+documents (`---`) becomes an array. Application tags such as `!Ref` or `!vault` are read as the
+value they are written as. YAML is written in block style. Strings that would otherwise read back
+as a number, boolean or null are quoted (`'007'`, `'true'`), so a conversion to YAML and back
+returns the same data. XML goes to YAML through its JSON form, with the same mapping. Comments
+and anchors of a YAML file are not kept.
 
 ### Structured mapping
 

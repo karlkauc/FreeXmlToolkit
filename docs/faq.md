@@ -92,7 +92,7 @@ Yes: `ai.allowed=false` in the machine-wide `policy.properties` removes the assi
   XSD Schema…** - see [Binding an XSD Schema](xml-editor.md#binding-an-xsd-schema).
 - Documents without `xsi:schemaLocation` are bound through the
   [Schema Library](schema-library.md) (namespace mappings and XML catalogs) - its
-  [troubleshooting section](schema-library.md#7-troubleshooting) explains why a mapping may not
+  [troubleshooting section](schema-library.md#8-troubleshooting) explains why a mapping may not
   match.
 
 ### Imported schemas are not found

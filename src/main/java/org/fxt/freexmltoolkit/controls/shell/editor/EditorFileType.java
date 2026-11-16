@@ -71,6 +71,14 @@ public enum EditorFileType {
         };
     }
 
+    /**
+     * @return whether documents of this type are data validated against a JSON Schema (JSON, and
+     *         YAML read into the same data model)
+     */
+    public boolean usesJsonSchema() {
+        return this == JSON || this == YAML;
+    }
+
     /** @return whether documents of this type are XML (character references are valid in them). */
     public boolean isXmlFamily() {
         return switch (this) {
@@ -141,7 +149,7 @@ public enum EditorFileType {
 
                     </p:declare-step>
                     """;
-            case YAML -> "";
+            case YAML -> "---\n";
             case HTML -> """
                     <!DOCTYPE html>
                     <html>

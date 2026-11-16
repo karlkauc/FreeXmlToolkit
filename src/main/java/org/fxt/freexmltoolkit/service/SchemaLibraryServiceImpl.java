@@ -115,7 +115,8 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
                 SchemaLibraryEntry probe = new SchemaLibraryEntry("bundled", d.namespace, d.location,
                         SchemaKind.valueOf(d.kind), EntrySource.BUNDLED, true, d.description, d.rootElement);
                 bundledEntries.add(new SchemaLibraryEntry("bundled:" + probe.key(), d.namespace, d.location,
-                        SchemaKind.valueOf(d.kind), EntrySource.BUNDLED, true, d.description, d.rootElement));
+                        SchemaKind.valueOf(d.kind), EntrySource.BUNDLED, true, d.description, d.rootElement,
+                        d.fileMatch));
             }
         } catch (Exception e) {
             logger.error("Cannot read bundled schema library: {}", e.getMessage());
@@ -128,7 +129,8 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
             SchemaLibraryFile f = Objects.requireNonNull(GSON.fromJson(r, SchemaLibraryFile.class), "empty file");
             for (SchemaLibraryFile.EntryDto d : f.entries) {
                 userEntries.add(new SchemaLibraryEntry(d.id != null ? d.id : UUID.randomUUID().toString(), d.namespace,
-                        d.location, SchemaKind.valueOf(d.kind), EntrySource.USER, d.enabled, d.description, d.rootElement));
+                        d.location, SchemaKind.valueOf(d.kind), EntrySource.USER, d.enabled, d.description, d.rootElement,
+                        d.fileMatch));
             }
             for (SchemaLibraryFile.CatalogDto c : f.catalogs) {
                 catalogs.add(new SchemaCatalogRef(c.id != null ? c.id : UUID.randomUUID().toString(), c.path, c.enabled));
@@ -177,6 +179,7 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
             SchemaLibraryFile.EntryDto d = new SchemaLibraryFile.EntryDto();
             d.id = e.id(); d.namespace = e.namespace(); d.location = e.location(); d.kind = e.kind().name();
             d.enabled = e.enabled(); d.description = e.description(); d.rootElement = e.rootElement();
+            d.fileMatch = e.fileMatch().isEmpty() ? null : new ArrayList<>(e.fileMatch());
             f.entries.add(d);
         }
         for (SchemaCatalogRef c : catalogs) {
@@ -250,8 +253,18 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
         if (entry.isRemote() && !PathValidator.isUrlSafeToAccess(entry.location())) {
             throw new IllegalArgumentException("URL is not allowed (points to a private or internal network): " + entry.location());
         }
-        if (entry.namespace().isEmpty() && entry.rootElement() == null) {
-            throw new IllegalArgumentException("Either a namespace or a root element is required");
+        if (entry.namespace().isEmpty() && entry.rootElement() == null && entry.fileMatch().isEmpty()) {
+            throw new IllegalArgumentException("Either a namespace, a root element or a file pattern is required");
+        }
+        if (!entry.fileMatch().isEmpty() && entry.kind() != SchemaKind.JSON_SCHEMA) {
+            throw new IllegalArgumentException("File patterns bind JSON Schemas to JSON and YAML files: "
+                    + "choose the kind JSON Schema or remove the patterns");
+        }
+        for (String pattern : entry.fileMatch()) {
+            String problem = org.fxt.freexmltoolkit.service.schemastore.FileNamePatterns.problemOf(pattern);
+            if (problem != null) {
+                throw new IllegalArgumentException(problem);
+            }
         }
     }
 
@@ -353,7 +366,8 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
             List<SchemaLibraryEntry> copy = new ArrayList<>();
             for (SchemaLibraryEntry e : entries == null ? List.<SchemaLibraryEntry>of() : entries) {
                 copy.add(new SchemaLibraryEntry("plugin:" + e.key(), e.namespace(), e.location(), e.kind(),
-                        org.fxt.freexmltoolkit.domain.EntrySource.PLUGIN, true, e.description(), e.rootElement()));
+                        org.fxt.freexmltoolkit.domain.EntrySource.PLUGIN, true, e.description(), e.rootElement(),
+                        e.fileMatch()));
             }
             pluginEntries = List.copyOf(copy);
             rebuildSnapshot();
@@ -454,6 +468,23 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
 
     @Override public Optional<SchemaLibraryEntry> resolveJsonSchema(String schemaUri) {
         return resolveNamespace(schemaUri, SchemaKind.JSON_SCHEMA);
+    }
+
+    @Override public Optional<SchemaLibraryEntry> resolveByFileName(Path file) {
+        if (file == null) return Optional.empty();
+        SchemaLibraryEntry best = null;
+        String bestPattern = null;
+        for (SchemaLibraryEntry e : snapshot) {
+            if (!e.enabled() || e.kind() != SchemaKind.JSON_SCHEMA || e.fileMatch().isEmpty()) continue;
+            String pattern = org.fxt.freexmltoolkit.service.schemastore.FileNamePatterns.bestMatch(e.fileMatch(), file);
+            if (pattern != null && (bestPattern == null
+                    || org.fxt.freexmltoolkit.service.schemastore.FileNamePatterns.specificity(pattern)
+                    > org.fxt.freexmltoolkit.service.schemastore.FileNamePatterns.specificity(bestPattern))) {
+                best = e;
+                bestPattern = pattern;
+            }
+        }
+        return Optional.ofNullable(best);
     }
 
     @Override public Optional<SchemaLibraryEntry> resolveByRootElement(String localName) {

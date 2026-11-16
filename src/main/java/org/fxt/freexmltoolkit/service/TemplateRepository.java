@@ -281,6 +281,9 @@ public class TemplateRepository {
 
         // Test Templates (XSpec)
         addXSpecTemplates();
+
+        // YAML documents
+        addYamlTemplates();
     }
 
     private void addBasicXmlTemplates() {
@@ -833,6 +836,64 @@ public class TemplateRepository {
         schematron.addParameter(TemplateParameter.stringParam("schematron", "my-rules.sch"));
         schematron.addParameter(TemplateParameter.stringParam("assertId", "item-qty"));
         addXSpecTemplate(schematron);
+    }
+
+    /** YAML document skeletons (New File, type YAML). */
+    private void addYamlTemplates() {
+        XmlTemplate withSchema = new XmlTemplate("YAML document with a JSON Schema", """
+                # yaml-language-server: $schema=${schema}
+                ---
+                ${firstKey}:
+                """, "YAML");
+        withSchema.setDescription("A YAML document bound to a JSON Schema (file or URL): validation and completion "
+                + "follow it");
+        withSchema.addParameter(TemplateParameter.requiredString("schema").placeholder("config.schema.json"));
+        withSchema.addParameter(TemplateParameter.stringParam("firstKey", "name"));
+        addYamlTemplate(withSchema, "json schema");
+
+        XmlTemplate compose = new XmlTemplate("Docker Compose file", """
+                services:
+                  ${service}:
+                    image: ${image}
+                    ports:
+                      - "8080:80"
+                    restart: unless-stopped
+                """, "YAML");
+        compose.setDescription("A Compose file with one service (save it as compose.yaml; the SchemaStore "
+                + "catalog then validates it)");
+        compose.addParameter(TemplateParameter.stringParam("service", "web"));
+        compose.addParameter(TemplateParameter.stringParam("image", "nginx:latest"));
+        addYamlTemplate(compose, "docker");
+
+        XmlTemplate workflow = new XmlTemplate("GitHub Actions workflow", """
+                name: ${name}
+
+                on:
+                  push:
+                    branches: [main]
+                  pull_request:
+
+                jobs:
+                  build:
+                    runs-on: ubuntu-latest
+                    steps:
+                      - uses: actions/checkout@v4
+                      - name: Build
+                        run: ${command}
+                """, "YAML");
+        workflow.setDescription("A workflow with one build job (save it in .github/workflows/; the SchemaStore "
+                + "catalog then validates it)");
+        workflow.addParameter(TemplateParameter.stringParam("name", "CI"));
+        workflow.addParameter(TemplateParameter.stringParam("command", "make"));
+        addYamlTemplate(workflow, "github");
+    }
+
+    private void addYamlTemplate(XmlTemplate template, String tag) {
+        template.setFileExtensions(java.util.Set.of("yaml", "yml"));
+        template.setTags(java.util.List.of("yaml", tag));
+        template.setComplexity(XmlTemplate.TemplateComplexity.SIMPLE);
+        template.setBuiltIn(true);
+        addTemplate(template);
     }
 
     private void addXSpecTemplate(XmlTemplate template) {

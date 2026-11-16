@@ -50,6 +50,21 @@
     -fx-fill: -fxt-code-punct;
 }
 
+/* YAML only: anchors / aliases, tags, directives and document markers */
+.yaml-anchor {
+    -fx-fill: -fxt-code-attr;
+    -fx-font-style: italic;
+}
+
+.yaml-tag {
+    -fx-fill: -fxt-code-decl;
+}
+
+.yaml-directive {
+    -fx-fill: -fxt-code-decl;
+    -fx-font-weight: bold;
+}
+
 /* ========== Alternative Color Scheme (Light Theme) ========== */
 
 .json-editor-light .json-key {

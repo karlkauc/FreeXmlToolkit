@@ -61,7 +61,7 @@ please [open an issue](https://github.com/karlkauc/FreeXmlToolkit/issues) and it
 |---|---|---|---|---|
 | JSON editor | ✓ | ✓ | ✓ | ◐ format and validate |
 | JSON Schema | ✓ | ✓ | ✓ | – |
-| YAML | ◐ conversion | ✓ validation | ✓ editor, validation | – |
+| YAML | ✓ editor, JSON Schema validation and completion, tree and grid (comments kept), schemas by file name (SchemaStore), structural compare, conversion | ✓ validation | ✓ editor, validation, grid | – |
 | XML ↔ JSON conversion | ✓ | ✓ | ✓ | – |
 
 ## Transformation and Debugging

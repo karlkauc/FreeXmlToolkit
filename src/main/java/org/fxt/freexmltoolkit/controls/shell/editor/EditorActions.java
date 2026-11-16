@@ -65,7 +65,7 @@ public final class EditorActions {
         }
         return switch (action) {
             case VALIDATE -> switch (type) {
-                case XML, XSD, XSLT, SCHEMATRON, JSON, XPROC -> true;
+                case XML, XSD, XSLT, SCHEMATRON, JSON, YAML, XPROC -> true;
                 default -> false;
             };
             case TRANSFORM -> type == EditorFileType.XML;
@@ -73,7 +73,7 @@ public final class EditorActions {
             case RUN_QUERY -> type == EditorFileType.XQUERY || type == EditorFileType.XPATH;
             case RUN_TRANSFORM -> type == EditorFileType.XSLT;
             case RUN_PIPELINE -> type == EditorFileType.XPROC;
-            case GENERATE_SAMPLE -> type == EditorFileType.XSD || type == EditorFileType.JSON;
+            case GENERATE_SAMPLE -> type == EditorFileType.XSD || type.usesJsonSchema();
         };
     }
 
@@ -177,7 +177,9 @@ public final class EditorActions {
             return;
         }
         boolean json = editorHost.getActiveDocument()
-                .map(d -> d.getFileType() == EditorFileType.JSON).orElse(false);
+                .map(d -> d.getFileType().usesJsonSchema()).orElse(false);
+        boolean yaml = editorHost.getActiveDocument()
+                .map(d -> d.getFileType() == EditorFileType.YAML).orElse(false);
         // Resolved on the worker thread: reconciles the binding with the schema location
         // declared in the buffer (added/changed/removed references take effect this run).
         var schemaSupplier = editorHost.schemaForValidation(content);
@@ -189,7 +191,8 @@ public final class EditorActions {
             long t0 = System.nanoTime();
             File schema = schemaSupplier.get();
             ValidationRunner.RunResult runResult = json
-                    ? new ValidationRunner.RunResult(ValidationRunner.validateJson(content, schema), null)
+                    ? new ValidationRunner.RunResult(yaml ? ValidationRunner.validateYaml(content, schema)
+                            : ValidationRunner.validateJson(content, schema), null)
                     : ValidationRunner.runWithReport(content, schema, schematron, null, documentPath, true,
                             ValidationPanel.standardsFor(documentPath));
             List<ValidationProblem> result = runResult.problems();

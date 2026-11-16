@@ -62,6 +62,13 @@ public class SchemaLibraryView extends VBox {
     @FXML private Tab mappingsTab;
     @FXML private Tab catalogsTab;
     @FXML private Tab cacheTab;
+    @FXML private Tab schemaStoreTab;
+    @FXML private javafx.scene.control.CheckBox schemaStoreEnabled;
+    @FXML private TextField schemaStoreUrl;
+    @FXML private Button schemaStoreUpdate;
+    @FXML private Label schemaStoreInfo;
+    @FXML private TextField schemaStoreTry;
+    @FXML private Label schemaStoreTryResult;
 
     // Mappings
     @FXML private TextField filter;
@@ -120,6 +127,7 @@ public class SchemaLibraryView extends VBox {
         initMappingsTab();
         initCatalogsTab();
         initCacheTab();
+        initSchemaStoreTab();
         tabs.getSelectionModel().selectedItemProperty().addListener((o, a, t) -> {
             if (t == cacheTab) refreshCache();
         });
@@ -129,6 +137,7 @@ public class SchemaLibraryView extends VBox {
     public static final java.util.List<PageNavigator.Entry> SECTIONS = java.util.List.of(
             new PageNavigator.Entry("mappings", "Mappings", "bi-diagram-3", "namespace location schema"),
             new PageNavigator.Entry("catalogs", "Catalogs", "bi-journal-bookmark", "oasis catalog.xml"),
+            new PageNavigator.Entry("schemastore", "SchemaStore", "bi-shop", "json yaml file name pattern"),
             new PageNavigator.Entry("cache", "Cache", "bi-hdd", "download remote"));
 
     public void showCacheTab() { tabs.getSelectionModel().select(cacheTab); }
@@ -138,6 +147,7 @@ public class SchemaLibraryView extends VBox {
         switch (key) {
             case "mappings" -> tabs.getSelectionModel().select(mappingsTab);
             case "catalogs" -> tabs.getSelectionModel().select(catalogsTab);
+            case "schemastore" -> tabs.getSelectionModel().select(schemaStoreTab);
             case "cache" -> tabs.getSelectionModel().select(cacheTab);
             default -> { }
         }
@@ -146,7 +156,8 @@ public class SchemaLibraryView extends VBox {
     /** Reports the key of the selected tab now and on every change (for the side panel's mark). */
     public void setOnSectionShown(java.util.function.Consumer<String> handler) {
         java.util.function.Consumer<Tab> report = t ->
-                handler.accept(t == catalogsTab ? "catalogs" : t == cacheTab ? "cache" : "mappings");
+                handler.accept(t == catalogsTab ? "catalogs" : t == cacheTab ? "cache"
+                        : t == schemaStoreTab ? "schemastore" : "mappings");
         tabs.getSelectionModel().selectedItemProperty().addListener((o, a, t) -> report.accept(t));
         report.accept(tabs.getSelectionModel().getSelectedItem());
     }
@@ -160,7 +171,8 @@ public class SchemaLibraryView extends VBox {
                     e.namespace().toLowerCase(Locale.ROOT).contains(q)
                             || e.location().toLowerCase(Locale.ROOT).contains(q)
                             || e.description().toLowerCase(Locale.ROOT).contains(q)
-                            || (e.rootElement() != null && e.rootElement().toLowerCase(Locale.ROOT).contains(q)));
+                            || (e.rootElement() != null && e.rootElement().toLowerCase(Locale.ROOT).contains(q))
+                            || e.fileMatch().stream().anyMatch(p -> p.toLowerCase(Locale.ROOT).contains(q)));
         });
 
         mappings.setItems(filtered);
@@ -438,8 +450,120 @@ public class SchemaLibraryView extends VBox {
      * are only reachable by their location, so they render as plain "(no namespace)".
      */
     private static String namespaceLabel(SchemaLibraryEntry entry) {
-        if (!entry.namespace().isEmpty()) return entry.namespace();
+        String files = entry.fileMatch().isEmpty() ? ""
+                : I18n.t("SchemaLibraryView.file-names", String.join(", ", entry.fileMatch()));
+        if (!entry.namespace().isEmpty()) return files.isEmpty() ? entry.namespace() : entry.namespace() + "  " + files;
+        if (!files.isEmpty()) return files;
         return entry.rootElement() != null ? "<" + entry.rootElement() + "> (no namespace)" : "(no namespace)";
+    }
+
+    // ------------------------------------------------------------------ SchemaStore
+
+    private static final java.util.function.Supplier<org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog>
+            schemaStore = org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog::shared;
+
+    private void initSchemaStoreTab() {
+        var properties = ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class);
+        var policy = org.fxt.freexmltoolkit.service.AdminPolicy.current();
+        String enabledKey = org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog.ENABLED_KEY;
+        String urlKey = org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog.URL_KEY;
+        schemaStoreEnabled.setSelected(Boolean.parseBoolean(properties.get(enabledKey)));
+        schemaStoreEnabled.setDisable(policy.isLocked(enabledKey));
+        schemaStoreEnabled.selectedProperty().addListener((o, was, now) -> {
+            properties.set(enabledKey, String.valueOf(now));
+            if (now && schemaStore.get().lastUpdated().isEmpty() && library.isRemoteDownloadAllowed()) {
+                onUpdateSchemaStore(); // switched on for the first time: fetch the catalog now
+            }
+            updateSchemaStoreTry();
+        });
+        String url = properties.get(urlKey);
+        schemaStoreUrl.setText(url == null || url.isBlank()
+                ? org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog.DEFAULT_URL : url);
+        schemaStoreUrl.setDisable(policy.isLocked(urlKey));
+        schemaStoreUrl.focusedProperty().addListener((o, was, focused) -> {
+            if (!focused) {
+                saveSchemaStoreUrl();
+            }
+        });
+        schemaStoreUrl.setOnAction(e -> saveSchemaStoreUrl());
+        schemaStoreTry.textProperty().addListener((o, a, b) -> updateSchemaStoreTry());
+        showSchemaStoreInfo();
+    }
+
+    private void saveSchemaStoreUrl() {
+        String text = schemaStoreUrl.getText() == null ? "" : schemaStoreUrl.getText().strip();
+        String value = text.equals(org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog.DEFAULT_URL) ? "" : text;
+        var properties = ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class);
+        String key = org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog.URL_KEY;
+        String old = properties.get(key);
+        if (!value.equals(old == null ? "" : old)) {
+            properties.set(key, value);
+        }
+    }
+
+    private void showSchemaStoreInfo() {
+        var catalog = schemaStore.get();
+        var updated = catalog.lastUpdated();
+        schemaStoreInfo.setText(updated.isEmpty() ? I18n.t("SchemaLibraryView.schemastore-none")
+                : I18n.t("SchemaLibraryView.schemastore-info", catalog.schemas().size(),
+                java.time.format.DateTimeFormatter.ofLocalizedDateTime(java.time.format.FormatStyle.MEDIUM)
+                        .format(updated.get().atZone(java.time.ZoneId.systemDefault()))));
+        updateSchemaStoreTry();
+    }
+
+    /** Shows which schema the typed file name would get. */
+    private void updateSchemaStoreTry() {
+        String name = schemaStoreTry.getText() == null ? "" : schemaStoreTry.getText().strip();
+        if (name.isEmpty()) {
+            schemaStoreTryResult.setText("");
+            return;
+        }
+        java.nio.file.Path file;
+        try {
+            file = java.nio.file.Path.of(name.replace('\\', '/'));
+        } catch (java.nio.file.InvalidPathException e) {
+            schemaStoreTryResult.setText(e.getMessage());
+            return;
+        }
+        var own = library.resolveByFileName(file);
+        if (own.isPresent()) {
+            schemaStoreTryResult.setText(I18n.t("SchemaLibraryView.schemastore-try-library", own.get().location()));
+            return;
+        }
+        if (!schemaStoreEnabled.isSelected()) {
+            schemaStoreTryResult.setText(I18n.t("SchemaLibraryView.schemastore-try-off"));
+            return;
+        }
+        schemaStoreTryResult.setText(schemaStore.get().match(file)
+                .map(m -> I18n.t("SchemaLibraryView.schemastore-try-hit", m.schema().name(), m.pattern(), m.schema().url()))
+                .orElse(I18n.t("SchemaLibraryView.schemastore-try-miss")));
+    }
+
+    /** Downloads the catalog in the background. */
+    @FXML
+    public void onUpdateSchemaStore() {
+        saveSchemaStoreUrl();
+        String url = schemaStoreUrl.getText();
+        schemaStoreUpdate.setDisable(true);
+        schemaStoreInfo.setText(I18n.t("SchemaLibraryView.schemastore-updating"));
+        var catalog = schemaStore.get();
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            String failure = null;
+            try {
+                catalog.refresh(url);
+            } catch (Exception e) {
+                failure = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
+            }
+            String error = failure;
+            javafx.application.Platform.runLater(() -> {
+                schemaStoreUpdate.setDisable(false);
+                showSchemaStoreInfo();
+                if (error != null) {
+                    schemaStoreInfo.setText(schemaStoreInfo.getText() + "\n"
+                            + I18n.t("SchemaLibraryView.schemastore-failed", error));
+                }
+            });
+        });
     }
 
     /**

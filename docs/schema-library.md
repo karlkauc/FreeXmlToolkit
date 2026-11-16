@@ -1,13 +1,13 @@
 # Schema Library
 
-The **Schema Library** maps namespaces (and JSON `$schema` URIs) to schema files, so
+The **Schema Library** maps namespaces, JSON `$schema` URIs and file names to schema files, so
 documents that don't carry an explicit reference to their schema can still be validated
 and get IntelliSense automatically.
 
 **Where to find it:** click **Schema Library** in the activity bar. The library opens as a
 **page** - a tab named **Schema Library** in the main editor area, just like Settings - with
-three tabs: **Mappings**, **Catalogs** and **Cache**. The side panel on the left lists the same
-three sections: click one to jump to its tab; the tab you are on is highlighted. A shared status
+four tabs: **Mappings**, **Catalogs**, **SchemaStore** and **Cache**. The side panel on the left lists the same
+four sections: click one to jump to its tab; the tab you are on is highlighted. A shared status
 line at the bottom of the page reports the outcome of the last action. The Properties inspector
 is hidden while the page is selected, so the tables get the full width.
 
@@ -22,7 +22,7 @@ three sources, tried in this order:
 1. **Your mappings** - entries you added yourself (the Mappings tab, source `USER`).
 2. **XML catalogs** - OASIS `catalog.xml` files you registered (the Catalogs tab).
 3. **Bundled standards** - 25 well-known W3C/OASIS/industry schemas shipped with the
-   application (see [Bundled standards](#5-bundled-standards)).
+   application (see [Bundled standards](#6-bundled-standards)).
 
 The first match wins, and a schema you bind **manually** in the Validation panel or status
 bar always takes priority over anything the library resolves.
@@ -46,6 +46,9 @@ The library is consulted whenever a document needs a schema but doesn't say whic
   reference resolves through the library. Meta-schema ids (`json-schema.org/...`) are *not*
   bundled, so a JSON **schema document** still binds nothing - but you can map one yourself
   as a `USER` entry if you want schema documents validated against their dialect.
+- **JSON and YAML files by their name** - a JSON or YAML file that declares no schema gets the
+  JSON Schema whose **file names** match it: from your own mappings first, then (when switched on)
+  from the [SchemaStore catalog](#4-schemastore). See below.
 - **XSLT/XQuery `doc()` / `document()`** - a system ID the engine can't resolve directly
   falls back to the library (and catalogs) the same way.
 
@@ -68,13 +71,35 @@ Bundled rows render in italics and can only be enabled/disabled, never edited or
 | ✖ | Error | The last download/verification attempt failed (hover for the error message) |
 
 The labelled buttons above the table: **Add mapping…** and **Edit…** open the mapping dialog (namespace,
-location, kind, description, optional root element); **Remove** deletes a `USER` mapping;
+location, kind, optional root element, optional file names, description); **Remove** deletes a `USER` mapping;
 **Enable / disable** toggles the **On** column for the selected row; **Add schema of
 current document** prefills a new mapping from the active document's bound schema; and
 **Download / verify** materializes a remote entry immediately (also clearing a remembered
-failure, see [Troubleshooting](#7-troubleshooting)). **Double-clicking** a row opens the
+failure, see [Troubleshooting](#8-troubleshooting)). **Double-clicking** a row opens the
 resolved schema file as an editor tab; the context menu offers the same **Open schema**,
 **Edit…**, **Remove** and a **Copy namespace** action.
+
+### File names (JSON and YAML)
+
+A JSON Schema mapping can name the **files** it is for, in the dialog's **File names** field,
+separated by commas: `docker-compose*.yml, compose.yaml` or `.github/workflows/*.yml`. A JSON or
+YAML file whose text declares no schema (no `$schema`, no `# yaml-language-server: $schema=`
+comment) then gets this schema for validation, completion and hover help. Such a mapping needs no
+namespace. The rules are those of the SchemaStore catalog and the YAML language server:
+
+| Pattern | Matches |
+|---|---|
+| `docker-compose.yml` | a file of that name in any folder (no `/`: only the name counts) |
+| `docker-compose*.yml`, `*.{yml,yaml}`, `?.json`, `[ab].json` | `*` within a name, `{a,b}` alternatives, `?` one character, `[..]` a character class |
+| `.github/workflows/*.yml` | with a `/`, the end of the path, whole folders: `repo/.github/workflows/ci.yml`, not `…/workflows/sub/ci.yml` |
+| `.github/**/*.yml` | `**` spans any number of folders |
+| `!**/test/**` | a leading `!` excludes what it matches |
+
+Case does not matter. When several mappings match, the most specific pattern wins (the one with
+the most characters that are not wildcards: `docker-compose.yml` before `*.yml`). The Mappings
+table shows the patterns after the namespace (`(files: …)`), and the filter searches them.
+The order of the schema search for a JSON or YAML file: a [project](projects.md) binding, the
+schema the file declares, a mapping by file name, the SchemaStore catalog.
 
 ## 3. XML catalogs
 
@@ -123,7 +148,34 @@ unreachable `xsi:schemaLocation`, one with only a namespace, one with deliberate
 Register `catalog.xml` in the Catalogs tab, open the documents and validate; the folder's
 `README.md` walks through each step.
 
-## 4. Schema cache
+## 4. SchemaStore
+
+The [SchemaStore](https://www.schemastore.org) catalog names the public JSON Schema of hundreds of
+file types by their file name: `docker-compose.yml`, GitHub workflows and actions, `package.json`,
+`tsconfig.json`, `.gitlab-ci.yml`, OpenAPI and AsyncAPI files, Ansible, Helm charts and many more.
+On the **SchemaStore** tab:
+
+- **Find JSON Schemas for JSON and YAML files by their file name in the SchemaStore catalog** - off
+  by default. Switched on, the catalog is downloaded once, kept in `~/.freeXmlToolkit/schemastore/`
+  and updated in the background when it is older than a week. A JSON or YAML file that declares no
+  schema and matches none of your mappings gets the catalog's schema for its name; the schema itself
+  is downloaded on first use and cached like every remote schema (Cache tab). Only the catalog and the
+  schemas it names are downloaded; no file name or content leaves your computer. The status bar shows
+  such a binding as `(library)`, its tooltip names the catalog entry and the pattern.
+- **Catalog** - the catalog's address; point it at a mirror inside your network if the public site is
+  not reachable. **Update Catalog** downloads it now.
+- **Try a file name** - type a name or path (`.github/workflows/build.yml`) to see which schema it gets:
+  one of your mappings, the catalog's, or none.
+
+Your own mapping always wins over the catalog, so you can replace a catalog schema by a local copy:
+add a mapping with the same file names. Administrators can switch the catalog off or fix its address
+(`schemastore.enabled`, `schemastore.catalogUrl`, see [Administration](administration.md)).
+
+On the command line, `fxt-cli validate` uses your file-name mappings by itself and the catalog with
+`--schemastore`, for example in a CI job: `fxt-cli validate --schemastore .github/workflows`
+(see [Command Line](command-line.md#validate)).
+
+## 5. Schema cache
 
 ![Schema Library - Cache](img/unified-shell-schema-library-cache.png#only-light)
 ![Schema Library - Cache](img/unified-shell-schema-library-dark.png#only-dark)
@@ -147,7 +199,7 @@ per schema URL, keyed by an MD5 hash). It is read-only except for a **Clear auto
 schema cache** button; those
 files are simply re-downloaded the next time a document references them.
 
-## 5. Bundled standards
+## 6. Bundled standards
 
 FreeXmlToolkit ships a curated list of 25 well-known namespace → schema mappings so common
 standards validate out of the box, without you having to hunt down and register the schema
@@ -180,7 +232,7 @@ turns them off (the test suite does this) - resolution then uses **local files a
 already-cached copies only**, and every other entry is simply a miss. Local entries and
 cached entries always resolve, with or without network access.
 
-## 6. Settings
+## 7. Settings
 
 The **SCHEMA LIBRARY** card in Settings (gear icon at the bottom of the activity bar, group
 **Schemas & Validation**) holds:
@@ -198,7 +250,7 @@ The **SCHEMA LIBRARY** card in Settings (gear icon at the bottom of the activity
   **Cache** tab. The same link also appears in the **TEMP & CACHE** card (group **Files &
   Cache**).
 
-## 7. Troubleshooting
+## 8. Troubleshooting
 
 **A document isn't binding a schema I expect:**
 

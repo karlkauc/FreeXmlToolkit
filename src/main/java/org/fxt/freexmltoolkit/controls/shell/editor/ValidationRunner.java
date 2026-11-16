@@ -76,6 +76,38 @@ public final class ValidationRunner {
         return problems;
     }
 
+    /**
+     * Validates YAML: syntax (YAML 1.2, with line and column) and, optionally, the data against a
+     * JSON Schema - the same validator as JSON, problems placed on the line of the key they concern.
+     * A file with several documents is validated as an array of them, like the conversions read it.
+     *
+     * @param yaml       the YAML content
+     * @param jsonSchema the JSON Schema file, or {@code null} (syntax only)
+     * @return all problems found (empty if valid)
+     */
+    public static List<ValidationProblem> validateYaml(String yaml, File jsonSchema) {
+        List<ValidationProblem> problems = new ArrayList<>();
+        var document = org.fxt.freexmltoolkit.service.yaml.YamlDocument.parse(yaml);
+        if (!document.isValid()) {
+            var problem = document.problem();
+            ValidationProblem p = new ValidationProblem("YAML", "error", Math.max(1, problem.line()), problem.message());
+            problems.add(problem.column() > 0 ? p.withColumn(problem.column()) : p);
+            return problems;
+        }
+        if (jsonSchema != null) {
+            String json = org.fxt.freexmltoolkit.service.DataFormatConverter.writeJson(document.json(),
+                    org.fxt.freexmltoolkit.service.DataFormatConverter.Options.DEFAULTS.withIndent(0));
+            var service = new org.fxt.freexmltoolkit.service.JsonService();
+            for (var error : service.validateAgainstSchemaDetailed(json, jsonSchema)) {
+                // no quick fixes: they are edits of JSON text
+                problems.add(new ValidationProblem("JSON Schema", "error",
+                        document.lineOf(error.instanceSegments()), error.message(),
+                        error.keyword(), error.instancePointer(), List.of()));
+            }
+        }
+        return problems;
+    }
+
     private static org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaResolver jsonSchemaResolver(File schema) {
         try {
             return new org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaResolver(

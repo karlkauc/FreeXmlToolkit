@@ -1828,8 +1828,7 @@ public class UnifiedShellView extends BorderPane {
     /** Schema ▾ / Tools → Generate Sample XML… for the active XSD (same as the Schema panel tool). */
     @FXML public void onGenerateSample() {
         toolbar("generate_sample");
-        if (editorHost.getActiveDocument().map(d -> d.getFileType()
-                == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.JSON).orElse(false)) {
+        if (editorHost.getActiveDocument().map(d -> d.getFileType().usesJsonSchema()).orElse(false)) {
             editorHost.generateJsonSampleForActive();
         } else {
             schemaTools().generateSampleXmlForActive();
@@ -2808,7 +2807,7 @@ public class UnifiedShellView extends BorderPane {
         if (doc == null) {
             return;
         }
-        boolean json = doc.getFileType() == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.JSON;
+        boolean json = doc.getFileType().usesJsonSchema();
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
         chooser.setTitle(json ? I18n.t("Shell.selectJsonSchema") : I18n.t("Shell.selectSchema"));
         chooser.getExtensionFilters().add(json
@@ -2888,7 +2887,7 @@ public class UnifiedShellView extends BorderPane {
             if (doc == null) {
                 return;
             }
-            boolean jsonDoc = doc.getFileType() == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.JSON;
+            boolean jsonDoc = doc.getFileType().usesJsonSchema();
             boolean jsonSchema = file.getName().toLowerCase().endsWith(".json");
             if (jsonDoc == jsonSchema) {
                 editorHost.setSchemaForActiveDocument(file);
@@ -2964,7 +2963,7 @@ public class UnifiedShellView extends BorderPane {
 
     /** @return the indicator's schema-kind label for a file type (package-private for unit tests). */
     static String schemaKindLabel(org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType type) {
-        return type == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.JSON ? "JSON Schema" : "XSD";
+        return type != null && type.usesJsonSchema() ? "JSON Schema" : "XSD";
     }
 
     /** @return the indicator label text for a schema status (package-private for unit tests). */
@@ -3058,7 +3057,7 @@ public class UnifiedShellView extends BorderPane {
 
     /**
      * Kind-aware variant: XSD tooltips explain IntelliSense availability, JSON Schema
-     * tooltips explain validation (JSON has no schema-driven IntelliSense).
+     * tooltips explain validation.
      */
     static String schemaStatusTooltip(org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus status,
             java.io.File schema, String kind) {
@@ -3125,7 +3124,7 @@ public class UnifiedShellView extends BorderPane {
      */
     private static boolean isSchemaAware(org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType type) {
         return switch (type) {
-            case XML, XSD, XSLT, SCHEMATRON, JSON -> true;
+            case XML, XSD, XSLT, SCHEMATRON, JSON, YAML -> true;
             default -> false;
         };
     }

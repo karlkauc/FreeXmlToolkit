@@ -596,7 +596,11 @@ final class EditorSchemaBinding {
      * stateless service instances).
      */
     private String declaredSchemaLocation(EditorTab tab, String content, File baseDir) {
-        if (tab.document.getFileType() == EditorFileType.JSON) {
+        if (tab.document.getFileType() == EditorFileType.YAML) {
+            // YAML declares its JSON Schema in a modeline or a $schema key: read as JSON's "$schema"
+            content = org.fxt.freexmltoolkit.service.yaml.YamlSchemaDeclaration.asJsonStub(content);
+        }
+        if (tab.document.getFileType().usesJsonSchema()) {
             var jsonService = new org.fxt.freexmltoolkit.service.JsonService();
             // A library-mapped raw $schema id (meta-schema ids included) is a "declaration"
             // too — see detectJsonSchemaFor. Without this, the filtered
@@ -611,7 +615,13 @@ final class EditorSchemaBinding {
                     .resolveJsonSchema(raw.get()).isPresent()) {
                 return raw.get();
             }
-            return jsonService.getSchemaLocationFromJsonContent(content).orElse(null);
+            java.util.Optional<String> location = jsonService.getSchemaLocationFromJsonContent(content);
+            if (location.isPresent()) {
+                return location.get();
+            }
+            // a schema chosen by the file name counts as declared too (else the reconcile would CLEAR it)
+            FileNameHit byName = schemaByFileName(schemaPath(tab), false);
+            return byName == null ? null : byName.entry().location();
         }
         String declared = org.fxt.freexmltoolkit.di.ServiceRegistry
                 .get(org.fxt.freexmltoolkit.service.XmlService.class)
@@ -656,6 +666,10 @@ final class EditorSchemaBinding {
     SchemaDetection detectSchemaFor(EditorTab tab, String content, Path pathOrNull) {
         if (!tab.view.supportsSchema()) {
             return SchemaDetection.NOT_FOUND;
+        }
+        if (tab.document.getFileType() == EditorFileType.YAML) {
+            return detectJsonSchemaFor(tab,
+                    org.fxt.freexmltoolkit.service.yaml.YamlSchemaDeclaration.asJsonStub(content), pathOrNull);
         }
         if (tab.document.getFileType() == EditorFileType.JSON) {
             return detectJsonSchemaFor(tab, content, pathOrNull);
@@ -905,7 +919,23 @@ final class EditorSchemaBinding {
             // validation-time reconcile can short-circuit unchanged documents.
             tab.lastDetectedSchemaLocation = declared.orElse(null);
             if (declared.isEmpty()) {
-                return SchemaDetection.NOT_FOUND; // the document references no schema
+                // Nothing declared: a schema chosen by the file's name (Schema Library patterns, SchemaStore)
+                FileNameHit byName = schemaByFileName(pathOrNull, true);
+                if (byName == null) {
+                    return SchemaDetection.NOT_FOUND; // the document references no schema
+                }
+                tab.lastDetectedSchemaLocation = byName.entry().location();
+                var library = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
+                File schema = org.fxt.freexmltoolkit.service.SchemaLibraryLookup
+                        .materializeIfAllowed(library, byName.entry(), library.isRemoteDownloadAllowed())
+                        .map(Path::toFile).orElse(null);
+                if (schema == null) {
+                    return SchemaDetection.failed(byName.source(), SchemaDetection.UNRESOLVED, byName.entry().location());
+                }
+                if (!loadForIntelliSense(tab, schema)) {
+                    return SchemaDetection.failed(byName.source(), SchemaDetection.UNLOADABLE);
+                }
+                return new SchemaDetection(schema, SchemaStatus.READY, byName.source(), byName.detail());
             }
             // A reference exists — from here on, every failure is an ERROR (the user
             // expects schema validation but won't get it), not a silent "No Schema".
@@ -922,6 +952,61 @@ final class EditorSchemaBinding {
             org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "editor.schema_detect");
             return SchemaDetection.NOT_FOUND;
         }
+    }
+
+    /**
+     * A JSON Schema chosen by a file's name.
+     *
+     * @param entry  where the schema is (a library entry, or one made for a SchemaStore schema)
+     * @param source shown in the status bar (LIBRARY: both are set up on the Schema Library page)
+     * @param detail what matched, for the status bar
+     */
+    record FileNameHit(org.fxt.freexmltoolkit.domain.SchemaLibraryEntry entry, SchemaSource source, String detail) {
+    }
+
+    /**
+     * The JSON Schema for a JSON or YAML file by its name: a Schema Library entry's file pattern
+     * (with auto-binding on), else the SchemaStore catalog (when switched on in the Schema Library).
+     * Worker thread.
+     *
+     * @param path       the file, may be null (unsaved: no name to match)
+     * @param mayRefresh whether a missing catalog may be downloaded now (and a stale one in the background)
+     * @return the hit, or {@code null}
+     */
+    static FileNameHit schemaByFileName(Path path, boolean mayRefresh) {
+        if (path == null || path.getFileName() == null) {
+            return null;
+        }
+        var properties = org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class);
+        var library = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
+        org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog catalog = null;
+        if (Boolean.parseBoolean(properties.get(org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog.ENABLED_KEY))) {
+            catalog = org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog.shared();
+        }
+        var libraryHit = org.fxt.freexmltoolkit.service.schemastore.JsonSchemaByFileName.find(path,
+                properties.isSchemaLibraryAutoBindEnabled() ? library : null, null);
+        if (libraryHit.isEmpty() && catalog != null && mayRefresh && library.isRemoteDownloadAllowed() && catalog.isStale()) {
+            var stale = catalog;
+            String url = properties.get(org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog.URL_KEY);
+            Runnable refresh = () -> {
+                try {
+                    stale.refresh(url);
+                } catch (Exception e) {
+                    org.apache.logging.log4j.LogManager.getLogger(EditorSchemaBinding.class)
+                            .warn("SchemaStore catalog not updated: {}", e.getMessage());
+                }
+            };
+            if (catalog.lastUpdated().isEmpty()) {
+                refresh.run(); // no catalog yet: this detection needs it
+            } else {
+                org.fxt.freexmltoolkit.FxtGui.executorService.submit(refresh);
+            }
+        }
+        var hit = libraryHit.isPresent() ? libraryHit
+                : org.fxt.freexmltoolkit.service.schemastore.JsonSchemaByFileName.find(path, null, catalog);
+        return hit.map(h -> new FileNameHit(h.entry(), SchemaSource.LIBRARY, h.fromSchemaStore()
+                ? org.fxt.freexmltoolkit.i18n.I18n.t("EditorSchemaBinding.by-schemastore", h.catalogName(), h.pattern())
+                : org.fxt.freexmltoolkit.i18n.I18n.t("EditorSchemaBinding.by-file-pattern", h.pattern()))).orElse(null);
     }
 
     /**

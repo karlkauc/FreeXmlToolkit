@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.domain;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -14,9 +15,12 @@ import java.util.UUID;
  * @param enabled     disabled entries are ignored by resolution
  * @param description free text
  * @param rootElement local name of the document element for no-namespace auto-binding, may be null
+ * @param fileMatch   file name patterns that bind this JSON Schema to JSON and YAML files
+ *                    ({@code docker-compose*.yml}, {@code .github/workflows/*.yml}), never null
  */
 public record SchemaLibraryEntry(String id, String namespace, String location, SchemaKind kind,
-                                 EntrySource source, boolean enabled, String description, String rootElement) {
+                                 EntrySource source, boolean enabled, String description, String rootElement,
+                                 List<String> fileMatch) {
 
     public SchemaLibraryEntry {
         Objects.requireNonNull(id, "id");
@@ -26,6 +30,14 @@ public record SchemaLibraryEntry(String id, String namespace, String location, S
         namespace = namespace == null ? "" : namespace.trim();
         description = description == null ? "" : description;
         rootElement = rootElement == null || rootElement.isBlank() ? null : rootElement.trim();
+        fileMatch = fileMatch == null ? List.of()
+                : fileMatch.stream().filter(p -> p != null && !p.isBlank()).map(String::strip).toList();
+    }
+
+    /** An entry without file name patterns. */
+    public SchemaLibraryEntry(String id, String namespace, String location, SchemaKind kind,
+                              EntrySource source, boolean enabled, String description, String rootElement) {
+        this(id, namespace, location, kind, source, enabled, description, rootElement, List.of());
     }
 
     /** Creates a new, enabled USER entry with a fresh id. */
@@ -57,10 +69,14 @@ public record SchemaLibraryEntry(String id, String namespace, String location, S
     }
 
     public SchemaLibraryEntry withEnabled(boolean value) {
-        return new SchemaLibraryEntry(id, namespace, location, kind, source, value, description, rootElement);
+        return new SchemaLibraryEntry(id, namespace, location, kind, source, value, description, rootElement, fileMatch);
     }
 
     public SchemaLibraryEntry withSource(EntrySource value) {
-        return new SchemaLibraryEntry(id, namespace, location, kind, value, enabled, description, rootElement);
+        return new SchemaLibraryEntry(id, namespace, location, kind, value, enabled, description, rootElement, fileMatch);
+    }
+
+    public SchemaLibraryEntry withFileMatch(List<String> value) {
+        return new SchemaLibraryEntry(id, namespace, location, kind, source, enabled, description, rootElement, value);
     }
 }

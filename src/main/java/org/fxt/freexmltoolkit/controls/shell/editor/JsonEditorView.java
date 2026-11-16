@@ -12,19 +12,33 @@ import org.fxt.freexmltoolkit.service.JsonService;
 
 /**
  * {@link EditorView} adapter for the JSON text editor ({@code JsonCodeEditor}),
- * with JSON syntax highlighting. Schema support binds a JSON Schema for
+ * with JSON syntax highlighting; {@link #yaml()} gives the same editor for YAML (YAML
+ * highlighting, folding by indentation, YAML completion and problem markers). Schema support binds a JSON Schema for
  * validation: {@link EditorHost} keeps the binding per tab, so {@link #loadSchema}
  * only sanity-checks the file (there is no JSON IntelliSense yet that would need
  * the schema inside the editor).
  */
 final class JsonEditorView implements EditorView {
 
-    private final JsonCodeEditor editor = new JsonCodeEditor();
+    private final JsonCodeEditor editor;
+    /** Whether the document is YAML (problem markers from the YAML text). */
+    private final boolean yaml;
     /** Lines (0-based) of the node a view switch handed over, or -1. */
     private int linkedFirst = -1;
     private int linkedLast = -1;
 
     JsonEditorView() {
+        this(org.fxt.freexmltoolkit.controls.jsoneditor.editor.CodeSyntax.JSON, false);
+    }
+
+    /** @return the editor view for a YAML document */
+    static JsonEditorView yaml() {
+        return new JsonEditorView(org.fxt.freexmltoolkit.controls.yamleditor.YamlSyntax.YAML, true);
+    }
+
+    private JsonEditorView(org.fxt.freexmltoolkit.controls.jsoneditor.editor.CodeSyntax syntax, boolean yaml) {
+        this.editor = new JsonCodeEditor(syntax);
+        this.yaml = yaml;
         CodeArea area = editor.getCodeArea();
         // The tint goes on the next edit or when the caret leaves it (deferred: re-styling from
         // inside a change re-enters the viewport).
@@ -129,7 +143,8 @@ final class JsonEditorView implements EditorView {
     public void setProblems(java.util.List<ValidationProblem> problems) {
         String text = editor.getText();
         java.util.List<JsonCodeEditor.ProblemRange> ranges = new java.util.ArrayList<>();
-        for (JsonProblemMarkers.Marker marker : JsonProblemMarkers.compute(text, problems)) {
+        var markers = yaml ? YamlProblemMarkers.compute(text, problems) : JsonProblemMarkers.compute(text, problems);
+        for (JsonProblemMarkers.Marker marker : markers) {
             ranges.add(new JsonCodeEditor.ProblemRange(marker.start(), marker.end(), marker.line(), marker.message()));
         }
         editor.setProblems(ranges);

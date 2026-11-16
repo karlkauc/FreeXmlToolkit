@@ -42,8 +42,8 @@ and a few examples to copy. `-q` / `--quiet` and `--verbose` work with every com
 
 ## validate
 
-Checks XML files against an XML Schema (1.0 or 1.1) and/or a Schematron, and JSON files against
-a JSON Schema, with the validators of the [Validation Panel](validation-panel.md).
+Checks XML files against an XML Schema (1.0 or 1.1) and/or a Schematron, and JSON and YAML files
+against a JSON Schema, with the validators of the [Validation Panel](validation-panel.md).
 
 ```bash
 fxt-cli validate [options] FILE|FOLDER...
@@ -53,9 +53,11 @@ fxt-cli validate [options] FILE|FOLDER...
 |---|---|
 | `-x`, `--xsd`, `--schema SCHEMA` | Schema for all XML files: XML Schema (`.xsd`), DTD (`.dtd`) or RELAX NG (`.rng`, `.rnc`) |
 | `-s`, `--schematron SCH` | Schematron, checked in addition to the schema |
-| `-j`, `--json-schema SCHEMA` | JSON Schema for all JSON files (`.json`, `.json5`) |
-| `--no-schema-lookup` | Do not use the schema a file declares (see below) |
-| `--include GLOB,...` | File names to validate inside folders; default `*.xml,*.json` |
+| `-j`, `--json-schema SCHEMA` | JSON Schema for all JSON (`.json`, `.jsonc`, `.json5`) and YAML (`.yaml`, `.yml`) files |
+| `--schemastore` | Find the JSON Schema of a JSON or YAML file that declares none by its file name in the [SchemaStore](schema-library.md#4-schemastore) catalog |
+| `--schemastore-url URL` | Address of the SchemaStore catalog (a mirror); default: the public catalog |
+| `--no-schema-lookup` | Do not use the schema a file declares or its file name chooses (see below) |
+| `--include GLOB,...` | File names to validate inside folders; default `*.xml,*.json,*.yaml,*.yml` |
 | `-f`, `--report-format FORMAT` | `text` (default), `json`, `junit`, `sarif` |
 | `-r`, `--report FILE` | Write the report to a file; the text summary still goes to standard output |
 | `-p`, `--project FXTPROJ` | Use a [project's](projects.md) bindings (schema, Schematron, JSON Schema) and catalogs |
@@ -71,8 +73,14 @@ the options win. See [Language Versions](language-versions.md).
 
 **Which schema is used.** With `--xsd` / `--schema`, that schema (or DTD, or RELAX NG schema) for every XML file. With `--project`, the
 schema the project binds to the file (first matching pattern), and the Schematron it binds (unless
-`--schematron` is given); JSON files get the JSON Schema the project binds to them (unless
-`--json-schema` is given). Otherwise each file
+`--schematron` is given); JSON and YAML files get the JSON Schema the project binds to them (unless
+`--json-schema` is given). A JSON or YAML file without either uses the JSON Schema it declares itself:
+a top-level `"$schema"` member, in YAML also a `# yaml-language-server: $schema=…` comment (relative to
+the file, remote schemas downloaded and cached). A file that declares none gets the schema its **file
+name** chooses: a [Schema Library](schema-library.md#file-names-json-and-yaml) entry's file patterns
+(`docker-compose*.yml`, `.github/workflows/*.yml`), then, with `--schemastore`, the SchemaStore catalog.
+A declared or chosen schema that cannot be loaded makes the file "not validated" (exit code 3).
+Otherwise each XML file
 is checked against the schema it declares itself, found the same way as when the file is opened
 in the editor: `xsi:schemaLocation` / `xsi:noNamespaceSchemaLocation` (relative to the file,
 remote schemas downloaded and cached), redirected by the [Schema Library](schema-library.md) and
@@ -86,8 +94,22 @@ Schema and well-formedness checks; with `--schematron` the file is read into mem
 After 10,000 problems the file's report stops.
 
 **Folders** are searched recursively for the `--include` patterns; hidden folders (such as
-`.git`) are skipped. Files named directly are always validated; `.json` and `.json5` files are
-treated as JSON, everything else as XML.
+`.git`) are skipped. Files named directly are always validated; `.json`, `.jsonc` and `.json5` files
+are treated as JSON, `.yaml` and `.yml` files as YAML, everything else as XML. To validate a hidden
+folder, name it: `fxt-cli validate --schemastore .github/workflows`.
+
+**SchemaStore.** `--schemastore` uses the catalog cached in `~/.freeXmlToolkit/schemastore/` and
+downloads it when there is none or it is older than seven days (a failed update keeps the cached one;
+without any catalog the command stops with exit code 2). Only the catalog and the schemas it names are
+downloaded, through the application's proxy settings; no file name or content is sent. Settings of the
+application do not switch it on for the command line; an administrator can forbid it
+(`schemastore.enabled=false` in the [policy](administration.md)) or fix the catalog address
+(`schemastore.catalogUrl`).
+
+```bash
+fxt-cli validate --schemastore .github/workflows docker-compose.yml   # GitHub workflows, Compose
+fxt-cli validate config/                                              # JSON + YAML + XML, declared schemas
+```
 
 ### Reports
 
@@ -104,7 +126,7 @@ data/order.xml:14: warning: [Schematron] Delivery date lies in the past (at /ord
 |---|---|
 | `json` | Scripts: summary plus every file with its findings (severity, source, line, column, message, rule, context) |
 | `junit` | Test reports of CI servers (Jenkins, GitLab, Azure DevOps, GitHub Actions reporters): one test case per file, a failure per invalid file |
-| `sarif` | SARIF 2.1.0 for code scanning (GitHub, Azure DevOps, GitLab): one result per problem with rule (`xsd`, `well-formed`, `schematron`, `json`, `json-schema`, `not-run`), level and position |
+| `sarif` | SARIF 2.1.0 for code scanning (GitHub, Azure DevOps, GitLab): one result per problem with rule (`xsd`, `well-formed`, `schematron`, `json`, `yaml`, `json-schema`, `not-run`), level and position |
 
 Paths in reports are relative to the working directory when the files lie below it.
 
@@ -154,15 +176,16 @@ fxt-cli query --query-file QUERY.xq [options] [FILE|FOLDER|-]...
 |---|---|
 | `-e`, `--expression EXPR` | The expression |
 | `--query-file FILE` | Read the expression from a file instead (`.xq`, `.xquery`, `.xqy`, `.xql`, `.xqm`: XQuery) |
-| `-l`, `--language LANG` | `xpath`, `xquery` or `jsonpath`. Default: from `--query-file`'s extension, `jsonpath` when all inputs are `.json`, else `xpath` |
+| `-l`, `--language LANG` | `xpath`, `xquery` or `jsonpath`. Default: from `--query-file`'s extension, `jsonpath` when all inputs are `.json`, `.yaml` or `.yml`, else `xpath` |
 | `--var NAME=VALUE` | An external XQuery variable (string value); repeatable |
 | `--lang-version VERSION` | XPath `1.0`, `2.0`, `3.0`, `3.1` (default) or XQuery `1.0`, `3.0`, `3.1` (default); see [Language Versions](language-versions.md) |
-| `--include GLOB,...` | File names to query inside folders; default `*.xml,*.json` |
+| `--include GLOB,...` | File names to query inside folders; default `*.xml,*.json,*.yaml,*.yml` |
 | `--[no-]with-filename` | Prefix each result line with its file; default: when there is more than one input |
 | `-f`, `--format FORMAT` | `text` (default) or `json`: one object per input with `file`, `result`, `error` |
 | `-o`, `--output FILE` | Write the results to `FILE` |
 
-`-` as input reads standard input. An XQuery may run without input. XPath and XQuery run with
+`-` as input reads standard input. An XQuery may run without input. YAML files are queried with
+JSONPath on their data (several documents in one file form an array); XPath and XQuery are refused for them. XPath and XQuery run with
 Saxon (the `map:`, `array:` and `math:` prefixes are declared) under the application's security
 defaults: no Java calls, no remote `doc()`.
 
@@ -176,6 +199,7 @@ fxt-cli query -e '//Position[xs:decimal(TotalPercentage) gt 10]/Identifiers/ISIN
 fxt-cli query --query-file report.xq --var year=2026 orders.xml
 fxt-cli query -l xquery -e 'current-date()'
 fxt-cli query -e '$.items[*].name' data.json
+fxt-cli query -e '$.jobs.*.runs-on' .github/workflows/ci.yml
 curl -s https://example.org/feed.xml | fxt-cli query -e '//title/string()' -
 if fxt-cli query -e '//error' log.xml > /dev/null; then echo "errors found"; fi
 fxt-cli query --lang-version 2.0 -e 'string-join(//ISIN, ",")' fund.xml        # fails with XPath 3.x
@@ -351,8 +375,8 @@ fxt-cli scenario orders.fxtproj Report --accept                            # new
 
 ## compare
 
-Compares two XML files by structure, or two folders file by file, like **Compare with File…** in
-XML mode and **Compare Folders…** in the application (see
+Compares two XML files by structure, two JSON or YAML files by their data, or two folders file by
+file, like **Compare with File…** in XML or Data mode and **Compare Folders…** in the application (see
 [Compare & Merge](unified-shell.md#comparing-as-xml)). Formatting, attribute order and namespace
 prefixes do not count.
 
@@ -375,6 +399,13 @@ fxt-cli compare [options] LEFT RIGHT
 
 LEFT is the expected document. With placeholders it can describe a result whose values change from
 run to run (an ID, a date): see [Comparing as XML](unified-shell.md#comparing-as-xml).
+
+**JSON and YAML.** Two files with the extensions `.json`, `.jsonc`, `.json5`, `.yaml` or `.yml` are
+compared by their data, a JSON file against a YAML file too: member order, formatting, comments,
+quoting and YAML anchors do not count, `1.0` equals `1`. Arrays are compared in order (an inserted
+item is one difference); `--ignore-order` pairs items regardless of position, `-k id` pairs objects
+by a key member, `--tolerance` applies to numbers. Locations are JSONPath:
+`deploy.yaml:3: Member 'replicas' changed: "2" → "3" ($.replicas)`. `--ignore` is for XML only.
 
 For two files, the text report has one line per difference in the form
 `left.xml:LINE: Attribute 'qty' changed: "1" → "2" (/order[1]/item[1]/@qty)` and a summary;

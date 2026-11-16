@@ -458,6 +458,7 @@ public class QueryConsole extends Region {
             return;
         }
         boolean json = isJsonActive();
+        boolean yaml = isYamlActive();
         var version = xpathVersion();
         setResultsText("Running…");
         hits.clear();
@@ -469,7 +470,8 @@ public class QueryConsole extends Region {
                     json ? org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.JSONPATH
                             : org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XPATH,
                     path.length() > 60 ? path.substring(0, 57) + "…" : path);
-            TransformRunner.QueryRun run = json ? TransformRunner.jsonPath(content, path)
+            TransformRunner.QueryRun run = yaml ? TransformRunner.yamlPath(content, path)
+                    : json ? TransformRunner.jsonPath(content, path)
                     : TransformRunner.xpath(content, path, version);
             String result = run.text();
             boolean ok = !result.startsWith("ERROR");
@@ -558,9 +560,15 @@ public class QueryConsole extends Region {
         }
     }
 
+    /** @return whether the active document is JSON or YAML (queried with JSONPath) */
     private boolean isJsonActive() {
         return editorHost.getActiveDocument()
-                .map(d -> d.getFileType() == EditorFileType.JSON).orElse(false);
+                .map(d -> d.getFileType().usesJsonSchema()).orElse(false);
+    }
+
+    private boolean isYamlActive() {
+        return editorHost.getActiveDocument()
+                .map(d -> d.getFileType() == EditorFileType.YAML).orElse(false);
     }
 
     /**

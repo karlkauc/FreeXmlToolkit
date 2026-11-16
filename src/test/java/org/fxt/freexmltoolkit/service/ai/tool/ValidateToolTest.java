@@ -157,6 +157,39 @@ class ValidateToolTest {
     }
 
     @Test
+    void jsonAndYamlAgainstAGivenOrDeclaredJsonSchema() throws Exception {
+        Files.writeString(root.resolve("n.schema.json"),
+                "{\"type\":\"object\",\"properties\":{\"n\":{\"type\":\"string\"}}}");
+        ToolResult inline = call(args("xml_content", "{\"n\": 1}", "json_schema_path", "n.schema.json"));
+        assertTrue(inline.error(), inline.text());
+        assertEquals("JSON Schema", inline.structured().getAsJsonArray("problems").get(0).getAsJsonObject()
+                .get("source").getAsString());
+        assertFalse(call(args("xml_content", "{\"n\": \"x\"}", "json_schema_path", "n.schema.json")).error());
+
+        Files.writeString(root.resolve("d.yaml"), "# yaml-language-server: $schema=n.schema.json\nn: 1\n");
+        ToolResult declared = call(args("xml_path", "d.yaml"));
+        assertTrue(declared.error(), declared.text());
+        assertEquals(2, declared.structured().getAsJsonArray("problems").get(0).getAsJsonObject()
+                .get("line").getAsInt());
+        assertFalse(call(args("xml_path", "d.yaml", "declared_schema", false)).error());
+
+        ToolResult yamlSyntax = call(args("xml_content", "a: [1, 2\n", "format", "yaml"));
+        assertTrue(yamlSyntax.error(), yamlSyntax.text());
+        assertFalse(yamlSyntax.structured().get("not_run").getAsBoolean());
+
+        ToolResult remote = call(args("xml_content", "{\"$schema\": \"https://example.org/s.json\"}"));
+        assertTrue(remote.structured().get("not_run").getAsBoolean(), remote.text());
+
+        Path outside = Files.writeString(temp.resolve("outside.schema.json"), "{}");
+        ToolResult escaping = call(args("xml_content", "{\"$schema\": \"" + outside.toString().replace("\\", "/") + "\"}"));
+        assertTrue(escaping.structured().get("not_run").getAsBoolean(), escaping.text());
+
+        assertThrows(ToolException.class, () -> call(args("xml_content", "{}", "xsd_path", "s.xsd")));
+        assertThrows(ToolException.class, () -> call(args("xml_content", "<root/>", "json_schema_path", "n.schema.json")));
+        assertThrows(ToolException.class, () -> call(args("xml_content", "{}", "format", "csv")));
+    }
+
+    @Test
     void schemaDescribesTheArguments() {
         JsonObject properties = tool.inputSchema().getAsJsonObject("properties");
         for (String name : List.of("xml_path", "xml_content", "xsd_path", "schematron_path", "declared_schema")) {

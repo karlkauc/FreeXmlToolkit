@@ -27,7 +27,7 @@ import picocli.CommandLine.Spec;
  */
 @Command(name = "compare",
         mixinStandardHelpOptions = true,
-        header = "Compare two XML files by structure, or two folders file by file.",
+        header = "Compare two XML, JSON or YAML files by structure, or two folders file by file.",
         footer = {
                 "  # Structural comparison, elements matched by their id attribute",
                 "  fxt-cli compare old.xml new.xml -k id",
@@ -38,6 +38,9 @@ import picocli.CommandLine.Spec;
                 "  # Expected result with ${xmlunit.…} placeholders; ignore a timestamp, round amounts",
                 "  fxt-cli compare expected.xml actual.xml --ignore '//@created' --tolerance 0.005",
                 "",
+                "  # JSON or YAML by their data (also JSON against YAML); array items matched by id",
+                "  fxt-cli compare deploy-old.yaml deploy-new.yaml -k id",
+                "",
                 "  # Two folders file by file",
                 "  fxt-cli compare release-1/ release-2/"
         },
@@ -46,7 +49,10 @@ import picocli.CommandLine.Spec;
                         + "and (by default) indentation do not count.",
                 "LEFT is the expected document: it may hold XMLUnit placeholders instead of values that change "
                         + "from run to run: ${xmlunit.ignore}, ${xmlunit.isNumber}, ${xmlunit.isDateTime}, "
-                        + "${xmlunit.matchesRegex(REGEX)} (as element text or attribute value)."
+                        + "${xmlunit.matchesRegex(REGEX)} (as element text or attribute value).",
+                "JSON and YAML files (.json, .jsonc, .json5, .yaml, .yml) are compared by their data: member order, "
+                        + "formatting, comments and anchors do not count; locations are JSONPath. --ignore-order, "
+                        + "--key (members identifying array items) and --tolerance apply to them too."
         },
         sortOptions = false)
 final class CompareCommand implements Callable<Integer> {
@@ -120,12 +126,29 @@ final class CompareCommand implements Callable<Integer> {
             throw new CommandLine.ParameterException(commandLine, "--ignore: " + badXPath);
         }
         PrintWriter out = commandLine.getOut();
+        if (!folders) {
+            var leftFormat = org.fxt.freexmltoolkit.service.DataStructuralDiff.formatOf(left.getFileName().toString(), null);
+            var rightFormat = org.fxt.freexmltoolkit.service.DataStructuralDiff.formatOf(right.getFileName().toString(), null);
+            if (leftFormat != null && rightFormat != null) {
+                if (ignore != null && !ignore.isEmpty()) {
+                    throw new CommandLine.ParameterException(commandLine, "--ignore is for XML files");
+                }
+                XmlStructuralDiff.Result result = org.fxt.freexmltoolkit.service.DataStructuralDiff.compare(
+                        CliSupport.read(left), leftFormat, CliSupport.read(right), rightFormat,
+                        org.fxt.freexmltoolkit.service.DataStructuralDiff.Options.of(xml));
+                return report(commandLine, out, result, "The files have the same data.");
+            }
+        }
         return folders ? compareFolders(out, xml) : compareFiles(commandLine, out, xml);
     }
 
     private int compareFiles(CommandLine commandLine, PrintWriter out, XmlStructuralDiff.Options options)
             throws IOException {
         XmlStructuralDiff.Result result = XmlStructuralDiff.compare(CliSupport.read(left), CliSupport.read(right), options);
+        return report(commandLine, out, result, "The files are equivalent as XML.");
+    }
+
+    private int report(CommandLine commandLine, PrintWriter out, XmlStructuralDiff.Result result, String same) {
         if (!result.compared()) {
             if (result.leftError() != null) {
                 commandLine.getErr().println(left + ": error: " + result.leftError());
@@ -153,7 +176,7 @@ final class CompareCommand implements Callable<Integer> {
                         + (d.leftXPath().isEmpty() ? d.rightXPath() : d.leftXPath()) + ")");
             }
             long similar = result.similarCount();
-            out.println(result.equivalent() ? "The files are equivalent as XML."
+            out.println(result.equivalent() ? same
                     : result.differences().size() + (result.differences().size() == 1 ? " difference" : " differences")
                     + (similar > 0 ? " (" + similar + " similar)" : ""));
         }

@@ -49,6 +49,8 @@ public final class JsonIntelliSenseEngine {
 
     private final CodeArea codeArea;
     private final Supplier<JsonSchemaResolver> schema;
+    private final CodeSyntax.Completer completer;
+    private final String triggers;
     private final IntelliSensePopup popup = new IntelliSensePopup();
     private List<Proposal> shown = List.of();
     /** True while a completion is being inserted (its text change must not re-trigger). */
@@ -59,8 +61,21 @@ public final class JsonIntelliSenseEngine {
      * @param schema   the bound schema, or a supplier of {@code null} while none is bound
      */
     public JsonIntelliSenseEngine(CodeArea codeArea, Supplier<JsonSchemaResolver> schema) {
+        this(codeArea, schema, JsonCompletionProvider::complete, "\":");
+    }
+
+    /**
+     * @param codeArea  the editor's area
+     * @param schema    the bound schema, or a supplier of {@code null} while none is bound
+     * @param completer the language's completion
+     * @param triggers  characters that open the list after they are typed
+     */
+    public JsonIntelliSenseEngine(CodeArea codeArea, Supplier<JsonSchemaResolver> schema,
+                                  CodeSyntax.Completer completer, String triggers) {
         this.codeArea = codeArea;
         this.schema = schema;
+        this.completer = completer;
+        this.triggers = triggers == null ? "" : triggers;
         popup.setOnItemSelected(this::accept);
         codeArea.addEventFilter(KeyEvent.KEY_PRESSED, this::onKeyPressed);
         codeArea.addEventHandler(KeyEvent.KEY_TYPED, this::onKeyTyped);
@@ -117,7 +132,7 @@ public final class JsonIntelliSenseEngine {
             return;
         }
         char c = typed.charAt(0);
-        if (c == '"' || c == ':') {
+        if (triggers.indexOf(c) >= 0) {
             // after the character is in the text
             Platform.runLater(() -> show(false));
         }
@@ -135,8 +150,7 @@ public final class JsonIntelliSenseEngine {
             popup.hide();
             return List.of();
         }
-        List<Proposal> proposals = JsonCompletionProvider.complete(codeArea.getText(), codeArea.getCaretPosition(),
-                resolver);
+        List<Proposal> proposals = completer.complete(codeArea.getText(), codeArea.getCaretPosition(), resolver);
         shown = proposals;
         if (proposals.isEmpty()) {
             popup.hide();

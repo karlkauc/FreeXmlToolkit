@@ -47,10 +47,14 @@
         <TextField fx:id="rootElement"
                    promptText="%SchemaLibraryEntryDialog.rootElement.promptText"
                    GridPane.rowIndex="3" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS"/>
-        <Label text="%SchemaLibraryEntryDialog.description.text" GridPane.rowIndex="4"/>
-        <TextField fx:id="description" GridPane.rowIndex="4" GridPane.columnIndex="1"
+        <Label text="%SchemaLibraryEntryDialog.file-names.text" GridPane.rowIndex="4"/>
+        <TextField fx:id="fileMatch" id="library-entry-file-match"
+                   promptText="%SchemaLibraryEntryDialog.fileMatch.promptText"
+                   GridPane.rowIndex="4" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS"/>
+        <Label text="%SchemaLibraryEntryDialog.description.text" GridPane.rowIndex="5"/>
+        <TextField fx:id="description" GridPane.rowIndex="5" GridPane.columnIndex="1"
                    GridPane.hgrow="ALWAYS"/>
-        <Label fx:id="error" wrapText="true" styleClass="fxt-lib-error" GridPane.rowIndex="5"
+        <Label fx:id="error" wrapText="true" styleClass="fxt-lib-error" GridPane.rowIndex="6"
                GridPane.columnSpan="2"/>
     </children>
 </GridPane>

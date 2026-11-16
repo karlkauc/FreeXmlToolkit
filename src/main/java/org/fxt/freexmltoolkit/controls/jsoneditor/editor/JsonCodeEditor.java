@@ -45,7 +45,6 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxt.freexmltoolkit.controls.shared.EditorFont;
-import org.fxt.freexmltoolkit.controls.shared.JsonSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.shared.PlainTextCodeArea;
 import org.fxt.freexmltoolkit.i18n.I18n;
 
@@ -98,6 +97,9 @@ public class JsonCodeEditor extends VBox {
     /** Schema-driven completion (Ctrl+Space, after a quote at a key or a colon). */
     private final JsonIntelliSenseEngine intelliSense;
 
+    /** The language-specific parts (highlighting, folding, completion, paths). */
+    private final CodeSyntax syntax;
+
     /** An extra gutter column contributed by the shell (e.g. quick-fix light bulbs), or null. */
     private IntFunction<javafx.scene.Node> extraGutterFactory;
 
@@ -116,7 +118,18 @@ public class JsonCodeEditor extends VBox {
      * Creates a new JSON code editor.
      */
     public JsonCodeEditor() {
+        this(CodeSyntax.JSON);
+    }
+
+    /**
+     * Creates a code editor for a data language read into the JSON model (JSON, YAML).
+     *
+     * @param syntax the language's highlighting, folding, completion and paths
+     */
+    public JsonCodeEditor(CodeSyntax syntax) {
         super();
+        this.syntax = syntax;
+        this.detectedFormat = syntax.formatLabel();
 
         logger.info("Creating JsonCodeEditor...");
 
@@ -125,8 +138,9 @@ public class JsonCodeEditor extends VBox {
         this.scrollPane = new VirtualizedScrollPane<>(codeArea);
         this.combinedStyles = new org.fxt.freexmltoolkit.controls.v2.editor.managers.CombinedStyleManager(codeArea);
         this.foldingManager = new org.fxt.freexmltoolkit.controls.v2.editor.managers.FoldingManagerV2(
-                codeArea, JsonFoldScanner::scan);
-        this.intelliSense = new JsonIntelliSenseEngine(codeArea, () -> schema);
+                codeArea, syntax.foldScanner());
+        this.intelliSense = new JsonIntelliSenseEngine(codeArea, () -> schema, syntax.completer(),
+                syntax.completionTriggers());
 
         // Create status bar
         this.statusLabel = new Label(I18n.t("JsonCodeEditor.ready"));
@@ -155,6 +169,7 @@ public class JsonCodeEditor extends VBox {
     private void setupContextMenu() {
         contextMenuManager = new JsonContextMenuManager(codeArea);
         contextMenuManager.initializeContextMenu();
+        contextMenuManager.setSyntax(syntax);
         contextMenuManager.setFoldingActions(foldingManager::foldAll, foldingManager::unfoldAll);
         logger.debug("Context menu setup");
     }
@@ -335,7 +350,7 @@ public class JsonCodeEditor extends VBox {
         if (resolver == null || codeArea.getLength() > 1024 * 1024) {
             return List.of();
         }
-        List<Object> path = org.fxt.freexmltoolkit.service.jsonschema.JsonCaretContext.pathAt(codeArea.getText(), offset);
+        List<Object> path = syntax.pathAt().apply(codeArea.getText(), offset);
         if (path == null) {
             return List.of();
         }
@@ -539,7 +554,7 @@ public class JsonCodeEditor extends VBox {
 
                 if (charIndex >= 0 && charIndex < codeArea.getLength()) {
                     String text = codeArea.getText();
-                    JsonPathCalculator.JsonHoverInfo hoverInfo = JsonPathCalculator.calculatePath(text, charIndex);
+                    JsonPathCalculator.JsonHoverInfo hoverInfo = syntax.hoverInfo().apply(text, charIndex);
                     List<String> problems = problemsAt(charIndex);
 
                     if (!problems.isEmpty() || (hoverInfo != null && hoverInfo.isValid())) {
@@ -719,7 +734,7 @@ public class JsonCodeEditor extends VBox {
             String format;
             try {
                 highlighting = computeHighlighting(text);
-                format = JsonSyntaxHighlighter.detectFormat(text);
+                format = syntax.formatDetector().apply(text);
             } catch (RuntimeException e) {
                 logger.error("Error computing syntax highlighting: {}", e.getMessage(), e);
                 return;
@@ -764,10 +779,10 @@ public class JsonCodeEditor extends VBox {
         }
     }
 
-    private static StyleSpans<Collection<String>> computeHighlighting(String text) {
+    private StyleSpans<Collection<String>> computeHighlighting(String text) {
         // Minified JSON: lines with thousands of spans freeze the editor's line layout.
         return org.fxt.freexmltoolkit.controls.shared.DenseLineGuard
-                .flattenDenseLines(text, JsonSyntaxHighlighter.computeHighlighting(text));
+                .flattenDenseLines(text, syntax.highlighter().apply(text));
     }
 
     /**

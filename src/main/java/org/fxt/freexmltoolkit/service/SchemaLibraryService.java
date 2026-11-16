@@ -80,6 +80,17 @@ public interface SchemaLibraryService {
 
     Optional<SchemaLibraryEntry> resolveByRootElement(String localName);
 
+    /**
+     * The enabled JSON Schema entry whose file name patterns match a file (the most specific
+     * pattern wins; user entries come first on a tie).
+     *
+     * @param file the JSON or YAML file
+     * @return the entry, or empty when no pattern matches
+     */
+    default Optional<SchemaLibraryEntry> resolveByFileName(Path file) {
+        return Optional.empty();
+    }
+
     /** never throws */
     Optional<Path> materialize(SchemaLibraryEntry entry);
 

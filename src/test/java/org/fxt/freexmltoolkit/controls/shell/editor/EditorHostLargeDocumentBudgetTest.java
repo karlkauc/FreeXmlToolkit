@@ -37,11 +37,17 @@ class EditorHostLargeDocumentBudgetTest {
     }
 
     private void openLargeXml(Path tmp) throws Exception {
+        openLargeXml(tmp, false);
+    }
+
+    /** @param unindented whether the lines lose their indentation (so Format has something to change) */
+    private void openLargeXml(Path tmp, boolean unindented) throws Exception {
         Path xml = tmp.resolve("large.xml");
-        Files.writeString(xml, LargeDocuments.xml(5 * 1024 * 1024));
+        String text = LargeDocuments.xml(5 * 1024 * 1024);
+        Files.writeString(xml, unindented ? text.replaceAll("\n +", "\n") : text);
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
         WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS,
-                () -> host.getActiveText().map(t -> t.length() > 5_000_000).orElse(false));
+                () -> host.getActiveText().map(t -> t.length() > 4_000_000).orElse(false));
         WaitForAsyncUtils.waitForFxEvents();
     }
 
@@ -55,7 +61,8 @@ class EditorHostLargeDocumentBudgetTest {
 
     @Test
     void formatAndViewSwitchOnlyStartBackgroundWork(@TempDir Path tmp) throws Exception {
-        openLargeXml(tmp);
+        // not indented: a Format that changes nothing leaves the text (and the dirty flag) alone
+        openLargeXml(tmp, true);
 
         // Best of two: copying the 5 MB text occasionally takes longer when the memory it touches is
         // fresh (swapping machine). The later Format discards its result once the first changed the text.

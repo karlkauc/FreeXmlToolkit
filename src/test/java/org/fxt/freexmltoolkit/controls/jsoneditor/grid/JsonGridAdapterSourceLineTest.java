@@ -61,4 +61,26 @@ class JsonGridAdapterSourceLineTest {
         assertEquals("y", ((JsonPrimitive) root.getProperty("name")).getValue());
         assertEquals(0, adapter.sourceLine(name), "markers must not point at stale lines after an edit");
     }
+
+    @Test
+    void rowsOfAModelReadFromYamlFindTheirYamlLines() {
+        String yaml = "# head\nname: x\nnested:\n  deep: 1\nlist:\n- a: 1\n- a: 2\n";
+        JsonEditorContext context = new JsonEditorContext();
+        context.loadDocumentFromString(org.fxt.freexmltoolkit.service.yaml.YamlDocument.parse(yaml).json().toString());
+        JsonGridAdapter adapter = new JsonGridAdapter(context);
+        adapter.setYamlSourceText(yaml);
+        List<FlatRow> rows = adapter.flatten();
+        assertEquals(2, adapter.sourceLine(row(rows, "name")));
+        assertEquals(3, adapter.sourceLine(row(rows, "nested")));
+        assertArrayEquals(new int[] {6, 7}, adapter.memberSourceLines(row(rows, "list")));
+    }
+
+    @Test
+    void theCollapsedPreviewStaysOnOneLine() {
+        JsonEditorContext context = new JsonEditorContext();
+        context.loadDocumentFromString("{\"o\": {\"script\": \"a\\nb\\tc\"}}");
+        JsonGridAdapter adapter = new JsonGridAdapter(context);
+        String preview = adapter.collapsedPreview(row(adapter.flatten(), "o"), 200);
+        assertEquals("{\"script\": \"a\\nb\\tc\"}", preview);
+    }
 }

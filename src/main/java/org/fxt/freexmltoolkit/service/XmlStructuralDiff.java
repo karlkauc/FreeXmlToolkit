@@ -58,7 +58,13 @@ public final class XmlStructuralDiff {
     public enum Change { ADDED, REMOVED, CHANGED, MOVED }
 
     /** The kind of node that changed. */
-    public enum NodeKind { ELEMENT, ATTRIBUTE, TEXT, COMMENT, PROCESSING_INSTRUCTION, NAMESPACE, DOCUMENT }
+    public enum NodeKind {
+        ELEMENT, ATTRIBUTE, TEXT, COMMENT, PROCESSING_INSTRUCTION, NAMESPACE, DOCUMENT,
+        /** A member of a JSON / YAML object ({@link DataStructuralDiff}). */
+        MEMBER,
+        /** An item of a JSON / YAML array ({@link DataStructuralDiff}). */
+        ITEM
+    }
 
     /**
      * Comparison options.
@@ -190,6 +196,8 @@ public final class XmlStructuralDiff {
                 case PROCESSING_INSTRUCTION -> "Processing instruction " + name;
                 case NAMESPACE -> "Namespace of <" + name + ">";
                 case DOCUMENT -> name;
+                case MEMBER -> "Member '" + name + "'";
+                case ITEM -> "Item " + name;
             };
             return switch (change) {
                 case ADDED -> what + " added";

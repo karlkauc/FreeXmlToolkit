@@ -22,6 +22,8 @@ public class JsonGridView extends GridViewShell {
     private Consumer<JsonNode> onSelectionChanged;
     private JsonEditorContext context;
     private JsonCanvasView canvasView;
+    /** Whether the model was read from YAML (problem lines are found through the YAML text). */
+    private boolean yaml;
 
     public JsonGridView() {
         super();
@@ -30,6 +32,19 @@ public class JsonGridView extends GridViewShell {
     @Override
     protected String subtitle() {
         return "· nested · arrays of objects as embedded grids";
+    }
+
+    /** @param yaml whether the shown model is read from YAML text (problem markers find their lines there) */
+    public void setYaml(boolean yaml) {
+        this.yaml = yaml;
+    }
+
+    private void applySourceText(JsonCanvasView view) {
+        if (yaml) {
+            view.getJsonAdapter().setYamlSourceText(problemsText);
+        } else {
+            view.getJsonAdapter().setSourceText(problemsText);
+        }
     }
 
     /** @return the current grid's editor context (model + command stack), or {@code null}. */
@@ -119,7 +134,7 @@ public class JsonGridView extends GridViewShell {
         });
         installCanvas(view);
         if (problems != null) {
-            view.getJsonAdapter().setSourceText(problemsText);
+            applySourceText(view);
             view.setProblems(problems);
         }
         if (entryHelpers != null) {
@@ -185,7 +200,7 @@ public class JsonGridView extends GridViewShell {
         problems = byLine.isEmpty() ? null : byLine;
         problemsText = problems == null ? null : text;
         if (canvasView != null) {
-            canvasView.getJsonAdapter().setSourceText(problemsText);
+            applySourceText(canvasView);
             canvasView.setProblems(problems);
         }
     }
@@ -194,7 +209,7 @@ public class JsonGridView extends GridViewShell {
     public void showParseError(String message) {
         this.context = null;
         this.canvasView = null;
-        showPlaceholder("Cannot display grid:\n\n" + message + "\n\nFix the JSON errors first.");
+        showPlaceholder("Cannot display grid:\n\n" + message + (yaml ? "\n\nFix the YAML errors first." : "\n\nFix the JSON errors first."));
     }
 
     @Override

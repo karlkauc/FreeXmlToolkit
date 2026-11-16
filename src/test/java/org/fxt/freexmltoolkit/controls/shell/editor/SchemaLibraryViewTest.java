@@ -57,7 +57,7 @@ class SchemaLibraryViewTest {
     void pageHasLabelledTabsAndActionsAndShowsEveryColumn(FxRobot robot) {
         WaitForAsyncUtils.waitForFxEvents();
         javafx.scene.control.TabPane tabs = robot.lookup("#schema-library-tabs").queryAs(javafx.scene.control.TabPane.class);
-        assertEquals(java.util.List.of("Mappings", "Catalogs", "Cache"),
+        assertEquals(java.util.List.of("Mappings", "Catalogs", "SchemaStore", "Cache"),
                 tabs.getTabs().stream().map(javafx.scene.control.Tab::getText).toList());
         assertEquals("Add mapping…", robot.lookup("#library-add").queryButton().getText());
         assertTrue(table(robot).getColumns().stream().allMatch(javafx.scene.control.TableColumn::isVisible),
@@ -213,5 +213,52 @@ class SchemaLibraryViewTest {
         WaitForAsyncUtils.waitForFxEvents();
         assertTrue(table.getItems().isEmpty());
         assertFalse(Files.exists(f));
+    }
+
+    @Test
+    void schemaStoreTabTellsWhichSchemaAFileNameGets(FxRobot robot) throws Exception {
+        Path catalogFile = dir.resolve("catalog.json");
+        Files.writeString(catalogFile, """
+                {"schemas": [{"name": "GitHub Workflow", "fileMatch": [".github/workflows/*.yml"],
+                              "url": "https://json.schemastore.org/github-workflow.json"}]}
+                """);
+        org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog.setShared(
+                new org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog(catalogFile, uri -> {
+                    throw new java.io.IOException("offline");
+                }));
+        try {
+            library.addEntry(SchemaLibraryEntry.user("", "/schemas/compose.json", SchemaKind.JSON_SCHEMA, "", null)
+                    .withFileMatch(java.util.List.of("docker-compose.yml")));
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                panel.showSection("schemastore");
+                return null;
+            });
+            javafx.scene.control.CheckBox enabled = robot.lookup("#library-schemastore-enabled")
+                    .queryAs(javafx.scene.control.CheckBox.class);
+            javafx.scene.control.TextField tryField = robot.lookup("#library-schemastore-try")
+                    .queryAs(javafx.scene.control.TextField.class);
+            javafx.scene.control.Label result = robot.lookup("#library-schemastore-try-result")
+                    .queryAs(javafx.scene.control.Label.class);
+            String text = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                enabled.setSelected(false);
+                tryField.setText(".github/workflows/ci.yml");
+                return result.getText();
+            });
+            assertTrue(text.contains("switched off"), text);
+            text = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                enabled.setSelected(true);
+                return result.getText();
+            });
+            assertTrue(text.contains("GitHub Workflow"), text);
+            text = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                tryField.setText("docker-compose.yml");
+                return result.getText();
+            });
+            assertEquals("Your mapping: /schemas/compose.json", text);
+        } finally {
+            ServiceRegistry.get(PropertiesService.class).set(
+                    org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog.ENABLED_KEY, "false");
+            org.fxt.freexmltoolkit.service.schemastore.SchemaStoreCatalog.setShared(null);
+        }
     }
 }

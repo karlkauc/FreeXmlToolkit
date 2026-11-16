@@ -49,6 +49,7 @@ final class ReportWriters {
         RULES.put("schematron", "Schematron assertion failed or report fired");
         RULES.put("json", "JSON is not well-formed");
         RULES.put("json-schema", "JSON does not match its JSON Schema");
+        RULES.put("yaml", "YAML is not well-formed");
         RULES.put("not-run", "The validation could not run");
     }
 
@@ -357,6 +358,7 @@ final class ReportWriters {
             case "Well-formed" -> "well-formed";
             case "Schematron" -> "schematron";
             case "JSON" -> "json";
+            case "YAML" -> "yaml";
             case "JSON Schema" -> "json-schema";
             default -> "xsd";
         };

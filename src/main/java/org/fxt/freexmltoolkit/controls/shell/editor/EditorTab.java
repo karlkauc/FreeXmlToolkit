@@ -258,11 +258,11 @@ final class EditorTab extends Tab {
             case TREE -> switch (document.getFileType()) {
                 // Query documents are not XML — the DOM tree view cannot parse them.
                 // HTML output is often not well-formed XML (unclosed <br>, &nbsp;) either.
-                case OTHER, XQUERY, XPATH, HTML, YAML -> false;
+                case OTHER, XQUERY, XPATH, HTML -> false;
                 default -> true;
             };
             case GRAPHIC -> switch (document.getFileType()) {
-                case XSD, XML, XSLT, SCHEMATRON, JSON -> true;
+                case XSD, XML, XSLT, SCHEMATRON, JSON, YAML -> true;
                 default -> false;
             };
         };
@@ -295,7 +295,7 @@ final class EditorTab extends Tab {
             };
             switch (document.getFileType()) {
                 case XSD -> ensureModelParsedAsync(finish);
-                case JSON -> ensureJsonModelParsedAsync(finish);
+                case JSON, YAML -> ensureJsonModelParsedAsync(finish);
                 default -> ensureXmlModelParsedAsync(finish);
             }
             return;
@@ -319,7 +319,7 @@ final class EditorTab extends Tab {
             showOnly(view.getNode());
             // The Tree/Graphic selection was just dropped: map the caret again, so the inspector
             // shows the node at the caret instead of nothing until the caret moves.
-            if (document.getFileType() != EditorFileType.JSON) {
+            if (!document.getFileType().usesJsonSchema()) {
                 xmlCaretDebounce.playFromStart();
             }
             return;
@@ -331,12 +331,13 @@ final class EditorTab extends Tab {
             showOnly(htmlPreviewNode);
             return;
         }
-        // JSON: Tree and Graphic share ONE JsonEditorContext (model + undo history),
+        // JSON and YAML: Tree and Graphic share ONE JsonEditorContext (model + undo history),
         // exactly like the XML instance views below.
-        if (document.getFileType() == EditorFileType.JSON) {
+        if (usesJsonModel()) {
             ensureJsonModelParsed();
             if (target == ViewMode.GRAPHIC) {
                 ensureJsonGrid();
+                jsonGridView.setYaml(document.getFileType() == EditorFileType.YAML);
                 if (jsonEditorContext != null) {
                     jsonGridView.setContext(jsonEditorContext);
                 } else if (lastJsonParseError != null) {
@@ -435,7 +436,7 @@ final class EditorTab extends Tab {
         if (type == EditorFileType.XSD) {
             return ViewAnchor.node(xsdModelIndexPath(currentSelection), null);
         }
-        if (type == EditorFileType.JSON) {
+        if (usesJsonModel()) {
             return ViewAnchor.node(
                     org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.pathOf(currentJsonSelection), null);
         }
@@ -478,7 +479,7 @@ final class EditorTab extends Tab {
         }
         ViewMode mode = viewMode;
         EditorFileType type = document.getFileType();
-        if (type == EditorFileType.JSON) {
+        if (usesJsonModel()) {
             if (anchor.path() != null) {
                 revealJsonNode(org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.nodeAt(
                         jsonEditorContext != null ? jsonEditorContext.getDocument() : null, anchor.path()));
@@ -529,8 +530,14 @@ final class EditorTab extends Tab {
             if (jsonEditorContext == null || !viewMode.isStructured() || currentJsonSelection != null) {
                 return; // no model, another view, or the user chose a node meanwhile
             }
-            var span = org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.scan(view.getText());
-            var path = org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.pathAt(span, offset);
+            java.util.List<Integer> path;
+            if (document.getFileType() == EditorFileType.YAML) {
+                var yaml = org.fxt.freexmltoolkit.service.yaml.YamlDocument.parse(view.getText());
+                path = yaml.indexesOf(yaml.pathAt(offset));
+            } else {
+                var span = org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.scan(view.getText());
+                path = org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.pathAt(span, offset);
+            }
             revealJsonNode(org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.nodeAt(
                     jsonEditorContext.getDocument(), path));
         });
@@ -575,6 +582,14 @@ final class EditorTab extends Tab {
             }
             start = span.start();
             end = span.end();
+        } else if (type == EditorFileType.YAML) {
+            var yaml = org.fxt.freexmltoolkit.service.yaml.YamlDocument.parse(text);
+            var location = yaml.locationOf(java.util.Objects.requireNonNullElse(yaml.segmentsOf(path), java.util.List.of()));
+            if (location == null || path.isEmpty()) {
+                return;
+            }
+            start = location.start();
+            end = location.valueEnd();
         } else if (type.isXmlFamily()) {
             java.util.function.Predicate<String> skip = type == EditorFileType.XSD
                     ? n -> "annotation".equals(n) || "documentation".equals(n) || "appinfo".equals(n)
@@ -680,7 +695,7 @@ final class EditorTab extends Tab {
         return switch (document.getFileType()) {
             case XSD -> (editorContext == null || lastParsedRevision != textRevision)
                     && failedXsdParseRevision != textRevision;
-            case JSON -> (jsonEditorContext == null || lastParsedJsonRevision != textRevision)
+            case JSON, YAML -> (jsonEditorContext == null || lastParsedJsonRevision != textRevision)
                     && failedJsonParseRevision != textRevision;
             default -> (xmlEditorContext == null || lastParsedXmlRevision != textRevision)
                     && failedXmlParseRevision != textRevision;
@@ -1183,8 +1198,7 @@ final class EditorTab extends Tab {
             String error = null;
             if (text != null && !text.isBlank()) {
                 try {
-                    ctx = new org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext();
-                    ctx.loadDocumentFromString(text);
+                    ctx = newJsonContext(text);
                 } catch (Exception e) {
                     ctx = null;
                     error = e.getMessage();
@@ -1229,8 +1243,7 @@ final class EditorTab extends Tab {
             return;
         }
         try {
-            var ctx = new org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext();
-            ctx.loadDocumentFromString(text);
+            var ctx = newJsonContext(text);
             jsonEditorContext = ctx;
             lastParsedJsonRevision = textRevision;
         } catch (Exception e) {
@@ -1244,9 +1257,87 @@ final class EditorTab extends Tab {
         }
     }
 
+    /** Whether this document's Tree and Graphic views work on a {@link #jsonEditorContext} (JSON, YAML). */
+    boolean usesJsonModel() {
+        return document.getFileType() == EditorFileType.JSON || document.getFileType() == EditorFileType.YAML;
+    }
+
+    /**
+     * A context over the text's data: JSON as it is, YAML through its data (several documents are
+     * an array). Any thread.
+     *
+     * @throws IllegalArgumentException when the text cannot be read
+     */
+    private org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext newJsonContext(String text) {
+        var ctx = new org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext();
+        if (document.getFileType() == EditorFileType.YAML) {
+            var yaml = org.fxt.freexmltoolkit.service.yaml.YamlDocument.parse(text);
+            if (!yaml.isValid()) {
+                var problem = yaml.problem();
+                throw new IllegalArgumentException(problem.line() > 0
+                        ? "Line " + problem.line() + ", column " + problem.column() + ": " + problem.message()
+                        : problem.message());
+            }
+            ctx.loadDocumentFromString(yaml.json().toString());
+        } else {
+            ctx.loadDocumentFromString(text);
+        }
+        return ctx;
+    }
+
+    /**
+     * Asks whether a Tree/Grid edit of a YAML document may write the whole text again (it could not
+     * be placed in the text as it is); test hook. Asked once per document.
+     */
+    static java.util.function.BooleanSupplier yamlRewriteConfirmer = () ->
+            org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation(I18n.t("EditorTab.yaml-rewrite"),
+                    I18n.t("EditorTab.yaml-rewrite-header"), I18n.t("EditorTab.yaml-rewrite-detail"));
+
+    /** The user allowed this document's YAML to be written again as a whole. */
+    private boolean yamlRewriteAllowed;
+
+    /**
+     * Writes the shared model back into the YAML text: only what changed is replaced, so comments,
+     * anchors and formatting stay ({@link org.fxt.freexmltoolkit.service.yaml.YamlTextPatcher}). When
+     * that is not possible the whole text is written again - after asking, if it holds anything that
+     * would be lost; a refusal takes the edit back.
+     */
+    private void roundTripYamlModelToText() {
+        com.google.gson.JsonElement target = com.google.gson.JsonParser.parseString(jsonEditorContext.serializeToString());
+        String current = view.getText();
+        String next = org.fxt.freexmltoolkit.service.yaml.YamlTextPatcher.patch(current, target).orElse(null);
+        if (next == null) {
+            if (!yamlRewriteAllowed && org.fxt.freexmltoolkit.service.yaml.YamlFormatter.lostByFormatting(current) != null) {
+                if (!yamlRewriteConfirmer.getAsBoolean()) {
+                    if (jsonEditorContext.canUndo()) {
+                        jsonEditorContext.undo(); // the text keeps its state, the views follow the model back
+                    }
+                    currentJsonSelection = null;
+                    lastParsedJsonRevision = textRevision;
+                    return;
+                }
+                yamlRewriteAllowed = true;
+            }
+            next = org.fxt.freexmltoolkit.service.yaml.YamlTextPatcher.rewrite(current, target,
+                    org.fxt.freexmltoolkit.service.JsonService.configuredIndent());
+        }
+        int[] region = TextDiff.minimalReplaceRegion(current, next);
+        if (region[0] == region[1] && region[0] == region[2]) {
+            lastParsedJsonRevision = textRevision;
+            return;
+        }
+        view.replaceTextRegion(region[0], region[1], next.substring(region[0], region[2]));
+        lastParsedJsonRevision = textRevision;
+        document.setDirty(true);
+    }
+
     /** Serializes the shared JSON model back into the editor text via a minimal diff (caret/scroll preserved). */
     private void roundTripJsonModelToText() {
         if (jsonEditorContext == null) {
+            return;
+        }
+        if (document.getFileType() == EditorFileType.YAML) {
+            roundTripYamlModelToText();
             return;
         }
         String json = jsonEditorContext.serializeToString();

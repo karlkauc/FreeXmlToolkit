@@ -6,6 +6,32 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+**YAML**
+
+- **YAML editor:** `.yaml` / `.yml` files get syntax colours, folding by indentation and a syntax check while you
+  type, with the error at its line and column.
+- **JSON Schema for YAML:** validation and completion from the schema a YAML file declares
+  (`# yaml-language-server: $schema=…` or `$schema:`), a project binding or **Set Schema…**; problems are underlined
+  on their key. `fxt-cli validate` checks YAML files too.
+- **Format** re-indents YAML (and leaves documents with comments or anchors alone), **JSONPath** queries run on
+  YAML, **Generate Sample** writes YAML. Application tags such as CloudFormation's `!Ref` no longer stop a
+  conversion. See [YAML](json-editor.md#yaml).
+- **Tree and Grid for YAML:** YAML documents get the JSON Tree and Grid views. Edits are written into the YAML text
+  at their place, so comments, anchors, tags and formatting stay; a change that cannot be placed asks before the
+  document is written again. See [Tree and Grid for YAML](json-editor.md#tree-and-grid-for-yaml).
+- **Schemas by file name:** a Schema Library mapping can name the JSON and YAML files it is for (`docker-compose*.yml`,
+  `.github/workflows/*.yml`), and the optional [SchemaStore catalog](schema-library.md#4-schemastore) finds the schema of
+  hundreds of known file types by their name - for files that declare no schema themselves.
+- **Command line and MCP:** `fxt-cli validate` also uses the `$schema` of JSON files and the file-name patterns,
+  `--schemastore` adds the SchemaStore catalog (`fxt-cli validate --schemastore .github/workflows`), and folders
+  include YAML by default. `fxt-cli query` runs JSONPath on YAML files. The MCP tool `validate` checks JSON and YAML
+  (new arguments `format`, `json_schema_path`). See [Command Line](command-line.md#validate).
+- **Compare JSON and YAML by their data:** the Compare view's new **Data** mode and `fxt-cli compare` ignore member
+  order, formatting, comments and anchors, compare a JSON file against a YAML file, match array items by key members
+  and report JSONPath locations. See [YAML](json-editor.md#yaml).
+- **New YAML files** start with `---`; templates for a schema-bound YAML document, a Docker Compose file and a GitHub
+  Actions workflow.
+
 **Large files**
 
 - **Edit large files:** the Large File Viewer's new **Graphic** tab shows a part of the file — an element, or a page

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Tab?>
@@ -17,7 +18,7 @@
 
 <!--
   Schema Library page (a tab in the main editor area, opened by the Schema Library activity, like
-  Settings): labelled tabs (Mappings, Catalogs, Cache), each with a labelled action row above its
+  Settings): labelled tabs (Mappings, Catalogs, SchemaStore, Cache), each with a labelled action row above its
   table/list, and a status line. The tables get the full editor width, so every column is shown.
   Loaded by SchemaLibraryView via the fx:root pattern (FxmlViews.load); SchemaLibraryView is root
   and controller. Built in code: cell/row factories, the selection-bound enablement of the
@@ -174,6 +175,46 @@
                                                 <Label text="%SchemaLibraryView.no-xml-catalogs-registered-add.text"/>
                                             </placeholder>
                                         </ListView>
+                                    </children>
+                                </VBox>
+                            </content>
+                        </Tab>
+
+                        <!-- SchemaStore: JSON Schemas for JSON / YAML files by their name -->
+                        <Tab fx:id="schemaStoreTab" text="%SchemaLibraryView.schemaStoreTab.text" closable="false" styleClass="utility-tab">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-shop" iconSize="16"/>
+                            </graphic>
+                            <content>
+                                <VBox spacing="8">
+                                    <children>
+                                        <Label text="%SchemaLibraryView.schemastore-intro.text" wrapText="true"
+                                               styleClass="fxt-lib-status"/>
+                                        <CheckBox fx:id="schemaStoreEnabled" id="library-schemastore-enabled"
+                                                  text="%SchemaLibraryView.schemaStoreEnabled.text"/>
+                                        <HBox spacing="6" alignment="CENTER_LEFT">
+                                            <children>
+                                                <Label text="%SchemaLibraryView.schemastore-url.text"/>
+                                                <TextField fx:id="schemaStoreUrl" id="library-schemastore-url" HBox.hgrow="ALWAYS"/>
+                                                <Button fx:id="schemaStoreUpdate" id="library-schemastore-update"
+                                                        text="%SchemaLibraryView.schemaStoreUpdate.text"
+                                                        styleClass="fxt-tool-button" onAction="#onUpdateSchemaStore">
+                                                    <graphic>
+                                                        <IconifyIcon iconLiteral="bi-cloud-download" iconSize="14"/>
+                                                    </graphic>
+                                                </Button>
+                                            </children>
+                                        </HBox>
+                                        <Label fx:id="schemaStoreInfo" id="library-schemastore-info" wrapText="true"
+                                               styleClass="fxt-lib-status"/>
+                                        <HBox spacing="6" alignment="CENTER_LEFT">
+                                            <children>
+                                                <Label text="%SchemaLibraryView.schemastore-try.text"/>
+                                                <TextField fx:id="schemaStoreTry" id="library-schemastore-try" HBox.hgrow="ALWAYS"
+                                                           promptText="%SchemaLibraryView.schemaStoreTry.promptText"/>
+                                            </children>
+                                        </HBox>
+                                        <Label fx:id="schemaStoreTryResult" id="library-schemastore-try-result" wrapText="true"/>
                                     </children>
                                 </VBox>
                             </content>

@@ -2100,6 +2100,21 @@ public class InspectorPanel extends VBox {
             kindValue.setText(I18n.t("InspectorPanel.json"));
             nameField.setText("");
             xpathValue.setText(PLACEHOLDER);
+        } else if (docOpt.get().getFileType() == EditorFileType.YAML) {
+            // the path of the key or value at the caret, as JSONPath (documents up to 1 MB)
+            String text = editorHost.getActiveViewText().orElse("");
+            java.util.List<Object> path = text.length() > 1024 * 1024 ? null
+                    : org.fxt.freexmltoolkit.service.yaml.YamlDocument.parse(text)
+                            .pathAt(editorHost.activeCaretProperty().get());
+            if (path == null) {
+                showEmptyHint("Place the caret on a key or value to see its path here.");
+            }
+            String key = path != null && !path.isEmpty() && path.get(path.size() - 1) instanceof String k ? k : null;
+            setHeader(key != null ? key : PLACEHOLDER, "YAML", null, "bi-filetype-yml");
+            kindValue.setText("YAML");
+            nameField.setText(key != null ? key : "");
+            xpathValue.setText(path != null ? org.fxt.freexmltoolkit.service.yaml.YamlDocument.toJsonPath(path)
+                    : PLACEHOLDER);
         } else {
             // the caret is an offset into the text as shown: no write-back of deferred grid edits
             String text = editorHost.getActiveViewText().orElse("");

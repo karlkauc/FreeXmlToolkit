@@ -112,6 +112,27 @@ public class JsonContextMenuManager {
     private MenuItem foldAllMenuItem;
     private MenuItem sortKeysMenuItem;
     private MenuItem sortKeysRecursiveMenuItem;
+    private MenuItem formatMenuItem;
+    private MenuItem minifyMenuItem;
+    private MenuItem validateMenuItem;
+    /** The editor's language (hover path for Copy JSONPath); JSON by default. */
+    private CodeSyntax syntax = CodeSyntax.JSON;
+
+    /**
+     * Adapts the menu to the editor's language: YAML documents get "Format YAML" / "Validate YAML",
+     * no Minify, and Copy JSONPath reads the path from the YAML text. Call after {@link #initializeContextMenu()}.
+     *
+     * @param syntax the editor's language
+     */
+    public void setSyntax(CodeSyntax syntax) {
+        this.syntax = syntax == null ? CodeSyntax.JSON : syntax;
+        boolean yaml = "yaml".equals(this.syntax.formatLabel());
+        if (formatMenuItem != null && yaml) {
+            formatMenuItem.setText(I18n.t("JsonContextMenuManager.format-yaml"));
+            validateMenuItem.setText(I18n.t("JsonContextMenuManager.validate-yaml"));
+            minifyMenuItem.setVisible(false);
+        }
+    }
 
     /**
      * Creates a new JsonContextMenuManager.
@@ -178,7 +199,7 @@ public class JsonContextMenuManager {
         // === Format Section ===
         SeparatorMenuItem separator4 = new SeparatorMenuItem();
 
-        MenuItem formatMenuItem = new MenuItem(I18n.t("JsonContextMenuManager.format-json-ctrl-alt-f"));
+        formatMenuItem = new MenuItem(I18n.t("JsonContextMenuManager.format-json-ctrl-alt-f"));
         formatMenuItem.setGraphic(createColoredIcon("bi-text-indent-left", ActionColor.TOOL));
         formatMenuItem.setOnAction(e -> {
             if (contextActions != null) {
@@ -186,7 +207,7 @@ public class JsonContextMenuManager {
             }
         });
 
-        MenuItem minifyMenuItem = new MenuItem(I18n.t("JsonContextMenuManager.minify-json"));
+        minifyMenuItem = new MenuItem(I18n.t("JsonContextMenuManager.minify-json"));
         minifyMenuItem.setGraphic(createColoredIcon("bi-text-left", ActionColor.TOOL));
         minifyMenuItem.setOnAction(e -> {
             if (contextActions != null) {
@@ -213,7 +234,7 @@ public class JsonContextMenuManager {
         // === Validation Section ===
         SeparatorMenuItem separator5 = new SeparatorMenuItem();
 
-        MenuItem validateMenuItem = new MenuItem(I18n.t("JsonContextMenuManager.validate-json-f5"));
+        validateMenuItem = new MenuItem(I18n.t("JsonContextMenuManager.validate-json-f5"));
         validateMenuItem.setGraphic(createColoredIcon("bi-check-circle", ActionColor.CREATE));
         validateMenuItem.setOnAction(e -> {
             if (contextActions != null) {
@@ -356,7 +377,7 @@ public class JsonContextMenuManager {
             int caretPos = codeArea.getCaretPosition();
             String text = codeArea.getText();
 
-            JsonPathCalculator.JsonHoverInfo hoverInfo = JsonPathCalculator.calculatePath(text, caretPos);
+            JsonPathCalculator.JsonHoverInfo hoverInfo = syntax.hoverInfo().apply(text, caretPos);
 
             if (hoverInfo != null && hoverInfo.isValid()) {
                 String jsonPath = hoverInfo.jsonPath();

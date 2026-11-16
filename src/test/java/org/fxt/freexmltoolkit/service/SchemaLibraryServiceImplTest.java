@@ -65,6 +65,34 @@ class SchemaLibraryServiceImplTest {
     }
 
     @Test
+    void fileNamePatternsPersistAndChooseTheMostSpecificEntry() {
+        SchemaLibraryEntry compose = svc.addEntry(SchemaLibraryEntry.user("", "/tmp/compose.json",
+                SchemaKind.JSON_SCHEMA, "compose", null).withFileMatch(java.util.List.of("docker-compose*.yml", "compose.yaml")));
+        svc.addEntry(SchemaLibraryEntry.user("", "/tmp/any.json", SchemaKind.JSON_SCHEMA, "any", null)
+                .withFileMatch(java.util.List.of("*.yml")));
+        SchemaLibraryServiceImpl reloaded = newService();
+        assertEquals(java.util.List.of("docker-compose*.yml", "compose.yaml"), reloaded.getEntries().stream()
+                .filter(e -> e.id().equals(compose.id())).findFirst().orElseThrow().fileMatch());
+        assertEquals("/tmp/compose.json",
+                reloaded.resolveByFileName(Path.of("/w/docker-compose.prod.yml")).orElseThrow().location());
+        assertEquals("/tmp/any.json", reloaded.resolveByFileName(Path.of("/w/other.yml")).orElseThrow().location());
+        assertTrue(reloaded.resolveByFileName(Path.of("/w/other.json")).isEmpty());
+        reloaded.setEnabled(compose.id(), false);
+        assertEquals("/tmp/any.json",
+                reloaded.resolveByFileName(Path.of("/w/docker-compose.yml")).orElseThrow().location());
+    }
+
+    @Test
+    void fileNamePatternsAreForJsonSchemasOnly() {
+        assertThrows(IllegalArgumentException.class, () -> svc.addEntry(SchemaLibraryEntry.user("", "/tmp/a.xsd",
+                SchemaKind.XSD, "", null).withFileMatch(java.util.List.of("*.xml"))));
+        assertThrows(IllegalArgumentException.class, () -> svc.addEntry(SchemaLibraryEntry.user("", "/tmp/a.json",
+                SchemaKind.JSON_SCHEMA, "", null).withFileMatch(java.util.List.of("{a,b"))));
+        assertThrows(IllegalArgumentException.class, () -> svc.addEntry(SchemaLibraryEntry.user("", "/tmp/a.json",
+                SchemaKind.JSON_SCHEMA, "", null)), "no namespace, root element or file pattern");
+    }
+
+    @Test
     void userEntryOverridesBundledWithSameKey() {
         svc.addEntry(SchemaLibraryEntry.user("urn:bundled:b", "/tmp/local-b.xsd", SchemaKind.XSD, "mine", null));
         var matches = svc.getEntries().stream().filter(e -> e.namespace().equals("urn:bundled:b")).toList();

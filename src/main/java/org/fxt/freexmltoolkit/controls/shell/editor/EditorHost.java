@@ -2946,12 +2946,28 @@ public class EditorHost extends BorderPane {
         if (!(tab instanceof EditorTab et)) {
             return CompletableFuture.completedFuture(false);
         }
-        boolean json = et.document.getFileType() == EditorFileType.JSON;
+        EditorFileType type = et.document.getFileType();
         int jsonIndent = org.fxt.freexmltoolkit.service.JsonService.configuredIndent();
-        // JSON: comments, JSON5 spelling and trailing commas survive (only whitespace changes)
-        return transformActiveText(et, "format", text -> json
-                ? org.fxt.freexmltoolkit.service.json.JsonFormatter.format(text, jsonIndent)
-                : org.fxt.freexmltoolkit.service.XmlService.prettyFormat(text, 2));
+        return switch (type) {
+            // JSON: comments, JSON5 spelling and trailing commas survive (only whitespace changes)
+            case JSON -> transformActiveText(et, "format",
+                    text -> org.fxt.freexmltoolkit.service.json.JsonFormatter.format(text, jsonIndent));
+            // YAML: re-indented; refused when comments, anchors or tags would be lost
+            case YAML -> {
+                String lost = org.fxt.freexmltoolkit.service.yaml.YamlFormatter.lostByFormatting(et.text());
+                if (lost != null) {
+                    org.fxt.freexmltoolkit.util.DialogHelper.showInformation(I18n.t("EditorHost.format-yaml"),
+                            I18n.t("EditorHost.format-yaml-refused"), I18n.t("EditorHost.format-yaml-refused-detail"));
+                    yield CompletableFuture.completedFuture(false);
+                }
+                yield transformActiveText(et, "format",
+                        text -> org.fxt.freexmltoolkit.service.yaml.YamlFormatter.format(text, jsonIndent));
+            }
+            case XML, XSD, XSLT, SCHEMATRON, XPROC, HTML -> transformActiveText(et, "format",
+                    text -> org.fxt.freexmltoolkit.service.XmlService.prettyFormat(text, 2));
+            // queries and plain text have no formatter
+            default -> CompletableFuture.completedFuture(false);
+        };
     }
 
     /**
@@ -2968,17 +2984,18 @@ public class EditorHost extends BorderPane {
 
     /**
      * Generates a sample instance of a JSON Schema and opens it in a new tab: the active JSON
-     * document when it is a JSON Schema, else the schema bound to it. Asks whether to fill in the
-     * required properties only.
+     * document when it is a JSON Schema, else the schema bound to it (for a YAML document the
+     * sample is YAML). Asks whether to fill in the required properties only.
      */
     public void generateJsonSampleForActive() {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        if (!(tab instanceof EditorTab et) || et.document.getFileType() != EditorFileType.JSON) {
+        if (!(tab instanceof EditorTab et) || !et.document.getFileType().usesJsonSchema()) {
             return;
         }
+        boolean yaml = et.document.getFileType() == EditorFileType.YAML;
         String title = I18n.t("EditorHost.json-sample-title");
         String text = et.text();
-        boolean isSchema = new org.fxt.freexmltoolkit.service.JsonService().isJsonSchemaDocument(text);
+        boolean isSchema = !yaml && new org.fxt.freexmltoolkit.service.JsonService().isJsonSchemaDocument(text);
         var bound = getActiveJsonSchema().orElse(null);
         if (!isSchema && bound == null) {
             org.fxt.freexmltoolkit.util.DialogHelper.showActionError(title,
@@ -2996,8 +3013,8 @@ public class EditorHost extends BorderPane {
         var options = new org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaSampleGenerator.Options(
                 requiredOnly.equals(choice.get()), 8, 1);
         java.nio.file.Path file = et.document.getPath();
-        String baseName = file != null ? file.getFileName().toString().replaceFirst("(\\.schema)?\\.json[c5]?$", "")
-                : "sample";
+        String baseName = file != null
+                ? file.getFileName().toString().replaceFirst("(\\.schema)?\\.(json[c5]?|ya?ml)$", "") : "sample";
         int indent = org.fxt.freexmltoolkit.service.JsonService.configuredIndent();
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
@@ -3009,11 +3026,16 @@ public class EditorHost extends BorderPane {
                                         java.net.URI.create("mem:/schema.json")))
                         : bound;
                 var sample = org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaSampleGenerator.generate(resolver, options);
-                String json = org.fxt.freexmltoolkit.service.json.JsonFormatter.format(
+                String json = yaml
+                        ? org.fxt.freexmltoolkit.service.DataFormatConverter.writeYaml(sample,
+                                org.fxt.freexmltoolkit.service.DataFormatConverter.Options.DEFAULTS.withIndent(indent))
+                        : org.fxt.freexmltoolkit.service.json.JsonFormatter.format(
                         new com.google.gson.GsonBuilder().serializeNulls().disableHtmlEscaping().create().toJson(sample),
                         indent) + "\n";
-                UsageEvents.sampleGenerated(org.fxt.freexmltoolkit.service.telemetry.DocKind.JSON, "json", 1, t0, null);
-                Platform.runLater(() -> openGeneratedDocument(json, EditorFileType.JSON, baseName + "-sample.json"));
+                UsageEvents.sampleGenerated(org.fxt.freexmltoolkit.service.telemetry.DocKind.JSON, yaml ? "yaml" : "json",
+                        1, t0, null);
+                Platform.runLater(() -> openGeneratedDocument(json, yaml ? EditorFileType.YAML : EditorFileType.JSON,
+                        baseName + (yaml ? "-sample.yaml" : "-sample.json")));
             } catch (Exception e) {
                 var failure = org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e);
                 UsageEvents.sampleGenerated(org.fxt.freexmltoolkit.service.telemetry.DocKind.JSON, "json", 1, t0, failure);
@@ -3066,7 +3088,9 @@ public class EditorHost extends BorderPane {
 
                 @Override
                 public boolean canSortKeys() {
-                    return true;
+                    // the JSON key sorter rewrites JSON text: not for YAML documents
+                    return !(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et)
+                            || et.document.getFileType() == EditorFileType.JSON;
                 }
             };
 
@@ -3097,10 +3121,15 @@ public class EditorHost extends BorderPane {
         if (!(tab instanceof EditorTab et)) {
             return CompletableFuture.completedFuture(false);
         }
-        boolean json = et.document.getFileType() == EditorFileType.JSON;
-        return transformActiveText(et, "minify", text -> json
-                ? new org.fxt.freexmltoolkit.service.JsonService().compactJson(text)
-                : text.replaceAll(">\\s+<", "><").strip());
+        EditorFileType type = et.document.getFileType();
+        if (type == EditorFileType.JSON) {
+            return transformActiveText(et, "minify",
+                    text -> new org.fxt.freexmltoolkit.service.JsonService().compactJson(text));
+        }
+        if (!type.isXmlFamily() && type != EditorFileType.HTML) {
+            return CompletableFuture.completedFuture(false); // YAML is whitespace-sensitive; queries, text: nothing to do
+        }
+        return transformActiveText(et, "minify", text -> text.replaceAll(">\\s+<", "><").strip());
     }
 
     /** A whole-text rewrite (format/minify) that may fail on invalid content. */
@@ -3133,8 +3162,8 @@ public class EditorHost extends BorderPane {
             var outcome = failure;
             Platform.runLater(() -> {
                 et.endLoading();
-                boolean apply = output != null && !output.isBlank() && et.textRevision == revision
-                        && !EditorTab.isAbandoned(et);
+                boolean apply = output != null && !output.isBlank() && !output.equals(text)
+                        && et.textRevision == revision && !EditorTab.isAbandoned(et);
                 if (apply) {
                     et.view.setText(output);
                     et.document.setDirty(true);
@@ -3170,7 +3199,7 @@ public class EditorHost extends BorderPane {
             return null;
         }
         boolean xsd = et.document.getFileType() == EditorFileType.XSD;
-        boolean json = et.document.getFileType() == EditorFileType.JSON;
+        boolean json = et.usesJsonModel();
         return switch (et.viewMode) {
             // Preview has no structured search target; Ctrl+F binds the (hidden) code area.
             // The Overview filters its rows with its own field.
@@ -3686,7 +3715,7 @@ public class EditorHost extends BorderPane {
                 // In the Text view, map the caret line to a model node so the inspector can show +
                 // edit that node's properties (debounced). XSD resolves an XsdNode, other XML-family
                 // files an XmlNode; JSON has no model-node caret mapping.
-                if (tab.viewMode == ViewMode.TEXT && tab.document.getFileType() != EditorFileType.JSON) {
+                if (tab.viewMode == ViewMode.TEXT && !tab.document.getFileType().usesJsonSchema()) {
                     tab.xmlCaretDebounce.playFromStart();
                 }
             }

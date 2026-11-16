@@ -134,12 +134,14 @@ argument.
 
 ### `validate`
 
-Validate an XML document: well-formedness, then the schema (XSD 1.0/1.1, DTD or RELAX NG), then an optional Schematron, then the checks of enabled plugins (e.g. FundsXML, ISO 20022). The schema is xsd_path if given, else the one the document declares (xsi:schemaLocation, DOCTYPE, Schema Library) unless declared_schema is false. Returns every problem with source, severity, line, column and message; 'valid' is true when the run had no errors (warnings allowed). 'not_run' means the schema or Schematron itself could not be loaded, so the document was not checked. Use it after every change to a document. xsd_version forces XSD 1.0 or 1.1 (default: detected from the schema), xml_version 1.0 rejects documents declared as XML 1.1, schematron_binding sets the query binding of a Schematron without @queryBinding (default xslt2).
+Validate an XML, JSON or YAML document. XML: well-formedness, then the schema (XSD 1.0/1.1, DTD or RELAX NG), then an optional Schematron, then the checks of enabled plugins (e.g. FundsXML, ISO 20022). The schema is xsd_path if given, else the one the document declares (xsi:schemaLocation, DOCTYPE, Schema Library) unless declared_schema is false. Returns every problem with source, severity, line, column and message; 'valid' is true when the run had no errors (warnings allowed). 'not_run' means the schema or Schematron itself could not be loaded, so the document was not checked. Use it after every change to a document. xsd_version forces XSD 1.0 or 1.1 (default: detected from the schema), xml_version 1.0 rejects documents declared as XML 1.1, schematron_binding sets the query binding of a Schematron without @queryBinding (default xslt2). JSON and YAML (format auto: from the file extension, inline content starting with { or [ is JSON; give format yaml for inline YAML): syntax, then the JSON Schema json_schema_path, else the one the document declares ($schema, YAML modeline # yaml-language-server: $schema=…) or a Schema Library file-name pattern matches, unless declared_schema is false. Remote JSON Schemas are not downloaded.
 
 | Argument | Type | Meaning |
 |---|---|---|
-| `xml_path` | string | Path of the XML document (inside the allowed folders). Give this or xml_content, not both. |
-| `xml_content` | string | The XML document as text. Give this or xml_path, not both. |
+| `xml_path` | string | Path of the XML, JSON or YAML document (inside the allowed folders). Give this or xml_content, not both. |
+| `xml_content` | string | The XML, JSON or YAML document as text. Give this or xml_path, not both. |
+| `format` | `auto` \| `xml` \| `json` \| `yaml` | Document format; auto decides by the file extension or the content. (default `auto`) |
+| `json_schema_path` | string | Path of the JSON Schema for a JSON or YAML document. |
 | `xsd_path` | string | Path of the schema (XSD, DTD, .rng or .rnc) to validate against. |
 | `schematron_path` | string | Path of a Schematron (.sch) to check after the schema. |
 | `declared_schema` | boolean | Use the schema the document declares when xsd_path is not given. (default `true`) |
@@ -147,7 +149,8 @@ Validate an XML document: well-formedness, then the schema (XSD 1.0/1.1, DTD or 
 | `xml_version` | `auto` \| `1.0` \| `1.1` | XML version: auto (as declared), 1.0 or 1.1. (default `auto`) |
 | `schematron_binding` | `default` \| `xslt` \| `xslt2` \| `xslt3` | Query binding of a Schematron without its own @queryBinding. (default `default`) |
 
-**Result:** `valid`, `not_run` (the schema or Schematron itself did not load) and `not_run_reason`, `schema` (the XSD used), `error_count`, `warning_count`, `total`, `truncated`, `problems[]` = `{source, severity, line, column, message, rule, context}` — `source` is `Well-formed`, `XSD`, `Schematron` or a plugin's name; at most 200 problems are listed, `total` counts all.
+**Result:** `valid`, `not_run` (the schema or Schematron itself did not load; for JSON / YAML also a declared or
+file-name schema that is remote or outside the allowed folders) and `not_run_reason`, `schema` (the XSD or JSON Schema used), `error_count`, `warning_count`, `total`, `truncated`, `problems[]` = `{source, severity, line, column, message, rule, context}` — `source` is `Well-formed`, `XSD`, `Schematron`, a plugin's name, or for JSON / YAML `JSON`, `YAML`, `JSON Schema`; at most 200 problems are listed, `total` counts all.
 
 ### `xpath`
 

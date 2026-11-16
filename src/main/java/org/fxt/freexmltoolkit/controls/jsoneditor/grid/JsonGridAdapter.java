@@ -61,6 +61,8 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
     /** The text the shown problems refer to (scanned once), or null: then rows have no source line. */
     private org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.Span sourceRoot;
     private int[] sourceLineStarts;
+    /** The YAML text the shown problems refer to (instead of {@link #sourceRoot}), or null. */
+    private org.fxt.freexmltoolkit.service.yaml.YamlDocument yamlSource;
 
     public JsonGridAdapter(JsonEditorContext context) {
         this.context = context;
@@ -224,6 +226,7 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
      * @param text the document text the model was parsed from, or {@code null}
      */
     public void setSourceText(String text) {
+        yamlSource = null;
         if (text == null) {
             sourceRoot = null;
             sourceLineStarts = null;
@@ -238,6 +241,17 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
             }
         }
         sourceLineStarts = starts.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    /**
+     * Like {@link #setSourceText} for a model read from YAML: rows find their line through the
+     * YAML document's value locations.
+     *
+     * @param text the YAML text the model was read from, or {@code null}
+     */
+    public void setYamlSourceText(String text) {
+        setSourceText(null);
+        yamlSource = text == null ? null : org.fxt.freexmltoolkit.service.yaml.YamlDocument.parse(text);
     }
 
     @Override
@@ -260,6 +274,11 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
 
     /** @return the 1-based line the node starts on in the source text, 0 when unknown */
     private int lineOf(JsonNode node) {
+        if (node != null && yamlSource != null) {
+            var location = yamlSource.locationOf(java.util.Objects.requireNonNullElse(yamlSource.segmentsOf(
+                    org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonTextLocator.pathOf(node)), java.util.List.of()));
+            return location == null ? 0 : location.keyLine() + 1;
+        }
         if (node == null || sourceRoot == null) {
             return 0;
         }
@@ -387,7 +406,9 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
             return false;
         }
         if (node instanceof JsonPrimitive p) {
-            sb.append(p.isString() ? "\"" + p.getAsString() + "\"" : JsonGridRecord.cellText(p));
+            // one line: line breaks and tabs inside a string shown escaped, as JSON writes them
+            sb.append(p.isString() ? "\"" + p.getAsString().replace("\r", "\\r").replace("\n", "\\n")
+                    .replace("\t", "\\t") + "\"" : JsonGridRecord.cellText(p));
             return sb.length() < max;
         }
         boolean array = node instanceof JsonArray;

@@ -19,13 +19,16 @@ import com.google.gson.JsonObject;
 /**
  * {@code validate}: well-formedness, XSD 1.1 / DTD / RELAX NG, Schematron and plugin validators on
  * {@link ValidationRunner#runWithReport(String, File, File, String, Path, boolean)} — the same run as the
- * Validation panel and {@code fxt-cli validate}.
+ * Validation panel and {@code fxt-cli validate}. JSON and YAML documents are checked for syntax and
+ * against a JSON Schema ({@link ValidationRunner#validateJson} / {@link ValidationRunner#validateYaml}).
  */
 public final class ValidateTool implements AiTool {
 
     private static final Set<String> ARGUMENTS =
             Set.of("xml_path", "xml_content", "xsd_path", "schematron_path", "declared_schema", "xsd_version",
-                    "xml_version", "schematron_binding");
+                    "xml_version", "schematron_binding", "json_schema_path", "format");
+
+    private static final List<String> FORMATS = List.of("auto", "xml", "json", "yaml");
 
     @Override
     public String name() {
@@ -34,7 +37,7 @@ public final class ValidateTool implements AiTool {
 
     @Override
     public String description() {
-        return "Validate an XML document: well-formedness, then the schema (XSD 1.0/1.1, DTD or RELAX NG), then an "
+        return "Validate an XML, JSON or YAML document. XML: well-formedness, then the schema (XSD 1.0/1.1, DTD or RELAX NG), then an "
                 + "optional Schematron, then the checks of enabled plugins (e.g. FundsXML, ISO 20022). The schema is "
                 + "xsd_path if given, else the one the document declares (xsi:schemaLocation, DOCTYPE, Schema Library) "
                 + "unless declared_schema is false. Returns every problem with source, severity, line, column and "
@@ -42,13 +45,20 @@ public final class ValidateTool implements AiTool {
                 + "schema or Schematron itself could not be loaded, so the document was not checked. Use it after "
                 + "every change to a document. xsd_version forces XSD 1.0 or 1.1 (default: detected from the schema), "
                 + "xml_version 1.0 rejects documents declared as XML 1.1, schematron_binding sets the query binding of a "
-                + "Schematron without @queryBinding (default xslt2).";
+                + "Schematron without @queryBinding (default xslt2). JSON and YAML (format auto: from the file "
+                + "extension, inline content starting with { or [ is JSON; give format yaml for inline YAML): syntax, "
+                + "then the JSON Schema json_schema_path, else the one the document declares ($schema, YAML modeline "
+                + "# yaml-language-server: $schema=…) or a Schema Library file-name pattern matches, unless "
+                + "declared_schema is false. Remote JSON Schemas are not downloaded.";
     }
 
     @Override
     public JsonObject inputSchema() {
         return ToolSchemas.builder()
-                .input("xml", "XML document")
+                .input("xml", "XML, JSON or YAML document")
+                .enumeration("format", "Document format; auto decides by the file extension or the content.",
+                        FORMATS, "auto")
+                .string("json_schema_path", "Path of the JSON Schema for a JSON or YAML document.", false)
                 .string("xsd_path", "Path of the schema (XSD, DTD, .rng or .rnc) to validate against.", false)
                 .string("schematron_path", "Path of a Schematron (.sch) to check after the schema.", false)
                 .bool("declared_schema", "Use the schema the document declares when xsd_path is not given.", true)
@@ -65,6 +75,22 @@ public final class ValidateTool implements AiTool {
     public ToolResult call(JsonObject arguments, ToolContext context) throws ToolException {
         ToolArgs args = new ToolArgs(arguments, ARGUMENTS);
         ToolInput xml = ToolInput.required(args, "xml", context);
+        String format = args.optionalString("format").orElse("auto").trim().toLowerCase(Locale.ROOT);
+        if (!FORMATS.contains(format)) {
+            throw new ToolException("'format' must be one of " + String.join(", ", FORMATS));
+        }
+        if (format.equals("auto")) {
+            format = detectFormat(xml);
+        }
+        if (!format.equals("xml")) {
+            if (args.has("xsd_path") || args.has("schematron_path")) {
+                throw new ToolException("'xsd_path' and 'schematron_path' are for XML documents");
+            }
+            return validateData(xml, format.equals("yaml"), args, context);
+        }
+        if (args.has("json_schema_path")) {
+            throw new ToolException("'json_schema_path' is for JSON and YAML documents");
+        }
         File xsd = existingFile(args, "xsd_path", context);
         File schematron = existingFile(args, "schematron_path", context);
         boolean declared = args.optionalBoolean("declared_schema", true);
@@ -82,6 +108,98 @@ public final class ValidateTool implements AiTool {
 
         List<ValidationProblem> problems = new ArrayList<>(new LinkedHashSet<>(run.problems()));
         String notRunReason = run.failed() ? describeFailure(run) : schemaNotLoaded(problems);
+        return report(problems, notRunReason, xsd, context);
+    }
+
+    /** The JSON / YAML run: syntax, then the JSON Schema given, declared or chosen by the file name. */
+    private ToolResult validateData(ToolInput input, boolean yaml, ToolArgs args, ToolContext context)
+            throws ToolException {
+        File schema = existingFile(args, "json_schema_path", context);
+        String notRunReason = null;
+        if (schema == null && args.optionalBoolean("declared_schema", true)) {
+            DataSchema found = dataSchemaOf(input, yaml, context);
+            schema = found.schema();
+            notRunReason = found.notFound();
+        }
+        List<ValidationProblem> problems = new ArrayList<>(new LinkedHashSet<>(yaml
+                ? ValidationRunner.validateYaml(input.text(), notRunReason == null ? schema : null)
+                : ValidationRunner.validateJson(input.text(), notRunReason == null ? schema : null)));
+        return report(problems, notRunReason, schema, context);
+    }
+
+    private record DataSchema(File schema, String notFound) {
+    }
+
+    /**
+     * The JSON Schema a document declares (resolved inside the allowed folders or through the Schema
+     * Library, never downloaded), else the Schema Library entry its file name matches.
+     */
+    private static DataSchema dataSchemaOf(ToolInput input, boolean yaml, ToolContext context) {
+        var json = new org.fxt.freexmltoolkit.service.JsonService();
+        var library = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
+        Optional<String> declared = yaml
+                ? org.fxt.freexmltoolkit.service.yaml.YamlSchemaDeclaration.find(input.text())
+                : json.getRawSchemaIdFromJsonContent(input.text());
+        if (declared.isPresent()) {
+            String location = declared.get().trim();
+            Optional<Path> mapped = library.resolveJsonSchema(location).flatMap(e ->
+                    org.fxt.freexmltoolkit.service.SchemaLibraryLookup.materializeIfAllowed(library, e, false));
+            if (mapped.isPresent()) {
+                return new DataSchema(mapped.get().toFile(), null);
+            }
+            if (!yaml && json.getSchemaLocationFromJsonContent(input.text()).isEmpty()) {
+                return new DataSchema(null, null); // a meta-schema id: a schema document, no binding
+            }
+            if (location.startsWith("http://") || location.startsWith("https://")) {
+                return new DataSchema(null, "the declared JSON Schema " + location
+                        + " is remote and not downloaded; give json_schema_path");
+            }
+            try {
+                Path base = input.file().map(Path::getParent).orElse(context.files().roots().getFirst());
+                Path file = location.startsWith("file:") ? Path.of(java.net.URI.create(location))
+                        : base.resolve(location);
+                Path resolved = context.files().resolve(file.toString());
+                return Files.isRegularFile(resolved) ? new DataSchema(resolved.toFile(), null)
+                        : new DataSchema(null, "the declared JSON Schema was not found: " + location);
+            } catch (ToolException | RuntimeException e) {
+                return new DataSchema(null, "the declared JSON Schema cannot be read: " + location);
+            }
+        }
+        Optional<Path> file = input.file();
+        if (file.isEmpty()) {
+            return new DataSchema(null, null);
+        }
+        var hit = org.fxt.freexmltoolkit.service.schemastore.JsonSchemaByFileName.find(file.get(), library, null);
+        if (hit.isEmpty()) {
+            return new DataSchema(null, null);
+        }
+        return org.fxt.freexmltoolkit.service.SchemaLibraryLookup.materializeIfAllowed(library, hit.get().entry(), false)
+                .map(p -> new DataSchema(p.toFile(), null))
+                .orElseGet(() -> new DataSchema(null, "the Schema Library schema for the file name pattern "
+                        + hit.get().pattern() + " is not available locally: " + hit.get().entry().location()));
+    }
+
+    /** xml for XML files and content starting with '<', json / yaml by extension or a leading '{' / '['. */
+    static String detectFormat(ToolInput input) {
+        if (input.file().isPresent()) {
+            String name = input.file().get().getFileName().toString().toLowerCase(Locale.ROOT);
+            if (name.endsWith(".json") || name.endsWith(".json5") || name.endsWith(".jsonc")) {
+                return "json";
+            }
+            if (name.endsWith(".yaml") || name.endsWith(".yml")) {
+                return "yaml";
+            }
+            return "xml";
+        }
+        String text = input.text().stripLeading();
+        if (text.startsWith("\uFEFF")) {
+            text = text.substring(1).stripLeading();
+        }
+        return text.startsWith("{") || text.startsWith("[") ? "json" : "xml";
+    }
+
+    private static ToolResult report(List<ValidationProblem> problems, String notRunReason, File xsd,
+                                     ToolContext context) {
         int errors = 0;
         int warnings = 0;
         JsonArray rows = new JsonArray();

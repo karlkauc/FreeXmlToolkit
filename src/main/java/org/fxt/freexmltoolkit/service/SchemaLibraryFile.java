@@ -18,6 +18,7 @@ final class SchemaLibraryFile {
         boolean enabled = true;
         String description;
         String rootElement;
+        List<String> fileMatch;   // file name patterns (JSON Schema entries), absent when none
     }
 
     static final class CatalogDto {

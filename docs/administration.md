@@ -89,6 +89,8 @@ Any key of the user's settings file works. These are the ones most often managed
 | `pk.rules.additional` | `true` / `false` | PK-Meldewesen: run the additional plausibility checks besides the FMA rules (default `true`) |
 | `pk.rules.tolerance`, `pk.rules.toleranceWarning` | number (EUR) | PK-Meldewesen: amount differences above which a rule is an error / a warning (defaults `3` / `0.99`) |
 | `schemaLibrary.autoBind.enabled` | `true` / `false` | Bind schemas from the Schema Library automatically |
+| `schemastore.enabled` | `true` / `false` | Find JSON Schemas for JSON and YAML files by their file name in the [SchemaStore](schema-library.md#4-schemastore) catalog (default `false`; downloads the catalog and the schemas it names). Locked to `false`, `fxt-cli validate --schemastore` is refused too |
+| `schemastore.catalogUrl` | URL | Address of the SchemaStore catalog, e.g. a mirror inside the company network (default `https://www.schemastore.org/api/json/catalog.json`); locked, it is also the address of `fxt-cli validate --schemastore` |
 | `xml.parser.type` | `XERCES` / `SAXON` | XSD validator (XSD 1.1 schemas always use Xerces) |
 | `memory.max.mb` | megabytes, `0` = automatic | Maximum memory (Settings → Memory) |
 | `templates.directory` | folder | Shared template folder |

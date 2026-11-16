@@ -46,13 +46,15 @@ import picocli.CommandLine.Spec;
                 "  # Develop for an XPath 2.0 engine: XPath 3.x syntax and functions are errors",
                 "  fxt-cli query --lang-version 2.0 -e 'string-join(//ISIN, \",\")' fund.xml",
                 "",
-                "  # JSONPath (chosen for .json files); input from a pipe",
+                "  # JSONPath (chosen for .json, .yaml and .yml files); input from a pipe",
                 "  fxt-cli query -e '$.items[*].name' data.json",
+                "  fxt-cli query -e '$.jobs.*.runs-on' .github/workflows/ci.yml",
                 "  curl -s https://example.org/feed.xml | fxt-cli query -e '//title/string()' -"
         },
         description = {
                 "Evaluates an expression with Saxon (XPath and XQuery 3.1; map:, array: and math: are declared) "
-                        + "or JSONPath, against each file, a folder's files or standard input (-).",
+                        + "or JSONPath, against each file, a folder's files or standard input (-). YAML files are "
+                        + "queried with JSONPath on their data (several documents form an array).",
                 "--lang-version picks an older XPath (1.0 on the JDK's XPath 1.0 engine, 2.0, 3.0) or XQuery "
                         + "(1.0, 3.0: checked for newer constructs before running).",
                 "Exit code 0 when at least one result is not empty, 1 when all are empty, 3 when the expression "
@@ -79,7 +81,7 @@ final class QueryCommand implements Callable<Integer> {
 
     @Option(names = {"-l", "--language"}, paramLabel = "LANG",
             description = "xpath, xquery or jsonpath. Default: from --query-file's extension, jsonpath for "
-                    + ".json inputs, else xpath.")
+                    + ".json, .yaml and .yml inputs, else xpath.")
     Language language;
 
     @Option(names = "--lang-version", paramLabel = "VERSION",
@@ -94,7 +96,7 @@ final class QueryCommand implements Callable<Integer> {
             description = "Files, folders (searched recursively, see --include) or - for standard input.")
     List<Path> inputs = new ArrayList<>();
 
-    @Option(names = "--include", split = ",", paramLabel = "GLOB", defaultValue = "*.xml,*.json",
+    @Option(names = "--include", split = ",", paramLabel = "GLOB", defaultValue = "*.xml,*.json,*.yaml,*.yml",
             description = "File names to query inside folders (default: ${DEFAULT-VALUE}).")
     List<String> include;
 
@@ -178,10 +180,15 @@ final class QueryCommand implements Callable<Integer> {
                 // the engine would run an XQuery without context on a broken document
                 error = XmlStructuralDiff.wellFormednessError(content);
             }
+            boolean yaml = source != null && source.file() != STDIN && isYaml(source.file());
+            if (yaml && lang != Language.jsonpath) {
+                error = "YAML files are queried with JSONPath (-l jsonpath)";
+            }
             if (error == null) {
                 TransformRunner.QueryRun run = switch (lang) {
                     case xpath -> TransformRunner.xpath(content, query, xpathVersion);
-                    case jsonpath -> TransformRunner.jsonPath(content, query);
+                    case jsonpath -> yaml ? TransformRunner.yamlPath(content, query)
+                            : TransformRunner.jsonPath(content, query);
                     case xquery -> TransformRunner.xquery(content, query, new LinkedHashMap<>(variables),
                             XsltTransformationEngine.OutputFormat.XML, xqueryVersion);
                 };
@@ -245,8 +252,13 @@ final class QueryCommand implements Callable<Integer> {
             }
         }
         boolean allJson = !sources.isEmpty() && sources.stream().allMatch(
-                s -> s.file() != STDIN && CliSupport.extension(s.file()).equalsIgnoreCase("json"));
+                s -> s.file() != STDIN && (CliSupport.extension(s.file()).equalsIgnoreCase("json") || isYaml(s.file())));
         return allJson ? Language.jsonpath : Language.xpath;
+    }
+
+    private static boolean isYaml(Path file) {
+        String extension = CliSupport.extension(file).toLowerCase(Locale.ROOT);
+        return extension.equals("yaml") || extension.equals("yml");
     }
 
     private static JsonObject entry(String file, String result, String error) {

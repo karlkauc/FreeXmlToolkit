@@ -379,22 +379,7 @@ public final class DataFormatConverter {
      * recursive aliases are errors.
      */
     public static JsonElement parseYaml(String yaml) throws ConversionException {
-        LoadSettings settings = LoadSettings.builder()
-                .setSchema(new CoreSchema())
-                .setAllowDuplicateKeys(false)
-                .setAllowRecursiveKeys(false)
-                .setMaxAliasesForCollections(50)
-                .setCodePointLimit(Integer.MAX_VALUE)
-                .build();
-        List<JsonElement> documents = new ArrayList<>();
-        long[] budget = {Math.max(MIN_YAML_NODES, 2L * yaml.length())};
-        try {
-            for (Object document : new Load(settings).loadAllFromString(yaml)) {
-                documents.add(yamlToJson(document, new IdentityHashMap<>(), budget));
-            }
-        } catch (YamlEngineException e) {
-            throw new ConversionException("The YAML is not valid: " + e.getMessage(), e);
-        }
+        List<JsonElement> documents = parseYamlDocuments(yaml);
         if (documents.isEmpty()) {
             return JsonNull.INSTANCE;
         }
@@ -404,6 +389,71 @@ public final class DataFormatConverter {
         JsonArray array = new JsonArray(documents.size());
         documents.forEach(array::add);
         return array;
+    }
+
+    /**
+     * Parses YAML 1.2 like {@link #parseYaml}, one JSON tree per document ({@code ---}).
+     *
+     * @param yaml the YAML text
+     * @return the documents, empty for a text without any
+     * @throws ConversionException if the text is not valid YAML or expands too far
+     */
+    public static List<JsonElement> parseYamlDocuments(String yaml) throws ConversionException {
+        List<JsonElement> documents = new ArrayList<>();
+        long[] budget = {Math.max(MIN_YAML_NODES, 2L * yaml.length())};
+        try {
+            LoadSettings settings = yamlLoadSettings();
+            for (Object document : new Load(settings, new UnknownTagsAsValues(settings)).loadAllFromString(yaml)) {
+                documents.add(yamlToJson(document, new IdentityHashMap<>(), budget));
+            }
+        } catch (YamlEngineException e) {
+            throw new ConversionException("The YAML is not valid: " + e.getMessage(), e);
+        }
+        return documents;
+    }
+
+    /**
+     * Reads a node with an application tag nothing here knows ({@code !Ref}, {@code !vault},
+     * {@code !include}, {@code !reference}) as the plain string, sequence or mapping it is written as,
+     * instead of failing: CloudFormation, Ansible, GitLab CI or Home Assistant files use such tags.
+     */
+    private static final class UnknownTagsAsValues extends org.snakeyaml.engine.v2.constructor.StandardConstructor {
+
+        UnknownTagsAsValues(LoadSettings settings) {
+            super(settings);
+        }
+
+        @Override
+        protected java.util.Optional<org.snakeyaml.engine.v2.api.ConstructNode> findConstructorFor(
+                org.snakeyaml.engine.v2.nodes.Node node) {
+            var known = super.findConstructorFor(node);
+            if (known.isPresent()) {
+                return known;
+            }
+            node.setTag(switch (node.getNodeType()) {
+                case SCALAR -> org.snakeyaml.engine.v2.nodes.Tag.STR;
+                case SEQUENCE -> org.snakeyaml.engine.v2.nodes.Tag.SEQ;
+                default -> org.snakeyaml.engine.v2.nodes.Tag.MAP;
+            });
+            return super.findConstructorFor(node);
+        }
+    }
+
+    /**
+     * The settings every YAML read uses: YAML 1.2 core schema (no Java objects from tags), duplicate
+     * keys and recursive aliases refused, at most 50 aliases per collection, no size limit (the
+     * expansion budget of {@link #parseYaml} guards memory).
+     *
+     * @return new settings
+     */
+    public static LoadSettings yamlLoadSettings() {
+        return LoadSettings.builder()
+                .setSchema(new CoreSchema())
+                .setAllowDuplicateKeys(false)
+                .setAllowRecursiveKeys(false)
+                .setMaxAliasesForCollections(50)
+                .setCodePointLimit(Integer.MAX_VALUE)
+                .build();
     }
 
     /**
