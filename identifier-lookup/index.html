@@ -3403,11 +3403,20 @@ occurrence into the <strong>Problems</strong> panel, at its line:</p>
 <td>Warning (<em>info</em> on the command line)</td>
 </tr>
 <tr>
+<td>Reported CFI code differs from the one in ESMA FIRDS</td>
+<td>Warning</td>
+</tr>
+<tr>
 <td>ISIN not in FIRDS while OpenFIGI is switched off</td>
 <td>Warning (<em>info</em> on the command line)</td>
 </tr>
 </tbody>
 </table>
+<p><strong>CFI codes.</strong> In an XML document, a CFI field next to an ISIN - an element named <code>ClssfctnTp</code>, <code>PdctClssfctn</code>,
+<code>CFI</code> or <code>CFICode</code> with a six-letter value, and exactly one ISIN in its nearest enclosing elements (up to three levels,
+e.g. MMF <code>AsstId</code>, SFTR <code>Scty</code>) - is compared with the CFI code FIRDS has for that ISIN, position by position; an <code>X</code>
+on either side (a construct such as <code>DBXXXX</code>, or "not applicable") matches anything. A difference is a warning at the
+CFI field (rule <code>ISIN-CFI</code>). CFI fields next to several ISINs are not compared.</p>
 <p>An ISIN only OpenFIGI knows is no finding. The findings have the source <strong>GLEIF</strong> or <strong>ISIN</strong> and replace the online
 findings of an earlier check; schema and rule findings stay, also when the document is validated again while its text
 is unchanged. When one service cannot be reached, the panel says so and the other part still counts.</p>
