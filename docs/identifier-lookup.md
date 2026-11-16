@@ -74,8 +74,8 @@ is unchanged. When one service cannot be reached, the panel says so and the othe
 (the LEI's record at `search.gleif.org`), **ESMA FIRDS** (the instrument's record in the ESMA register, as shown in the
 register's details page) or **OpenFIGI** (a search for the ISIN, also for an ISIN neither service knows). Click it, or
 right-click the row → **Open at …**, to see the entry in the browser; **Copy Problem** includes the address. The
-Validation panel's problem list offers the same menu item. Answers cached by version 3.3.0 or earlier know no FIRDS
-record yet and open the register's search page until they are looked up again.
+Validation panel's problem list offers the same menu item. FIRDS answers cached by version 3.3.0 do not know the
+record's page and are looked up again on the next check.
 
 ## With every validation
 

@@ -79,7 +79,9 @@ public final class Isin {
 
                 @Override
                 public Instant fetchedAt(IsinRecord r) {
-                    return r.fetchedAt();
+                    // a FIRDS answer cached before the record's document id was read (3.3.0) cannot link the
+                    // instrument's page in the register: no age, so it is asked again
+                    return r.source() == IsinRecord.Source.FIRDS && r.firdsId() == null ? null : r.fetchedAt();
                 }
             });
         }

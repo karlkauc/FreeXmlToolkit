@@ -138,6 +138,28 @@ class IsinTest {
     }
 
     @Test
+    void aFirdsAnswerCachedWithoutDocumentIdIsAskedAgain() throws Exception {
+        Path file = dir.resolve("isin/old-cache.json");
+        int[] asked = {0};
+        Isin.Cache cache = new Isin.Cache(file, Clock.systemUTC(), Duration.ofHours(1), () -> {
+            asked[0]++;
+            return OnlineFakes.isinLookup(true);
+        });
+        cache.lookup(List.of(ETF));
+        // the file as version 3.3.0 wrote it: no firdsId
+        String old = java.nio.file.Files.readString(file).replaceAll(",?\\s*\"firdsId\"\\s*:\\s*\"[0-9]+\"", "");
+        assertFalse(old.contains("firdsId"), old);
+        java.nio.file.Files.writeString(file, old);
+        Isin.Cache reopened = new Isin.Cache(file, Clock.systemUTC(), Duration.ofHours(1), () -> {
+            asked[0]++;
+            return OnlineFakes.isinLookup(true);
+        });
+        assertTrue(reopened.cached(ETF).isEmpty(), "an answer without the register page is not used");
+        assertEquals("10000002", reopened.lookup(List.of(ETF)).get(ETF).firdsId());
+        assertEquals(2, asked[0]);
+    }
+
+    @Test
     void anAnswerWithoutDocumentIdLinksTheRegisterSearch() {
         IsinRecord old = new IsinRecord(ETF, IsinRecord.Source.FIRDS, "ETF", null, null, null, 1, 1, null, null, null, null,
                 false, java.time.Instant.now(), null);
