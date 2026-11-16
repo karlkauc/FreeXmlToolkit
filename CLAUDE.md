@@ -252,8 +252,8 @@ unknown/RETIRED/ANNULLED… = error, LAPSED/INACTIVE = warning, PENDING = info),
 `~/.freeXmlToolkit/gleif/cache.json`, `gleif.cacheHours`), `LeiScanner` (LEIs in any text, `at(text, offset)`),
 `GleifCheck` (findings per occurrence, never throws), `Gleif` (shared cache + `setCache` test hook, settings
 `gleif.onValidation` / `gleif.hover`, policy `gleif.allowed`, `setValidationOverride` for the CLI). Users:
-`ValidationRunner.gleifProblems` (stage at the end of `runWithReport` when `Gleif.onValidation()`), `IndustryPanel`
-(Look up at GLEIF in the identifier checker, tool "Check LEIs at GLEIF" for panels offering `IdentifierKind.LEI`),
+`ValidationRunner.gleifProblems` (stage at the end of `runWithReport` when `Gleif.onValidation()`), `plugins/IdentifierChecker`
+(identifier checker control with Look up at GLEIF, in `IndustryPanel`, `FundsXmlPanel`, `PkMeldewesenPanel`; `IndustryPanel` tool "Check LEIs at GLEIF" for panels offering `IdentifierKind.LEI`),
 `GleifDocumentCheck` (`runOnActive(host, done)` → `Outcome`, merge into the Problems panel via
 `EditorHost.publishGleifCheck`; a later validation of the same text keeps the GLEIF findings; used by Tools menu
 `menu-tools-gleif`, `IndustryPanel`, `FundsXmlPanel` `fundsxml-gleif`, `PkMeldewesenPanel` `pk-gleif`), `LeiHover`, Settings card

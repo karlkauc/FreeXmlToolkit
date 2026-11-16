@@ -8,6 +8,7 @@
 <?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionList?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelHeader?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelSection?>
+<?import org.fxt.freexmltoolkit.plugins.IdentifierChecker?>
 
 <!--
   FundsXML activity side panel: manage versions, validate the active document, docs/resources.
@@ -50,6 +51,12 @@
                                            text="%FundsXmlPanel.fundsxml-grid-setup.text" color="TOOL" onAction="#onGridSetup"/>
                     </children>
                 </PanelActionList>
+            </children>
+        </SidePanelSection>
+
+        <SidePanelSection title="%IndustryPanel.identifierSection.title">
+            <children>
+                <IdentifierChecker fx:id="identifierChecker"/>
             </children>
         </SidePanelSection>
 

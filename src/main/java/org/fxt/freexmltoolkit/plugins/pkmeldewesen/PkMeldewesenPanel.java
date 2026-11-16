@@ -51,6 +51,7 @@ public final class PkMeldewesenPanel extends VBox {
     @FXML private Label taxonomyLabel;
     @FXML private Label status;
     @FXML private org.fxt.freexmltoolkit.controls.shell.editor.PanelActionButton gleifButton;
+    @FXML private org.fxt.freexmltoolkit.plugins.IdentifierChecker identifierChecker;
     @FXML private ProgressBar progress;
     @FXML private javafx.scene.control.ComboBox<String> versionCombo;
     /** Set while the combo is filled, so filling it does not choose a version. */
@@ -80,6 +81,8 @@ public final class PkMeldewesenPanel extends VBox {
         boolean gleif = org.fxt.freexmltoolkit.service.finance.gleif.Gleif.allowed();
         gleifButton.setVisible(gleif);
         gleifButton.setManaged(gleif);
+        identifierChecker.setKinds(java.util.List.of(org.fxt.freexmltoolkit.plugins.IdentifierKind.LEI,
+                org.fxt.freexmltoolkit.plugins.IdentifierKind.ISIN));
         refreshDelay.setOnFinished(e -> refresh());
         loadOptions();
         fillVersions();

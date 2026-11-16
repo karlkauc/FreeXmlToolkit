@@ -15,7 +15,8 @@ command line.
 
 ![The identifier checker after a GLEIF lookup](img/gleif-identifier-checker.png)
 
-In the side panel of an extension that checks LEIs (KAG-Meldewesen, ESMA Reporting, FinDatEx, ISO 20022), choose
+In the side panel of an extension that checks LEIs (KAG-Meldewesen, ESMA Reporting, FinDatEx, ISO 20022, FundsXML,
+PK-Meldewesen), choose
 **LEI** under **CHECK AN IDENTIFIER** and paste the LEI. When its check digits are right, **Look up at GLEIF** shows:
 
 - the legal name and the city and country of the legal address;

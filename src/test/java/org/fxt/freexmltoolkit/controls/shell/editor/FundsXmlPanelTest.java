@@ -178,4 +178,35 @@ class FundsXmlPanelTest {
             org.fxt.freexmltoolkit.service.finance.gleif.Gleif.setCache(null);
         }
     }
+
+    @Test
+    void identifierCheckerLooksAnLeiUpAtGleif() throws Exception {
+        fakeGleif();
+        try {
+            javafx.scene.Node checker = WaitForAsyncUtils.waitForAsyncFx(3000, () -> new FundsXmlPanel(host));
+            WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
+                @SuppressWarnings("unchecked")
+                var kind = (javafx.scene.control.ComboBox<org.fxt.freexmltoolkit.plugins.IdentifierKind>) checker.lookup("#industry-identifier-kind");
+                kind.setValue(org.fxt.freexmltoolkit.plugins.IdentifierKind.ISIN);
+                ((javafx.scene.control.TextField) checker.lookup("#industry-identifier")).setText("US0378331005");
+                return null;
+            });
+            org.junit.jupiter.api.Assertions.assertEquals("✓ Valid ISIN", WaitForAsyncUtils.waitForAsyncFx(2000,
+                    () -> ((javafx.scene.control.Label) checker.lookup("#industry-identifier-result")).getText()));
+            WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
+                @SuppressWarnings("unchecked")
+                var kind = (javafx.scene.control.ComboBox<org.fxt.freexmltoolkit.plugins.IdentifierKind>) checker.lookup("#industry-identifier-kind");
+                kind.setValue(org.fxt.freexmltoolkit.plugins.IdentifierKind.LEI);
+                ((javafx.scene.control.TextField) checker.lookup("#industry-identifier")).setText("506700GE1G29325QX363");
+                ((javafx.scene.control.Button) checker.lookup("#industry-identifier-gleif")).fire();
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                    () -> ((javafx.scene.layout.VBox) checker.lookup("#industry-identifier-gleif-result")).getChildren().stream()
+                            .anyMatch(n -> n instanceof javafx.scene.control.Label l
+                                    && "Global Legal Entity Identifier Foundation".equals(l.getText()))));
+        } finally {
+            org.fxt.freexmltoolkit.service.finance.gleif.Gleif.setCache(null);
+        }
+    }
 }

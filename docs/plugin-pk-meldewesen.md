@@ -37,6 +37,7 @@ Administrators can remove it completely with `plugin.pk-meldewesen.enabled=false
     - **CHECK** - **Validate Active Report** validates it against its schema and the FMA rules
       (as **F8** does); **Rule Report (HTML)** opens the rule report in the preview; **Check LEIs at GLEIF**
       checks the report's LEIs at GLEIF (findings in the Problems panel, see [LEI Lookup at GLEIF](gleif.md));
+    - **CHECK AN IDENTIFIER** - checks a pasted LEI or ISIN; an LEI can be looked up at GLEIF;
     - **GRID** - grid formulas and filters (see below);
     - **SUBMISSION** - **Prepare Submission (ZIP)…** (see below);
     - **CHECK OPTIONS** - the additional plausibility checks and the limits of the rules (see below);

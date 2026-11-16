@@ -20,6 +20,7 @@ public class FundsXmlPanel extends VBox {
     @FXML private Label status;
     @FXML private ProgressBar progress;
     @FXML private PanelActionButton gleifButton;
+    @FXML private org.fxt.freexmltoolkit.plugins.IdentifierChecker identifierChecker;
     private boolean gleifRunning;
     private final FundsXmlDownloadCoordinator.Listener downloadListener = new FundsXmlDownloadCoordinator.Listener() {
         @Override
@@ -61,6 +62,9 @@ public class FundsXmlPanel extends VBox {
         boolean gleif = org.fxt.freexmltoolkit.service.finance.gleif.Gleif.allowed();
         gleifButton.setVisible(gleif);
         gleifButton.setManaged(gleif);
+        identifierChecker.setKinds(java.util.List.of(org.fxt.freexmltoolkit.plugins.IdentifierKind.ISIN,
+                org.fxt.freexmltoolkit.plugins.IdentifierKind.LEI, org.fxt.freexmltoolkit.plugins.IdentifierKind.BIC,
+                org.fxt.freexmltoolkit.plugins.IdentifierKind.IBAN));
         // Initial fill: showing the active version must not count as the user picking one.
         var onVersionSelected = versionCombo.getOnAction();
         versionCombo.setOnAction(null);

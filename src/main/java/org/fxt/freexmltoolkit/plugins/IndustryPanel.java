@@ -10,13 +10,10 @@ import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.FxtGui;
@@ -82,13 +79,9 @@ public class IndustryPanel extends VBox {
     @FXML private SidePanelSection toolsSection;
     @FXML private PanelActionList actions;
     @FXML private SidePanelSection optionsSection;
-    @FXML private javafx.scene.control.Button gleifButton;
-    @FXML private VBox gleifResult;
     @FXML private VBox optionsBody;
     @FXML private SidePanelSection identifierSection;
-    @FXML private ComboBox<IdentifierKind> identifierKind;
-    @FXML private TextField identifierField;
-    @FXML private Label identifierResult;
+    @FXML private IdentifierChecker identifierChecker;
     @FXML private ProgressBar progress;
     @FXML private Label status;
 
@@ -151,14 +144,7 @@ public class IndustryPanel extends VBox {
         show(reportButton, false);
         show(optionsSection, false);
         show(identifierSection, !identifiers.isEmpty());
-        identifierKind.getItems().setAll(identifiers);
-        identifierKind.setButtonCell(kindCell());
-        identifierKind.setCellFactory(list -> kindCell());
-        if (!identifiers.isEmpty()) {
-            identifierKind.setValue(identifiers.getFirst());
-        }
-        identifierKind.valueProperty().addListener((obs, o, n) -> checkIdentifier());
-        identifierField.textProperty().addListener((obs, o, n) -> checkIdentifier());
+        identifierChecker.setKinds(identifiers);
         EditorHost host = ui.editorHost();
         // Deferred: the new tab's text is in place only after the tab switch has been processed
         host.activeTabProperty().addListener((obs, o, n) -> Platform.runLater(this::refreshDocument));
@@ -317,16 +303,6 @@ public class IndustryPanel extends VBox {
         node.setManaged(visible);
     }
 
-    private static ListCell<IdentifierKind> kindCell() {
-        return new ListCell<>() {
-            @Override
-            protected void updateItem(IdentifierKind item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : item.label());
-            }
-        };
-    }
-
     /** Shows what the active document is for this extension. */
     void refreshDocument() {
         String text = ui.editorHost().getActiveText().orElse(null);
@@ -483,66 +459,6 @@ public class IndustryPanel extends VBox {
         show(progress, on);
     }
 
-    private void checkIdentifier() {
-        IdentifierKind kind = identifierKind.getValue();
-        String value = identifierField.getText();
-        if (kind == null || value == null || value.isBlank()) {
-            identifierResult.setText("");
-            return;
-        }
-        String problem = kind.check(value);
-        identifierResult.setText(problem == null ? "✓ Valid " + kind.label() : "✗ " + problem);
-        gleifResult.getChildren().clear();
-        show(gleifButton, problem == null && kind == IdentifierKind.LEI
-                && org.fxt.freexmltoolkit.service.finance.gleif.Gleif.allowed());
-    }
-
-    /** Looks the LEI of the identifier field up at GLEIF (on a click: the LEI leaves the computer). */
-    @FXML
-    public void onGleifLookup() {
-        String lei = identifierField.getText().strip().toUpperCase(java.util.Locale.ROOT);
-        trigger = gleifButton;
-        background(I18n.t("IndustryPanel.gleif-lookup"),
-                () -> org.fxt.freexmltoolkit.service.finance.gleif.Gleif.cache().lookup(List.of(lei)).get(lei),
-                this::showGleifRecord);
-        trigger = null;
-    }
-
-    private void showGleifRecord(org.fxt.freexmltoolkit.service.finance.gleif.LeiRecord r) {
-        gleifResult.getChildren().clear();
-        if (r == null) {
-            return;
-        }
-        if (r.found()) {
-            gleifLine(r.legalName(), "fxt-gleif-name");
-            gleifLine(I18n.t("IndustryPanel.gleif-place", r.city() == null ? "" : r.city(), r.country() == null ? "" : r.country()), null);
-            gleifLine(I18n.t("IndustryPanel.gleif-status", r.registrationStatus(), r.entityStatus()), null);
-            if (r.nextRenewal() != null) {
-                gleifLine(I18n.t("IndustryPanel.gleif-renewal", r.nextRenewal().toString()), null);
-            }
-        }
-        var problem = r.problem();
-        if (problem != null) {
-            gleifLine((problem.severity() == org.fxt.freexmltoolkit.service.finance.gleif.LeiRecord.Severity.INFO ? "ℹ " : "✗ ")
-                    + problem.message(), null);
-        }
-        Hyperlink link = new Hyperlink(I18n.t("IndustryPanel.gleif-open"));
-        link.setId("industry-identifier-gleif-link");
-        link.setOnAction(e -> org.fxt.freexmltoolkit.util.DesktopActions.browse(java.net.URI.create(r.searchUrl()), ex -> { }));
-        gleifResult.getChildren().add(link);
-    }
-
-    private Label gleifLine(String text, String styleClass) {
-        Label label = new Label(text);
-        label.setWrapText(true);
-        label.setMinHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
-        if (styleClass != null) {
-            label.getStyleClass().add(styleClass);
-        }
-        gleifResult.getChildren().add(label);
-        return label;
-    }
-
     /**
      * Checks every LEI of the active document at GLEIF; the findings replace earlier GLEIF findings in the PROBLEMS
      * panel and keep the others (schema, rules).
@@ -580,21 +496,23 @@ public class IndustryPanel extends VBox {
     }
 
     void checkIdentifierForTesting(IdentifierKind kind, String value) {
-        identifierKind.setValue(kind);
-        identifierField.setText(value);
+        identifierChecker.check(kind, value);
     }
 
     String identifierResultForTesting() {
-        return identifierResult.getText();
+        return identifierChecker.resultText();
     }
 
     boolean gleifButtonShownForTesting() {
-        return gleifButton.isVisible();
+        return identifierChecker.gleifButtonShown();
     }
 
     String gleifResultForTesting() {
-        return gleifResult.getChildren().stream()
-                .map(n -> n instanceof Label l ? l.getText() : n instanceof Hyperlink h ? h.getText() : "")
-                .collect(java.util.stream.Collectors.joining("\n"));
+        return identifierChecker.gleifResultText();
+    }
+
+    /** Looks the LEI of the identifier checker up at GLEIF. */
+    void onGleifLookup() {
+        identifierChecker.onGleifLookup();
     }
 }

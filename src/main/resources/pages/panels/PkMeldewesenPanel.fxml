@@ -12,6 +12,7 @@
 <?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionList?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelHeader?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelSection?>
+<?import org.fxt.freexmltoolkit.plugins.IdentifierChecker?>
 
 <!--
   PK-Meldewesen activity side panel (FMA pension fund reports: QMV, FJMV, ECB): the active
@@ -56,6 +57,12 @@
                         <ProgressBar fx:id="progress" id="pk-progress" maxWidth="Infinity" visible="false" managed="false"/>
                     </children>
                 </VBox>
+            </children>
+        </SidePanelSection>
+
+        <SidePanelSection title="%IndustryPanel.identifierSection.title">
+            <children>
+                <IdentifierChecker fx:id="identifierChecker"/>
             </children>
         </SidePanelSection>
 
