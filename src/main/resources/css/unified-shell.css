@@ -5327,3 +5327,8 @@
     -fx-font-family: "JetBrains Mono", monospace;
     -fx-font-size: 11px;
 }
+
+/* GLEIF lookup result in the industry panels' identifier checker: the legal name */
+.fxt-gleif-name {
+    -fx-font-weight: bold;
+}

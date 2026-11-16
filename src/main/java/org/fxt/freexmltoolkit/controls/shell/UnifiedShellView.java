@@ -362,6 +362,8 @@ public class UnifiedShellView extends BorderPane {
                 if (org.fxt.freexmltoolkit.plugin.PluginManager.getInstance().hasElementDescribers()) {
                     org.fxt.freexmltoolkit.controls.shell.editor.DescriberHover.installOn(editorHost.getActiveCodeArea());
                 }
+                // GLEIF data of an LEI under the mouse (cached answers; lookups only when the user turned them on)
+                org.fxt.freexmltoolkit.controls.shell.editor.LeiHover.installOn(editorHost.getActiveCodeArea());
             }
             for (var listener : org.fxt.freexmltoolkit.plugin.PluginManager.getInstance().documentListeners()) {
                 try {

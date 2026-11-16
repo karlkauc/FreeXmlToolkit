@@ -114,6 +114,7 @@ public final class ShellMenuBar extends MenuBar {
     @FXML private ShellMenuItem sponsorItem;
     @FXML private SeparatorMenuItem helpAppSeparator;
     @FXML private ShellMenuItem updatesItem;
+    @FXML private ShellMenuItem gleifItem;
     @FXML private ShellMenuItem aboutItem;
 
     /**
@@ -149,6 +150,10 @@ public final class ShellMenuBar extends MenuBar {
         sponsorItem.setGraphic(ProjectLinks.sponsorIcon(16));
         // The administrator may have disabled updates (policy update.allowed=false)
         updatesItem.setDisable(!org.fxt.freexmltoolkit.service.AdminPolicy.current().updatesAllowed());
+        // GLEIF lookups may be turned off (policy gleif.allowed=false)
+        if (!org.fxt.freexmltoolkit.service.finance.gleif.Gleif.allowed()) {
+            toolsMenu.getItems().remove(gleifItem);
+        }
         if (!ErrorReportDialog.isAvailable()) {
             helpMenu.getItems().remove(reportProblemItem);
         }
@@ -540,6 +545,9 @@ public final class ShellMenuBar extends MenuBar {
     @FXML public void onConvertToXml() { run("convert_xml", () -> shell.convertActive(DataFormatConverter.Format.XML)); }
     @FXML public void onConvertToYaml() { run("convert_yaml", () -> shell.convertActive(DataFormatConverter.Format.YAML)); }
     @FXML public void onSpreadsheet() { run("spreadsheet", shell::onSpreadsheet); }
+    @FXML public void onGleifCheck() {
+        run("gleif_check", () -> org.fxt.freexmltoolkit.controls.shell.editor.GleifDocumentCheck.runOnActive(editorHost));
+    }
     @FXML public void onAddToFavorites() { run("add_favorite", shell::addActiveDocumentToFavorites); }
 
     @FXML public void onDocs() { run("docs", () -> ProjectLinks.openInBrowser(ProjectLinks.DOCS_URL)); }

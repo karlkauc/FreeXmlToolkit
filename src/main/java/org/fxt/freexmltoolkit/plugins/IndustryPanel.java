@@ -82,6 +82,8 @@ public class IndustryPanel extends VBox {
     @FXML private SidePanelSection toolsSection;
     @FXML private PanelActionList actions;
     @FXML private SidePanelSection optionsSection;
+    @FXML private javafx.scene.control.Button gleifButton;
+    @FXML private VBox gleifResult;
     @FXML private VBox optionsBody;
     @FXML private SidePanelSection identifierSection;
     @FXML private ComboBox<IdentifierKind> identifierKind;
@@ -139,7 +141,13 @@ public class IndustryPanel extends VBox {
         for (Action action : extraActions) {
             addTool(action);
         }
-        show(toolsSection, !extraActions.isEmpty());
+        boolean gleif = identifiers.contains(IdentifierKind.LEI)
+                && org.fxt.freexmltoolkit.service.finance.gleif.Gleif.allowed();
+        if (gleif) {
+            addTool(new Action("industry-gleif-check", I18n.t("IndustryPanel.gleif-check"), "bi-globe2",
+                    ActionColor.NEUTRAL, u -> checkLeisAtGleif()));
+        }
+        show(toolsSection, !extraActions.isEmpty() || gleif);
         show(reportButton, false);
         show(optionsSection, false);
         show(identifierSection, !identifiers.isEmpty());
@@ -484,6 +492,88 @@ public class IndustryPanel extends VBox {
         }
         String problem = kind.check(value);
         identifierResult.setText(problem == null ? "✓ Valid " + kind.label() : "✗ " + problem);
+        gleifResult.getChildren().clear();
+        show(gleifButton, problem == null && kind == IdentifierKind.LEI
+                && org.fxt.freexmltoolkit.service.finance.gleif.Gleif.allowed());
+    }
+
+    /** Looks the LEI of the identifier field up at GLEIF (on a click: the LEI leaves the computer). */
+    @FXML
+    public void onGleifLookup() {
+        String lei = identifierField.getText().strip().toUpperCase(java.util.Locale.ROOT);
+        trigger = gleifButton;
+        background(I18n.t("IndustryPanel.gleif-lookup"),
+                () -> org.fxt.freexmltoolkit.service.finance.gleif.Gleif.cache().lookup(List.of(lei)).get(lei),
+                this::showGleifRecord);
+        trigger = null;
+    }
+
+    private void showGleifRecord(org.fxt.freexmltoolkit.service.finance.gleif.LeiRecord r) {
+        gleifResult.getChildren().clear();
+        if (r == null) {
+            return;
+        }
+        if (r.found()) {
+            gleifLine(r.legalName(), "fxt-gleif-name");
+            gleifLine(I18n.t("IndustryPanel.gleif-place", r.city() == null ? "" : r.city(), r.country() == null ? "" : r.country()), null);
+            gleifLine(I18n.t("IndustryPanel.gleif-status", r.registrationStatus(), r.entityStatus()), null);
+            if (r.nextRenewal() != null) {
+                gleifLine(I18n.t("IndustryPanel.gleif-renewal", r.nextRenewal().toString()), null);
+            }
+        }
+        var problem = r.problem();
+        if (problem != null) {
+            gleifLine((problem.severity() == org.fxt.freexmltoolkit.service.finance.gleif.LeiRecord.Severity.INFO ? "ℹ " : "✗ ")
+                    + problem.message(), null);
+        }
+        Hyperlink link = new Hyperlink(I18n.t("IndustryPanel.gleif-open"));
+        link.setId("industry-identifier-gleif-link");
+        link.setOnAction(e -> org.fxt.freexmltoolkit.util.DesktopActions.browse(java.net.URI.create(r.searchUrl()), ex -> { }));
+        gleifResult.getChildren().add(link);
+    }
+
+    private Label gleifLine(String text, String styleClass) {
+        Label label = new Label(text);
+        label.setWrapText(true);
+        label.setMinHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+        if (styleClass != null) {
+            label.getStyleClass().add(styleClass);
+        }
+        gleifResult.getChildren().add(label);
+        return label;
+    }
+
+    /**
+     * Checks every LEI of the active document at GLEIF; the findings replace earlier GLEIF findings in the PROBLEMS
+     * panel and keep the others (schema, rules).
+     */
+    void checkLeisAtGleif() {
+        EditorHost host = ui.editorHost();
+        String text = host.getActiveText().orElse(null);
+        if (text == null) {
+            PanelStatus.precondition(status, I18n.t("IndustryPanel.no-document"));
+            return;
+        }
+        EditorHost.ValidationTarget target = host.validationTarget();
+        background(I18n.t("IndustryPanel.gleif-check"), () -> org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.check(text),
+                result -> {
+                    if (result.failure() != null) {
+                        PanelStatus.failure(status, I18n.t("IndustryPanel.gleif-check"), result.failure(),
+                                I18n.t("IndustryPanel.gleif-remedy"), result.failure(), false);
+                        return;
+                    }
+                    if (result.leis() == 0) {
+                        PanelStatus.info(status, I18n.t("IndustryPanel.gleif-none"));
+                        return;
+                    }
+                    org.fxt.freexmltoolkit.controls.shell.editor.GleifDocumentCheck.publish(host, target, result);
+                    refreshCounts();
+                    if (result.findings().isEmpty()) {
+                        PanelStatus.success(status, I18n.t("IndustryPanel.gleif-ok", result.leis()));
+                    } else {
+                        PanelStatus.info(status, I18n.t("IndustryPanel.gleif-problems", result.leis(), result.findings().size()));
+                    }
+                });
     }
 
     // test access
@@ -506,5 +596,15 @@ public class IndustryPanel extends VBox {
 
     String identifierResultForTesting() {
         return identifierResult.getText();
+    }
+
+    boolean gleifButtonShownForTesting() {
+        return gleifButton.isVisible();
+    }
+
+    String gleifResultForTesting() {
+        return gleifResult.getChildren().stream()
+                .map(n -> n instanceof Label l ? l.getText() : n instanceof Hyperlink h ? h.getText() : "")
+                .collect(java.util.stream.Collectors.joining("\n"));
     }
 }

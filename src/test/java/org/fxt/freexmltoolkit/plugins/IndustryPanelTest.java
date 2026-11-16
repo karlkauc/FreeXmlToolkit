@@ -34,6 +34,7 @@ class IndustryPanelTest {
     private EditorHost host;
     private IndustryPanel panel;
     private IndustryPanel reporting;
+    private IndustryPanel withLei;
 
     @Start
     void start(Stage stage) {
@@ -61,7 +62,9 @@ class IndustryPanelTest {
                 (content, path, name) -> List.of(new DocumentValidator.Problem("warning", 1, "Check the total."),
                         new DocumentValidator.Problem("error", 1, "No customer."), new DocumentValidator.Problem("error", 1, "No date.")),
                 List.of()).withReport((content, name) -> "<html><body>Report of " + name + "</body></html>", "-report.html");
-        stage.setScene(new Scene(new HBox(host, panel, reporting), 1300, 700));
+        withLei = new IndustryPanel(ui, "FUNDS", "With LEIs.", List.of(), c -> "Funds", validator,
+                List.of(IdentifierKind.LEI, IdentifierKind.ISIN));
+        stage.setScene(new Scene(new HBox(host, panel, reporting, withLei), 1300, 700));
         stage.show();
     }
 
@@ -161,5 +164,50 @@ class IndustryPanelTest {
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(5000, () -> "Slow tool".equals(button.getText())));
         assertFalse(WaitForAsyncUtils.waitForAsyncFx(5000, () -> button.getGraphic() instanceof javafx.scene.control.ProgressIndicator));
         assertEquals(1, runs.get());
+    }
+
+    @Test
+    void leisAtGleif() throws Exception {
+        org.fxt.freexmltoolkit.service.finance.gleif.Gleif.setCache(new org.fxt.freexmltoolkit.service.finance.gleif.LeiCache(
+                new org.fxt.freexmltoolkit.service.finance.gleif.GleifClient(uri -> {
+                    try (var in = IndustryPanelTest.class.getResourceAsStream("/gleif/lei-records.json")) {
+                        return new org.fxt.freexmltoolkit.service.finance.gleif.GleifClient.Response(200, in.readAllBytes());
+                    }
+                }, java.time.Clock.systemUTC()), null, java.time.Clock.systemUTC(), java.time.Duration.ofHours(1)));
+        try {
+            WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+                withLei.checkIdentifierForTesting(IdentifierKind.ISIN, "506700GE1G29325QX363");
+                return null;
+            });
+            assertFalse(withLei.gleifButtonShownForTesting(), "only for an LEI");
+            WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+                withLei.checkIdentifierForTesting(IdentifierKind.LEI, "506700GE1G29325QX363");
+                return null;
+            });
+            assertTrue(withLei.gleifButtonShownForTesting());
+            WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+                withLei.onGleifLookup();
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                    () -> withLei.gleifResultForTesting().contains("Global Legal Entity Identifier Foundation"));
+            assertTrue(withLei.gleifResultForTesting().contains("Registration ISSUED, entity ACTIVE"), withLei.gleifResultForTesting());
+
+            // every LEI of the document: GLEIF findings join the PROBLEMS panel
+            WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.openGeneratedDocument(
+                    "<funds>\n<LEI>506700GE1G29325QX363</LEI>\n<LEI>5299009FXTMMFCP00069</LEI>\n</funds>", EditorFileType.XML, "f.xml"));
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.getActiveText().orElse("").contains("funds"));
+            WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+                withLei.checkLeisAtGleif();
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> !host.getActiveProblems().isEmpty());
+            var problem = WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.getActiveProblems().getFirst());
+            assertEquals("GLEIF", problem.source());
+            assertEquals(3, problem.line());
+            assertTrue(withLei.status().getText().contains("2 LEIs"), withLei.status().getText());
+        } finally {
+            org.fxt.freexmltoolkit.service.finance.gleif.Gleif.setCache(null);
+        }
     }
 }

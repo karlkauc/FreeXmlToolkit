@@ -173,6 +173,8 @@
                                color="TOOL" onAction="#onMergeFiles"/>
                 <ShellMenuItem id="menu-tools-spreadsheet" text="%ShellMenuBar.menu-tools-spreadsheet.text" iconLiteral="bi-table"
                                color="TOOL" accelerator="Shortcut+E" onAction="#onSpreadsheet"/>
+                <ShellMenuItem fx:id="gleifItem" id="menu-tools-gleif" text="%ShellMenuBar.menu-tools-gleif.text" iconLiteral="bi-globe2"
+                               color="TOOL" onAction="#onGleifCheck"/>
                 <ShellMenuItem id="menu-tools-convert-json" text="%ShellMenuBar.menu-tools-convert-json.text" iconLiteral="bi-filetype-json"
                                color="TOOL" onAction="#onConvertToJson"/>
                 <ShellMenuItem id="menu-tools-convert-xml" text="%ShellMenuBar.menu-tools-convert-xml.text" iconLiteral="bi-filetype-xml"

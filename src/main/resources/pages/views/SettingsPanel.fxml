@@ -25,6 +25,7 @@
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.ai.AiSettingsPane?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.FoProcessorsSettings?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.GleifSettings?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.XsltProcessorsSettings?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.SettingsCard?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.SettingsCardGrid?>
@@ -740,6 +741,12 @@
                                                         <Tooltip text="%SettingsPanel.dtdAllowed.tooltip"/>
                                                     </tooltip>
                                                 </CheckBox>
+                                            </children>
+                                        </SettingsCard>
+                                        <!-- GLEIF lookups of LEIs (GleifSettings saves its changes itself) -->
+                                        <SettingsCard title="%SettingsPanel.gleif.title" iconLiteral="bi-globe2">
+                                            <children>
+                                                <GleifSettings fx:id="gleifSettings"/>
                                             </children>
                                         </SettingsCard>
                                         <SettingsCard title="%SettingsPanel.updates.title" iconLiteral="bi-arrow-repeat">
