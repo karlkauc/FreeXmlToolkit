@@ -225,6 +225,7 @@ public class SettingsPanel extends VBox {
     @FXML private javafx.scene.control.ComboBox<org.fxt.freexmltoolkit.i18n.I18n.Language> uiLanguage;
     @FXML private VBox pluginRows;
     @FXML private FoProcessorsSettings foProcessors;
+    @FXML private XsltProcessorsSettings xsltProcessors;
     @FXML private VBox aiGroup;
     @FXML private org.fxt.freexmltoolkit.controls.shell.editor.ai.AiSettingsPane aiSettings;
     /** One switch per plugin that can be switched (built-in and external, not failed ones). */
@@ -1370,6 +1371,8 @@ public class SettingsPanel extends VBox {
         keys.putAll(aiSettings.policyKeys());
         keys.put(foProcessors, new String[] {org.fxt.freexmltoolkit.service.fo.FoProcessorStore.KEY_PROCESSORS,
                 org.fxt.freexmltoolkit.service.fo.FoProcessorStore.KEY_DEFAULT});
+        keys.put(xsltProcessors, new String[] {org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorStore.KEY_PROCESSORS,
+                org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorStore.KEY_DEFAULT});
         return keys;
     }
 

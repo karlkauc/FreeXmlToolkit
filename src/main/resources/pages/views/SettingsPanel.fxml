@@ -25,6 +25,7 @@
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.ai.AiSettingsPane?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.FoProcessorsSettings?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.XsltProcessorsSettings?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.SettingsCard?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.SettingsCardGrid?>
 <?import org.fxt.freexmltoolkit.controls.theme.SemanticColors?>
@@ -826,6 +827,12 @@
                                         <SettingsCard title="%SettingsPanel.xsl-fo-processors.title" iconLiteral="bi-printer">
                                             <children>
                                                 <FoProcessorsSettings fx:id="foProcessors"/>
+                                            </children>
+                                        </SettingsCard>
+                                        <!-- External XSLT processors (XsltProcessorsSettings saves its changes itself) -->
+                                        <SettingsCard title="%SettingsPanel.xslt-processors.title" iconLiteral="bi-cpu">
+                                            <children>
+                                                <XsltProcessorsSettings fx:id="xsltProcessors"/>
                                             </children>
                                         </SettingsCard>
                                         <SettingsCard title="%SettingsPanel.developer.title" iconLiteral="bi-speedometer2">
