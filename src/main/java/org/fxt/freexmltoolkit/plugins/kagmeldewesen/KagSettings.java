@@ -78,10 +78,13 @@ public final class KagSettings {
 
     /** @return a non-negative decimal, or {@code null} when the text is none */
     static BigDecimal parse(String text) {
+        if (text == null) {
+            return null;
+        }
         try {
             BigDecimal value = new BigDecimal(text.strip().replace(',', '.'));
             return value.signum() < 0 ? null : value;
-        } catch (NumberFormatException | NullPointerException e) {
+        } catch (NumberFormatException e) {
             return null;
         }
     }

@@ -86,7 +86,7 @@ public final class JsonTokenizer {
             for (int i = text.length() - 2; i > 0 && text.charAt(i) == '\\'; i--) {
                 backslashes++;
             }
-            return backslashes % 2 == 1;
+            return backslashes % 2 != 0;
         }
 
         /** @return whether the token is a number in a form strict JSON does not allow */

@@ -15,11 +15,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.fxt.freexmltoolkit.service.finance.FinancialIdentifiers;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-
-import org.fxt.freexmltoolkit.service.finance.FinancialIdentifiers;
 
 /**
  * Asks GLEIF's public API ({@code api.gleif.org}, no key) about LEIs: up to {@link #BATCH} LEIs per request, at most one

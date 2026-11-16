@@ -4,7 +4,7 @@ The highlights of each release. The complete notes and all downloads are on the
 [GitHub Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases); the version you are
 running is shown under **Help → About FreeXmlToolkit**.
 
-## Unreleased
+## 3.3.0 (2026-11-16)
 
 **Online identifier lookup (GLEIF, ESMA FIRDS, OpenFIGI)**
 
@@ -124,6 +124,30 @@ running is shown under **Help → About FreeXmlToolkit**.
 - **Newer taxonomies** are imported from the FMA's ZIP and chosen in the side panel (no restart); an example report,
   the schema documentation, six Query Console snippets, new-file templates and favorites come with the extension.
 
+**Editing**
+
+- **Spreadsheet Converter for everyone:** XML becomes a **table** – one row per record (every `<Order>`), one
+  column per value – instead of only the XPath list. Edit it in Excel and convert it back; any other CSV file or
+  sheet becomes XML too, one element per row. The dialog explains each choice, has tooltips and a **?** to the
+  documentation, and previews the table or the XML before anything is written. With a CSV document open it
+  starts with Spreadsheet → XML; a malformed document's message has **Go to Error**. See
+  [XML Editor](xml-editor.md#xmlexcelcsv-converter).
+- **Validation results stay with their document:** after Validate / F8 or a run of the Validation panel,
+  switching to another tab and back shows the result and the problems again (until the text changes). A run that
+  finishes after you switched tabs goes to the document it checked.
+- **Show problems:** the Validation panel's "N problems — show below the editor" now also shows the first problem in
+  the editor, on every click.
+- **Save confirmation:** after a save the status bar shows **Saved orders.xml (12:55:18)** for a few seconds, also
+  when the file had no changes. See [Status Bar](unified-shell.md#status-bar).
+
+**Fixes**
+
+- **First start after installing on Windows:** the virus scanner checked every program file when the application
+  first opened it, so the first start took 13 seconds or more. The installer now opens every file once as its last
+  step, so this check happens during the installation.
+- **Very large documents in the text editor:** resting the mouse on a document over 2 MB no longer freezes the
+  application (the hover context is skipped there), and files from 256 KB are prepared off the UI thread when opened.
+
 **Opening files**
 
 - **XML in files with other extensions:** a file whose extension the app does not know (`web.config`, `.xaml`, `.gpx`,
@@ -162,19 +186,6 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 **Editing**
 
-- **Spreadsheet Converter for everyone:** XML becomes a **table** – one row per record (every `<Order>`), one
-  column per value – instead of only the XPath list. Edit it in Excel and convert it back; any other CSV file or
-  sheet becomes XML too, one element per row. The dialog explains each choice, has tooltips and a **?** to the
-  documentation, and previews the table or the XML before anything is written. With a CSV document open it
-  starts with Spreadsheet → XML; a malformed document's message has **Go to Error**. See
-  [XML Editor](xml-editor.md#xmlexcelcsv-converter).
-- **Validation results stay with their document:** after Validate / F8 or a run of the Validation panel,
-  switching to another tab and back shows the result and the problems again (until the text changes). A run that
-  finishes after you switched tabs goes to the document it checked.
-- **Show problems:** the Validation panel's "N problems — show below the editor" now also shows the first problem in
-  the editor, on every click.
-- **Save confirmation:** after a save the status bar shows **Saved orders.xml (12:55:18)** for a few seconds, also
-  when the file had no changes. See [Status Bar](unified-shell.md#status-bar).
 - **"Edited with FreeXmlToolkit" comment:** saved XML, XSD, XSLT, Schematron and XProc files carry a comment after
   the XML declaration with the version and the user from Settings → User Info, as other XML editors do. It is
   updated on every save, not repeated, and can be switched off (Settings → Editor → Mark saved XML files). See
@@ -232,9 +243,6 @@ running is shown under **Help → About FreeXmlToolkit**.
   longer treated as a failure.
 - **Grid tables after sorting:** sorting a table column no longer collapses the table, and the selected row stays
   selected.
-- **First start after installing on Windows:** the virus scanner checked every program file when the application
-  first opened it, so the first start took 13 seconds or more. The installer now opens every file once as its last
-  step, so this check happens during the installation.
 
 ## 3.1.0 (2026-11-11)
 

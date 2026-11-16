@@ -3,8 +3,6 @@ package org.fxt.freexmltoolkit.controls.jsoneditor.editor;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.JsonCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.JsonCommandManager;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonDocument;
@@ -30,8 +28,6 @@ import org.fxt.freexmltoolkit.controls.v2.editor.core.NodeSelectionModel;
  * </ul>
  */
 public class JsonEditorContext {
-
-    private static final Logger logger = LogManager.getLogger(JsonEditorContext.class);
 
 
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);

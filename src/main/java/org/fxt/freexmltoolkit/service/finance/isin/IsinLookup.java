@@ -16,12 +16,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import org.fxt.freexmltoolkit.service.finance.FinancialIdentifiers;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-
-import org.fxt.freexmltoolkit.service.finance.FinancialIdentifiers;
 
 /**
  * Looks ISINs up: first at ESMA FIRDS (EU reference data, {@code registers.esma.europa.eu}, no key), the ISINs FIRDS does

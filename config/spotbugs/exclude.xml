@@ -335,6 +335,7 @@
             <Field name="largeFileAnswer"/>
             <Field name="exportTarget"/>
             <Field name="pendingAnswer"/>
+            <Field name="chooser"/>
         </Or>
     </Match>
 
@@ -345,6 +346,41 @@
             <Bug pattern="NP_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD"/>
         </Or>
         <Class name="~org\.fxt\.freexmltoolkit\.(plugins\.findatex\..*|service\.fundsxml\.FundsXmlDataQuality.*|controls\.shell\.editor\.FundsXmlPlugin.*)"/>
+    </Match>
+
+    <!-- Bundled regulatory rule tables read by Gson (ESMA action matrix, conditional fields) -->
+    <Match>
+        <Or>
+            <Bug pattern="UWF_UNWRITTEN_FIELD"/>
+            <Bug pattern="NP_UNWRITTEN_FIELD"/>
+        </Or>
+        <Class name="~org\.fxt\.freexmltoolkit\.plugins\.regreport\.(ActionMatrix|ConditionalRules)\$.*"/>
+    </Match>
+    <Match>
+        <Bug pattern="NP_UNWRITTEN_FIELD"/>
+        <Class name="org.fxt.freexmltoolkit.plugins.regreport.ConditionalRules"/>
+        <Method name="of"/>
+    </Match>
+
+    <!-- Online lookups: the shared caches are replaced by tests (setCache) -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_STATIC_REP2"/>
+        <Class name="~org\.fxt\.freexmltoolkit\.service\.finance\.(gleif\.Gleif|isin\.Isin)"/>
+        <Method name="setCache"/>
+    </Match>
+
+    <!-- GLEIF's rate limit: requests from all threads wait in turn on purpose -->
+    <Match>
+        <Bug pattern="SWL_SLEEP_WITH_LOCK_HELD"/>
+        <Class name="org.fxt.freexmltoolkit.service.finance.gleif.GleifClient"/>
+        <Method name="throttle"/>
+    </Match>
+
+    <!-- JSON Schema if/then/else: three outcomes (holds, fails, unsure) -->
+    <Match>
+        <Bug pattern="NP_BOOLEAN_RETURN_NULL"/>
+        <Class name="org.fxt.freexmltoolkit.service.jsonschema.JsonSchemaResolver"/>
+        <Method name="decide"/>
     </Match>
 
     <!-- Properties is backed by a concurrent map; reads need no lock -->

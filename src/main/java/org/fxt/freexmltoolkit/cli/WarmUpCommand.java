@@ -104,6 +104,7 @@ final class WarmUpCommand implements Callable<Integer> {
      * @param timeout when to stop
      * @return what was done; never throws
      */
+    @SuppressWarnings("PMD.CloseResource") // shut down below; close() would wait past the deadline
     static Result warm(Path root, Duration timeout) {
         long start = System.nanoTime();
         List<Path> files = new ArrayList<>();

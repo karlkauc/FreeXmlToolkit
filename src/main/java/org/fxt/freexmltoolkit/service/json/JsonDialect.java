@@ -164,15 +164,14 @@ public final class JsonDialect {
             char c = body.charAt(i);
             if (c == '\\' && i + 1 < body.length()) {
                 char next = body.charAt(i + 1);
+                // a backslash before a line break is a line continuation: both are dropped
                 if (next == '\'') {
                     b.append('\'');
-                } else if (next == '\n') {
-                    // line continuation
                 } else if (next == '\r') {
                     if (i + 2 < body.length() && body.charAt(i + 2) == '\n') {
                         i++;
                     }
-                } else {
+                } else if (next != '\n') {
                     b.append(c).append(next);
                 }
                 i++;

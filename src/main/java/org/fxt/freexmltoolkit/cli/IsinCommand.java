@@ -9,16 +9,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
 import org.fxt.freexmltoolkit.service.AdminPolicy;
 import org.fxt.freexmltoolkit.service.finance.FinancialIdentifiers;
 import org.fxt.freexmltoolkit.service.finance.isin.Isin;
 import org.fxt.freexmltoolkit.service.finance.isin.IsinLookup;
 import org.fxt.freexmltoolkit.service.finance.isin.IsinRecord;
 import org.fxt.freexmltoolkit.service.finance.isin.IsinScanner;
+
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -80,7 +80,7 @@ final class IsinCommand implements Callable<Integer> {
         try {
             fmt = Format.valueOf(format.strip().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
-            throw new CommandLine.ParameterException(commandLine, "--format: text or json, not " + format);
+            throw new CommandLine.ParameterException(commandLine, "--format: text or json, not " + format, e);
         }
         if (isins.isEmpty() && files.isEmpty()) {
             throw new CommandLine.ParameterException(commandLine, "Give ISINs or --file");

@@ -9,9 +9,9 @@ import org.fxt.freexmltoolkit.service.finance.gleif.Gleif;
 import org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck;
 import org.fxt.freexmltoolkit.service.finance.gleif.LeiCache;
 import org.fxt.freexmltoolkit.service.finance.gleif.LeiRecord;
-import org.fxt.freexmltoolkit.service.finance.isin.IsinPairs;
 import org.fxt.freexmltoolkit.service.finance.isin.Isin;
 import org.fxt.freexmltoolkit.service.finance.isin.IsinLookup;
+import org.fxt.freexmltoolkit.service.finance.isin.IsinPairs;
 import org.fxt.freexmltoolkit.service.finance.isin.IsinRecord;
 import org.fxt.freexmltoolkit.service.finance.isin.IsinScanner;
 

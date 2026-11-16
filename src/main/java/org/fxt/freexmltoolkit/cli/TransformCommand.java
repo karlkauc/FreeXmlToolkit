@@ -178,7 +178,7 @@ final class TransformCommand implements Callable<Integer> {
                 var store = org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorStore.settings();
                 xsltProcessor = store.resolve(processor != null ? processor : store.defaultId()).orElse(null);
             } catch (IllegalArgumentException e) {
-                throw new CommandLine.ParameterException(commandLine, e.getMessage());
+                throw new CommandLine.ParameterException(commandLine, e.getMessage(), e);
             }
             if (xsltProcessor != null && profileReport != null) {
                 throw new CommandLine.ParameterException(commandLine, "--profile needs the bundled Saxon HE "
