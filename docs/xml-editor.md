@@ -163,7 +163,9 @@ How you select a node depends on the active view:
   shows a read-only view with the node's name and XPath. In large files (from 8 MB) the
   inspector follows the caret right away after edits in the grid. After you type, it shows no
   node until you pause for about 1.5 seconds. The file is then parsed again in the background,
-  which takes a few seconds for very large files (about 5 seconds for 150 MB).
+  which takes a few seconds for very large files (about 5 seconds for 150 MB). The hover tip
+  that names the element and XPath under the mouse is not shown in files of more than 2 MB:
+  use the inspector or **Copy XPath** there.
 - **Tree view** - Click a node in the tree (element, text, comment, CDATA, or processing
   instruction).
 - **Graphic view** - Select a row in the grid.

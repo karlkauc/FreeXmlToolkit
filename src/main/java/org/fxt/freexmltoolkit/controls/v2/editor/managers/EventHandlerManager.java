@@ -227,8 +227,19 @@ public class EventHandlerManager {
     private double hoverX;
     private double hoverY;
 
+    /**
+     * Documents longer than this get no hover tooltip: the tooltip's context (element, XPath) is
+     * computed from the whole text up to the mouse, which on a 300-MB document meant copying the
+     * text on the FX thread at every rest of the mouse (telemetry {@code 37b8515540f98ab9}: 3-13 s stalls).
+     */
+    static final int MAX_HOVER_DOCUMENT_LENGTH = 2 * 1024 * 1024;
+
     /** Shows the tooltip for where the mouse rests (end of {@link #hoverPause}). */
     private void hoverAtRest() {
+        if (codeArea.getLength() > MAX_HOVER_DOCUMENT_LENGTH) {
+            removeTooltip();
+            return;
+        }
         int charPos = longParagraphVisible() ? -1 : getCharacterPosition(hoverX, hoverY);
         if (charPos < 0) {
             removeTooltip();

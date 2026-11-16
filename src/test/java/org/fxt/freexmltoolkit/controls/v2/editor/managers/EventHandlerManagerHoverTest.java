@@ -22,7 +22,8 @@ import org.testfx.util.WaitForAsyncUtils;
 /**
  * The hover tooltip hit-tests the text only once the mouse rests, never per mouse move, and not at
  * all while a very long paragraph is on screen (telemetry {@code a4bb881765dbb6ff}: 2 s stalls from
- * hit tests on 100k-character lines).
+ * hit tests on 100k-character lines), and not at all on documents of several MB (telemetry
+ * {@code 37b8515540f98ab9}: the whole text was copied and analysed at every rest of the mouse).
  */
 @ExtendWith(ApplicationExtension.class)
 class EventHandlerManagerHoverTest {
@@ -82,6 +83,29 @@ class EventHandlerManagerHoverTest {
         Thread.sleep(500);
         WaitForAsyncUtils.waitForFxEvents();
         assertEquals(0, area.hits.get());
+    }
+
+    @Test
+    void veryLargeDocumentGetsNoHoverAnalysis() throws Exception {
+        StringBuilder text = new StringBuilder("<root>\n");
+        while (text.length() <= EventHandlerManager.MAX_HOVER_DOCUMENT_LENGTH) {
+            text.append("  <item id=\"1\">value</item>\n");
+        }
+        text.append("</root>");
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            area.replaceText(text.toString());
+            area.moveTo(0);
+            area.showParagraphAtTop(0);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            area.fireEvent(moved(20, 8));
+            return null;
+        });
+        Thread.sleep(500);
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(0, area.hits.get(), "neither hit test nor analysis of the whole text");
     }
 
     private static MouseEvent moved(double x, double y) {
