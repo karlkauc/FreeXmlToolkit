@@ -3318,8 +3318,11 @@ which counterparties (also management companies for their funds) send to a trade
   type, ESMA's rules text and the details to be reported in the Inspector's DOCUMENTATION and as grid
   tooltip - also inside the envelope.
 - <strong>Status bar badge:</strong> <code>EMIR · 3 reports</code>, <code>SFTR · 1 report</code>, <code>MiFIR · 2 transactions</code>; the side panel lists the reports per action type.
-- <strong>ESMA Reporting activity:</strong> the document's summary, <strong>Check Active Document</strong>, an LEI/ISIN checker
-  and an example error report (EROR) with fictitious data.</p>
+- <strong>ESMA Reporting activity:</strong> the document's summary with the counts of its last check, <strong>Check Active
+  Document</strong> (like <strong>F8</strong>: the problems go to the PROBLEMS panel with a click to the line), <strong>Check Report
+  (HTML)</strong> (the findings grouped by rule with their EMIR/SFTR/MiFIR field), an LEI/ISIN checker and examples
+  with fictitious data.
+- <strong>Field labels in the text:</strong> rest the mouse on a tag name and a popup shows the field number, name and rule.</p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/plugin-esma-reporting-problems.png" data-desc-position="bottom"><img alt="ESMA's rules finding a counterparty LEI with wrong check digits" src="../img/plugin-esma-reporting-problems.png"></a></p>
 <h2 id="sftr">SFTR<a class="headerlink" href="#sftr" title="Permanent link">¶</a></h2>
 <p>SFTR reports (<code>Document</code> in the <code>auth.052.001.02</code> namespace or in the <code>BizData</code> envelope) are checked

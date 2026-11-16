@@ -3267,7 +3267,9 @@ page that explains its functions in detail:</p>
 <p>The <a href="../fundsxml-extensions/">FundsXML extension</a> is an extension as well, with its own page.</p>
 <h2 id="switching-them-on">Switching them on<a class="headerlink" href="#switching-them-on" title="Permanent link">¶</a></h2>
 <p>The industry extensions are <strong>off by default</strong>: switch them on in <strong>Settings → Extensions → INSTALLED EXTENSIONS</strong>
-and restart. Administrators can keep an extension off for everyone with <code>plugin.&lt;id&gt;.enabled=false</code>
+and restart. When you open a document that a switched-off extension recognises (a SEPA payment, an e-invoice, a
+FinDatEx template, an XBRL instance, an ESMA or a KAG report), a bar above the editor offers it once:
+<strong>Switch On</strong> stores the setting, the extension is there after the next start. Administrators can keep an extension off for everyone with <code>plugin.&lt;id&gt;.enabled=false</code>
 (<code>iso20022</code>, <code>ebinterface</code>, <code>findatex</code>, <code>xbrl</code>, <code>kag-meldewesen</code>, <code>esma-reporting</code>), see <a href="../administration/">Administration</a>.</p>
 <h2 id="what-every-industry-extension-adds">What every industry extension adds<a class="headerlink" href="#what-every-industry-extension-adds" title="Permanent link">¶</a></h2>
 <ul>
@@ -3275,9 +3277,15 @@ and restart. Administrators can keep an extension off for everyone with <code>pl
 <li><strong>ABOUT</strong> — what the extension checks;</li>
 <li><strong>ACTIVE DOCUMENT</strong> — what the open document is (message type, invoice number, template,
   number of facts …), updated when you switch tabs;</li>
-<li><strong>Check Active Document</strong> — runs the extension's checks; the first ten problems are shown,
-  <strong>Show All Problems</strong> opens the full list;</li>
-<li>the extension's own actions (sample documents, new template files, Excel import, Arelle command);</li>
+<li><strong>Check Active Document</strong> — validates the document like <strong>F8</strong> (schema and the extension's rules); the
+  problems go to the <strong>PROBLEMS</strong> panel below the editor, where a click jumps to the line, and are underlined
+  in the text. The side panel shows how many errors and warnings the last check found; <strong>Show in Problems</strong>
+  opens the list. FinDatEx and XBRL run their own check (XBRL needs the saved file) and put their problems
+  into the PROBLEMS panel the same way;</li>
+<li><strong>Check Report (HTML)</strong> (ESMA Reporting, KAG-Meldewesen) — the findings grouped by rule with the field
+  they belong to, as a page in the preview;</li>
+<li><strong>TOOLS</strong> — the extension's own actions (sample documents, new template files, Excel import, Arelle command);</li>
+<li><strong>OPTIONS</strong> (KAG-Meldewesen) — the extension's settings;</li>
 <li><strong>CHECK AN IDENTIFIER</strong> — checks a pasted IBAN (ISO 13616: country length and check digits),
   BIC (ISO 9362), LEI (ISO 17442), ISIN (ISO 6166) or Austrian VAT id (UID), depending on the extension;</li>
 </ul>
@@ -3286,7 +3294,10 @@ and restart. Administrators can keep an extension off for everyone with <code>pl
   with the extension's name as source — ISO 20022 and ebInterface; FinDatEx and XBRL files are checked
   from their side panel;</li>
 <li>where the standard has official XML Schemas, <strong>Schema Library entries</strong> (source <em>Extension</em>), so
-  documents get their schema bound automatically. Remote schemas are downloaded once and cached.</li>
+  documents get their schema bound automatically. Remote schemas are downloaded once and cached;</li>
+<li>for the reports with field catalogues (ESMA Reporting, KAG-Meldewesen): the <strong>field number, name and rule</strong>
+  of an element in the Inspector, as tooltip in the grid and - when the mouse rests on a tag name - in the
+  text editor (documents up to 2 MB).</li>
 </ul>
 <table>
 <thead>

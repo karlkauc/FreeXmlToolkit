@@ -2381,6 +2381,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#check-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check report
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#grid-formulas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grid formulas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#derivative-risk-report-4-derimv" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2388,6 +2421,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Derivative risk report (4. DeRiMV)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from-and-to-a-spreadsheet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From and to a spreadsheet
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -3218,6 +3268,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#check-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check report
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#grid-formulas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grid formulas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#derivative-risk-report-4-derimv" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3225,6 +3308,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Derivative risk report (4. DeRiMV)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from-and-to-a-spreadsheet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From and to a spreadsheet
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -3337,8 +3437,18 @@ Austrian Financial Market Authority (FMA):</p>
   guidance; the grid shows the same as tooltip of the element's name.
 - <strong>Status bar badge:</strong> <code>AIFMD AIF Y1/2025</code>, <code>AIFMD AIFM Q4/2025</code>, <code>MMF Q1–Q4/2026</code>, <code>DeRiMV Q4/2025</code>; a click
   opens the side panel.
-- <strong>KAG-Meldewesen activity:</strong> what the active document is, <strong>Check Active Document</strong>, an identifier
-  checker (LEI, ISIN, BIC) and two examples (<strong>New AIF File</strong>, <strong>New AIFM File</strong>) with fictitious data.
+- <strong>KAG-Meldewesen activity:</strong> what the active document is and how many errors and warnings its last
+  check found, <strong>Check Active Document</strong> (like <strong>F8</strong>: the problems go to the PROBLEMS panel below the editor
+  with a click to the line), <strong>Check Report (HTML)</strong>, the TOOLS below, OPTIONS and an identifier checker (LEI,
+  ISIN, BIC).
+- <strong>Tools:</strong> examples with fictitious data (<strong>New AIF File</strong>, <strong>New AIFM File</strong>, <strong>New Money Market Fund
+  Report</strong>, <strong>New Derivative Risk Report</strong>), <strong>Import DeRiMV from CSV/Excel…</strong>, <strong>Export DeRiMV to Excel/CSV…</strong>,
+  <strong>Add / Remove Grid Formulas</strong>, <strong>Open Schema of the Report</strong> and <strong>Schema Documentation (HTML)</strong>.
+- <strong>Templates, queries, favorites:</strong> opening the panel adds the four reports as templates (<strong>File → New</strong>,
+  category <em>KAG-Meldewesen</em>), analysis queries for the Query Console (tag <code>kag-meldewesen</code>: DeRiMV funds by use
+  of the limit or per method, AIF records, main instruments, geographical sums, MMF fund reports) and the
+  installed schemas as favorites.
+- <strong>Field labels in the text:</strong> rest the mouse on a tag name and a popup shows the field number, name and rule.
 - <strong>Help menu:</strong> <strong>FMA AIFMD Reporting</strong> opens the FMA's page with the rules and samples.</p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/plugin-kag-meldewesen-problems.png" data-desc-position="bottom"><img alt="The FMA rules finding a reporting period that ends before it starts and an LEI with wrong check digits" src="../img/plugin-kag-meldewesen-problems.png"></a></p>
 <p>Submit the files on the FMA Incoming Platform. The schemas are installed under
@@ -3363,6 +3473,52 @@ rules of ESMA's <em>MMF validation rules v07</em> that need only the file (<code
 </ul>
 <p>Checks against ESMA's register (authorised MMFs, earlier reports) only run at ESMA. <strong>New Money
 Market Fund Report (Example)</strong> opens a fictitious report.</p>
+<h2 id="check-report">Check report<a class="headerlink" href="#check-report" title="Permanent link">¶</a></h2>
+<p><strong>Check Report (HTML)</strong> opens a page in the preview: counts of errors and warnings, every finding grouped by
+rule with the field it belongs to (<code>FMA-AIF-48</code> → <em>Field 48 · …</em>) and its line. For a DeRiMV report it adds
+a table of every fund: exposure, maximum, the legal limit of its method and how much of it the fund uses,
+the fund's own limit (absolute VaR) and its use, the most used first; funds above a limit are red, those at
+90 % or more (or the threshold of the options) amber.</p>
+<h2 id="options">Options<a class="headerlink" href="#options" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AIFMD: tolerance of sums of percentages</td>
+<td>0.5 percentage points</td>
+<td>how far a list that must add up to 100 % may be off</td>
+</tr>
+<tr>
+<td>DeRiMV: relative VaR warning above</td>
+<td>200 %</td>
+<td>the relative VaR limit of rule <code>DeRiMV-7</code></td>
+</tr>
+<tr>
+<td>DeRiMV: warn from this use of a limit</td>
+<td>off, 90 %</td>
+<td>rule <code>DeRiMV-use</code>: a warning for a fund within its limit but at this share of it or more</td>
+</tr>
+</tbody>
+</table>
+<p>Settings <code>kag.aifmd.sumTolerance</code>, <code>kag.derimv.relativeVarLimit</code>, <code>kag.derimv.utilisationWarning</code>,
+<code>kag.derimv.utilisationWarningAt</code>; a change counts from the next check.</p>
+<h2 id="grid-formulas">Grid formulas<a class="headerlink" href="#grid-formulas" title="Permanent link">¶</a></h2>
+<p><strong>Add Grid Formulas</strong> opens a copy of a DeRiMV report or an AIF file in the <strong>Graphic</strong> view with
+<a href="../grid/">grid formulas</a> and a saved filter, inserted into the text so the rest of the file stays as it was:</p>
+<ul>
+<li>DeRiMV, on <code>Derivatemeldung</code>: funds, funds per method, highest use of a legal limit, funds at the warning
+  threshold or above, funds above a limit, highest absolute VaR; the filter shows the funds at the threshold or
+  above (switched off until you click it);</li>
+<li>AIF file: the sum of every percentage list that must add up to 100 (geographical focus of NAV and AuM,
+  strategies, investor concentration, trading and clearing, portfolio liquidity, investor groups, financing).</li>
+</ul>
+<p><strong>Remove Grid Formulas</strong> opens a copy without them - submit that one.</p>
 <h2 id="derivative-risk-report-4-derimv">Derivative risk report (4. DeRiMV)<a class="headerlink" href="#derivative-risk-report-4-derimv" title="Permanent link">¶</a></h2>
 <p>The whole report of a management company is one XML file (§ 2a Abs. 1): the company's name, bank code
 (BLZ), year and quarter as attributes of <code>Derivatemeldung</code>, then one <code>InvestmentFonds</code> per UCITS with the
@@ -3418,6 +3574,18 @@ ratio to the reference portfolio (limit 200 %), while the formula of § 16 Abs. 
 the excess over it (limit 100 %), and the regulation does not say which of the two the field holds. The
 FMA codes per fund are provided on the Incoming
 Platform. <strong>New Derivative Risk Report (Example)</strong> opens a fictitious report.</p>
+<h3 id="from-and-to-a-spreadsheet">From and to a spreadsheet<a class="headerlink" href="#from-and-to-a-spreadsheet" title="Permanent link">¶</a></h3>
+<p>Risk management often keeps the report as CSV or Excel in the FMA's former CSV layout: row 1 holds the
+management company, the bank code and the period as <code>JJJJQ</code> (<code>20254</code> = Q4/2025), then one row per fund with
+the columns A–G FMA code, ISIN, fund name, exposure, maximum of the period, method and own limit (CSV with
+semicolons and a decimal comma). <strong>Import DeRiMV from CSV/Excel…</strong> turns such a file into the XML report,
+opens it and checks it: the encoding (UTF-8 or Windows-1252) and the decimal separator are detected, the
+method is normalised (<code>avar</code> → <code>aVaR</code>), values get two decimals, a bank code is padded to five digits and a
+fund name cut to 100 characters. Rows that need a look (no ISIN, a value that is no number, an unknown method)
+are listed in the side panel; they are imported as they are, so the check shows them in the report.
+<strong>Export DeRiMV to Excel/CSV…</strong> writes the active report as an Excel workbook in the application's style (sheet
+<em>Funds</em> with one row per fund, sheet <em>Info</em> with the header) or - for a <code>.csv</code> name - in the CSV layout; both
+can be imported again.</p>
 <h2 id="sources">Sources<a class="headerlink" href="#sources" title="Permanent link">¶</a></h2>
 <p>ESMA: AIFMD reporting XML documents v1.2 (2013-1361) and IT technical guidance rev 6 (2013-1358).
 FMA: <em>Informationen zum Inhalt und zur Übermittlung des AIFMD-Reportings</em> (December 2023) and the

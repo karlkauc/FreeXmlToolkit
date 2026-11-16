@@ -3380,6 +3380,10 @@ at once. A plugin that could not be loaded is listed with the reason
 <td>Is told when a document has been opened; it can show a bar above the editor (FundsXML: the hint bar)</td>
 </tr>
 <tr>
+<td><strong>Element describer</strong></td>
+<td>Text about an element (field number, rule) in the Inspector's DOCUMENTATION, as grid tooltip and as hover on the tag name in the text editor</td>
+</tr>
+<tr>
 <td><strong>Stylesheet</strong></td>
 <td>Added to the window, for the plugin's own panels</td>
 </tr>
@@ -3449,7 +3453,10 @@ loaded, every contribution type, threads, translations, building, testing and de
 </tr>
 </tbody>
 </table>
-<p>A plugin can say it is off until the user switches it on (<code>enabledByDefault()</code>), and it can add
+<p>A plugin can say it is off until the user switches it on (<code>enabledByDefault()</code>); while it is off,
+<code>recognises(content)</code> is still asked when a document is opened, and a plugin that answers <code>true</code> is offered once
+in a bar above the editor (setting <code>plugin.&lt;id&gt;.hintShown</code>; not when the administrator locked
+<code>plugin.&lt;id&gt;.enabled</code>). It can add
 XML Schemas to the Schema Library (<code>context.addSchema(new PluginSchema(namespace, url, description, null))</code>).</p>
 <h2 id="updating-plugins">Updating plugins<a class="headerlink" href="#updating-plugins" title="Permanent link">¶</a></h2>
 <p>Plugins have no update channel of their own. What keeps each part current:</p>
