@@ -98,6 +98,14 @@ public class IndustryPanel extends VBox {
     private ReportBuilder reportBuilder;
     private String reportSuffix = "-report.html";
     private boolean recognised;
+    /** Set while a check started from the panel waits for the shell's validation result. */
+    private boolean checkPending;
+    /** Stops waiting for a validation result that does not come (the run goes on in the Validation panel). */
+    private final javafx.animation.PauseTransition checkTimeout = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(60));
+    /** The button whose click started the running background job, shown busy until it ends. */
+    private javafx.scene.control.ButtonBase trigger;
+    /** The labels of the background jobs running now (a second click on a running tool is refused). */
+    private final java.util.Set<String> running = new java.util.HashSet<>();
 
     /**
      * @param describer   what the document is ({@code "pain.001.001.09 — 2 payments …"}), or {@code null}
@@ -148,6 +156,21 @@ public class IndustryPanel extends VBox {
         host.activeTabProperty().addListener((obs, o, n) -> Platform.runLater(this::refreshDocument));
         host.getActiveProblems().addListener((ListChangeListener<ValidationProblem>) c -> refreshCounts());
         host.validationStatusProperty().addListener((obs, o, n) -> refreshCounts());
+        // fires on every published result, also when it equals the previous one (a second check of a valid document)
+        host.validationStatusProperty().addListener((javafx.beans.InvalidationListener) obs -> {
+            EditorHost.ValidationStatus st = host.validationStatusProperty().get();
+            if (checkPending) {
+                finishCheck(st);
+            }
+        });
+        checkTimeout.setOnFinished(e -> {
+            if (checkPending) {
+                checkPending = false;
+                showProgress(false);
+                checkButton.setDisable(!recognised);
+                PanelStatus.info(status, I18n.t("IndustryPanel.check-still-running"));
+            }
+        });
         sceneProperty().addListener((obs, o, scene) -> {
             if (scene != null) {
                 refreshDocument();
@@ -185,7 +208,14 @@ public class IndustryPanel extends VBox {
         button.setText(action.text());
         button.setIconLiteral(action.icon());
         button.setColor(action.color());
-        button.setOnAction(e -> action.run().accept(ui));
+        button.setOnAction(e -> {
+            trigger = button;
+            try {
+                action.run().accept(ui);
+            } finally {
+                trigger = null;
+            }
+        });
         actions.getChildren().add(button);
     }
 
@@ -199,25 +229,79 @@ public class IndustryPanel extends VBox {
      * on the FX thread, a failure is shown in the status line and as error dialog.
      */
     public <T> void background(String what, Callable<T> job, Consumer<T> done) {
+        if (!running.add(what)) {
+            PanelStatus.info(status, I18n.t("IndustryPanel.already-running", what));
+            return;
+        }
+        javafx.scene.control.ButtonBase button = trigger;
+        Busy busy = Busy.start(button);
         showProgress(true);
         PanelStatus.info(status, I18n.t("IndustryPanel.working", what));
         FxtGui.executorService.submit(() -> {
             try {
                 T result = job.call();
                 Platform.runLater(() -> {
-                    showProgress(false);
+                    running.remove(what);
+                    busy.end();
+                    showProgress(!running.isEmpty() || checkPending);
                     status.setText("");
                     status.setGraphic(null);
                     done.accept(result);
                 });
             } catch (Exception | OutOfMemoryError e) {
                 Platform.runLater(() -> {
-                    showProgress(false);
+                    running.remove(what);
+                    busy.end();
+                    showProgress(!running.isEmpty() || checkPending);
                     PanelStatus.failure(status, what, I18n.t("IndustryPanel.failed", what),
                             I18n.t("IndustryPanel.failed-remedy"), String.valueOf(e.getMessage()), false);
                 });
             }
         });
+    }
+
+    /**
+     * A button shown busy while its job runs: a spinner instead of its icon and "Running: …" as text. It stays
+     * enabled (a greyed spinner is hard to see); a second click is refused by {@link #background}.
+     */
+    private record Busy(javafx.scene.control.ButtonBase button, Node graphic, String text) {
+
+        static Busy start(javafx.scene.control.ButtonBase button) {
+            if (button == null) {
+                return new Busy(null, null, null);
+            }
+            Busy busy = new Busy(button, button.getGraphic(), button.getText());
+            ProgressIndicator spinner = new ProgressIndicator(ProgressIndicator.INDETERMINATE_PROGRESS);
+            spinner.setPrefSize(15, 15);
+            spinner.setMaxSize(15, 15);
+            button.setGraphic(spinner);
+            button.setText(I18n.t("IndustryPanel.running", busy.text()));
+            return busy;
+        }
+
+        void end() {
+            if (button != null) {
+                button.setGraphic(graphic);
+                button.setText(text);
+            }
+        }
+    }
+
+    /** Ends a check started from the panel: progress off and a status line with the time, so every run shows. */
+    private void finishCheck(EditorHost.ValidationStatus st) {
+        checkPending = false;
+        checkTimeout.stop();
+        showProgress(!running.isEmpty());
+        checkButton.setDisable(!recognised);
+        refreshCounts();
+        String time = java.time.LocalTime.now().withNano(0).toString();
+        if (st == null || st.state() == EditorHost.ValidationState.NOT_VALIDATED) {
+            PanelStatus.precondition(status, I18n.t("IndustryPanel.check-not-run", st == null ? "" : st.summary()));
+        } else if (st.state() == EditorHost.ValidationState.VALID) {
+            PanelStatus.success(status, I18n.t("IndustryPanel.checked-ok", time));
+        } else {
+            PanelStatus.info(status, I18n.t("IndustryPanel.checked-problems", time, checkCounts.getText()));
+        }
     }
 
     private static void show(Node node, boolean visible) {
@@ -298,6 +382,11 @@ public class IndustryPanel extends VBox {
         }
         boolean xml = host.getActiveDocument().map(d -> d.getFileType() != null && d.getFileType().isXmlFamily()).orElse(false);
         if (validator != null && host.hasValidateHandler() && xml) {
+            checkPending = true;
+            checkButton.setDisable(true);
+            showProgress(true);
+            PanelStatus.info(status, I18n.t("IndustryPanel.checking"));
+            checkTimeout.playFromStart();
             host.runValidationInPlace(); // schema + every plugin validator, problems to the PROBLEMS panel
             return;
         }
@@ -308,6 +397,7 @@ public class IndustryPanel extends VBox {
         EditorHost.ValidationTarget target = host.validationTarget();
         checkButton.setDisable(true);
         showProgress(true);
+        PanelStatus.info(status, I18n.t("IndustryPanel.checking"));
         FxtGui.executorService.submit(() -> {
             List<DocumentValidator.Problem> problems = null;
             String failure = null;
@@ -326,9 +416,13 @@ public class IndustryPanel extends VBox {
                             I18n.t("IndustryPanel.failed-remedy"), error, false);
                     return;
                 }
-                status.setText("");
-                status.setGraphic(null);
                 publish(host, target, found);
+                String time = java.time.LocalTime.now().withNano(0).toString();
+                if (found.isEmpty()) {
+                    PanelStatus.success(status, I18n.t("IndustryPanel.checked-ok", time));
+                } else {
+                    PanelStatus.info(status, I18n.t("IndustryPanel.checked-problems", time, checkCounts.getText()));
+                }
             });
         });
     }
@@ -364,6 +458,7 @@ public class IndustryPanel extends VBox {
         String name = host.getActiveDocument()
                 .map(doc -> doc.getPath() != null ? doc.getPath().getFileName().toString() : doc.getDisplayName())
                 .orElse("document.xml");
+        trigger = reportButton;
         background(I18n.t("IndustryPanel.reportButton.text"), () -> reportBuilder.html(text, name), html -> {
             if (html == null) {
                 PanelStatus.precondition(status, I18n.t("IndustryPanel.not-recognised"));
@@ -372,6 +467,7 @@ public class IndustryPanel extends VBox {
             host.openGeneratedDocument(html, EditorFileType.HTML, name.replaceFirst("(?i)\\.xml$", "") + reportSuffix);
             host.setActiveViewMode(ViewMode.PREVIEW);
         });
+        trigger = null;
     }
 
     private void showProgress(boolean on) {

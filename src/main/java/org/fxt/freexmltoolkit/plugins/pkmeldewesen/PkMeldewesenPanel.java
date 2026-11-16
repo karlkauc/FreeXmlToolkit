@@ -277,12 +277,17 @@ public final class PkMeldewesenPanel extends VBox {
                 .map(doc -> doc.getPath() != null ? doc.getPath().getFileName().toString() : doc.getDisplayName())
                 .orElse("report.xml");
         PkRuleCheck.Options options = options();
+        Runnable done = busy("#pk-rule-report");
+        if (done == null) {
+            return; // already running
+        }
         PanelStatus.info(status, I18n.t("PkMeldewesenPanel.checking"));
         showProgress(true);
         FxtGui.executorService.submit(() -> {
             try {
                 String html = PkRuleCheck.htmlReport(xml, name, options);
                 Platform.runLater(() -> {
+                    done.run();
                     showProgress(false);
                     ui.editorHost().openGeneratedDocument(html, EditorFileType.HTML,
                             name.replaceFirst("(?i)\\.xml$", "") + "-pruefbericht.html");
@@ -291,6 +296,7 @@ public final class PkMeldewesenPanel extends VBox {
                 });
             } catch (Exception | OutOfMemoryError e) {
                 Platform.runLater(() -> {
+                    done.run();
                     showProgress(false);
                     PanelStatus.failure(status, I18n.t("PkMeldewesenPanel.pk-rule-report.text"),
                             I18n.t("PkMeldewesenPanel.report-failed"), I18n.t("PkMeldewesenPanel.report-remedy"),
@@ -479,6 +485,34 @@ public final class PkMeldewesenPanel extends VBox {
         });
     }
 
+    /**
+     * Shows the button with that id busy (disabled, a spinner as icon) while its job runs.
+     *
+     * @return what ends the busy state, or {@code null} when the job is running already (the click is ignored)
+     */
+    private Runnable busy(String selector) {
+        if (!(lookup(selector) instanceof javafx.scene.control.ButtonBase button)) {
+            return () -> { };
+        }
+        if (button.getProperties().containsKey("fxt.busy")) {
+            PanelStatus.info(status, I18n.t("IndustryPanel.already-running", button.getText()));
+            return null;
+        }
+        javafx.scene.Node icon = button.getGraphic();
+        String text = button.getText();
+        javafx.scene.control.ProgressIndicator spinner = new javafx.scene.control.ProgressIndicator();
+        spinner.setPrefSize(15, 15);
+        spinner.setMaxSize(15, 15);
+        button.getProperties().put("fxt.busy", Boolean.TRUE);
+        button.setGraphic(spinner);
+        button.setText(I18n.t("IndustryPanel.running", text));
+        return () -> {
+            button.getProperties().remove("fxt.busy");
+            button.setGraphic(icon);
+            button.setText(text);
+        };
+    }
+
     private void showProgress(boolean on) {
         progress.setProgress(javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS);
         progress.setVisible(on);
@@ -516,11 +550,16 @@ public final class PkMeldewesenPanel extends VBox {
             DesktopActions.open(index, e -> PanelStatus.info(status, String.valueOf(e.getMessage())));
             return;
         }
+        Runnable done = busy("#pk-schema-doc");
+        if (done == null) {
+            return; // already running
+        }
         PanelStatus.info(status, I18n.t("PkMeldewesenPanel.schema-doc-running"));
         showProgress(true);
         FxtGui.executorService.submit(() -> {
             String result = org.fxt.freexmltoolkit.controls.shell.editor.DocumentationRunner.exportHtml(schema.toFile(), out);
             Platform.runLater(() -> {
+                done.run();
                 showProgress(false);
                 if (result.startsWith("OK:")) {
                     PanelStatus.success(status, I18n.t("PkMeldewesenPanel.schema-doc-done"));

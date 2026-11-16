@@ -110,4 +110,56 @@ class IndustryPanelTest {
                 () -> panel.documentSummaryForTesting().startsWith("The active document is not one"));
         assertEquals(null, panel.checkCountsForTesting());
     }
+
+    @Test
+    void everyCheckOfAValidDocumentGivesFeedback() throws Exception {
+        // like the shell's validation: publishes the same "valid" status on every run
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            host.setValidateHandler(() -> host.publishValidation(host.validationTarget(), EditorHost.ValidationState.VALID,
+                    0, "Valid", List.of()));
+            host.openGeneratedDocument("<order><total>5</total></order>", EditorFileType.XML, "ok.xml");
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> "An order".equals(panel.documentSummaryForTesting()));
+        for (int run = 0; run < 2; run++) {
+            WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+                panel.status().setText("");
+                panel.onCheck();
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> panel.status().getText().contains("no problems found"));
+            assertTrue(panel.status().getText().startsWith("✓ Checked at"), panel.status().getText());
+        }
+        assertEquals("✓ No problems found.", panel.checkCountsForTesting());
+    }
+
+    @Test
+    void aToolButtonIsBusyWhileItsJobRunsAndRefusesASecondRun() throws Exception {
+        java.util.concurrent.CountDownLatch release = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.atomic.AtomicInteger runs = new java.util.concurrent.atomic.AtomicInteger();
+        javafx.scene.control.Button button = WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            panel.withTool(new IndustryPanel.Action("t-slow", "Slow tool", "bi-journal-code",
+                    org.fxt.freexmltoolkit.controls.theme.ActionColor.NAVIGATE, u -> panel.background("Slow tool", () -> {
+                        runs.incrementAndGet();
+                        release.await(10, TimeUnit.SECONDS);
+                        return 1;
+                    }, r -> { })));
+            return (javafx.scene.control.Button) panel.lookup("#t-slow");
+        });
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            button.fire();
+            return null;
+        });
+        assertEquals("Running: Slow tool", WaitForAsyncUtils.waitForAsyncFx(5000, button::getText), "busy while running");
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(5000, () -> button.getGraphic() instanceof javafx.scene.control.ProgressIndicator));
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            button.fire(); // a second click while it runs
+            return null;
+        });
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(5000, () -> panel.status().getText()).contains("already running"));
+        release.countDown();
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(5000, () -> "Slow tool".equals(button.getText())));
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(5000, () -> button.getGraphic() instanceof javafx.scene.control.ProgressIndicator));
+        assertEquals(1, runs.get());
+    }
 }

@@ -1988,6 +1988,9 @@ public class EditorHost extends BorderPane {
         }
         tab.endLoading();
         tab.loading = false;
+        // a large result arrives after the tab was switched to the preview (an HTML report opened straight
+        // into it): the preview rendered the still empty text, so render it again now
+        tab.refreshPreviewIfActive();
         tab.attachDirtyTracking();
         tab.document.setDirty(true);
         // a generated document never runs the detection on open that a file gets
