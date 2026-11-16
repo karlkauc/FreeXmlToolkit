@@ -3503,6 +3503,32 @@
 <a href="https://github.com/karlkauc/FreeXmlToolkit/releases">GitHub Releases page</a>; the version you are
 running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
 <h2 id="unreleased">Unreleased<a class="headerlink" href="#unreleased" title="Permanent link">¶</a></h2>
+<p><strong>YAML</strong></p>
+<ul>
+<li><strong>YAML editor:</strong> <code>.yaml</code> / <code>.yml</code> files get syntax colours, folding by indentation and a syntax check while you
+  type, with the error at its line and column.</li>
+<li><strong>JSON Schema for YAML:</strong> validation and completion from the schema a YAML file declares
+  (<code># yaml-language-server: $schema=…</code> or <code>$schema:</code>), a project binding or <strong>Set Schema…</strong>; problems are underlined
+  on their key. <code>fxt-cli validate</code> checks YAML files too.</li>
+<li><strong>Format</strong> re-indents YAML (and leaves documents with comments or anchors alone), <strong>JSONPath</strong> queries run on
+  YAML, <strong>Generate Sample</strong> writes YAML. Application tags such as CloudFormation's <code>!Ref</code> no longer stop a
+  conversion. See <a href="../json-editor/#yaml">YAML</a>.</li>
+<li><strong>Tree and Grid for YAML:</strong> YAML documents get the JSON Tree and Grid views. Edits are written into the YAML text
+  at their place, so comments, anchors, tags and formatting stay; a change that cannot be placed asks before the
+  document is written again. See <a href="../json-editor/#tree-and-grid-for-yaml">Tree and Grid for YAML</a>.</li>
+<li><strong>Schemas by file name:</strong> a Schema Library mapping can name the JSON and YAML files it is for (<code>docker-compose*.yml</code>,
+  <code>.github/workflows/*.yml</code>), and the optional <a href="../schema-library/#4-schemastore">SchemaStore catalog</a> finds the schema of
+  hundreds of known file types by their name - for files that declare no schema themselves.</li>
+<li><strong>Command line and MCP:</strong> <code>fxt-cli validate</code> also uses the <code>$schema</code> of JSON files and the file-name patterns,
+  <code>--schemastore</code> adds the SchemaStore catalog (<code>fxt-cli validate --schemastore .github/workflows</code>), and folders
+  include YAML by default. <code>fxt-cli query</code> runs JSONPath on YAML files. The MCP tool <code>validate</code> checks JSON and YAML
+  (new arguments <code>format</code>, <code>json_schema_path</code>). See <a href="../command-line/#validate">Command Line</a>.</li>
+<li><strong>Compare JSON and YAML by their data:</strong> the Compare view's new <strong>Data</strong> mode and <code>fxt-cli compare</code> ignore member
+  order, formatting, comments and anchors, compare a JSON file against a YAML file, match array items by key members
+  and report JSONPath locations. See <a href="../json-editor/#yaml">YAML</a>.</li>
+<li><strong>New YAML files</strong> start with <code>---</code>; templates for a schema-bound YAML document, a Docker Compose file and a GitHub
+  Actions workflow.</li>
+</ul>
 <p><strong>Large files</strong></p>
 <ul>
 <li><strong>Edit large files:</strong> the Large File Viewer's new <strong>Graphic</strong> tab shows a part of the file — an element, or a page

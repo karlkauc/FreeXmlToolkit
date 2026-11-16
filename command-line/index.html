@@ -3674,8 +3674,8 @@ the version. <code>fxt-cli &lt;command&gt; --help</code> (or <code>-h</code>, or
 what it does, its parameters, its options grouped by topic with their allowed values and defaults,
 and a few examples to copy. <code>-q</code> / <code>--quiet</code> and <code>--verbose</code> work with every command.</p>
 <h2 id="validate">validate<a class="headerlink" href="#validate" title="Permanent link">¶</a></h2>
-<p>Checks XML files against an XML Schema (1.0 or 1.1) and/or a Schematron, and JSON files against
-a JSON Schema, with the validators of the <a href="../validation-panel/">Validation Panel</a>.</p>
+<p>Checks XML files against an XML Schema (1.0 or 1.1) and/or a Schematron, and JSON and YAML files
+against a JSON Schema, with the validators of the <a href="../validation-panel/">Validation Panel</a>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>fxt-cli<span class="w"> </span>validate<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span>FILE<span class="p">|</span>FOLDER...
 </code></pre></div>
 <table>
@@ -3696,15 +3696,23 @@ a JSON Schema, with the validators of the <a href="../validation-panel/">Validat
 </tr>
 <tr>
 <td><code>-j</code>, <code>--json-schema SCHEMA</code></td>
-<td>JSON Schema for all JSON files (<code>.json</code>, <code>.json5</code>)</td>
+<td>JSON Schema for all JSON (<code>.json</code>, <code>.jsonc</code>, <code>.json5</code>) and YAML (<code>.yaml</code>, <code>.yml</code>) files</td>
+</tr>
+<tr>
+<td><code>--schemastore</code></td>
+<td>Find the JSON Schema of a JSON or YAML file that declares none by its file name in the <a href="../schema-library/#4-schemastore">SchemaStore</a> catalog</td>
+</tr>
+<tr>
+<td><code>--schemastore-url URL</code></td>
+<td>Address of the SchemaStore catalog (a mirror); default: the public catalog</td>
 </tr>
 <tr>
 <td><code>--no-schema-lookup</code></td>
-<td>Do not use the schema a file declares (see below)</td>
+<td>Do not use the schema a file declares or its file name chooses (see below)</td>
 </tr>
 <tr>
 <td><code>--include GLOB,...</code></td>
-<td>File names to validate inside folders; default <code>*.xml,*.json</code></td>
+<td>File names to validate inside folders; default <code>*.xml,*.json,*.yaml,*.yml</code></td>
 </tr>
 <tr>
 <td><code>-f</code>, <code>--report-format FORMAT</code></td>
@@ -3742,8 +3750,14 @@ reports assertions and other XSD 1.1 constructs. A <a href="../projects/">projec
 the options win. See <a href="../language-versions/">Language Versions</a>.</p>
 <p><strong>Which schema is used.</strong> With <code>--xsd</code> / <code>--schema</code>, that schema (or DTD, or RELAX NG schema) for every XML file. With <code>--project</code>, the
 schema the project binds to the file (first matching pattern), and the Schematron it binds (unless
-<code>--schematron</code> is given); JSON files get the JSON Schema the project binds to them (unless
-<code>--json-schema</code> is given). Otherwise each file
+<code>--schematron</code> is given); JSON and YAML files get the JSON Schema the project binds to them (unless
+<code>--json-schema</code> is given). A JSON or YAML file without either uses the JSON Schema it declares itself:
+a top-level <code>"$schema"</code> member, in YAML also a <code># yaml-language-server: $schema=…</code> comment (relative to
+the file, remote schemas downloaded and cached). A file that declares none gets the schema its <strong>file
+name</strong> chooses: a <a href="../schema-library/#file-names-json-and-yaml">Schema Library</a> entry's file patterns
+(<code>docker-compose*.yml</code>, <code>.github/workflows/*.yml</code>), then, with <code>--schemastore</code>, the SchemaStore catalog.
+A declared or chosen schema that cannot be loaded makes the file "not validated" (exit code 3).
+Otherwise each XML file
 is checked against the schema it declares itself, found the same way as when the file is opened
 in the editor: <code>xsi:schemaLocation</code> / <code>xsi:noNamespaceSchemaLocation</code> (relative to the file,
 remote schemas downloaded and cached), redirected by the <a href="../schema-library/">Schema Library</a> and
@@ -3755,14 +3769,25 @@ memory stays flat whatever the size (a 1 GB file needs less than 20 MB). This ap
 Schema and well-formedness checks; with <code>--schematron</code> the file is read into memory as usual.
 After 10,000 problems the file's report stops.</p>
 <p><strong>Folders</strong> are searched recursively for the <code>--include</code> patterns; hidden folders (such as
-<code>.git</code>) are skipped. Files named directly are always validated; <code>.json</code> and <code>.json5</code> files are
-treated as JSON, everything else as XML.</p>
+<code>.git</code>) are skipped. Files named directly are always validated; <code>.json</code>, <code>.jsonc</code> and <code>.json5</code> files
+are treated as JSON, <code>.yaml</code> and <code>.yml</code> files as YAML, everything else as XML. To validate a hidden
+folder, name it: <code>fxt-cli validate --schemastore .github/workflows</code>.</p>
+<p><strong>SchemaStore.</strong> <code>--schemastore</code> uses the catalog cached in <code>~/.freeXmlToolkit/schemastore/</code> and
+downloads it when there is none or it is older than seven days (a failed update keeps the cached one;
+without any catalog the command stops with exit code 2). Only the catalog and the schemas it names are
+downloaded, through the application's proxy settings; no file name or content is sent. Settings of the
+application do not switch it on for the command line; an administrator can forbid it
+(<code>schemastore.enabled=false</code> in the <a href="../administration/">policy</a>) or fix the catalog address
+(<code>schemastore.catalogUrl</code>).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>fxt-cli<span class="w"> </span>validate<span class="w"> </span>--schemastore<span class="w"> </span>.github/workflows<span class="w"> </span>docker-compose.yml<span class="w">   </span><span class="c1"># GitHub workflows, Compose</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>fxt-cli<span class="w"> </span>validate<span class="w"> </span>config/<span class="w">                                              </span><span class="c1"># JSON + YAML + XML, declared schemas</span>
+</code></pre></div>
 <h3 id="reports">Reports<a class="headerlink" href="#reports" title="Permanent link">¶</a></h3>
 <p>The text format prints one line per problem, in the form compilers use, and a summary:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>data/bad.xml:2:11: error: [XSD] cvc-datatype-valid.1.2.1: 'x' is not a valid value for 'integer'.
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>data/broken.xml:2:1: error: [Well-formed] XML document structures must start and end within the same entity.
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>data/order.xml:14: warning: [Schematron] Delivery date lies in the past (at /order/delivery)
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>4 files, 2 invalid, 2 error(s), 1 warning(s) (485 ms)
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>data/bad.xml:2:11: error: [XSD] cvc-datatype-valid.1.2.1: 'x' is not a valid value for 'integer'.
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>data/broken.xml:2:1: error: [Well-formed] XML document structures must start and end within the same entity.
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>data/order.xml:14: warning: [Schematron] Delivery date lies in the past (at /order/delivery)
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>4 files, 2 invalid, 2 error(s), 1 warning(s) (485 ms)
 </code></pre></div>
 <table>
 <thead>
@@ -3782,7 +3807,7 @@ treated as JSON, everything else as XML.</p>
 </tr>
 <tr>
 <td><code>sarif</code></td>
-<td>SARIF 2.1.0 for code scanning (GitHub, Azure DevOps, GitLab): one result per problem with rule (<code>xsd</code>, <code>well-formed</code>, <code>schematron</code>, <code>json</code>, <code>json-schema</code>, <code>not-run</code>), level and position</td>
+<td>SARIF 2.1.0 for code scanning (GitHub, Azure DevOps, GitLab): one result per problem with rule (<code>xsd</code>, <code>well-formed</code>, <code>schematron</code>, <code>json</code>, <code>yaml</code>, <code>json-schema</code>, <code>not-run</code>), level and position</td>
 </tr>
 </tbody>
 </table>
@@ -3791,7 +3816,7 @@ treated as JSON, everything else as XML.</p>
 <p>Runs an XSLT 3.0 stylesheet, an XQuery 3.1 or an XProc 3.0 pipeline. With <code>--lang-version</code> an older XSLT or
 XQuery: XSLT 1.0 runs on the JDK's XSLT 1.0 processor (no <code>--profile</code>), XSLT 2.0 and XQuery 1.0 / 3.0 fail with
 every newer construct listed (exit code 1) before anything runs.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>fxt-cli<span class="w"> </span>transform<span class="w"> </span>-s<span class="w"> </span>STYLESHEET<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span><span class="o">[</span>INPUT...<span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>fxt-cli<span class="w"> </span>transform<span class="w"> </span>-s<span class="w"> </span>STYLESHEET<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span><span class="o">[</span>INPUT...<span class="o">]</span>
 </code></pre></div>
 <table>
 <thead>
@@ -3851,8 +3876,8 @@ the settings (see <a href="../threat-model/">Threat Model</a>).</p>
 <p>Evaluates an XPath, XQuery (3.1, or an older version with <code>--lang-version</code>) or JSONPath expression against files, like the
 <a href="../query-console/">Query Console</a> of the application. Made for scripts: one result per input, and
 an exit code like <code>grep</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>-e<span class="w"> </span>EXPR<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span><span class="o">[</span>FILE<span class="p">|</span>FOLDER<span class="p">|</span>-<span class="o">]</span>...
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>--query-file<span class="w"> </span>QUERY.xq<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span><span class="o">[</span>FILE<span class="p">|</span>FOLDER<span class="p">|</span>-<span class="o">]</span>...
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>-e<span class="w"> </span>EXPR<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span><span class="o">[</span>FILE<span class="p">|</span>FOLDER<span class="p">|</span>-<span class="o">]</span>...
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>--query-file<span class="w"> </span>QUERY.xq<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span><span class="o">[</span>FILE<span class="p">|</span>FOLDER<span class="p">|</span>-<span class="o">]</span>...
 </code></pre></div>
 <table>
 <thead>
@@ -3872,7 +3897,7 @@ an exit code like <code>grep</code>.</p>
 </tr>
 <tr>
 <td><code>-l</code>, <code>--language LANG</code></td>
-<td><code>xpath</code>, <code>xquery</code> or <code>jsonpath</code>. Default: from <code>--query-file</code>'s extension, <code>jsonpath</code> when all inputs are <code>.json</code>, else <code>xpath</code></td>
+<td><code>xpath</code>, <code>xquery</code> or <code>jsonpath</code>. Default: from <code>--query-file</code>'s extension, <code>jsonpath</code> when all inputs are <code>.json</code>, <code>.yaml</code> or <code>.yml</code>, else <code>xpath</code></td>
 </tr>
 <tr>
 <td><code>--var NAME=VALUE</code></td>
@@ -3884,7 +3909,7 @@ an exit code like <code>grep</code>.</p>
 </tr>
 <tr>
 <td><code>--include GLOB,...</code></td>
-<td>File names to query inside folders; default <code>*.xml,*.json</code></td>
+<td>File names to query inside folders; default <code>*.xml,*.json,*.yaml,*.yml</code></td>
 </tr>
 <tr>
 <td><code>--[no-]with-filename</code></td>
@@ -3900,27 +3925,29 @@ an exit code like <code>grep</code>.</p>
 </tr>
 </tbody>
 </table>
-<p><code>-</code> as input reads standard input. An XQuery may run without input. XPath and XQuery run with
+<p><code>-</code> as input reads standard input. An XQuery may run without input. YAML files are queried with
+JSONPath on their data (several documents in one file form an array); XPath and XQuery are refused for them. XPath and XQuery run with
 Saxon (the <code>map:</code>, <code>array:</code> and <code>math:</code> prefixes are declared) under the application's security
 defaults: no Java calls, no remote <code>doc()</code>.</p>
 <p>The exit code is 0 when at least one result is not empty, 1 when all results are empty, 3 when the
 expression fails or an input cannot be read or is not well-formed (the other inputs still run, the
 errors go to standard error).</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>-e<span class="w"> </span><span class="s1">'count(//Position)'</span><span class="w"> </span>fund.xml<span class="w">                                   </span><span class="c1"># 27</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>-e<span class="w"> </span><span class="s1">'//Position[xs:decimal(TotalPercentage) gt 10]/Identifiers/ISIN/string()'</span><span class="w"> </span>data/
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>--query-file<span class="w"> </span>report.xq<span class="w"> </span>--var<span class="w"> </span><span class="nv">year</span><span class="o">=</span><span class="m">2026</span><span class="w"> </span>orders.xml
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>-l<span class="w"> </span>xquery<span class="w"> </span>-e<span class="w"> </span><span class="s1">'current-date()'</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>-e<span class="w"> </span><span class="s1">'$.items[*].name'</span><span class="w"> </span>data.json
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>curl<span class="w"> </span>-s<span class="w"> </span>https://example.org/feed.xml<span class="w"> </span><span class="p">|</span><span class="w"> </span>fxt-cli<span class="w"> </span>query<span class="w"> </span>-e<span class="w"> </span><span class="s1">'//title/string()'</span><span class="w"> </span>-
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="k">if</span><span class="w"> </span>fxt-cli<span class="w"> </span>query<span class="w"> </span>-e<span class="w"> </span><span class="s1">'//error'</span><span class="w"> </span>log.xml<span class="w"> </span>&gt;<span class="w"> </span>/dev/null<span class="p">;</span><span class="w"> </span><span class="k">then</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"errors found"</span><span class="p">;</span><span class="w"> </span><span class="k">fi</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>--lang-version<span class="w"> </span><span class="m">2</span>.0<span class="w"> </span>-e<span class="w"> </span><span class="s1">'string-join(//ISIN, ",")'</span><span class="w"> </span>fund.xml<span class="w">        </span><span class="c1"># fails with XPath 3.x</span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>--lang-version<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span>-e<span class="w"> </span><span class="s1">'count(//Position)'</span><span class="w"> </span>fund.xml<span class="w">               </span><span class="c1"># the JDK's XPath 1.0 engine</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>-e<span class="w"> </span><span class="s1">'count(//Position)'</span><span class="w"> </span>fund.xml<span class="w">                                   </span><span class="c1"># 27</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>-e<span class="w"> </span><span class="s1">'//Position[xs:decimal(TotalPercentage) gt 10]/Identifiers/ISIN/string()'</span><span class="w"> </span>data/
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>--query-file<span class="w"> </span>report.xq<span class="w"> </span>--var<span class="w"> </span><span class="nv">year</span><span class="o">=</span><span class="m">2026</span><span class="w"> </span>orders.xml
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>-l<span class="w"> </span>xquery<span class="w"> </span>-e<span class="w"> </span><span class="s1">'current-date()'</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>-e<span class="w"> </span><span class="s1">'$.items[*].name'</span><span class="w"> </span>data.json
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>-e<span class="w"> </span><span class="s1">'$.jobs.*.runs-on'</span><span class="w"> </span>.github/workflows/ci.yml
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>curl<span class="w"> </span>-s<span class="w"> </span>https://example.org/feed.xml<span class="w"> </span><span class="p">|</span><span class="w"> </span>fxt-cli<span class="w"> </span>query<span class="w"> </span>-e<span class="w"> </span><span class="s1">'//title/string()'</span><span class="w"> </span>-
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="k">if</span><span class="w"> </span>fxt-cli<span class="w"> </span>query<span class="w"> </span>-e<span class="w"> </span><span class="s1">'//error'</span><span class="w"> </span>log.xml<span class="w"> </span>&gt;<span class="w"> </span>/dev/null<span class="p">;</span><span class="w"> </span><span class="k">then</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"errors found"</span><span class="p">;</span><span class="w"> </span><span class="k">fi</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>--lang-version<span class="w"> </span><span class="m">2</span>.0<span class="w"> </span>-e<span class="w"> </span><span class="s1">'string-join(//ISIN, ",")'</span><span class="w"> </span>fund.xml<span class="w">        </span><span class="c1"># fails with XPath 3.x</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>fxt-cli<span class="w"> </span>query<span class="w"> </span>--lang-version<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span>-e<span class="w"> </span><span class="s1">'count(//Position)'</span><span class="w"> </span>fund.xml<span class="w">               </span><span class="c1"># the JDK's XPath 1.0 engine</span>
 </code></pre></div>
 <h2 id="xsd-doc">xsd-doc<a class="headerlink" href="#xsd-doc" title="Permanent link">¶</a></h2>
 <p>Generates the documentation of an XML Schema, like <strong>Generate Documentation</strong> in the
 application, with the same options (and a few more for PDF).</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>fxt-cli<span class="w"> </span>xsd-doc<span class="w"> </span>SCHEMA<span class="w"> </span>-o<span class="w"> </span>OUTPUT<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>fxt-cli<span class="w"> </span>xsd-doc<span class="w"> </span>SCHEMA<span class="w"> </span>--list-languages
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>fxt-cli<span class="w"> </span>xsd-doc<span class="w"> </span>SCHEMA<span class="w"> </span>-o<span class="w"> </span>OUTPUT<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>fxt-cli<span class="w"> </span>xsd-doc<span class="w"> </span>SCHEMA<span class="w"> </span>--list-languages
 </code></pre></div>
 <p><code>-o</code> is a folder for the HTML site and a file for PDF and Word. Without <code>-f</code> the format follows
 the extension of <code>-o</code> (<code>.pdf</code>, <code>.docx</code>, otherwise HTML). Options that are on by default are
@@ -4211,18 +4238,18 @@ options between formats. <code>--verbose</code> prints the generation steps.</p>
 </tbody>
 </table>
 <p>Examples:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># HTML site with the German and English documentation, German as fallback</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>fxt-cli<span class="w"> </span>xsd-doc<span class="w"> </span>order.xsd<span class="w"> </span>-o<span class="w"> </span>site<span class="w"> </span>--language<span class="w"> </span>de,en<span class="w"> </span>--fallback-language<span class="w"> </span>de
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># PDF in landscape with a draft watermark and the green colour scheme</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>fxt-cli<span class="w"> </span>xsd-doc<span class="w"> </span>order.xsd<span class="w"> </span>-o<span class="w"> </span>order.pdf<span class="w"> </span>--landscape<span class="w"> </span>--watermark<span class="w"> </span>draft<span class="w"> </span>--color-scheme<span class="w"> </span>green
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="c1"># Word document without diagrams, with a cover page</span>
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>fxt-cli<span class="w"> </span>xsd-doc<span class="w"> </span>order.xsd<span class="w"> </span>-o<span class="w"> </span>order.docx<span class="w"> </span>--cover-page<span class="w"> </span>--no-schema-diagram<span class="w"> </span>--no-element-diagrams
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># HTML site with the German and English documentation, German as fallback</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>fxt-cli<span class="w"> </span>xsd-doc<span class="w"> </span>order.xsd<span class="w"> </span>-o<span class="w"> </span>site<span class="w"> </span>--language<span class="w"> </span>de,en<span class="w"> </span>--fallback-language<span class="w"> </span>de
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># PDF in landscape with a draft watermark and the green colour scheme</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>fxt-cli<span class="w"> </span>xsd-doc<span class="w"> </span>order.xsd<span class="w"> </span>-o<span class="w"> </span>order.pdf<span class="w"> </span>--landscape<span class="w"> </span>--watermark<span class="w"> </span>draft<span class="w"> </span>--color-scheme<span class="w"> </span>green
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="c1"># Word document without diagrams, with a cover page</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>fxt-cli<span class="w"> </span>xsd-doc<span class="w"> </span>order.xsd<span class="w"> </span>-o<span class="w"> </span>order.docx<span class="w"> </span>--cover-page<span class="w"> </span>--no-schema-diagram<span class="w"> </span>--no-element-diagrams
 </code></pre></div>
 <h2 id="xspec">xspec<a class="headerlink" href="#xspec" title="Permanent link">¶</a></h2>
 <p>Runs <a href="../xslt-developer/#testing-with-xspec">XSpec</a> tests for XSLT, XQuery and Schematron.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>fxt-cli<span class="w"> </span>xspec<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span>XSPEC...
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>fxt-cli<span class="w"> </span>xspec<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span>XSPEC...
 </code></pre></div>
 <table>
 <thead>
@@ -4248,7 +4275,7 @@ the tests cannot run (the XSpec file or the code it tests does not compile).</p>
 <h2 id="scenario">scenario<a class="headerlink" href="#scenario" title="Permanent link">¶</a></h2>
 <p>Runs the transformation scenarios of a <a href="../projects/">project file</a> — the ones saved from the
 Transform panel.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>fxt-cli<span class="w"> </span>scenario<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span>PROJECT<span class="w"> </span><span class="o">[</span>NAME...<span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>fxt-cli<span class="w"> </span>scenario<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span>PROJECT<span class="w"> </span><span class="o">[</span>NAME...<span class="o">]</span>
 </code></pre></div>
 <table>
 <thead>
@@ -4294,8 +4321,8 @@ fails (the others still run) and 2 for an unknown scenario name.</p>
 <p>With <code>--input</code>, each file fills the scenario's <code>${file}</code> (and an empty input); <code>${name}</code> and
 <code>${dir}</code> in the output name the result after it. Without scenario names, each file runs the
 scenario the project <a href="../projects/#bindings">binds to it</a>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>fxt-cli<span class="w"> </span>scenario<span class="w"> </span>orders.fxtproj<span class="w"> </span>Report<span class="w"> </span>--input<span class="w"> </span>data/<span class="w">      </span><span class="c1"># Report for every XML file in data/</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>fxt-cli<span class="w"> </span>scenario<span class="w"> </span>orders.fxtproj<span class="w"> </span>-i<span class="w"> </span>data/a.xml<span class="w"> </span>data/b.xml<span class="w">  </span><span class="c1"># each file's bound scenario</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>fxt-cli<span class="w"> </span>scenario<span class="w"> </span>orders.fxtproj<span class="w"> </span>Report<span class="w"> </span>--input<span class="w"> </span>data/<span class="w">      </span><span class="c1"># Report for every XML file in data/</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>fxt-cli<span class="w"> </span>scenario<span class="w"> </span>orders.fxtproj<span class="w"> </span>-i<span class="w"> </span>data/a.xml<span class="w"> </span>data/b.xml<span class="w">  </span><span class="c1"># each file's bound scenario</span>
 </code></pre></div>
 <p>A file without a bound scenario, or one whose output an earlier file already wrote (no <code>${name}</code>
 in the output), counts as failed.</p>
@@ -4306,15 +4333,15 @@ ones) and compares each result with it: XML by structure with the scenario's com
 <code>FAILED</code> with the differences, <code>MISSING</code> when the expected file does not exist yet, <code>ERROR</code>), then
 a summary. Exit code 0 when all match, 1 when one differs or fails, 3 when an expected file is
 missing.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>fxt-cli<span class="w"> </span>scenario<span class="w"> </span>orders.fxtproj<span class="w"> </span>--check<span class="w"> </span>-f<span class="w"> </span>junit<span class="w"> </span>-r<span class="w"> </span>build/scenarios.xml<span class="w">   </span><span class="c1"># for CI</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>fxt-cli<span class="w"> </span>scenario<span class="w"> </span>orders.fxtproj<span class="w"> </span>Report<span class="w"> </span>--accept<span class="w">                            </span><span class="c1"># new results are right</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>fxt-cli<span class="w"> </span>scenario<span class="w"> </span>orders.fxtproj<span class="w"> </span>--check<span class="w"> </span>-f<span class="w"> </span>junit<span class="w"> </span>-r<span class="w"> </span>build/scenarios.xml<span class="w">   </span><span class="c1"># for CI</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>fxt-cli<span class="w"> </span>scenario<span class="w"> </span>orders.fxtproj<span class="w"> </span>Report<span class="w"> </span>--accept<span class="w">                            </span><span class="c1"># new results are right</span>
 </code></pre></div>
 <h2 id="compare">compare<a class="headerlink" href="#compare" title="Permanent link">¶</a></h2>
-<p>Compares two XML files by structure, or two folders file by file, like <strong>Compare with File…</strong> in
-XML mode and <strong>Compare Folders…</strong> in the application (see
+<p>Compares two XML files by structure, two JSON or YAML files by their data, or two folders file by
+file, like <strong>Compare with File…</strong> in XML or Data mode and <strong>Compare Folders…</strong> in the application (see
 <a href="../unified-shell/#comparing-as-xml">Compare &amp; Merge</a>). Formatting, attribute order and namespace
 prefixes do not count.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>fxt-cli<span class="w"> </span>compare<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span>LEFT<span class="w"> </span>RIGHT
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>fxt-cli<span class="w"> </span>compare<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span>LEFT<span class="w"> </span>RIGHT
 </code></pre></div>
 <table>
 <thead>
@@ -4368,6 +4395,12 @@ prefixes do not count.</p>
 </table>
 <p>LEFT is the expected document. With placeholders it can describe a result whose values change from
 run to run (an ID, a date): see <a href="../unified-shell/#comparing-as-xml">Comparing as XML</a>.</p>
+<p><strong>JSON and YAML.</strong> Two files with the extensions <code>.json</code>, <code>.jsonc</code>, <code>.json5</code>, <code>.yaml</code> or <code>.yml</code> are
+compared by their data, a JSON file against a YAML file too: member order, formatting, comments,
+quoting and YAML anchors do not count, <code>1.0</code> equals <code>1</code>. Arrays are compared in order (an inserted
+item is one difference); <code>--ignore-order</code> pairs items regardless of position, <code>-k id</code> pairs objects
+by a key member, <code>--tolerance</code> applies to numbers. Locations are JSONPath:
+<code>deploy.yaml:3: Member 'replicas' changed: "2" → "3" ($.replicas)</code>. <code>--ignore</code> is for XML only.</p>
 <p>For two files, the text report has one line per difference in the form
 <code>left.xml:LINE: Attribute 'qty' changed: "1" → "2" (/order[1]/item[1]/@qty)</code> and a summary;
 differences XMLUnit rates <em>similar</em> (a moved element, CDATA instead of text) are marked <code>[similar]</code>
@@ -4379,7 +4412,7 @@ not well-formed XML.</p>
 <p>Three-way merge of a base and two changed versions, like <strong>Tools → Merge Files…</strong> (see
 <a href="../unified-shell/#merging-three-files">Merging three files</a>). Conflicts are written with Git's
 markers.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>fxt-cli<span class="w"> </span>merge<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span>BASE<span class="w"> </span>LEFT<span class="w"> </span>RIGHT
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>fxt-cli<span class="w"> </span>merge<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span>BASE<span class="w"> </span>LEFT<span class="w"> </span>RIGHT
 </code></pre></div>
 <table>
 <thead>
@@ -4410,16 +4443,16 @@ markers.</p>
 <p>The exit code is 0 without conflicts and 1 with conflicts (the result then contains the markers).
 A merge without conflicts whose XML is not well-formed gives a warning on standard error.</p>
 <p>As a Git merge driver for XML files, in <code>.git/config</code> or <code>~/.gitconfig</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="k">[merge "fxt"]</span>
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">    </span><span class="na">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">FreeXmlToolkit XML merge</span>
-<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">    </span><span class="na">driver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">fxt-cli merge -q -L ours -L base -L theirs %O %A %B -o %A</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="k">[merge "fxt"]</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">    </span><span class="na">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">FreeXmlToolkit XML merge</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">    </span><span class="na">driver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">fxt-cli merge -q -L ours -L base -L theirs %O %A %B -o %A</span>
 </code></pre></div>
 <p>and in <code>.gitattributes</code>: <code>*.xml merge=fxt</code>.</p>
 <h2 id="convert">convert<a class="headerlink" href="#convert" title="Permanent link">¶</a></h2>
 <p>Converts between XML, JSON and YAML, like <strong>Tools → Convert to JSON… / XML… / YAML…</strong> in the
 application. The mappings are described in the
 <a href="../json-editor/#converting-between-xml-json-and-yaml">JSON Editor</a> chapter.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>fxt-cli<span class="w"> </span>convert<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span>INPUT...
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>fxt-cli<span class="w"> </span>convert<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span>INPUT...
 </code></pre></div>
 <table>
 <thead>
@@ -4469,9 +4502,9 @@ standard error and gives exit code 1; the other files are still converted.</p>
 <h2 id="fop">fop<a class="headerlink" href="#fop" title="Permanent link">¶</a></h2>
 <p>Renders a PDF with Apache FOP or an <a href="../pdf-generator/#external-xsl-fo-processors">external XSL-FO processor</a>,
 like the <a href="../pdf-generator/">PDF Generator</a>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>fxt-cli<span class="w"> </span>fop<span class="w"> </span>-i<span class="w"> </span>XML<span class="w"> </span>-s<span class="w"> </span>XSL<span class="w"> </span>-o<span class="w"> </span>OUT.pdf<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
-<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>fxt-cli<span class="w"> </span>fop<span class="w"> </span>--fo<span class="w"> </span>DOCUMENT.fo<span class="w"> </span>-o<span class="w"> </span>OUT.pdf<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
-<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>fxt-cli<span class="w"> </span>fop<span class="w"> </span>--list-processors
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>fxt-cli<span class="w"> </span>fop<span class="w"> </span>-i<span class="w"> </span>XML<span class="w"> </span>-s<span class="w"> </span>XSL<span class="w"> </span>-o<span class="w"> </span>OUT.pdf<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>fxt-cli<span class="w"> </span>fop<span class="w"> </span>--fo<span class="w"> </span>DOCUMENT.fo<span class="w"> </span>-o<span class="w"> </span>OUT.pdf<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>fxt-cli<span class="w"> </span>fop<span class="w"> </span>--list-processors
 </code></pre></div>
 <table>
 <thead>
@@ -4519,7 +4552,7 @@ like the <a href="../pdf-generator/">PDF Generator</a>.</p>
 exit code 1.</p>
 <h2 id="sign">sign<a class="headerlink" href="#sign" title="Permanent link">¶</a></h2>
 <p>Signs an XML document (XML digital signature), like <a href="../digital-signatures/">Sign &amp; Encrypt → Sign</a>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>fxt-cli<span class="w"> </span>sign<span class="w"> </span>INPUT<span class="w"> </span>--keystore<span class="w"> </span>FILE<span class="w"> </span><span class="o">[</span>--alias<span class="w"> </span>ALIAS<span class="o">]</span><span class="w"> </span><span class="o">(</span>--storepass<span class="o">[=</span>PW<span class="o">]</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>--storepass-env<span class="w"> </span>VAR<span class="o">)</span><span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>fxt-cli<span class="w"> </span>sign<span class="w"> </span>INPUT<span class="w"> </span>--keystore<span class="w"> </span>FILE<span class="w"> </span><span class="o">[</span>--alias<span class="w"> </span>ALIAS<span class="o">]</span><span class="w"> </span><span class="o">(</span>--storepass<span class="o">[=</span>PW<span class="o">]</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>--storepass-env<span class="w"> </span>VAR<span class="o">)</span><span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
 </code></pre></div>
 <table>
 <thead>
@@ -4569,13 +4602,13 @@ exit code 1.</p>
 </table>
 <h2 id="verify">verify<a class="headerlink" href="#verify" title="Permanent link">¶</a></h2>
 <p>Checks XML signatures; with a trust store also the signer's certificate chain (PKIX).</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>fxt-cli<span class="w"> </span>verify<span class="w"> </span>INPUT...<span class="w"> </span><span class="o">[</span>--trust-store<span class="w"> </span>FILE<span class="w"> </span><span class="o">(</span>--storepass…<span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>--trust-cacerts<span class="o">]</span><span class="w"> </span><span class="o">[</span>--revocation<span class="o">]</span><span class="w"> </span><span class="o">[</span>-f<span class="w"> </span>text<span class="p">|</span>json<span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>fxt-cli<span class="w"> </span>verify<span class="w"> </span>INPUT...<span class="w"> </span><span class="o">[</span>--trust-store<span class="w"> </span>FILE<span class="w"> </span><span class="o">(</span>--storepass…<span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>--trust-cacerts<span class="o">]</span><span class="w"> </span><span class="o">[</span>--revocation<span class="o">]</span><span class="w"> </span><span class="o">[</span>-f<span class="w"> </span>text<span class="p">|</span>json<span class="o">]</span>
 </code></pre></div>
 <p>Exit code <code>0</code> when every file is valid (and trusted), <code>1</code> when one is not, <code>3</code> on errors.</p>
 <h2 id="encrypt">encrypt<a class="headerlink" href="#encrypt" title="Permanent link">¶</a></h2>
 <p>Encrypts XML according to W3C XML Encryption 1.1, like
 <a href="../xml-encryption/">Sign &amp; Encrypt → Encrypt</a>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>fxt-cli<span class="w"> </span>encrypt<span class="w"> </span>INPUT<span class="w"> </span><span class="o">[</span>-x<span class="w"> </span>XPATH<span class="o">]</span>...<span class="w"> </span><span class="o">[</span>--content<span class="w"> </span><span class="p">|</span><span class="w"> </span>--binary<span class="o">]</span><span class="w"> </span>RECIPIENTS...<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>fxt-cli<span class="w"> </span>encrypt<span class="w"> </span>INPUT<span class="w"> </span><span class="o">[</span>-x<span class="w"> </span>XPATH<span class="o">]</span>...<span class="w"> </span><span class="o">[</span>--content<span class="w"> </span><span class="p">|</span><span class="w"> </span>--binary<span class="o">]</span><span class="w"> </span>RECIPIENTS...<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
 </code></pre></div>
 <table>
 <thead>
@@ -4663,8 +4696,8 @@ exit code 1.</p>
 <h2 id="decrypt">decrypt<a class="headerlink" href="#decrypt" title="Permanent link">¶</a></h2>
 <p>Decrypts every EncryptedData the given keys open (also several layers), or describes an encrypted
 document without a key.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>fxt-cli<span class="w"> </span>decrypt<span class="w"> </span>INPUT<span class="w"> </span><span class="o">(</span>--keystore<span class="w"> </span>FILE<span class="w"> </span>…<span class="w"> </span><span class="p">|</span><span class="w"> </span>--private-key<span class="w"> </span>FILE<span class="w"> </span><span class="p">|</span><span class="w"> </span>--key-file<span class="w"> </span>FILE<span class="w"> </span><span class="p">|</span><span class="w"> </span>--password<span class="o">)</span><span class="w"> </span><span class="o">[</span>--id<span class="w"> </span>ID<span class="o">]</span>...<span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>FILE<span class="o">]</span>
-<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>fxt-cli<span class="w"> </span>decrypt<span class="w"> </span>--inspect<span class="w"> </span><span class="o">[</span>-f<span class="w"> </span>text<span class="p">|</span>json<span class="o">]</span><span class="w"> </span>INPUT
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>fxt-cli<span class="w"> </span>decrypt<span class="w"> </span>INPUT<span class="w"> </span><span class="o">(</span>--keystore<span class="w"> </span>FILE<span class="w"> </span>…<span class="w"> </span><span class="p">|</span><span class="w"> </span>--private-key<span class="w"> </span>FILE<span class="w"> </span><span class="p">|</span><span class="w"> </span>--key-file<span class="w"> </span>FILE<span class="w"> </span><span class="p">|</span><span class="w"> </span>--password<span class="o">)</span><span class="w"> </span><span class="o">[</span>--id<span class="w"> </span>ID<span class="o">]</span>...<span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>FILE<span class="o">]</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>fxt-cli<span class="w"> </span>decrypt<span class="w"> </span>--inspect<span class="w"> </span><span class="o">[</span>-f<span class="w"> </span>text<span class="p">|</span>json<span class="o">]</span><span class="w"> </span>INPUT
 </code></pre></div>
 <table>
 <thead>
@@ -4710,7 +4743,7 @@ document without a key.</p>
 <p>Serves validation, XPath/XQuery, XSLT, XSpec, schema and comparison tools to an AI agent over the Model Context
 Protocol on standard input and output. Started by the agent, not by you; set-up, the tools and the safety model
 are on <a href="../mcp-server/">MCP Server</a>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>fxt-cli<span class="w"> </span>mcp<span class="w"> </span><span class="o">[</span>--root<span class="w"> </span>DIR<span class="o">]</span>...<span class="w"> </span><span class="o">[</span>--tools<span class="w"> </span>NAMES<span class="o">]</span><span class="w"> </span><span class="o">[</span>--list-tools<span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>fxt-cli<span class="w"> </span>mcp<span class="w"> </span><span class="o">[</span>--root<span class="w"> </span>DIR<span class="o">]</span>...<span class="w"> </span><span class="o">[</span>--tools<span class="w"> </span>NAMES<span class="o">]</span><span class="w"> </span><span class="o">[</span>--list-tools<span class="o">]</span>
 </code></pre></div>
 <table>
 <thead>
@@ -4780,21 +4813,21 @@ administrator policy disables it (<code>ai.mcp.allowed=false</code> or <code>ai.
 </ul>
 <h2 id="in-a-ci-pipeline">In a CI pipeline<a class="headerlink" href="#in-a-ci-pipeline" title="Permanent link">¶</a></h2>
 <p>GitHub Actions, uploading the SARIF report to code scanning:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Validate XML</span>
-<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/freexmltoolkit/bin/fxt-cli validate --xsd schema/order.xsd -f sarif -r fxt.sarif data/</span>
-<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">github/codeql-action/upload-sarif@v3</span>
-<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="w">  </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">always()</span>
-<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
-<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="w">    </span><span class="nt">sarif_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt.sarif</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Validate XML</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/freexmltoolkit/bin/fxt-cli validate --xsd schema/order.xsd -f sarif -r fxt.sarif data/</span>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">github/codeql-action/upload-sarif@v3</span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="w">  </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">always()</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="w">    </span><span class="nt">sarif_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt.sarif</span>
 </code></pre></div>
 <p>GitLab CI with a JUnit report:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nt">validate</span><span class="p">:</span>
-<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="w">  </span><span class="nt">script</span><span class="p">:</span>
-<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt-cli validate --xsd schema/order.xsd -f junit -r fxt-junit.xml data/</span>
-<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="w">  </span><span class="nt">artifacts</span><span class="p">:</span>
-<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="w">    </span><span class="nt">when</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">always</span>
-<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="w">    </span><span class="nt">reports</span><span class="p">:</span>
-<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="w">      </span><span class="nt">junit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt-junit.xml</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="nt">validate</span><span class="p">:</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="w">  </span><span class="nt">script</span><span class="p">:</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt-cli validate --xsd schema/order.xsd -f junit -r fxt-junit.xml data/</span>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="w">  </span><span class="nt">artifacts</span><span class="p">:</span>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="w">    </span><span class="nt">when</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">always</span>
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="w">    </span><span class="nt">reports</span><span class="p">:</span>
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a><span class="w">      </span><span class="nt">junit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt-junit.xml</span>
 </code></pre></div>
 
 

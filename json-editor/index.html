@@ -1608,6 +1608,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#yaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YAML
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="YAML">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tree-and-grid-for-yaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tree and Grid for YAML
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#converting-between-xml-json-and-yaml" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3676,6 +3704,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#yaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YAML
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="YAML">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tree-and-grid-for-yaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tree and Grid for YAML
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#converting-between-xml-json-and-yaml" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4055,6 +4111,11 @@ JSONC / JSON5 forms are valid in such files, and a JSON Schema validates them to
   meta-schema URI in the Schema Library yourself; none are bundled.) If the
   <code>$schema</code> URI isn't directly resolvable, the Schema Library is consulted next -
   see <a href="../schema-library/">Schema Library</a>.</li>
+<li><strong>By file name:</strong> a document without <code>"$schema"</code> gets the schema of a Schema Library
+  mapping whose <a href="../schema-library/#file-names-json-and-yaml">file names</a> match it
+  (<code>tsconfig*.json</code>), or - when switched on - the one the
+  <a href="../schema-library/#4-schemastore">SchemaStore catalog</a> knows for its name
+  (<code>package.json</code>, <code>.eslintrc.json</code>, <code>composer.json</code>, …).</li>
 <li><strong>Manual:</strong> click the <strong>JSON Schema</strong> indicator in the status bar, use the
   <strong>JSON Schema</strong> source row in the <strong>Validation</strong> panel (Change link, favorites
   star, or drag &amp; drop a <code>.json</code> schema onto the row or the status bar).</li>
@@ -4149,6 +4210,72 @@ you once when it opens such a file. Edit in the <strong>Text</strong> view to ke
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="nv">items</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="mf">3</span><span class="p">,],</span>
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="p">}</span>
 </code></pre></div>
+<h2 id="yaml">YAML<a class="headerlink" href="#yaml" title="Permanent link">¶</a></h2>
+<p>YAML files (<code>.yaml</code>, <code>.yml</code>) open in the same editor as JSON, with what YAML needs:</p>
+<ul>
+<li><strong>Syntax colours</strong> for keys, strings, numbers, booleans, null, comments, anchors and aliases
+  (<code>&amp;base</code>, <code>*base</code>), tags (<code>!Ref</code>, <code>!!str</code>), directives and document markers (<code>---</code>).</li>
+<li><strong>Folding</strong> by indentation: a key folds with everything indented below it (also a sequence
+  written at the key's own indentation), a block scalar (<code>|</code>, <code>&gt;</code>) with its key, and each document
+  from its <code>---</code>.</li>
+<li><strong>Syntax check while you type.</strong> A YAML error (wrong indentation, a missing bracket, a duplicate
+  key) is underlined at its line and column and listed in the Problems panel.</li>
+<li><strong>Validation against a JSON Schema</strong>, with the same validator as JSON. Problems are underlined on
+  the key they concern. The schema is found like this:<ol>
+<li>a <a href="../projects/">project</a> binding for the file,</li>
+<li>a comment <code># yaml-language-server: $schema=&lt;url or path&gt;</code> anywhere in the file (the
+   convention of the YAML language server, so files prepared for VS Code work as they are),</li>
+<li>a top-level <code>$schema: &lt;url or path&gt;</code> key,</li>
+<li>the file's <strong>name</strong>: a <a href="../schema-library/#file-names-json-and-yaml">Schema Library</a> mapping
+   with file names (<code>docker-compose*.yml</code>), then - when switched on - the
+   <a href="../schema-library/#4-schemastore">SchemaStore catalog</a>, which knows GitHub workflows,
+   docker-compose, GitLab CI, OpenAPI and hundreds of other file types,</li>
+<li><strong>Set Schema…</strong> (or a JSON Schema dropped on the schema indicator in the status bar).</li>
+</ol>
+</li>
+</ul>
+<p>A declared <code>$schema</code> id is looked up in the <a href="../schema-library/">Schema Library</a> and catalogs
+  first, like JSON's. A file with several documents is validated as an array of them.
+- <strong>Completion from the schema</strong> (Ctrl+Space, or typing <code>:</code>): the keys a mapping may still get
+  (required ones first, each with its description and type), the allowed values of a key
+  (<code>enum</code>, <code>const</code>, <code>default</code>, examples, <code>true</code>/<code>false</code>, <code>null</code>), and for a new sequence item
+  (<code>-</code>) the keys of its mapping. A new key of type object or array starts its block on the next
+  line. Hovering a key shows its path (JSONPath), its type and what the schema says about it.
+- <strong>Format</strong> (Shift+Alt+F) writes the document again in block style with the indentation of
+  Settings. It only runs when nothing would be lost: a document with comments, anchors and
+  aliases, tags or directives is left as it is, with a note. <strong>Minify</strong> is not offered for YAML.
+- <strong>JSONPath</strong> in the <a href="../unified-shell/">Query Console</a>: a YAML document is queried as its data
+  (<code>$.spec.containers[*].image</code>); the result is JSON. <strong>Copy JSONPath</strong> in the context menu and
+  the Properties Inspector show the path of the key or value at the caret.
+- <strong>Generate Sample</strong> (Schema ▾) writes a sample YAML document from the bound JSON Schema.
+- <strong>New File</strong> (type YAML) starts with <code>---</code>; the templates <em>YAML document with a JSON Schema</em>
+  (writes the <code># yaml-language-server: $schema=…</code> comment), <em>Docker Compose file</em> and <em>GitHub
+  Actions workflow</em> give a ready skeleton.
+- <strong>Compare with File…</strong> compares two JSON or YAML documents - also a JSON file against a YAML file -
+  by their data in the <strong>Data</strong> mode of the Compare view: member order, formatting, comments, quoting
+  and anchors do not count, <code>1.0</code> equals <code>1</code>, and an inserted array item is one difference. Each
+  difference names its JSONPath and selects its lines on both sides. The options <em>Ignore element
+  order</em>, <em>Key attributes</em> (here: key members such as <code>id</code> that pair the objects of an array) and
+  <em>Numeric tolerance</em> apply to it.
+- <strong>Command line:</strong> <code>fxt-cli validate</code> checks YAML files (declared schema, file-name patterns, with
+  <code>--schemastore</code> the SchemaStore catalog), <code>fxt-cli query -e '$.jobs.*.runs-on' ci.yml</code> runs
+  JSONPath on them and <code>fxt-cli compare</code> compares them by their data - see <a href="../command-line/">Command Line</a>.
+  The MCP tool <code>validate</code> checks JSON and YAML too (<a href="../mcp-server/#validate">MCP server</a>).
+- <strong>Convert to JSON / XML</strong> (Tools menu), see below.</p>
+<h3 id="tree-and-grid-for-yaml">Tree and Grid for YAML<a class="headerlink" href="#tree-and-grid-for-yaml" title="Permanent link">¶</a></h3>
+<p>YAML documents have the same <strong>Tree</strong> and <strong>Graphic</strong> (grid) views as JSON, over the document's
+data: edit values, rename keys, add, delete, move and retype entries, use the table view for
+sequences of mappings, filters and the Properties Inspector. A file with several documents shows
+them as an array (<code>$[0]</code>, <code>$[1]</code>, …).</p>
+<p>Every edit is written back <strong>into the YAML text at its place</strong>: only the changed value, key, entry
+or item is replaced, so comments, blank lines, quoting, flow collections (<code>[a, b]</code>), block scalars,
+anchors and tags elsewhere stay as they are. A new entry takes the indentation of its neighbours.
+Undo (Ctrl+Z) takes the edit back in the text as well.</p>
+<p>A few changes cannot be placed in the text like this: moving entries in a part that holds comments,
+changing a value that is shared through an alias (<code>*base</code>), adding or removing a whole document.
+For those the editor asks once per document whether it may write the whole document again in block
+style (as <strong>Format</strong> does), which removes comments, anchors, tags and directives; <strong>Cancel</strong> takes the
+change back. Validation markers of the grid point at the YAML lines.</p>
 <h2 id="converting-between-xml-json-and-yaml">Converting between XML, JSON and YAML<a class="headerlink" href="#converting-between-xml-json-and-yaml" title="Permanent link">¶</a></h2>
 <p>The <strong>Tools</strong> menu converts the active document:</p>
 <table>
@@ -4178,12 +4305,12 @@ and YAML there is nothing to choose. The result opens in a new, unsaved tab name
 document (<code>order.xml</code> → <code>order.json</code>). The converter reads the text of the editor, including
 changes that are not saved yet. The indentation follows Settings (XML for XML output, JSON for
 JSON and YAML output).</p>
-<p>YAML files (<code>.yaml</code>, <code>.yml</code>) open in the editor as text. They are read as YAML 1.2 (core schema:
-<code>yes</code> and <code>on</code> stay strings); a file with several documents (<code>---</code>) becomes an array. YAML is
-written in block style. Strings that would otherwise read back as a number, boolean or null are
-quoted (<code>'007'</code>, <code>'true'</code>), so a conversion to YAML and back returns the same data. XML goes to
-YAML through its JSON form, with the same mapping. Comments and anchors of a YAML file are not
-kept.</p>
+<p>YAML is read as YAML 1.2 (core schema: <code>yes</code> and <code>on</code> stay strings); a file with several
+documents (<code>---</code>) becomes an array. Application tags such as <code>!Ref</code> or <code>!vault</code> are read as the
+value they are written as. YAML is written in block style. Strings that would otherwise read back
+as a number, boolean or null are quoted (<code>'007'</code>, <code>'true'</code>), so a conversion to YAML and back
+returns the same data. XML goes to YAML through its JSON form, with the same mapping. Comments
+and anchors of a YAML file are not kept.</p>
 <h3 id="structured-mapping">Structured mapping<a class="headerlink" href="#structured-mapping" title="Permanent link">¶</a></h3>
 <p>The default. It works for any XML and gives JSON that reads naturally:</p>
 <table>

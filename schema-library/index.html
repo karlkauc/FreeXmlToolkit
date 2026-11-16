@@ -1634,6 +1634,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="2. Mappings tab">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#file-names-json-and-yaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File names (JSON and YAML)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1665,10 +1682,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-schema-cache" class="md-nav__link">
+  <a href="#4-schemastore" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Schema cache
+        4. SchemaStore
       
     </span>
   </a>
@@ -1676,10 +1693,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-bundled-standards" class="md-nav__link">
+  <a href="#5-schema-cache" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Bundled standards
+        5. Schema cache
       
     </span>
   </a>
@@ -1687,10 +1704,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#6-settings" class="md-nav__link">
+  <a href="#6-bundled-standards" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6. Settings
+        6. Bundled standards
       
     </span>
   </a>
@@ -1698,10 +1715,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-troubleshooting" class="md-nav__link">
+  <a href="#7-settings" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. Troubleshooting
+        7. Settings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Troubleshooting
       
     </span>
   </a>
@@ -3262,6 +3290,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="2. Mappings tab">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#file-names-json-and-yaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File names (JSON and YAML)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3293,10 +3338,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-schema-cache" class="md-nav__link">
+  <a href="#4-schemastore" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Schema cache
+        4. SchemaStore
       
     </span>
   </a>
@@ -3304,10 +3349,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-bundled-standards" class="md-nav__link">
+  <a href="#5-schema-cache" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Bundled standards
+        5. Schema cache
       
     </span>
   </a>
@@ -3315,10 +3360,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#6-settings" class="md-nav__link">
+  <a href="#6-bundled-standards" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6. Settings
+        6. Bundled standards
       
     </span>
   </a>
@@ -3326,10 +3371,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-troubleshooting" class="md-nav__link">
+  <a href="#7-settings" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. Troubleshooting
+        7. Settings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Troubleshooting
       
     </span>
   </a>
@@ -3357,13 +3413,13 @@
 
 
 <h1 id="schema-library">Schema Library<a class="headerlink" href="#schema-library" title="Permanent link">¶</a></h1>
-<p>The <strong>Schema Library</strong> maps namespaces (and JSON <code>$schema</code> URIs) to schema files, so
+<p>The <strong>Schema Library</strong> maps namespaces, JSON <code>$schema</code> URIs and file names to schema files, so
 documents that don't carry an explicit reference to their schema can still be validated
 and get IntelliSense automatically.</p>
 <p><strong>Where to find it:</strong> click <strong>Schema Library</strong> in the activity bar. The library opens as a
 <strong>page</strong> - a tab named <strong>Schema Library</strong> in the main editor area, just like Settings - with
-three tabs: <strong>Mappings</strong>, <strong>Catalogs</strong> and <strong>Cache</strong>. The side panel on the left lists the same
-three sections: click one to jump to its tab; the tab you are on is highlighted. A shared status
+four tabs: <strong>Mappings</strong>, <strong>Catalogs</strong>, <strong>SchemaStore</strong> and <strong>Cache</strong>. The side panel on the left lists the same
+four sections: click one to jump to its tab; the tab you are on is highlighted. A shared status
 line at the bottom of the page reports the outcome of the last action. The Properties inspector
 is hidden while the page is selected, so the tables get the full width.</p>
 <hr>
@@ -3375,7 +3431,7 @@ three sources, tried in this order:</p>
 <li><strong>Your mappings</strong> - entries you added yourself (the Mappings tab, source <code>USER</code>).</li>
 <li><strong>XML catalogs</strong> - OASIS <code>catalog.xml</code> files you registered (the Catalogs tab).</li>
 <li><strong>Bundled standards</strong> - 25 well-known W3C/OASIS/industry schemas shipped with the
-   application (see <a href="#5-bundled-standards">Bundled standards</a>).</li>
+   application (see <a href="#6-bundled-standards">Bundled standards</a>).</li>
 </ol>
 <p>The first match wins, and a schema you bind <strong>manually</strong> in the Validation panel or status
 bar always takes priority over anything the library resolves.</p>
@@ -3397,6 +3453,9 @@ namespace or catalog target.</p>
   reference resolves through the library. Meta-schema ids (<code>json-schema.org/...</code>) are <em>not</em>
   bundled, so a JSON <strong>schema document</strong> still binds nothing - but you can map one yourself
   as a <code>USER</code> entry if you want schema documents validated against their dialect.</li>
+<li><strong>JSON and YAML files by their name</strong> - a JSON or YAML file that declares no schema gets the
+  JSON Schema whose <strong>file names</strong> match it: from your own mappings first, then (when switched on)
+  from the <a href="#4-schemastore">SchemaStore catalog</a>. See below.</li>
 <li><strong>XSLT/XQuery <code>doc()</code> / <code>document()</code></strong> - a system ID the engine can't resolve directly
   falls back to the library (and catalogs) the same way.</li>
 </ul>
@@ -3440,13 +3499,54 @@ Bundled rows render in italics and can only be enabled/disabled, never edited or
 </tbody>
 </table>
 <p>The labelled buttons above the table: <strong>Add mapping…</strong> and <strong>Edit…</strong> open the mapping dialog (namespace,
-location, kind, description, optional root element); <strong>Remove</strong> deletes a <code>USER</code> mapping;
+location, kind, optional root element, optional file names, description); <strong>Remove</strong> deletes a <code>USER</code> mapping;
 <strong>Enable / disable</strong> toggles the <strong>On</strong> column for the selected row; <strong>Add schema of
 current document</strong> prefills a new mapping from the active document's bound schema; and
 <strong>Download / verify</strong> materializes a remote entry immediately (also clearing a remembered
-failure, see <a href="#7-troubleshooting">Troubleshooting</a>). <strong>Double-clicking</strong> a row opens the
+failure, see <a href="#8-troubleshooting">Troubleshooting</a>). <strong>Double-clicking</strong> a row opens the
 resolved schema file as an editor tab; the context menu offers the same <strong>Open schema</strong>,
 <strong>Edit…</strong>, <strong>Remove</strong> and a <strong>Copy namespace</strong> action.</p>
+<h3 id="file-names-json-and-yaml">File names (JSON and YAML)<a class="headerlink" href="#file-names-json-and-yaml" title="Permanent link">¶</a></h3>
+<p>A JSON Schema mapping can name the <strong>files</strong> it is for, in the dialog's <strong>File names</strong> field,
+separated by commas: <code>docker-compose*.yml, compose.yaml</code> or <code>.github/workflows/*.yml</code>. A JSON or
+YAML file whose text declares no schema (no <code>$schema</code>, no <code># yaml-language-server: $schema=</code>
+comment) then gets this schema for validation, completion and hover help. Such a mapping needs no
+namespace. The rules are those of the SchemaStore catalog and the YAML language server:</p>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Matches</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>docker-compose.yml</code></td>
+<td>a file of that name in any folder (no <code>/</code>: only the name counts)</td>
+</tr>
+<tr>
+<td><code>docker-compose*.yml</code>, <code>*.{yml,yaml}</code>, <code>?.json</code>, <code>[ab].json</code></td>
+<td><code>*</code> within a name, <code>{a,b}</code> alternatives, <code>?</code> one character, <code>[..]</code> a character class</td>
+</tr>
+<tr>
+<td><code>.github/workflows/*.yml</code></td>
+<td>with a <code>/</code>, the end of the path, whole folders: <code>repo/.github/workflows/ci.yml</code>, not <code>…/workflows/sub/ci.yml</code></td>
+</tr>
+<tr>
+<td><code>.github/**/*.yml</code></td>
+<td><code>**</code> spans any number of folders</td>
+</tr>
+<tr>
+<td><code>!**/test/**</code></td>
+<td>a leading <code>!</code> excludes what it matches</td>
+</tr>
+</tbody>
+</table>
+<p>Case does not matter. When several mappings match, the most specific pattern wins (the one with
+the most characters that are not wildcards: <code>docker-compose.yml</code> before <code>*.yml</code>). The Mappings
+table shows the patterns after the namespace (<code>(files: …)</code>), and the filter searches them.
+The order of the schema search for a JSON or YAML file: a <a href="../projects/">project</a> binding, the
+schema the file declares, a mapping by file name, the SchemaStore catalog.</p>
 <h2 id="3-xml-catalogs">3. XML catalogs<a class="headerlink" href="#3-xml-catalogs" title="Permanent link">¶</a></h2>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-schema-library-catalogs.png" data-desc-position="bottom"><img alt="Schema Library - Catalogs" src="../img/unified-shell-schema-library-catalogs.png"></a>
 <em>The Catalogs tab: registered OASIS catalog.xml files with their entry count or error.</em></p>
@@ -3485,7 +3585,31 @@ reference to the local <code>schemas/</code> folder, and three instance document
 unreachable <code>xsi:schemaLocation</code>, one with only a namespace, one with deliberate errors.
 Register <code>catalog.xml</code> in the Catalogs tab, open the documents and validate; the folder's
 <code>README.md</code> walks through each step.</p>
-<h2 id="4-schema-cache">4. Schema cache<a class="headerlink" href="#4-schema-cache" title="Permanent link">¶</a></h2>
+<h2 id="4-schemastore">4. SchemaStore<a class="headerlink" href="#4-schemastore" title="Permanent link">¶</a></h2>
+<p>The <a href="https://www.schemastore.org">SchemaStore</a> catalog names the public JSON Schema of hundreds of
+file types by their file name: <code>docker-compose.yml</code>, GitHub workflows and actions, <code>package.json</code>,
+<code>tsconfig.json</code>, <code>.gitlab-ci.yml</code>, OpenAPI and AsyncAPI files, Ansible, Helm charts and many more.
+On the <strong>SchemaStore</strong> tab:</p>
+<ul>
+<li><strong>Find JSON Schemas for JSON and YAML files by their file name in the SchemaStore catalog</strong> - off
+  by default. Switched on, the catalog is downloaded once, kept in <code>~/.freeXmlToolkit/schemastore/</code>
+  and updated in the background when it is older than a week. A JSON or YAML file that declares no
+  schema and matches none of your mappings gets the catalog's schema for its name; the schema itself
+  is downloaded on first use and cached like every remote schema (Cache tab). Only the catalog and the
+  schemas it names are downloaded; no file name or content leaves your computer. The status bar shows
+  such a binding as <code>(library)</code>, its tooltip names the catalog entry and the pattern.</li>
+<li><strong>Catalog</strong> - the catalog's address; point it at a mirror inside your network if the public site is
+  not reachable. <strong>Update Catalog</strong> downloads it now.</li>
+<li><strong>Try a file name</strong> - type a name or path (<code>.github/workflows/build.yml</code>) to see which schema it gets:
+  one of your mappings, the catalog's, or none.</li>
+</ul>
+<p>Your own mapping always wins over the catalog, so you can replace a catalog schema by a local copy:
+add a mapping with the same file names. Administrators can switch the catalog off or fix its address
+(<code>schemastore.enabled</code>, <code>schemastore.catalogUrl</code>, see <a href="../administration/">Administration</a>).</p>
+<p>On the command line, <code>fxt-cli validate</code> uses your file-name mappings by itself and the catalog with
+<code>--schemastore</code>, for example in a CI job: <code>fxt-cli validate --schemastore .github/workflows</code>
+(see <a href="../command-line/#validate">Command Line</a>).</p>
+<h2 id="5-schema-cache">5. Schema cache<a class="headerlink" href="#5-schema-cache" title="Permanent link">¶</a></h2>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-schema-library-cache.png#only-light" data-desc-position="bottom"><img alt="Schema Library - Cache" src="../img/unified-shell-schema-library-cache.png#only-light"></a>
 <a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-schema-library-dark.png#only-dark" data-desc-position="bottom"><img alt="Schema Library - Cache" src="../img/unified-shell-schema-library-dark.png#only-dark"></a>
 <em>The Cache tab: remote schemas downloaded and cached under <code>~/.freeXmlToolkit/cache/schemas</code>.</em></p>
@@ -3505,7 +3629,7 @@ separate cache of schemas auto-downloaded from <code>xsi:schemaLocation</code> r
 per schema URL, keyed by an MD5 hash). It is read-only except for a <strong>Clear auto-detected
 schema cache</strong> button; those
 files are simply re-downloaded the next time a document references them.</p>
-<h2 id="5-bundled-standards">5. Bundled standards<a class="headerlink" href="#5-bundled-standards" title="Permanent link">¶</a></h2>
+<h2 id="6-bundled-standards">6. Bundled standards<a class="headerlink" href="#6-bundled-standards" title="Permanent link">¶</a></h2>
 <p>FreeXmlToolkit ships a curated list of 25 well-known namespace → schema mappings so common
 standards validate out of the box, without you having to hunt down and register the schema
 yourself. Bundled entries are grouped by family:</p>
@@ -3534,7 +3658,7 @@ downloads are permitted. Starting the application with <code>-Dfxt.schema.namesp
 turns them off (the test suite does this) - resolution then uses <strong>local files and
 already-cached copies only</strong>, and every other entry is simply a miss. Local entries and
 cached entries always resolve, with or without network access.</p>
-<h2 id="6-settings">6. Settings<a class="headerlink" href="#6-settings" title="Permanent link">¶</a></h2>
+<h2 id="7-settings">7. Settings<a class="headerlink" href="#7-settings" title="Permanent link">¶</a></h2>
 <p>The <strong>SCHEMA LIBRARY</strong> card in Settings (gear icon at the bottom of the activity bar, group
 <strong>Schemas &amp; Validation</strong>) holds:</p>
 <ul>
@@ -3551,7 +3675,7 @@ cached entries always resolve, with or without network access.</p>
   <strong>Cache</strong> tab. The same link also appears in the <strong>TEMP &amp; CACHE</strong> card (group <strong>Files &amp;
   Cache</strong>).</li>
 </ul>
-<h2 id="7-troubleshooting">7. Troubleshooting<a class="headerlink" href="#7-troubleshooting" title="Permanent link">¶</a></h2>
+<h2 id="8-troubleshooting">8. Troubleshooting<a class="headerlink" href="#8-troubleshooting" title="Permanent link">¶</a></h2>
 <p><strong>A document isn't binding a schema I expect:</strong></p>
 <ul>
 <li>Check the namespace actually matches - a typo or a trailing slash difference means no

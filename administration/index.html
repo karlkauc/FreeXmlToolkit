@@ -3622,6 +3622,16 @@ forward slashes (<code>C:/Schemas</code>). Characters outside Latin-1 have to be
 <td>Bind schemas from the Schema Library automatically</td>
 </tr>
 <tr>
+<td><code>schemastore.enabled</code></td>
+<td><code>true</code> / <code>false</code></td>
+<td>Find JSON Schemas for JSON and YAML files by their file name in the <a href="../schema-library/#4-schemastore">SchemaStore</a> catalog (default <code>false</code>; downloads the catalog and the schemas it names). Locked to <code>false</code>, <code>fxt-cli validate --schemastore</code> is refused too</td>
+</tr>
+<tr>
+<td><code>schemastore.catalogUrl</code></td>
+<td>URL</td>
+<td>Address of the SchemaStore catalog, e.g. a mirror inside the company network (default <code>https://www.schemastore.org/api/json/catalog.json</code>); locked, it is also the address of <code>fxt-cli validate --schemastore</code></td>
+</tr>
+<tr>
 <td><code>xml.parser.type</code></td>
 <td><code>XERCES</code> / <code>SAXON</code></td>
 <td>XSD validator (XSD 1.1 schemas always use Xerces)</td>

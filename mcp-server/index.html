@@ -3832,7 +3832,7 @@ that fails) answers with <code>isError: true</code> and the details; the same fa
 text. Misuse (an unknown argument, a path outside the folders) is answered with an error message naming the
 argument.</p>
 <h3 id="validate"><code>validate</code><a class="headerlink" href="#validate" title="Permanent link">¶</a></h3>
-<p>Validate an XML document: well-formedness, then the schema (XSD 1.0/1.1, DTD or RELAX NG), then an optional Schematron, then the checks of enabled plugins (e.g. FundsXML, ISO 20022). The schema is xsd_path if given, else the one the document declares (xsi:schemaLocation, DOCTYPE, Schema Library) unless declared_schema is false. Returns every problem with source, severity, line, column and message; 'valid' is true when the run had no errors (warnings allowed). 'not_run' means the schema or Schematron itself could not be loaded, so the document was not checked. Use it after every change to a document. xsd_version forces XSD 1.0 or 1.1 (default: detected from the schema), xml_version 1.0 rejects documents declared as XML 1.1, schematron_binding sets the query binding of a Schematron without @queryBinding (default xslt2).</p>
+<p>Validate an XML, JSON or YAML document. XML: well-formedness, then the schema (XSD 1.0/1.1, DTD or RELAX NG), then an optional Schematron, then the checks of enabled plugins (e.g. FundsXML, ISO 20022). The schema is xsd_path if given, else the one the document declares (xsi:schemaLocation, DOCTYPE, Schema Library) unless declared_schema is false. Returns every problem with source, severity, line, column and message; 'valid' is true when the run had no errors (warnings allowed). 'not_run' means the schema or Schematron itself could not be loaded, so the document was not checked. Use it after every change to a document. xsd_version forces XSD 1.0 or 1.1 (default: detected from the schema), xml_version 1.0 rejects documents declared as XML 1.1, schematron_binding sets the query binding of a Schematron without @queryBinding (default xslt2). JSON and YAML (format auto: from the file extension, inline content starting with { or [ is JSON; give format yaml for inline YAML): syntax, then the JSON Schema json_schema_path, else the one the document declares ($schema, YAML modeline # yaml-language-server: $schema=…) or a Schema Library file-name pattern matches, unless declared_schema is false. Remote JSON Schemas are not downloaded.</p>
 <table>
 <thead>
 <tr>
@@ -3845,12 +3845,22 @@ argument.</p>
 <tr>
 <td><code>xml_path</code></td>
 <td>string</td>
-<td>Path of the XML document (inside the allowed folders). Give this or xml_content, not both.</td>
+<td>Path of the XML, JSON or YAML document (inside the allowed folders). Give this or xml_content, not both.</td>
 </tr>
 <tr>
 <td><code>xml_content</code></td>
 <td>string</td>
-<td>The XML document as text. Give this or xml_path, not both.</td>
+<td>The XML, JSON or YAML document as text. Give this or xml_path, not both.</td>
+</tr>
+<tr>
+<td><code>format</code></td>
+<td><code>auto</code> | <code>xml</code> | <code>json</code> | <code>yaml</code></td>
+<td>Document format; auto decides by the file extension or the content. (default <code>auto</code>)</td>
+</tr>
+<tr>
+<td><code>json_schema_path</code></td>
+<td>string</td>
+<td>Path of the JSON Schema for a JSON or YAML document.</td>
 </tr>
 <tr>
 <td><code>xsd_path</code></td>
@@ -3884,7 +3894,8 @@ argument.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Result:</strong> <code>valid</code>, <code>not_run</code> (the schema or Schematron itself did not load) and <code>not_run_reason</code>, <code>schema</code> (the XSD used), <code>error_count</code>, <code>warning_count</code>, <code>total</code>, <code>truncated</code>, <code>problems[]</code> = <code>{source, severity, line, column, message, rule, context}</code> — <code>source</code> is <code>Well-formed</code>, <code>XSD</code>, <code>Schematron</code> or a plugin's name; at most 200 problems are listed, <code>total</code> counts all.</p>
+<p><strong>Result:</strong> <code>valid</code>, <code>not_run</code> (the schema or Schematron itself did not load; for JSON / YAML also a declared or
+file-name schema that is remote or outside the allowed folders) and <code>not_run_reason</code>, <code>schema</code> (the XSD or JSON Schema used), <code>error_count</code>, <code>warning_count</code>, <code>total</code>, <code>truncated</code>, <code>problems[]</code> = <code>{source, severity, line, column, message, rule, context}</code> — <code>source</code> is <code>Well-formed</code>, <code>XSD</code>, <code>Schematron</code>, a plugin's name, or for JSON / YAML <code>JSON</code>, <code>YAML</code>, <code>JSON Schema</code>; at most 200 problems are listed, <code>total</code> counts all.</p>
 <h3 id="xpath"><code>xpath</code><a class="headerlink" href="#xpath" title="Permanent link">¶</a></h3>
 <p>Evaluate an XPath expression (3.1 unless xpath_version says otherwise) against an XML document and return the items, one per line: atomic values as text, attributes as name="value", elements serialized as XML. The prefixes declared on the root element are available; pass 'namespaces' for others, with the key "" for the default element namespace (or use *:name). Errors come back with code and phase. Reads only inside the allowed folders. Use it to inspect large documents instead of reading them whole. xpath_version 1.0 runs on a real XPath 1.0 engine, 2.0 and 3.0 reject newer syntax and functions - use it to write expressions for older processors.</p>
 <table>
