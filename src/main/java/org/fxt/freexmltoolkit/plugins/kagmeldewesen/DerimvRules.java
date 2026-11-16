@@ -50,12 +50,32 @@ public final class DerimvRules {
     private DerimvRules() {
     }
 
-    /** @return the rules; {@code today} gives the date the reporting period must not lie after */
+    /**
+     * The settings of the rules.
+     *
+     * @param relativeVarLimit the relative VaR above which a warning is given (% of the reference portfolio's VaR)
+     * @param warnAt           utilisation of the legal limit (or, for the absolute VaR, of the fund's own limit) in %
+     *                         from which a warning is given, or {@code null} for none
+     */
+    public record Options(BigDecimal relativeVarLimit, BigDecimal warnAt) {
+
+        /** @return relative VaR 200 %, no utilisation warning */
+        public static Options defaults() {
+            return new Options(RELATIVE_VAR_LIMIT, null);
+        }
+    }
+
+    /** @return the rules with the default options; {@code today} gives the date the reporting period must not lie after */
     public static RegRuleSet rules(Supplier<LocalDate> today) {
+        return rules(today, Options.defaults());
+    }
+
+    /** @return the rules; {@code today} gives the date the reporting period must not lie after */
+    public static RegRuleSet rules(Supplier<LocalDate> today, Options options) {
         RegRuleSet rules = new RegRuleSet(ROOT + "/" + RECORD);
         rules.header((root, ctx, out) -> period(root, today.get(), out))
                 .record(DerimvRules::isin)
-                .record(DerimvRules::exposure);
+                .record((fund, ctx, out) -> exposure(fund, options, out));
         return rules;
     }
 
@@ -103,7 +123,7 @@ public final class DerimvRules {
     }
 
     /** Items 6–9: exposure at the reporting date vs. the period maximum, legal and fund-specific limits. */
-    private static void exposure(RecordNode fund, RegRuleSet.Context ctx, RegRuleSet.Findings out) {
+    private static void exposure(RecordNode fund, Options options, RegRuleSet.Findings out) {
         BigDecimal risk = fund.decimal("Risikoangabe");
         BigDecimal max = fund.decimal("MaxRisikoangabe");
         BigDecimal limit = fund.decimal("GrenzenGesamtrisiko");
@@ -118,6 +138,7 @@ public final class DerimvRules {
             return;
         }
         String field = max != null ? "MaxRisikoangabe" : "Risikoangabe";
+        utilisation(fund, method, highest, field, limit, options, name, out);
         switch (method) {
             case "Comm" -> {
                 if (highest.compareTo(COMMITMENT_LIMIT) > 0) {
@@ -142,14 +163,35 @@ public final class DerimvRules {
                 }
             }
             case "rVaR" -> {
-                if (highest.compareTo(RELATIVE_VAR_LIMIT) > 0) {
-                    out.warning("DeRiMV-7", fund.lineOf(field), "Relative VaR: " + plain(highest)
-                            + " % is more than twice the VaR of the reference portfolio (§ 16 4. DeRiMV); check whether "
-                            + "the value is reported as the ratio to the reference portfolio" + name + ".");
+                if (highest.compareTo(options.relativeVarLimit()) > 0) {
+                    out.warning("DeRiMV-7", fund.lineOf(field), "Relative VaR: " + plain(highest) + " % is above "
+                            + plain(options.relativeVarLimit()) + " % of the VaR of the reference portfolio (§ 16 4. DeRiMV); "
+                            + "check whether the value is reported as the ratio to the reference portfolio" + name + ".");
                 }
             }
             default -> {
                 // an unknown method is a schema error
+            }
+        }
+    }
+
+    /** Warning when a fund uses {@code warnAt} % of a limit or more, but stays within it (above it is an error / warning already). */
+    private static void utilisation(RecordNode fund, String method, BigDecimal highest, String field, BigDecimal ownLimit,
+                                    Options options, String name, RegRuleSet.Findings out) {
+        if (options.warnAt() == null) {
+            return;
+        }
+        BigDecimal legal = DerimvReport.legalLimit(method, options.relativeVarLimit());
+        BigDecimal own = "aVaR".equals(method) ? ownLimit : null;
+        for (BigDecimal limit : new BigDecimal[] {own, legal}) {
+            if (limit == null || limit.signum() <= 0 || highest.compareTo(limit) > 0) {
+                continue;
+            }
+            BigDecimal use = highest.multiply(BigDecimal.valueOf(100)).divide(limit, 1, java.math.RoundingMode.HALF_UP);
+            if (use.compareTo(options.warnAt()) >= 0) {
+                out.warning("DeRiMV-use", fund.lineOf(field), method + ": " + plain(highest) + " % uses " + plain(use) + " % of the "
+                        + (limit == own ? "fund's own limit" : "legal limit") + " (" + plain(limit) + " %)" + name + ".");
+                return;
             }
         }
     }

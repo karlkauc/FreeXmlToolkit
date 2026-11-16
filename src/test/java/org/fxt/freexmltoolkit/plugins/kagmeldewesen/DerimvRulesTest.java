@@ -121,6 +121,19 @@ class DerimvRulesTest {
     }
 
     @Test
+    void optionsMoveTheRelativeVarLimitAndWarnCloseToALimit() throws Exception {
+        RegRuleSet strict = DerimvRules.rules(() -> LocalDate.of(2026, 3, 1),
+                new DerimvRules.Options(new java.math.BigDecimal(120), new java.math.BigDecimal(60)));
+        List<RegRuleSet.Finding> all = strict.run(example(), "derimv.xml");
+        assertTrue(findings(all, "DeRiMV-7").stream().anyMatch(f -> f.message().contains("above 120 %")), all.toString());
+        // aVaR 6.85 of the own 10 % = 68.5 % → warned; the commitment funds use 18.75 % → not
+        List<RegRuleSet.Finding> use = findings(all, "DeRiMV-use");
+        assertEquals(1, use.size(), all.toString());
+        assertTrue(use.getFirst().message().contains("68.5 % of the fund's own limit (10 %)"), use.toString());
+        assertEquals(List.of(), findings(run(example()), "DeRiMV-use"), "off by default");
+    }
+
+    @Test
     void fieldLabels() {
         FieldCatalog catalog = KagMeldewesenPlugin.DERIMV_FIELDS.get();
         assertEquals("Field 6 · Risikoangabe", catalog.byPath("Derivatemeldung/InvestmentFonds/Risikoangabe").label());

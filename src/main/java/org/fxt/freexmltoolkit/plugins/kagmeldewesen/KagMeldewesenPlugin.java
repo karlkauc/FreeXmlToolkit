@@ -81,9 +81,12 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
     static final String DERIMV_RESOURCES = "/plugins/kagmeldewesen/derimv";
     static final List<String> DERIMV_SCHEMAS = List.of("Derivatemeldung.xsd", "DerivateTypes.xsd");
     static final Supplier<FieldCatalog> DERIMV_FIELDS = CatalogDescriber.lazy(DERIMV_RESOURCES + "/derimv-fields.json");
-    private static final RegRuleSet DERIMV_RULES = DerimvRules.rules(LocalDate::now);
+    /** Rules built for one state of the options. */
+    private record Cached(Object options, RegRuleSet rules) {
+    }
 
-    private static volatile RegRuleSet aifRules;
+    private static volatile Cached derimvRules;
+    private static volatile Cached aifRules;
     private static volatile RegRuleSet aifmRules;
 
     @Override public String id() { return ID; }
@@ -97,8 +100,13 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
                 + "money market fund reports and the derivative risk report (4. DeRiMV).";
     }
 
-    /** @return the rules of a report, or {@code null} for other documents */
+    /** @return the rules of a report with the stored options, or {@code null} for other documents */
     static RegRuleSet rulesFor(RegValidator.Root root, String content) {
+        return rulesFor(root, content, KagSettings.options());
+    }
+
+    /** @return the rules of a report, or {@code null} for other documents */
+    static RegRuleSet rulesFor(RegValidator.Root root, String content, KagSettings.Options options) {
         if (MmfRules.isMmf(root.localName(), root.namespace(), content)) {
             if (mmfRules == null) {
                 mmfRules = MmfRules.rules(MMF_FIELDS.get());
@@ -110,10 +118,12 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
         }
         return switch (root.localName()) {
             case AifmdRules.AIF_ROOT -> {
-                if (aifRules == null) {
-                    aifRules = AifmdRules.aif(AIF_FIELDS.get());
+                Cached cached = aifRules;
+                if (cached == null || !cached.options().equals(options.sumTolerance())) {
+                    cached = new Cached(options.sumTolerance(), AifmdRules.aif(AIF_FIELDS.get(), options.sumTolerance()));
+                    aifRules = cached;
                 }
-                yield aifRules;
+                yield cached.rules();
             }
             case AifmdRules.AIFM_ROOT -> {
                 if (aifmRules == null) {
@@ -121,7 +131,14 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
                 }
                 yield aifmRules;
             }
-            case DerimvRules.ROOT -> DERIMV_RULES;
+            case DerimvRules.ROOT -> {
+                Cached cached = derimvRules;
+                if (cached == null || !cached.options().equals(options.derimv())) {
+                    cached = new Cached(options.derimv(), DerimvRules.rules(LocalDate::now, options.derimv()));
+                    derimvRules = cached;
+                }
+                yield cached.rules();
+            }
             default -> null;
         };
     }
@@ -277,7 +294,8 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
     static String report(String content, String name) throws Exception {
         String kind = kind(content);
         RegValidator.Root root = content == null ? null : RegValidator.rootOf(content);
-        RegRuleSet rules = root == null ? null : rulesFor(root, content);
+        KagSettings.Options options = KagSettings.options();
+        RegRuleSet rules = root == null ? null : rulesFor(root, content, options);
         if (kind == null || rules == null) {
             return null;
         }
@@ -286,7 +304,8 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
         return switch (kind) {
             case "DeRiMV" -> RegReportHtml.render("Derivative risk report (4. DeRiMV)", name, summary, findings,
                     List.of(DERIMV_FIELDS.get()),
-                    List.of(DerimvReport.fundTable(content, DerimvRules.RELATIVE_VAR_LIMIT, new java.math.BigDecimal(90))));
+                    List.of(DerimvReport.fundTable(content, options.relativeVarLimit(),
+                            options.warn() ? options.warnAt() : KagSettings.DEFAULT_WARN_AT)));
             case "MMF" -> RegReportHtml.render("Money market fund report", name, summary, findings, List.of(MMF_FIELDS.get()), List.of());
             case "AIF" -> RegReportHtml.render("AIFMD AIF file", name, summary, findings, List.of(AIF_FIELDS.get()), List.of());
             default -> RegReportHtml.render("AIFMD AIFM file", name, summary, findings, List.of(AIFM_FIELDS.get()), List.of());

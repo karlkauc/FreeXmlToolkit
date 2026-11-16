@@ -48,7 +48,8 @@ public final class AifmdRules {
     static final String AIF_RECORD = AIF_ROOT + "/AIFRecordInfo";
     static final String AIFM_RECORD = AIFM_ROOT + "/AIFMRecordInfo";
 
-    private static final BigDecimal ROUNDING = new BigDecimal("0.5");
+    /** Default rounding tolerance of the sums of percentages (percentage points). */
+    public static final BigDecimal ROUNDING = new BigDecimal("0.5");
 
     private AifmdRules() {
     }
@@ -190,6 +191,11 @@ public final class AifmdRules {
 
     /** @return the rules of the AIF file ({@code AIFReportingInfo}) */
     public static RegRuleSet aif(FieldCatalog catalog) {
+        return aif(catalog, ROUNDING);
+    }
+
+    /** @param tolerance how far a sum of percentages may be from 100 (percentage points) */
+    public static RegRuleSet aif(FieldCatalog catalog, BigDecimal tolerance) {
         FieldRules f = new FieldRules(catalog, AIF_RECORD);
         String c = "AIFCompleteDescription";
         String p = c + "/AIFPrincipalInfo";
@@ -218,12 +224,12 @@ public final class AifmdRules {
                 .record(lei(f, "FMA-AIF-46", desc + "/PrimeBrokers/PrimeBrokerIdentification/EntityIdentificationLEI"))
                 .record(navNotAboveAum(f, desc));
         baseCurrency(rules, f, "FMA-AIF", desc + "/AIFBaseCurrencyDescription", "49,51,50,52");
-        strategies(rules, f, desc);
+        strategies(rules, f, desc, tolerance);
         mainInstruments(rules, f, p);
-        rules.record(f.sumIs100("FMA-AIF-78", p + "/NAVGeographicalFocus", List.of("*"), ROUNDING, false))
-                .record(f.sumIs100("FMA-AIF-86", p + "/AUMGeographicalFocus", List.of("*"), ROUNDING, false));
-        exposures(rules, f, p);
-        individual(rules, f, ind, risk, desc);
+        rules.record(f.sumIs100("FMA-AIF-78", p + "/NAVGeographicalFocus", List.of("*"), tolerance, false))
+                .record(f.sumIs100("FMA-AIF-86", p + "/AUMGeographicalFocus", List.of("*"), tolerance, false));
+        exposures(rules, f, p, tolerance);
+        individual(rules, f, ind, risk, desc, tolerance);
         leverage(rules, f, c + "/AIFLeverageInfo");
         return rules;
     }
@@ -262,7 +268,7 @@ public final class AifmdRules {
     }
 
     /** Fields 58–61: investment strategies of the predominant AIF type. */
-    private static void strategies(RegRuleSet rules, FieldRules f, String desc) {
+    private static void strategies(RegRuleSet rules, FieldRules f, String desc, BigDecimal tolerance) {
         String[][] kinds = {
                 {"HedgeFundInvestmentStrategies", "HedgeFundStrategy", "HedgeFundStrategyType", "MULT_HFND", "OTHR_HFND"},
                 {"PrivateEquityFundInvestmentStrategies", "PrivateEquityFundInvestmentStrategy", "PrivateEquityFundStrategyType", "MULT_PEQF", "OTHR_PEQF"},
@@ -299,7 +305,7 @@ public final class AifmdRules {
                         any = true;
                     }
                 }
-                if (any && sum.subtract(BigDecimal.valueOf(100)).abs().compareTo(ROUNDING) > 0) {
+                if (any && sum.subtract(BigDecimal.valueOf(100)).abs().compareTo(tolerance) > 0) {
                     out.error("FMA-AIF-60", items.getFirst().line(), "The strategy NAV percentages add up to "
                             + sum.stripTrailingZeros().toPlainString() + " %, not 100 %.");
                 }
@@ -356,7 +362,7 @@ public final class AifmdRules {
     }
 
     /** Fields 94–120: principal exposures, portfolio concentrations, principal markets, investor concentration. */
-    private static void exposures(RegRuleSet rules, FieldRules f, String p) {
+    private static void exposures(RegRuleSet rules, FieldRules f, String p, BigDecimal tolerance) {
         String exposure = p + "/PrincipalExposures/PrincipalExposure";
         for (String[] field : new String[][] {{"SubAssetType", "96"}, {"PositionType", "97"}, {"AggregatedValueAmount", "98"},
                 {"AggregatedValueRate", "99"}}) {
@@ -400,11 +406,11 @@ public final class AifmdRules {
                 .record(f.forbiddenWhen("FMA-AIF-113", p, "MostImportantConcentration/TypicalPositionSize",
                         "AIFDescription/PredominantAIFType", notIn("PEQF"), "the predominant AIF type is not PEQF"))
                 .record(f.sumIs100("FMA-AIF-119", conc + "/InvestorConcentration",
-                        List.of("ProfessionalInvestorConcentrationRate", "RetailInvestorConcentrationRate"), ROUNDING, true));
+                        List.of("ProfessionalInvestorConcentrationRate", "RetailInvestorConcentrationRate"), tolerance, true));
     }
 
     /** Fields 121–280: the AIF's individual information (exposures, risk profile). */
-    private static void individual(RegRuleSet rules, FieldRules f, String ind, String risk, String desc) {
+    private static void individual(RegRuleSet rules, FieldRules f, String ind, String risk, String desc, BigDecimal tolerance) {
         String exposure = ind + "/IndividualExposure";
         Set<String> gross = Set.of("DER_FEX_INVT", "DER_FEX_HEDG", "DER_IRD_INTR");
         String typeExposure = exposure + "/AssetTypeExposures/AssetTypeExposure";
@@ -472,12 +478,12 @@ public final class AifmdRules {
         // counterparty risk
         String cp = risk + "/CounterpartyRiskProfile";
         String trading = cp + "/TradingClearingMechanism";
-        rules.record(f.sumIs100("FMA-AIF-148", trading + "/TradedSecurities", List.of("RegulatedMarketRate", "OTCRate"), ROUNDING, false))
-                .record(f.sumIs100("FMA-AIF-150", trading + "/TradedDerivatives", List.of("RegulatedMarketRate", "OTCRate"), ROUNDING, false))
+        rules.record(f.sumIs100("FMA-AIF-148", trading + "/TradedSecurities", List.of("RegulatedMarketRate", "OTCRate"), tolerance, false))
+                .record(f.sumIs100("FMA-AIF-150", trading + "/TradedDerivatives", List.of("RegulatedMarketRate", "OTCRate"), tolerance, false))
                 .record(f.sumIs100("FMA-AIF-152", trading + "/ClearedDerivativesRate",
-                        List.of("CCPRate", "BilateralClearingRate", "TriPartyRepoClearingRate"), ROUNDING, false))
+                        List.of("CCPRate", "BilateralClearingRate", "TriPartyRepoClearingRate"), tolerance, false))
                 .record(f.sumIs100("FMA-AIF-154", trading + "/ClearedReposRate",
-                        List.of("CCPRate", "BilateralClearingRate", "TriPartyRepoClearingRate"), ROUNDING, false));
+                        List.of("CCPRate", "BilateralClearingRate", "TriPartyRepoClearingRate"), tolerance, false));
         for (String[] list : new String[][] {{"FundToCounterpartyExposures/FundToCounterpartyExposure", "162", "165"},
                 {"CounterpartyToFundExposures/CounterpartyToFundExposure", "168", "171"}}) {
             String item = cp + "/" + list[0];
@@ -506,7 +512,7 @@ public final class AifmdRules {
         rules.record(f.sumIs100("FMA-AIF-178", liquidity + "/PortfolioLiquidityProfile", List.of(
                         "PortfolioLiquidityInDays0to1Rate", "PortfolioLiquidityInDays2to7Rate", "PortfolioLiquidityInDays8to30Rate",
                         "PortfolioLiquidityInDays31to90Rate", "PortfolioLiquidityInDays91to180Rate",
-                        "PortfolioLiquidityInDays181to365Rate", "PortfolioLiquidityInDays365MoreRate"), ROUNDING, false))
+                        "PortfolioLiquidityInDays181to365Rate", "PortfolioLiquidityInDays365MoreRate"), tolerance, false))
                 .record((rec, ctx, out) -> {
                     RecordNode profile = rec.first(liquidity + "/PortfolioLiquidityProfile");
                     if (profile != null && profile.children().stream().anyMatch(ch -> ch.name().startsWith("PortfolioLiquidity"))
@@ -528,12 +534,12 @@ public final class AifmdRules {
         }
         rules.record(f.together("FMA-AIF-200", liquidity + "/InvestorArrangement/InvestorIlliquidAssetArrangement/OtherArrangement",
                         "OtherArrangementType", "OtherArrangementRate"))
-                .record(f.sumIs100("FMA-AIF-209", liquidity + "/InvestorGroups", List.of("InvestorGroup/InvestorGroupRate"), ROUNDING, false));
+                .record(f.sumIs100("FMA-AIF-209", liquidity + "/InvestorGroups", List.of("InvestorGroup/InvestorGroupRate"), tolerance, false));
         String financing = liquidity + "/FinancingLiquidityProfile";
         List<String> financingRates = List.of("TotalFinancingInDays0to1Rate", "TotalFinancingInDays2to7Rate",
                 "TotalFinancingInDays8to30Rate", "TotalFinancingInDays31to90Rate", "TotalFinancingInDays91to180Rate",
                 "TotalFinancingInDays181to365Rate", "TotalFinancingInDays365MoreRate");
-        rules.record(f.sumIs100("FMA-AIF-211", financing, financingRates, ROUNDING, false))
+        rules.record(f.sumIs100("FMA-AIF-211", financing, financingRates, tolerance, false))
                 .record((rec, ctx, out) -> {
                     RecordNode profile = rec.first(financing);
                     if (profile != null && profile.filled("TotalFinancingAmount")

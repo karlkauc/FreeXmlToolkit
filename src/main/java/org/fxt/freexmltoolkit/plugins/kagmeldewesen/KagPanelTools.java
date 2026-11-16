@@ -34,7 +34,10 @@ import org.fxt.freexmltoolkit.plugin.PluginUi;
 import org.fxt.freexmltoolkit.plugins.IndustryPanel;
 import org.fxt.freexmltoolkit.util.FileChooserHelper;
 
-/** The KAG-Meldewesen panel's tools: DeRiMV import from CSV/Excel and export to Excel/CSV. */
+/**
+ * The KAG-Meldewesen panel's tools and options: DeRiMV import from CSV/Excel and export to Excel/CSV, grid
+ * formulas for DeRiMV and AIF files, and the rule settings.
+ */
 final class KagPanelTools {
 
     /** Test hook: answers the file choosers ({@code true} = save dialog) instead of showing them. */
@@ -48,7 +51,41 @@ final class KagPanelTools {
         return panel.withTool(new IndustryPanel.Action("kag-derimv-import", "Import DeRiMV from CSV/Excel…",
                         "bi-file-earmark-arrow-down", ActionColor.CREATE, ui -> importDerimv(ui, panel)))
                 .withTool(new IndustryPanel.Action("kag-derimv-export", "Export DeRiMV to Excel/CSV…",
-                        "bi-file-earmark-spreadsheet", ActionColor.NAVIGATE, ui -> exportDerimv(ui, panel)));
+                        "bi-file-earmark-spreadsheet", ActionColor.NAVIGATE, ui -> exportDerimv(ui, panel)))
+                .withTool(new IndustryPanel.Action("kag-grid-add", "Add Grid Formulas (DeRiMV, AIF)",
+                        "bi-calculator", ActionColor.CREATE, ui -> gridCopy(ui, panel, true)))
+                .withTool(new IndustryPanel.Action("kag-grid-remove", "Remove Grid Formulas",
+                        "bi-eraser", ActionColor.DELETE, ui -> gridCopy(ui, panel, false)))
+                .withOptions(new KagOptionsPane());
+    }
+
+    /**
+     * Opens a copy of the active report with the grid formulas and filters (in the Graphic view) or without
+     * them (in the Text view, ready for submission).
+     */
+    static void gridCopy(PluginUi ui, IndustryPanel panel, boolean add) {
+        String xml = ui.editorHost().getActiveText().orElse(null);
+        String kind = xml == null ? null : KagMeldewesenPlugin.kind(xml);
+        if (kind == null) {
+            PanelStatus.precondition(panel.status(), "Open a KAG report first.");
+            return;
+        }
+        var annotations = KagGrid.annotations(kind, KagSettings.options());
+        if (add && annotations.isEmpty()) {
+            PanelStatus.precondition(panel.status(), "Grid formulas exist for DeRiMV reports and AIF files.");
+            return;
+        }
+        String name = ui.editorHost().getActiveDocument().map(d -> d.getDisplayName()).orElse("report.xml")
+                .replaceFirst("(?i)(-grid|-clean)?\\.xml$", "");
+        panel.background(add ? "Add grid formulas" : "Remove grid formulas", () -> add
+                ? org.fxt.freexmltoolkit.plugins.regreport.GridAnnotations.add(xml, annotations)
+                : org.fxt.freexmltoolkit.plugins.regreport.GridAnnotations.remove(xml), result -> {
+            ui.editorHost().openGeneratedDocument(result, EditorFileType.XML, name + (add ? "-grid.xml" : "-clean.xml"));
+            ui.editorHost().setActiveViewMode(add ? org.fxt.freexmltoolkit.controls.shell.editor.ViewMode.GRAPHIC
+                    : org.fxt.freexmltoolkit.controls.shell.editor.ViewMode.TEXT);
+            PanelStatus.success(panel.status(), add ? "Grid formulas added - remove them before submitting."
+                    : "Grid formulas removed.");
+        });
     }
 
     private static Path choose(PluginUi ui, boolean save, String title, String initialName) {

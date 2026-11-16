@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+
+<!--
+  OPTIONS of the KAG-Meldewesen panel: AIFMD sum tolerance, DeRiMV relative VaR limit and the
+  utilisation warning. Loaded by KagOptionsPane (fx:root); every change is stored at once.
+-->
+<fx:root type="javafx.scene.layout.VBox" spacing="6"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <GridPane hgap="6" vgap="4">
+            <columnConstraints>
+                <ColumnConstraints hgrow="ALWAYS"/>
+                <ColumnConstraints prefWidth="64" maxWidth="80"/>
+            </columnConstraints>
+            <children>
+                <Label text="%KagOptionsPane.sumTolerance.text" wrapText="true" GridPane.rowIndex="0"/>
+                <TextField fx:id="sumTolerance" id="kag-sum-tolerance" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <Label text="%KagOptionsPane.relativeVarLimit.text" wrapText="true" GridPane.rowIndex="1"/>
+                <TextField fx:id="relativeVarLimit" id="kag-rvar-limit" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <CheckBox fx:id="warn" id="kag-utilisation-warning" wrapText="true" text="%KagOptionsPane.warn.text"
+                          GridPane.rowIndex="2"/>
+                <TextField fx:id="warnAt" id="kag-utilisation-warning-at" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+            </children>
+        </GridPane>
+    </children>
+</fx:root>
