@@ -40,6 +40,7 @@ class KagPanelToolsTest {
     @Start
     void start(Stage stage) {
         org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
+        KagExtras.skipRegistrationForTests();
         host = new EditorHost();
         ui = new PluginUi() {
             @Override public EditorHost editorHost() { return host; }

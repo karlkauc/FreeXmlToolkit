@@ -49,6 +49,8 @@ class DerimvRulesTest {
         assertEquals(List.of(), run(xml));
         assertNotNull(KagMeldewesenPlugin.rulesFor(RegValidator.rootOf(xml), xml), "recognised by the plugin");
         assertEquals("DeRiMV Q4/2025", KagMeldewesenPlugin.label(xml));
+        assertTrue(new KagMeldewesenPlugin().recognises(xml), "offered while switched off");
+        assertTrue(!new KagMeldewesenPlugin().recognises("<other/>"));
         String described = KagMeldewesenPlugin.describe(xml);
         assertTrue(described.contains("4 funds") && described.contains("Beispiel Kapitalanlagegesellschaft"), described);
     }

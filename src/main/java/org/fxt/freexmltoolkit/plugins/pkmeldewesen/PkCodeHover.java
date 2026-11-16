@@ -82,6 +82,8 @@ final class PkCodeHover {
         }
         PkCodeHover hover = new PkCodeHover(area, dictionary);
         INSTALLED.put(area, hover);
+        // the generic field-label hover stays away from PK reports: this one knows their codes
+        area.getProperties().put(org.fxt.freexmltoolkit.controls.shell.editor.DescriberHover.CUSTOM_HOVER, Boolean.TRUE);
         if (area.getMouseOverTextDelay() == null) {
             area.setMouseOverTextDelay(Duration.ofMillis(500));
         }

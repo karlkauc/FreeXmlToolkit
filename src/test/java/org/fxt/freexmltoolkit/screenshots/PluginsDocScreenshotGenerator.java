@@ -55,12 +55,17 @@ class PluginsDocScreenshotGenerator {
             "kag-meldewesen", "esma-reporting");
 
     private final Map<String, String> previous = new java.util.HashMap<>();
+    private java.nio.file.Path previousTemplates;
     private Parent root;
     private UnifiedShellView shell;
 
     @Start
     void start(Stage stage) throws Exception {
         ServiceRegistry.initialize();
+        // the KAG extension's templates go to a temporary folder, never into release/examples/templates
+        var templateFiles = org.fxt.freexmltoolkit.service.TemplateFileService.getInstance();
+        previousTemplates = templateFiles.getTemplatesDirectoryPath();
+        templateFiles.setTemplatesDirectory(java.nio.file.Files.createTempDirectory("fxt-plugin-templates"));
         PropertiesService props = ServiceRegistry.get(PropertiesService.class);
         props.set(org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlHint.SHOWN_KEY, "true");
         for (String id : PLUGINS) {
@@ -86,6 +91,7 @@ class PluginsDocScreenshotGenerator {
             props.set(PluginManager.enabledKey(id), old == null ? "" : old);
         }
         PluginManager.getInstance().resetForTesting();
+        org.fxt.freexmltoolkit.service.TemplateFileService.getInstance().setTemplatesDirectory(previousTemplates);
     }
 
     @Test

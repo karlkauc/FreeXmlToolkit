@@ -36,6 +36,17 @@ public interface FxtPlugin {
         return true;
     }
 
+    /**
+     * Whether a document is one this extension works with. Asked also while the extension is switched
+     * off (without {@link #register}), so the application can offer it once when such a document is
+     * opened; must be cheap (look at the start of the text) and must not throw.
+     *
+     * @param content the document's text
+     */
+    default boolean recognises(String content) {
+        return false;
+    }
+
     /** Declares the plugin's contributions. Must not block and must not touch the UI. */
     void register(PluginContext context);
 }

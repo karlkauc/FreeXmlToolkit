@@ -3065,6 +3065,21 @@ public class EditorHost extends BorderPane {
         return validateHandlerSet;
     }
 
+    private Runnable validateInPlaceHandler;
+
+    /** Sets the validation that leaves the side panel as it is (set by the shell). */
+    public void setValidateInPlaceHandler(Runnable handler) {
+        this.validateInPlaceHandler = handler;
+    }
+
+    /**
+     * Validates the active document like F8 - problems in the PROBLEMS panel and the editor - but keeps the
+     * side panel that asked for it (an extension's panel) instead of switching to the Validation activity.
+     */
+    public void runValidationInPlace() {
+        (validateInPlaceHandler != null ? validateInPlaceHandler : validateHandler).run();
+    }
+
     /** Validates the active document the way F8 does (Validation panel, problems in the editor). */
     public void runValidation() {
         validateHandler.run();

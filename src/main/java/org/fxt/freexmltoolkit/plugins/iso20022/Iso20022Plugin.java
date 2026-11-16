@@ -70,6 +70,11 @@ public final class Iso20022Plugin implements FxtPlugin {
     @Override public boolean enabledByDefault() { return false; }
 
     @Override
+    public boolean recognises(String content) {
+        return content != null && describe(content) != null;
+    }
+
+    @Override
     public String description() {
         return "Schemas, checks (IBAN, BIC, control sums, EPC SEPA rules) and samples for pain, pacs and camt messages.";
     }

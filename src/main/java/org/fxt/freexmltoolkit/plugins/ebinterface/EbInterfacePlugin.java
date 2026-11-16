@@ -39,6 +39,11 @@ public final class EbInterfacePlugin implements FxtPlugin {
     @Override public boolean enabledByDefault() { return false; }
 
     @Override
+    public boolean recognises(String content) {
+        return content != null && describe(content) != null;
+    }
+
+    @Override
     public String description() {
         return "Schemas 4.1–6.1, checks (UID, IBAN, line and tax amounts, totals) and a sample invoice.";
     }

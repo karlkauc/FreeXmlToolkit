@@ -53,8 +53,18 @@ The extension is **off by default**: switch it on in **Settings → Extensions �
   guidance; the grid shows the same as tooltip of the element's name.
 - **Status bar badge:** `AIFMD AIF Y1/2025`, `AIFMD AIFM Q4/2025`, `MMF Q1–Q4/2026`, `DeRiMV Q4/2025`; a click
   opens the side panel.
-- **KAG-Meldewesen activity:** what the active document is, **Check Active Document**, an identifier
-  checker (LEI, ISIN, BIC) and two examples (**New AIF File**, **New AIFM File**) with fictitious data.
+- **KAG-Meldewesen activity:** what the active document is and how many errors and warnings its last
+  check found, **Check Active Document** (like **F8**: the problems go to the PROBLEMS panel below the editor
+  with a click to the line), **Check Report (HTML)**, the TOOLS below, OPTIONS and an identifier checker (LEI,
+  ISIN, BIC).
+- **Tools:** examples with fictitious data (**New AIF File**, **New AIFM File**, **New Money Market Fund
+  Report**, **New Derivative Risk Report**), **Import DeRiMV from CSV/Excel…**, **Export DeRiMV to Excel/CSV…**,
+  **Add / Remove Grid Formulas**, **Open Schema of the Report** and **Schema Documentation (HTML)**.
+- **Templates, queries, favorites:** opening the panel adds the four reports as templates (**File → New**,
+  category *KAG-Meldewesen*), analysis queries for the Query Console (tag `kag-meldewesen`: DeRiMV funds by use
+  of the limit or per method, AIF records, main instruments, geographical sums, MMF fund reports) and the
+  installed schemas as favorites.
+- **Field labels in the text:** rest the mouse on a tag name and a popup shows the field number, name and rule.
 - **Help menu:** **FMA AIFMD Reporting** opens the FMA's page with the rules and samples.
 
 ![The FMA rules finding a reporting period that ends before it starts and an LEI with wrong check digits](img/plugin-kag-meldewesen-problems.png)
@@ -84,6 +94,38 @@ rules of ESMA's *MMF validation rules v07* that need only the file (`ESMA-MMF-<f
 Checks against ESMA's register (authorised MMFs, earlier reports) only run at ESMA. **New Money
 Market Fund Report (Example)** opens a fictitious report.
 
+## Check report
+
+**Check Report (HTML)** opens a page in the preview: counts of errors and warnings, every finding grouped by
+rule with the field it belongs to (`FMA-AIF-48` → *Field 48 · …*) and its line. For a DeRiMV report it adds
+a table of every fund: exposure, maximum, the legal limit of its method and how much of it the fund uses,
+the fund's own limit (absolute VaR) and its use, the most used first; funds above a limit are red, those at
+90 % or more (or the threshold of the options) amber.
+
+## Options
+
+| Option | Default | Effect |
+|---|---|---|
+| AIFMD: tolerance of sums of percentages | 0.5 percentage points | how far a list that must add up to 100 % may be off |
+| DeRiMV: relative VaR warning above | 200 % | the relative VaR limit of rule `DeRiMV-7` |
+| DeRiMV: warn from this use of a limit | off, 90 % | rule `DeRiMV-use`: a warning for a fund within its limit but at this share of it or more |
+
+Settings `kag.aifmd.sumTolerance`, `kag.derimv.relativeVarLimit`, `kag.derimv.utilisationWarning`,
+`kag.derimv.utilisationWarningAt`; a change counts from the next check.
+
+## Grid formulas
+
+**Add Grid Formulas** opens a copy of a DeRiMV report or an AIF file in the **Graphic** view with
+[grid formulas](grid.md) and a saved filter, inserted into the text so the rest of the file stays as it was:
+
+- DeRiMV, on `Derivatemeldung`: funds, funds per method, highest use of a legal limit, funds at the warning
+  threshold or above, funds above a limit, highest absolute VaR; the filter shows the funds at the threshold or
+  above (switched off until you click it);
+- AIF file: the sum of every percentage list that must add up to 100 (geographical focus of NAV and AuM,
+  strategies, investor concentration, trading and clearing, portfolio liquidity, investor groups, financing).
+
+**Remove Grid Formulas** opens a copy without them - submit that one.
+
 ## Derivative risk report (4. DeRiMV)
 
 The whole report of a management company is one XML file (§ 2a Abs. 1): the company's name, bank code
@@ -109,6 +151,20 @@ ratio to the reference portfolio (limit 200 %), while the formula of § 16 Abs. 
 the excess over it (limit 100 %), and the regulation does not say which of the two the field holds. The
 FMA codes per fund are provided on the Incoming
 Platform. **New Derivative Risk Report (Example)** opens a fictitious report.
+
+### From and to a spreadsheet
+
+Risk management often keeps the report as CSV or Excel in the FMA's former CSV layout: row 1 holds the
+management company, the bank code and the period as `JJJJQ` (`20254` = Q4/2025), then one row per fund with
+the columns A–G FMA code, ISIN, fund name, exposure, maximum of the period, method and own limit (CSV with
+semicolons and a decimal comma). **Import DeRiMV from CSV/Excel…** turns such a file into the XML report,
+opens it and checks it: the encoding (UTF-8 or Windows-1252) and the decimal separator are detected, the
+method is normalised (`avar` → `aVaR`), values get two decimals, a bank code is padded to five digits and a
+fund name cut to 100 characters. Rows that need a look (no ISIN, a value that is no number, an unknown method)
+are listed in the side panel; they are imported as they are, so the check shows them in the report.
+**Export DeRiMV to Excel/CSV…** writes the active report as an Excel workbook in the application's style (sheet
+*Funds* with one row per fund, sheet *Info* with the header) or - for a `.csv` name - in the CSV layout; both
+can be imported again.
 
 ## Sources
 

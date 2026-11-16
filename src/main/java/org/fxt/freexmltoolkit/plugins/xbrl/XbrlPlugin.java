@@ -42,6 +42,11 @@ public final class XbrlPlugin implements FxtPlugin {
     @Override public boolean enabledByDefault() { return false; }
 
     @Override
+    public boolean recognises(String content) {
+        return content != null && describe(content) != null;
+    }
+
+    @Override
     public String description() {
         return "Recognises XBRL instances and inline XBRL reports and validates them with Arelle (installed separately).";
     }

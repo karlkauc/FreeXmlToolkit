@@ -1,0 +1,58 @@
+[
+  {
+    "key": "derimv-use-of-limit",
+    "name": "KAG: DeRiMV funds by use of the legal limit",
+    "description": "Every fund of a DeRiMV report with its maximum (or exposure) in % of the legal limit (commitment 100 %, absolute VaR 20 %, relative VaR 200 %), the most used first.",
+    "category": "ANALYSIS",
+    "query": "for $f in /Derivatemeldung/InvestmentFonds\nlet $limit := if ($f/Berechnungsmethode = 'Comm') then 100 else if ($f/Berechnungsmethode = 'aVaR') then 20 else 200\nlet $value := xs:decimal(($f/MaxRisikoangabe[normalize-space()], $f/Risikoangabe)[1])\norder by $value div $limit descending\nreturn string-join(($f/ISIN, $f/FondsName, $f/Berechnungsmethode, format-number($value * 100 div $limit, '0.0') || ' %'), ' | ')"
+  },
+  {
+    "key": "derimv-per-method",
+    "name": "KAG: DeRiMV funds per method",
+    "description": "How many funds of a DeRiMV report use the commitment approach, the absolute and the relative VaR.",
+    "category": "ANALYSIS",
+    "query": "for $m in ('Comm', 'aVaR', 'rVaR')\nreturn $m || ': ' || count(/Derivatemeldung/InvestmentFonds[Berechnungsmethode = $m])"
+  },
+  {
+    "key": "derimv-avar-above",
+    "name": "KAG: DeRiMV absolute VaR above 15 %",
+    "description": "Funds under the absolute VaR whose maximum of the period is above 15 % (the legal limit is 20 %).",
+    "category": "FILTERING",
+    "query": "/Derivatemeldung/InvestmentFonds[Berechnungsmethode = 'aVaR'][xs:decimal(MaxRisikoangabe) gt 15] ! string-join((ISIN, FondsName, MaxRisikoangabe || ' %'), ' | ')"
+  },
+  {
+    "key": "derimv-own-limit",
+    "name": "KAG: DeRiMV funds near their own limit",
+    "description": "Funds under the absolute VaR whose maximum of the period uses 90 % or more of the limit of their fund rules (GrenzenGesamtrisiko).",
+    "category": "FILTERING",
+    "query": "/Derivatemeldung/InvestmentFonds[Berechnungsmethode = 'aVaR'][normalize-space(GrenzenGesamtrisiko)][xs:decimal(MaxRisikoangabe) ge 0.9 * xs:decimal(GrenzenGesamtrisiko)] ! string-join((ISIN, FondsName, MaxRisikoangabe || ' of ' || GrenzenGesamtrisiko || ' %'), ' | ')"
+  },
+  {
+    "key": "aif-overview",
+    "name": "KAG: AIFMD AIF records",
+    "description": "Every AIF record of an AIF file: national code, name, predominant type, NAV and reporting period.",
+    "category": "EXTRACTION",
+    "query": "for $r in /AIFReportingInfo/AIFRecordInfo\nlet $d := $r/AIFCompleteDescription/AIFPrincipalInfo\nreturn string-join(($r/AIFNationalCode, $r/AIFName, $d/AIFDescription/PredominantAIFType, $d/AIFDescription/AIFBaseCurrencyDescription/AIFNetAssetValue ! format-number(xs:decimal(.), '#,##0'), $r/ReportingPeriodType || ' ' || $r/ReportingPeriodYear), ' | ')"
+  },
+  {
+    "key": "aif-main-instruments",
+    "name": "KAG: AIFMD main instruments traded",
+    "description": "The main instruments of each AIF with ranking, type and position value.",
+    "category": "EXTRACTION",
+    "query": "for $i in /AIFReportingInfo/AIFRecordInfo//MainInstrumentTraded[normalize-space(SubAssetType) and SubAssetType != 'NTA_NTA_NOTA']\nreturn string-join(($i/ancestor::AIFRecordInfo/AIFNationalCode, $i/Ranking, $i/SubAssetType, $i/InstrumentName, $i/PositionType, $i/PositionValue), ' | ')"
+  },
+  {
+    "key": "aif-geographical-sums",
+    "name": "KAG: AIFMD geographical focus sums",
+    "description": "The sums of the NAV and AuM geographical focus percentages of each AIF (each must be 100).",
+    "category": "VALIDATION",
+    "query": "for $r in /AIFReportingInfo/AIFRecordInfo\nlet $p := $r/AIFCompleteDescription/AIFPrincipalInfo\nreturn string-join(($r/AIFNationalCode, 'NAV ' || sum($p/NAVGeographicalFocus/*[normalize-space()] ! xs:decimal(.)), 'AuM ' || sum($p/AUMGeographicalFocus/*[normalize-space()] ! xs:decimal(.))), ' | ')"
+  },
+  {
+    "key": "mmf-funds",
+    "name": "KAG: MMF fund reports",
+    "description": "Every fund report of a money market fund file with its national code and reporting year.",
+    "category": "EXTRACTION",
+    "query": "for $f in //*:FndRpt\nreturn string-join((string(($f//*:NtlRegnNb/*:Id)[1]), string(($f//*:RptgYr)[1])), ' | ')"
+  }
+]

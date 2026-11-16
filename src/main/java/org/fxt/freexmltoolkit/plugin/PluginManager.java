@@ -58,6 +58,8 @@ public final class PluginManager {
     private final List<DocumentListener> documentListeners = new CopyOnWriteArrayList<>();
     private final List<DocumentBadge> documentBadges = new CopyOnWriteArrayList<>();
     private final List<String> stylesheets = new CopyOnWriteArrayList<>();
+    /** The switched-off plugins by id (not registered; asked only whether they recognise a document). */
+    private final java.util.Map<String, FxtPlugin> disabled = new java.util.concurrent.ConcurrentHashMap<>();
     private final List<PluginSchema> schemas = new CopyOnWriteArrayList<>();
     private volatile boolean loaded;
 
@@ -172,6 +174,7 @@ public final class PluginManager {
         String enabled = setting(enabledKey(id));
         if (enabled == null || enabled.isBlank() ? !onByDefault : "false".equalsIgnoreCase(enabled)) {
             plugins.add(new PluginInfo(id, name, version, description, origin, jar, State.DISABLED, null));
+            disabled.put(id, plugin);
             return;
         }
         Collector collector = new Collector(id);
@@ -224,6 +227,40 @@ public final class PluginManager {
         } catch (RuntimeException e) {
             return null;
         }
+    }
+
+    // ---- switched-off plugins that recognise a document ---------------------------------------
+
+    /** The setting that records that a switched-off plugin was offered once. */
+    public static String hintShownKey(String pluginId) {
+        return "plugin." + pluginId + ".hintShown";
+    }
+
+    /**
+     * @return the switched-off plugins that recognise the document ({@link FxtPlugin#recognises}), were not
+     * offered before and may be switched on (not locked by the administrator)
+     */
+    public List<PluginInfo> offersFor(String content) {
+        ensureLoaded();
+        if (content == null || content.isEmpty()) {
+            return List.of();
+        }
+        List<PluginInfo> offers = new ArrayList<>();
+        for (PluginInfo info : List.copyOf(plugins)) {
+            FxtPlugin plugin = disabled.get(info.id());
+            if (plugin == null || info.state() != State.DISABLED || Boolean.parseBoolean(setting(hintShownKey(info.id())))
+                    || AdminPolicy.current().isLocked(enabledKey(info.id()))) {
+                continue;
+            }
+            try {
+                if (plugin.recognises(content)) {
+                    offers.add(info);
+                }
+            } catch (RuntimeException | LinkageError e) {
+                logger.debug("Plugin {} could not look at a document: {}", info.id(), e.getMessage());
+            }
+        }
+        return offers;
     }
 
     // ---- what the plugins contributed --------------------------------------------------------
@@ -369,6 +406,7 @@ public final class PluginManager {
     /** Test hook: forgets everything; the next {@link #loadAll()} loads again. */
     public synchronized void resetForTesting() {
         plugins.clear();
+        disabled.clear();
         activities.clear();
         menuItems.clear();
         validators.clear();

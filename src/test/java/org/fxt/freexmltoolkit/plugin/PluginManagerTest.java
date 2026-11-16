@@ -109,6 +109,31 @@ class PluginManagerTest {
     }
 
     @Test
+    @DisplayName("a switched-off plugin that recognises a document is offered once")
+    void offersOfSwitchedOffPlugins() {
+        PropertiesService props = ServiceRegistry.get(PropertiesService.class);
+        props.set(PluginManager.enabledKey("test.off"), "false");
+        props.set(PluginManager.hintShownKey("test.off"), "");
+        try {
+            manager.registerForTesting(new FxtPlugin() {
+                @Override public String id() { return "test.off"; }
+                @Override public String name() { return "Off"; }
+                @Override public boolean recognises(String content) { return content.contains("<offer"); }
+                @Override public void register(PluginContext context) {
+                    throw new AssertionError("a switched-off plugin is not registered");
+                }
+            });
+            manager.registerForTesting(new TestPlugin("test.ok", false)); // active: never offered
+            assertEquals(List.of("test.off"), manager.offersFor("<offer/>").stream().map(PluginManager.PluginInfo::id).toList());
+            assertEquals(List.of(), manager.offersFor("<other/>"));
+            props.set(PluginManager.hintShownKey("test.off"), "true");
+            assertEquals(List.of(), manager.offersFor("<offer/>"), "offered once");
+        } finally {
+            props.set(PluginManager.hintShownKey("test.off"), "");
+        }
+    }
+
+    @Test
     @DisplayName("element describers answer for the elements they know; a failing one is skipped")
     void describers() {
         manager.registerForTesting(new TestPlugin("test.ok", false));

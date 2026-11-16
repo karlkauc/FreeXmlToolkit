@@ -240,6 +240,12 @@ the jars in `~/.freeXmlToolkit/plugins` (`-Dfxt.plugins.dir`, own `URLClassLoade
 `createSidePanel` switches on `activity.id()`. The UI side is `ShellPluginUi`. FundsXML is the reference plugin
 (`controls/shell/editor/FundsXmlPlugin`; its Settings card and Welcome section are still core). Settings →
 Extensions → PLUGINS lists them. Docs: `docs/plugins.md`.
+Switched-off plugins are kept (not registered) for `FxtPlugin.recognises(content)` → `PluginManager.offersFor` → one-time
+`PluginHintBar` (`plugin.<id>.hintShown`); `controls/shell/editor/DescriberHover` shows `PluginManager.describe` on tag names
+in the text (≤ 2 MB, not on areas with `DescriberHover.CUSTOM_HOVER`, set by `PkCodeHover`). `IndustryPanel`: Check = F8
+(`EditorHost.runValidation`, counts from `getActiveProblems`; a `Checker` publishes via `publishValidation`), optional
+`withReport` (HTML, preview), `withTool`, `withOptions`, `background(…)`; `regreport/RegReportHtml` (findings by rule + field),
+`regreport/GridAnnotations` (text-level `fxt-formula`/`fxt-filter` PIs).
 Industry plugins (`plugins/`, off by default via `enabledByDefault()`): `iso20022` (schemas via
 `PluginContext.addSchema` → Schema Library source PLUGIN, control sums, EPC SEPA rules), `ebinterface`,
 `findatex` (EMT/EET/EPT/TPT V7+V8 CSV against `plugins/findatex/templates.json` from `scripts/findatex-fields.py NAME=xlsx…`; versions sharing a version field are picked by its value, `FinDatExTemplates.forVersion`; TPT mandatory fields per CIC category, `Field.isMandatoryFor`),
@@ -247,7 +253,9 @@ Industry plugins (`plugins/`, off by default via `enabledByDefault()`): `iso2002
 store `~/.freeXmlToolkit/pk-meldewesen/<version>/` + stable `_active/` schema copies, ZIP import; `PkRuleCheck` runs the
 bundled `rules/pk-pfq-rules.xslt` (`resultsOnly`, `internal` = INT_* checks) → `PkLocator` lines → `PkRuleValidator`;
 `PkDictionary` labels from the workbooks (`labels.json`) → `PkDescriber` / `PkCodeHover`; `PkGridSetup`, `PkSubmission`
-(FMA file name, ZIP); real reports are never in the repo — fixtures are synthetic). `kagmeldewesen` (AIFMD AIF/AIFM files on ESMA XSD v1.2, `AifmdRules` = FMA Prüfregeln) on the shared core
+(FMA file name, ZIP); real reports are never in the repo — fixtures are synthetic). `kagmeldewesen` (AIFMD AIF/AIFM files on ESMA XSD v1.2, `AifmdRules` = FMA Prüfregeln; 4. DeRiMV `DerimvRules` on the FMA XSD
+2016, `DerimvSpreadsheet` CSV/XLSX import + export, `DerimvReport` fund table; `KagSettings` options `kag.*`, `KagGrid`,
+`KagExtras` templates/snippets/favorites, `KagPanelTools`) on the shared core
 `plugins/regreport/` (`RecordReader` → `RecordNode` records with lines, `RegRuleSet` + `FieldRules` builders, `RegValidator` by
 root element, `FieldCatalog` JSON from `scripts/aifmd-fields.py` + `CatalogDescriber`, `BundledSchemas`; source documents
 are downloaded into the gitignored `regdata/`). `esmareporting` (EMIR auth.030: `ActionMatrix` = ESMA's M/C/O/- table per

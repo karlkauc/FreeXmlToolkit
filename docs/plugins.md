@@ -34,6 +34,7 @@ at once. A plugin that could not be loaded is listed with the reason
 | **Validator** | Its problems appear with every XML validation — the Validation panel, **F8**, and `fxt-cli validate` — with the validator's name as source |
 | **Startup task** | Runs once in the background a few seconds after start (FundsXML: checks for new schema versions) |
 | **Document listener** | Is told when a document has been opened; it can show a bar above the editor (FundsXML: the hint bar) |
+| **Element describer** | Text about an element (field number, rule) in the Inspector's DOCUMENTATION, as grid tooltip and as hover on the tag name in the text editor |
 | **Stylesheet** | Added to the window, for the plugin's own panels |
 | **Schema** | A Schema Library entry (source *Plugin*) while the plugin is on; never saved to the user's library |
 
@@ -61,7 +62,10 @@ loaded, every contribution type, threads, translations, building, testing and de
 | KAG-Meldewesen (FMA reports of management companies) | no | [KAG-Meldewesen](plugin-kag-meldewesen.md) |
 | ESMA Reporting (EMIR, SFTR and MiFIR reports) | no | [ESMA Reporting](plugin-esma-reporting.md) |
 
-A plugin can say it is off until the user switches it on (`enabledByDefault()`), and it can add
+A plugin can say it is off until the user switches it on (`enabledByDefault()`); while it is off,
+`recognises(content)` is still asked when a document is opened, and a plugin that answers `true` is offered once
+in a bar above the editor (setting `plugin.<id>.hintShown`; not when the administrator locked
+`plugin.<id>.enabled`). It can add
 XML Schemas to the Schema Library (`context.addSchema(new PluginSchema(namespace, url, description, null))`).
 
 ## Updating plugins

@@ -68,6 +68,14 @@ running is shown under **Help → About FreeXmlToolkit**.
   Inspector. See [KAG-Meldewesen](plugin-kag-meldewesen.md).
 - **Money market fund reports** (ESMA auth.093) are validated in their BizData envelope and checked with ESMA's
   application rules (periods, share classes, liquidity profile, stress tests, assets, codes).
+- **Industry extension panels:** **Check Active Document** validates like **F8** - the problems go to the PROBLEMS
+  panel with a click to the line and are underlined in the text; the panel shows the counts. A switched-off
+  extension that recognises an opened document is offered once in a bar above the editor, and the field labels of
+  ESMA and KAG reports appear when the mouse rests on a tag name. See [Industry Extensions](industry-plugins.md).
+- **KAG-Meldewesen:** **Check Report (HTML)** with the findings by rule and, for DeRiMV, a table of every fund's
+  use of its limits; **Import DeRiMV from CSV/Excel** (the risk management's CSV layout) and **Export to
+  Excel/CSV**; grid formulas for DeRiMV reports and AIF files; options for the AIFMD sum tolerance and the DeRiMV
+  limits; templates, analysis queries and schema favorites. See [KAG-Meldewesen](plugin-kag-meldewesen.md).
 - **Derivative risk report (4. DeRiMV):** the UCITS report `Derivatemeldung` is bound to the FMA's schema and checked
   against the limits of the global exposure (commitment 100 %, absolute VaR 20 %, relative VaR 200 %), the fund's own
   limit, the period maximum and ISIN check digits. **New Derivative Risk Report (Example)** opens a fictitious report.

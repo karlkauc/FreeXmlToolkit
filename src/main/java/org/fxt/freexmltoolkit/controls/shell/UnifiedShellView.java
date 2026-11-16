@@ -191,6 +191,11 @@ public class UnifiedShellView extends BorderPane {
         editorHost.setNewDocumentHandler(this::newDocument);
         editorHost.setRevealInExplorerHandler(this::revealInExplorer);
         editorHost.setValidateHandler(this::validateActive);
+        editorHost.setValidateInPlaceHandler(() -> {
+            if (editorHost.getActiveDocument().isPresent()) {
+                validationPanel().revalidate();
+            }
+        });
         // "Export View…" / "Copy View as Image" in the diagram, grid and flame-graph context menus
         org.fxt.freexmltoolkit.controls.shell.editor.ViewExport.installMenuHandler(editorHost);
         queryConsole = new org.fxt.freexmltoolkit.controls.shell.editor.QueryConsole(editorHost);
@@ -353,6 +358,10 @@ public class UnifiedShellView extends BorderPane {
             }
             if (editorHost.getActiveDocument().orElse(null) == doc) {
                 updateDocumentBadges();
+                // field labels of the extensions on the tag names in the text (when any extension describes elements)
+                if (org.fxt.freexmltoolkit.plugin.PluginManager.getInstance().hasElementDescribers()) {
+                    org.fxt.freexmltoolkit.controls.shell.editor.DescriberHover.installOn(editorHost.getActiveCodeArea());
+                }
             }
             for (var listener : org.fxt.freexmltoolkit.plugin.PluginManager.getInstance().documentListeners()) {
                 try {
@@ -362,6 +371,7 @@ public class UnifiedShellView extends BorderPane {
                             .warn("Plugin document listener failed", e);
                 }
             }
+            offerSwitchedOffExtension(doc, content);
         });
         // The plugins' stylesheets, once the shell is in a scene; accessible names for its controls
         sceneProperty().addListener((obs, oldScene, scene) -> {
@@ -534,6 +544,23 @@ public class UnifiedShellView extends BorderPane {
                         e.getMessage(), e));
             }
         });
+    }
+
+    /**
+     * Offers a switched-off extension once when it recognises the opened document - unless another bar
+     * (FundsXML, PK-Meldewesen) is already shown for it.
+     */
+    private void offerSwitchedOffExtension(Object doc, String content) {
+        if (editorHost.getActiveDocument().orElse(null) != doc
+                || (pluginEditorBar != null && pluginEditorBar.getParent() != null)) {
+            return;
+        }
+        String head = content == null ? null : content.substring(0, Math.min(content.length(), 64 * 1024));
+        var offers = org.fxt.freexmltoolkit.plugin.PluginManager.getInstance().offersFor(head);
+        if (!offers.isEmpty()) {
+            showEditorBar(new org.fxt.freexmltoolkit.controls.shell.editor.PluginHintBar(offers.getFirst().id(),
+                    offers.getFirst().name()));
+        }
     }
 
     /** The bar a plugin shows above the editor, or {@code null}. */

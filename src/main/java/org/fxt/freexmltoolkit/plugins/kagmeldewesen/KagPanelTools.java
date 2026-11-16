@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Locale;
 import java.util.function.BiFunction;
 
@@ -48,6 +49,7 @@ final class KagPanelTools {
 
     /** Adds the tools to the panel. */
     static IndustryPanel install(IndustryPanel panel) {
+        KagExtras.registerOnce(List.copyOf(KagMeldewesenPlugin.SCHEMAS.values()));
         return panel.withTool(new IndustryPanel.Action("kag-derimv-import", "Import DeRiMV from CSV/Excel…",
                         "bi-file-earmark-arrow-down", ActionColor.CREATE, ui -> importDerimv(ui, panel)))
                 .withTool(new IndustryPanel.Action("kag-derimv-export", "Export DeRiMV to Excel/CSV…",
@@ -56,7 +58,52 @@ final class KagPanelTools {
                         "bi-calculator", ActionColor.CREATE, ui -> gridCopy(ui, panel, true)))
                 .withTool(new IndustryPanel.Action("kag-grid-remove", "Remove Grid Formulas",
                         "bi-eraser", ActionColor.DELETE, ui -> gridCopy(ui, panel, false)))
+                .withTool(new IndustryPanel.Action("kag-open-schema", "Open Schema of the Report",
+                        "bi-file-earmark-code", ActionColor.NAVIGATE, ui -> openSchema(ui, panel)))
+                .withTool(new IndustryPanel.Action("kag-schema-doc", "Schema Documentation (HTML)",
+                        "bi-journal-code", ActionColor.NAVIGATE, ui -> schemaDocumentation(ui, panel)))
                 .withOptions(new KagOptionsPane());
+    }
+
+    /** @return the kind of the active report, else the DeRiMV (the schema the actions fall back to) */
+    private static String activeKind(PluginUi ui) {
+        String kind = ui.editorHost().getActiveText().map(KagMeldewesenPlugin::kind).orElse(null);
+        return kind == null ? "DeRiMV" : kind;
+    }
+
+    /** Opens the installed schema of the active report kind. */
+    static void openSchema(PluginUi ui, IndustryPanel panel) {
+        Path schema = KagMeldewesenPlugin.SCHEMAS.get(activeKind(ui));
+        if (schema == null || !Files.isRegularFile(schema)) {
+            PanelStatus.precondition(panel.status(), "The schema is not installed.");
+            return;
+        }
+        ui.openFile(schema);
+    }
+
+    /** Generates the HTML documentation of the active report kind's schema (once) and opens it. */
+    static void schemaDocumentation(PluginUi ui, IndustryPanel panel) {
+        String kind = activeKind(ui);
+        Path schema = KagMeldewesenPlugin.SCHEMAS.get(kind);
+        if (schema == null || !Files.isRegularFile(schema)) {
+            PanelStatus.precondition(panel.status(), "The schema is not installed.");
+            return;
+        }
+        File out = org.fxt.freexmltoolkit.plugins.regreport.BundledSchemas.store(KagMeldewesenPlugin.ID)
+                .resolve("schema-doc-" + kind.toLowerCase(Locale.ROOT)).toFile();
+        File index = new File(out, "index.html");
+        if (index.isFile()) {
+            org.fxt.freexmltoolkit.util.DesktopActions.open(index, e -> PanelStatus.info(panel.status(), String.valueOf(e.getMessage())));
+            return;
+        }
+        panel.background("Schema documentation", () -> {
+            String result = org.fxt.freexmltoolkit.controls.shell.editor.DocumentationRunner.exportHtml(schema.toFile(), out);
+            if (!result.startsWith("OK:")) {
+                throw new java.io.IOException(result);
+            }
+            return index;
+        }, file -> org.fxt.freexmltoolkit.util.DesktopActions.open(file,
+                e -> PanelStatus.info(panel.status(), String.valueOf(e.getMessage()))));
     }
 
     /**
@@ -128,7 +175,7 @@ final class KagPanelTools {
                 }
                 PanelStatus.precondition(panel.status(), text.toString());
             }
-            ui.editorHost().runValidation();
+            ui.editorHost().runValidationInPlace();
         });
     }
 

@@ -296,10 +296,12 @@ public class IndustryPanel extends VBox {
         if (text == null) {
             return;
         }
-        if (validator != null && host.hasValidateHandler()) {
-            host.runValidation(); // schema + every plugin validator, problems to the PROBLEMS panel
+        boolean xml = host.getActiveDocument().map(d -> d.getFileType() != null && d.getFileType().isXmlFamily()).orElse(false);
+        if (validator != null && host.hasValidateHandler() && xml) {
+            host.runValidationInPlace(); // schema + every plugin validator, problems to the PROBLEMS panel
             return;
         }
+        // other documents (CSV, Excel …): F8 runs no plugin validators there, the panel checks itself
         var document = host.getActiveDocument();
         String name = document.map(d -> d.getDisplayName()).orElse(null);
         java.nio.file.Path path = document.map(d -> d.getPath()).orElse(null);

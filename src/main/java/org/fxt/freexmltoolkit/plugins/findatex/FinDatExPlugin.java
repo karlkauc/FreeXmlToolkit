@@ -48,6 +48,11 @@ public final class FinDatExPlugin implements FxtPlugin {
     @Override public boolean enabledByDefault() { return false; }
 
     @Override
+    public boolean recognises(String content) {
+        return content != null && describe(content) != null;
+    }
+
+    @Override
     public String description() {
         return "Checks EMT, EET, EPT and TPT files (CSV or Excel) against the official field definitions.";
     }

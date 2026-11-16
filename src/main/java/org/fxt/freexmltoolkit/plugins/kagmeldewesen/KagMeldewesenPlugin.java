@@ -81,6 +81,9 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
     static final String DERIMV_RESOURCES = "/plugins/kagmeldewesen/derimv";
     static final List<String> DERIMV_SCHEMAS = List.of("Derivatemeldung.xsd", "DerivateTypes.xsd");
     static final Supplier<FieldCatalog> DERIMV_FIELDS = CatalogDescriber.lazy(DERIMV_RESOURCES + "/derimv-fields.json");
+    /** The installed schema of each report kind ({@code AIF}, {@code AIFM}, {@code MMF}, {@code DeRiMV}). */
+    static final java.util.Map<String, Path> SCHEMAS = new java.util.concurrent.ConcurrentHashMap<>();
+
     /** Rules built for one state of the options. */
     private record Cached(Object options, RegRuleSet rules) {
     }
@@ -93,6 +96,11 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
     @Override public String name() { return "KAG-Meldewesen (FMA)"; }
     @Override public String version() { return "1.0"; }
     @Override public boolean enabledByDefault() { return false; }
+
+    @Override
+    public boolean recognises(String content) {
+        return content != null && describe(content) != null;
+    }
 
     @Override
     public String description() {
@@ -151,15 +159,20 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
         context.addElementDescriber(new CatalogDescriber(() -> true, List.of(AIF_FIELDS, AIFM_FIELDS, MMF_FIELDS, DERIMV_FIELDS)));
         try {
             Path dir = BundledSchemas.install(ID, "aifmd-1.2", AIFMD_RESOURCES, AIFMD_SCHEMAS);
+            SCHEMAS.put("AIF", dir.resolve("AIFMD_DATAIF_V1.2.xsd"));
+            SCHEMAS.put("AIFM", dir.resolve("AIFMD_DATMAN_V1.2.xsd"));
             context.addSchema(new PluginSchema(null, dir.resolve("AIFMD_DATAIF_V1.2.xsd").toAbsolutePath().toString(),
                     "ESMA AIFMD reporting, AIF file (v1.2)", AifmdRules.AIF_ROOT));
             context.addSchema(new PluginSchema(null, dir.resolve("AIFMD_DATMAN_V1.2.xsd").toAbsolutePath().toString(),
                     "ESMA AIFMD reporting, AIFM file (v1.2)", AifmdRules.AIFM_ROOT));
             Path derimv = BundledSchemas.install(ID, "derimv-2016", DERIMV_RESOURCES, DERIMV_SCHEMAS);
+            SCHEMAS.put("DeRiMV", derimv.resolve("Derivatemeldung.xsd"));
             context.addSchema(new PluginSchema(null, derimv.resolve("Derivatemeldung.xsd").toAbsolutePath().toString(),
                     "FMA derivative risk report (4. DeRiMV, 2016)", DerimvRules.ROOT));
             org.fxt.freexmltoolkit.plugins.regreport.EsmaSchemas.register(context,
                     org.fxt.freexmltoolkit.plugins.regreport.EsmaSchemas.MMF, "ESMA money market fund report (auth.093, v04.1)");
+            SCHEMAS.put("MMF", org.fxt.freexmltoolkit.plugins.regreport.EsmaSchemas.install().resolve(
+                    org.fxt.freexmltoolkit.plugins.regreport.EsmaSchemas.fileOf(org.fxt.freexmltoolkit.plugins.regreport.EsmaSchemas.MMF)));
         } catch (RuntimeException e) {
             logger.warn("KAG-Meldewesen schemas not registered: {}", e.getMessage());
         }

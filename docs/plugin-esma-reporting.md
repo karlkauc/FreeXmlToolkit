@@ -53,8 +53,11 @@ The extension is **off by default**: switch it on in **Settings → Extensions �
   type, ESMA's rules text and the details to be reported in the Inspector's DOCUMENTATION and as grid
   tooltip - also inside the envelope.
 - **Status bar badge:** `EMIR · 3 reports`, `SFTR · 1 report`, `MiFIR · 2 transactions`; the side panel lists the reports per action type.
-- **ESMA Reporting activity:** the document's summary, **Check Active Document**, an LEI/ISIN checker
-  and an example error report (EROR) with fictitious data.
+- **ESMA Reporting activity:** the document's summary with the counts of its last check, **Check Active
+  Document** (like **F8**: the problems go to the PROBLEMS panel with a click to the line), **Check Report
+  (HTML)** (the findings grouped by rule with their EMIR/SFTR/MiFIR field), an LEI/ISIN checker and examples
+  with fictitious data.
+- **Field labels in the text:** rest the mouse on a tag name and a popup shows the field number, name and rule.
 
 ![ESMA's rules finding a counterparty LEI with wrong check digits](img/plugin-esma-reporting-problems.png)
 

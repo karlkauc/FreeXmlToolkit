@@ -79,6 +79,11 @@ public final class EsmaReportingPlugin implements FxtPlugin {
     @Override public boolean enabledByDefault() { return false; }
 
     @Override
+    public boolean recognises(String content) {
+        return content != null && describe(content) != null;
+    }
+
+    @Override
     public String description() {
         return "ESMA transaction reports in ISO 20022: EMIR Refit, SFTR and MiFIR reports with ESMA's validation rules.";
     }
