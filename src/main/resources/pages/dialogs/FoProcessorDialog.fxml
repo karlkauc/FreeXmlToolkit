@@ -74,7 +74,7 @@
         </Spinner>
         <HBox spacing="8" alignment="CENTER_LEFT" GridPane.rowIndex="7" GridPane.columnIndex="1" GridPane.columnSpan="2">
             <children>
-                <Button fx:id="testButton" id="fo-processor-test" text="%FoProcessorDialog.testButton.text" onAction="#onTest">
+                <Button fx:id="testButton" id="fo-processor-test" text="%FoProcessorDialog.testButton.text" minWidth="-Infinity" onAction="#onTest">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-play-circle" iconSize="16"/>
                     </graphic>

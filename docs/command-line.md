@@ -151,6 +151,8 @@ fxt-cli transform -s STYLESHEET [options] [INPUT...]
 | `--profile REPORT` | XSLT with one input, or XQuery with at most one: profile the run and write the report, as JSON when REPORT ends in `.json`, else as text (`-` for standard error) |
 | `--warmup N` | With `--profile`: runs before the measured one (default 1), so Java's JIT compiler has warmed up |
 | `--lang-version VERSION` | XSLT `1.0`, `2.0`, `3.0` (default) or XQuery `1.0`, `3.0`, `3.1` (default); see [Language Versions](language-versions.md) |
+| `--processor NAME` | XSLT: `builtin` (the bundled Saxon HE) or the name or id of an [external XSLT processor](transform-panel.md#external-xslt-processors) from *Settings → XSLT Processors*. Default: the default XSLT processor of the settings. Not with `--profile` or `--lang-version` |
+| `--list-processors` | Lists the XSLT processors (`*` marks the default) and exits |
 
 Without `-o` and `-d` the result goes to standard output. `xsl:message` output goes to standard
 error. XSLT needs an input document; XQuery and XProc can run without one. Relative
@@ -494,6 +496,7 @@ fxt-cli fop --list-processors
 | `--page-size`, `--orientation` | Passed to the stylesheet as the parameters `page-size` and `page-orientation` |
 | `-p`, `--processor NAME` | `builtin` (the bundled Apache FOP) or the name or id of an external processor from *Settings → XSL-FO Processors*. Default: the default processor of the settings |
 | `--list-processors` | Lists the processors (`*` marks the default) and exits |
+| `--xslt-processor NAME` | The processor of the XSLT stage (`-i` + `-s`): `builtin` (Saxon HE) or an [external XSLT processor](transform-panel.md#external-xslt-processors). Default: the default XSLT processor of the settings |
 
 The external processor's warnings and errors are printed to standard error; a failed run gives
 exit code 1.

@@ -101,6 +101,24 @@ folder, exit 0 + written output = success, timeout kills descendants, output →
 `fop --processor / --list-processors`; `Scenario.processor` (a name, never a command line). Tests start
 `FakeFoProcessor` with the running JVM (`FakeProcessors`). Docs: `docs/pdf-generator.md`.
 
+## External XSLT Processors
+
+`service/xsltproc/`: `XsltProcessorConfig` (program + argument template `${xml} ${xsl} ${out} ${baseDir} ${params}` +
+parameter template `{name}`/`{value}`, preset `XsltProcessorPreset` SAXON (java -cp jar) / XSLTPROC / RAPTORXML /
+CUSTOM), `XsltProcessorStore` (`xslt.processors` JSON, `xslt.processor.default` / `.last`, id `builtin` = Saxon HE;
+policy `xslt.external.allowed`), `ExternalXsltRunner` (unsaved texts → hidden temp files next to the originals, result
+file → `XsltTransformationResult`, encoding from BOM/declaration), `XsltOutputParser` (Saxon / xsltproc / RaptorXML
+error line, code, phase; other lines = messages). Shared with the FO processors: `service/external/CommandTemplate`
+(list placeholders, parameter templates) and `ExternalProcess` (no shell, time limit kills the tree). Switch:
+`TransformRunner.xsltTransformResult(…, XsltVersion, XsltProcessorConfig)` (`null` = Saxon HE). UI: Settings card
+`XsltProcessorsSettings` + `XsltProcessorDialog` (Test = `resources/xslt/processor-test.*`), `XsltProcessorChoice`
+(Transform panel - remembered, also `EditorActions`; FopPanel "XSLT processor"; `BatchTransformView`). Users:
+`ScenarioRunner` (`Scenario.xsltProcessor`, never a command line), `FopRunner.PdfOptions.xsltProcessor` →
+`FOPService.transformToFo`, `BatchTransformRunner`, CLI `transform --processor / --list-processors`,
+`fop --xslt-processor`. Live preview, profiler, trace, debugger, XSpec, XProc and AI tools stay on Saxon HE. Tests
+start `FakeXsltProcessor` with the running JVM (`ExternalXsltRunnerTest.fake`); `RealXsltProcessorsTest` runs the
+Saxon preset with Saxon HE and xsltproc when installed. Docs: `docs/transform-panel.md#external-xslt-processors`.
+
 ## XML Signatures and Encryption
 
 `service/crypto/`: `XmlEncryptionService` (W3C XML Encryption 1.1 on Santuario `XMLCipher`: element / content /

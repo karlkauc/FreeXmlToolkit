@@ -74,6 +74,9 @@ Add metadata to your PDF document in the **METADATA** section:
   [external XSL-FO processor](#external-xsl-fo-processors) you configured. **Manage processors…**
   opens the list. With an external processor, the metadata fields and PDF/A are only available
   when its arguments pass them on (`${title}`, `${pdfa}` …).
+- **XSLT processor** - shown once an [external XSLT processor](transform-panel.md#external-xslt-processors) is
+  configured: which program turns the XML into XSL-FO, the bundled Saxon HE or one of yours. Starts at the
+  default XSLT processor of the settings.
 
 ### Step 4: Generate the PDF
 
@@ -201,9 +204,10 @@ XSL-FO (Extensible Stylesheet Language Formatting Objects) defines how your XML 
 Instead of the bundled Apache FOP, the PDF can be rendered by any formatter that has a command
 line: **Antenna House Formatter** (`AHFCmd`), **RenderX XEP** (`xep`), a separately installed
 **Apache FOP** (another version, your own `fop.xconf` with fonts), or a script of your own. The
-XSLT stage (XML → XSL-FO) still runs inside FreeXmlToolkit with Saxon, so **Show intermediate
+XSLT stage (XML → XSL-FO) still runs inside FreeXmlToolkit, so **Show intermediate
 FO**, the stylesheet's messages and the debugger work the same; only the rendering is handed to
-the external program.
+the external program. The XSLT stage itself runs on Saxon HE or on an
+[external XSLT processor](transform-panel.md#external-xslt-processors) (**XSLT processor** in the panel).
 
 **Set one up:** *Settings → Extensions → XSL-FO Processors* (or **Manage processors…** in the
 PDF/FOP panel) → **Add…**

@@ -6,6 +6,15 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+**External XSLT processors**
+
+- **Run stylesheets on another XSLT processor** - Saxon PE/EE, xsltproc, Altova RaptorXML or a script: set them up in
+  *Settings → XSLT Processors* (presets, parameter syntax, a Test run) and choose one in the Transform panel, in a
+  scenario (`xsltProcessor`), for the XSLT stage of the PDF/FOP panel, in batch runs and on the command line
+  (`fxt-cli transform --processor`, `fxt-cli fop --xslt-processor`). Unsaved editor text is handed over next to the
+  file, so includes resolve; errors show their line as with Saxon HE. Debugging, profiling, XSpec and the live
+  preview stay on Saxon HE. See [External XSLT Processors](transform-panel.md#external-xslt-processors).
+
 **YAML**
 
 - **YAML editor:** `.yaml` / `.yml` files get syntax colours, folding by indentation and a syntax check while you

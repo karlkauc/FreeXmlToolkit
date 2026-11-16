@@ -15,7 +15,7 @@
     <children>
         <Label text="%XsltProcessorsSettings.intro.text"
                wrapText="true" minHeight="-Infinity" styleClass="fxt-placeholder-text"/>
-        <ListView fx:id="processorList" id="settings-xslt-processors" prefHeight="130" minHeight="80"/>
+        <ListView fx:id="processorList" id="settings-xslt-processors" prefHeight="168" minHeight="80"/>
         <FlowPane hgap="6" vgap="6">
             <children>
                 <Button fx:id="addButton" id="settings-xslt-add" text="%XsltProcessorsSettings.addButton.text" styleClass="fxt-tool-button" onAction="#onAdd">
