@@ -191,6 +191,69 @@ class GleifTest {
         assertEquals(0, GleifCheck.check("<r>no lei</r>", offline).leis());
     }
 
+    /** Wrong check digits (the sample in the FundsXML examples): not registered either. */
+    static final String WRONG_CHECK_DIGITS = "724500Y6P2B0MRLY2T56";
+
+    @Test
+    void wrongCheckDigitsInAnLeiElementAreAnErrorWithoutAskingGleif() {
+        String text = "<r>\n<LEI>" + WRONG_CHECK_DIGITS + "</LEI>\n<Other>" + WRONG_CHECK_DIGITS + "</Other>\n"
+                + "<Party lei=\"" + WRONG_CHECK_DIGITS + "\"/>\n<LEI>" + WRONG_CHECK_DIGITS + "</LEI>\n</r>";
+        List<List<String>> asked = new ArrayList<>();
+        LeiCache cache = new LeiCache(new GleifClient(saved(asked), CLOCK), null, CLOCK, Duration.ofHours(1));
+
+        GleifCheck.Result result = GleifCheck.check(text, cache);
+
+        assertTrue(asked.isEmpty(), "a value with wrong check digits is never sent");
+        assertEquals(1, result.leis(), "distinct values");
+        assertNull(result.failure());
+        assertEquals(List.of(2, 4, 5), result.findings().stream().map(GleifCheck.Finding::line).toList(),
+                "the LEI elements and the lei attribute, not <Other>");
+        GleifCheck.Finding first = result.findings().getFirst();
+        assertEquals(GleifCheck.CHECK_DIGITS_RULE, first.rule());
+        assertEquals(LeiRecord.Severity.ERROR, first.severity());
+        assertEquals(WRONG_CHECK_DIGITS, first.lei());
+        assertTrue(first.message().contains("wrong check digits"), first.message());
+
+        var combined = org.fxt.freexmltoolkit.service.finance.IdentifierCheck.check(text, cache, null);
+        assertEquals(1, combined.leis());
+        assertEquals(GleifCheck.CHECK_DIGITS_RULE, combined.findings().getFirst().rule());
+        assertEquals(org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Severity.ERROR,
+                combined.findings().getFirst().severity());
+    }
+
+    @Test
+    void wrongCheckDigitsAreReportedEvenWhenGleifCannotBeAsked() {
+        String text = "<r>\n<LEI>" + GLEIF_LEI + "</LEI>\n<IssuerLEI>" + WRONG_CHECK_DIGITS + "</IssuerLEI>\n</r>";
+        LeiCache offline = new LeiCache(new GleifClient(uri -> {
+            throw new IOException("offline");
+        }, CLOCK), null, CLOCK, Duration.ofHours(1));
+
+        GleifCheck.Result result = GleifCheck.check(text, offline);
+
+        assertNotNull(result.failure());
+        assertEquals(2, result.leis());
+        assertEquals(List.of(GleifCheck.CHECK_DIGITS_RULE), result.findings().stream().map(GleifCheck.Finding::rule).toList());
+    }
+
+    @Test
+    void leiElementsKnowTheNamesAndLeaveOtherValuesToTheSchema() {
+        for (String name : List.of("LEI", "lei", "Lei", "IssuerLEI", "LEICode", "LEI_Code", "LegalEntityIdentifier",
+                "issuerLegalEntityIdentifier")) {
+            assertTrue(LeiElements.isLeiName(name), name);
+        }
+        for (String name : List.of("Leistung", "Deleted", "ReleaseDate", "Lei2", "Name")) {
+            assertFalse(LeiElements.isLeiName(name), name);
+        }
+        String text = "<r><LEI>N/A</LEI><LEI> " + WRONG_CHECK_DIGITS + " </LEI><LEI>" + GLEIF_LEI + "</LEI>"
+                + "<LEI><Id>" + WRONG_CHECK_DIGITS + "</Id></LEI></r>";
+        List<LeiElements.Invalid> invalid = LeiElements.scan(text);
+        assertEquals(List.of(WRONG_CHECK_DIGITS), invalid.stream().map(LeiElements.Invalid::value).toList(),
+                "only the 20-character value with wrong check digits; other lengths and valid LEIs are not reported");
+        assertTrue(LeiElements.scan("LEI;" + WRONG_CHECK_DIGITS).isEmpty(), "no XML");
+        assertTrue(LeiElements.scan("<r><LEI>" + WRONG_CHECK_DIGITS + "</LEI><broken").size() == 1,
+                "what was found before the error");
+    }
+
     /** @return the base with the two check digits that make it a valid LEI */
     static String lei(String base18) {
         StringBuilder digits = new StringBuilder();

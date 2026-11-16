@@ -44,6 +44,7 @@ occurrence into the **Problems** panel, at its line:
 
 | Answer | Finding |
 |---|---|
+| XML: a 20-character value with wrong check digits in an LEI element or attribute (`LEI`, `IssuerLEI`, `LEICode`, `LegalEntityIdentifier` …) - checked locally, not sent to GLEIF | Error |
 | LEI not registered at GLEIF | Error |
 | LEI `RETIRED`, `ANNULLED`, `DUPLICATE`, `MERGED`, `TRANSFERRED` | Error - must not be used any more |
 | LEI `LAPSED` (registration not renewed), entity `INACTIVE` | Warning |

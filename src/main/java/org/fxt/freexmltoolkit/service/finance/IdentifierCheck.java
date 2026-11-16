@@ -83,7 +83,7 @@ public final class IdentifierCheck {
                 failures.add(new Failure(GleifCheck.SOURCE, r.failure()));
             }
             for (GleifCheck.Finding f : r.findings()) {
-                findings.add(new Finding(GleifCheck.SOURCE, GleifCheck.RULE, switch (f.severity()) {
+                findings.add(new Finding(GleifCheck.SOURCE, f.rule(), switch (f.severity()) {
                     case ERROR -> Severity.ERROR;
                     case WARNING -> Severity.WARNING;
                     case INFO -> Severity.INFO;

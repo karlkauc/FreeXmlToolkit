@@ -6,6 +6,9 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+- **Wrong LEI check digits in the online check.** In XML, **Check Identifiers Online** now also reports a value with
+  wrong check digits in an LEI element (`<LEI>`, `IssuerLEI`, …) as an error. Before, such a value was not recognised
+  as an LEI and silently skipped. See [Online Identifier Lookup](identifier-lookup.md#check-every-identifier-of-a-document).
 - **Only real FundsXML examples.** The FundsXML download keeps FundsXML documents, XSLT stylesheets, Schematron
   files and XPath/XQuery snippets; Maven `pom.xml` files and other code of the examples repository no longer show up
   as examples, and an existing cache is cleaned at startup. See [FundsXML Extensions](fundsxml-extensions.md).
