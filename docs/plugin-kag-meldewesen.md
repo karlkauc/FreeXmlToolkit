@@ -108,7 +108,9 @@ The content rules of the same table:
 Of the table's 254 rule items, 211 run in the application; the other 43 need data only ESMA has:
 GLEIF, ESMA's register of authorised MMFs and earlier reports of the same MMF. Whether the reported LEIs are
 registered and still valid, and whether the ISINs exist and are still traded, can be checked online from the panel
-(**Check Identifiers Online**, see [Online Identifier Lookup](identifier-lookup.md)). **New Money
+(**Check Identifiers Online**, see [Online Identifier Lookup](identifier-lookup.md)); for MMF reports this also
+compares every reported CFI code with the one in ESMA FIRDS - the check ESMA's rule 93 ff. makes against its
+reference database. **New Money
 Market Fund Report (Example)** opens a fictitious report.
 
 ## Check report

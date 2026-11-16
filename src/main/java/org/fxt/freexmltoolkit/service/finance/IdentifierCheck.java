@@ -9,6 +9,7 @@ import org.fxt.freexmltoolkit.service.finance.gleif.Gleif;
 import org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck;
 import org.fxt.freexmltoolkit.service.finance.gleif.LeiCache;
 import org.fxt.freexmltoolkit.service.finance.gleif.LeiRecord;
+import org.fxt.freexmltoolkit.service.finance.isin.CfiPairs;
 import org.fxt.freexmltoolkit.service.finance.isin.Isin;
 import org.fxt.freexmltoolkit.service.finance.isin.IsinLookup;
 import org.fxt.freexmltoolkit.service.finance.isin.IsinRecord;
@@ -24,6 +25,8 @@ public final class IdentifierCheck {
     /** Source and rule id of the ISIN findings (LEIs: {@link GleifCheck#SOURCE}, {@link GleifCheck#RULE}). */
     public static final String ISIN_SOURCE = "ISIN";
     public static final String ISIN_RULE = "ISIN-LOOKUP";
+    /** Rule id of a reported CFI code that does not agree with ESMA FIRDS. */
+    public static final String CFI_RULE = "ISIN-CFI";
 
     /** Severity of a finding. */
     public enum Severity { ERROR, WARNING, INFO }
@@ -101,6 +104,16 @@ public final class IdentifierCheck {
                             findings.add(new Finding(ISIN_SOURCE, ISIN_RULE,
                                     p.severity() == IsinRecord.Severity.WARNING ? Severity.WARNING : Severity.INFO,
                                     o.line(), o.column(), o.isin(), p.message()));
+                        }
+                    }
+                    // reported CFI codes against FIRDS
+                    for (CfiPairs.Pair pair : CfiPairs.scan(text.toString())) {
+                        IsinRecord rec = isinRecords.get(pair.isin());
+                        if (rec != null && rec.source() == IsinRecord.Source.FIRDS && rec.cfi() != null
+                                && !CfiPairs.matches(pair.cfi(), rec.cfi())) {
+                            findings.add(new Finding(ISIN_SOURCE, CFI_RULE, Severity.WARNING, pair.line(), pair.column(),
+                                    pair.isin(), "The reported CFI code " + pair.cfi() + " of ISIN " + pair.isin()
+                                    + " differs from ESMA FIRDS: " + rec.cfi() + (rec.name() == null ? "" : " (" + rec.name() + ")") + "."));
                         }
                     }
                 } catch (IsinLookup.LookupException e) {

@@ -256,7 +256,8 @@ ISINs, `service/finance/isin/`: `IsinLookup` (ESMA FIRDS Solr `registers.esma.eu
 100 ISINs per request grouped by isin + `facet.pivot=isin,status` (TERM/CANC = ended venues); the rest at OpenFIGI
 `POST api.openfigi.com/v3/mapping` - 10 jobs/request and 25 requests/min without key, 100 with `X-OPENFIGI-APIKEY` via
 `ConnectionService.postJson(…, headers)` (32 MB answers)), `IsinRecord` (+ `problem()`: unknown to both = warning, no EU
-venue / not in FIRDS without OpenFIGI = info), `IsinScanner` (country prefix + check digit), `Isin` (shared `Isin.Cache`
+venue / not in FIRDS without OpenFIGI = info), `IsinScanner` (country prefix + check digit), `CfiPairs` (XML: CFI-named element with a 6-letter value ↔ the one ISIN
+in its nearest ≤ 3 ancestors; `matches` treats `X` as wildcard → `IdentifierCheck` rule `ISIN-CFI` against FIRDS), `Isin` (shared `Isin.Cache`
 keyed per OpenFIGI mode (`#firds`), `~/.freeXmlToolkit/isin/cache.json`, settings `isin.onValidation` / `isin.hover` /
 `isin.openfigi` (default on) / `isin.openfigi.apiKey` (encrypted, env `FXT_OPENFIGI_APIKEY`) / `isin.cacheHours`, policy
 `isin.allowed`, `isin.openfigi.allowed`, CLI overrides).

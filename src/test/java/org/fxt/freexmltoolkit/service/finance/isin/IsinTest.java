@@ -153,6 +153,50 @@ class IsinTest {
         assertNotNull(IdentifierCheck.check(text, null, null));
     }
 
+    @Test
+    void cfiCodesArePairedWithTheirIsin() {
+        String xml = """
+                <Rpt>
+                  <Hldg>
+                    <AsstId>
+                      <ClssfctnTp>CIOGES</ClssfctnTp>
+                      <InstrmId><ISIN>IE00B4L5Y983</ISIN></InstrmId>
+                    </AsstId>
+                  </Hldg>
+                  <Hldg>
+                    <AsstId><ClssfctnTp>ESXXXX</ClssfctnTp><InstrmId><ISIN>US0378331005</ISIN></InstrmId></AsstId>
+                  </Hldg>
+                  <Both><CFI>DBFTFB</CFI><ISIN>IE00B4L5Y983</ISIN><ISIN>US0378331005</ISIN></Both>
+                  <Note><ClssfctnTp>not a CFI</ClssfctnTp><ISIN>US0378331005</ISIN></Note>
+                </Rpt>
+                """;
+        var pairs = CfiPairs.scan(xml);
+        assertEquals(List.of("IE00B4L5Y983=CIOGES@4", "US0378331005=ESXXXX@9"),
+                pairs.stream().map(p -> p.isin() + "=" + p.cfi() + "@" + p.line()).toList(),
+                "two ISINs next to the CFI: ambiguous, no pair; a text that is no CFI: no pair");
+        assertTrue(CfiPairs.scan("ISIN;CFI\nIE00B4L5Y983;CEOGES").isEmpty(), "not XML");
+        assertTrue(CfiPairs.scan("<a><b>").isEmpty(), "not well-formed");
+
+        assertTrue(CfiPairs.matches("CEOGES", "CEOGES"));
+        assertTrue(CfiPairs.matches("CEXXXX", "CEOGES"), "X in the report: a construct");
+        assertTrue(CfiPairs.matches("ESVUFR", "ESXXXX"));
+        assertFalse(CfiPairs.matches("CIOGES", "CEOGES"));
+        assertFalse(CfiPairs.matches("DBXXXX", "ESVUFR"));
+    }
+
+    @Test
+    void aReportedCfiCodeThatDiffersFromFirdsIsAWarning() {
+        String xml = "<Rpt>\n<AsstId>\n<ClssfctnTp>CIOGES</ClssfctnTp>\n<ISIN>" + ETF + "</ISIN>\n</AsstId>\n"
+                + "<AsstId><ClssfctnTp>ESXXXX</ClssfctnTp><ISIN>" + APPLE + "</ISIN></AsstId>\n</Rpt>";
+        Isin.Cache isins = new Isin.Cache(null, Clock.systemUTC(), Duration.ofHours(1), () -> OnlineFakes.isinLookup(true));
+        IdentifierCheck.Result result = IdentifierCheck.check(xml, null, isins);
+        assertEquals(1, result.findings().size(), result.findings().toString());
+        IdentifierCheck.Finding f = result.findings().getFirst();
+        assertEquals(IdentifierCheck.CFI_RULE, f.rule());
+        assertEquals(3, f.line());
+        assertTrue(f.message().contains("CIOGES") && f.message().contains("CEOGES"), f.message());
+    }
+
     /** @return the base with the check digit that makes it a valid ISIN */
     static String isin(String base11) {
         StringBuilder digits = new StringBuilder();
