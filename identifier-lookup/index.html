@@ -3429,6 +3429,12 @@ checked at GLEIF.</p>
 <p>An ISIN only OpenFIGI knows is no finding. The findings have the source <strong>GLEIF</strong> or <strong>ISIN</strong> and replace the online
 findings of an earlier check; schema and rule findings stay, also when the document is validated again while its text
 is unchanged. When one service cannot be reached, the panel says so and the other part still counts.</p>
+<p><strong>Open the entry.</strong> A finding row carries a link to the identifier's entry at the service that answered - <strong>GLEIF</strong>
+(the LEI's record at <code>search.gleif.org</code>), <strong>ESMA FIRDS</strong> (the instrument's record in the ESMA register, as shown in the
+register's details page) or <strong>OpenFIGI</strong> (a search for the ISIN, also for an ISIN neither service knows). Click it, or
+right-click the row → <strong>Open at …</strong>, to see the entry in the browser; <strong>Copy Problem</strong> includes the address. The
+Validation panel's problem list offers the same menu item. Answers cached by version 3.3.0 or earlier know no FIRDS
+record yet and open the register's search page until they are looked up again.</p>
 <h2 id="with-every-validation">With every validation<a class="headerlink" href="#with-every-validation" title="Permanent link">¶</a></h2>
 <p><strong>Settings → Network &amp; Security</strong> has a card for each kind: <strong>Check LEIs at GLEIF on every validation (F8)</strong> and
 <strong>Check ISINs online on every validation (F8)</strong> add the same checks to every validation of an XML document (F8,
