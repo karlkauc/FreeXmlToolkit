@@ -62,6 +62,7 @@ fxt-cli validate [options] FILE|FOLDER...
 | `-r`, `--report FILE` | Write the report to a file; the text summary still goes to standard output |
 | `-p`, `--project FXTPROJ` | Use a [project's](projects.md) bindings (schema, Schematron, JSON Schema) and catalogs |
 | `--fail-on-warning` | Warnings make a file invalid too |
+| `--gleif` | Also check every LEI of the files at GLEIF ([LEI Lookup at GLEIF](gleif.md)); sends the LEIs to `api.gleif.org` |
 | `--xsd-version VERSION` | `auto` (default: XSD 1.1 when the schema uses it), `1.0` or `1.1` |
 | `--xml-version VERSION` | `auto` (default: as declared), `1.0` (a document declared as XML 1.1 is an error) or `1.1` |
 | `--schematron-binding BINDING` | Query binding of a Schematron without `@queryBinding`: `xslt`, `xslt2` (default) or `xslt3`; with `xslt` / `xslt2` every context and test must be XPath 1.0 / 2.0 |
@@ -585,6 +586,25 @@ fxt-cli decrypt --inspect [-f text|json] INPUT
 
 Exit code `0` when everything selected was decrypted, `1` when no key fits or data stays encrypted,
 `3` on errors.
+
+## lei
+
+Looks LEIs up at GLEIF: legal name, country, registration and entity status, next renewal. See
+[LEI Lookup at GLEIF](gleif.md).
+
+```bash
+fxt-cli lei [LEI...] [--file FILE]... [-f text|json]
+```
+
+| Option | Meaning |
+|---|---|
+| `LEI...` | LEIs to look up |
+| `--file FILE` | Look up every LEI found in the file (repeatable) |
+| `-f`, `--format FORMAT` | `text` (default) or `json` |
+
+Exit code `0` when every LEI is issued and its entity active, `1` when one is invalid, unknown, lapsed, retired or
+annulled or its entity inactive, `3` when GLEIF cannot be reached or the administrator turned lookups off
+(`gleif.allowed=false`).
 
 ## mcp
 

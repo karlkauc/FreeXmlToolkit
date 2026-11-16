@@ -6,6 +6,14 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+**LEI lookup at GLEIF**
+
+- **Is the LEI registered?** The identifier checker of the industry extensions looks an LEI up at GLEIF (name, address,
+  registration and entity status, next renewal); **Check LEIs at GLEIF** (panel tools, Tools menu) checks every LEI of
+  a document and reports unknown, lapsed, retired or annulled LEIs in the Problems panel. Optionally with every
+  validation and as a hover in the editor (Settings → GLEIF, both off by default); on the command line
+  `fxt-cli lei` and `fxt-cli validate --gleif`. See [LEI Lookup at GLEIF](gleif.md).
+
 **External XSLT processors**
 
 - **Run stylesheets on another XSLT processor** - Saxon PE/EE, xsltproc, Altova RaptorXML or a script: set them up in

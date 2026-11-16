@@ -39,7 +39,9 @@ FinDatEx template, an XBRL instance, an ESMA or a KAG report), a bar above the e
     - **TOOLS** — the extension's own actions (sample documents, new template files, Excel import, Arelle command);
     - **OPTIONS** (KAG-Meldewesen) — the extension's settings;
     - **CHECK AN IDENTIFIER** — checks a pasted IBAN (ISO 13616: country length and check digits),
-      BIC (ISO 9362), LEI (ISO 17442), ISIN (ISO 6166) or Austrian VAT id (UID), depending on the extension;
+      BIC (ISO 9362), LEI (ISO 17442), ISIN (ISO 6166) or Austrian VAT id (UID), depending on the extension; an LEI
+      can be looked up at GLEIF, and **Check LEIs at GLEIF** checks every LEI of the document there
+      ([LEI Lookup at GLEIF](gleif.md));
 - **checks** that run with every validation (Validation panel, **F8**, `fxt-cli validate`) and appear
   with the extension's name as source — ISO 20022 and ebInterface; FinDatEx and XBRL files are checked
   from their side panel;

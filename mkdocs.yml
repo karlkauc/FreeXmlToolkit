@@ -168,6 +168,7 @@ nav:
       - PK-Meldewesen (FMA): plugin-pk-meldewesen.md
       - KAG-Meldewesen (FMA): plugin-kag-meldewesen.md
       - ESMA Reporting (EMIR, SFTR, MiFIR): plugin-esma-reporting.md
+    - LEI Lookup at GLEIF: gleif.md
     - Extensions: plugins.md
     - Writing Extensions (Plugins): plugin-development.md
   - Security:

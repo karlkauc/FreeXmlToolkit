@@ -106,7 +106,9 @@ The content rules of the same table:
 | LVNAV data | only for LVNAV funds, dates not after the reporting end, CFI code among the portfolio's (warning), price and NAV differences (warnings), basis-point thresholds of the deviations, measure date inside the period and after the event date (329–352) |
 
 Of the table's 254 rule items, 211 run in the application; the other 43 need data only ESMA has:
-GLEIF, ESMA's register of authorised MMFs and earlier reports of the same MMF. **New Money
+GLEIF, ESMA's register of authorised MMFs and earlier reports of the same MMF. Whether the reported LEIs are
+registered and still valid can be checked at GLEIF from the panel (**Check LEIs at GLEIF**, see
+[LEI Lookup at GLEIF](gleif.md)). **New Money
 Market Fund Report (Example)** opens a fictitious report.
 
 ## Check report

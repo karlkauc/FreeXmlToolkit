@@ -79,6 +79,9 @@ Any key of the user's settings file works. These are the ones most often managed
 | `xslt.external.allowed` | `false` | **Policy only.** Only the bundled Saxon HE transforms; [external XSLT processors](transform-panel.md#external-xslt-processors) are hidden and refused (panels, scenarios, `fxt-cli transform` / `fop`) |
 | `xslt.processors` | JSON list | The external XSLT processors (as written by *Settings → XSLT Processors*); in `defaults.properties` a starting list, in `policy.properties` a fixed one |
 | `xslt.processor.default` | `builtin` or an id | The default XSLT processor (scenarios, PDF/FOP panel, command line) |
+| `gleif.allowed` | `false` | No [LEI lookups at GLEIF](gleif.md): no panel buttons, menu item, hover or validation stage; `fxt-cli lei` and `validate --gleif` refuse |
+| `gleif.onValidation`, `gleif.hover` | `true` / `false` | Check LEIs at GLEIF with every validation / when hovering (Settings → GLEIF; default off) |
+| `gleif.cacheHours` | `1`–`720` | How long GLEIF's answers are used (default 24) |
 | `xmlenc.allowed` | `false` | **Policy only.** No [XML encryption](xml-encryption.md) or decryption (page, editor menu and `fxt-cli`) |
 | `xmlenc.legacyAlgorithms.allowed` | `false` | **Policy only.** Block the legacy XML encryption algorithms (RSA-1_5, TripleDES, CBC modes, finite-field DH) for encryption and decryption |
 | `ai.allowed` | `false` | **Policy only.** Every AI feature off: the [AI assistant](ai-assistant.md) (no Settings group, no menu items) and the [MCP server](mcp-server.md) (`fxt-cli mcp` refuses to start) |

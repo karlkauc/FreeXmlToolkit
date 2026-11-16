@@ -244,6 +244,21 @@ validate, bind), `ProjectSettingsDialog` (+ `ScenarioEditDialog`, `BindSchemaDia
 (`ValidationRunner.batchProject`), Welcome "Projects" cards. CLI: `scenario` (`--input`), `validate --project`
 (also Schematron / JSON Schema). Docs: `docs/projects.md`.
 
+## GLEIF (LEI lookup)
+
+`service/finance/gleif/`: `GleifClient` (`api.gleif.org/api/v1/lei-records?filter[lei]=…`, 200 per request, ≤ 1
+request/s, `Fetcher` = `ConnectionService.fetchBinary`, only LEIs with valid check digits), `LeiRecord` (+ `problem()`:
+unknown/RETIRED/ANNULLED… = error, LAPSED/INACTIVE = warning, PENDING = info), `LeiCache` (memory +
+`~/.freeXmlToolkit/gleif/cache.json`, `gleif.cacheHours`), `LeiScanner` (LEIs in any text, `at(text, offset)`),
+`GleifCheck` (findings per occurrence, never throws), `Gleif` (shared cache + `setCache` test hook, settings
+`gleif.onValidation` / `gleif.hover`, policy `gleif.allowed`, `setValidationOverride` for the CLI). Users:
+`ValidationRunner.gleifProblems` (stage at the end of `runWithReport` when `Gleif.onValidation()`), `IndustryPanel`
+(Look up at GLEIF in the identifier checker, tool "Check LEIs at GLEIF" for panels offering `IdentifierKind.LEI`),
+`GleifDocumentCheck` (merge into the Problems panel; Tools menu `menu-tools-gleif`), `LeiHover`, Settings card
+`GleifSettings`, CLI `lei` (`LeiCommand`) and `validate --gleif` (the CLI ignores `gleif.onValidation`). LEIs leave the
+computer only on a click or with those settings on. Tests use the saved answer `src/test/resources/gleif/lei-records.json`.
+Docs: `docs/gleif.md`.
+
 ## Plugins
 
 `plugin/`: `FxtPlugin` (ServiceLoader, `META-INF/services/org.fxt.freexmltoolkit.plugin.FxtPlugin`) registers
