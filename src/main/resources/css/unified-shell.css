@@ -2678,6 +2678,28 @@
     -fx-graphic-text-gap: 4;
 }
 
+/* the counters are filter toggles: flat, a pill while the filter is on */
+.fxt-problems-chip-error,
+.fxt-problems-chip-warning {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8px;
+    -fx-border-color: transparent;
+    -fx-border-radius: 8px;
+    -fx-padding: 1px 6px;
+    -fx-cursor: hand;
+}
+
+.fxt-problems-chip-error:hover,
+.fxt-problems-chip-warning:hover {
+    -fx-background-color: -fxt-bg-surface-2;
+}
+
+.fxt-problems-chip-error:selected,
+.fxt-problems-chip-warning:selected {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-border-color: -fxt-border;
+}
+
 .fxt-problems-chip-error .iconify-icon {
     -fx-icon-color: -fxt-danger;
 }

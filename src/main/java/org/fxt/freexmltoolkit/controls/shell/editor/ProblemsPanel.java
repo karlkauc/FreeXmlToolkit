@@ -15,6 +15,8 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
@@ -39,7 +41,8 @@ import org.fxt.freexmltoolkit.util.ProjectLinks;
  * node 42:3): a header bar with severity counters and a collapse toggle, plus
  * one row per {@link ValidationProblem} of the active document
  * ({@link EditorHost#getActiveProblems()}). Clicking a row jumps to its line; right-click
- * (or Ctrl+C) copies a problem's text, which the row may cut off.
+ * (or Ctrl+C) copies a problem's text, which the row may cut off. A click on the error or
+ * warning counter shows only that severity; a second click shows all problems again.
  * The panel hides itself entirely while there are no problems and re-appears
  * automatically when validation reports some.
  */
@@ -50,8 +53,12 @@ public class ProblemsPanel extends VBox {
     private final EditorHost editorHost;
     private final ObservableList<ValidationProblem> items = FXCollections.observableArrayList();
     @FXML private ListView<ValidationProblem> list;
-    @FXML private Label errorChip;
-    @FXML private Label warningChip;
+    @FXML private ToggleButton errorChip;
+    @FXML private ToggleButton warningChip;
+    /** Which problems the list shows. */
+    enum Filter { ALL, ERRORS, WARNINGS }
+
+    private Filter filter = Filter.ALL;
     @FXML private IconifyIcon collapseIcon;
     @FXML private javafx.scene.layout.Region resizer;
     private boolean collapsed;
@@ -121,6 +128,37 @@ public class ProblemsPanel extends VBox {
         setCollapsed(!collapsed);
     }
 
+    /** The error counter: only errors, or all problems again. */
+    @FXML
+    public void onFilterErrors() {
+        setFilter(filter == Filter.ERRORS ? Filter.ALL : Filter.ERRORS);
+    }
+
+    /** The warning counter: only warnings, or all problems again. */
+    @FXML
+    public void onFilterWarnings() {
+        setFilter(filter == Filter.WARNINGS ? Filter.ALL : Filter.WARNINGS);
+    }
+
+    /** @return which problems the list shows */
+    Filter getFilter() {
+        return filter;
+    }
+
+    /** Shows all problems or only one severity. */
+    void setFilter(Filter filter) {
+        this.filter = filter;
+        refresh();
+    }
+
+    private boolean passes(ValidationProblem p) {
+        return switch (filter) {
+            case ALL -> true;
+            case ERRORS -> !isWarning(p);
+            case WARNINGS -> isWarning(p);
+        };
+    }
+
     /**
      * Mirrors the host's problems into the panel: clears the row selection first
      * (JavaFX ListViewBehavior can throw IndexOutOfBounds when items.setAll runs
@@ -128,19 +166,33 @@ public class ProblemsPanel extends VBox {
      */
     private void refresh() {
         var problems = editorHost.getActiveProblems();
-        list.getSelectionModel().clearSelection();
-        items.setAll(problems);
         long errors = problems.stream().filter(p -> !isWarning(p)).count();
         long warnings = problems.stream().filter(ProblemsPanel::isWarning).count();
-        errorChip.setText(String.valueOf(errors));
-        errorChip.setVisible(errors > 0);
-        errorChip.setManaged(errors > 0);
-        warningChip.setText(String.valueOf(warnings));
-        warningChip.setVisible(warnings > 0);
-        warningChip.setManaged(warnings > 0);
+        // a filter whose severity is gone (fixed, other document) would hide everything: show all again
+        if (filter == Filter.ERRORS && errors == 0 || filter == Filter.WARNINGS && warnings == 0) {
+            filter = Filter.ALL;
+        }
+        list.getSelectionModel().clearSelection();
+        items.setAll(problems.stream().filter(this::passes).toList());
+        showChip(errorChip, errors, filter == Filter.ERRORS, "ProblemsPanel.only-errors");
+        showChip(warningChip, warnings, filter == Filter.WARNINGS, "ProblemsPanel.only-warnings");
         boolean show = !problems.isEmpty();
         setVisible(show);
         setManaged(show);
+    }
+
+    private static void showChip(ToggleButton chip, long count, boolean active, String onlyKey) {
+        chip.setText(String.valueOf(count));
+        chip.setVisible(count > 0);
+        chip.setManaged(count > 0);
+        chip.setSelected(active);
+        String text = active ? I18n.t("ProblemsPanel.show-all") : I18n.t(onlyKey);
+        chip.setAccessibleText(text);
+        if (chip.getTooltip() == null) {
+            chip.setTooltip(new Tooltip(text));
+        } else {
+            chip.getTooltip().setText(text);
+        }
     }
 
     /** @return {@code true} while the panel shows only its header bar. */

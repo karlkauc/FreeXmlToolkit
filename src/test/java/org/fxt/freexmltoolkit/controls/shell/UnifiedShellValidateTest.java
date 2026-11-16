@@ -138,7 +138,7 @@ class UnifiedShellValidateTest {
                 () -> problemsPanel.isVisible() && problemsPanel.getProblemCount() > 0);
         assertTrue(problemsPanel.isVisible(),
                 "the PROBLEMS panel below the editor must auto-show on a failed validation");
-        var errorChip = (javafx.scene.control.Label) problemsPanel.lookup(".fxt-problems-chip-error");
+        var errorChip = (javafx.scene.control.Labeled) problemsPanel.lookup(".fxt-problems-chip-error");
         assertTrue(errorChip.isVisible() && Integer.parseInt(errorChip.getText()) > 0,
                 "the header must show the error count");
     }

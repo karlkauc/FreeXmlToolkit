@@ -6,6 +6,8 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+- **Filter the Problems panel by severity.** Click the error or warning counter in the PROBLEMS header to list only
+  errors or only warnings; click it again to list all problems.
 - **Open the entry of an online finding.** Findings of **Check Identifiers Online** in the Problems panel link to the
   identifier's entry at GLEIF, in the ESMA FIRDS register or at OpenFIGI (row link and **Open at …** in the row menu).
   See [Online Identifier Lookup](identifier-lookup.md#check-every-identifier-of-a-document).

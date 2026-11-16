@@ -1311,6 +1311,11 @@ changed the text since. **Select** a problem to show it **in the view you are in
 - In the **Graphic** view the grid selects the element's row or table cell (opening tables and
   cells on the way) and flashes it; for an XSD the diagram selects the schema node.
 
+The counters in the PROBLEMS header (red ✕ errors, orange ⚠ warnings) are filters: click one to list only that
+severity, click it again to list all problems. The counters keep counting all problems; when new results contain none
+of the filtered severity, the filter goes away. Findings of [Check Identifiers Online](identifier-lookup.md) carry a
+link to the identifier's entry at GLEIF, ESMA FIRDS or OpenFIGI.
+
 See [Validation Panel](validation-panel.md) for details.
 
 ## Properties Inspector

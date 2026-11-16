@@ -3,6 +3,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
@@ -24,16 +25,19 @@
         <HBox spacing="10" alignment="CENTER_LEFT" styleClass="fxt-problems-header">
             <children>
                 <Label text="%ProblemsPanel.problems.text" styleClass="fxt-problems-title"/>
-                <Label fx:id="errorChip" styleClass="fxt-problems-chip-error">
+                <!-- severity counters; a click shows only that severity, a second click all problems again -->
+                <ToggleButton fx:id="errorChip" id="problems-filter-errors" styleClass="fxt-problems-chip-error"
+                              onAction="#onFilterErrors">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-x-circle" iconSize="13"/>
                     </graphic>
-                </Label>
-                <Label fx:id="warningChip" styleClass="fxt-problems-chip-warning">
+                </ToggleButton>
+                <ToggleButton fx:id="warningChip" id="problems-filter-warnings" styleClass="fxt-problems-chip-warning"
+                              onAction="#onFilterWarnings">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-exclamation-triangle-fill" iconSize="13"/>
                     </graphic>
-                </Label>
+                </ToggleButton>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Button id="problems-panel-collapse" styleClass="fxt-problems-collapse"
                         onAction="#onToggleCollapsed">

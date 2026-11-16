@@ -60,8 +60,8 @@ class ProblemsPanelTest {
 
         assertTrue(panel.isVisible(), "panel must auto-show when problems arrive");
         assertEquals(3, panel.getProblemCount());
-        Label errorChip = (Label) panel.lookup(".fxt-problems-chip-error");
-        Label warningChip = (Label) panel.lookup(".fxt-problems-chip-warning");
+        var errorChip = (javafx.scene.control.Labeled) panel.lookup(".fxt-problems-chip-error");
+        var warningChip = (javafx.scene.control.Labeled) panel.lookup(".fxt-problems-chip-warning");
         assertEquals("2", errorChip.getText());
         assertEquals("1", warningChip.getText());
 
@@ -313,6 +313,47 @@ class ProblemsPanelTest {
         assertEquals("[Error] XSD: a (d.xsd : 1)\n[Error] XSD: b (d.xsd : 2)",
                 ProblemsPanel.describeAll(List.of(new ValidationProblem("XSD", "error", 1, "a"),
                         new ValidationProblem("XSD", "error", 2, "b")), "d.xsd"));
+    }
+
+    @Test
+    void aCounterFiltersBySeverityAndASecondClickShowsAllAgain() {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveProblems(List.of(
+                    new ValidationProblem("XSD", "error", 3, "broken element"),
+                    new ValidationProblem("XSD", "error", 5, "another error"),
+                    new ValidationProblem("Schematron", "warning", 7, "questionable date")));
+            return null;
+        });
+        var errors = (javafx.scene.control.ToggleButton) panel.lookup("#problems-filter-errors");
+        var warnings = (javafx.scene.control.ToggleButton) panel.lookup("#problems-filter-warnings");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            assertEquals("Show only errors", errors.getAccessibleText());
+            errors.fire();
+            assertEquals(ProblemsPanel.Filter.ERRORS, panel.getFilter());
+            assertEquals(2, panel.getProblemCount());
+            assertTrue(errors.isSelected() && !warnings.isSelected());
+            assertEquals("Show all problems", errors.getAccessibleText());
+            assertEquals("2", errors.getText(), "the counters keep counting all problems");
+            assertEquals("1", warnings.getText());
+
+            warnings.fire();
+            assertEquals(1, panel.getProblemCount(), "the other counter switches to its severity");
+            assertTrue(warnings.isSelected() && !errors.isSelected());
+
+            warnings.fire();
+            assertEquals(ProblemsPanel.Filter.ALL, panel.getFilter());
+            assertEquals(3, panel.getProblemCount());
+            assertFalse(errors.isSelected() || warnings.isSelected());
+
+            errors.fire();
+            // new results without errors: the filter would hide everything, so it goes
+            host.setActiveProblems(List.of(new ValidationProblem("XSD", "warning", 2, "only a warning")));
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(ProblemsPanel.Filter.ALL, panel.getFilter());
+        assertEquals(1, panel.getProblemCount());
+        assertFalse(errors.isSelected());
     }
 
     @Test
