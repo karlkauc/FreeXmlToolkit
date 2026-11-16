@@ -33,8 +33,7 @@ import org.fxt.freexmltoolkit.util.SecureXmlFactory;
  * Decides which files of the {@code fundsxml/examples} repository are real examples.
  *
  * <p>The repository also holds Java/.NET/Python/JavaScript projects (with Maven {@code pom.xml}
- * files), WebDAV leftovers ({@code .DAV/}) and the intermediate output of the TPT export
- * ({@code work/}, {@code enriched/}). Only FundsXML documents, XSLT stylesheets, Schematron files
+ * files) and may hold WebDAV leftovers ({@code .DAV/}). Only FundsXML documents, XSLT stylesheets, Schematron files
  * and XPath/XQuery snippets are kept; an {@code .xml} file counts only when its root element is
  * {@code FundsXML4} (or {@code FundsXML}).
  */
@@ -43,11 +42,10 @@ public final class FundsXmlExampleFilter {
     /** What a file of the examples repository is used for. */
     public enum Category { EXAMPLE_XML, XSLT, SCHEMATRON, QUERY, NONE }
 
-    /** Folders holding program code, build output or intermediate files — never examples. */
+    /** Folders holding program code or build output — never examples. */
     private static final Set<String> SKIPPED_FOLDERS = Set.of(
             "java", "dotnet", "csharp", "javascript", "python", "powershell", "cli", "invocation",
-            "node_modules", "target", "bin", "obj", "build",
-            "work", "enriched");
+            "node_modules", "target", "bin", "obj", "build");
 
     private static final Set<String> FUNDSXML_ROOTS = Set.of("FundsXML4", "FundsXML");
 

@@ -104,7 +104,7 @@ class FundsXmlExtensionServiceTest {
         assertFalse(Files.exists(cache.getExamplesDir().resolve("README.md")));
         assertTrue(Files.isRegularFile(cache.getExamplesDir().resolve("stylesheets/report.xslt")));
         assertTrue(Files.isRegularFile(cache.getExamplesDir().resolve("tests/fixtures/invalid/bad.xml")));
-        // Build files, code folders and intermediate output are no examples
+        // Build files, code folders and WebDAV leftovers are no examples
         assertFalse(Files.exists(cache.getExamplesDir().resolve("pom.xml")));
         assertFalse(Files.exists(cache.getExamplesDir().resolve("XSD_Validation")));
         assertFalse(Files.exists(cache.getExamplesDir().resolve("config")));
@@ -452,14 +452,12 @@ class FundsXmlExtensionServiceTest {
         entries.put("fundsxml-examples-def456/sample1.xml", "<FundsXML4><ControlData/></FundsXML4>");
         entries.put("fundsxml-examples-def456/stylesheets/report.xslt", "<xsl:stylesheet/>");
         entries.put("fundsxml-examples-def456/tests/fixtures/invalid/bad.xml", "<FundsXML4/>");
-        // Not examples: build files, program code folders, WebDAV leftovers, intermediate output
+        // Not examples: build files, program code folders, WebDAV leftovers
         entries.put("fundsxml-examples-def456/pom.xml", "<project/>");
         entries.put("fundsxml-examples-def456/XSD_Validation/java/pom.xml", "<project/>");
         entries.put("fundsxml-examples-def456/XSD_Validation/java/src/Main.java", "class Main {}");
         entries.put("fundsxml-examples-def456/config/log4j2.xml", "<Configuration/>");
         entries.put("fundsxml-examples-def456/export/.DAV/old.xslt", "<xsl:stylesheet/>");
-        entries.put("fundsxml-examples-def456/export/work/a.xml", "<FundsXML4/>");
-        entries.put("fundsxml-examples-def456/export/enriched/b.xml", "<FundsXML4/>");
         entries.put("fundsxml-examples-def456/rules.sch", "<sch:schema/>");
         entries.put("fundsxml-examples-def456/q1.xpath", "//Fund");
         entries.put("fundsxml-examples-def456/README.md", "should not be copied");

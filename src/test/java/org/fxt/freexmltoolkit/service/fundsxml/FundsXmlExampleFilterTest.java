@@ -55,6 +55,7 @@ class FundsXmlExampleFilterTest {
                 "<?xml version=\"1.0\"?>\n<!-- sample -->\n<FundsXML4 xmlns:xsi=\"x\"><ControlData/></FundsXML4>"));
         assertEquals(Category.EXAMPLE_XML, classify("tests/fixtures/invalid/xsd-invalid.xml", "<FundsXML4/>"));
         assertEquals(Category.EXAMPLE_XML, classify("Old/Fund.xml", "<FundsXML/>"));
+        assertEquals(Category.EXAMPLE_XML, classify("Export/work/a.xml", "<FundsXML4/>"));
     }
 
     @Test
@@ -77,15 +78,13 @@ class FundsXmlExampleFilterTest {
     }
 
     @Test
-    @DisplayName("program code, hidden and intermediate folders are skipped")
+    @DisplayName("program code and hidden folders are skipped")
     void skippedFolders() throws IOException {
         String fundsXml = "<FundsXML4/>";
         assertEquals(Category.NONE, classify("XSD_Validation/java/pom.xml", "<project/>"));
         assertEquals(Category.NONE, classify("XQuery_Examples/invocation/pom.xml", "<project/>"));
         assertEquals(Category.NONE, classify("XML_Signature/dotnet/sample.xml", fundsXml));
         assertEquals(Category.NONE, classify("Export/.DAV/tpt_export.xslt", "<xsl:stylesheet/>"));
-        assertEquals(Category.NONE, classify("Export/work/fundsxml/bank_01/a.xml", fundsXml));
-        assertEquals(Category.NONE, classify("Export/enriched/a.xml", fundsXml));
         assertEquals(Category.NONE, classify(".github/workflows/ci.yml", "x"));
     }
 
