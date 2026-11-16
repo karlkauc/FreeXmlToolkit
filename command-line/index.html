@@ -1138,6 +1138,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#lei" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        lei
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#mcp" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2633,6 +2644,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../gleif/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LEI Lookup at GLEIF
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../plugins/" class="md-nav__link">
         
   
@@ -3557,6 +3596,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#lei" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        lei
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#mcp" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3729,6 +3779,10 @@ against a JSON Schema, with the validators of the <a href="../validation-panel/"
 <tr>
 <td><code>--fail-on-warning</code></td>
 <td>Warnings make a file invalid too</td>
+</tr>
+<tr>
+<td><code>--gleif</code></td>
+<td>Also check every LEI of the files at GLEIF (<a href="../gleif/">LEI Lookup at GLEIF</a>); sends the LEIs to <code>api.gleif.org</code></td>
 </tr>
 <tr>
 <td><code>--xsd-version VERSION</code></td>
@@ -4754,11 +4808,41 @@ document without a key.</p>
 </table>
 <p>Exit code <code>0</code> when everything selected was decrypted, <code>1</code> when no key fits or data stays encrypted,
 <code>3</code> on errors.</p>
+<h2 id="lei">lei<a class="headerlink" href="#lei" title="Permanent link">¶</a></h2>
+<p>Looks LEIs up at GLEIF: legal name, country, registration and entity status, next renewal. See
+<a href="../gleif/">LEI Lookup at GLEIF</a>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>fxt-cli<span class="w"> </span>lei<span class="w"> </span><span class="o">[</span>LEI...<span class="o">]</span><span class="w"> </span><span class="o">[</span>--file<span class="w"> </span>FILE<span class="o">]</span>...<span class="w"> </span><span class="o">[</span>-f<span class="w"> </span>text<span class="p">|</span>json<span class="o">]</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LEI...</code></td>
+<td>LEIs to look up</td>
+</tr>
+<tr>
+<td><code>--file FILE</code></td>
+<td>Look up every LEI found in the file (repeatable)</td>
+</tr>
+<tr>
+<td><code>-f</code>, <code>--format FORMAT</code></td>
+<td><code>text</code> (default) or <code>json</code></td>
+</tr>
+</tbody>
+</table>
+<p>Exit code <code>0</code> when every LEI is issued and its entity active, <code>1</code> when one is invalid, unknown, lapsed, retired or
+annulled or its entity inactive, <code>3</code> when GLEIF cannot be reached or the administrator turned lookups off
+(<code>gleif.allowed=false</code>).</p>
 <h2 id="mcp">mcp<a class="headerlink" href="#mcp" title="Permanent link">¶</a></h2>
 <p>Serves validation, XPath/XQuery, XSLT, XSpec, schema and comparison tools to an AI agent over the Model Context
 Protocol on standard input and output. Started by the agent, not by you; set-up, the tools and the safety model
 are on <a href="../mcp-server/">MCP Server</a>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>fxt-cli<span class="w"> </span>mcp<span class="w"> </span><span class="o">[</span>--root<span class="w"> </span>DIR<span class="o">]</span>...<span class="w"> </span><span class="o">[</span>--tools<span class="w"> </span>NAMES<span class="o">]</span><span class="w"> </span><span class="o">[</span>--list-tools<span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>fxt-cli<span class="w"> </span>mcp<span class="w"> </span><span class="o">[</span>--root<span class="w"> </span>DIR<span class="o">]</span>...<span class="w"> </span><span class="o">[</span>--tools<span class="w"> </span>NAMES<span class="o">]</span><span class="w"> </span><span class="o">[</span>--list-tools<span class="o">]</span>
 </code></pre></div>
 <table>
 <thead>
@@ -4828,21 +4912,21 @@ administrator policy disables it (<code>ai.mcp.allowed=false</code> or <code>ai.
 </ul>
 <h2 id="in-a-ci-pipeline">In a CI pipeline<a class="headerlink" href="#in-a-ci-pipeline" title="Permanent link">¶</a></h2>
 <p>GitHub Actions, uploading the SARIF report to code scanning:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Validate XML</span>
-<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/freexmltoolkit/bin/fxt-cli validate --xsd schema/order.xsd -f sarif -r fxt.sarif data/</span>
-<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">github/codeql-action/upload-sarif@v3</span>
-<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="w">  </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">always()</span>
-<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
-<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="w">    </span><span class="nt">sarif_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt.sarif</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Validate XML</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/freexmltoolkit/bin/fxt-cli validate --xsd schema/order.xsd -f sarif -r fxt.sarif data/</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">github/codeql-action/upload-sarif@v3</span>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="w">  </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">always()</span>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="w">    </span><span class="nt">sarif_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt.sarif</span>
 </code></pre></div>
 <p>GitLab CI with a JUnit report:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="nt">validate</span><span class="p">:</span>
-<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="w">  </span><span class="nt">script</span><span class="p">:</span>
-<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt-cli validate --xsd schema/order.xsd -f junit -r fxt-junit.xml data/</span>
-<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="w">  </span><span class="nt">artifacts</span><span class="p">:</span>
-<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="w">    </span><span class="nt">when</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">always</span>
-<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="w">    </span><span class="nt">reports</span><span class="p">:</span>
-<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a><span class="w">      </span><span class="nt">junit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt-junit.xml</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="nt">validate</span><span class="p">:</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="w">  </span><span class="nt">script</span><span class="p">:</span>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt-cli validate --xsd schema/order.xsd -f junit -r fxt-junit.xml data/</span>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="w">  </span><span class="nt">artifacts</span><span class="p">:</span>
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="w">    </span><span class="nt">when</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">always</span>
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a><span class="w">    </span><span class="nt">reports</span><span class="p">:</span>
+<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="w">      </span><span class="nt">junit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt-junit.xml</span>
 </code></pre></div>
 
 

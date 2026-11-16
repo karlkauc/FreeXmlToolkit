@@ -2357,6 +2357,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../gleif/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LEI Lookup at GLEIF
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../plugins/" class="md-nav__link">
         
   
@@ -3570,6 +3598,21 @@ forward slashes (<code>C:/Schemas</code>). Characters outside Latin-1 have to be
 <td><code>xslt.processor.default</code></td>
 <td><code>builtin</code> or an id</td>
 <td>The default XSLT processor (scenarios, PDF/FOP panel, command line)</td>
+</tr>
+<tr>
+<td><code>gleif.allowed</code></td>
+<td><code>false</code></td>
+<td>No <a href="../gleif/">LEI lookups at GLEIF</a>: no panel buttons, menu item, hover or validation stage; <code>fxt-cli lei</code> and <code>validate --gleif</code> refuse</td>
+</tr>
+<tr>
+<td><code>gleif.onValidation</code>, <code>gleif.hover</code></td>
+<td><code>true</code> / <code>false</code></td>
+<td>Check LEIs at GLEIF with every validation / when hovering (Settings → GLEIF; default off)</td>
+</tr>
+<tr>
+<td><code>gleif.cacheHours</code></td>
+<td><code>1</code>–<code>720</code></td>
+<td>How long GLEIF's answers are used (default 24)</td>
 </tr>
 <tr>
 <td><code>xmlenc.allowed</code></td>
