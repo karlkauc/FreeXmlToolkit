@@ -47,6 +47,8 @@
                                            text="%PkMeldewesenPanel.pk-validate.text" color="CREATE" onAction="#onValidate"/>
                         <PanelActionButton id="pk-rule-report" iconLiteral="bi-clipboard-data"
                                            text="%PkMeldewesenPanel.pk-rule-report.text" color="NAVIGATE" onAction="#onRuleReport"/>
+                        <PanelActionButton fx:id="gleifButton" id="pk-gleif" iconLiteral="bi-globe2"
+                                           text="%PkMeldewesenPanel.pk-gleif.text" color="TOOL" onAction="#onGleifCheck"/>
                     </children>
                 </PanelActionList>
                 <VBox spacing="4" styleClass="fxt-tp-section-body">

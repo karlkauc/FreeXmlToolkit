@@ -146,4 +146,36 @@ class FundsXmlPanelTest {
             pending.forEach(Runnable::run);
         }
     }
+    private static void fakeGleif() {
+        org.fxt.freexmltoolkit.service.finance.gleif.Gleif.setCache(new org.fxt.freexmltoolkit.service.finance.gleif.LeiCache(
+                new org.fxt.freexmltoolkit.service.finance.gleif.GleifClient(uri -> {
+                    try (var in = org.fxt.freexmltoolkit.service.finance.gleif.Gleif.class.getResourceAsStream("/gleif/lei-records.json")) {
+                        return new org.fxt.freexmltoolkit.service.finance.gleif.GleifClient.Response(200, in.readAllBytes());
+                    }
+                }, java.time.Clock.systemUTC()), null, java.time.Clock.systemUTC(), java.time.Duration.ofHours(1)));
+    }
+
+    @Test
+    void checksTheLeisAtGleif() throws Exception {
+        fakeGleif();
+        try {
+            FundsXmlPanel panel = WaitForAsyncUtils.waitForAsyncFx(3000, () -> new FundsXmlPanel(host));
+            assertNotNull(WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.lookup("#fundsxml-gleif")));
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openGeneratedDocument(
+                    "<FundsXML4>\n<Funds><Fund><Identifiers><LEI>506700GE1G29325QX363</LEI></Identifiers></Fund>\n"
+                            + "<Fund><Identifiers><LEI>5299009FXTMMFCP00069</LEI></Identifiers></Fund></Funds>\n</FundsXML4>",
+                    EditorFileType.XML, "funds.xml"));
+            WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS, () -> host.getActiveText().orElse("").contains("FundsXML4"));
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                panel.onGleifCheck();
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS, () -> !host.getActiveProblems().isEmpty());
+            var problem = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveProblems().getFirst());
+            assertTrue(problem.message().contains("5299009FXTMMFCP00069"), problem.message());
+            org.junit.jupiter.api.Assertions.assertEquals(3, problem.line());
+        } finally {
+            org.fxt.freexmltoolkit.service.finance.gleif.Gleif.setCache(null);
+        }
+    }
 }

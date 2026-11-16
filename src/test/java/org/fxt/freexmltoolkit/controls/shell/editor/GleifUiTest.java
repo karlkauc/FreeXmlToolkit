@@ -75,4 +75,24 @@ class GleifUiTest {
         assertEquals("true", stored.get(Gleif.KEY_ON_VALIDATION));
         assertEquals("true", stored.get(Gleif.KEY_HOVER));
     }
+
+    @Test
+    void outcomesOfACheck() {
+        var none = GleifDocumentCheck.outcomeOf(new org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.Result(0, Map.of(),
+                java.util.List.of(), null));
+        assertEquals(GleifDocumentCheck.Kind.NONE, none.kind());
+        var failed = GleifDocumentCheck.outcomeOf(new org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.Result(2, Map.of(),
+                java.util.List.of(), "GLEIF could not be reached: offline"));
+        assertEquals(GleifDocumentCheck.Kind.FAILED, failed.kind());
+        assertTrue(failed.message().contains("offline"));
+        var ok = GleifDocumentCheck.outcomeOf(new org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.Result(3, Map.of(),
+                java.util.List.of(), null));
+        assertEquals(GleifDocumentCheck.Kind.OK, ok.kind());
+        assertTrue(ok.message().contains("3 LEIs"), ok.message());
+        var findings = GleifDocumentCheck.outcomeOf(new org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.Result(3, Map.of(),
+                java.util.List.of(new org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.Finding(
+                        LeiRecord.Severity.ERROR, 2, 5, "5299009FXTMMFCP00069", "not registered")), null));
+        assertEquals(GleifDocumentCheck.Kind.FINDINGS, findings.kind());
+        assertEquals(1, findings.findings());
+    }
 }

@@ -50,6 +50,7 @@ public final class PkMeldewesenPanel extends VBox {
     @FXML private Label reportSummary;
     @FXML private Label taxonomyLabel;
     @FXML private Label status;
+    @FXML private org.fxt.freexmltoolkit.controls.shell.editor.PanelActionButton gleifButton;
     @FXML private ProgressBar progress;
     @FXML private javafx.scene.control.ComboBox<String> versionCombo;
     /** Set while the combo is filled, so filling it does not choose a version. */
@@ -76,6 +77,9 @@ public final class PkMeldewesenPanel extends VBox {
         this.taxonomy = taxonomy;
         FxmlViews.load(this, "/pages/panels/PkMeldewesenPanel.fxml");
         getStyleClass().add("fxt-wf-pension");
+        boolean gleif = org.fxt.freexmltoolkit.service.finance.gleif.Gleif.allowed();
+        gleifButton.setVisible(gleif);
+        gleifButton.setManaged(gleif);
         refreshDelay.setOnFinished(e -> refresh());
         loadOptions();
         fillVersions();
@@ -255,6 +259,26 @@ public final class PkMeldewesenPanel extends VBox {
         toleranceWarning.setText(options.toleranceWarning().toPlainString());
         lookThroughAsset.setText(options.lookThroughAsset().toPlainString());
         lookThroughTotal.setText(options.lookThroughTotal().toPlainString());
+    }
+
+    /** Checks every LEI of the active report at GLEIF; findings go to the PROBLEMS panel. */
+    @FXML
+    public void onGleifCheck() {
+        if (activeReport() == null) {
+            PanelStatus.precondition(status, I18n.t("PkMeldewesenPanel.no-report"));
+            return;
+        }
+        Runnable done = busy("#pk-gleif");
+        if (done == null) {
+            return; // already running
+        }
+        showProgress(true);
+        PanelStatus.info(status, I18n.t("IndustryPanel.working", I18n.t("IndustryPanel.gleif-check")));
+        org.fxt.freexmltoolkit.controls.shell.editor.GleifDocumentCheck.runOnActive(ui.editorHost(), outcome -> {
+            done.run();
+            showProgress(false);
+            outcome.showIn(status);
+        });
     }
 
     /** Renders the HTML report of the FMA rules for the active report and opens it in the preview. */

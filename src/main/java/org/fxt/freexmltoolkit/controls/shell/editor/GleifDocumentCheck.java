@@ -51,30 +51,77 @@ public final class GleifDocumentCheck {
         return I18n.t("GleifDocumentCheck.summary", errors, warnings);
     }
 
-    /** Tools → Check LEIs at GLEIF: runs in the background, the outcome in the PROBLEMS panel or a message. */
-    public static void runOnActive(EditorHost host) {
+    /** What a check of the active document came to. */
+    public enum Kind { OK, FINDINGS, NONE, FAILED }
+
+    /**
+     * The outcome of {@link #runOnActive(EditorHost, Consumer)}.
+     *
+     * @param kind     all LEIs fine, findings in the PROBLEMS panel, no LEI in the document, or GLEIF not asked
+     * @param message  the text for a status line or a message
+     * @param leis     the number of distinct LEIs
+     * @param findings the number of findings
+     */
+    public record Outcome(Kind kind, String message, int leis, int findings) {
+
+        /** Shows the outcome in a panel's status line (a failure also as message, without an error report). */
+        public void showIn(javafx.scene.control.Label status) {
+            switch (kind) {
+                case OK -> PanelStatus.success(status, message);
+                case FINDINGS, NONE -> PanelStatus.info(status, message);
+                case FAILED -> PanelStatus.failure(status, I18n.t("IndustryPanel.gleif-check"), message,
+                        I18n.t("IndustryPanel.gleif-remedy"), message, false);
+            }
+        }
+    }
+
+    /** @return the outcome of a check (the findings are published separately) */
+    static Outcome outcomeOf(GleifCheck.Result result) {
+        if (result.failure() != null) {
+            return new Outcome(Kind.FAILED, result.failure(), result.leis(), 0);
+        }
+        if (result.leis() == 0) {
+            return new Outcome(Kind.NONE, I18n.t("IndustryPanel.gleif-none"), 0, 0);
+        }
+        if (result.findings().isEmpty()) {
+            return new Outcome(Kind.OK, I18n.t("IndustryPanel.gleif-ok", result.leis()), result.leis(), 0);
+        }
+        return new Outcome(Kind.FINDINGS, I18n.t("IndustryPanel.gleif-problems", result.leis(), result.findings().size()),
+                result.leis(), result.findings().size());
+    }
+
+    /**
+     * Checks the LEIs of the active document in the background; the findings go to its PROBLEMS panel, {@code done}
+     * gets the outcome on the FX thread. Without an active document {@code done} gets NONE at once.
+     */
+    public static void runOnActive(EditorHost host, java.util.function.Consumer<Outcome> done) {
         String text = host.getActiveText().orElse(null);
         if (text == null) {
+            done.accept(new Outcome(Kind.NONE, I18n.t("IndustryPanel.no-document"), 0, 0));
             return;
         }
         EditorHost.ValidationTarget target = host.validationTarget();
         FxtGui.executorService.submit(() -> {
             GleifCheck.Result result = GleifCheck.check(text);
             Platform.runLater(() -> {
-                if (result.failure() != null) {
-                    DialogHelper.createStyledAlert(Alert.AlertType.WARNING, I18n.t("IndustryPanel.gleif-check"),
-                            result.failure(), I18n.t("IndustryPanel.gleif-remedy")).show();
-                } else if (result.leis() == 0) {
-                    DialogHelper.createStyledAlert(Alert.AlertType.INFORMATION, I18n.t("IndustryPanel.gleif-check"),
-                            I18n.t("IndustryPanel.gleif-none"), null).show();
-                } else {
+                if (result.failure() == null && result.leis() > 0) {
                     publish(host, target, result);
-                    if (result.findings().isEmpty()) {
-                        DialogHelper.createStyledAlert(Alert.AlertType.INFORMATION, I18n.t("IndustryPanel.gleif-check"),
-                                I18n.t("IndustryPanel.gleif-ok", result.leis()), null).show();
-                    }
                 }
+                done.accept(outcomeOf(result));
             });
+        });
+    }
+
+    /** Tools → Check LEIs at GLEIF: the outcome in the PROBLEMS panel, otherwise as a message. */
+    public static void runOnActive(EditorHost host) {
+        runOnActive(host, outcome -> {
+            switch (outcome.kind()) {
+                case FAILED -> DialogHelper.createStyledAlert(Alert.AlertType.WARNING, I18n.t("IndustryPanel.gleif-check"),
+                        outcome.message(), I18n.t("IndustryPanel.gleif-remedy")).show();
+                case OK, NONE -> DialogHelper.createStyledAlert(Alert.AlertType.INFORMATION, I18n.t("IndustryPanel.gleif-check"),
+                        outcome.message(), null).show();
+                case FINDINGS -> { } // the PROBLEMS panel opens
+            }
         });
     }
 }

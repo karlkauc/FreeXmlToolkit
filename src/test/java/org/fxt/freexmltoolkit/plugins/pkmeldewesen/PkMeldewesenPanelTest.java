@@ -145,4 +145,39 @@ class PkMeldewesenPanelTest {
             PkMeldewesenPanel.submissionAnswer = null;
         }
     }
+    private static void fakeGleif() {
+        org.fxt.freexmltoolkit.service.finance.gleif.Gleif.setCache(new org.fxt.freexmltoolkit.service.finance.gleif.LeiCache(
+                new org.fxt.freexmltoolkit.service.finance.gleif.GleifClient(uri -> {
+                    try (var in = org.fxt.freexmltoolkit.service.finance.gleif.Gleif.class.getResourceAsStream("/gleif/lei-records.json")) {
+                        return new org.fxt.freexmltoolkit.service.finance.gleif.GleifClient.Response(200, in.readAllBytes());
+                    }
+                }, java.time.Clock.systemUTC()), null, java.time.Clock.systemUTC(), java.time.Duration.ofHours(1)));
+    }
+
+    @Test
+    void checksTheReportsLeisAtGleif() throws Exception {
+        fakeGleif();
+        try {
+            String xml;
+            try (var in = getClass().getResourceAsStream("/pkmeldewesen/synthetic-pfq.xml")) {
+                xml = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8)
+                        .replace("LEI/5299000000000000TEST", "LEI/5299009FXTMMFCP00069");
+            }
+            String report = xml;
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openGeneratedDocument(report,
+                    org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XML, "gleif-pfq.xml"));
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> text("#pk-report-summary").startsWith("PK-QMV"));
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                panel.onGleifCheck();
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> !host.getActiveProblems().isEmpty());
+            var problem = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveProblems().getFirst());
+            org.junit.jupiter.api.Assertions.assertEquals("GLEIF", problem.source());
+            assertTrue(problem.message().contains("5299009FXTMMFCP00069"), problem.message());
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> text("#pk-status").contains("1 LEIs"));
+        } finally {
+            org.fxt.freexmltoolkit.service.finance.gleif.Gleif.setCache(null);
+        }
+    }
 }

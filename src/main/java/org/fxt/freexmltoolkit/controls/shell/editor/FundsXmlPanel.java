@@ -19,6 +19,8 @@ public class FundsXmlPanel extends VBox {
     @FXML private ComboBox<String> versionCombo;
     @FXML private Label status;
     @FXML private ProgressBar progress;
+    @FXML private PanelActionButton gleifButton;
+    private boolean gleifRunning;
     private final FundsXmlDownloadCoordinator.Listener downloadListener = new FundsXmlDownloadCoordinator.Listener() {
         @Override
         public void onStarted() {
@@ -56,6 +58,9 @@ public class FundsXmlPanel extends VBox {
         this.editorHost = editorHost;
         FxmlViews.load(this, "/pages/panels/FundsXmlPanel.fxml");
         hideProgress();
+        boolean gleif = org.fxt.freexmltoolkit.service.finance.gleif.Gleif.allowed();
+        gleifButton.setVisible(gleif);
+        gleifButton.setManaged(gleif);
         // Initial fill: showing the active version must not count as the user picking one.
         var onVersionSelected = versionCombo.getOnAction();
         versionCombo.setOnAction(null);
@@ -168,6 +173,28 @@ public class FundsXmlPanel extends VBox {
                     PanelStatus.info(status, I18n.t("FundsXmlPanel.dqFindings", failed, results.size()));
                 }
             });
+        });
+    }
+
+    /** Checks every LEI of the active FundsXML document at GLEIF; findings go to the PROBLEMS panel. */
+    @FXML
+    public void onGleifCheck() {
+        String xml = editorHost.getActiveText().orElse(null);
+        if (xml == null || !org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.isFundsXml(xml)) {
+            PanelStatus.precondition(status, I18n.t("FundsXmlPanel.notFundsXml"));
+            return;
+        }
+        if (gleifRunning) {
+            PanelStatus.info(status, I18n.t("IndustryPanel.already-running", I18n.t("IndustryPanel.gleif-check")));
+            return;
+        }
+        gleifRunning = true;
+        showProgress(-1);
+        PanelStatus.info(status, I18n.t("IndustryPanel.working", I18n.t("IndustryPanel.gleif-check")));
+        GleifDocumentCheck.runOnActive(editorHost, outcome -> {
+            gleifRunning = false;
+            hideProgress();
+            outcome.showIn(status);
         });
     }
 

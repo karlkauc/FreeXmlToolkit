@@ -44,6 +44,8 @@
                                            text="%FundsXmlPanel.fundsxml-validate.text" color="CREATE" onAction="#onValidate"/>
                         <PanelActionButton id="fundsxml-dq" iconLiteral="bi-clipboard2-check"
                                            text="%FundsXmlPanel.fundsxml-dq.text" color="CREATE" onAction="#onDataQuality"/>
+                        <PanelActionButton fx:id="gleifButton" id="fundsxml-gleif" iconLiteral="bi-globe2"
+                                           text="%FundsXmlPanel.fundsxml-gleif.text" color="TOOL" onAction="#onGleifCheck"/>
                         <PanelActionButton id="fundsxml-grid-setup" iconLiteral="bi-calculator"
                                            text="%FundsXmlPanel.fundsxml-grid-setup.text" color="TOOL" onAction="#onGridSetup"/>
                     </children>

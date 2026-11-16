@@ -548,32 +548,22 @@ public class IndustryPanel extends VBox {
      * panel and keep the others (schema, rules).
      */
     void checkLeisAtGleif() {
-        EditorHost host = ui.editorHost();
-        String text = host.getActiveText().orElse(null);
-        if (text == null) {
-            PanelStatus.precondition(status, I18n.t("IndustryPanel.no-document"));
+        String what = I18n.t("IndustryPanel.gleif-check");
+        if (!running.add(what)) {
+            PanelStatus.info(status, I18n.t("IndustryPanel.already-running", what));
             return;
         }
-        EditorHost.ValidationTarget target = host.validationTarget();
-        background(I18n.t("IndustryPanel.gleif-check"), () -> org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.check(text),
-                result -> {
-                    if (result.failure() != null) {
-                        PanelStatus.failure(status, I18n.t("IndustryPanel.gleif-check"), result.failure(),
-                                I18n.t("IndustryPanel.gleif-remedy"), result.failure(), false);
-                        return;
-                    }
-                    if (result.leis() == 0) {
-                        PanelStatus.info(status, I18n.t("IndustryPanel.gleif-none"));
-                        return;
-                    }
-                    org.fxt.freexmltoolkit.controls.shell.editor.GleifDocumentCheck.publish(host, target, result);
-                    refreshCounts();
-                    if (result.findings().isEmpty()) {
-                        PanelStatus.success(status, I18n.t("IndustryPanel.gleif-ok", result.leis()));
-                    } else {
-                        PanelStatus.info(status, I18n.t("IndustryPanel.gleif-problems", result.leis(), result.findings().size()));
-                    }
-                });
+        javafx.scene.control.ButtonBase button = trigger;
+        Busy busy = Busy.start(button);
+        showProgress(true);
+        PanelStatus.info(status, I18n.t("IndustryPanel.working", what));
+        org.fxt.freexmltoolkit.controls.shell.editor.GleifDocumentCheck.runOnActive(ui.editorHost(), outcome -> {
+            running.remove(what);
+            busy.end();
+            showProgress(!running.isEmpty() || checkPending);
+            refreshCounts();
+            outcome.showIn(status);
+        });
     }
 
     // test access
