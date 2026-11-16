@@ -48,8 +48,8 @@ import org.fxt.freexmltoolkit.domain.GitHubRelease;
  *   <li>Download the schema zipball for a release and unpack relevant files into
  *       {@code ~/.freeXmlToolkit/fundsxml/schema/&lt;version&gt;/}.</li>
  *   <li>Download the examples repo (latest commit) and split it into the
- *       {@code examples/}, {@code schematron/}, and {@code queries/} sub-caches based
- *       on file extension.</li>
+ *       {@code examples/}, {@code schematron/}, and {@code queries/} sub-caches; only
+ *       real examples are kept ({@link FundsXmlExampleFilter}).</li>
  *   <li>Maintain {@code metadata.json} (last-updated timestamps, active version,
  *       latest-known tag).</li>
  * </ul>
@@ -208,12 +208,13 @@ public class FundsXmlExtensionService {
     }
 
     /**
-     * Removes stale favorites/templates seeded from build/test infrastructure files
-     * by earlier versions (e.g. {@code pom.xml} featured samples). Needs only the
-     * favorites/template stores — no cache content, no network — so it runs even when
-     * the feature is disabled or the cache is empty.
+     * Removes files from the examples cache that are no examples (see
+     * {@link FundsXmlExampleFilter}), then stale favorites/templates seeded from build/test
+     * infrastructure files by earlier versions (e.g. {@code pom.xml} featured samples). No
+     * network access, so it runs even when the feature is disabled or the cache is empty.
      */
     public void cleanupStaleEntries() {
+        runRegistrarStep("pruning the examples cache", this::pruneExamplesCache);
         runRegistrarStep("cleanup of excluded samples",
                 () -> registrar.cleanupExcludedSamples(cache.getExamplesDir()));
     }
@@ -428,6 +429,7 @@ public class FundsXmlExtensionService {
             extractZip(zip, extractDir);
 
             Path zipRoot = singleRootDir(extractDir);
+            clearExampleCaches();
             ExampleCounts counts = new ExampleCounts();
             try (Stream<Path> walk = Files.walk(zipRoot)) {
                 walk.filter(Files::isRegularFile)
@@ -442,22 +444,89 @@ public class FundsXmlExtensionService {
     }
 
     private void sortExampleFile(Path zipRoot, Path file, ExampleCounts counts) {
-        String name = file.getFileName().toString().toLowerCase(Locale.ROOT);
         Path target;
-        if (name.endsWith(".xml") || name.endsWith(".xsl") || name.endsWith(".xslt")) {
-            target = cache.getExamplesDir();
-            counts.xmlFiles++;
-        } else if (name.endsWith(".sch") || name.endsWith(".scm")) {
-            target = cache.getSchematronDir();
-            counts.schematronFiles++;
-        } else if (name.endsWith(".xpath") || name.endsWith(".xq") || name.endsWith(".xquery")
-                || name.equals("index.json")) {
-            target = cache.getQueriesDir();
-            counts.queryFiles++;
-        } else {
-            return;
+        switch (FundsXmlExampleFilter.classify(zipRoot, file)) {
+            case EXAMPLE_XML, XSLT -> {
+                target = cache.getExamplesDir();
+                counts.xmlFiles++;
+            }
+            case SCHEMATRON -> {
+                target = cache.getSchematronDir();
+                counts.schematronFiles++;
+            }
+            case QUERY -> {
+                target = cache.getQueriesDir();
+                counts.queryFiles++;
+            }
+            default -> {
+                return;
+            }
         }
         copyPreservingTree(zipRoot, file, target);
+    }
+
+    /**
+     * Empties the examples, schematron and queries caches before a fresh copy, so files that are
+     * no longer examples (or were removed upstream) do not linger.
+     */
+    private void clearExampleCaches() throws IOException {
+        for (Path dir : List.of(cache.getExamplesDir(), cache.getSchematronDir(), cache.getQueriesDir())) {
+            deleteRecursive(dir);
+            Files.createDirectories(dir);
+        }
+    }
+
+    /**
+     * Deletes files in the examples cache that are no examples (left by earlier versions, which
+     * copied every {@code .xml} of the repository, e.g. Maven {@code pom.xml} files), then the
+     * folders that became empty. No network access.
+     */
+    void pruneExamplesCache() {
+        Path examplesDir = cache.getExamplesDir();
+        if (examplesDir == null || !Files.isDirectory(examplesDir)) {
+            return;
+        }
+        List<Path> files;
+        try (Stream<Path> walk = Files.walk(examplesDir)) {
+            files = walk.filter(Files::isRegularFile).toList();
+        } catch (IOException e) {
+            logger.warn("Failed to scan the FundsXML examples cache {}: {}", examplesDir, e.getMessage());
+            return;
+        }
+        int removed = 0;
+        for (Path file : files) {
+            if (FundsXmlExampleFilter.classify(examplesDir, file) != FundsXmlExampleFilter.Category.NONE) {
+                continue;
+            }
+            try {
+                Files.deleteIfExists(file);
+                removed++;
+            } catch (IOException e) {
+                logger.warn("Failed to delete {} from the FundsXML examples cache: {}", file, e.getMessage());
+            }
+        }
+        if (removed > 0) {
+            logger.info("Removed {} non-example file(s) from the FundsXML examples cache", removed);
+            deleteEmptyFolders(examplesDir);
+        }
+    }
+
+    private static void deleteEmptyFolders(Path root) {
+        try (Stream<Path> walk = Files.walk(root)) {
+            walk.sorted(Comparator.reverseOrder())
+                    .filter(p -> !p.equals(root) && Files.isDirectory(p))
+                    .forEach(dir -> {
+                        try (Stream<Path> children = Files.list(dir)) {
+                            if (children.findAny().isEmpty()) {
+                                Files.delete(dir);
+                            }
+                        } catch (IOException ignored) {
+                            // keep the folder
+                        }
+                    });
+        } catch (IOException e) {
+            logger.debug("Failed to remove empty folders under {}: {}", root, e.getMessage());
+        }
     }
 
     private static class ExampleCounts {

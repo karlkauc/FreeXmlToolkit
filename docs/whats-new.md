@@ -6,6 +6,9 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+- **Only real FundsXML examples.** The FundsXML download keeps FundsXML documents, XSLT stylesheets, Schematron
+  files and XPath/XQuery snippets; Maven `pom.xml` files and other code of the examples repository no longer show up
+  as examples, and an existing cache is cleaned at startup. See [FundsXML Extensions](fundsxml-extensions.md).
 - **Filter the Problems panel by severity.** Click the error or warning counter in the PROBLEMS header to list only
   errors or only warnings; click it again to list all problems.
 - **Open the entry of an online finding.** Findings of **Check Identifiers Online** in the Problems panel link to the

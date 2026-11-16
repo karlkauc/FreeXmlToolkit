@@ -102,9 +102,65 @@ class FundsXmlExtensionServiceTest {
         assertTrue(Files.isRegularFile(cache.getQueriesDir().resolve("q1.xpath")));
         // README.md must NOT be copied
         assertFalse(Files.exists(cache.getExamplesDir().resolve("README.md")));
-        assertEquals(1, result.examplesDownloaded());
+        assertTrue(Files.isRegularFile(cache.getExamplesDir().resolve("stylesheets/report.xslt")));
+        assertTrue(Files.isRegularFile(cache.getExamplesDir().resolve("tests/fixtures/invalid/bad.xml")));
+        // Build files, code folders and intermediate output are no examples
+        assertFalse(Files.exists(cache.getExamplesDir().resolve("pom.xml")));
+        assertFalse(Files.exists(cache.getExamplesDir().resolve("XSD_Validation")));
+        assertFalse(Files.exists(cache.getExamplesDir().resolve("config")));
+        assertFalse(Files.exists(cache.getExamplesDir().resolve("export")));
+        assertEquals(3, result.examplesDownloaded());
         assertEquals(1, result.schematronDownloaded());
         assertEquals(1, result.queriesDownloaded());
+    }
+
+    @Test
+    @DisplayName("downloadOrUpdate replaces the example caches, so stale files disappear")
+    void downloadReplacesStaleExamples() throws Exception {
+        Path stale = cache.getExamplesDir().resolve("Database_Integration/java/pom.xml");
+        Files.createDirectories(stale.getParent());
+        Files.writeString(stale, "<project/>");
+        Path staleQuery = cache.getQueriesDir().resolve("removed-upstream.xq");
+        Files.writeString(staleQuery, "1");
+        fakeClient.latestForRepo.put(FundsXmlExtensionService.SCHEMA_REPO, release("4.2.10", "schema-zip-url"));
+        fakeClient.zipballForUrl.put("schema-zip-url", buildSchemaZip());
+        fakeClient.latestForRepo.put(FundsXmlExtensionService.EXAMPLES_REPO, null);
+        fakeClient.fileForUri.put(
+                "https://api.github.com/repos/fundsxml/examples/zipball/main",
+                buildExamplesZip());
+
+        FundsXmlExtensionService.DownloadResult result = service.downloadOrUpdate(DownloadProgressCallback.NO_OP);
+
+        assertTrue(result.isSuccess(), result.error());
+        assertFalse(Files.exists(stale));
+        assertFalse(Files.exists(staleQuery));
+        assertTrue(Files.isRegularFile(cache.getExamplesDir().resolve("sample1.xml")));
+    }
+
+    @Test
+    @DisplayName("cleanupStaleEntries prunes non-examples from an existing cache")
+    void cleanupPrunesExamplesCache() throws Exception {
+        Path pom = cache.getExamplesDir().resolve("XSD_Validation/java/pom.xml");
+        Files.createDirectories(pom.getParent());
+        Files.writeString(pom, "<project/>");
+        Path other = cache.getExamplesDir().resolve("misc/settings.xml");
+        Files.createDirectories(other.getParent());
+        Files.writeString(other, "<settings/>");
+        Path sample = cache.getExamplesDir().resolve("FundsXML_Files/4.2.9/positions/Fund.xml");
+        Files.createDirectories(sample.getParent());
+        Files.writeString(sample, "<FundsXML4/>");
+        Path xslt = cache.getExamplesDir().resolve("XSLT_Transformations/csv.xslt");
+        Files.createDirectories(xslt.getParent());
+        Files.writeString(xslt, "<xsl:stylesheet/>");
+
+        service.cleanupStaleEntries();
+
+        assertFalse(Files.exists(pom));
+        assertFalse(Files.exists(cache.getExamplesDir().resolve("XSD_Validation")));
+        assertFalse(Files.exists(cache.getExamplesDir().resolve("misc")));
+        assertTrue(Files.isRegularFile(sample));
+        assertTrue(Files.isRegularFile(xslt));
+        assertTrue(Files.isDirectory(cache.getExamplesDir()));
     }
 
     @Test
@@ -393,7 +449,17 @@ class FundsXmlExtensionServiceTest {
     /** Mimics the examples repo: one XML, one .sch, one .xpath, plus an unrelated README. */
     private static byte[] buildExamplesZip() throws IOException {
         Map<String, String> entries = new LinkedHashMap<>();
-        entries.put("fundsxml-examples-def456/sample1.xml", "<root/>");
+        entries.put("fundsxml-examples-def456/sample1.xml", "<FundsXML4><ControlData/></FundsXML4>");
+        entries.put("fundsxml-examples-def456/stylesheets/report.xslt", "<xsl:stylesheet/>");
+        entries.put("fundsxml-examples-def456/tests/fixtures/invalid/bad.xml", "<FundsXML4/>");
+        // Not examples: build files, program code folders, WebDAV leftovers, intermediate output
+        entries.put("fundsxml-examples-def456/pom.xml", "<project/>");
+        entries.put("fundsxml-examples-def456/XSD_Validation/java/pom.xml", "<project/>");
+        entries.put("fundsxml-examples-def456/XSD_Validation/java/src/Main.java", "class Main {}");
+        entries.put("fundsxml-examples-def456/config/log4j2.xml", "<Configuration/>");
+        entries.put("fundsxml-examples-def456/export/.DAV/old.xslt", "<xsl:stylesheet/>");
+        entries.put("fundsxml-examples-def456/export/work/a.xml", "<FundsXML4/>");
+        entries.put("fundsxml-examples-def456/export/enriched/b.xml", "<FundsXML4/>");
         entries.put("fundsxml-examples-def456/rules.sch", "<sch:schema/>");
         entries.put("fundsxml-examples-def456/q1.xpath", "//Fund");
         entries.put("fundsxml-examples-def456/README.md", "should not be copied");

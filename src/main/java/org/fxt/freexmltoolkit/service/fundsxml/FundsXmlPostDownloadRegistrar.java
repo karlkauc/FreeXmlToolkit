@@ -485,14 +485,15 @@ public class FundsXmlPostDownloadRegistrar {
      * The examples repo contains build and test infrastructure (Maven {@code pom.xml}
      * files, invalid fixtures under {@code tests/}) whose small size would otherwise win
      * the smallest-first featured heuristic. {@code relativePath} is relative to the
-     * examples dir; separators may be {@code /} or {@code \}.
+     * examples dir; separators may be {@code /} or {@code \}. Everything
+     * {@link FundsXmlExampleFilter#isSkippedPath} rejects is excluded too; the intentionally
+     * invalid fixtures under {@code tests/} stay in the examples folder but are never featured.
      */
     static boolean isExcludedSample(String relativePath) {
-        String normalized = relativePath.replace('\\', '/').toLowerCase(Locale.ROOT);
-        String fileName = normalized.substring(normalized.lastIndexOf('/') + 1);
-        if (fileName.equals("pom.xml")) {
+        if (FundsXmlExampleFilter.isSkippedPath(relativePath)) {
             return true;
         }
+        String normalized = relativePath.replace('\\', '/').toLowerCase(Locale.ROOT);
         return normalized.startsWith("tests/") || normalized.contains("/tests/");
     }
 

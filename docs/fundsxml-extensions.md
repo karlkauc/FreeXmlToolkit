@@ -95,7 +95,7 @@ background downloads alike.
 Whenever content is downloaded (automatically or manually), the application will:
 
 - Download the latest **schema release** from `fundsxml/schema` (the official `FundsXML4.xsd` and its included files).
-- Download **example documents**, **XSLT stylesheets**, **Schematron rule files**, and **XPath/XQuery snippets** from `fundsxml/examples`.
+- Download **example documents**, **XSLT stylesheets**, **Schematron rule files**, and **XPath/XQuery snippets** from `fundsxml/examples`. Only these are kept: an `.xml` file counts as an example when its root element is `FundsXML4`. Program code and build files of the repository's Java, .NET, Python and JavaScript samples (such as Maven `pom.xml` files), hidden folders and the intermediate `work/` and `enriched/` folders of the TPT export are skipped. Each download replaces the cached examples, and files from earlier versions that are no examples are removed at startup.
 - Register the active **XSD schema** as a Favorite under the category **FundsXML Schema** (XSD type), so it shows up alongside your other schema favorites.
 - Register the **examples folder** as a Favorite under **FundsXML Examples**, plus the most compact sample XMLs (up to 10) as individual file favorites for one-click access.
 - Register each **XSLT stylesheet** found in the examples as an XSLT Favorite under **FundsXML XSLT**.
