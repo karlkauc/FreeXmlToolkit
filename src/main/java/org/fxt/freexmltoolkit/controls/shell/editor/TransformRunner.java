@@ -148,6 +148,49 @@ public final class TransformRunner {
     }
 
     /**
+     * As {@link #xsltTransformResult(String, String, String, String, java.util.Map,
+     * XsltTransformationEngine.OutputFormat, org.fxt.freexmltoolkit.service.standards.XsltVersion)} with an
+     * external XSLT processor: {@code null} runs on Saxon HE (the version applies), otherwise the configured program
+     * transforms (the version does not apply - the program has its own). The texts are given to the program in
+     * temporary files next to the files their URIs name, so relative references resolve as for the files.
+     */
+    public static XsltTransformationResult xsltTransformResult(String xml, String xmlBaseUri,
+            String xsltContent, String xsltSystemId,
+            java.util.Map<String, Object> parameters,
+            XsltTransformationEngine.OutputFormat outputFormat,
+            org.fxt.freexmltoolkit.service.standards.XsltVersion version,
+            org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorConfig processor) {
+        if (processor == null) {
+            return xsltTransformResult(xml, xmlBaseUri, xsltContent, xsltSystemId, parameters, outputFormat, version);
+        }
+        if (!org.fxt.freexmltoolkit.service.AdminPolicy.current().externalXsltProcessorsAllowed()) {
+            return XsltTransformationResult.error("External XSLT processors are disabled by the administrator ("
+                    + org.fxt.freexmltoolkit.service.AdminPolicy.KEY_XSLT_EXTERNAL_ALLOWED + "=false).");
+        }
+        try {
+            return org.fxt.freexmltoolkit.service.xsltproc.ExternalXsltRunner.transform(processor,
+                    new org.fxt.freexmltoolkit.service.xsltproc.ExternalXsltRunner.Request(xml, pathOf(xmlBaseUri),
+                            xsltContent, pathOf(xsltSystemId), parameters == null ? java.util.Map.of() : parameters,
+                            outputFormat));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return XsltTransformationResult.error(processor.name() + " was stopped.");
+        }
+    }
+
+    /** @return the file a {@code file:} URI (or plain path) names, or {@code null} */
+    static java.nio.file.Path pathOf(String uri) {
+        if (uri == null || uri.isBlank()) {
+            return null;
+        }
+        try {
+            return uri.startsWith("file:") ? java.nio.file.Path.of(java.net.URI.create(uri)) : java.nio.file.Path.of(uri);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    /**
      * The XSLT 2.0 compatibility report as a compile-error result ({@code FXT-COMPAT}, the first issue's line), or
      * {@code null} when the stylesheet fits {@code version} (always for 3.0, 1.0 and {@code null}).
      */

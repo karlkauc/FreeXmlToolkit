@@ -57,6 +57,8 @@ public final class AdminPolicy {
     public static final String KEY_XMLENC_LEGACY_ALLOWED = "xmlenc.legacyAlgorithms.allowed";
     /** {@code false} disables external XSL-FO processors: only the bundled Apache FOP renders PDFs. */
     public static final String KEY_FOP_EXTERNAL_ALLOWED = "fop.external.allowed";
+    /** {@code false} disables external XSLT processors: only the bundled Saxon HE transforms. */
+    public static final String KEY_XSLT_EXTERNAL_ALLOWED = "xslt.external.allowed";
     /** Policy only: {@code false} removes every AI feature, including {@code fxt-cli mcp}. */
     public static final String KEY_AI_ALLOWED = "ai.allowed";
     /** Policy only: {@code false} refuses {@code fxt-cli mcp}. */
@@ -281,6 +283,11 @@ public final class AdminPolicy {
     /** @return {@code false} when the administrator disabled external XSL-FO processors */
     public boolean externalFoProcessorsAllowed() {
         return !"false".equalsIgnoreCase(locked.getProperty(KEY_FOP_EXTERNAL_ALLOWED, "true"));
+    }
+
+    /** @return {@code false} when the administrator disabled external XSLT processors */
+    public boolean externalXsltProcessorsAllowed() {
+        return !"false".equalsIgnoreCase(locked.getProperty(KEY_XSLT_EXTERNAL_ALLOWED, "true"));
     }
 
     /** @return {@code false} when the administrator blocked the legacy XML encryption algorithms */
