@@ -45,6 +45,7 @@ import picocli.CommandLine.Spec;
                 VerifyCommand.class,
                 EncryptCommand.class,
                 DecryptCommand.class,
+                LeiCommand.class,
                 McpCommand.class,
                 WarmUpCommand.class,
                 CommandLine.HelpCommand.class

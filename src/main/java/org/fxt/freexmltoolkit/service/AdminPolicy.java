@@ -59,6 +59,8 @@ public final class AdminPolicy {
     public static final String KEY_FOP_EXTERNAL_ALLOWED = "fop.external.allowed";
     /** {@code false} disables external XSLT processors: only the bundled Saxon HE transforms. */
     public static final String KEY_XSLT_EXTERNAL_ALLOWED = "xslt.external.allowed";
+    /** {@code false} disables GLEIF lookups of LEIs (panels, validation, hover, {@code fxt-cli lei}). */
+    public static final String KEY_GLEIF_ALLOWED = "gleif.allowed";
     /** Policy only: {@code false} removes every AI feature, including {@code fxt-cli mcp}. */
     public static final String KEY_AI_ALLOWED = "ai.allowed";
     /** Policy only: {@code false} refuses {@code fxt-cli mcp}. */
@@ -288,6 +290,11 @@ public final class AdminPolicy {
     /** @return {@code false} when the administrator disabled external XSLT processors */
     public boolean externalXsltProcessorsAllowed() {
         return !"false".equalsIgnoreCase(locked.getProperty(KEY_XSLT_EXTERNAL_ALLOWED, "true"));
+    }
+
+    /** @return {@code false} when the administrator disabled GLEIF lookups */
+    public boolean gleifAllowed() {
+        return !"false".equalsIgnoreCase(locked.getProperty(KEY_GLEIF_ALLOWED, "true"));
     }
 
     /** @return {@code false} when the administrator blocked the legacy XML encryption algorithms */

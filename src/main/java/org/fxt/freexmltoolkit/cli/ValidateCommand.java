@@ -44,7 +44,10 @@ import picocli.CommandLine.Spec;
                 "  fxt-cli validate data/ --project shop.fxtproj",
                 "",
                 "  # Strictly as XSD 1.0 and XML 1.0 (for processors without XSD 1.1)",
-                "  fxt-cli validate orders/ --xsd order.xsd --xsd-version 1.0 --xml-version 1.0"
+                "  fxt-cli validate orders/ --xsd order.xsd --xsd-version 1.0 --xml-version 1.0",
+                "",
+                "  # Regulatory reports, with every LEI checked at GLEIF",
+                "  fxt-cli validate reports/ --gleif"
         },
         description = {
                 "Validate XML against XML Schema and/or Schematron, JSON against JSON Schema.",
@@ -130,12 +133,25 @@ final class ValidateCommand implements Callable<Integer> {
     private org.fxt.freexmltoolkit.service.standards.StandardsProfile cliStandards =
             org.fxt.freexmltoolkit.service.standards.StandardsProfile.EMPTY;
 
+    @Option(names = "--gleif",
+            description = "Also check every LEI of the files at GLEIF (api.gleif.org): unknown, lapsed, retired or "
+                    + "annulled LEIs and inactive entities are findings. Sends the LEIs to GLEIF; answers are cached.")
+    boolean gleif;
+
     @Option(names = "--fail-on-warning",
             description = "Warnings make a file invalid too (exit code 1).")
     boolean failOnWarning;
 
     @Override
     public Integer call() throws Exception {
+        try {
+            return run();
+        } finally {
+            org.fxt.freexmltoolkit.service.finance.gleif.Gleif.setValidationOverride(null);
+        }
+    }
+
+    private Integer run() throws Exception {
         CommandLine commandLine = spec.commandLine();
         CliSupport.requireFile(commandLine, xsd, "XML Schema");
         CliSupport.requireFile(commandLine, schematron, "Schematron");
@@ -159,6 +175,13 @@ final class ValidateCommand implements Callable<Integer> {
                     "No files to validate (folders are searched for " + String.join(", ", include) + ")");
         }
         CliSupport.initServices();
+        // the command line ignores the GUI's "check LEIs on validation" setting; --gleif adds the stage below
+        org.fxt.freexmltoolkit.service.finance.gleif.Gleif.setValidationOverride(false);
+        if (gleif && !org.fxt.freexmltoolkit.service.finance.gleif.Gleif.allowed()) {
+            throw new CommandLine.ParameterException(commandLine,
+                    "--gleif: GLEIF lookups are turned off by the administrator ("
+                            + org.fxt.freexmltoolkit.service.AdminPolicy.KEY_GLEIF_ALLOWED + "=false)");
+        }
         if (schemaStore && !noSchemaLookup) {
             catalog = openSchemaStore(commandLine);
         }
@@ -179,7 +202,8 @@ final class ValidateCommand implements Callable<Integer> {
         long start = System.nanoTime();
         List<FileResult> results = new ArrayList<>();
         for (Path file : files) {
-            results.add(validate(file));
+            FileResult result = validate(file);
+            results.add(gleif ? withGleif(result) : result);
         }
         ValidationReport report = new ValidationReport(results, (System.nanoTime() - start) / 1_000_000);
 
@@ -247,6 +271,34 @@ final class ValidateCommand implements Callable<Integer> {
         List<Finding> findings = findings(run.problems());
         String notRun = run.failed() ? FxtCli.messageOf(run.error()) : schemaNotLoaded(findings);
         return new FileResult(file, schema, findings, notRun, millisSince(start));
+    }
+
+    /** Adds the GLEIF findings of the file's LEIs (files below the streaming size only). */
+    private FileResult withGleif(FileResult result) {
+        if (sizeOf(result.file()) >= streamingBytes) {
+            return result;
+        }
+        String content;
+        try {
+            content = CliSupport.read(result.file());
+        } catch (Exception e) {
+            return result;
+        }
+        var check = org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.check(content);
+        if (check.leis() == 0) {
+            return result;
+        }
+        List<Finding> findings = new ArrayList<>(result.findings());
+        if (check.failure() != null) {
+            findings.add(new Finding(org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.SOURCE, Severity.INFO, 0, 0,
+                    "The LEIs were not checked at GLEIF: " + check.failure(), null, null));
+        }
+        for (var f : check.findings()) {
+            findings.add(new Finding(org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.SOURCE,
+                    Severity.of(f.severity().name()), f.line(), f.column(), f.message(),
+                    org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.RULE, null));
+        }
+        return new FileResult(result.file(), result.schema(), findings, result.notRun(), result.millis());
     }
 
     /** The standards of one file: the project's binding for it, then the command-line options. */

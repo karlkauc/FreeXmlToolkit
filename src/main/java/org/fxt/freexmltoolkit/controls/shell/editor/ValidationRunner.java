@@ -337,7 +337,31 @@ public final class ValidationRunner {
                 problems.add(new ValidationProblem(found.source(), found.severity(), found.line(), found.message()));
             }
         }
+        if (org.fxt.freexmltoolkit.service.finance.gleif.Gleif.onValidation()) {
+            problems.addAll(gleifProblems(xml));
+        }
         return new RunResult(problems, reportData, xsdMillis, schematronMillis, failure, error);
+    }
+
+    /**
+     * The GLEIF stage: the text's LEIs checked at GLEIF (only when the user or {@code fxt-cli validate --gleif} turned
+     * it on). The Problems panel knows errors and warnings only, so GLEIF's infos (pending registrations, GLEIF not
+     * reachable) are warnings here.
+     */
+    public static List<ValidationProblem> gleifProblems(String text) {
+        var result = org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.check(text);
+        List<ValidationProblem> problems = new ArrayList<>();
+        if (result.failure() != null) {
+            problems.add(new ValidationProblem(org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.SOURCE, "warning", 0,
+                    "The LEIs were not checked at GLEIF: " + result.failure()));
+        }
+        for (var f : result.findings()) {
+            problems.add(new ValidationProblem(org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.SOURCE,
+                    f.severity() == org.fxt.freexmltoolkit.service.finance.gleif.LeiRecord.Severity.ERROR ? "error" : "warning",
+                    f.line(), f.message(),
+                    org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.RULE, null).withColumn(f.column()));
+        }
+        return problems;
     }
 
     /**
