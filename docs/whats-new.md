@@ -12,7 +12,7 @@ running is shown under **Help → About FreeXmlToolkit**.
   panels looks an LEI up at GLEIF (name, address, registration and entity status, next renewal) and an ISIN at ESMA
   FIRDS (name, CFI code, issuer LEI, EU trading) or, when FIRDS does not know it, at OpenFIGI. **Check Identifiers
   Online** (panels, Tools menu) checks every LEI and ISIN of a document and reports unknown, lapsed, retired or annulled
-  LEIs, unknown or no longer traded ISINs and reported CFI codes that differ from ESMA FIRDS in the Problems panel. Optionally with every validation and as a hover in
+  LEIs, unknown or no longer traded ISINs and reported CFI codes and issuer LEIs that differ from ESMA FIRDS in the Problems panel. Optionally with every validation and as a hover in
   the editor (Settings → Network & Security, off by default); on the command line `fxt-cli lei`, `fxt-cli isin` and
   `fxt-cli validate --gleif --isin`. See [Online Identifier Lookup](identifier-lookup.md).
 

@@ -170,18 +170,18 @@ class IsinTest {
                   <Note><ClssfctnTp>not a CFI</ClssfctnTp><ISIN>US0378331005</ISIN></Note>
                 </Rpt>
                 """;
-        var pairs = CfiPairs.scan(xml);
+        var pairs = IsinPairs.scan(xml);
         assertEquals(List.of("IE00B4L5Y983=CIOGES@4", "US0378331005=ESXXXX@9"),
-                pairs.stream().map(p -> p.isin() + "=" + p.cfi() + "@" + p.line()).toList(),
+                pairs.stream().map(p -> p.isin() + "=" + p.value() + "@" + p.line()).toList(),
                 "two ISINs next to the CFI: ambiguous, no pair; a text that is no CFI: no pair");
-        assertTrue(CfiPairs.scan("ISIN;CFI\nIE00B4L5Y983;CEOGES").isEmpty(), "not XML");
-        assertTrue(CfiPairs.scan("<a><b>").isEmpty(), "not well-formed");
+        assertTrue(IsinPairs.scan("ISIN;CFI\nIE00B4L5Y983;CEOGES").isEmpty(), "not XML");
+        assertTrue(IsinPairs.scan("<a><b>").isEmpty(), "not well-formed");
 
-        assertTrue(CfiPairs.matches("CEOGES", "CEOGES"));
-        assertTrue(CfiPairs.matches("CEXXXX", "CEOGES"), "X in the report: a construct");
-        assertTrue(CfiPairs.matches("ESVUFR", "ESXXXX"));
-        assertFalse(CfiPairs.matches("CIOGES", "CEOGES"));
-        assertFalse(CfiPairs.matches("DBXXXX", "ESVUFR"));
+        assertTrue(IsinPairs.cfiMatches("CEOGES", "CEOGES"));
+        assertTrue(IsinPairs.cfiMatches("CEXXXX", "CEOGES"), "X in the report: a construct");
+        assertTrue(IsinPairs.cfiMatches("ESVUFR", "ESXXXX"));
+        assertFalse(IsinPairs.cfiMatches("CIOGES", "CEOGES"));
+        assertFalse(IsinPairs.cfiMatches("DBXXXX", "ESVUFR"));
     }
 
     @Test
@@ -195,6 +195,37 @@ class IsinTest {
         assertEquals(IdentifierCheck.CFI_RULE, f.rule());
         assertEquals(3, f.line());
         assertTrue(f.message().contains("CIOGES") && f.message().contains("CEOGES"), f.message());
+    }
+
+    @Test
+    void issuerLeisArePairedOnlyInsideAnIssuerElement() {
+        String xml = """
+                <AsstInf>
+                  <MnyMktInstrmHldg>
+                    <AsstId><InstrmId><ISIN>IE00B4L5Y983</ISIN></InstrmId></AsstId>
+                    <PtyData>
+                      <IssrData><PtyId><LEI>5299009FXTMMFCP00069</LEI></PtyId></IssrData>
+                    </PtyData>
+                  </MnyMktInstrmHldg>
+                  <DerivHldg>
+                    <AsstId><InstrmId><ISIN>US0378331005</ISIN></InstrmId></AsstId>
+                    <PtyData><CtrPtyData><PtyId><LEI>5299009FXTMMFCP00069</LEI></PtyId></CtrPtyData></PtyData>
+                  </DerivHldg>
+                  <Scty><Id>US0378331005</Id><Issr><Id>HWUPKR0MPOU8FGXBT394</Id></Issr></Scty>
+                </AsstInf>
+                """;
+        var pairs = IsinPairs.scan(xml);
+        assertEquals(List.of("ISSUER_LEI IE00B4L5Y983=5299009FXTMMFCP00069@5", "ISSUER_LEI US0378331005=HWUPKR0MPOU8FGXBT394@12"),
+                pairs.stream().map(p -> p.kind() + " " + p.isin() + "=" + p.value() + "@" + p.line()).toList(),
+                "a counterparty's LEI is no issuer LEI");
+
+        Isin.Cache isins = new Isin.Cache(null, Clock.systemUTC(), Duration.ofHours(1), () -> OnlineFakes.isinLookup(true));
+        IdentifierCheck.Result result = IdentifierCheck.check(xml, null, isins);
+        assertEquals(1, result.findings().size(), result.findings().toString());
+        IdentifierCheck.Finding f = result.findings().getFirst();
+        assertEquals(IdentifierCheck.ISSUER_RULE, f.rule());
+        assertEquals(5, f.line());
+        assertTrue(f.message().contains("5299009FXTMMFCP00069") && f.message().contains("549300QS4Q1IT6XCA514"), f.message());
     }
 
     /** @return the base with the check digit that makes it a valid ISIN */

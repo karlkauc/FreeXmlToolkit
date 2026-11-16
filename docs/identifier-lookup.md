@@ -51,6 +51,7 @@ occurrence into the **Problems** panel, at its line:
 | ISIN known neither to ESMA FIRDS nor to OpenFIGI | Warning |
 | ISIN no longer traded on any EU trading venue | Warning (*info* on the command line) |
 | Reported CFI code differs from the one in ESMA FIRDS | Warning |
+| Reported issuer LEI differs from the one in ESMA FIRDS | Warning |
 | ISIN not in FIRDS while OpenFIGI is switched off | Warning (*info* on the command line) |
 
 **CFI codes.** In an XML document, a CFI field next to an ISIN - an element named `ClssfctnTp`, `PdctClssfctn`,
@@ -58,6 +59,12 @@ occurrence into the **Problems** panel, at its line:
 e.g. MMF `AsstId`, SFTR `Scty`) - is compared with the CFI code FIRDS has for that ISIN, position by position; an `X`
 on either side (a construct such as `DBXXXX`, or "not applicable") matches anything. A difference is a warning at the
 CFI field (rule `ISIN-CFI`). CFI fields next to several ISINs are not compared.
+
+**Issuer LEIs.** Likewise, an LEI inside an issuer element (a name containing `Issr`, `Issuer` or `Emittent` up to three
+levels above it: MMF `IssrData/PtyId/LEI`, SFTR `Scty/Issr/Id`) is compared with the issuer LEI FIRDS has for the one ISIN
+in its nearest enclosing elements (up to five levels). Other LEIs next to an ISIN - counterparties, sponsors, the
+reporting fund - are not compared. A difference is a warning at the LEI (rule `ISIN-ISSUER`); the LEI itself is still
+checked at GLEIF.
 
 An ISIN only OpenFIGI knows is no finding. The findings have the source **GLEIF** or **ISIN** and replace the online
 findings of an earlier check; schema and rule findings stay, also when the document is validated again while its text

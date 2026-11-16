@@ -9,7 +9,7 @@ import org.fxt.freexmltoolkit.service.finance.gleif.Gleif;
 import org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck;
 import org.fxt.freexmltoolkit.service.finance.gleif.LeiCache;
 import org.fxt.freexmltoolkit.service.finance.gleif.LeiRecord;
-import org.fxt.freexmltoolkit.service.finance.isin.CfiPairs;
+import org.fxt.freexmltoolkit.service.finance.isin.IsinPairs;
 import org.fxt.freexmltoolkit.service.finance.isin.Isin;
 import org.fxt.freexmltoolkit.service.finance.isin.IsinLookup;
 import org.fxt.freexmltoolkit.service.finance.isin.IsinRecord;
@@ -27,6 +27,8 @@ public final class IdentifierCheck {
     public static final String ISIN_RULE = "ISIN-LOOKUP";
     /** Rule id of a reported CFI code that does not agree with ESMA FIRDS. */
     public static final String CFI_RULE = "ISIN-CFI";
+    /** Rule id of a reported issuer LEI that does not agree with ESMA FIRDS. */
+    public static final String ISSUER_RULE = "ISIN-ISSUER";
 
     /** Severity of a finding. */
     public enum Severity { ERROR, WARNING, INFO }
@@ -106,14 +108,22 @@ public final class IdentifierCheck {
                                     o.line(), o.column(), o.isin(), p.message()));
                         }
                     }
-                    // reported CFI codes against FIRDS
-                    for (CfiPairs.Pair pair : CfiPairs.scan(text.toString())) {
+                    // reported CFI codes and issuer LEIs against FIRDS
+                    for (IsinPairs.Pair pair : IsinPairs.scan(text.toString())) {
                         IsinRecord rec = isinRecords.get(pair.isin());
-                        if (rec != null && rec.source() == IsinRecord.Source.FIRDS && rec.cfi() != null
-                                && !CfiPairs.matches(pair.cfi(), rec.cfi())) {
+                        if (rec == null || rec.source() != IsinRecord.Source.FIRDS) {
+                            continue;
+                        }
+                        String about = rec.name() == null ? "" : " (" + rec.name() + ")";
+                        if (pair.kind() == IsinPairs.Kind.CFI && rec.cfi() != null && !IsinPairs.cfiMatches(pair.value(), rec.cfi())) {
                             findings.add(new Finding(ISIN_SOURCE, CFI_RULE, Severity.WARNING, pair.line(), pair.column(),
-                                    pair.isin(), "The reported CFI code " + pair.cfi() + " of ISIN " + pair.isin()
-                                    + " differs from ESMA FIRDS: " + rec.cfi() + (rec.name() == null ? "" : " (" + rec.name() + ")") + "."));
+                                    pair.isin(), "The reported CFI code " + pair.value() + " of ISIN " + pair.isin()
+                                    + " differs from ESMA FIRDS: " + rec.cfi() + about + "."));
+                        } else if (pair.kind() == IsinPairs.Kind.ISSUER_LEI && rec.issuerLei() != null
+                                && !rec.issuerLei().equals(pair.value())) {
+                            findings.add(new Finding(ISIN_SOURCE, ISSUER_RULE, Severity.WARNING, pair.line(), pair.column(),
+                                    pair.isin(), "The reported issuer LEI " + pair.value() + " of ISIN " + pair.isin()
+                                    + " differs from ESMA FIRDS: " + rec.issuerLei() + about + "."));
                         }
                     }
                 } catch (IsinLookup.LookupException e) {
