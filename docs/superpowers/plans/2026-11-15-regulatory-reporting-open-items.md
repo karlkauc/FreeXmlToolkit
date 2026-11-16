@@ -19,10 +19,20 @@ field labels, example, badge. The report has no confidence level, holding period
 those planned checks were dropped. Still unknown: the Incoming Platform's file-name convention and the submission
 deadline; the FMA has no rule catalogue for this report.
 
-## 2. AIFMD submission dialog – blocked
+## 1a. KAG-Meldewesen gaps – done 2026-11-16
+- The FMA's AIF and AIFM sample files (`regdata/fma/samples/`, local only) pass schema and rules (`KagFmaSamplesTest`,
+  skipped without the folder).
+- New AIFMD rules FMA-AIF-121, 129, 134, 136; 165/171 were already covered.
+- MMF: `MmfContentRules` (ESMA rules v07); `scripts/esma-mmf-rules-audit.py` lists every rule item with what checks it
+  (211 checked, 43 need ESMA's data).
+
+## 2. AIFMD / DeRiMV submission – blocked
+Not obtainable at the moment (asked 2026-11-16), so the submission dialog, a code-list check and a deadline warning
+stay open:
 - The FMA's file-name convention for AIFMD reports (AIF and AIFM). No public source was found.
 - The FMA's national code lists for AIFMD, if the FMA requires values beyond the ESMA lists.
 - Whether the FMA has its own version of the AIFMD schema that differs from ESMA v1.2.
+- The submission deadlines of the DeRiMV and AIFMD reports on the Incoming Platform.
 
 ## 3. Rules that need outside data – left out on purpose
 - EMIR/SFTR:

@@ -81,6 +81,11 @@ running is shown under **Help → About FreeXmlToolkit**.
   panel with a click to the line and are underlined in the text; the panel shows the counts. A switched-off
   extension that recognises an opened document is offered once in a bar above the editor, and the field labels of
   ESMA and KAG reports appear when the mouse rests on a tag name. See [Industry Extensions](industry-plugins.md).
+- **KAG-Meldewesen rules:** money market fund reports are checked with the content rules of ESMA's validation
+  rules v07 (periods, LEIs, master/feeder, yields, stress tests, CFI code per asset type, credit assessments,
+  investor shares, arrangements, monthly figures, LVNAV data) - 211 of the table's 254 rules, the rest need ESMA's
+  registers. AIF files get the FMA rules on individual exposures, currency exposures and private equity fields.
+  See [KAG-Meldewesen](plugin-kag-meldewesen.md#money-market-fund-report).
 - **KAG-Meldewesen:** **Check Report (HTML)** with the findings by rule and, for DeRiMV, a table of every fund's
   use of its limits; **Import DeRiMV from CSV/Excel** (the risk management's CSV layout) and **Export to
   Excel/CSV**; grid formulas for DeRiMV reports and AIF files; options for the AIFMD sum tolerance and the DeRiMV

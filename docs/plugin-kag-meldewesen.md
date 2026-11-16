@@ -45,6 +45,10 @@ The extension is **off by default**: switch it on in **Settings → Extensions �
     - rankings: the values of a ranked list do not grow with the ranking;
     - NAV not above the AuM, main instruments not above the AuM (1 % tolerance), inception date
       before the reporting period, monthly values only for months of the reporting period;
+    - individual exposures: every sub-asset type of the main instruments appears among them
+      (`FMA-AIF-121`), long and short currency exposures add up to the AuM within 1 %
+      (`FMA-AIF-129`), transaction type and voting rights required for private equity
+      (`FMA-AIF-134`, `FMA-AIF-136`);
     - LEI and ISIN check digits.
 
   The checks of the national codes against the lists of the Incoming Platform can only run there.
@@ -91,7 +95,18 @@ rules of ESMA's *MMF validation rules v07* that need only the file (`ESMA-MMF-<f
   amounts;
 - ISO 4217 currencies, ISO 3166 and EU countries, ISIN and LEI check digits.
 
-Checks against ESMA's register (authorised MMFs, earlier reports) only run at ESMA. **New Money
+The content rules of the same table:
+
+| Area | Checks |
+|---|---|
+| Fund data | no overlapping reporting periods of one MMF in a year (6); LEI of the MMF and its manager required unless the data set action is `NOTX` (16, 24); a warning when the MMF's LEI is reused for a sponsor, counterparty or fund held; manager codes and authorising countries (26, 27); depositary LEI (37); master LEI and name iff the fund is a feeder (41–45); last report sent vs. liquidation or merger date (56, warning); funds above EUR 100 million report one quarter at a time (59, warning) |
+| Yields, stress tests | cumulative returns: six range types, each once, and a warning for a range the inception date allows but which has no rate (68); rate vs. "not available" by MMF type (72–76, warnings); stress test dates: older than 6 months or a year, not 30/06 or 31/12, not all the same (80, warnings); scenario codes, `LST-01` required for CNAV and LVNAV funds (83) |
+| Assets | CFI code fits the asset type (ESMA's table of CFI constructs; 93, 121, 148, 178, 211); a warning for an asset without LEI (96, 124, 152, 181, 198, 214); credit assessment `UFVB` / `NOVF`, and `NOAP` outside money market instruments of EU public issuers (118, 145, 230, warnings); amortised cost in a VNAV fund (117, 144, warning); accrued interest required for `MTMA` (110); reverse repo collateral iff an `RVPO` asset exists (231) |
+| Liabilities | investor concentration, investor groups and countries add up to 99.99–100.01 % (238–255); notice period 0 days in a UCITS (257, warning); four arrangement types, each once with a rate, `OTHR` described (258–260); monthly figures for every month of every quarter in the period and none outside (261–328); quoted currency = base currency, rate 1 for EUR (311–327) |
+| LVNAV data | only for LVNAV funds, dates not after the reporting end, CFI code among the portfolio's (warning), price and NAV differences (warnings), basis-point thresholds of the deviations, measure date inside the period and after the event date (329–352) |
+
+Of the table's 254 rule items, 211 run in the application; the other 43 need data only ESMA has:
+GLEIF, ESMA's register of authorised MMFs and earlier reports of the same MMF. **New Money
 Market Fund Report (Example)** opens a fictitious report.
 
 ## Check report
