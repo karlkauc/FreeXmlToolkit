@@ -435,6 +435,68 @@ public final class AifmdRules {
                         "Companies with dominant influence must not be reported when the predominant AIF type is not PEQF.");
             }
         });
+        // fields 134 / 136: every company with dominant influence of a private equity AIF has a transaction type and
+        // voting rights (the whole block is forbidden for other types, FMA-AIF-131)
+        rules.record((rec, ctx, out) -> {
+            if (!"PEQF".equals(rec.text(desc + "/PredominantAIFType"))) {
+                return;
+            }
+            for (RecordNode company : rec.all(dominant)) {
+                for (String[] field : new String[][] {{"TransactionType", "134"}, {"VotingRightsRate", "136"}}) {
+                    if (!company.filled(field[0])) {
+                        out.error("FMA-AIF-" + field[1], company.line(), f.label(dominant + "/" + field[0])
+                                + " is missing although the predominant AIF type is PEQF.");
+                    }
+                }
+            }
+        });
+        // field 121: every sub-asset type among the 10 principal exposures is reported as individual exposure
+        String principal = "AIFCompleteDescription/AIFPrincipalInfo/PrincipalExposures/PrincipalExposure";
+        rules.record((rec, ctx, out) -> {
+            if (!rec.has(exposure + "/AssetTypeExposures")) {
+                return;
+            }
+            Set<String> individual = new java.util.HashSet<>();
+            rec.all(typeExposure).forEach(t -> individual.add(t.text("SubAssetType")));
+            Set<String> reported = new java.util.HashSet<>();
+            for (RecordNode top : rec.all(principal)) {
+                String type = top.text("SubAssetType");
+                if (!type.isEmpty() && !"NTA_NTA_NOTA".equals(type) && !individual.contains(type) && reported.add(type)) {
+                    out.error("FMA-AIF-121", top.lineOf("SubAssetType"), "Sub-asset type " + type
+                            + " of the 10 principal exposures is not reported as individual exposure (AssetTypeExposure).");
+                }
+            }
+        });
+        // fields 129 / 130: the long and short currency exposures add up to the AuM (1 % tolerance for rounding)
+        String currency = exposure + "/CurrencyExposures/CurrencyExposure";
+        rules.record((rec, ctx, out) -> {
+            List<RecordNode> exposures = rec.all(currency);
+            BigDecimal aum = rec.decimal(desc + "/AIFBaseCurrencyDescription/AUMAmountInBaseCurrency");
+            if (exposures.isEmpty() || aum == null || aum.signum() == 0) {
+                return;
+            }
+            BigDecimal sum = BigDecimal.ZERO;
+            boolean any = false;
+            for (RecordNode e : exposures) {
+                for (String value : List.of("LongPositionValue", "ShortPositionValue")) {
+                    BigDecimal v = e.decimal(value);
+                    if (v != null) {
+                        sum = sum.add(v.abs());
+                        any = true;
+                    }
+                }
+            }
+            if (!any) {
+                return;
+            }
+            BigDecimal deviation = sum.subtract(aum).abs().multiply(BigDecimal.valueOf(100))
+                    .divide(aum.abs(), 2, java.math.RoundingMode.HALF_UP);
+            if (deviation.compareTo(BigDecimal.ONE) > 0) {
+                out.error("FMA-AIF-129", rec.lineOf(exposure + "/CurrencyExposures"), "The long and short currency exposures add up to "
+                        + sum.stripTrailingZeros().toPlainString() + ", " + deviation.stripTrailingZeros().toPlainString()
+                        + " % off the AuM of " + aum.stripTrailingZeros().toPlainString() + " (1 % allowed for rounding).");
+            }
+        });
         rules.record(f.requiredWhen("FMA-AIF-135", dominant, "OtherTransactionTypeDescription", "TransactionType", in("OTHR"),
                         "the transaction type is OTHR"))
                 .record(f.forbiddenWhen("FMA-AIF-135", dominant, "OtherTransactionTypeDescription", "TransactionType",

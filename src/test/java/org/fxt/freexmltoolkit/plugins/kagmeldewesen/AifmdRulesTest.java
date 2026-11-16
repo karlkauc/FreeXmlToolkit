@@ -140,4 +140,35 @@ class AifmdRulesTest {
         }
         assertNotNull(fields.byPath("AIFReportingInfo/AIFRecordInfo/AIFContentType"));
     }
+
+    private static String individual(String types, String longValue, boolean votingRights) {
+        StringBuilder t = new StringBuilder();
+        for (String type : types.split(",")) {
+            t.append("<AssetTypeExposure><SubAssetType>").append(type).append("</SubAssetType></AssetTypeExposure>");
+        }
+        return "<AIFIndividualInfo><IndividualExposure><AssetTypeExposures>" + t + "</AssetTypeExposures>"
+                + "<CurrencyExposures><CurrencyExposure><ExposureCurrency>EUR</ExposureCurrency><LongPositionValue>" + longValue
+                + "</LongPositionValue><ShortPositionValue>653279</ShortPositionValue></CurrencyExposure></CurrencyExposures>"
+                + "<CompaniesDominantInfluence><CompanyDominantInfluence><CompanyIdentification><EntityName>Beispiel GmbH"
+                + "</EntityName></CompanyIdentification><TransactionType>ACQU</TransactionType>"
+                + (votingRights ? "<VotingRightsRate>51</VotingRightsRate>" : "")
+                + "</CompanyDominantInfluence></CompaniesDominantInfluence></IndividualExposure></AIFIndividualInfo>";
+    }
+
+    @Test
+    void individualExposuresCurrencySumsAndDominantInfluence() throws Exception {
+        String base = example("aif-example.xml");
+        String good = base.replace("</AIFPrincipalInfo>", "</AIFPrincipalInfo>"
+                + individual("SEC_UEQ_UEQY,SEC_CSH_OTHC", "87000000", true));
+        List<RegRuleSet.Finding> clean = run(good);
+        for (String id : List.of("FMA-AIF-121", "FMA-AIF-129", "FMA-AIF-134", "FMA-AIF-136")) {
+            assertTrue(clean.stream().noneMatch(f -> f.ruleId().equals(id)), id + ": " + clean);
+        }
+        String bad = base.replace("</AIFPrincipalInfo>", "</AIFPrincipalInfo>"
+                + individual("SEC_UEQ_UEQY", "50000000", false));
+        List<RegRuleSet.Finding> findings = run(bad);
+        assertTrue(find(findings, "FMA-AIF-121").message().contains("SEC_CSH_OTHC"), findings.toString());
+        assertTrue(find(findings, "FMA-AIF-129").message().contains("off the AuM"), findings.toString());
+        assertTrue(find(findings, "FMA-AIF-136").message().contains("PEQF"), findings.toString());
+    }
 }
