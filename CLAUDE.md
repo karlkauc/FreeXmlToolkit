@@ -254,7 +254,9 @@ unknown/RETIRED/ANNULLED… = error, LAPSED/INACTIVE = warning, PENDING = info),
 `gleif.onValidation` / `gleif.hover`, policy `gleif.allowed`, `setValidationOverride` for the CLI). Users:
 `ValidationRunner.gleifProblems` (stage at the end of `runWithReport` when `Gleif.onValidation()`), `IndustryPanel`
 (Look up at GLEIF in the identifier checker, tool "Check LEIs at GLEIF" for panels offering `IdentifierKind.LEI`),
-`GleifDocumentCheck` (merge into the Problems panel; Tools menu `menu-tools-gleif`), `LeiHover`, Settings card
+`GleifDocumentCheck` (`runOnActive(host, done)` → `Outcome`, merge into the Problems panel via
+`EditorHost.publishGleifCheck`; a later validation of the same text keeps the GLEIF findings; used by Tools menu
+`menu-tools-gleif`, `IndustryPanel`, `FundsXmlPanel` `fundsxml-gleif`, `PkMeldewesenPanel` `pk-gleif`), `LeiHover`, Settings card
 `GleifSettings`, CLI `lei` (`LeiCommand`) and `validate --gleif` (the CLI ignores `gleif.onValidation`). LEIs leave the
 computer only on a click or with those settings on. Tests use the saved answer `src/test/resources/gleif/lei-records.json`.
 Docs: `docs/gleif.md`.

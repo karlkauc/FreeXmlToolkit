@@ -26,8 +26,8 @@ In the side panel of an extension that checks LEIs (KAG-Meldewesen, ESMA Reporti
 
 ## Check every LEI of a document
 
-**Check LEIs at GLEIF** - in the TOOLS section of those panels, and in **Tools → Check LEIs at GLEIF** for any
-document - finds every LEI in the text (XML, CSV, JSON …: 20 characters with valid check digits), asks GLEIF about all
+**Check LEIs at GLEIF** - in the TOOLS section of those panels, in the VALIDATE section of the FundsXML panel and the
+CHECK section of the PK-Meldewesen panel, and in **Tools → Check LEIs at GLEIF** for any document - finds every LEI in the text (XML, CSV, JSON …: 20 characters with valid check digits), asks GLEIF about all
 of them at once (200 per request) and puts a finding for each occurrence into the **Problems** panel, at its line:
 
 | GLEIF says | Finding |
