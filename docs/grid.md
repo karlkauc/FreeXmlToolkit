@@ -79,8 +79,11 @@ shows the editable grid, laid out as follows:
   Row Before / After** and **Append Row** add a member with every column present but empty;
   **Insert Column Before / After…** adds an attribute (type `@name`) or a child element
   (`name`) to every member; **Rename Column…** (also: double-click a column header) renames
-  it in every member. Each of these is one undo step. Typing into an empty cell whose
-  member lacks that child element creates the element. **Drag a column header** onto another
+  it in every member. Each of these is one undo step. Typing or pasting into an empty cell
+  whose member lacks that child element creates the element where the schema declares it
+  (FundsXML: `TotalPercentage` right after `TotalValue`), not at the end of the member; without
+  a schema the order of the columns decides. **Add Child Element**, **Paste as Child** and the
+  entry helpers' Children list place new elements the same way. **Drag a column header** onto another
   header to move that column - a blue line shows where it lands; the child element (or
   attribute) moves in every member, one undo step. Attributes move only among attributes.
 - **Cell colours.** **Settings → Editor → GRID TABLE COLOURS** sets your own colours for table

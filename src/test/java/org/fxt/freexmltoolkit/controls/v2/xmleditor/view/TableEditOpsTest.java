@@ -121,4 +121,35 @@ class TableEditOpsTest {
         assertTrue(adapter.commitCellEdit(table, 0, "qty", "9"));
         assertEquals("9", items.getChildElements("item").get(0).getChildElement("qty").getTextContent());
     }
+
+    @Test
+    void missingChildElementsGoToTheirColumnPositionNotTheEnd() {
+        context.loadDocumentFromString("""
+                <items>
+                  <item><a>1</a><b>1</b><c>1</c><d>1</d></item>
+                  <item><a>2</a><d>2</d></item>
+                </items>
+                """);
+        items = context.getDocument().getRootElement();
+        RepeatingElementsTable.clearAllCaches();
+        table = new RepeatingElementsTable("item", items.getChildElements("item"), 1, () -> { });
+        XmlElement second = items.getChildElements("item").get(1);
+
+        assertTrue(new XmlGridAdapter(context).commitCellEdit(table, 1, "c", "x"));
+        assertEquals(List.of("a", "c", "d"), names(second), "typed value: before d, not after it");
+        context.undo();
+
+        // One paste adding two missing elements to the same record
+        int bColumn = table.getColumns().indexOf(table.getColumn("b"));
+        CompositeXmlCommand paste = TableEditOps.pasteCells(table, 1, bColumn, List.of(List.of("p", "q")));
+        assertTrue(context.executeCommand(paste));
+        assertEquals(List.of("a", "b", "c", "d"), names(second));
+        assertEquals("p", second.getChildElement("b").getTextContent());
+        context.undo();
+        assertEquals(List.of("a", "d"), names(second), "one undo step");
+    }
+
+    private static List<String> names(XmlElement element) {
+        return element.getChildElements().stream().map(XmlElement::getName).toList();
+    }
 }

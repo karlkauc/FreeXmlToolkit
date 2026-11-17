@@ -33,6 +33,8 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.AddElementCommand;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.AddElementInOrderCommand;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.ChildOrder;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.CompositeXmlCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.DeleteNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.MoveNodeCommand;
@@ -800,6 +802,13 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
 
     // ==================== Actions ====================
 
+    /** The child order the schema declares for {@code parent} (empty without a schema). */
+    private List<String> schemaChildOrder(XmlElement parent) {
+        return context.hasSchema()
+                ? ChildOrder.orderFor(context.getSchemaProvider(), XmlGridAdapter.pathFor(parent), null)
+                : List.of();
+    }
+
     private void addChildElement() {
         XmlNode selected = context.getSelectionModel().getSelectedNode();
         if (!(selected instanceof XmlElement parent)) {
@@ -843,7 +852,8 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
 
         XmlElement child = new XmlElement(name.trim());
 
-        XmlCommand cmd = new AddElementCommand(parent, child);
+        // At the place the schema declares it, not after everything else
+        XmlCommand cmd = new AddElementInOrderCommand(parent, child, schemaChildOrder(parent));
         context.executeCommand(cmd);
         refresh();
     }
@@ -1427,7 +1437,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
             isCut = false;
         }
 
-        XmlCommand addCmd = new AddElementCommand(parentElement, toPaste);
+        XmlCommand addCmd = new AddElementInOrderCommand(parentElement, toPaste, schemaChildOrder(parentElement));
         context.executeCommand(addCmd);
         refresh();
     }

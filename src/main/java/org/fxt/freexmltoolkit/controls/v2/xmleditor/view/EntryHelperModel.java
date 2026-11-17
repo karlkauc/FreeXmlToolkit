@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.AddElementCommand;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.AddElementInOrderCommand;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.ChildOrder;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetAttributeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetElementTextCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.XmlCommand;
@@ -186,7 +188,7 @@ public final class EntryHelperModel {
 
     /**
      * Adds an entry of the Children list to the selected element: an attribute is set, an
-     * element is appended as the last child.
+     * element goes to the place the schema declares it (appended when it declares none).
      *
      * @return the command, or {@code null} when it cannot be added
      */
@@ -197,7 +199,8 @@ public final class EntryHelperModel {
         }
         return switch (entry.kind()) {
             case ATTRIBUTE -> newAttribute(schema, owner, entry.name());
-            case ELEMENT -> new AddElementCommand(owner, new XmlElement(entry.name()));
+            case ELEMENT -> new AddElementInOrderCommand(owner, new XmlElement(entry.name()),
+                    ChildOrder.orderFor(schema, XmlNodeXPath.positional(owner), null));
             case VALUE, PROPERTY -> null;
         };
     }

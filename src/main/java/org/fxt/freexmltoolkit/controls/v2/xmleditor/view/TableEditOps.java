@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.AddElementCommand;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.AddElementInOrderCommand;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.ChildOrder;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.CompositeXmlCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RenameAttributeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RenameNodeCommand;
@@ -80,6 +82,20 @@ public final class TableEditOps {
     public static CompositeXmlCommand insertColumn(RepeatingElementsTable table, String name,
                                                    RepeatingElementsTable.ColumnType type,
                                                    String refColumn, Placement placement) {
+        return insertColumn(table, name, type, refColumn, placement, List.of());
+    }
+
+    /**
+     * Like {@link #insertColumn(RepeatingElementsTable, String, RepeatingElementsTable.ColumnType, String, Placement)};
+     * without a reference column a child element goes to its place in {@code schemaOrder} (then the
+     * table's column order) instead of the end.
+     *
+     * @param schemaOrder the members' child order declared by the schema (may be empty)
+     */
+    public static CompositeXmlCommand insertColumn(RepeatingElementsTable table, String name,
+                                                   RepeatingElementsTable.ColumnType type,
+                                                   String refColumn, Placement placement, List<String> schemaOrder) {
+        List<String> order = ChildOrder.merge(schemaOrder, columnOrder(table));
         List<XmlCommand> parts = new ArrayList<>();
         for (XmlElement member : table.getElements()) {
             if (type == RepeatingElementsTable.ColumnType.ATTRIBUTE) {
@@ -88,12 +104,14 @@ public final class TableEditOps {
                 }
             } else {
                 if (member.getChildElement(name) == null) {
-                    int index = -1;
                     XmlElement ref = refColumn != null ? member.getChildElement(refColumn) : null;
                     if (ref != null) {
-                        index = member.indexOf(ref) + (placement == Placement.BEFORE ? 0 : 1);
+                        int index = member.indexOf(ref) + (placement == Placement.BEFORE ? 0 : 1);
+                        parts.add(new AddElementCommand(member, new XmlElement(name), index));
+                    } else {
+                        // no reference: the place the schema / the other rows give the column
+                        parts.add(new AddElementInOrderCommand(member, new XmlElement(name), order));
                     }
-                    parts.add(new AddElementCommand(member, new XmlElement(name), index));
                 }
             }
         }
@@ -144,6 +162,18 @@ public final class TableEditOps {
      */
     public static CompositeXmlCommand pasteCells(RepeatingElementsTable table, int startRow, int startCol,
                                                  List<List<String>> values) {
+        return pasteCells(table, startRow, startCol, values, List.of());
+    }
+
+    /**
+     * Like {@link #pasteCells(RepeatingElementsTable, int, int, List)}; child elements a member lacks are
+     * created at their place in {@code schemaOrder} (then the table's column order), not appended.
+     *
+     * @param schemaOrder the members' child order declared by the schema (may be empty)
+     */
+    public static CompositeXmlCommand pasteCells(RepeatingElementsTable table, int startRow, int startCol,
+                                                 List<List<String>> values, List<String> schemaOrder) {
+        List<String> order = ChildOrder.merge(schemaOrder, columnOrder(table));
         List<XmlCommand> parts = new ArrayList<>();
         List<XmlElement> members = new ArrayList<>(table.getElements());
         List<RepeatingElementsTable.TableColumn> columns = table.getColumns();
@@ -193,7 +223,7 @@ public final class TableEditOps {
                             parts.add(new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetElementTextCommand(
                                     child, value));
                         } else {
-                            parts.add(createCellChild(member, col.getName(), value));
+                            parts.add(createCellChild(member, col.getName(), value, order));
                         }
                     }
                     case TEXT_CONTENT -> {
@@ -217,11 +247,22 @@ public final class TableEditOps {
      * @param text   the cell text
      * @return the command appending the new child
      */
-    public static XmlCommand createCellChild(XmlElement member, String name, String text) {
+    public static XmlCommand createCellChild(XmlElement member, String name, String text, List<String> order) {
         XmlElement child = new XmlElement(name);
         if (text != null && !text.isEmpty()) {
             child.addChild(new XmlText(text));
         }
-        return new AddElementCommand(member, child);
+        return new AddElementInOrderCommand(member, child, order);
+    }
+
+    /** The table's child-element column names, in column order (the document order of all rows). */
+    public static List<String> columnOrder(RepeatingElementsTable table) {
+        List<String> names = new ArrayList<>();
+        for (RepeatingElementsTable.TableColumn col : table.getColumns()) {
+            if (col.getType() == RepeatingElementsTable.ColumnType.CHILD_ELEMENT) {
+                names.add(col.getName());
+            }
+        }
+        return names;
     }
 }

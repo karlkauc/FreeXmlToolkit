@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.ChildOrder;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.CompositeXmlCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.ConvertNodeTypeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RenameAttributeCommand;
@@ -846,7 +847,8 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
                 written = context.executeCommand(new SetElementTextCommand(childElement, newValue));
             } else if (newValue != null && !newValue.isEmpty()) {
                 // The member lacks this column's element: create it with the typed text
-                written = context.executeCommand(TableEditOps.createCellChild(rowElement, columnName, newValue));
+                written = context.executeCommand(TableEditOps.createCellChild(rowElement, columnName, newValue,
+                        ChildOrder.merge(schemaChildOrder(rowElement), TableEditOps.columnOrder(table))));
             }
         } else if (col.getType() == RepeatingElementsTable.ColumnType.TEXT_CONTENT) {
             written = context.executeCommand(new SetElementTextCommand(rowElement, newValue));
@@ -858,6 +860,13 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
             }
         }
         return true;
+    }
+
+    /** The child order the schema declares for {@code element} (empty without a schema). */
+    List<String> schemaChildOrder(XmlElement element) {
+        return context.hasSchema()
+                ? ChildOrder.orderFor(context.getSchemaProvider(), pathFor(element), null)
+                : List.of();
     }
 
     /** Where the schema declares a table cell's value: the member, its child or its attribute. */
@@ -878,7 +887,9 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
     @Override
     public boolean pasteCells(RepeatingElementsTable table, int startRow, int startCol,
                               List<List<String>> values) {
-        CompositeXmlCommand cmd = TableEditOps.pasteCells(table, startRow, startCol, values);
+        List<String> schemaOrder = table.getElements().isEmpty() ? List.of()
+                : schemaChildOrder(table.getElements().get(0));
+        CompositeXmlCommand cmd = TableEditOps.pasteCells(table, startRow, startCol, values, schemaOrder);
         boolean written = !cmd.isEmpty() && context.executeCommand(cmd);
         if (written) {
             warnAboutPastedValues(table, startCol, values);
