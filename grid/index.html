@@ -3381,7 +3381,10 @@ shows the editable grid, laid out as follows:</p>
   <strong>↑/↓</strong> walk the rows, <strong>→</strong> expands a collapsed element, <strong>←</strong> collapses it (or jumps to
   the parent), <strong>Space</strong> or <strong>Enter</strong> toggles a container (on a leaf row Enter starts renaming it),
   <strong>Home/End</strong> jump to the first/last row, <strong>F2</strong> renames, and the usual <strong>Ctrl+C/X/V</strong>,
-  <strong>Ctrl+D</strong> (duplicate) and <strong>Delete</strong> act on the selected node.</li>
+  <strong>Ctrl+D</strong> (duplicate) and <strong>Delete</strong> act on the selected node. On an <strong>attribute row</strong>
+  Delete (and <strong>Delete</strong> in its context menu) removes only that attribute - the element stays -
+  and selects the next attribute, else the element; several selected attribute rows go in one
+  undo step.</li>
 <li><strong>Delete in a table</strong> removes exactly what is selected: on one or more <strong>cells</strong> only their
   nodes go - the element (all children of that name) or the attribute is removed completely,
   no empty <code>&lt;TotalPercentage/&gt;</code> is left behind, and the row stays. Rows selected on their
