@@ -966,10 +966,12 @@ public class SettingsPanel extends VBox {
     /** Fills the editor-font card and applies every change at once (like theme and accent). */
     private void initEditorFontControls() {
         var font = org.fxt.freexmltoolkit.controls.shared.EditorFont.current();
-        // The installed monospace fonts are measured when the list first opens, not with the page
+        // The installed monospace fonts are measured in the background (seconds with many fonts); the list shows
+        // the default and the chosen family until the result is there
         editorFontFamily.getItems().setAll(new java.util.LinkedHashSet<>(java.util.List.of(
                 org.fxt.freexmltoolkit.controls.shared.EditorFont.DEFAULT_FAMILY, font.family())));
-        editorFontFamily.setOnShowing(event -> fillEditorFontFamilies());
+        org.fxt.freexmltoolkit.controls.shared.EditorFont.monospaceFamiliesAsync()
+                .thenAccept(families -> javafx.application.Platform.runLater(() -> fillEditorFontFamilies(families)));
         showEditorFont(font);
         editorFontFamily.valueProperty().addListener((obs, old, value) -> applyEditorFontFromControls());
         editorFontSize.valueProperty().addListener((obs, old, value) -> applyEditorFontFromControls());
@@ -979,14 +981,13 @@ public class SettingsPanel extends VBox {
                 new javafx.beans.value.WeakChangeListener<>(editorFontListener));
     }
 
-    /** Lists the installed monospace fonts (once), keeping the chosen family. */
-    private void fillEditorFontFamilies() {
+    /** Lists the installed monospace fonts (once, when measured), keeping the chosen family. FX thread. */
+    private void fillEditorFontFamilies(java.util.List<String> measured) {
         if (editorFontFamiliesListed) {
             return;
         }
         editorFontFamiliesListed = true;
-        java.util.LinkedHashSet<String> families = new java.util.LinkedHashSet<>(
-                org.fxt.freexmltoolkit.controls.shared.EditorFont.monospaceFamilies());
+        java.util.LinkedHashSet<String> families = new java.util.LinkedHashSet<>(measured);
         String chosen = editorFontFamily.getValue();
         if (chosen != null && !chosen.isBlank()) {
             families.add(chosen);

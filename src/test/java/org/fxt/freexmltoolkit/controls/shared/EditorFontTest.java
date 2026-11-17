@@ -110,4 +110,14 @@ class EditorFontTest {
         var families = WaitForAsyncUtils.waitForAsyncFx(5000, EditorFont::monospaceFamilies);
         assertEquals(EditorFont.DEFAULT_FAMILY, families.getFirst());
     }
+
+    @Test
+    void theFontsAreMeasuredOffTheFxThreadOnce() throws Exception {
+        var first = EditorFont.monospaceFamiliesAsync();
+        assertTrue(first == EditorFont.monospaceFamiliesAsync(), "measured once");
+        var families = first.get(60, java.util.concurrent.TimeUnit.SECONDS);
+        assertEquals(EditorFont.DEFAULT_FAMILY, families.getFirst());
+        assertEquals(families, WaitForAsyncUtils.waitForAsyncFx(5000, EditorFont::monospaceFamilies),
+                "the same list as the synchronous one");
+    }
 }

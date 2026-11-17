@@ -226,8 +226,33 @@ public final class EditorFont {
         return installedFamilies;
     }
 
+    /** The measuring of the installed fonts, started once ({@link #monospaceFamiliesAsync()}). */
+    private static java.util.concurrent.CompletableFuture<List<String>> monospaceMeasuring;
+
     /**
-     * @return the installed monospace families, the bundled default first; measured once (FX thread)
+     * @return the installed monospace families, measured off the FX thread (once): a computer with hundreds of fonts
+     *         needs seconds for it (telemetry: 4.2 s frozen when the Settings font list opened)
+     */
+    public static synchronized java.util.concurrent.CompletableFuture<List<String>> monospaceFamiliesAsync() {
+        if (monospaceMeasuring == null) {
+            monospaceMeasuring = new java.util.concurrent.CompletableFuture<>();
+            Thread worker = new Thread(() -> {
+                try {
+                    monospaceMeasuring.complete(monospaceFamilies());
+                } catch (RuntimeException | Error e) {
+                    monospaceMeasuring.complete(List.of(DEFAULT_FAMILY));
+                }
+            }, "editor-font-families");
+            worker.setDaemon(true);
+            worker.setPriority(Thread.MIN_PRIORITY);
+            worker.start();
+        }
+        return monospaceMeasuring;
+    }
+
+    /**
+     * @return the installed monospace families, the bundled default first; measured once (any thread: the text
+     *         nodes measured are never part of a scene). The UI uses {@link #monospaceFamiliesAsync()}.
      */
     public static synchronized List<String> monospaceFamilies() {
         if (monospaceFamilies == null) {
