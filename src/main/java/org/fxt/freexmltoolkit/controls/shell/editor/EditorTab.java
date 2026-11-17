@@ -2017,8 +2017,15 @@ final class EditorTab extends Tab {
         if (node == null || node.getParent() == null) {
             return false;
         }
-        return executeAndApply(
+        // In the Tree the next shown sibling (else the previous one, else the parent) takes over the
+        // selection, so Delete can be pressed again - as in the XML and JSON Trees
+        XsdNode next = viewMode == ViewMode.TREE && treeView != null ? treeView.neighbourAfterDelete(node) : null;
+        boolean ok = executeAndApply(
                 new org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteNodeCommand(node));
+        if (ok && next != null) {
+            reselect(next);
+        }
+        return ok;
     }
 
     boolean addElement(XsdNode parent, String name) {

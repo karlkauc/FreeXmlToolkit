@@ -152,6 +152,36 @@ class EditorHostEditingTest {
     }
 
     /** Opens the XSD, switches to Tree, selects the named node, returns it. */
+    @Test
+    void deleteKeyInTheTreeRemovesTheNodeAndSelectsTheNextOne(@TempDir Path tmp) throws Exception {
+        openTreeAndSelect(tmp, "UniqueDocumentID");
+        var tree = (org.fxt.freexmltoolkit.controls.shell.schema.XsdTreeView) host.lookup(".fxt-xsd-tree");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            tree.requestFocus();
+            javafx.event.Event.fireEvent(tree, new javafx.scene.input.KeyEvent(
+                    javafx.scene.input.KeyEvent.KEY_PRESSED, "", "", javafx.scene.input.KeyCode.DELETE,
+                    false, false, false, false));
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> !t.contains("UniqueDocumentID")).orElse(false));
+        assertTrue(host.getActiveText().orElse("").contains("DocumentGenerated"), "the sibling stays");
+
+        XsdNode selected = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            var item = tree.getSelectionModel().getSelectedItem();
+            return item == null ? null : item.getValue();
+        });
+        assertNotNull(selected, "a node stays selected after the delete");
+        assertEquals("DocumentGenerated", selected.getName(), "the next sibling is selected");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.undoActive();
+            return null;
+        });
+        assertTrue(host.getActiveText().orElse("").contains("UniqueDocumentID"), "one undo restores it");
+    }
+
     private XsdNode openTreeAndSelect(Path tmp, String name) throws Exception {
         Path xsd = tmp.resolve("schema.xsd");
         Files.writeString(xsd, XSD);

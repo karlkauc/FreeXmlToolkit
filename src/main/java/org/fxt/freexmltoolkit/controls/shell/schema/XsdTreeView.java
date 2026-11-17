@@ -102,6 +102,26 @@ public class XsdTreeView extends TreeView<XsdNode> implements XmlSearchTarget {
         }
     }
 
+    /**
+     * The node to select after {@code node} is deleted: the next shown sibling, else the previous
+     * one, else the shown parent ({@code null} when the node is not in the tree).
+     */
+    public XsdNode neighbourAfterDelete(XsdNode node) {
+        TreeItem<XsdNode> item = findItem(getRoot(), node);
+        if (item == null || item.getParent() == null) {
+            return null;
+        }
+        List<TreeItem<XsdNode>> siblings = item.getParent().getChildren();
+        int index = siblings.indexOf(item);
+        if (index + 1 < siblings.size()) {
+            return siblings.get(index + 1).getValue();
+        }
+        if (index > 0) {
+            return siblings.get(index - 1).getValue();
+        }
+        return item.getParent().getValue();
+    }
+
     private javafx.scene.control.TreeItem<XsdNode> findItem(
             javafx.scene.control.TreeItem<XsdNode> item, XsdNode target) {
         if (item == null) {
