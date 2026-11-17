@@ -411,6 +411,17 @@ public interface GridModelAdapter<N> {
     }
 
     /**
+     * Deletes the attributes shown by the given attribute rows (the Delete key on attribute rows):
+     * only the attributes go, never their element. Models without attributes return {@code false}.
+     *
+     * @param rows the selected rows, all of type ATTRIBUTE
+     * @return whether the model changed
+     */
+    default boolean deleteAttributes(java.util.List<FlatRow> rows) {
+        return false;
+    }
+
+    /**
      * @return whether {@link #deleteCells} is supported; then the Delete key on a table cell
      *         selection never falls back to deleting the row's node, even when the cells hold nothing
      */

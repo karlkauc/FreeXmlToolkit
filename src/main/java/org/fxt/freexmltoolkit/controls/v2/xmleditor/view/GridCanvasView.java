@@ -2212,7 +2212,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                     this::toggleFilterActiveOfSelection, this::filterActiveStateOfSelection,
                     this::toggleFilterSavedOfSelection, this::filterSavedStateOfSelection,
                     this::expandSelectionOneLevel, this::collapseSelectionOneLevel, this::selectModelNode,
-                    this::sortTable));
+                    this::sortTable, this::deleteSelectedAttributes));
             contextMenu.appendItems(org.fxt.freexmltoolkit.controls.v2.view.render.DiagramExportMenu.items(exportable(), canvas));
         }
         return contextMenu;
@@ -2507,6 +2507,12 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         if (tables.handleTableDeleteKey(event)) {
             return;
         }
+        // Delete on attribute rows removes only the attributes, never their element
+        if (event.getCode() == KeyCode.DELETE && !event.isShortcutDown() && !event.isAltDown()
+                && !event.isShiftDown() && deleteSelectedAttributes()) {
+            event.consume();
+            return;
+        }
 
         // + / − (also the numpad keys): open / close one more level of the selection
         if (!event.isShortcutDown() && !event.isAltDown() && !event.isMetaDown() && !event.isControlDown()) {
@@ -2663,6 +2669,85 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * Visits every row that exists now: the root's, then — for every built table — the rows of its
      * opened cells, recursively (a row's own table is visited before the rows inside it).
      */
+    /**
+     * Deletes the selected attribute rows' attributes (one undo step) when every selected row is an
+     * attribute row; then the next attribute of the same element (else the previous one, else the
+     * element) is selected.
+     *
+     * @return whether attributes were deleted
+     */
+    boolean deleteSelectedAttributes() {
+        if (tables.selectedTable != null || selectedRow == null) {
+            return false;
+        }
+        List<FlatRow> rows = multiSelection.isEmpty() ? List.of(selectedRow) : List.copyOf(multiSelection);
+        for (FlatRow row : rows) {
+            if (!row.getType().isAttribute()) {
+                return false;
+            }
+        }
+        Object element = selectedRow.getModelNode();
+        String next = neighbourAttribute(selectedRow, rows);
+        if (!adapter.deleteAttributes(rows)) {
+            return false;
+        }
+        rebuildTree();
+        notifyDocumentModified();
+        FlatRow[] target = {null};
+        forEachLiveRow(row -> {
+            if (target[0] == null && row.getModelNode() == element && next != null
+                    && row.getType().isAttribute() && next.equals(row.getLabel())) {
+                target[0] = row;
+            }
+        });
+        if (target[0] == null) {
+            forEachLiveRow(row -> {
+                if (target[0] == null && row.getModelNode() == element && !row.getType().isAttribute()
+                        && row.getDepth() >= 0) {
+                    target[0] = row;
+                }
+            });
+        }
+        if (target[0] != null) {
+            revealRow(target[0]);
+            selectRow(target[0]);
+        }
+        return true;
+    }
+
+    /** The name of the attribute row after {@code row} of the same element that survives the delete, else the one before. */
+    private String neighbourAttribute(FlatRow row, List<FlatRow> deleted) {
+        FlatRow parent = row.getParentRow();
+        if (parent == null) {
+            return null;
+        }
+        java.util.Set<String> gone = new java.util.HashSet<>();
+        for (FlatRow d : deleted) {
+            if (d.getModelNode() == row.getModelNode()) {
+                gone.add(d.getLabel());
+            }
+        }
+        java.util.List<String> names = new java.util.ArrayList<>();
+        forEachLiveRow(other -> {
+            if (other.getParentRow() == parent && other.getType().isAttribute()
+                    && other.getModelNode() == row.getModelNode()) {
+                names.add(other.getLabel());
+            }
+        });
+        int index = names.indexOf(row.getLabel());
+        for (int i = index + 1; i < names.size(); i++) {
+            if (!gone.contains(names.get(i))) {
+                return names.get(i);
+            }
+        }
+        for (int i = index - 1; i >= 0; i--) {
+            if (!gone.contains(names.get(i))) {
+                return names.get(i);
+            }
+        }
+        return null;
+    }
+
     private void forEachLiveRow(java.util.function.Consumer<FlatRow> action) {
         java.util.ArrayDeque<FlatRow> pending = new java.util.ArrayDeque<>(allRows);
         while (!pending.isEmpty()) {

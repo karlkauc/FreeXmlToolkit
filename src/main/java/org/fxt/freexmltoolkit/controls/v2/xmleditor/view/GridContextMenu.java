@@ -49,14 +49,15 @@ public interface GridContextMenu<N> {
                        Runnable toggleFilterActive, java.util.function.Supplier<java.util.Optional<Boolean>> filterActiveState,
                        Runnable toggleFilterSaved, java.util.function.Supplier<java.util.Optional<Boolean>> filterSavedState,
                        Runnable expandOneLevel, Runnable collapseOneLevel,
-                       java.util.function.Consumer<Object> revealNode, TableSorter sortTable) {
+                       java.util.function.Consumer<Object> revealNode, TableSorter sortTable,
+                       java.util.function.BooleanSupplier deleteSelectedAttributes) {
         /** @return actions that do nothing (for menus built without a canvas, e.g. in tests) */
         public static ViewActions none() {
             return new ViewActions(() -> { }, () -> { }, () -> { }, () -> { },
                     () -> { }, java.util.Optional::empty, () -> { }, java.util.Optional::empty, () -> { }, () -> { },
                     () -> false, () -> { }, () -> false, () -> { }, () -> false,
                     () -> { }, java.util.Optional::empty, () -> { }, java.util.Optional::empty,
-                    () -> { }, () -> { }, node -> { }, null);
+                    () -> { }, () -> { }, node -> { }, null, () -> false);
         }
     }
 

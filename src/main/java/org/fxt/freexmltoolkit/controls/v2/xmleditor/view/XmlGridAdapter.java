@@ -898,6 +898,20 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
     }
 
     @Override
+    public boolean deleteAttributes(List<FlatRow> rows) {
+        List<org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.XmlCommand> parts = new java.util.ArrayList<>();
+        for (FlatRow row : rows) {
+            if (row.getType().isAttribute() && row.getModelNode() instanceof XmlElement element
+                    && element.hasAttribute(row.getLabel())) {
+                parts.add(new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RemoveAttributeCommand(
+                        element, row.getLabel()));
+            }
+        }
+        return !parts.isEmpty() && context.executeCommand(new CompositeXmlCommand(
+                parts.size() == 1 ? "Delete attribute " + rows.get(0).getLabel() : "Delete attributes", parts));
+    }
+
+    @Override
     public boolean supportsCellDelete() {
         return true;
     }

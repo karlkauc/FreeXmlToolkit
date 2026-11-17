@@ -110,7 +110,10 @@ shows the editable grid, laid out as follows:
   **↑/↓** walk the rows, **→** expands a collapsed element, **←** collapses it (or jumps to
   the parent), **Space** or **Enter** toggles a container (on a leaf row Enter starts renaming it),
   **Home/End** jump to the first/last row, **F2** renames, and the usual **Ctrl+C/X/V**,
-  **Ctrl+D** (duplicate) and **Delete** act on the selected node.
+  **Ctrl+D** (duplicate) and **Delete** act on the selected node. On an **attribute row**
+  Delete (and **Delete** in its context menu) removes only that attribute - the element stays -
+  and selects the next attribute, else the element; several selected attribute rows go in one
+  undo step.
 - **Delete in a table** removes exactly what is selected: on one or more **cells** only their
   nodes go - the element (all children of that name) or the attribute is removed completely,
   no empty `<TotalPercentage/>` is left behind, and the row stays. Rows selected on their

@@ -1645,6 +1645,10 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
                 }
             }
         }
+        // An attribute row: only the attribute goes, never its element
+        if (viewActions.deleteSelectedAttributes() != null && viewActions.deleteSelectedAttributes().getAsBoolean()) {
+            return;
+        }
         deleteElement();
     }
 
