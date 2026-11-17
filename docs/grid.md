@@ -278,8 +278,8 @@ looks and feels exactly like an XML file in the grid:
   widths**, **Wrap**, **Expand all** / **Collapse all** and the **⋯** menu (cell-height limit,
   sibling groups); name and table columns can be dragged to a new width (double-click to
   auto-fit). **Expand Fully** (Ctrl+Shift++) and **Collapse Unselected** (Ctrl+Shift+−),
-  **Display as Table** / **Flip Rows/Columns** for arrays of objects, the scroll header and
-  the search in table cells all work as described above. Table cells can be selected and
+  **Display as Table** / **Flip Rows/Columns** for arrays of objects, the scroll header,
+  sticky table headers and the search in table cells all work as described above. Table cells can be selected and
   copied as tab-separated text (Ctrl+C or **Copy Table as Tab-separated Text**). **Ctrl+V**
   pastes tab-separated cells (e.g. from a spreadsheet) from the selected cell on: a number or
   boolean cell keeps its type (a value that does not fit is skipped), a missing property is
