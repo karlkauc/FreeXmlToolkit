@@ -136,6 +136,13 @@ public final class PkRuleCheck {
     }
 
     /**
+     * One rule run at a time: a run builds the whole report as a tree (a 150 MB report needs about 4 GB of heap), so
+     * the validator and the HTML report - or two validations - must not run in parallel. Fair: they run in order.
+     */
+    private static final java.util.concurrent.locks.ReentrantLock RUN_LOCK =
+            new java.util.concurrent.locks.ReentrantLock(true);
+
+    /**
      * Runs the rules.
      *
      * @param xml          the report
@@ -144,21 +151,31 @@ public final class PkRuleCheck {
      * @throws SaxonApiException when the report cannot be checked (not well-formed, …)
      */
     public static List<Finding> run(String xml, String documentName, Options options) throws SaxonApiException, IOException {
-        XdmDestination destination = new XdmDestination();
-        Xslt30Transformer transformer = stylesheet().load30();
-        parameters(transformer, options, true);
-        transformer.transform(source(xml, documentName), destination);
-        return findings(destination.getXdmNode(), PkLocator.of(xml), PkRuleCatalog.pfq());
+        RUN_LOCK.lock();
+        try {
+            XdmDestination destination = new XdmDestination();
+            Xslt30Transformer transformer = stylesheet().load30();
+            parameters(transformer, options, true);
+            transformer.transform(source(xml, documentName), destination);
+            return findings(destination.getXdmNode(), PkLocator.of(xml), PkRuleCatalog.pfq());
+        } finally {
+            RUN_LOCK.unlock();
+        }
     }
 
     /** @return the HTML report of the rules (German, like the FMA rule texts) */
     public static String htmlReport(String xml, String documentName, Options options) throws SaxonApiException, IOException {
-        Xslt30Transformer transformer = stylesheet().load30();
-        parameters(transformer, options, false);
-        StringWriter out = new StringWriter();
-        Serializer serializer = PROCESSOR.newSerializer(out);
-        transformer.transform(source(xml, documentName), serializer);
-        return out.toString();
+        RUN_LOCK.lock();
+        try {
+            Xslt30Transformer transformer = stylesheet().load30();
+            parameters(transformer, options, false);
+            StringWriter out = new StringWriter();
+            Serializer serializer = PROCESSOR.newSerializer(out);
+            transformer.transform(source(xml, documentName), serializer);
+            return out.toString();
+        } finally {
+            RUN_LOCK.unlock();
+        }
     }
 
     private static void parameters(Xslt30Transformer transformer, Options options, boolean resultsOnly) throws SaxonApiException {

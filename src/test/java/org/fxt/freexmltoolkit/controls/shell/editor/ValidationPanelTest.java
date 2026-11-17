@@ -85,6 +85,50 @@ class ValidationPanelTest {
     }
 
     @Test
+    void anUnchangedDocumentIsNotValidatedAgainAndNeverTwiceInParallel(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("schema.xsd");
+        Files.writeString(xsd, XSD);
+        Path invalid = tmp.resolve("invalid.xml");
+        Files.writeString(invalid, "<root><wrong/></root>");
+        open(invalid, xsd);
+        Thread.sleep(1000); // let the live run of the tab switch start (600 ms debounce) and end
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> !WaitForAsyncUtils.waitForAsyncFx(2000, panel::isRunningForTesting));
+
+        // two requests for the same text at once: one run
+        int before = WaitForAsyncUtils.waitForAsyncFx(2000, panel::runsStartedForTesting);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.revalidate();
+            panel.revalidate();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> panel.getProblemCount() > 0
+                && !WaitForAsyncUtils.waitForAsyncFx(2000, panel::isRunningForTesting));
+        int afterExplicit = WaitForAsyncUtils.waitForAsyncFx(2000, panel::runsStartedForTesting);
+        assertEquals(before + 1, afterExplicit, "the second request joins the run in progress");
+        int problems = panel.getProblemCount();
+
+        // caret moves re-trigger live validation; the text did not change, so nothing runs
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.getActiveCodeArea().moveTo(3);
+            host.getActiveCodeArea().moveTo(8);
+            return null;
+        });
+        Thread.sleep(1200); // past the 600 ms debounce
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(afterExplicit, WaitForAsyncUtils.waitForAsyncFx(2000, panel::runsStartedForTesting),
+                "a caret move on unchanged text starts no run");
+        assertEquals(problems, panel.getProblemCount(), "the result stays shown");
+
+        // an edit is validated again
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.getActiveCodeArea().replaceText(0, host.getActiveCodeArea().getLength(), "<root><name>ok</name></root>");
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> panel.getProblemCount() == 0);
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, panel::runsStartedForTesting) > afterExplicit);
+    }
+
+    @Test
     void nonXmlDocumentsAreNeverValidatedAsXml(@TempDir Path tmp) throws Exception {
         // The continuous-validation debounce can fire after the user switched to a
         // query document — that must not produce bogus "not well-formed" problems.

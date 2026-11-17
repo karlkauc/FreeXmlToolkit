@@ -81,6 +81,20 @@ public class ValidationPanel extends VBox {
     private SchematronReportData lastSchematronReport;
     @FXML private ContextMenu batchSourceMenu;
     private final PauseTransition debounce = new PauseTransition(Duration.millis(600));
+    /**
+     * What the last finished run of each document read: text revision, schema and Schematron. A live run of the
+     * same input is skipped - a caret move or tab switch changes nothing, and on a large document (the PK rules of
+     * a 150 MB report take seconds and gigabytes) every needless run costs as much as a real one.
+     */
+    private final java.util.Map<EditorTab, RunInput> lastRun = new java.util.WeakHashMap<>();
+    /** The input of the run in progress, or {@code null}; a request for the same input does not start a second run. */
+    private RunInput running;
+    /** A request that came in while another input was running: run once afterwards ({@code null} = none). */
+    private Boolean pendingLive;
+    /** An explicit request (F8, Validate) joined the live run in progress: it reports a failure like its own. */
+    private boolean explicitJoined;
+    /** Number of runs started (for tests). */
+    private int runsStarted;
     private String lastBatchReport;
     private final javafx.beans.property.BooleanProperty batchReportMissing =
             new javafx.beans.property.SimpleBooleanProperty(true);
@@ -399,6 +413,21 @@ public class ValidationPanel extends VBox {
             editorHost.setValidationStatus(EditorHost.ValidationState.NOT_VALIDATED, 0, "Not validated");
             return;
         }
+        EditorHost.ValidationTarget runTarget = editorHost.validationTarget();
+        RunInput input = runTarget == null ? null
+                : new RunInput(runTarget, editorHost.activeSchemaProperty().get(), editorHost.getActiveSchematron());
+        if (input != null && input.equals(running)) {
+            explicitJoined |= !live;
+            return; // the same text is being validated right now; its result is on the way
+        }
+        if (running != null) {
+            // one run at a time: a large document must never be validated twice in parallel
+            pendingLive = pendingLive == null ? live : pendingLive && live;
+            return;
+        }
+        if (live && input != null && input.equals(lastRun.get(runTarget.tab())) && showKeptResult(runTarget)) {
+            return; // nothing changed since the last run (caret move, tab switch): its result stands
+        }
         String content = editorHost.getActiveText().orElse("");
         if (content.isBlank()) {
             // Nothing to validate (e.g. a document still loading) — avoid parsing empty text.
@@ -419,57 +448,102 @@ public class ValidationPanel extends VBox {
         java.nio.file.Path documentPath = editorHost.getActiveDocument().map(OpenDocument::getPath).orElse(null);
         var docKind = editorHost.getActiveDocument().map(d -> d.getFileType().docKind()).orElse(null);
         PanelStatus.info(status, I18n.t("ValidationPanel.validating"));
-        EditorHost.ValidationTarget target = editorHost.validationTarget(); // the result belongs to this document
+        EditorHost.ValidationTarget target = runTarget; // the result belongs to this document
+        running = input;
+        runsStarted++;
         FxtGui.executorService.submit(() -> {
-            long t0 = System.nanoTime();
-            var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
-                    org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.VALIDATION,
-                    documentName != null ? documentName : "document");
-            File schema = schemaSupplier.get();
-            ValidationRunner.RunResult runResult = json
-                    ? new ValidationRunner.RunResult(yaml ? ValidationRunner.validateYaml(content, schema)
-                            : ValidationRunner.validateJson(content, schema), null)
-                    : ValidationRunner.runWithReport(content, schema, schematron, documentName, documentPath, true,
-                            standardsFor(documentPath));
-            List<ValidationProblem> result = runResult.problems();
-            UsageEvents.validated(UsageEvents.schemaKind(json, schema != null, !json && schematron != null),
-                    docKind, content, result.size(), t0, runResult.failure(), live);
-            probe.phase("XSD", runResult.xsdMillis());
-            probe.phase("Schematron", runResult.schematronMillis());
-            long elapsedMs = probe.finish(content.length(), -1, result.isEmpty(),
-                    result.isEmpty() ? "" : result.get(0).message());
-            boolean showStats = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().isEnabled();
-            Platform.runLater(() -> {
-                boolean hasSchema = json ? schema != null : (schema != null || schematron != null);
-                String summary = (result.isEmpty()
-                        ? (hasSchema ? "Valid" : EditorActions.WELL_FORMED_NO_SCHEMA)
-                        : EditorActions.problemCount(result.size()))
-                        + (showStats ? " · " + elapsedMs + " ms" : "");
-                var state = result.isEmpty() ? EditorHost.ValidationState.VALID : EditorHost.ValidationState.INVALID;
-                if (target != null && !editorHost.isActive(target)) {
-                    // the user switched documents meanwhile: keep the result with the one validated
+            try {
+                long t0 = System.nanoTime();
+                var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
+                        org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.VALIDATION,
+                        documentName != null ? documentName : "document");
+                File schema = schemaSupplier.get();
+                ValidationRunner.RunResult runResult = json
+                        ? new ValidationRunner.RunResult(yaml ? ValidationRunner.validateYaml(content, schema)
+                                : ValidationRunner.validateJson(content, schema), null)
+                        : ValidationRunner.runWithReport(content, schema, schematron, documentName, documentPath, true,
+                                standardsFor(documentPath));
+                List<ValidationProblem> result = runResult.problems();
+                UsageEvents.validated(UsageEvents.schemaKind(json, schema != null, !json && schematron != null),
+                        docKind, content, result.size(), t0, runResult.failure(), live);
+                probe.phase("XSD", runResult.xsdMillis());
+                probe.phase("Schematron", runResult.schematronMillis());
+                long elapsedMs = probe.finish(content.length(), -1, result.isEmpty(),
+                        result.isEmpty() ? "" : result.get(0).message());
+                boolean showStats = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().isEnabled();
+                Platform.runLater(() -> {
+                    boolean hasSchema = json ? schema != null : (schema != null || schematron != null);
+                    String summary = (result.isEmpty()
+                            ? (hasSchema ? "Valid" : EditorActions.WELL_FORMED_NO_SCHEMA)
+                            : EditorActions.problemCount(result.size()))
+                            + (showStats ? " · " + elapsedMs + " ms" : "");
+                    var state = result.isEmpty() ? EditorHost.ValidationState.VALID : EditorHost.ValidationState.INVALID;
+                    if (input != null && !runResult.failed()) {
+                        lastRun.put(input.target().tab(), input);
+                    }
+                    if (target != null && !editorHost.isActive(target)) {
+                        // the user switched documents meanwhile: keep the result with the one validated
+                        editorHost.publishValidation(target, state, result.size(), summary, result);
+                        return;
+                    }
+                    setProblems(result);
+                    lastSchematronReport = runResult.schematronReport();
+                    schematronReportButton.setDisable(lastSchematronReport == null);
+                    if (result.isEmpty() && hasSchema) {
+                        PanelStatus.success(status, summary);
+                    } else {
+                        // Problems, or only well-formedness was checked: neutral (in the latter case the
+                        // SOURCES slot above — "No XSD bound — choose or drop a file" — is the next step).
+                        PanelStatus.info(status, summary);
+                    }
                     editorHost.publishValidation(target, state, result.size(), summary, result);
-                    return;
-                }
-                setProblems(result);
-                lastSchematronReport = runResult.schematronReport();
-                schematronReportButton.setDisable(lastSchematronReport == null);
-                if (result.isEmpty() && hasSchema) {
-                    PanelStatus.success(status, summary);
-                } else {
-                    // Problems, or only well-formedness was checked: neutral (in the latter case the
-                    // SOURCES slot above — "No XSD bound — choose or drop a file" — is the next step).
-                    PanelStatus.info(status, summary);
-                }
-                editorHost.publishValidation(target, state, result.size(), summary, result);
-                if (runResult.failed() && !live) {
-                    // the validate event already carries the failure; the dialog explains it
-                    PanelStatus.failure(status, I18n.t("ValidationPanel.validation"), I18n.t("ValidationPanel.validation-could-not-run"),
-                            I18n.t("ValidationPanel.check-that-the-bound-schema"),
-                            runResult.error(), false);
-                }
-            });
+                    if (runResult.failed() && (!live || explicitJoined)) {
+                        // the validate event already carries the failure; the dialog explains it
+                        PanelStatus.failure(status, I18n.t("ValidationPanel.validation"), I18n.t("ValidationPanel.validation-could-not-run"),
+                                I18n.t("ValidationPanel.check-that-the-bound-schema"),
+                                runResult.error(), false);
+                    }
+                });
+            } finally {
+                Platform.runLater(this::runFinished); // after the result, which was posted first
+            }
         });
+    }
+
+    /** The run in progress ended (FX thread): a request that came in meanwhile runs now. */
+    private void runFinished() {
+        running = null;
+        explicitJoined = false;
+        Boolean pending = pendingLive;
+        pendingLive = null;
+        if (pending != null) {
+            revalidate(pending);
+        }
+    }
+
+    /**
+     * Shows the result kept with the document for its current text (FX thread).
+     *
+     * @return {@code false} when there is none to show - then the document is validated again
+     */
+    private boolean showKeptResult(EditorHost.ValidationTarget target) {
+        EditorHost.ValidationResult kept = target.tab().lastValidation;
+        if (kept == null || kept.revision() != target.revision() || kept.problems() == null) {
+            return false;
+        }
+        if (!problems.equals(kept.problems())) {
+            setProblems(kept.problems());
+        }
+        if (kept.status().state() == EditorHost.ValidationState.VALID) {
+            PanelStatus.success(status, kept.status().summary());
+        } else {
+            PanelStatus.info(status, kept.status().summary());
+        }
+        return true;
+    }
+
+    /** What a run reads: the document's text revision, the bound schema and the Schematron. */
+    private record RunInput(EditorHost.ValidationTarget target, File schema, File schematron) {
     }
 
     /**
@@ -483,6 +557,16 @@ public class ValidationPanel extends VBox {
         problemsList.getSelectionModel().clearSelection();
         problems.setAll(result);
         editorHost.setActiveProblems(result);
+    }
+
+    /** @return how many validation runs were started (for tests). */
+    int runsStartedForTesting() {
+        return runsStarted;
+    }
+
+    /** @return whether a run is in progress (for tests). */
+    boolean isRunningForTesting() {
+        return running != null;
     }
 
     /** @return the number of problems currently shown (for tests/observers). */

@@ -6,6 +6,11 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+- **Large reports use far less memory while validating.** "Validate while typing" no longer validates an unchanged
+  document again when only the caret moves or you switch tabs, and a document is never validated twice at the same
+  time. The FMA rules of PK-Meldewesen (validation and HTML check report) run one after the other. With a 150 MB
+  QMV report each of these runs needs about 4 GB, so several of them in parallel could exhaust the memory and freeze
+  the computer.
 - **Example identifiers are not looked up online.** **Check Identifiers Online**, the online stage of a validation,
   the hover and `fxt-cli` skip the synthetic `XMPL` LEIs and ISINs of the FundsXML sample files instead of reporting
   each one as "not registered at GLEIF" or "not in ESMA FIRDS"; the result says how many were skipped. See
