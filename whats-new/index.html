@@ -3554,6 +3554,11 @@
 running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
 <h2 id="unreleased">Unreleased<a class="headerlink" href="#unreleased" title="Permanent link">¶</a></h2>
 <ul>
+<li><strong>New elements in the Graphic view go where the schema wants them.</strong> Typing or pasting a value into an empty
+  table cell (for example <code>TotalPercentage</code> of a FundsXML position that has none) used to append the new element
+  after all others, which made the document invalid. It is now inserted at its schema position - <code>TotalPercentage</code>
+  right after <code>TotalValue</code>; without a schema the column order decides. <em>Add Child Element</em>, <em>Paste as Child</em> and the
+  entry helpers' Children list do the same. See <a href="../grid/">Grid</a>.</li>
 <li><strong>Typed values in the Graphic view follow the schema exactly.</strong> Decimal values such as FundsXML's
   <code>TotalPercentage</code> keep their fraction again under a German (or any other) language - typing <code>3,5</code> writes <code>3.5</code>.
   Number spinners no longer round, clamp or turn an empty value into 0; date and time pickers keep timezones and
