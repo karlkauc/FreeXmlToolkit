@@ -85,4 +85,82 @@ class EditorHostXmlTreeTest {
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("order")).orElse(false));
     }
+
+    @Test
+    void deleteInTheTreeRemovesTheNodeCompletely(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("pos.xml");
+        Files.writeString(xml, "<Position><Id>1</Id><TotalPercentage>5.5</TotalPercentage><Name>A</Name></Position>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("Position")).orElse(false));
+        showTree();
+
+        selectAndDelete(".fxt-xml-tree",
+                (org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode n) ->
+                        n instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement e
+                                && "TotalPercentage".equals(e.getName()));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> !t.contains("TotalPercentage")).orElse(false));
+        String text = host.getActiveText().orElseThrow();
+        assertTrue(text.contains("<Id>1</Id>") && text.contains("<Name>A</Name>"), text);
+
+        var tree = (org.fxt.freexmltoolkit.controls.shell.schema.XmlInstanceTreeView) host.lookup(".fxt-xml-tree");
+        var selected = WaitForAsyncUtils.waitForAsyncFx(2000, () -> tree.getSelectionModel().getSelectedItem().getValue());
+        assertEquals("Name", ((org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement) selected).getName(),
+                "the next sibling is selected");
+        assertNull(WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> find(tree.getRoot(), (org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode n) ->
+                        n instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement e
+                                && "TotalPercentage".equals(e.getName()))), "gone from the tree");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.undoXml());
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("<TotalPercentage>5.5</TotalPercentage>")).orElse(false));
+        assertNotNull(WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> find(tree.getRoot(), (org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode n) ->
+                        n instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement e
+                                && "TotalPercentage".equals(e.getName()))), "undo brings it back into the tree");
+    }
+
+    /** Selects the first tree item whose value matches and presses Delete on the tree. */
+    @SuppressWarnings("unchecked")
+    private <T> void selectAndDelete(String selector, java.util.function.Predicate<T> match) {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            javafx.scene.control.TreeView<T> tree = (javafx.scene.control.TreeView<T>) host.lookup(selector);
+            javafx.scene.control.TreeItem<T> item = find(tree.getRoot(), match);
+            assertNotNull(item, "tree item to delete");
+            tree.getSelectionModel().select(item);
+            tree.requestFocus();
+            javafx.event.Event.fireEvent(tree, new javafx.scene.input.KeyEvent(
+                    javafx.scene.input.KeyEvent.KEY_PRESSED, "", "", javafx.scene.input.KeyCode.DELETE,
+                    false, false, false, false));
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+
+    private static <T> javafx.scene.control.TreeItem<T> find(javafx.scene.control.TreeItem<T> item,
+                                                             java.util.function.Predicate<T> match) {
+        if (item == null) {
+            return null;
+        }
+        if (item.getValue() != null && match.test(item.getValue())) {
+            return item;
+        }
+        for (javafx.scene.control.TreeItem<T> child : item.getChildren()) {
+            javafx.scene.control.TreeItem<T> hit = find(child, match);
+            if (hit != null) {
+                return hit;
+            }
+        }
+        return null;
+    }
+
+    private void showTree() {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveViewMode(ViewMode.TREE);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+    }
 }

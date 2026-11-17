@@ -78,4 +78,64 @@ class EditorHostJsonTreeTest {
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("fund")).orElse(false));
     }
+
+    @Test
+    void deleteInTheTreeRemovesThePropertyCompletely(@TempDir Path tmp) throws Exception {
+        openJson(tmp);
+        showTree();
+
+        selectAndDelete(".tree-view",
+                (org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode n) -> "id".equals(n.getKey()));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> !t.contains("XAM")).orElse(false));
+        String text = host.getActiveText().orElseThrow();
+        assertFalse(text.contains("\"id\""), "key and value are gone: " + text);
+        assertTrue(text.contains("items"), text);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.undoJson());
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("XAM")).orElse(false));
+    }
+
+    /** Selects the first tree item whose value matches and presses Delete on the tree. */
+    @SuppressWarnings("unchecked")
+    private <T> void selectAndDelete(String selector, java.util.function.Predicate<T> match) {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            javafx.scene.control.TreeView<T> tree = (javafx.scene.control.TreeView<T>) host.lookup(selector);
+            javafx.scene.control.TreeItem<T> item = find(tree.getRoot(), match);
+            assertNotNull(item, "tree item to delete");
+            tree.getSelectionModel().select(item);
+            tree.requestFocus();
+            javafx.event.Event.fireEvent(tree, new javafx.scene.input.KeyEvent(
+                    javafx.scene.input.KeyEvent.KEY_PRESSED, "", "", javafx.scene.input.KeyCode.DELETE,
+                    false, false, false, false));
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+
+    private static <T> javafx.scene.control.TreeItem<T> find(javafx.scene.control.TreeItem<T> item,
+                                                             java.util.function.Predicate<T> match) {
+        if (item == null) {
+            return null;
+        }
+        if (item.getValue() != null && match.test(item.getValue())) {
+            return item;
+        }
+        for (javafx.scene.control.TreeItem<T> child : item.getChildren()) {
+            javafx.scene.control.TreeItem<T> hit = find(child, match);
+            if (hit != null) {
+                return hit;
+            }
+        }
+        return null;
+    }
+
+    private void showTree() {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveViewMode(ViewMode.TREE);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+    }
 }

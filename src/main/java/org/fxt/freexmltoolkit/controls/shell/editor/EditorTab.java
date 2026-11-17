@@ -2475,6 +2475,7 @@ final class EditorTab extends Tab {
         if (xmlEditorContext != null && xmlEditorContext.undo()) {
             currentXmlSelection = null;
             onXmlModelChanged();
+            refreshXmlTreeAfterHistoryStep();
             return true;
         }
         return false;
@@ -2485,6 +2486,7 @@ final class EditorTab extends Tab {
         if (xmlEditorContext != null && xmlEditorContext.redo()) {
             currentXmlSelection = null;
             onXmlModelChanged();
+            refreshXmlTreeAfterHistoryStep();
             return true;
         }
         return false;
@@ -2508,6 +2510,22 @@ final class EditorTab extends Tab {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Delete in the JSON Tree: removes the property / item completely (one undo step, written into
+     * the text) and selects its next sibling, else the previous one, else the parent. The root
+     * value stays.
+     */
+    void deleteFromJsonTree(org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode node) {
+        var next = node == null ? null
+                : org.fxt.freexmltoolkit.controls.jsoneditor.view.JsonTreeView.neighbourAfterDelete(node);
+        if (next == null || !editJson(new org.fxt.freexmltoolkit.controls.jsoneditor.commands.DeleteNodeCommand(node))) {
+            return; // no parent: the root value cannot go
+        }
+        currentJsonSelection = null;
+        // the tree rebuilds from the context's modelChanged event on a later pulse: select after it
+        javafx.application.Platform.runLater(() -> jsonTreeView.selectNode(next));
     }
 
     /** Executes a JSON command on the shared context and round-trips to text. */
@@ -2894,6 +2912,7 @@ final class EditorTab extends Tab {
                 currentJsonSelection = node;
                 selectionCallback.run();
             });
+            jsonTreeView.setOnDeleteRequested(this::deleteFromJsonTree);
             contentStack.getChildren().add(jsonTreeView);
         }
     }
@@ -3034,7 +3053,37 @@ final class EditorTab extends Tab {
                 selectionCallback.run();
             });
             xmlInstanceTreeView.setOnGoToDefinition(goToDefinitionCallback);
+            xmlInstanceTreeView.setOnDeleteRequested(this::deleteFromXmlTree);
             contentStack.getChildren().add(xmlInstanceTreeView);
+        }
+    }
+
+    /**
+     * Delete in the XML Tree: removes the node completely (one undo step, written into the text)
+     * and selects its next sibling, else the previous one, else the parent. The root element stays.
+     */
+    void deleteFromXmlTree(org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode node) {
+        if (node == null || !(node.getParent()
+                instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement)) {
+            return; // the root element (its parent is the document) cannot go
+        }
+        var next = org.fxt.freexmltoolkit.controls.shell.schema.XmlInstanceTreeView.neighbourAfterDelete(node);
+        if (!editXml(new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.DeleteNodeCommand(node))) {
+            return;
+        }
+        currentXmlSelection = null;
+        xmlInstanceTreeView.rebuildPreservingState(xmlEditorContext);
+        if (next != null) {
+            xmlInstanceTreeView.selectNode(next);
+        } else {
+            selectionCallback.run();
+        }
+    }
+
+    /** Builds the XML Tree again after an undo / redo, keeping its expansion. */
+    private void refreshXmlTreeAfterHistoryStep() {
+        if (viewMode == ViewMode.TREE && xmlInstanceTreeView != null && xmlEditorContext != null) {
+            xmlInstanceTreeView.rebuildPreservingState(xmlEditorContext);
         }
     }
 

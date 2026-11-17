@@ -171,7 +171,7 @@ Every document tab offers the same view modes:
 | Mode | What it shows |
 |------|---------------|
 | **Text** | Source code editing with syntax highlighting |
-| **Tree** | The document as a hierarchical tree; while you scroll, a bar at the top shows the parents of the topmost row - click one to go back to it |
+| **Tree** | The document as a hierarchical tree; while you scroll, a bar at the top shows the parents of the topmost row - click one to go back to it. In XML and JSON documents **Delete** removes the selected node completely (element, property or array item - nothing empty is left behind) and selects the next one; one **Undo** restores it |
 | **Graphic** | A visual editor that depends on the document type: for **XML**, **XSLT**, **Schematron** and **JSON** files it shows the editable **grid**; for **XSD** files it shows the **schema diagram** |
 | **Overview** | *(XSD documents only.)* All top-level components of the schema in one table - reorder, sort, add, rename, edit attributes, identity constraints, assertions and namespaces - see [XSD Tools](xsd-tools.md#overview-view) |
 | **Preview** | *(HTML documents only.)* The page rendered read-only in an embedded web view - see [HTML Preview](#html-preview) |

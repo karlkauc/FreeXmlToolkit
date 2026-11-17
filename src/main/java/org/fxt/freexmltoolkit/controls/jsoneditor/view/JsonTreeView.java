@@ -130,6 +130,18 @@ public class JsonTreeView extends VBox implements PropertyChangeListener,
             }
         });
 
+        // Delete removes the selected property / item completely (the shell runs it as one undo step)
+        treeView.addEventHandler(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == javafx.scene.input.KeyCode.DELETE && !event.isShortcutDown()
+                    && !event.isAltDown() && !event.isShiftDown() && onDeleteRequested != null) {
+                JsonNode selected = getSelectedNode();
+                if (selected != null) {
+                    onDeleteRequested.accept(selected);
+                    event.consume();
+                }
+            }
+        });
+
         // Status label
         statusLabel = new Label(I18n.t("JsonTreeView.ready"));
         statusLabel.setStyle("-fx-text-fill: #6c757d;");
@@ -458,6 +470,33 @@ public class JsonTreeView extends VBox implements PropertyChangeListener,
                 item.setExpanded(false);
             }
         }
+    }
+
+    private java.util.function.Consumer<JsonNode> onDeleteRequested;
+
+    /** Sets the callback the Delete key hands the selected node to; {@code null} = Delete does nothing. */
+    public void setOnDeleteRequested(java.util.function.Consumer<JsonNode> callback) {
+        this.onDeleteRequested = callback;
+    }
+
+    /**
+     * The node to select after {@code node} is deleted: the next sibling, else the previous one,
+     * else the parent ({@code null} for the root value).
+     */
+    public static JsonNode neighbourAfterDelete(JsonNode node) {
+        JsonNode parent = node.getParent();
+        if (parent == null || parent instanceof JsonDocument) {
+            return null;
+        }
+        List<JsonNode> siblings = parent.getChildren();
+        int index = siblings.indexOf(node);
+        if (index >= 0 && index + 1 < siblings.size()) {
+            return siblings.get(index + 1);
+        }
+        if (index > 0) {
+            return siblings.get(index - 1);
+        }
+        return parent;
     }
 
     /**

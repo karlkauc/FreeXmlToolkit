@@ -1,7 +1,9 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import javafx.scene.control.ContextMenu;
@@ -9,6 +11,8 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
@@ -34,6 +38,9 @@ public class XmlInstanceTreeView extends TreeView<XmlNode> {
 
     private Consumer<XmlNode> onSelectionChanged;
     private Consumer<XmlNode> onGoToDefinition;
+    private Consumer<XmlNode> onDeleteRequested;
+    /** Collapsed nodes to keep collapsed while the items are built again ({@link #rebuildPreservingState}). */
+    private Set<java.util.UUID> keepCollapsed = Set.of();
     private final Map<java.util.UUID, TreeItem<XmlNode>> nodeToItem = new HashMap<>();
 
     public XmlInstanceTreeView() {
@@ -51,6 +58,68 @@ public class XmlInstanceTreeView extends TreeView<XmlNode> {
                 onSelectionChanged.accept(newItem.getValue());
             }
         });
+        // Delete removes the selected node completely (the shell runs it as one undo step)
+        addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.DELETE && !event.isShortcutDown() && !event.isAltDown()
+                    && !event.isShiftDown() && onDeleteRequested != null) {
+                TreeItem<XmlNode> selected = getSelectionModel().getSelectedItem();
+                if (selected != null && selected.getValue() != null) {
+                    onDeleteRequested.accept(selected.getValue());
+                    event.consume();
+                }
+            }
+        });
+    }
+
+    /** Sets the callback the Delete key hands the selected node to; {@code null} = Delete does nothing. */
+    public void setOnDeleteRequested(Consumer<XmlNode> onDeleteRequested) {
+        this.onDeleteRequested = onDeleteRequested;
+    }
+
+    /**
+     * Builds the items again from the (edited) model, keeping collapsed nodes collapsed and the
+     * selection when its node still exists.
+     */
+    public void rebuildPreservingState(XmlEditorContext ctx) {
+        Set<java.util.UUID> collapsed = new HashSet<>();
+        for (Map.Entry<java.util.UUID, TreeItem<XmlNode>> e : nodeToItem.entrySet()) {
+            if (!e.getValue().isExpanded()) {
+                collapsed.add(e.getKey());
+            }
+        }
+        TreeItem<XmlNode> selected = getSelectionModel().getSelectedItem();
+        keepCollapsed = collapsed;
+        try {
+            setModel(ctx);
+        } finally {
+            keepCollapsed = Set.of();
+        }
+        if (selected != null) {
+            selectNode(selected.getValue());
+        }
+    }
+
+    /**
+     * The node to select after {@code node} is deleted: the next shown sibling, else the
+     * previous one, else the parent.
+     */
+    public static XmlNode neighbourAfterDelete(XmlNode node) {
+        if (!(node.getParent() instanceof XmlElement parent)) {
+            return null;
+        }
+        java.util.List<XmlNode> siblings = parent.getChildren();
+        int index = siblings.indexOf(node);
+        for (int i = index + 1; i < siblings.size(); i++) {
+            if (isRenderable(siblings.get(i))) {
+                return siblings.get(i);
+            }
+        }
+        for (int i = index - 1; i >= 0; i--) {
+            if (isRenderable(siblings.get(i))) {
+                return siblings.get(i);
+            }
+        }
+        return parent;
     }
 
     /** Sets the callback invoked when the tree's selected node changes (for the inspector). */
@@ -102,7 +171,7 @@ public class XmlInstanceTreeView extends TreeView<XmlNode> {
 
     private TreeItem<XmlNode> buildItem(XmlNode node) {
         TreeItem<XmlNode> item = new TreeItem<>(node);
-        item.setExpanded(true);
+        item.setExpanded(!keepCollapsed.contains(node.getId()));
         nodeToItem.put(node.getId(), item);
         if (node instanceof XmlElement element) {
             for (XmlNode child : element.getChildren()) {
