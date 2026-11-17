@@ -3433,6 +3433,11 @@ checked at GLEIF.</p>
 <p>An ISIN only OpenFIGI knows is no finding. The findings have the source <strong>GLEIF</strong> or <strong>ISIN</strong> and replace the online
 findings of an earlier check; schema and rule findings stay, also when the document is validated again while its text
 is unchanged. When one service cannot be reached, the panel says so and the other part still counts.</p>
+<p><strong>Example identifiers are skipped.</strong> Synthetic identifiers marked <code>XMPL</code> - an LEI starting with <code>XMPL</code>
+(<code>XMPL00FNDGLOBEQ00172</code>), an ISIN whose national part starts with it (<code>ATXMPLF01010</code>) - are what the FundsXML sample
+files use. They have valid check digits but belong to nobody, so no service knows them. They are not sent and get no
+finding; the result names how many were skipped ("5 example identifiers (XMPL) not looked up"). Their check digits
+are still checked locally. The hover shows "Synthetic example identifier" for them.</p>
 <p><strong>Open the entry.</strong> A finding row carries a link to the identifier's entry at the service that answered - <strong>GLEIF</strong>
 (the LEI's record at <code>search.gleif.org</code>), <strong>ESMA FIRDS</strong> (the instrument's record in the ESMA register, as shown in the
 register's details page) or <strong>OpenFIGI</strong> (a search for the ISIN, also for an ISIN neither service knows). Click it, or
@@ -3518,7 +3523,9 @@ request and shorter pauses.</p>
 <code>fxt-cli isin</code> with <code>1</code> when an ISIN is invalid or known to neither service; both with <code>3</code> when a service cannot be
 reached. <code>validate --gleif</code> / <code>--isin</code> add the findings to the report (sources <code>GLEIF</code> / <code>ISIN</code>, rules <code>GLEIF-LEI</code> /
 <code>ISIN-LOOKUP</code>); an unreachable service is an <em>info</em> there. The OpenFIGI API key comes from <code>FXT_OPENFIGI_APIKEY</code> or
-the setting. The command line ignores the GUI settings "on every validation" - only <code>--gleif</code> / <code>--isin</code> turn the
+the setting. Example identifiers (<code>XMPL</code>) found in a file are not looked up: <code>lei --file</code> / <code>isin --file</code> list them as
+"synthetic example identifier" (<code>examples</code> in JSON), <code>validate</code> adds one <em>info</em> with their number; an <code>XMPL</code> value
+given on the command line itself is looked up. The command line ignores the GUI settings "on every validation" - only <code>--gleif</code> / <code>--isin</code> turn the
 checks on. See <a href="../command-line/#lei">Command Line</a>.</p>
 
 
