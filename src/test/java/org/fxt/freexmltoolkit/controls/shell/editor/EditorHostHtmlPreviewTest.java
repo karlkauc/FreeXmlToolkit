@@ -74,6 +74,39 @@ class EditorHostHtmlPreviewTest {
     }
 
     @Test
+    void aLargeReportSuggestsTheBrowserAndASmallOneDoesNot() throws Exception {
+        org.junit.jupiter.api.Assumptions.assumeTrue(webViewAvailable(), "needs javafx.scene.web");
+        StringBuilder big = new StringBuilder("<html><body><table>");
+        while (big.length() < EditorTab.LARGE_PREVIEW_CHARS) {
+            big.append("<tr><td><span style=\"border-radius:999px\">OK</span></td><td>row</td></tr>\n");
+        }
+        big.append("</table></body></html>");
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            host.openGeneratedDocument(HTML, EditorFileType.HTML, "small.html");
+            host.setActiveViewMode(ViewMode.PREVIEW);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertFalse(hintShown(), "a small report gets no hint");
+
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            host.openGeneratedDocument(big.toString(), EditorFileType.HTML, "big-pruefbericht.html");
+            host.setActiveViewMode(ViewMode.PREVIEW);
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(FX_TIMEOUT_MS, TimeUnit.MILLISECONDS, this::hintShown);
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS,
+                () -> host.lookupAll("#preview-open-in-browser").stream().anyMatch(javafx.scene.Node::isVisible)),
+                "the hint offers Open in Browser");
+    }
+
+    private boolean hintShown() {
+        return WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> host.lookupAll("#preview-large-hint").stream()
+                .anyMatch(n -> n.isVisible() && n.getScene() != null && n.isManaged()
+                        && n.getParent() != null && n.getParent().isVisible()));
+    }
+
+    @Test
     void nonHtmlDoesNotOfferPreviewAndClampsToText(@TempDir Path tmp) throws Exception {
         Path xml = tmp.resolve("greeting.xml");
         Files.writeString(xml, XML);

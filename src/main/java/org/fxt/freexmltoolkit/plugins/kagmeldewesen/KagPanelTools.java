@@ -96,8 +96,10 @@ final class KagPanelTools {
             org.fxt.freexmltoolkit.util.DesktopActions.open(index, e -> PanelStatus.info(panel.status(), String.valueOf(e.getMessage())));
             return;
         }
-        panel.background("Schema documentation", () -> {
-            String result = org.fxt.freexmltoolkit.controls.shell.editor.DocumentationRunner.exportHtml(schema.toFile(), out);
+        panel.background("Schema documentation", (IndustryPanel.ProgressJob<File>) progress -> {
+            progress.setCancellable(false); // the documentation pipeline runs to its end
+            String result = org.fxt.freexmltoolkit.controls.shell.editor.DocumentationRunner.exportHtml(schema.toFile(), out,
+                    progress);
             if (!result.startsWith("OK:")) {
                 throw new java.io.IOException(result);
             }

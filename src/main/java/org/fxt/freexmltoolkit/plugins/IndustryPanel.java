@@ -12,7 +12,6 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.VBox;
 
@@ -22,6 +21,8 @@ import org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionButton;
 import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionList;
+import org.fxt.freexmltoolkit.controls.shell.editor.PanelJobs;
+import org.fxt.freexmltoolkit.controls.shell.editor.PanelProgress;
 import org.fxt.freexmltoolkit.controls.shell.editor.PanelStatus;
 import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelHeader;
 import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelSection;
@@ -30,6 +31,8 @@ import org.fxt.freexmltoolkit.controls.shell.editor.ViewMode;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.plugin.DocumentValidator;
+import org.fxt.freexmltoolkit.service.progress.CancelledException;
+import org.fxt.freexmltoolkit.service.progress.Progress;
 import org.fxt.freexmltoolkit.plugin.PluginUi;
 
 /**
@@ -53,6 +56,39 @@ public class IndustryPanel extends VBox {
          * @throws Exception shown as "The check could not run: …" (e.g. a missing external program)
          */
         List<DocumentValidator.Problem> check(String content, java.nio.file.Path path, String name) throws Exception;
+
+        /**
+         * Like {@link #check(String, java.nio.file.Path, String)}, reporting progress; a check that can stop asks
+         * {@link Progress#checkCancelled()} or registers {@link Progress#onCancel} (an external program). When it
+         * cannot, Cancel only stops waiting and its result is dropped.
+         */
+        default List<DocumentValidator.Problem> check(String content, java.nio.file.Path path, String name,
+                                                      Progress progress) throws Exception {
+            return check(content, path, name);
+        }
+
+        /** @return a checker from a check method that reports progress and can stop ({@code Plugin::check}) */
+        static Checker withProgress(ProgressCheck check) {
+            return new Checker() {
+                @Override
+                public List<DocumentValidator.Problem> check(String content, java.nio.file.Path path, String name)
+                        throws Exception {
+                    return check.check(content, path, name, Progress.NONE);
+                }
+
+                @Override
+                public List<DocumentValidator.Problem> check(String content, java.nio.file.Path path, String name,
+                                                             Progress progress) throws Exception {
+                    return check.check(content, path, name, progress);
+                }
+            };
+        }
+    }
+
+    /** A background job that reports progress ({@link #background(String, ProgressJob, Consumer)}). */
+    @FunctionalInterface
+    public interface ProgressJob<T> {
+        T run(Progress progress) throws Exception;
     }
 
     /** Renders a check report of the active document as HTML (run off the FX thread). */
@@ -63,6 +99,39 @@ public class IndustryPanel extends VBox {
          * @return the report, or {@code null} when the document is not one the plugin reports on
          */
         String html(String content, String name) throws Exception;
+
+        /** Like {@link #html(String, String)}, reporting progress (default: the plain variant). */
+        default String html(String content, String name, Progress progress) throws Exception {
+            return html(content, name);
+        }
+
+        /** @return a builder from a report method that reports progress ({@code Plugin::report}) */
+        static ReportBuilder withProgress(ProgressReport report) {
+            return new ReportBuilder() {
+                @Override
+                public String html(String content, String name) throws Exception {
+                    return report.html(content, name, Progress.NONE);
+                }
+
+                @Override
+                public String html(String content, String name, Progress progress) throws Exception {
+                    return report.html(content, name, progress);
+                }
+            };
+        }
+    }
+
+    /** A report that reports its progress (see {@link ReportBuilder#withProgress}). */
+    @FunctionalInterface
+    public interface ProgressReport {
+        String html(String content, String name, Progress progress) throws Exception;
+    }
+
+    /** A check that reports its progress and can stop (see {@link Checker#withProgress}). */
+    @FunctionalInterface
+    public interface ProgressCheck {
+        List<DocumentValidator.Problem> check(String content, java.nio.file.Path path, String name, Progress progress)
+                throws Exception;
     }
 
     /** An action row of the panel's TOOLS section. */
@@ -82,7 +151,7 @@ public class IndustryPanel extends VBox {
     @FXML private VBox optionsBody;
     @FXML private SidePanelSection identifierSection;
     @FXML private IdentifierChecker identifierChecker;
-    @FXML private ProgressBar progress;
+    @FXML private PanelProgress progress;
     @FXML private Label status;
 
     private final PluginUi ui;
@@ -99,8 +168,10 @@ public class IndustryPanel extends VBox {
     private final javafx.animation.PauseTransition checkTimeout = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(60));
     /** The button whose click started the running background job, shown busy until it ends. */
     private javafx.scene.control.ButtonBase trigger;
-    /** The labels of the background jobs running now (a second click on a running tool is refused). */
-    private final java.util.Set<String> running = new java.util.HashSet<>();
+    /** The background jobs running now (a second click on a running tool is refused), shown in {@link #progress}. */
+    private PanelJobs jobs;
+    /** The job of a check that waits for the shell's validation, or {@code null}. */
+    private PanelJobs.Job checkJob;
 
     /**
      * @param describer   what the document is ({@code "pain.001.001.09 — 2 payments …"}), or {@code null}
@@ -129,6 +200,7 @@ public class IndustryPanel extends VBox {
         this.validator = validator;
         this.checker = checker;
         FxmlViews.load(this, "/pages/panels/IndustryPanel.fxml");
+        jobs = new PanelJobs(progress);
         header.setTitle(title);
         about.setText(aboutText);
         for (Action action : extraActions) {
@@ -160,7 +232,7 @@ public class IndustryPanel extends VBox {
         checkTimeout.setOnFinished(e -> {
             if (checkPending) {
                 checkPending = false;
-                showProgress(false);
+                endCheckJob();
                 checkButton.setDisable(!recognised);
                 PanelStatus.info(status, I18n.t("IndustryPanel.check-still-running"));
             }
@@ -204,13 +276,26 @@ public class IndustryPanel extends VBox {
         button.setColor(action.color());
         button.setOnAction(e -> {
             trigger = button;
+            invoking = this;
             try {
                 action.run().accept(ui);
             } finally {
                 trigger = null;
+                invoking = null;
             }
         });
         actions.getChildren().add(button);
+    }
+
+    /** The panel whose tool button is being clicked (FX thread, during the click), or {@code null}. */
+    private static IndustryPanel invoking;
+
+    /**
+     * @return the panel whose TOOLS row runs right now (an {@link Action} gets only the {@link PluginUi}; a tool that
+     *         works in the background uses this panel's {@link #background}), or {@code null} outside a click
+     */
+    public static IndustryPanel invoking() {
+        return invoking;
     }
 
     /** The panel's status line (for the plugin's tools). */
@@ -223,35 +308,57 @@ public class IndustryPanel extends VBox {
      * on the FX thread, a failure is shown in the status line and as error dialog.
      */
     public <T> void background(String what, Callable<T> job, Consumer<T> done) {
-        if (!running.add(what)) {
+        background(what, false, progress -> job.call(), done);
+    }
+
+    /**
+     * Runs a tool's work off the FX thread; it reports to the panel's progress block (what runs now, steps) and
+     * stops at its next step when the user clicks Cancel ({@link Progress#checkCancelled()}).
+     */
+    public <T> void background(String what, ProgressJob<T> job, Consumer<T> done) {
+        background(what, true, job, done);
+    }
+
+    private <T> void background(String what, boolean cancellable, ProgressJob<T> job, Consumer<T> done) {
+        PanelJobs.Job progressJob = jobs.start(what, what, cancellable);
+        if (progressJob == null) {
             PanelStatus.info(status, I18n.t("IndustryPanel.already-running", what));
             return;
         }
         javafx.scene.control.ButtonBase button = trigger;
         Busy busy = Busy.start(button);
-        showProgress(true);
         PanelStatus.info(status, I18n.t("IndustryPanel.working", what));
         FxtGui.executorService.submit(() -> {
             try {
-                T result = job.call();
+                T result = job.run(progressJob);
+                progressJob.checkCancelled(); // a job that ignored Cancel: its result is dropped
                 Platform.runLater(() -> {
-                    running.remove(what);
+                    progressJob.close();
                     busy.end();
-                    showProgress(!running.isEmpty() || checkPending);
                     status.setText("");
                     status.setGraphic(null);
                     done.accept(result);
                 });
+            } catch (CancelledException e) {
+                Platform.runLater(() -> {
+                    progressJob.close();
+                    busy.end();
+                    PanelStatus.info(status, I18n.t("IndustryPanel.cancelled", what));
+                });
             } catch (Exception | OutOfMemoryError e) {
                 Platform.runLater(() -> {
-                    running.remove(what);
+                    progressJob.close();
                     busy.end();
-                    showProgress(!running.isEmpty() || checkPending);
                     PanelStatus.failure(status, what, I18n.t("IndustryPanel.failed", what),
                             I18n.t("IndustryPanel.failed-remedy"), String.valueOf(e.getMessage()), false);
                 });
             }
         });
+    }
+
+    /** @return the panel's jobs (progress block); plugins with their own jobs use it too */
+    public PanelJobs jobs() {
+        return jobs;
     }
 
     /**
@@ -285,7 +392,7 @@ public class IndustryPanel extends VBox {
     private void finishCheck(EditorHost.ValidationStatus st) {
         checkPending = false;
         checkTimeout.stop();
-        showProgress(!running.isEmpty());
+        endCheckJob();
         checkButton.setDisable(!recognised);
         refreshCounts();
         String time = java.time.LocalTime.now().withNano(0).toString();
@@ -368,7 +475,11 @@ public class IndustryPanel extends VBox {
         if (validator != null && host.hasValidateHandler() && xml) {
             checkPending = true;
             checkButton.setDisable(true);
-            showProgress(true);
+            endCheckJob();
+            checkJob = jobs.start("check", I18n.t("IndustryPanel.checking"), false);
+            if (checkJob != null) {
+                checkJob.message(I18n.t("IndustryPanel.check-running-validation"));
+            }
             PanelStatus.info(status, I18n.t("IndustryPanel.checking"));
             checkTimeout.playFromStart();
             host.runValidationInPlace(); // schema + every plugin validator, problems to the PROBLEMS panel
@@ -379,22 +490,32 @@ public class IndustryPanel extends VBox {
         String name = document.map(d -> d.getDisplayName()).orElse(null);
         java.nio.file.Path path = document.map(d -> d.getPath()).orElse(null);
         EditorHost.ValidationTarget target = host.validationTarget();
+        PanelJobs.Job job = jobs.start("check", I18n.t("IndustryPanel.checking"), true);
+        if (job == null) {
+            PanelStatus.info(status, I18n.t("IndustryPanel.already-running", I18n.t("IndustryPanel.checking")));
+            return;
+        }
         checkButton.setDisable(true);
-        showProgress(true);
         PanelStatus.info(status, I18n.t("IndustryPanel.checking"));
         FxtGui.executorService.submit(() -> {
             List<DocumentValidator.Problem> problems = null;
             String failure = null;
             try {
-                problems = checker.check(text, path, name);
+                problems = checker.check(text, path, name, job);
+            } catch (CancelledException e) {
+                // reported below
             } catch (Exception e) {
                 failure = e.getMessage();
             }
             List<DocumentValidator.Problem> found = problems;
             String error = failure;
             Platform.runLater(() -> {
+                job.close();
                 checkButton.setDisable(!recognised);
-                showProgress(false);
+                if (job.isCancelled()) {
+                    PanelStatus.info(status, I18n.t("IndustryPanel.cancelled", I18n.t("IndustryPanel.checking")));
+                    return;
+                }
                 if (found == null) {
                     PanelStatus.failure(status, header.getTitle(), I18n.t("IndustryPanel.check-failed", error),
                             I18n.t("IndustryPanel.failed-remedy"), error, false);
@@ -443,7 +564,7 @@ public class IndustryPanel extends VBox {
                 .map(doc -> doc.getPath() != null ? doc.getPath().getFileName().toString() : doc.getDisplayName())
                 .orElse("document.xml");
         trigger = reportButton;
-        background(I18n.t("IndustryPanel.reportButton.text"), () -> reportBuilder.html(text, name), html -> {
+        background(I18n.t("IndustryPanel.reportButton.text"), (ProgressJob<String>) p -> reportBuilder.html(text, name, p), html -> {
             if (html == null) {
                 PanelStatus.precondition(status, I18n.t("IndustryPanel.not-recognised"));
                 return;
@@ -454,9 +575,12 @@ public class IndustryPanel extends VBox {
         trigger = null;
     }
 
-    private void showProgress(boolean on) {
-        progress.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
-        show(progress, on);
+    /** Ends the job of a check that waited for the shell's validation. */
+    private void endCheckJob() {
+        if (checkJob != null) {
+            checkJob.close();
+            checkJob = null;
+        }
     }
 
     /**
@@ -465,18 +589,17 @@ public class IndustryPanel extends VBox {
      */
     void checkIdentifiersOnline() {
         String what = I18n.t("IdentifierDocumentCheck.title");
-        if (!running.add(what)) {
+        PanelJobs.Job job = jobs.start("identifiers", what, true);
+        if (job == null) {
             PanelStatus.info(status, I18n.t("IndustryPanel.already-running", what));
             return;
         }
         javafx.scene.control.ButtonBase button = trigger;
         Busy busy = Busy.start(button);
-        showProgress(true);
         PanelStatus.info(status, I18n.t("IndustryPanel.working", what));
-        org.fxt.freexmltoolkit.controls.shell.editor.IdentifierDocumentCheck.runOnActive(ui.editorHost(), outcome -> {
-            running.remove(what);
+        org.fxt.freexmltoolkit.controls.shell.editor.IdentifierDocumentCheck.runOnActive(ui.editorHost(), job, outcome -> {
+            job.close();
             busy.end();
-            showProgress(!running.isEmpty() || checkPending);
             refreshCounts();
             outcome.showIn(status);
         });

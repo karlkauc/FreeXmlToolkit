@@ -41,6 +41,16 @@ public final class LookupCache<R> {
         Map<String, R> fetch(List<String> keys) throws IOException;
     }
 
+    /**
+     * Asks the service and hands over each batch of answers as it arrives ({@code partial}), so they are kept even
+     * when a later request fails or the job is cancelled.
+     */
+    @FunctionalInterface
+    public interface StreamingFetcher<R> {
+        /** @return answers for (some of) the keys; those already handed to {@code partial} may be left out */
+        Map<String, R> fetch(List<String> keys, java.util.function.Consumer<Map<String, R>> partial) throws IOException;
+    }
+
     /** Turns an answer into JSON and back (the file form). */
     public interface Codec<R> {
         JsonElement write(R record);
@@ -50,6 +60,9 @@ public final class LookupCache<R> {
         /** @return when the answer arrived */
         Instant fetchedAt(R record);
     }
+
+    /** Answers that arrive during a long lookup are written to the file at most this often. */
+    static final long SAVE_INTERVAL_MILLIS = 5_000;
 
     private final Path file;
     private final Clock clock;
@@ -86,16 +99,39 @@ public final class LookupCache<R> {
      * @return the answers known for the keys, in the given order
      */
     public Map<String, R> lookup(Collection<String> keys, Fetcher<R> fetcher) throws IOException {
+        return lookup(keys, (missing, partial) -> fetcher.fetch(missing));
+    }
+
+    /**
+     * Like {@link #lookup(Collection, Fetcher)}; answers handed over while the service is asked are kept at once and
+     * saved at most every {@link #SAVE_INTERVAL_MILLIS} - and in any case when the fetch ends, also with an exception
+     * (a failed or cancelled run loses nothing it already got; the next run asks only for the rest).
+     */
+    public Map<String, R> lookup(Collection<String> keys, StreamingFetcher<R> fetcher) throws IOException {
         load();
-        List<String> missing = new ArrayList<>();
-        for (String key : keys) {
-            if (cached(key).isEmpty()) {
-                missing.add(key);
-            }
-        }
+        List<String> missing = missing(keys);
         if (!missing.isEmpty()) {
-            records.putAll(fetcher.fetch(missing));
-            save();
+            long[] lastSave = {System.currentTimeMillis()};
+            boolean[] changed = {false};
+            try {
+                Map<String, R> rest = fetcher.fetch(missing, part -> {
+                    records.putAll(part);
+                    changed[0] = true;
+                    if (System.currentTimeMillis() - lastSave[0] >= SAVE_INTERVAL_MILLIS) {
+                        save();
+                        lastSave[0] = System.currentTimeMillis();
+                        changed[0] = false;
+                    }
+                });
+                if (rest != null && !rest.isEmpty()) {
+                    records.putAll(rest);
+                    changed[0] = true;
+                }
+            } finally {
+                if (changed[0]) {
+                    save();
+                }
+            }
         }
         Map<String, R> result = new LinkedHashMap<>();
         for (String key : keys) {
@@ -105,6 +141,18 @@ public final class LookupCache<R> {
             }
         }
         return result;
+    }
+
+    /** @return the keys without a recent answer, in the given order */
+    public List<String> missing(Collection<String> keys) {
+        load();
+        List<String> missing = new ArrayList<>();
+        for (String key : keys) {
+            if (cached(key).isEmpty()) {
+                missing.add(key);
+            }
+        }
+        return missing;
     }
 
     /** Forgets every answer (also in the file). */

@@ -24,7 +24,6 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 
@@ -36,6 +35,7 @@ import org.fxt.freexmltoolkit.controls.shell.editor.ViewMode;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.plugin.PluginUi;
 import org.fxt.freexmltoolkit.util.DesktopActions;
+import org.fxt.freexmltoolkit.service.progress.CancelledException;
 
 /**
  * The PK-Meldewesen side panel: what the active report is (module, pension fund, period,
@@ -52,7 +52,8 @@ public final class PkMeldewesenPanel extends VBox {
     @FXML private Label status;
     @FXML private org.fxt.freexmltoolkit.controls.shell.editor.PanelActionButton onlineButton;
     @FXML private org.fxt.freexmltoolkit.plugins.IdentifierChecker identifierChecker;
-    @FXML private ProgressBar progress;
+    @FXML private org.fxt.freexmltoolkit.controls.shell.editor.PanelProgress progress;
+    private org.fxt.freexmltoolkit.controls.shell.editor.PanelJobs jobs;
     @FXML private javafx.scene.control.ComboBox<String> versionCombo;
     /** Set while the combo is filled, so filling it does not choose a version. */
     private boolean fillingVersions;
@@ -77,6 +78,7 @@ public final class PkMeldewesenPanel extends VBox {
         this.ui = ui;
         this.taxonomy = taxonomy;
         FxmlViews.load(this, "/pages/panels/PkMeldewesenPanel.fxml");
+        jobs = new org.fxt.freexmltoolkit.controls.shell.editor.PanelJobs(progress);
         getStyleClass().add("fxt-wf-pension");
         boolean online = org.fxt.freexmltoolkit.service.finance.IdentifierCheck.anyAllowed();
         onlineButton.setVisible(online);
@@ -172,13 +174,22 @@ public final class PkMeldewesenPanel extends VBox {
 
     /** Uses another taxonomy version: its schemas are bound from now on (reports opened again pick them up). */
     void chooseVersion(String version) {
+        Run run = start("version", null, I18n.t("PkMeldewesenPanel.switching-version", version), false);
+        if (run == null) {
+            return;
+        }
         FxtGui.executorService.submit(() -> {
-            taxonomy.setActiveVersion(version);
-            PkDictionary.active(taxonomy);
-            Platform.runLater(() -> {
-                refresh();
-                PanelStatus.success(status, I18n.t("PkMeldewesenPanel.version-chosen", version));
-            });
+            try {
+                taxonomy.setActiveVersion(version);
+                run.job().message(I18n.t("PkMeldewesenPanel.loading-dictionary", version));
+                PkDictionary.active(taxonomy);
+            } finally {
+                Platform.runLater(() -> {
+                    run.end();
+                    refresh();
+                    PanelStatus.success(status, I18n.t("PkMeldewesenPanel.version-chosen", version));
+                });
+            }
         });
     }
 
@@ -196,21 +207,26 @@ public final class PkMeldewesenPanel extends VBox {
 
     /** Imports a taxonomy ZIP in the background (also the test entry point). */
     void importTaxonomy(Path zip) {
-        showProgress(true);
+        Run run = start("import", "#pk-import-taxonomy", I18n.t("PkMeldewesenPanel.pk-import-taxonomy.text"), false);
+        if (run == null) {
+            return;
+        }
+        run.job().message(I18n.t("PkMeldewesenPanel.importing", zip.getFileName()));
         FxtGui.executorService.submit(() -> {
             try {
                 String version = taxonomy.importZip(zip);
                 PkDictionary.forget(taxonomy.dir(version));
+                run.job().message(I18n.t("PkMeldewesenPanel.copying-schemas", version));
                 taxonomy.syncActive();
                 Platform.runLater(() -> {
-                    showProgress(false);
+                    run.end();
                     fillVersions();
                     refresh();
                     PanelStatus.success(status, I18n.t("PkMeldewesenPanel.imported", version, taxonomy.activeVersion()));
                 });
             } catch (java.io.IOException | RuntimeException e) {
                 Platform.runLater(() -> {
-                    showProgress(false);
+                    run.end();
                     PanelStatus.failure(status, I18n.t("PkMeldewesenPanel.pk-import-taxonomy.text"),
                             I18n.t("PkMeldewesenPanel.import-failed"), I18n.t("PkMeldewesenPanel.import-remedy"),
                             String.valueOf(e.getMessage()), false);
@@ -271,15 +287,13 @@ public final class PkMeldewesenPanel extends VBox {
             PanelStatus.precondition(status, I18n.t("PkMeldewesenPanel.no-report"));
             return;
         }
-        Runnable done = busy("#pk-identifiers-online");
-        if (done == null) {
+        Run run = start("identifiers", "#pk-identifiers-online", I18n.t("IdentifierDocumentCheck.title"), true);
+        if (run == null) {
             return; // already running
         }
-        showProgress(true);
         PanelStatus.info(status, I18n.t("IndustryPanel.working", I18n.t("IdentifierDocumentCheck.title")));
-        org.fxt.freexmltoolkit.controls.shell.editor.IdentifierDocumentCheck.runOnActive(ui.editorHost(), outcome -> {
-            done.run();
-            showProgress(false);
+        org.fxt.freexmltoolkit.controls.shell.editor.IdentifierDocumentCheck.runOnActive(ui.editorHost(), run.job(), outcome -> {
+            run.end();
             outcome.showIn(status);
         });
     }
@@ -304,27 +318,30 @@ public final class PkMeldewesenPanel extends VBox {
                 .map(doc -> doc.getPath() != null ? doc.getPath().getFileName().toString() : doc.getDisplayName())
                 .orElse("report.xml");
         PkRuleCheck.Options options = options();
-        Runnable done = busy("#pk-rule-report");
-        if (done == null) {
+        Run run = start("rule-report", "#pk-rule-report", I18n.t("PkMeldewesenPanel.pk-rule-report.text"), true);
+        if (run == null) {
             return; // already running
         }
         PanelStatus.info(status, I18n.t("PkMeldewesenPanel.checking"));
-        showProgress(true);
         FxtGui.executorService.submit(() -> {
             try {
-                String html = PkRuleCheck.htmlReport(xml, name, options);
+                String html = PkRuleCheck.htmlReport(xml, name, options, run.job());
+                run.job().message(I18n.t("PkMeldewesenPanel.opening-report"));
                 Platform.runLater(() -> {
-                    done.run();
-                    showProgress(false);
+                    run.end();
                     ui.editorHost().openGeneratedDocument(html, EditorFileType.HTML,
                             name.replaceFirst("(?i)\\.xml$", "") + "-pruefbericht.html");
                     ui.editorHost().setActiveViewMode(ViewMode.PREVIEW);
                     PanelStatus.success(status, I18n.t("PkMeldewesenPanel.report-done"));
                 });
+            } catch (CancelledException e) {
+                Platform.runLater(() -> {
+                    run.end();
+                    PanelStatus.info(status, I18n.t("IndustryPanel.cancelled", I18n.t("PkMeldewesenPanel.pk-rule-report.text")));
+                });
             } catch (Exception | OutOfMemoryError e) {
                 Platform.runLater(() -> {
-                    done.run();
-                    showProgress(false);
+                    run.end();
                     PanelStatus.failure(status, I18n.t("PkMeldewesenPanel.pk-rule-report.text"),
                             I18n.t("PkMeldewesenPanel.report-failed"), I18n.t("PkMeldewesenPanel.report-remedy"),
                             String.valueOf(e.getMessage()), false);
@@ -354,24 +371,35 @@ public final class PkMeldewesenPanel extends VBox {
         Path file = ui.editorHost().getActiveDocument().map(doc -> doc.getPath()).orElse(null);
         Path folder = file != null && file.getParent() != null ? file.getParent() : Path.of(System.getProperty("user.home"));
         Path schema = taxonomy.schema(taxonomy.activeVersion(), report.module());
+        Run run = start("submission", "#pk-submission", I18n.t("PkSubmissionDialog.title"), true);
+        if (run == null) {
+            return;
+        }
         PanelStatus.info(status, I18n.t("PkMeldewesenPanel.submission-checking"));
-        showProgress(true);
         FxtGui.executorService.submit(() -> {
             String clean;
             String checks;
             try {
+                run.job().progress(0, SUBMISSION_STEPS);
+                run.job().message(I18n.t("PkMeldewesenPanel.submission-step-clean", 1, SUBMISSION_STEPS));
                 clean = PkSubmission.clean(xml);
-                checks = submissionChecks(xml, clean, schema, report);
+                checks = submissionChecks(xml, clean, schema, report, run.job());
+            } catch (CancelledException e) {
+                Platform.runLater(() -> {
+                    run.end();
+                    PanelStatus.info(status, I18n.t("IndustryPanel.cancelled", I18n.t("PkSubmissionDialog.title")));
+                });
+                return;
             } catch (java.io.IOException | RuntimeException | OutOfMemoryError e) {
                 Platform.runLater(() -> {
-                    showProgress(false);
+                    run.end();
                     PanelStatus.failure(status, I18n.t("PkSubmissionDialog.title"), I18n.t("PkMeldewesenPanel.submission-failed"),
                             I18n.t("PkMeldewesenPanel.report-remedy"), String.valueOf(e.getMessage()), false);
                 });
                 return;
             }
             Platform.runLater(() -> {
-                showProgress(false);
+                run.end();
                 PkSubmissionDialog dialog = new PkSubmissionDialog(report, folder, checks);
                 PkSubmissionDialog.Choice choice = submissionAnswer != null ? submissionAnswer.apply(dialog)
                         : dialog.showAndWait().orElse(null);
@@ -386,6 +414,18 @@ public final class PkMeldewesenPanel extends VBox {
 
     /** @return the lines of the dialog's CHECKS: grid formulas removed, schema, FMA rules */
     static String submissionChecks(String original, String clean, Path schema, PkReport report) {
+        return submissionChecks(original, clean, schema, report, org.fxt.freexmltoolkit.service.progress.Progress.NONE);
+    }
+
+    /** The submission's steps: clean, schema, FMA rules, ZIP. */
+    static final int SUBMISSION_STEPS = 4;
+
+    /** Like {@link #submissionChecks(String, String, Path, PkReport)}, reporting steps 2 and 3 of the submission. */
+    static String submissionChecks(String original, String clean, Path schema, PkReport report,
+                                   org.fxt.freexmltoolkit.service.progress.Progress progress) {
+        progress.checkCancelled();
+        progress.progress(1, SUBMISSION_STEPS);
+        progress.message(I18n.t("PkMeldewesenPanel.submission-step-schema", 2, SUBMISSION_STEPS));
         java.util.List<String> lines = new java.util.ArrayList<>();
         if (PkGridSetup.hasAnnotations(original)) {
             lines.add(I18n.t("PkSubmissionDialog.grid-removed"));
@@ -395,6 +435,9 @@ public final class PkMeldewesenPanel extends VBox {
         long schemaErrors = result.problems().stream()
                 .filter(p -> !"PK-Meldewesen".equals(p.source()) && "error".equals(p.severity())).count();
         lines.add(schemaErrors == 0 ? I18n.t("PkSubmissionDialog.schema-ok") : I18n.t("PkSubmissionDialog.schema-errors", schemaErrors));
+        progress.checkCancelled();
+        progress.progress(2, SUBMISSION_STEPS);
+        progress.message(I18n.t("PkMeldewesenPanel.submission-step-rules", 3, SUBMISSION_STEPS));
         if (PkRuleCheck.supports(report.module())) {
             long errors = 0;
             long warnings = 0;
@@ -413,7 +456,7 @@ public final class PkMeldewesenPanel extends VBox {
                         }
                     }
                 } else {
-                    for (PkRuleCheck.Finding f : PkRuleCheck.run(clean, "report.xml", PkSettings.ruleOptions())) {
+                    for (PkRuleCheck.Finding f : PkRuleCheck.run(clean, "report.xml", PkSettings.ruleOptions(), progress)) {
                         if (f.rule().additional()) {
                             continue;
                         }
@@ -425,6 +468,8 @@ public final class PkMeldewesenPanel extends VBox {
                     }
                 }
                 lines.add(I18n.t("PkSubmissionDialog.rules-result", errors, warnings));
+            } catch (CancelledException e) {
+                throw e;
             } catch (Exception e) {
                 lines.add(I18n.t("PkSubmissionDialog.not-run", String.valueOf(e.getMessage())));
             }
@@ -438,17 +483,22 @@ public final class PkMeldewesenPanel extends VBox {
     }
 
     private void writeSubmission(String clean, PkSubmissionDialog.Choice choice) {
-        showProgress(true);
+        Run run = start("submission", "#pk-submission", I18n.t("PkSubmissionDialog.title"), false);
+        if (run == null) {
+            return;
+        }
+        run.job().progress(3, SUBMISSION_STEPS);
+        run.job().message(I18n.t("PkMeldewesenPanel.submission-step-zip", 4, SUBMISSION_STEPS));
         FxtGui.executorService.submit(() -> {
             try {
                 Path zip = PkSubmission.writeZip(clean, choice.folder(), choice.xmlName());
                 Platform.runLater(() -> {
-                    showProgress(false);
+                    run.end();
                     PanelStatus.success(status, I18n.t("PkMeldewesenPanel.submission-done", zip.toString()));
                 });
             } catch (java.io.IOException | RuntimeException e) {
                 Platform.runLater(() -> {
-                    showProgress(false);
+                    run.end();
                     PanelStatus.failure(status, I18n.t("PkSubmissionDialog.title"), I18n.t("PkMeldewesenPanel.submission-failed"),
                             I18n.t("PkMeldewesenPanel.submission-remedy"), String.valueOf(e.getMessage()), false);
                 });
@@ -460,7 +510,7 @@ public final class PkMeldewesenPanel extends VBox {
     @FXML
     public void onGridAdd() {
         transformCopy(xml -> PkGridSetup.add(xml, true, true), "-grid.xml", ViewMode.GRAPHIC,
-                I18n.t("PkMeldewesenPanel.grid-added"));
+                I18n.t("PkMeldewesenPanel.grid-added"), "#pk-grid-add", I18n.t("PkMeldewesenPanel.grid-adding"));
     }
 
     /** Removes the grid formulas and filters: a copy of the active report ready for submission. */
@@ -471,7 +521,8 @@ public final class PkMeldewesenPanel extends VBox {
             PanelStatus.info(status, I18n.t("PkMeldewesenPanel.grid-none"));
             return;
         }
-        transformCopy(PkGridSetup::remove, "-clean.xml", ViewMode.TEXT, I18n.t("PkMeldewesenPanel.grid-removed"));
+        transformCopy(PkGridSetup::remove, "-clean.xml", ViewMode.TEXT, I18n.t("PkMeldewesenPanel.grid-removed"),
+                "#pk-grid-remove", I18n.t("PkMeldewesenPanel.grid-removing"));
     }
 
     /** A transformation of the active quarterly report, opened as a new document. */
@@ -479,7 +530,8 @@ public final class PkMeldewesenPanel extends VBox {
         String apply(String xml) throws java.io.IOException;
     }
 
-    private void transformCopy(ReportTransform transform, String suffix, ViewMode mode, String done) {
+    private void transformCopy(ReportTransform transform, String suffix, ViewMode mode, String done, String selector,
+                               String working) {
         PkReport report = activeReport();
         if (report == null || report.module() != PkModule.PFQ) {
             PanelStatus.precondition(status, I18n.t("PkMeldewesenPanel.pfq-only"));
@@ -491,19 +543,23 @@ public final class PkMeldewesenPanel extends VBox {
         }
         String name = ui.editorHost().getActiveDocument().map(doc -> doc.getDisplayName()).orElse("report.xml")
                 .replaceFirst("(?i)(-grid)?\\.xml$", "");
-        showProgress(true);
+        Run run = start("grid", selector, I18n.t("PkMeldewesenPanel.grid.title"), false);
+        if (run == null) {
+            return;
+        }
+        run.job().message(working);
         FxtGui.executorService.submit(() -> {
             try {
                 String result = transform.apply(xml);
                 Platform.runLater(() -> {
-                    showProgress(false);
+                    run.end();
                     ui.editorHost().openGeneratedDocument(result, EditorFileType.XML, name + suffix);
                     ui.editorHost().setActiveViewMode(mode);
                     PanelStatus.success(status, done);
                 });
             } catch (java.io.IOException | RuntimeException | OutOfMemoryError e) {
                 Platform.runLater(() -> {
-                    showProgress(false);
+                    run.end();
                     PanelStatus.failure(status, I18n.t("PkMeldewesenPanel.grid.title"),
                             I18n.t("PkMeldewesenPanel.grid-failed"), I18n.t("PkMeldewesenPanel.report-remedy"),
                             String.valueOf(e.getMessage()), false);
@@ -512,38 +568,46 @@ public final class PkMeldewesenPanel extends VBox {
         });
     }
 
+    /** A running job of the panel: its progress and the busy button. */
+    private record Run(org.fxt.freexmltoolkit.controls.shell.editor.PanelJobs.Job job, Runnable unbusy) {
+        /** Ends the job (FX thread). */
+        void end() {
+            job.close();
+            unbusy.run();
+        }
+    }
+
     /**
-     * Shows the button with that id busy (disabled, a spinner as icon) while its job runs.
+     * Starts a job in the panel's progress block and shows its button busy.
      *
-     * @return what ends the busy state, or {@code null} when the job is running already (the click is ignored)
+     * @param selector the button's id selector, or {@code null}
+     * @return the job, or {@code null} when it runs already (the click is ignored with a status line)
      */
+    private Run start(String id, String selector, String label, boolean cancellable) {
+        org.fxt.freexmltoolkit.controls.shell.editor.PanelJobs.Job job = jobs.start(id, label, cancellable);
+        if (job == null) {
+            PanelStatus.info(status, I18n.t("IndustryPanel.already-running", label));
+            return null;
+        }
+        return new Run(job, selector == null ? () -> { } : busy(selector));
+    }
+
+    /** Shows the button with that id busy (a spinner as icon, "Running: …") until the returned action runs. */
     private Runnable busy(String selector) {
         if (!(lookup(selector) instanceof javafx.scene.control.ButtonBase button)) {
             return () -> { };
-        }
-        if (button.getProperties().containsKey("fxt.busy")) {
-            PanelStatus.info(status, I18n.t("IndustryPanel.already-running", button.getText()));
-            return null;
         }
         javafx.scene.Node icon = button.getGraphic();
         String text = button.getText();
         javafx.scene.control.ProgressIndicator spinner = new javafx.scene.control.ProgressIndicator();
         spinner.setPrefSize(15, 15);
         spinner.setMaxSize(15, 15);
-        button.getProperties().put("fxt.busy", Boolean.TRUE);
         button.setGraphic(spinner);
         button.setText(I18n.t("IndustryPanel.running", text));
         return () -> {
-            button.getProperties().remove("fxt.busy");
             button.setGraphic(icon);
             button.setText(text);
         };
-    }
-
-    private void showProgress(boolean on) {
-        progress.setProgress(javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS);
-        progress.setVisible(on);
-        progress.setManaged(on);
     }
 
     /** The bundled example report (a fictitious pension fund with a few rule violations). */
@@ -577,17 +641,16 @@ public final class PkMeldewesenPanel extends VBox {
             DesktopActions.open(index, e -> PanelStatus.info(status, String.valueOf(e.getMessage())));
             return;
         }
-        Runnable done = busy("#pk-schema-doc");
-        if (done == null) {
+        Run run = start("schema-doc", "#pk-schema-doc", I18n.t("PkMeldewesenPanel.pk-schema-doc.text"), false);
+        if (run == null) {
             return; // already running
         }
         PanelStatus.info(status, I18n.t("PkMeldewesenPanel.schema-doc-running"));
-        showProgress(true);
         FxtGui.executorService.submit(() -> {
-            String result = org.fxt.freexmltoolkit.controls.shell.editor.DocumentationRunner.exportHtml(schema.toFile(), out);
+            String result = org.fxt.freexmltoolkit.controls.shell.editor.DocumentationRunner.exportHtml(schema.toFile(), out,
+                    run.job());
             Platform.runLater(() -> {
-                done.run();
-                showProgress(false);
+                run.end();
                 if (result.startsWith("OK:")) {
                     PanelStatus.success(status, I18n.t("PkMeldewesenPanel.schema-doc-done"));
                     DesktopActions.open(index, e -> PanelStatus.info(status, String.valueOf(e.getMessage())));

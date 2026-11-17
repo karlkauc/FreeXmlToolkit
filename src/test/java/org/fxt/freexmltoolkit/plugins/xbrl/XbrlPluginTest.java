@@ -85,4 +85,52 @@ class XbrlPluginTest {
         assertTrue(problems.stream().anyMatch(p -> p.message().contains("xbrl.4.6.2:numericUnit") && p.line() == 11),
                 problems.toString());
     }
+
+    @Test
+    @DisplayName("Cancel ends a running Arelle (and what it started) at once")
+    void cancelEndsArelle(@TempDir Path dir) throws Exception {
+        Assumptions.assumeFalse(System.getProperty("os.name", "").toLowerCase().contains("win"), "POSIX shell script");
+        Path fake = Files.writeString(dir.resolve("arelleCmdLine"), "#!/bin/sh\nsleep 60\n");
+        fake.toFile().setExecutable(true);
+        Path file = Files.writeString(dir.resolve("ok.xbrl"), "<xbrl/>");
+        java.util.concurrent.atomic.AtomicBoolean cancelled = new java.util.concurrent.atomic.AtomicBoolean();
+        java.util.List<Runnable> onCancel = new java.util.concurrent.CopyOnWriteArrayList<>();
+        java.util.List<String> messages = new java.util.concurrent.CopyOnWriteArrayList<>();
+        org.fxt.freexmltoolkit.service.progress.Progress progress = new org.fxt.freexmltoolkit.service.progress.Progress() {
+            @Override
+            public void message(String text) {
+                messages.add(text);
+            }
+
+            @Override
+            public void progress(long done, long total) {
+            }
+
+            @Override
+            public boolean isCancelled() {
+                return cancelled.get();
+            }
+
+            @Override
+            public void onCancel(Runnable action) {
+                onCancel.add(action);
+            }
+        };
+        Thread canceller = new Thread(() -> {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                return;
+            }
+            cancelled.set(true);
+            onCancel.forEach(Runnable::run);
+        });
+        canceller.start();
+        long start = System.currentTimeMillis();
+        assertThrows(org.fxt.freexmltoolkit.service.progress.CancelledException.class,
+                () -> ArelleRunner.validate(fake, file, Duration.ofMinutes(1), progress));
+        assertTrue(System.currentTimeMillis() - start < 10_000, "did not wait for the program to finish");
+        assertTrue(messages.getFirst().startsWith("Arelle checks ok.xbrl"), messages.toString());
+        canceller.join();
+    }
 }

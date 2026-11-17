@@ -66,8 +66,21 @@ public final class LeiCache {
      * @return one record per LEI with valid check digits
      */
     public Map<String, LeiRecord> lookup(Collection<String> leis) throws GleifClient.GleifException {
+        return lookup(leis, org.fxt.freexmltoolkit.service.progress.Progress.NONE);
+    }
+
+    /**
+     * Like {@link #lookup(Collection)}, reporting the requests; the answers of each request are kept at once, so a
+     * failed or cancelled run loses nothing it already got.
+     */
+    public Map<String, LeiRecord> lookup(Collection<String> leis, org.fxt.freexmltoolkit.service.progress.Progress progress)
+            throws GleifClient.GleifException {
         try {
-            return cache.lookup(leis, client::lookup);
+            int known = leis.size() - cache.missing(leis).size();
+            if (known > 0 && !leis.isEmpty()) {
+                progress.message(org.fxt.freexmltoolkit.i18n.I18n.t("Progress.gleif-cached", known, leis.size()));
+            }
+            return cache.lookup(leis, (missing, partial) -> client.lookup(missing, progress, partial));
         } catch (GleifClient.GleifException e) {
             throw e;
         } catch (IOException e) {

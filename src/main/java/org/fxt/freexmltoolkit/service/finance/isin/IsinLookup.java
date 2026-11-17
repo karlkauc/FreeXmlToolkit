@@ -16,7 +16,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.finance.FinancialIdentifiers;
+import org.fxt.freexmltoolkit.service.progress.Progress;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -103,6 +105,19 @@ public final class IsinLookup {
      * @return one record per valid ISIN, in the given order
      */
     public synchronized Map<String, IsinRecord> lookup(Collection<String> isins) throws LookupException {
+        return lookup(isins, Progress.NONE, part -> { });
+    }
+
+    /**
+     * Like {@link #lookup(Collection)}, reporting each request (OpenFIGI with the time left) and handing over the
+     * records as soon as they are final: FIRDS hits at once, the rest after OpenFIGI (or at once without it). A
+     * failed or cancelled run has handed over everything answered before.
+     *
+     * @throws org.fxt.freexmltoolkit.service.progress.CancelledException when the progress is cancelled
+     */
+    public synchronized Map<String, IsinRecord> lookup(Collection<String> isins, Progress progress,
+                                                       java.util.function.Consumer<Map<String, IsinRecord>> partial)
+            throws LookupException {
         Set<String> valid = new LinkedHashSet<>();
         for (String isin : isins) {
             String i = isin == null ? "" : isin.strip().toUpperCase(Locale.ROOT);
@@ -111,29 +126,84 @@ public final class IsinLookup {
             }
         }
         List<String> all = new ArrayList<>(valid);
-        Map<String, IsinRecord> found = new LinkedHashMap<>();
+        Map<String, IsinRecord> result = new LinkedHashMap<>();
+        int firdsRequests = (all.size() + FIRDS_BATCH - 1) / FIRDS_BATCH;
+        List<String> missing = new ArrayList<>();
         for (int i = 0; i < all.size(); i += FIRDS_BATCH) {
-            found.putAll(firds(all.subList(i, Math.min(all.size(), i + FIRDS_BATCH))));
+            List<String> batch = all.subList(i, Math.min(all.size(), i + FIRDS_BATCH));
+            int n = i / FIRDS_BATCH + 1;
+            progress.checkCancelled();
+            progress.message(I18n.t("Progress.firds-request", n, firdsRequests, i + 1, i + batch.size(), all.size()));
+            progress.progress(n - 1L, firdsRequests);
+            Map<String, IsinRecord> found = firds(batch, progress);
+            Map<String, IsinRecord> settled = new LinkedHashMap<>();
+            Instant now = clock.instant();
+            for (String isin : batch) {
+                IsinRecord r = found.get(isin);
+                if (r != null) {
+                    settled.put(isin, r);
+                } else if (openFigi) {
+                    missing.add(isin);
+                } else {
+                    settled.put(isin, IsinRecord.notFound(isin, false, now));
+                }
+            }
+            result.putAll(settled);
+            partial.accept(settled);
+            progress.progress(n, firdsRequests);
         }
-        List<String> missing = all.stream().filter(i -> !found.containsKey(i)).toList();
         if (openFigi && !missing.isEmpty()) {
-            int batch = apiKey == null ? OPENFIGI_BATCH : OPENFIGI_BATCH_WITH_KEY;
-            for (int i = 0; i < missing.size(); i += batch) {
-                found.putAll(openFigi(missing.subList(i, Math.min(missing.size(), i + batch))));
+            int batchSize = apiKey == null ? OPENFIGI_BATCH : OPENFIGI_BATCH_WITH_KEY;
+            long interval = figiInterval();
+            int figiRequests = (missing.size() + batchSize - 1) / batchSize;
+            if (apiKey == null && (long) figiRequests * interval > SLOW_OPENFIGI_MILLIS) {
+                progress.hint(Progress.Hint.OPENFIGI_API_KEY);
+            }
+            for (int i = 0; i < missing.size(); i += batchSize) {
+                List<String> batch = missing.subList(i, Math.min(missing.size(), i + batchSize));
+                int n = i / batchSize + 1;
+                progress.checkCancelled();
+                progress.message(I18n.t("Progress.openfigi-request", n, figiRequests, missing.size(),
+                        remaining((long) (figiRequests - n + 1) * interval)));
+                progress.progress(firdsRequests + n - 1L, firdsRequests + figiRequests);
+                Map<String, IsinRecord> found = openFigi(batch, progress);
+                Map<String, IsinRecord> settled = new LinkedHashMap<>();
+                Instant now = clock.instant();
+                for (String isin : batch) {
+                    settled.put(isin, found.getOrDefault(isin, IsinRecord.notFound(isin, true, now)));
+                }
+                result.putAll(settled);
+                partial.accept(settled);
+                progress.progress(firdsRequests + (long) n, firdsRequests + figiRequests);
             }
         }
-        Map<String, IsinRecord> result = new LinkedHashMap<>();
-        Instant now = clock.instant();
+        Map<String, IsinRecord> ordered = new LinkedHashMap<>();
         for (String isin : all) {
-            result.put(isin, found.getOrDefault(isin, IsinRecord.notFound(isin, openFigi, now)));
+            IsinRecord r = result.get(isin);
+            if (r != null) {
+                ordered.put(isin, r);
+            }
         }
-        return result;
+        return ordered;
+    }
+
+    /** An OpenFIGI run longer than this without an API key suggests one ({@link Progress.Hint#OPENFIGI_API_KEY}). */
+    static final long SLOW_OPENFIGI_MILLIS = 120_000;
+
+    private long figiInterval() {
+        return apiKey == null ? 2_500 : 250;
+    }
+
+    /** @return "about 12 min" / "about 40 s" for a remaining time */
+    static String remaining(long millis) {
+        long seconds = Math.max(1, (millis + 999) / 1000);
+        return seconds >= 90 ? I18n.t("Progress.about-minutes", (seconds + 30) / 60) : I18n.t("Progress.about-seconds", seconds);
     }
 
     // ------------------------------------------------------------------ FIRDS
 
-    private Map<String, IsinRecord> firds(List<String> batch) throws LookupException {
-        lastFirds = throttle(lastFirds, 1_000);
+    private Map<String, IsinRecord> firds(List<String> batch, Progress progress) throws LookupException {
+        lastFirds = throttle(lastFirds, 1_000, progress);
         String query = "isin:(" + String.join(" OR ", batch) + ")";
         URI uri = URI.create(FIRDS + "?q=" + enc(query) + "&fq=" + enc("type_s:parent") + "&wt=json&rows=" + batch.size()
                 + "&group=true&group.field=isin&group.limit=1&group.sort=" + enc("status desc")
@@ -198,9 +268,9 @@ public final class IsinLookup {
 
     // ------------------------------------------------------------------ OpenFIGI
 
-    private Map<String, IsinRecord> openFigi(List<String> batch) throws LookupException {
+    private Map<String, IsinRecord> openFigi(List<String> batch, Progress progress) throws LookupException {
         // 25 requests a minute without a key, 25 in 6 seconds with one
-        lastFigi = throttle(lastFigi, apiKey == null ? 2_500 : 250);
+        lastFigi = throttle(lastFigi, figiInterval(), progress);
         JsonArray jobs = new JsonArray();
         for (String isin : batch) {
             JsonObject job = new JsonObject();
@@ -251,15 +321,11 @@ public final class IsinLookup {
 
     // ------------------------------------------------------------------ helpers
 
-    private long throttle(long last, long interval) {
+    private long throttle(long last, long interval, Progress progress) {
         long now = clock.millis();
         long wait = last + interval - now;
         if (last > 0 && wait > 0) {
-            try {
-                Thread.sleep(wait);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            progress.sleep(wait); // ends early (CancelledException) when the job is cancelled
         }
         return clock.millis();
     }

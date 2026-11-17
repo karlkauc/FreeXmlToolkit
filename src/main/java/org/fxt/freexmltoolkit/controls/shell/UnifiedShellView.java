@@ -183,6 +183,11 @@ public class UnifiedShellView extends BorderPane {
         activityBar = new ActivityBar(selectionModel);
         activityBarHost.getChildren().setAll(activityBar);
         editorActions = new org.fxt.freexmltoolkit.controls.shell.editor.EditorActions(editorHost);
+        // A progress hint's link (e.g. "Set an OpenFIGI API key") opens Settings at the Network & Security group
+        org.fxt.freexmltoolkit.controls.shell.editor.PanelJobs.setHintHandler(hint -> {
+            openSettings();
+            javafx.application.Platform.runLater(() -> openSettingsTab().showSection("network"));
+        });
         // Ctrl+Enter in a query/XSLT editor runs the document like the toolbar's
         // Run Query / Run Transform buttons (dispatched by file type).
         editorHost.setQueryRunHandler(editorActions::runActive);

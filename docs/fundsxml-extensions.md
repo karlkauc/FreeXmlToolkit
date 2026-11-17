@@ -147,7 +147,9 @@ The validation uses whichever FundsXML schema version is currently marked as act
 ## Data-Quality Checks
 
 **Run Data Quality Checks** in the FundsXML side panel checks the active FundsXML document with
-17 XQuery checks and opens a report (passed / findings / not run, with every finding):
+17 XQuery checks and opens a report (passed / findings / not run, with every finding). While it runs, the panel shows
+*Check 5 of 17: …* with a bar and **Cancel** (stops between two checks); downloads, validation, grid setup,
+documentation and **Check Identifiers Online** show their progress the same way:
 
 | Check | What it looks at |
 |---|---|

@@ -2,7 +2,7 @@
 
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ProgressBar?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelProgress?>
 <?import javafx.scene.layout.VBox?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionButton?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionList?>
@@ -88,7 +88,7 @@
 
         <VBox spacing="6" styleClass="fxt-tp-section-body">
             <children>
-                <ProgressBar fx:id="progress" maxWidth="Infinity"/>
+                <PanelProgress fx:id="progress" id="fundsxml-progress"/>
                 <Label fx:id="status" wrapText="true" styleClass="fxt-placeholder-text"/>
             </children>
         </VBox>

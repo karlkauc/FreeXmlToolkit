@@ -169,3 +169,16 @@ Real quarterly reports can be 150 MB and more. The extension reads only the star
 to recognise it. For files above 50 MB the editor offers the [Large File Viewer](large-files.md),
 which validates against the bound schema while streaming the file.
 
+Long actions show their progress under the panel's actions: what runs now, the time so far and **Cancel** where the
+work can stop.
+
+- **Check Identifiers Online** - requests per service, the time left for OpenFIGI, Cancel at any time (what was
+  answered stays; the next check continues with the rest), see
+  [Online Identifier Lookup](identifier-lookup.md#progress-cancelling-and-continuing);
+- **FMA rules** (check report, validation) - one run at a time: while one runs, the next waits with *Waiting for an
+  FMA rule check that is still running…* (Cancel stops the wait). The run itself is one XSLT over the whole report and
+  cannot be stopped; the panel shows how long the last run of a report this size took (a 150 MB report: about 10–15 s
+  and up to 4 GB of memory);
+- **Prepare Submission** - *Step 1 of 4* to *4 of 4* (grid formulas, schema, FMA rules, ZIP), Cancel between the steps;
+- taxonomy import, version switch, grid formulas and schema documentation - what each is doing.
+

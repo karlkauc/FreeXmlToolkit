@@ -115,4 +115,48 @@ class RegRuleSetTest {
         assertNull(new CatalogDescriber(() -> false, List.of(() -> catalog)).describe(
                 new ElementDescriber.ElementInfo(List.of("Rpt", "Rec", "Amount"), Map.of(), Map.of(), Map.of(), "", List.of())));
     }
+
+    @Test
+    void longRunsReportTheRecordsAndStopWhenCancelled() throws Exception {
+        StringBuilder xml = new StringBuilder("<Rpt>\n");
+        for (int i = 0; i < 1000; i++) {
+            xml.append("<Rec><Id>").append(i).append("</Id></Rec>\n");
+        }
+        xml.append("</Rpt>");
+        java.util.List<String> messages = new java.util.concurrent.CopyOnWriteArrayList<>();
+        long[] steps = new long[2];
+        boolean[] cancel = {false};
+        boolean[] armed = {true}; // the first run is cancelled at record 400, the second runs through
+        org.fxt.freexmltoolkit.service.progress.Progress progress = new org.fxt.freexmltoolkit.service.progress.Progress() {
+            @Override
+            public void message(String text) {
+                messages.add(text);
+                if (armed[0] && text.contains("record 400")) {
+                    cancel[0] = true;
+                }
+            }
+
+            @Override
+            public void progress(long done, long total) {
+                steps[0] = done;
+                steps[1] = total;
+            }
+
+            @Override
+            public boolean isCancelled() {
+                return cancel[0];
+            }
+        };
+        assertThrows(org.fxt.freexmltoolkit.service.progress.CancelledException.class,
+                () -> new RegRuleSet("Rpt/Rec").run(xml.toString(), "x.xml", progress));
+        assertTrue(messages.stream().anyMatch(m -> m.startsWith("Rules: record 200 · line")), messages.toString());
+        assertEquals(1002, steps[1], "progress by line of the file");
+        assertTrue(messages.stream().noneMatch(m -> m.contains("record 600")), "stopped after Cancel");
+
+        cancel[0] = false;
+        armed[0] = false;
+        messages.clear();
+        assertEquals(java.util.List.of(), new RegRuleSet("Rpt/Rec").run(xml.toString(), "x.xml", progress));
+        assertTrue(messages.getLast().startsWith("Rules across the whole file (1000 records)"), messages.toString());
+    }
 }

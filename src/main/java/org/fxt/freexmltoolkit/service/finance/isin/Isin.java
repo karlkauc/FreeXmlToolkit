@@ -96,15 +96,27 @@ public final class Isin {
 
         /** @return one record per ISIN with a valid check digit */
         public Map<String, IsinRecord> lookup(Collection<String> isins) throws IsinLookup.LookupException {
+            return lookup(isins, org.fxt.freexmltoolkit.service.progress.Progress.NONE);
+        }
+
+        /**
+         * Like {@link #lookup(Collection)}, reporting the requests; answers are kept as they arrive, so a failed or
+         * cancelled run loses nothing it already got.
+         */
+        public Map<String, IsinRecord> lookup(Collection<String> isins, org.fxt.freexmltoolkit.service.progress.Progress progress)
+                throws IsinLookup.LookupException {
             Map<String, String> byKey = new java.util.LinkedHashMap<>();
             isins.forEach(i -> byKey.put(key(i), i));
             Map<String, IsinRecord> found;
             try {
-                found = cache.lookup(byKey.keySet(), keys -> {
-                    Map<String, IsinRecord> answers = lookup.get().lookup(keys.stream().map(byKey::get).toList());
-                    Map<String, IsinRecord> keyed = new java.util.LinkedHashMap<>();
-                    answers.forEach((isin, r) -> keyed.put(key(isin), r));
-                    return keyed;
+                int known = byKey.size() - cache.missing(byKey.keySet()).size();
+                if (known > 0) {
+                    progress.message(org.fxt.freexmltoolkit.i18n.I18n.t("Progress.isin-cached", known, byKey.size()));
+                }
+                found = cache.lookup(byKey.keySet(), (keys, partial) -> {
+                    Map<String, IsinRecord> answers = lookup.get().lookup(keys.stream().map(byKey::get).toList(), progress,
+                            part -> partial.accept(keyed(part)));
+                    return keyed(answers);
                 });
             } catch (IsinLookup.LookupException e) {
                 throw e;
@@ -114,6 +126,12 @@ public final class Isin {
             Map<String, IsinRecord> result = new java.util.LinkedHashMap<>();
             found.forEach((k, r) -> result.put(byKey.get(k), r));
             return result;
+        }
+
+        private Map<String, IsinRecord> keyed(Map<String, IsinRecord> byIsin) {
+            Map<String, IsinRecord> keyed = new java.util.LinkedHashMap<>();
+            byIsin.forEach((isin, r) -> keyed.put(key(isin), r));
+            return keyed;
         }
 
         public void clear() {

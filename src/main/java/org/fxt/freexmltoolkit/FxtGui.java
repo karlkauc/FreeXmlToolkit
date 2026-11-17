@@ -146,6 +146,8 @@ public class FxtGui extends Application {
         // Log (with stack trace) and anonymously report every uncaught exception. Installed
         // first so that failures during the remaining startup are captured too.
         installUncaughtExceptionHandler();
+        // JavaFX catches errors of its render thread and only prints them: read them from stderr
+        org.fxt.freexmltoolkit.app.RenderErrorMonitor.install(FxtGui::onRenderPipelineError);
 
         // Proxy setup MUST happen before anything that could trigger HTTP requests
         // (e.g., ServiceRegistry lazy-loading services that make network calls)
@@ -783,11 +785,49 @@ public class FxtGui extends Application {
         // Set maximum texture size for caching (4096x4096 is good for most GPUs)
         setPropertyIfAbsent("prism.maxTextureSize", "4096");
 
-        // Enable image caching
-        setPropertyIfAbsent("prism.cacheshapes", "true");
+        // No prism.cacheshapes=true: caching a mask texture for every shape (thousands of rounded badges in a large
+        // HTML report) filled the Direct3D texture pool until textures still in use were dropped
+        // (NullPointerException in D3DTexture.getContext, the window stopped painting). JavaFX's default caches
+        // complex shapes only.
 
         // Log which rendering pipeline is being used
         logger.info("JavaFX hardware acceleration configured: prism.order={}", System.getProperty("prism.order"));
+    }
+
+    /** Setting: why AUTO rendering fell back to software (set after a render-pipeline error). */
+    static final String RENDERING_FALLBACK_KEY = "rendering.autoFallback";
+
+    /**
+     * A render-pipeline error (from {@link org.fxt.freexmltoolkit.app.RenderErrorMonitor}): reported anonymously; in
+     * AUTO rendering mode the next start uses software rendering; the user is told once (as far as the window still
+     * paints). Never throws.
+     */
+    static void onRenderPipelineError(org.fxt.freexmltoolkit.app.RenderErrorMonitor.RenderPipelineError error) {
+        try {
+            Telemetry.reportError(error, "render");
+            String mode = PropertiesServiceImpl.getInstance().getRenderingMode();
+            boolean auto = !"SOFTWARE".equals(mode) && !"HARDWARE".equals(mode);
+            if (auto && !RenderingPipelineDetector.ORDER_SOFTWARE.equals(System.getProperty("prism.order"))) {
+                PropertiesService props = PropertiesServiceImpl.getInstance();
+                props.set("rendering.autoDetected.order", RenderingPipelineDetector.ORDER_SOFTWARE);
+                props.set(RENDERING_FALLBACK_KEY, java.time.LocalDate.now() + " " + error.getMessage());
+            }
+            javafx.application.Platform.runLater(() -> {
+                try {
+                    var alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                            javafx.scene.control.Alert.AlertType.WARNING,
+                            org.fxt.freexmltoolkit.i18n.I18n.t("FxtGui.render-error.title"),
+                            org.fxt.freexmltoolkit.i18n.I18n.t("FxtGui.render-error.header"),
+                            org.fxt.freexmltoolkit.i18n.I18n.t(auto ? "FxtGui.render-error.auto" : "FxtGui.render-error.manual"));
+                    alert.initModality(javafx.stage.Modality.NONE);
+                    alert.show();
+                } catch (Throwable ignored) {
+                    // the window may no longer paint: the setting above still takes effect at the next start
+                }
+            });
+        } catch (Throwable ignored) {
+            // never break stderr
+        }
     }
 
     /**

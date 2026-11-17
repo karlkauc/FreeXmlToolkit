@@ -58,6 +58,13 @@ final class EditorTab extends Tab {
     JsonGridView jsonGridView;
     /** The read-only HTML Preview (a WebView, or a text fallback without javafx.scene.web). */
     private javafx.scene.Node htmlPreviewNode;
+    /** The bar above the preview of a large HTML document ("open in the browser"), or {@code null}. */
+    private javafx.scene.layout.HBox htmlPreviewHint;
+    /**
+     * From this size on, the HTML preview suggests the browser: WebView renders large reports slowly, and with
+     * hardware rendering a page with thousands of styled elements can exhaust the graphics card's texture pool.
+     */
+    static final int LARGE_PREVIEW_CHARS = 1_000_000;
     private java.util.function.Consumer<String> htmlPreviewUpdater;
     /** Text the preview last rendered — skips redundant {@code loadContent} calls. */
     String lastPreviewedText;
@@ -2867,8 +2874,27 @@ final class EditorTab extends Tab {
         try {
             // no JavaScript, no remote content unless allowed in Settings (SafeWebView)
             javafx.scene.web.WebView webView = org.fxt.freexmltoolkit.controls.shell.SafeWebView.create();
-            htmlPreviewUpdater = content -> org.fxt.freexmltoolkit.controls.shell.SafeWebView.load(webView, content);
-            htmlPreviewNode = webView;
+            htmlPreviewUpdater = content -> {
+                showLargePreviewHint(content);
+                org.fxt.freexmltoolkit.controls.shell.SafeWebView.load(webView, content);
+            };
+            javafx.scene.control.Label note = new javafx.scene.control.Label();
+            note.getStyleClass().addAll("fxt-preview-hint-text", "fxt-text-sm");
+            note.setWrapText(true);
+            note.setMaxWidth(Double.MAX_VALUE);
+            javafx.scene.layout.HBox.setHgrow(note, javafx.scene.layout.Priority.ALWAYS);
+            javafx.scene.control.Button open = new javafx.scene.control.Button(I18n.t("EditorTab.open-in-browser"));
+            open.setId("preview-open-in-browser");
+            open.setGraphic(new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-box-arrow-up-right"));
+            open.setOnAction(e -> openPreviewInBrowser());
+            htmlPreviewHint = new javafx.scene.layout.HBox(8, note, open);
+            htmlPreviewHint.setId("preview-large-hint");
+            htmlPreviewHint.getStyleClass().add("fxt-preview-hint");
+            htmlPreviewHint.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+            htmlPreviewHint.setVisible(false);
+            htmlPreviewHint.setManaged(false);
+            javafx.scene.layout.VBox.setVgrow(webView, javafx.scene.layout.Priority.ALWAYS);
+            htmlPreviewNode = new javafx.scene.layout.VBox(htmlPreviewHint, webView);
         } catch (Throwable t) {
             // javafx.scene.web missing from the runtime: degrade to read-only text
             // (same guard as TransformOutputPanel.updateHtmlPreview).
@@ -2878,6 +2904,37 @@ final class EditorTab extends Tab {
             htmlPreviewNode = fallback;
         }
         contentStack.getChildren().add(htmlPreviewNode);
+    }
+
+    /** Shows the "open in the browser" bar above the preview of a large document. */
+    private void showLargePreviewHint(String content) {
+        if (htmlPreviewHint == null) {
+            return;
+        }
+        boolean large = content != null && content.length() >= LARGE_PREVIEW_CHARS;
+        if (large) {
+            ((javafx.scene.control.Label) htmlPreviewHint.getChildren().getFirst()).setText(
+                    I18n.t("EditorTab.large-preview", String.format(java.util.Locale.ROOT, "%.1f", content.length() / 1_048_576.0)));
+        }
+        htmlPreviewHint.setVisible(large);
+        htmlPreviewHint.setManaged(large);
+    }
+
+    /** Opens the previewed HTML in the system browser: the saved file, else the text as a temporary file. */
+    void openPreviewInBrowser() {
+        java.util.function.Consumer<Exception> failed = e -> org.fxt.freexmltoolkit.util.DialogHelper.showError(
+                I18n.t("EditorTab.open-in-browser"), I18n.t("EditorTab.open-in-browser-failed"), String.valueOf(e.getMessage()));
+        try {
+            java.nio.file.Path file = document.getPath();
+            if (file == null || document.isDirty()) {
+                file = java.nio.file.Files.createTempFile("fxt-preview-", ".html");
+                file.toFile().deleteOnExit();
+                java.nio.file.Files.writeString(file, view.getText(), java.nio.charset.StandardCharsets.UTF_8);
+            }
+            org.fxt.freexmltoolkit.util.DesktopActions.browse(file.toUri(), failed);
+        } catch (java.io.IOException | RuntimeException e) {
+            failed.accept(e);
+        }
     }
 
     /** Re-renders the preview if the text changed since it was last rendered. */

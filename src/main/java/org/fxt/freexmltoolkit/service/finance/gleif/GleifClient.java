@@ -15,7 +15,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.finance.FinancialIdentifiers;
+import org.fxt.freexmltoolkit.service.progress.Progress;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -78,6 +80,18 @@ public final class GleifClient {
      * @throws GleifException when a request fails
      */
     public Map<String, LeiRecord> lookup(Collection<String> leis) throws GleifException {
+        return lookup(leis, Progress.NONE, part -> { });
+    }
+
+    /**
+     * Like {@link #lookup(Collection)}, reporting each request and handing over each batch's answers as they arrive.
+     *
+     * @param partial gets the records of each request (also those already answered when a later one fails)
+     * @throws org.fxt.freexmltoolkit.service.progress.CancelledException when the progress is cancelled (between
+     *                                                                     requests or while waiting for the next one)
+     */
+    public Map<String, LeiRecord> lookup(Collection<String> leis, Progress progress,
+                                         java.util.function.Consumer<Map<String, LeiRecord>> partial) throws GleifException {
         Set<String> valid = new LinkedHashSet<>();
         for (String lei : leis) {
             String l = lei == null ? "" : lei.strip().toUpperCase(java.util.Locale.ROOT);
@@ -87,19 +101,28 @@ public final class GleifClient {
         }
         Map<String, LeiRecord> result = new LinkedHashMap<>();
         List<String> all = new ArrayList<>(valid);
+        int requests = (all.size() + BATCH - 1) / BATCH;
         for (int i = 0; i < all.size(); i += BATCH) {
             List<String> batch = all.subList(i, Math.min(all.size(), i + BATCH));
-            Map<String, LeiRecord> found = request(batch);
+            int n = i / BATCH + 1;
+            progress.checkCancelled();
+            progress.message(I18n.t("Progress.gleif-request", n, requests, i + 1, i + batch.size(), all.size()));
+            progress.progress(n - 1L, requests);
+            Map<String, LeiRecord> found = request(batch, progress);
             Instant now = clock.instant();
+            Map<String, LeiRecord> answered = new LinkedHashMap<>();
             for (String lei : batch) {
-                result.put(lei, found.getOrDefault(lei, LeiRecord.notFound(lei, now)));
+                answered.put(lei, found.getOrDefault(lei, LeiRecord.notFound(lei, now)));
             }
+            result.putAll(answered);
+            partial.accept(answered);
+            progress.progress(n, requests);
         }
         return result;
     }
 
-    private Map<String, LeiRecord> request(List<String> batch) throws GleifException {
-        throttle();
+    private Map<String, LeiRecord> request(List<String> batch, Progress progress) throws GleifException {
+        throttle(progress);
         URI uri = URI.create(BASE + "?" + URLEncoder.encode("filter[lei]", StandardCharsets.UTF_8) + "="
                 + String.join(",", batch) + "&" + URLEncoder.encode("page[size]", StandardCharsets.UTF_8) + "=" + BATCH);
         Response response;
@@ -121,15 +144,11 @@ public final class GleifClient {
         }
     }
 
-    private synchronized void throttle() {
+    private synchronized void throttle(Progress progress) {
         long now = clock.millis();
         long wait = lastRequest + MIN_INTERVAL_MILLIS - now;
         if (wait > 0 && lastRequest > 0) {
-            try {
-                Thread.sleep(wait);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            progress.sleep(wait); // ends early (CancelledException) when the job is cancelled
         }
         lastRequest = clock.millis();
     }

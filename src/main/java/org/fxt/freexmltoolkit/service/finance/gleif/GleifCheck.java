@@ -7,7 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.finance.FinancialIdentifiers;
+import org.fxt.freexmltoolkit.service.progress.CancelledException;
+import org.fxt.freexmltoolkit.service.progress.Progress;
 
 /**
  * Checks every LEI of a document at GLEIF: one finding per occurrence of an LEI that GLEIF does not know, that lapsed,
@@ -37,8 +40,15 @@ public final class GleifCheck {
      * @param findings the problems, in text order
      * @param failure  why GLEIF could not be asked, or {@code null}
      * @param examples the distinct synthetic example LEIs that were not looked up (not part of {@code leis})
+     * @param unchecked LEIs GLEIF could not be asked about (failure or cancellation); their findings are missing
+     * @param cancelled whether the user cancelled the check
      */
-    public record Result(int leis, Map<String, LeiRecord> records, List<Finding> findings, String failure, int examples) {
+    public record Result(int leis, Map<String, LeiRecord> records, List<Finding> findings, String failure, int examples,
+                         int unchecked, boolean cancelled) {
+
+        public Result(int leis, Map<String, LeiRecord> records, List<Finding> findings, String failure, int examples) {
+            this(leis, records, findings, failure, examples, 0, false);
+        }
     }
 
     private GleifCheck() {
@@ -46,6 +56,15 @@ public final class GleifCheck {
 
     /** Checks the LEIs of a text with the given cache. Never throws: a failed request is {@link Result#failure()}. */
     public static Result check(CharSequence text, LeiCache cache) {
+        return check(text, cache, Progress.NONE);
+    }
+
+    /**
+     * Like {@link #check(CharSequence, LeiCache)}, reporting the requests. A failed or cancelled run still reports
+     * the LEIs answered before (they are cached at once) and counts the rest in {@link Result#unchecked()}.
+     */
+    public static Result check(CharSequence text, LeiCache cache, Progress progress) {
+        progress.message(I18n.t("Progress.scanning-leis"));
         List<Finding> findings = new ArrayList<>();
         Set<String> invalid = new LinkedHashSet<>();
         for (LeiElements.Invalid i : LeiElements.scan(text.toString())) {
@@ -63,11 +82,19 @@ public final class GleifCheck {
             return new Result(count, Map.of(), findings, null, examples);
         }
         Map<String, LeiRecord> records;
+        String failure = null;
+        boolean cancelled = false;
         try {
-            records = cache.lookup(distinct);
+            records = cache.lookup(distinct, progress);
         } catch (GleifClient.GleifException e) {
-            return new Result(count, Map.of(), findings, e.getMessage(), examples);
+            failure = e.getMessage();
+            records = answered(distinct, cache);
+        } catch (CancelledException e) {
+            cancelled = true;
+            records = answered(distinct, cache);
         }
+        Map<String, LeiRecord> got = records;
+        int unchecked = (int) distinct.stream().filter(l -> !got.containsKey(l)).count();
         for (LeiScanner.Occurrence o : occurrences) {
             LeiRecord r = records.get(o.lei());
             LeiRecord.Problem p = r == null ? null : r.problem();
@@ -76,7 +103,16 @@ public final class GleifCheck {
             }
         }
         findings.sort(Comparator.comparingInt(Finding::line).thenComparingInt(Finding::column));
-        return new Result(count, records, findings, null, examples);
+        return new Result(count, records, findings, failure, examples, unchecked, cancelled);
+    }
+
+    /** @return the answers already known for the LEIs (those a failed or cancelled run got before it ended) */
+    private static Map<String, LeiRecord> answered(Set<String> leis, LeiCache cache) {
+        Map<String, LeiRecord> known = new java.util.LinkedHashMap<>();
+        for (String lei : leis) {
+            cache.cached(lei).ifPresent(r -> known.put(lei, r));
+        }
+        return known;
     }
 
     /** Checks with the application's shared cache. */

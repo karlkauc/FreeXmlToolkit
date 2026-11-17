@@ -84,12 +84,34 @@ right-click the row → **Open at …**, to see the entry in the browser; **Copy
 Validation panel's problem list offers the same menu item. FIRDS answers cached by version 3.3.0 do not know the
 record's page and are looked up again on the next check.
 
+## Progress, cancelling and continuing
+
+A document with thousands of identifiers takes a while: GLEIF answers 200 LEIs per request and ESMA FIRDS 100 ISINs,
+at most one request a second each; OpenFIGI, asked about the ISINs FIRDS does not know, answers 10 per request and at
+most one request every 2.5 seconds without an API key. While the check runs, the panel shows:
+
+- a bar over all requests, the time so far and **Cancel**;
+- what runs now, for both services side by side - *GLEIF: request 5 of 16 · LEIs 801–1000 of 3110 · ESMA FIRDS:
+  request 23 of 87 · ISINs 2201–2300 of 8605*; for OpenFIGI with the time left (*OpenFIGI: request 12 of 310 · 3100
+  ISINs not in FIRDS · about 12 min left*);
+- how many identifiers are known from earlier checks (they are not asked again while their answer is recent);
+- when OpenFIGI will take more than two minutes without an API key, the link **Set an API key - about 10× faster**,
+  which opens **Settings → Network & Security** at the ISIN card.
+
+GLEIF and the ISIN services are asked at the same time. **Cancel** stops at the next request (at most one request's
+wait): the findings of everything answered so far go to the Problems panel, and the panel says how many were not
+checked. Every answer is kept as soon as it arrives, so the next check - and a check after a service refused (OpenFIGI's
+*too many requests*) - asks only for the rest. **Tools → Check Identifiers Online** shows the same in a small window;
+**Hide** keeps the check running.
+
 ## With every validation
 
 **Settings → Network & Security** has a card for each kind: **Check LEIs at GLEIF on every validation (F8)** and
 **Check ISINs online on every validation (F8)** add the same checks to every validation of an XML document (F8,
 Validation panel, the extensions' **Check Active Document**). Both are off by default. When a service cannot be
-reached, the validation shows one warning and goes on.
+reached, the validation shows one warning and goes on. The Validation panel shows the online stage's progress with
+**Cancel**, which ends only that stage: the schema and rule findings are complete, the online findings cover what was
+answered.
 
 ## Hover
 
@@ -136,4 +158,5 @@ reached. `validate --gleif` / `--isin` add the findings to the report (sources `
 the setting. Example identifiers (`XMPL`) found in a file are not looked up: `lei --file` / `isin --file` list them as
 "synthetic example identifier" (`examples` in JSON), `validate` adds one *info* with their number; an `XMPL` value
 given on the command line itself is looked up. The command line ignores the GUI settings "on every validation" - only `--gleif` / `--isin` turn the
-checks on. See [Command Line](command-line.md#lei).
+checks on. In a terminal, `lei`, `isin` and `validate --gleif/--isin` show the progress in one line on stderr
+(nothing when the output is redirected). See [Command Line](command-line.md#lei).

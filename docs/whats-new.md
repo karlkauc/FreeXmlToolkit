@@ -6,6 +6,20 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+- **Large HTML reports in the preview.** Scrolling through a very large check report (a 150 MB QMV report gives a
+  2.7 MB page) could stop the window from painting with hardware rendering on Windows. The application no longer
+  caches a graphics texture for every shape, a report of 1 MB and more offers **Open in Browser** above the preview,
+  and an error of the graphics card is noticed: reported anonymously, said once, and with rendering on **Auto** the
+  next start uses software rendering. See [Settings](settings.md).
+- **See what a long check is doing - and stop it.** The side panels of every extension (ISO 20022, ebInterface,
+  FinDatEx, XBRL, KAG-Meldewesen, ESMA Reporting, PK-Meldewesen, FundsXML) show a progress block while a check,
+  report or tool runs: a bar, what runs right now (*GLEIF: request 5 of 16 · ESMA FIRDS: request 23 of 87*,
+  *Rules: record 12400 · line 310000 of 1800000*, *Step 3 of 4: checking the FMA rules…*), the time so far and
+  **Cancel** where the work can stop. **Check Identifiers Online** asks GLEIF and the ISIN services at the same time,
+  keeps every answer as it arrives (a cancelled or refused check continues where it stopped), estimates the time left
+  for OpenFIGI and suggests an API key when it will be slow. Also in the Validation panel's online stage, the Tools
+  menu (a small window) and `fxt-cli lei / isin / validate --gleif --isin` (one line on stderr). See
+  [Online Identifier Lookup](identifier-lookup.md#progress-cancelling-and-continuing).
 - **Large reports use far less memory while validating.** "Validate while typing" no longer validates an unchanged
   document again when only the caret moves or you switch tabs, and a document is never validated twice at the same
   time. The FMA rules of PK-Meldewesen (validation and HTML check report) run one after the other. With a 150 MB

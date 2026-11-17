@@ -102,6 +102,11 @@ public final class FundsXmlRunner {
 
     /** Generates schema documentation for the active schema into the cache's docs dir; returns the dir. */
     public static Path generateDocumentation() throws Exception {
+        return generateDocumentation(org.fxt.freexmltoolkit.service.progress.Progress.NONE);
+    }
+
+    /** Like {@link #generateDocumentation()}, reporting each pipeline step as the progress message. */
+    public static Path generateDocumentation(org.fxt.freexmltoolkit.service.progress.Progress progress) throws Exception {
         Path activeSchema = FundsXmlCache.getInstance().getActiveSchemaFile();
         if (activeSchema == null) {
             org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaDocGenerated("html", 0,
@@ -116,6 +121,11 @@ public final class FundsXmlRunner {
         try {
             var docService = new org.fxt.freexmltoolkit.service.XsdDocumentationService();
             docService.setXsdFilePath(activeSchema.toString());
+            docService.setProgressListener(update -> {
+                if (update.status() == org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate.Status.STARTED) {
+                    progress.message(org.fxt.freexmltoolkit.i18n.I18n.t("DocumentationRunner.step", update.taskName()));
+                }
+            });
             docService.generateXsdDocumentation(outputDir.toFile());
         } catch (Throwable t) {
             org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaDocGenerated("html", t0,

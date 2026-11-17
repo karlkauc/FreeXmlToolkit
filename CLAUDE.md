@@ -274,6 +274,23 @@ CLI `lei`, `isin` (`--no-openfigi`), `validate --gleif --isin` (the CLI ignores 
 the computer only on a click or with those settings on. Tests: `OnlineFakes` (saved answers `gleif/lei-records.json`,
 `isin/firds-select.json`, `isin/openfigi-mapping.json`). Docs: `docs/identifier-lookup.md`.
 
+## Progress of long jobs
+
+`service/progress/`: `Progress` (UI-free, thread-safe: `message`, `progress(done, total)` (`total <= 0` = indeterminate),
+`hint(Hint)` e.g. `OPENFIGI_API_KEY`, `setCancellable` for steps that cannot stop, `onCancel` for external processes,
+`checkCancelled()` → unchecked `CancelledException`, `sleep` that ends on cancel, `NONE`), `ProgressParts` (parts run
+side by side, messages joined with " · ", steps summed), `Durations` (last duration per step and input size class,
+settings `progress.duration.*` - "last time about 12 s"). UI: `controls/shell/editor/PanelProgress` (bar, count, elapsed,
+detail line, hint link, Cancel) + `PanelJobs` (per panel; `start(id, label, cancellable)` → `Job implements Progress`,
+null when that id runs; display refreshed 4×/s; newest job shown with "(+N more)"; `setHintHandler` = Settings at
+Network & Security, set by `UnifiedShellView`). Used by `IndustryPanel` (`background(what, ProgressJob, done)`,
+`Checker.withProgress`, `ReportBuilder.withProgress`, `invoking()` for TOOLS actions), `PkMeldewesenPanel` (`start` →
+`Run`), `FundsXmlPanel`, `ValidationPanel` (online stage via `ValidationRunner.withOnlineProgress`), Tools →
+Check Identifiers Online (window), CLI `CliProgress` (stderr line on a terminal only). Lookups: `LookupCache.lookup(keys,
+StreamingFetcher)` keeps each answer batch at once (saved ≤ every 5 s and at the end, also on failure/cancel);
+`GleifClient` / `IsinLookup` report per request (OpenFIGI with time left), `IdentifierCheck.check(…, Progress)` runs
+GLEIF and ISIN in parallel and reports `cancelled` / `unchecked` with the findings of what was answered.
+
 ## Plugins
 
 `plugin/`: `FxtPlugin` (ServiceLoader, `META-INF/services/org.fxt.freexmltoolkit.plugin.FxtPlugin`) registers

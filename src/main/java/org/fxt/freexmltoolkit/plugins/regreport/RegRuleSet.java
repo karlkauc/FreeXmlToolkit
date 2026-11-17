@@ -119,6 +119,29 @@ public final class RegRuleSet {
      * @throws XMLStreamException when the document is not well-formed
      */
     public List<Finding> run(String xml, String documentName) throws XMLStreamException {
+        return run(xml, documentName, org.fxt.freexmltoolkit.service.progress.Progress.NONE);
+    }
+
+    /** Records between two progress reports (and cancellation checks). */
+    static final int REPORT_EVERY = 200;
+
+    /**
+     * Like {@link #run(String, String)}, reporting the records checked and the line reached; stops between two
+     * records when cancelled.
+     *
+     * @throws org.fxt.freexmltoolkit.service.progress.CancelledException when cancelled
+     */
+    public List<Finding> run(String xml, String documentName, org.fxt.freexmltoolkit.service.progress.Progress progress)
+            throws XMLStreamException {
+        int lines = 1;
+        for (int i = 0; i < xml.length(); i++) {
+            if (xml.charAt(i) == '\n') {
+                lines++;
+            }
+        }
+        int totalLines = lines;
+        int[] records = {0};
+        progress.message(org.fxt.freexmltoolkit.i18n.I18n.t("RegRuleSet.reading"));
         Findings out = new Findings();
         RecordNode[] root = new RecordNode[1];
         java.util.Map<String, Object> state = new java.util.HashMap<>();
@@ -129,11 +152,19 @@ public final class RegRuleSet {
                 rule.check(header, context, out);
             }
         }, record -> {
+            if (++records[0] % REPORT_EVERY == 0) {
+                progress.checkCancelled();
+                progress.message(org.fxt.freexmltoolkit.i18n.I18n.t("RegRuleSet.record", records[0], record.line(), totalLines));
+                progress.progress(record.line(), totalLines);
+            }
             Context context = new Context(root[0], documentName, state);
             for (Rule rule : recordRules) {
                 rule.check(record, context, out);
             }
         });
+        progress.checkCancelled();
+        progress.message(org.fxt.freexmltoolkit.i18n.I18n.t("RegRuleSet.finishing", records[0]));
+        progress.progress(totalLines, totalLines);
         Context end = new Context(root[0], documentName, state);
         for (java.util.function.BiConsumer<Context, Findings> rule : finishRules) {
             rule.accept(end, out);

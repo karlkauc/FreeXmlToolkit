@@ -4,7 +4,6 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.FxtGui;
@@ -18,26 +17,28 @@ public class FundsXmlPanel extends VBox {
     private final EditorHost editorHost;
     @FXML private ComboBox<String> versionCombo;
     @FXML private Label status;
-    @FXML private ProgressBar progress;
+    @FXML private PanelProgress progress;
+    private PanelJobs jobs;
+    /** The job showing a background download, or {@code null}. */
+    private PanelJobs.Job downloadJob;
     @FXML private PanelActionButton onlineButton;
     @FXML private org.fxt.freexmltoolkit.plugins.IdentifierChecker identifierChecker;
-    private boolean onlineRunning;
     private final FundsXmlDownloadCoordinator.Listener downloadListener = new FundsXmlDownloadCoordinator.Listener() {
         @Override
         public void onStarted() {
-            showProgress(-1);
+            showDownload(-1, null);
             PanelStatus.info(status, I18n.t("FundsXmlPanel.downloading"));
         }
 
         @Override
         public void onProgress(String stage, String message, double fraction) {
-            showProgress(fraction);
+            showDownload(fraction, stage + " — " + message);
             PanelStatus.info(status, stage + " — " + message);
         }
 
         @Override
         public void onFinished(FundsXmlExtensionService.DownloadResult result) {
-            hideProgress();
+            endDownload();
             if (result.isSuccess()) {
                 PanelStatus.success(status, result.schemaVersion() != null
                         ? "Download complete — schema version " + result.schemaVersion() + "."
@@ -58,7 +59,7 @@ public class FundsXmlPanel extends VBox {
     public FundsXmlPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
         FxmlViews.load(this, "/pages/panels/FundsXmlPanel.fxml");
-        hideProgress();
+        jobs = new PanelJobs(progress);
         boolean online = org.fxt.freexmltoolkit.service.finance.IdentifierCheck.anyAllowed();
         onlineButton.setVisible(online);
         onlineButton.setManaged(online);
@@ -75,7 +76,7 @@ public class FundsXmlPanel extends VBox {
         FundsXmlDownloadCoordinator coordinator = FundsXmlDownloadCoordinator.getInstance();
         coordinator.addListener(downloadListener);
         if (coordinator.isRunning()) {
-            showProgress(-1);
+            showDownload(-1, null);
             PanelStatus.info(status, I18n.t("FundsXmlPanel.downloading"));
         }
     }
@@ -133,23 +134,55 @@ public class FundsXmlPanel extends VBox {
         }
     }
 
-    private void showProgress(double fraction) {
-        progress.setProgress(fraction < 0 ? ProgressBar.INDETERMINATE_PROGRESS : fraction);
-        progress.setVisible(true);
-        progress.setManaged(true);
+    /** Shows a background download in the progress block ({@code fraction < 0}: not known yet). */
+    private void showDownload(double fraction, String message) {
+        if (downloadJob == null) {
+            downloadJob = jobs.start("download", I18n.t("FundsXmlPanel.downloading"), false);
+        }
+        if (downloadJob != null) {
+            downloadJob.progress(fraction < 0 ? 0 : Math.round(fraction * 1000), fraction < 0 ? 0 : 1000);
+            if (message != null) {
+                downloadJob.message(message);
+            }
+        }
     }
 
-    private void hideProgress() {
-        progress.setVisible(false);
-        progress.setManaged(false);
+    private void endDownload() {
+        if (downloadJob != null) {
+            downloadJob.close();
+            downloadJob = null;
+        }
+    }
+
+    /** Starts a job of the panel, or says it is running already. @return the job or {@code null} */
+    private PanelJobs.Job start(String id, String label, boolean cancellable) {
+        PanelJobs.Job job = jobs.start(id, label, cancellable);
+        if (job == null) {
+            PanelStatus.info(status, I18n.t("IndustryPanel.already-running", label));
+        }
+        return job;
     }
 
     @FXML
     public void onValidate() {
         String xml = editorHost.getActiveText().orElse(null);
+        if (xml == null) {
+            PanelStatus.precondition(status, I18n.t("IndustryPanel.no-document"));
+            return;
+        }
+        PanelJobs.Job job = start("validate", I18n.t("FundsXmlPanel.validating"), false);
+        if (job == null) {
+            return;
+        }
+        job.message(I18n.t("FundsXmlPanel.validating-schema"));
         PanelStatus.info(status, I18n.t("FundsXmlPanel.validating"));
         FxtGui.executorService.submit(() -> {
-            String summary = FundsXmlRunner.validateSummary(xml);
+            String summary;
+            try {
+                summary = FundsXmlRunner.validateSummary(xml);
+            } finally {
+                job.close();
+            }
             Platform.runLater(() -> PanelStatus.info(status, summary));
         });
     }
@@ -163,11 +196,29 @@ public class FundsXmlPanel extends VBox {
             return;
         }
         String name = editorHost.getActiveDocument().map(OpenDocument::getDisplayName).orElse("document");
+        PanelJobs.Job job = start("dq", I18n.t("FundsXmlPanel.checking"), true);
+        if (job == null) {
+            return;
+        }
         PanelStatus.info(status, I18n.t("FundsXmlPanel.checking"));
         FxtGui.executorService.submit(() -> {
-            var results = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.run(xml);
+            java.util.List<org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.Result> results;
+            try {
+                results = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.run(xml, job);
+            } catch (org.fxt.freexmltoolkit.service.progress.CancelledException e) {
+                job.close();
+                Platform.runLater(() -> PanelStatus.info(status, I18n.t("IndustryPanel.cancelled", I18n.t("FundsXmlPanel.checking"))));
+                return;
+            } catch (RuntimeException | OutOfMemoryError e) {
+                job.close();
+                Platform.runLater(() -> PanelStatus.failure(status, I18n.t("FundsXmlPanel.checking"),
+                        String.valueOf(e.getMessage()), false));
+                return;
+            }
+            job.message(I18n.t("FundsXmlPanel.writing-report"));
             String html = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.htmlReport(results, name);
             long failed = results.stream().filter(r -> !r.passed()).count();
+            job.close();
             Platform.runLater(() -> {
                 editorHost.openGeneratedDocument(html, EditorFileType.HTML, name.replaceFirst("\\.xml$", "") + "-dq.html");
                 editorHost.setActiveViewMode(ViewMode.PREVIEW);
@@ -188,16 +239,13 @@ public class FundsXmlPanel extends VBox {
             PanelStatus.precondition(status, I18n.t("FundsXmlPanel.notFundsXml"));
             return;
         }
-        if (onlineRunning) {
-            PanelStatus.info(status, I18n.t("IndustryPanel.already-running", I18n.t("IdentifierDocumentCheck.title")));
+        PanelJobs.Job job = start("identifiers", I18n.t("IdentifierDocumentCheck.title"), true);
+        if (job == null) {
             return;
         }
-        onlineRunning = true;
-        showProgress(-1);
         PanelStatus.info(status, I18n.t("IndustryPanel.working", I18n.t("IdentifierDocumentCheck.title")));
-        IdentifierDocumentCheck.runOnActive(editorHost, outcome -> {
-            onlineRunning = false;
-            hideProgress();
+        IdentifierDocumentCheck.runOnActive(editorHost, job, outcome -> {
+            job.close();
             outcome.showIn(status);
         });
     }
@@ -216,15 +264,22 @@ public class FundsXmlPanel extends VBox {
             return;
         }
         String name = editorHost.getActiveDocument().map(OpenDocument::getDisplayName).orElse("document.xml");
+        PanelJobs.Job job = start("grid", I18n.t("FundsXmlPanel.fundsxml-grid-setup.text"), false);
+        if (job == null) {
+            return;
+        }
+        job.message(I18n.t("FundsXmlPanel.grid-adding"));
         FxtGui.executorService.submit(() -> {
             try {
                 String result = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlGridSetup.apply(xml, true);
+                job.close();
                 Platform.runLater(() -> {
                     editorHost.openGeneratedDocument(result, EditorFileType.XML, name.replaceFirst("\\.xml$", "") + "-grid.xml");
                     editorHost.setActiveViewMode(ViewMode.GRAPHIC);
                     PanelStatus.success(status, I18n.t("FundsXmlPanel.gridSetupDone"));
                 });
-            } catch (java.io.IOException e) {
+            } catch (java.io.IOException | RuntimeException e) {
+                job.close();
                 Platform.runLater(() -> PanelStatus.failure(status, I18n.t("FundsXmlPanel.gridSetupFailed"), e.getMessage(), false));
             }
         });
@@ -232,16 +287,22 @@ public class FundsXmlPanel extends VBox {
 
     @FXML
     public void onGenerateDocs() {
+        PanelJobs.Job job = start("docs", I18n.t("FundsXmlPanel.generating-documentation"), false);
+        if (job == null) {
+            return;
+        }
         PanelStatus.info(status, I18n.t("FundsXmlPanel.generating-documentation"));
         FxtGui.executorService.submit(() -> {
             String msg;
             boolean ok = true;
             try {
-                var dir = FundsXmlRunner.generateDocumentation();
+                var dir = FundsXmlRunner.generateDocumentation(job);
                 msg = "Documentation written to: " + dir;
             } catch (Throwable t) {
                 ok = false;
                 msg = "Documentation failed: " + t.getMessage();
+            } finally {
+                job.close();
             }
             String finalMsg = msg;
             boolean finalOk = ok;

@@ -53,6 +53,18 @@ public final class ArelleRunner {
      */
     public static List<DocumentValidator.Problem> validate(Path command, Path file, Duration timeout)
             throws IOException, InterruptedException {
+        return validate(command, file, timeout, org.fxt.freexmltoolkit.service.progress.Progress.NONE);
+    }
+
+    /**
+     * Like {@link #validate(Path, Path, Duration)}, saying that Arelle runs; Cancel ends Arelle and every process it
+     * started.
+     *
+     * @throws org.fxt.freexmltoolkit.service.progress.CancelledException when cancelled
+     */
+    public static List<DocumentValidator.Problem> validate(Path command, Path file, Duration timeout,
+                                                           org.fxt.freexmltoolkit.service.progress.Progress progress)
+            throws IOException, InterruptedException {
         if (unsafeForBatch(command, file)) {
             throw new IOException("The file name " + file.getFileName() + " contains characters that cmd.exe would "
                     + "interpret; rename it or configure arelleCmdLine.exe instead of a .cmd/.bat script.");
@@ -63,11 +75,22 @@ public final class ArelleRunner {
                     "--logFile", log.toString(), "--logFileMode", "w", "--logFormat", "%(message)s");
             builder.redirectErrorStream(true);
             builder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+            progress.message(org.fxt.freexmltoolkit.i18n.I18n.t("ArelleRunner.running", file.getFileName()));
             Process process = builder.start();
-            if (!process.waitFor(timeout.toMillis(), TimeUnit.MILLISECONDS)) {
-                process.destroyForcibly();
-                throw new IOException("Arelle did not finish within " + timeout.toMinutes() + " minutes.");
+            progress.onCancel(() -> stop(process));
+            long deadline = System.currentTimeMillis() + timeout.toMillis();
+            while (!process.waitFor(200, TimeUnit.MILLISECONDS)) {
+                if (progress.isCancelled()) {
+                    stop(process);
+                    throw new org.fxt.freexmltoolkit.service.progress.CancelledException();
+                }
+                if (System.currentTimeMillis() > deadline) {
+                    stop(process);
+                    throw new IOException("Arelle did not finish within " + timeout.toMinutes() + " minutes.");
+                }
             }
+            progress.checkCancelled();
+            progress.message(org.fxt.freexmltoolkit.i18n.I18n.t("ArelleRunner.reading-log"));
             String json = Files.exists(log) ? Files.readString(log, StandardCharsets.UTF_8) : "";
             if (json.isBlank()) {
                 throw new IOException("Arelle wrote no log (exit code " + process.exitValue() + ").");
@@ -76,6 +99,12 @@ public final class ArelleRunner {
         } finally {
             Files.deleteIfExists(log);
         }
+    }
+
+    /** Ends Arelle and the processes it started (a .cmd wrapper starts Python). */
+    private static void stop(Process process) {
+        process.descendants().forEach(ProcessHandle::destroyForcibly);
+        process.destroyForcibly();
     }
 
     /**

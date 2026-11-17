@@ -49,6 +49,11 @@ import net.sf.saxon.s9api.XdmNodeKind;
 import net.sf.saxon.s9api.Xslt30Transformer;
 import net.sf.saxon.s9api.XsltExecutable;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.service.progress.CancelledException;
+import org.fxt.freexmltoolkit.service.progress.Durations;
+import org.fxt.freexmltoolkit.service.progress.Progress;
+
 /**
  * Runs the FMA validation rules of the quarterly report (PK-QMV, module pfq) — the rules of the
  * validation workbook plus the additional plausibility checks — with the bundled rule stylesheet.
@@ -151,30 +156,78 @@ public final class PkRuleCheck {
      * @throws SaxonApiException when the report cannot be checked (not well-formed, …)
      */
     public static List<Finding> run(String xml, String documentName, Options options) throws SaxonApiException, IOException {
-        RUN_LOCK.lock();
+        return run(xml, documentName, options, Progress.NONE);
+    }
+
+    /**
+     * Like {@link #run(String, String, Options)}, reporting the wait for a rule run in progress (cancellable) and the
+     * run itself (not cancellable: one XSLT over the whole report) with the duration of the last run of this size.
+     */
+    public static List<Finding> run(String xml, String documentName, Options options, Progress progress)
+            throws SaxonApiException, IOException {
+        lock(progress);
+        long started = System.currentTimeMillis();
         try {
+            running(progress, "PkRuleCheck.running-rules", "pk-rules", xml.length());
             XdmDestination destination = new XdmDestination();
             Xslt30Transformer transformer = stylesheet().load30();
             parameters(transformer, options, true);
             transformer.transform(source(xml, documentName), destination);
-            return findings(destination.getXdmNode(), PkLocator.of(xml), PkRuleCatalog.pfq());
+            List<Finding> findings = findings(destination.getXdmNode(), PkLocator.of(xml), PkRuleCatalog.pfq());
+            Durations.record("pk-rules", xml.length(), System.currentTimeMillis() - started);
+            return findings;
         } finally {
             RUN_LOCK.unlock();
+            progress.setCancellable(true);
         }
+    }
+
+    /** Takes the run lock; while another run holds it, says so and lets the user cancel the wait. */
+    private static void lock(Progress progress) {
+        try {
+            if (RUN_LOCK.tryLock(0, java.util.concurrent.TimeUnit.MILLISECONDS)) {
+                return;
+            }
+            progress.message(I18n.t("PkRuleCheck.waiting"));
+            while (!RUN_LOCK.tryLock(200, java.util.concurrent.TimeUnit.MILLISECONDS)) {
+                progress.checkCancelled();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new CancelledException();
+        }
+    }
+
+    /** Reports a rule run that cannot be stopped, with how long the last one of this size took. */
+    private static void running(Progress progress, String key, String step, long chars) {
+        progress.setCancellable(false);
+        long last = Durations.last(step, chars);
+        progress.message(I18n.t(key) + (last > 0 ? " " + I18n.t("PkRuleCheck.last-time", (last + 999) / 1000) : ""));
+        progress.progress(0, 0);
     }
 
     /** @return the HTML report of the rules (German, like the FMA rule texts) */
     public static String htmlReport(String xml, String documentName, Options options) throws SaxonApiException, IOException {
-        RUN_LOCK.lock();
+        return htmlReport(xml, documentName, options, Progress.NONE);
+    }
+
+    /** Like {@link #htmlReport(String, String, Options)}, reporting like {@link #run(String, String, Options, Progress)}. */
+    public static String htmlReport(String xml, String documentName, Options options, Progress progress)
+            throws SaxonApiException, IOException {
+        lock(progress);
+        long started = System.currentTimeMillis();
         try {
+            running(progress, "PkRuleCheck.running-report", "pk-report", xml.length());
             Xslt30Transformer transformer = stylesheet().load30();
             parameters(transformer, options, false);
             StringWriter out = new StringWriter();
             Serializer serializer = PROCESSOR.newSerializer(out);
             transformer.transform(source(xml, documentName), serializer);
+            Durations.record("pk-report", xml.length(), System.currentTimeMillis() - started);
             return out.toString();
         } finally {
             RUN_LOCK.unlock();
+            progress.setCancellable(true);
         }
     }
 

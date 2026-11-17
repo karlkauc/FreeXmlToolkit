@@ -112,6 +112,18 @@
 .fxt-activity-button.fxt-wf-neutral:selected { -fx-background-color: -fxt-wf-workspace-rail, #3b3866; }
 .fxt-activity-button.fxt-wf-neutral:selected .iconify-icon, .fxt-activity-button-labeled.fxt-wf-neutral:selected { -fx-icon-color: #ffffff; -fx-text-fill: #ffffff; }
 
+/* ----- HTML preview: hint above a large document ---------------------- */
+.fxt-preview-hint {
+    -fx-padding: 6 10 6 10;
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 0 1 0;
+}
+
+.fxt-preview-hint-text {
+    -fx-text-fill: -fxt-text-secondary;
+}
+
 /* ----- Panel progress / cancel row ------------------------------------ */
 .fxt-panel-progress {
     -fx-padding: 2 0 0 0;
@@ -124,6 +136,14 @@
 .fxt-panel-progress-count {
     -fx-font-size: 11px;
     -fx-text-fill: -fxt-text-muted;
+}
+
+.fxt-panel-progress-message {
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-panel-progress-hint {
+    -fx-text-fill: -fxt-warning-text;
 }
 
 .fxt-panel-progress-cancel {

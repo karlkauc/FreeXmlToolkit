@@ -3,7 +3,7 @@
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ProgressBar?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelProgress?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -54,7 +54,7 @@
                 </PanelActionList>
                 <VBox spacing="4" styleClass="fxt-tp-section-body">
                     <children>
-                        <ProgressBar fx:id="progress" id="pk-progress" maxWidth="Infinity" visible="false" managed="false"/>
+                        <PanelProgress fx:id="progress" id="pk-progress"/>
                     </children>
                 </VBox>
             </children>

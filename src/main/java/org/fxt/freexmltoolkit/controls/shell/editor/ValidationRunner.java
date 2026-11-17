@@ -20,6 +20,7 @@ import org.fxt.freexmltoolkit.service.sqf.SqfCorrelator;
 import org.fxt.freexmltoolkit.service.sqf.SqfFixSuggestion;
 import org.fxt.freexmltoolkit.service.sqf.SqfModel.SqfCatalog;
 import org.fxt.freexmltoolkit.service.sqf.SvrlNodeLocator;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.xml.sax.SAXParseException;
 
 /**
@@ -351,8 +352,37 @@ public final class ValidationRunner {
      * infos (pending registrations, instruments no longer traded, a service not reachable) are warnings here.
      */
     public static List<ValidationProblem> identifierProblems(String text, boolean leis, boolean isins) {
-        var result = org.fxt.freexmltoolkit.service.finance.IdentifierCheck.check(text, leis, isins);
-        return toProblems(result);
+        var result = org.fxt.freexmltoolkit.service.finance.IdentifierCheck.check(text, leis, isins, ONLINE_PROGRESS.get());
+        List<ValidationProblem> problems = toProblems(result);
+        if (result.cancelled()) {
+            problems.add(0, new ValidationProblem(org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.SOURCE, "warning", 0,
+                    I18n.t("ValidationRunner.online-cancelled", result.unchecked())));
+        }
+        return problems;
+    }
+
+    /** Where the online stage of a validation on this thread reports (Validation panel), {@link Progress#NONE} else. */
+    private static final ThreadLocal<org.fxt.freexmltoolkit.service.progress.Progress> ONLINE_PROGRESS =
+            ThreadLocal.withInitial(() -> org.fxt.freexmltoolkit.service.progress.Progress.NONE);
+
+    /**
+     * Runs a validation whose online stage (GLEIF, ESMA FIRDS, OpenFIGI) reports to {@code progress}; cancelling it
+     * ends only that stage (its findings so far stay, the schema and rule findings are complete).
+     */
+    public static <T> T withOnlineProgress(org.fxt.freexmltoolkit.service.progress.Progress progress,
+                                           java.util.function.Supplier<T> validation) {
+        ONLINE_PROGRESS.set(progress);
+        try {
+            return validation.get();
+        } finally {
+            ONLINE_PROGRESS.remove();
+        }
+    }
+
+    /** @return whether a validation runs the online stage ("on every validation" settings) */
+    public static boolean onlineStageOn() {
+        return org.fxt.freexmltoolkit.service.finance.gleif.Gleif.onValidation()
+                || org.fxt.freexmltoolkit.service.finance.isin.Isin.onValidation();
     }
 
     /** @return the findings and failures of an online check as problems */

@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -125,6 +127,26 @@ public final class DocumentationRunner {
     public static String exportHtml(File xsd, File outputDir) {
         String result = run(xsd, outputDir, new DocumentationOptions().format(DocumentationOptions.Format.HTML));
         return result.startsWith("OK:") ? "OK: " + new File(outputDir, "index.html").getAbsolutePath() : result;
+    }
+
+    /**
+     * Like {@link #exportHtml(File, File)}, reporting each pipeline step as the progress message (the steps cannot
+     * be cancelled).
+     */
+    public static String exportHtml(File xsd, File outputDir, org.fxt.freexmltoolkit.service.progress.Progress progress) {
+        if (!xsd.isFile()) {
+            return "ERROR: file not found: " + xsd;
+        }
+        try {
+            generate(xsd, outputDir, new DocumentationOptions().format(DocumentationOptions.Format.HTML), update -> {
+                if (update.status() == org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate.Status.STARTED) {
+                    progress.message(I18n.t("DocumentationRunner.step", update.taskName()));
+                }
+            });
+            return "OK: " + new File(outputDir, "index.html").getAbsolutePath();
+        } catch (Exception e) {
+            return "ERROR: " + (e.getMessage() != null ? e.getMessage() : e.toString());
+        }
     }
 
     /** Generates a PDF document with the default options. @return {@code "OK: <path>"} or error. */

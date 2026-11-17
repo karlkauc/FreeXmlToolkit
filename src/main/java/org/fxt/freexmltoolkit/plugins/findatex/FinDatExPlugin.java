@@ -128,6 +128,14 @@ public final class FinDatExPlugin implements FxtPlugin {
         if (file == null) {
             return;
         }
+        org.fxt.freexmltoolkit.plugins.IndustryPanel panel = org.fxt.freexmltoolkit.plugins.IndustryPanel.invoking();
+        if (panel != null) {
+            // in the panel's progress block, refused while it runs
+            panel.background(I18n.t("FinDatExPlugin.reading-excel", file.getName()), () -> excelToCsv(file),
+                    csv -> ui.editorHost().openGeneratedDocument(csv, EditorFileType.OTHER,
+                            file.getName().replaceFirst("\\.xlsx?$", "") + ".csv"));
+            return;
+        }
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             try {
                 String csv = excelToCsv(file);

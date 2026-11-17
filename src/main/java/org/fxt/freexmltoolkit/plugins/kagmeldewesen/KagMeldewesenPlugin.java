@@ -205,7 +205,7 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
                                         "bi-file-earmark-plus", ActionColor.CREATE, ui2 -> openExample(ui2, "derimv-example.xml"))),
                         KagMeldewesenPlugin::describe, validator,
                         List.of(IdentifierKind.LEI, IdentifierKind.ISIN, IdentifierKind.BIC))
-                        .withReport(KagMeldewesenPlugin::report, "-pruefbericht.html")),
+                        .withReport(IndustryPanel.ReportBuilder.withProgress(KagMeldewesenPlugin::report), "-pruefbericht.html")),
                 null));
     }
 
@@ -305,6 +305,12 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
 
     /** @return the HTML check report of a KAG report, or {@code null} for other documents */
     static String report(String content, String name) throws Exception {
+        return report(content, name, org.fxt.freexmltoolkit.service.progress.Progress.NONE);
+    }
+
+    /** Like {@link #report(String, String)}, reporting the records checked; stops when cancelled. */
+    static String report(String content, String name, org.fxt.freexmltoolkit.service.progress.Progress progress)
+            throws Exception {
         String kind = kind(content);
         RegValidator.Root root = content == null ? null : RegValidator.rootOf(content);
         KagSettings.Options options = KagSettings.options();
@@ -312,7 +318,8 @@ public final class KagMeldewesenPlugin implements FxtPlugin {
         if (kind == null || rules == null) {
             return null;
         }
-        List<RegRuleSet.Finding> findings = rules.run(content, name);
+        List<RegRuleSet.Finding> findings = rules.run(content, name, progress);
+        progress.message(org.fxt.freexmltoolkit.i18n.I18n.t("RegRuleSet.writing-report"));
         String summary = describe(content).replace('\n', ' ');
         return switch (kind) {
             case "DeRiMV" -> RegReportHtml.render("Derivative risk report (4. DeRiMV)", name, summary, findings,

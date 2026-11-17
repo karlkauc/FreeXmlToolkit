@@ -608,6 +608,10 @@ Exit code `0` when every LEI is issued and its entity active, `1` when one is in
 annulled or its entity inactive, `3` when GLEIF cannot be reached or the administrator turned lookups off
 (`gleif.allowed=false`).
 
+In a terminal the command shows which request runs in one line on stderr (cleared at the end); with stderr redirected
+it prints nothing extra. The same holds for `isin` and `validate --gleif/--isin`. Synthetic example LEIs (`XMPL…`)
+found in a file are listed, not looked up.
+
 ## isin
 
 Looks ISINs up at ESMA FIRDS (name, CFI code, issuer LEI, currency, EU trading venues), the ISINs FIRDS does not know

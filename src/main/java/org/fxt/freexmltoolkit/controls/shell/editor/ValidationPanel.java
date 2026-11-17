@@ -93,6 +93,8 @@ public class ValidationPanel extends VBox {
     private Boolean pendingLive;
     /** An explicit request (F8, Validate) joined the live run in progress: it reports a failure like its own. */
     private boolean explicitJoined;
+    /** The online stage of single validations, in {@link #progress} (batch runs use it directly). */
+    private PanelJobs onlineJobs;
     /** Number of runs started (for tests). */
     private int runsStarted;
     private String lastBatchReport;
@@ -451,6 +453,9 @@ public class ValidationPanel extends VBox {
         EditorHost.ValidationTarget target = runTarget; // the result belongs to this document
         running = input;
         runsStarted++;
+        // the online stage (GLEIF / FIRDS / OpenFIGI "on every validation") can take minutes: show it, with Cancel
+        PanelJobs.Job onlineJob = !json && ValidationRunner.onlineStageOn() && !progress.isRunning()
+                ? onlineJobs().start("validate", I18n.t("ValidationPanel.validating"), true) : null;
         FxtGui.executorService.submit(() -> {
             try {
                 long t0 = System.nanoTime();
@@ -461,8 +466,11 @@ public class ValidationPanel extends VBox {
                 ValidationRunner.RunResult runResult = json
                         ? new ValidationRunner.RunResult(yaml ? ValidationRunner.validateYaml(content, schema)
                                 : ValidationRunner.validateJson(content, schema), null)
-                        : ValidationRunner.runWithReport(content, schema, schematron, documentName, documentPath, true,
-                                standardsFor(documentPath));
+                        : onlineJob == null
+                        ? ValidationRunner.runWithReport(content, schema, schematron, documentName, documentPath, true,
+                                standardsFor(documentPath))
+                        : ValidationRunner.withOnlineProgress(onlineJob, () -> ValidationRunner.runWithReport(content,
+                                schema, schematron, documentName, documentPath, true, standardsFor(documentPath)));
                 List<ValidationProblem> result = runResult.problems();
                 UsageEvents.validated(UsageEvents.schemaKind(json, schema != null, !json && schematron != null),
                         docKind, content, result.size(), t0, runResult.failure(), live);
@@ -505,9 +513,20 @@ public class ValidationPanel extends VBox {
                     }
                 });
             } finally {
+                if (onlineJob != null) {
+                    onlineJob.close();
+                }
                 Platform.runLater(this::runFinished); // after the result, which was posted first
             }
         });
+    }
+
+    /** @return the jobs shown in the panel's progress block for single validations (created on first use) */
+    private PanelJobs onlineJobs() {
+        if (onlineJobs == null) {
+            onlineJobs = new PanelJobs(progress);
+        }
+        return onlineJobs;
     }
 
     /** The run in progress ended (FX thread): a request that came in meanwhile runs now. */

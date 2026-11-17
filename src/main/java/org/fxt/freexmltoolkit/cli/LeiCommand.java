@@ -103,7 +103,12 @@ final class LeiCommand implements Callable<Integer> {
         }
         Map<String, LeiRecord> records;
         try {
-            records = wanted.isEmpty() ? Map.of() : Gleif.cache().lookup(wanted);
+            var progress = CliProgress.forTerminal(commandLine.getErr());
+            try {
+                records = wanted.isEmpty() ? Map.of() : Gleif.cache().lookup(wanted, progress);
+            } finally {
+                CliProgress.end(progress);
+            }
         } catch (GleifClient.GleifException e) {
             commandLine.getErr().println("fxt-cli lei: " + e.getMessage());
             return ExitCodes.NOT_RUN;

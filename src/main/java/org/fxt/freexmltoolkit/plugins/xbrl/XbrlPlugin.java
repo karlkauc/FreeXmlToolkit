@@ -62,7 +62,7 @@ public final class XbrlPlugin implements FxtPlugin {
                                 + "taxonomies itself. Save the document before checking it.",
                         List.of(new IndustryPanel.Action("xbrl-arelle-command", "Choose Arelle Command…", "bi-gear",
                                 ActionColor.TOOL, XbrlPlugin::chooseCommand)),
-                        XbrlPlugin::describe, XbrlPlugin::check, List.of()),
+                        XbrlPlugin::describe, IndustryPanel.Checker.withProgress(XbrlPlugin::check), List.of()),
                 null));
     }
 
@@ -77,12 +77,18 @@ public final class XbrlPlugin implements FxtPlugin {
     /** The panel's check: Arelle on the saved file. */
     static List<org.fxt.freexmltoolkit.plugin.DocumentValidator.Problem> check(String content, Path path, String name)
             throws Exception {
+        return check(content, path, name, org.fxt.freexmltoolkit.service.progress.Progress.NONE);
+    }
+
+    /** Like {@link #check(String, Path, String)}; Cancel ends Arelle. */
+    static List<org.fxt.freexmltoolkit.plugin.DocumentValidator.Problem> check(String content, Path path, String name,
+            org.fxt.freexmltoolkit.service.progress.Progress progress) throws Exception {
         if (path == null) {
             throw new IllegalStateException("Save the document first: Arelle reads the file and its taxonomy references.");
         }
         Path command = ArelleRunner.findCommand(configuredCommand()).orElseThrow(() -> new IllegalStateException(
                 "Arelle was not found. Install it with \"pip install arelle-release\" or choose its arelleCmdLine."));
-        return ArelleRunner.validate(command, path, Duration.ofMinutes(10));
+        return ArelleRunner.validate(command, path, Duration.ofMinutes(10), progress);
     }
 
     /** @return what the document is, or {@code null} when it is no XBRL */

@@ -10,6 +10,7 @@ import javafx.scene.control.Alert;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.finance.IdentifierCheck;
+import org.fxt.freexmltoolkit.service.progress.Progress;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
@@ -19,6 +20,9 @@ import org.fxt.freexmltoolkit.util.DialogHelper;
  * PK-Meldewesen panels and the Tools menu.
  */
 public final class IdentifierDocumentCheck {
+
+    /** The window of a running Tools-menu check (one at a time), or {@code null}. FX thread. */
+    private static javafx.stage.Stage running;
 
     private IdentifierDocumentCheck() {
     }
@@ -46,7 +50,7 @@ public final class IdentifierDocumentCheck {
     }
 
     /** What a check of the active document came to. */
-    public enum Kind { OK, FINDINGS, NONE, FAILED }
+    public enum Kind { OK, FINDINGS, NONE, FAILED, CANCELLED }
 
     /**
      * The outcome of {@link #runOnActive(EditorHost, Consumer)}.
@@ -63,7 +67,7 @@ public final class IdentifierDocumentCheck {
         public void showIn(javafx.scene.control.Label status) {
             switch (kind) {
                 case OK -> PanelStatus.success(status, message);
-                case FINDINGS, NONE -> PanelStatus.info(status, message);
+                case FINDINGS, NONE, CANCELLED -> PanelStatus.info(status, message);
                 case FAILED -> PanelStatus.failure(status, I18n.t("IdentifierDocumentCheck.title"), message,
                         I18n.t("IdentifierDocumentCheck.remedy"), message, false);
             }
@@ -72,6 +76,13 @@ public final class IdentifierDocumentCheck {
 
     /** @return the outcome of a check (the findings are published separately) */
     static Outcome outcomeOf(IdentifierCheck.Result result) {
+        if (result.cancelled()) {
+            int all = result.leis() + result.isins();
+            String message = I18n.t("IdentifierDocumentCheck.cancelled", Math.max(0, all - result.unchecked()), all)
+                    + (result.findings().isEmpty() ? "" : " " + I18n.t("IdentifierDocumentCheck.cancelled-findings",
+                    result.findings().size()));
+            return new Outcome(Kind.CANCELLED, message, result.leis(), result.isins(), result.findings().size());
+        }
         String failures = String.join(" ", result.failures().stream().map(IdentifierCheck.Failure::message).toList());
         boolean asked = result.leis() + result.isins() > 0;
         int askedServices = (result.leis() > 0 ? 1 : 0) + (result.isins() > 0 ? 1 : 0);
@@ -99,6 +110,14 @@ public final class IdentifierDocumentCheck {
      * {@code done} gets the outcome on the FX thread.
      */
     public static void runOnActive(EditorHost host, Consumer<Outcome> done) {
+        runOnActive(host, Progress.NONE, done);
+    }
+
+    /**
+     * Like {@link #runOnActive(EditorHost, Consumer)}, reporting to {@code progress} (a panel's {@link PanelJobs}
+     * job); a cancelled check publishes the findings of what was answered and ends with {@link Kind#CANCELLED}.
+     */
+    public static void runOnActive(EditorHost host, Progress progress, Consumer<Outcome> done) {
         String text = host.getActiveText().orElse(null);
         if (text == null) {
             done.accept(new Outcome(Kind.NONE, I18n.t("IndustryPanel.no-document"), 0, 0, 0));
@@ -106,7 +125,7 @@ public final class IdentifierDocumentCheck {
         }
         EditorHost.ValidationTarget target = host.validationTarget();
         FxtGui.executorService.submit(() -> {
-            IdentifierCheck.Result result = IdentifierCheck.check(text, true, true);
+            IdentifierCheck.Result result = IdentifierCheck.check(text, true, true, progress);
             Platform.runLater(() -> {
                 if (result.leis() + result.isins() > 0) {
                     publish(host, target, result);
@@ -116,14 +135,38 @@ public final class IdentifierDocumentCheck {
         });
     }
 
-    /** Tools → Check Identifiers Online: the outcome in the PROBLEMS panel, otherwise as a message. */
+    /**
+     * Tools → Check Identifiers Online: a small window shows the progress (with Cancel) while it runs; the outcome
+     * goes to the PROBLEMS panel, otherwise to a message.
+     */
     public static void runOnActive(EditorHost host) {
-        runOnActive(host, outcome -> {
+        if (running != null) {
+            running.show();
+            running.toFront();
+            return;
+        }
+        PanelProgress view = new PanelProgress();
+        view.setPrefWidth(480);
+        PanelJobs jobs = new PanelJobs(view);
+        PanelJobs.Job job = jobs.start("identifiers", I18n.t("IdentifierDocumentCheck.title"), true);
+        javafx.scene.control.Dialog<Void> dialog = DialogHelper.createDialog(I18n.t("IdentifierDocumentCheck.title"),
+                I18n.t("IdentifierDocumentCheck.running"), "bi-globe");
+        dialog.initModality(javafx.stage.Modality.NONE);
+        dialog.getDialogPane().setContent(view);
+        dialog.getDialogPane().getButtonTypes().add(new javafx.scene.control.ButtonType(
+                I18n.t("IdentifierDocumentCheck.hide"), javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE));
+        // Hide keeps the check running (Tools → Check Identifiers Online shows the window again); Cancel stops it
+        running = (javafx.stage.Stage) dialog.getDialogPane().getScene().getWindow();
+        dialog.show();
+        runOnActive(host, job, outcome -> {
+            job.close();
+            dialog.close();
+            running = null;
             switch (outcome.kind()) {
                 case FAILED -> DialogHelper.createStyledAlert(Alert.AlertType.WARNING, I18n.t("IdentifierDocumentCheck.title"),
                         outcome.message(), I18n.t("IdentifierDocumentCheck.remedy")).show();
-                case OK, NONE -> DialogHelper.createStyledAlert(Alert.AlertType.INFORMATION, I18n.t("IdentifierDocumentCheck.title"),
-                        outcome.message(), null).show();
+                case OK, NONE, CANCELLED -> DialogHelper.createStyledAlert(Alert.AlertType.INFORMATION,
+                        I18n.t("IdentifierDocumentCheck.title"), outcome.message(), null).show();
                 case FINDINGS -> { } // the PROBLEMS panel opens
             }
         });

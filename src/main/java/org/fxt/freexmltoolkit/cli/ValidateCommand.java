@@ -305,7 +305,13 @@ final class ValidateCommand implements Callable<Integer> {
         } catch (Exception e) {
             return result;
         }
-        var check = org.fxt.freexmltoolkit.service.finance.IdentifierCheck.check(content, gleif, isin);
+        var progress = CliProgress.forTerminal(spec.commandLine().getErr());
+        org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Result check;
+        try {
+            check = org.fxt.freexmltoolkit.service.finance.IdentifierCheck.check(content, gleif, isin, progress);
+        } finally {
+            CliProgress.end(progress);
+        }
         if (check.leis() + check.isins() + check.examples() == 0) {
             return result;
         }

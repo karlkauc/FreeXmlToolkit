@@ -2,7 +2,7 @@
 
 <?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ProgressBar?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelProgress?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.VBox?>
 <?import org.fxt.freexmltoolkit.plugins.IdentifierChecker?>
@@ -81,7 +81,7 @@
         </ScrollPane>
         <VBox spacing="4" styleClass="fxt-tp-section-body">
             <children>
-                <ProgressBar fx:id="progress" id="industry-progress" maxWidth="Infinity" visible="false" managed="false"/>
+                <PanelProgress fx:id="progress" id="industry-progress"/>
                 <Label fx:id="status" id="industry-status" wrapText="true" minHeight="-Infinity"
                        styleClass="fxt-placeholder-text"/>
             </children>

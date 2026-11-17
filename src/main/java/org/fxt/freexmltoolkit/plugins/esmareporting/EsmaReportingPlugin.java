@@ -185,7 +185,7 @@ public final class EsmaReportingPlugin implements FxtPlugin {
                                 new IndustryPanel.Action("esma-new-mifir", "New MiFIR Transaction (Example)",
                                         "bi-file-earmark-plus", ActionColor.CREATE, ui2 -> openExample(ui2, "mifir-newt-example.xml"))),
                         EsmaReportingPlugin::describe, validator, List.of(IdentifierKind.LEI, IdentifierKind.ISIN))
-                        .withReport(EsmaReportingPlugin::report, "-check-report.html"),
+                        .withReport(IndustryPanel.ReportBuilder.withProgress(EsmaReportingPlugin::report), "-check-report.html"),
                 null));
     }
 
@@ -240,6 +240,12 @@ public final class EsmaReportingPlugin implements FxtPlugin {
 
     /** @return the HTML check report of an ESMA report, or {@code null} for other documents */
     static String report(String content, String name) throws Exception {
+        return report(content, name, org.fxt.freexmltoolkit.service.progress.Progress.NONE);
+    }
+
+    /** Like {@link #report(String, String)}, reporting the records checked; stops when cancelled. */
+    static String report(String content, String name, org.fxt.freexmltoolkit.service.progress.Progress progress)
+            throws Exception {
         RegValidator.Root root = content == null ? null : RegValidator.rootOf(content);
         String kind = kind(root, content);
         RegRuleSet rules = kind == null ? null : rulesFor(root, content);
@@ -252,8 +258,10 @@ public final class EsmaReportingPlugin implements FxtPlugin {
             default -> MIFIR_FIELDS.get();
         };
         String summary = describe(content);
+        var findings = rules.run(content, name, progress);
+        progress.message(org.fxt.freexmltoolkit.i18n.I18n.t("RegRuleSet.writing-report"));
         return org.fxt.freexmltoolkit.plugins.regreport.RegReportHtml.render(kind + " report", name,
-                summary == null ? null : summary.replace('\n', ' '), rules.run(content, name), List.of(catalog), List.of());
+                summary == null ? null : summary.replace('\n', ' '), findings, List.of(catalog), List.of());
     }
 
     static void openExample(PluginUi ui, String name) {

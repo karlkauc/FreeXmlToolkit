@@ -42,6 +42,10 @@ FinDatEx template, an XBRL instance, an ESMA or a KAG report), a bar above the e
       BIC (ISO 9362), LEI (ISO 17442), ISIN (ISO 6166) or Austrian VAT id (UID), depending on the extension; an LEI
       and an ISIN can be looked up online, and **Check Identifiers Online** checks every LEI (GLEIF) and ISIN (ESMA FIRDS,
       OpenFIGI) of the document ([Online Identifier Lookup](identifier-lookup.md));
+- a **progress block** under the actions while a check, report or tool runs: a bar (with a count where the work can
+  be counted - records of a KAG/ESMA report, requests of the online identifier check), what runs right now, the time
+  so far and **Cancel** where the work can stop (between records, requests or steps; Arelle is ended at once). A
+  second click on a running action is refused; with several actions at once the newest is shown with "(+1 more)";
 - **checks** that run with every validation (Validation panel, **F8**, `fxt-cli validate`) and appear
   with the extension's name as source — ISO 20022 and ebInterface; FinDatEx and XBRL files are checked
   from their side panel;

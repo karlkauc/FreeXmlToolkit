@@ -259,6 +259,9 @@ Notes:
 - **Auto** is intentionally conservative: any adapter it cannot confidently identify as a
   dedicated GPU falls back to software rendering. If your dedicated GPU is not detected,
   switch the mode to **Hardware**.
+- When the graphics card fails to draw the window (an error of the render pipeline, e.g. while scrolling a very large
+  HTML report in the preview), the application says so once. With **Auto** it uses software rendering from the next
+  start on; with **Hardware** it suggests switching to **Software**.
 
 ## Managing your templates
 

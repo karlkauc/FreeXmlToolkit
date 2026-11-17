@@ -13,7 +13,6 @@ import java.util.concurrent.Executor;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
 import javafx.stage.Stage;
 
 import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlCache;
@@ -60,10 +59,10 @@ class FundsXmlPanelTest {
         FundsXmlDownloadCoordinator.setInstanceForTesting(coordinator);
 
         FundsXmlPanel panel = WaitForAsyncUtils.waitForAsyncFx(3000, () -> new FundsXmlPanel(host));
-        ProgressBar bar = WaitForAsyncUtils.waitForAsyncFx(2000,
-                () -> (ProgressBar) findNode(panel, n -> n instanceof ProgressBar));
-        assertNotNull(bar, "the panel must contain a progress bar");
-        assertFalse(bar.isVisible(), "progress bar must be hidden while idle");
+        PanelProgress bar = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> (PanelProgress) findNode(panel, n -> n instanceof PanelProgress));
+        assertNotNull(bar, "the panel must contain a progress block");
+        assertFalse(bar.isVisible(), "progress block must be hidden while idle");
 
         assertTrue(coordinator.startBackgroundDownload("test"));
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
@@ -73,7 +72,8 @@ class FundsXmlPanelTest {
         WaitForAsyncUtils.waitForFxEvents();
 
         // The stub download finishes immediately: bar shown on start, hidden again on finish.
-        assertFalse(bar.isVisible(), "progress bar must hide once the download finished");
+        WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS, () -> !bar.isVisible());
+        assertFalse(bar.isVisible(), "progress block must hide once the download finished");
         Label status = WaitForAsyncUtils.waitForAsyncFx(2000,
                 () -> (Label) findNode(panel, n -> n instanceof Label l
                         && l.getText() != null && l.getText().contains("Download failed")));

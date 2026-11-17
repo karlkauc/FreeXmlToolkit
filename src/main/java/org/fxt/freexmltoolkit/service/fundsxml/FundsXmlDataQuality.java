@@ -150,6 +150,16 @@ public final class FundsXmlDataQuality {
 
     /** Runs every check on a document (on the calling thread). */
     public static List<Result> run(String xml) {
+        return run(xml, org.fxt.freexmltoolkit.service.progress.Progress.NONE);
+    }
+
+    /**
+     * Like {@link #run(String)}, reporting "check i of n" and stopping between two checks when cancelled.
+     *
+     * @throws org.fxt.freexmltoolkit.service.progress.CancelledException when cancelled
+     */
+    public static List<Result> run(String xml, org.fxt.freexmltoolkit.service.progress.Progress progress) {
+        progress.message(org.fxt.freexmltoolkit.i18n.I18n.t("FundsXmlDataQuality.reading"));
         XdmNode document;
         try {
             var builder = PROCESSOR.newDocumentBuilder();
@@ -160,9 +170,15 @@ public final class FundsXmlDataQuality {
                     + e.getMessage())).toList();
         }
         List<Result> results = new ArrayList<>();
-        for (Check check : checks()) {
-            results.add(run(check, document));
+        List<Check> checks = checks();
+        for (int i = 0; i < checks.size(); i++) {
+            progress.checkCancelled();
+            progress.progress(i, checks.size());
+            progress.message(org.fxt.freexmltoolkit.i18n.I18n.t("FundsXmlDataQuality.check", i + 1, checks.size(),
+                    checks.get(i).name));
+            results.add(run(checks.get(i), document));
         }
+        progress.progress(checks.size(), checks.size());
         return results;
     }
 
