@@ -368,7 +368,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         // === Delete ===
         deleteItem = new MenuItem(I18n.t("XmlGridContextMenu.delete"));
         deleteItem.setGraphic(createColoredIcon("bi-trash", ActionColor.DELETE));
-        deleteItem.setOnAction(e -> deleteElement());
+        deleteItem.setOnAction(e -> deleteFromMenu());
         deleteItem.setAccelerator(new KeyCodeCombination(KeyCode.DELETE));
 
         // Build menu
@@ -1625,6 +1625,27 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         XmlCommand cmd = new MoveNodeCommand(selected, parentElement, newIndex);
         context.executeCommand(cmd);
         refresh();
+    }
+
+    /**
+     * "Delete" from the menu: on a table cell only that cell's node goes (like the Delete key on a
+     * cell selection), elsewhere the selected node.
+     */
+    private void deleteFromMenu() {
+        if (clickedTable != null && clickedColumnName != null && clickedRowIndex >= 0) {
+            List<RepeatingElementsTable.TableColumn> columns = clickedTable.getColumns();
+            for (int c = 0; c < columns.size(); c++) {
+                if (columns.get(c).getName().equals(clickedColumnName)) {
+                    CompositeXmlCommand cmd = TableEditOps.deleteCells(clickedTable, clickedRowIndex, c, clickedRowIndex, c, false);
+                    if (!cmd.isEmpty() && context.executeCommand(cmd)) {
+                        context.getSelectionModel().clearSelection();
+                        refresh();
+                    }
+                    return;
+                }
+            }
+        }
+        deleteElement();
     }
 
     private void deleteElement() {

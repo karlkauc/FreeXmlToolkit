@@ -111,6 +111,12 @@ shows the editable grid, laid out as follows:
   the parent), **Space** or **Enter** toggles a container (on a leaf row Enter starts renaming it),
   **Home/End** jump to the first/last row, **F2** renames, and the usual **Ctrl+C/X/V**,
   **Ctrl+D** (duplicate) and **Delete** act on the selected node.
+- **Delete in a table** removes exactly what is selected: on one or more **cells** only their
+  nodes go - the element (all children of that name) or the attribute is removed completely,
+  no empty `<TotalPercentage/>` is left behind, and the row stays. Rows selected on their
+  **row numbers** (click, Shift+click for a range) are deleted as whole rows. Empty cells
+  delete nothing; one **Undo** restores everything. **Delete** in a cell's context menu works
+  the same way for the clicked cell.
 - **Several rows at once.** **Ctrl+click** adds or removes a row from the selection,
   **Shift+click** selects every sibling between the selected row and the clicked one.
   **Shift+click on the arrow** of a selected row expands or collapses all selected rows.

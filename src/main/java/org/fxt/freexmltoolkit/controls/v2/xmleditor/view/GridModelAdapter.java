@@ -400,6 +400,25 @@ public interface GridModelAdapter<N> {
     }
 
     /**
+     * Deletes the selected cells of a table (the Delete key on a cell selection): with
+     * {@code wholeRows} (rows chosen by their row number) the rows' members, else each cell's node. Models without support return {@code false},
+     * and the key falls back to deleting the selected node.
+     *
+     * @return whether the model changed
+     */
+    default boolean deleteCells(RepeatingElementsTable table, int r1, int c1, int r2, int c2, boolean wholeRows) {
+        return false;
+    }
+
+    /**
+     * @return whether {@link #deleteCells} is supported; then the Delete key on a table cell
+     *         selection never falls back to deleting the row's node, even when the cells hold nothing
+     */
+    default boolean supportsCellDelete() {
+        return false;
+    }
+
+    /**
      * Moves a table column before/after another column in every member of the group
      * (drag a column header onto another one).
      *

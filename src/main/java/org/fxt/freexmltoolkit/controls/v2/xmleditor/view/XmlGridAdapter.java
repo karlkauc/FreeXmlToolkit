@@ -897,6 +897,17 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
         return written;
     }
 
+    @Override
+    public boolean supportsCellDelete() {
+        return true;
+    }
+
+    @Override
+    public boolean deleteCells(RepeatingElementsTable table, int r1, int c1, int r2, int c2, boolean wholeRows) {
+        CompositeXmlCommand cmd = TableEditOps.deleteCells(table, r1, c1, r2, c2, wholeRows);
+        return !cmd.isEmpty() && context.executeCommand(cmd);
+    }
+
     /** One warning for all pasted values the schema does not allow (they are written anyway). */
     private void warnAboutPastedValues(RepeatingElementsTable table, int startCol, List<List<String>> values) {
         if (!context.hasSchema() || table.getElements().isEmpty()) {

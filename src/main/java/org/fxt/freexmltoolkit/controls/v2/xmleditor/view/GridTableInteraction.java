@@ -28,6 +28,8 @@ final class GridTableInteraction<N> {
 
     // Table selection/hover state (kept for repeating table integration)
     RepeatingElementsTable selectedTable = null;
+    /** Whether the current table selection was made on the row numbers (whole rows, not cells). */
+    boolean rowsSelected = false;
     /**
      * Cell range selected in {@link #selectedTable} (logical rows/columns, inclusive; anchor =
      * where the selection started, focus = where Shift+click extended it). -1 = none.
@@ -113,6 +115,7 @@ final class GridTableInteraction<N> {
                 } else {
                     setCellRange(cell.rowIndex(), 0, cell.rowIndex(), lastCol);
                 }
+                rowsSelected = true;
                 view.render();
                 return;
             }
@@ -161,6 +164,7 @@ final class GridTableInteraction<N> {
         boolean extend = event.isShiftDown() && selectedTable == table && selAnchorRow >= 0;
         selectTableRow(table, rowIdx);
         if (extend) {
+            rowsSelected = false;
             selFocusRow = rowIdx;
             selFocusCol = cell.columnIndex();
         } else {
@@ -207,6 +211,7 @@ final class GridTableInteraction<N> {
     }
 
     void setCellRange(int anchorRow, int anchorCol, int focusRow, int focusCol) {
+        rowsSelected = false;
         selAnchorRow = anchorRow;
         selAnchorCol = anchorCol;
         selFocusRow = focusRow;
@@ -322,6 +327,36 @@ final class GridTableInteraction<N> {
                 return false;
             }
         }
+    }
+
+    /**
+     * Delete (no modifier) while table cells are selected: removes the selected cells' nodes,
+     * or the whole rows when they were selected on their row numbers. Handled before the context-menu
+     * shortcut, which would delete the row's element for a single cell.
+     *
+     * @return whether the event was handled
+     */
+    boolean handleTableDeleteKey(KeyEvent event) {
+        if (event.getCode() != javafx.scene.input.KeyCode.DELETE || event.isShortcutDown() || event.isShiftDown()
+                || event.isAltDown() || selectedTable == null || selAnchorRow < 0) {
+            return false;
+        }
+        if (!view.adapter.supportsCellDelete()) {
+            return false;
+        }
+        event.consume();
+        RepeatingElementsTable table = selectedTable;
+        if (!view.adapter.deleteCells(table, selAnchorRow, selAnchorCol, selFocusRow, selFocusCol, rowsSelected)) {
+            return true; // empty cells: nothing to delete, and never the row instead
+        }
+        table.setSelectedRowIndex(-1);
+        selectedTable = null;
+        setCellRange(-1, -1, -1, -1);
+        view.adapter.select(null);
+        view.fireSelectionChanged();
+        view.rebuildTree();
+        view.notifyDocumentModified();
+        return true;
     }
 
     /** Selects a table row (clearing the tree-row selection) and tells the selection model. */

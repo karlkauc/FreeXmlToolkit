@@ -152,4 +152,75 @@ class TableEditOpsTest {
     private static List<String> names(XmlElement element) {
         return element.getChildElements().stream().map(XmlElement::getName).toList();
     }
+
+    private int col(String name) {
+        List<RepeatingElementsTable.TableColumn> columns = table.getColumns();
+        for (int c = 0; c < columns.size(); c++) {
+            if (columns.get(c).getName().equals(name)) {
+                return c;
+            }
+        }
+        throw new AssertionError("no column " + name);
+    }
+
+    @Test
+    void deletingAnElementCellRemovesTheElementCompletely() {
+        int qty = col("qty");
+        CompositeXmlCommand cmd = TableEditOps.deleteCells(table, 0, qty, 0, qty, false);
+        assertTrue(context.executeCommand(cmd));
+        XmlElement first = items.getChildElements("item").get(0);
+        assertNull(first.getChildElement("qty"), "the element is gone, not left empty");
+        assertNotNull(first.getChildElement("name"), "the other cells stay");
+        assertEquals(3, items.getChildElements("item").size(), "the row stays");
+
+        context.undo();
+        assertEquals("1", items.getChildElements("item").get(0).getChildElement("qty").getTextContent());
+    }
+
+    @Test
+    void deletingAnAttributeCellRemovesTheAttribute() {
+        int id = col("id");
+        assertTrue(context.executeCommand(TableEditOps.deleteCells(table, 1, id, 1, id, false)));
+        assertTrue(!items.getChildElements("item").get(1).hasAttribute("id"));
+        assertTrue(items.getChildElements("item").get(0).hasAttribute("id"));
+    }
+
+    @Test
+    void deletingACellRangeIsOneUndoStepAndSkipsMissingCells() {
+        int name = col("name");
+        int qty = col("qty");
+        CompositeXmlCommand cmd = TableEditOps.deleteCells(table, 2, qty, 0, name, false);
+        assertTrue(context.executeCommand(cmd));
+        for (XmlElement item : items.getChildElements("item")) {
+            assertNull(item.getChildElement("name"));
+            assertNull(item.getChildElement("qty"));
+            assertTrue(item.hasAttribute("id"), "columns outside the range stay");
+        }
+        context.undo();
+        assertEquals("b", items.getChildElements("item").get(1).getChildElement("name").getTextContent());
+        assertEquals("3", items.getChildElements("item").get(2).getChildElement("qty").getTextContent());
+    }
+
+    @Test
+    void deletingACellRemovesEverySameNamedChild() {
+        context.loadDocumentFromString("<items><item><v>1</v><v>2</v><w>x</w></item><item><w>y</w></item></items>");
+        items = context.getDocument().getRootElement();
+        table = new RepeatingElementsTable("item", items.getChildElements("item"), 1, () -> { });
+        int v = col("v");
+        assertTrue(context.executeCommand(TableEditOps.deleteCells(table, 0, v, 0, v, false)));
+        assertTrue(items.getChildElements("item").get(0).getChildElements("v").isEmpty());
+        assertNotNull(items.getChildElements("item").get(0).getChildElement("w"));
+    }
+
+    @Test
+    void wholeRowsLoseTheirMemberAndEmptyCellsGiveNothingToDo() {
+        assertTrue(TableEditOps.deleteCells(table, 1, col("qty"), 1, col("qty"), false).isEmpty(),
+                "item 2 has no qty");
+        assertTrue(context.executeCommand(TableEditOps.deleteCells(table, 0, 0, 1, 0, true)));
+        List<XmlElement> members = items.getChildElements("item");
+        assertEquals(1, members.size());
+        assertEquals("3", members.get(0).getAttribute("id"));
+        context.undo();
+        assertEquals(3, items.getChildElements("item").size());
+    }
 }

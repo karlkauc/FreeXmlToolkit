@@ -2503,6 +2503,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         if (tables.handleTableClipboardKeys(event)) {
             return;
         }
+        // Delete on a table cell selection removes the cells' nodes (whole rows only when selected as such)
+        if (tables.handleTableDeleteKey(event)) {
+            return;
+        }
 
         // + / − (also the numpad keys): open / close one more level of the selection
         if (!event.isShortcutDown() && !event.isAltDown() && !event.isMetaDown() && !event.isControlDown()) {
@@ -3998,6 +4002,14 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     void selectCellRangeForTest(RepeatingElementsTable table, int r1, int c1, int r2, int c2) {
         tables.selectTableRow(table, r1);
         tables.setCellRange(r1, c1, r2, c2);
+        render();
+    }
+
+    /** Selects whole table rows as a click on the row numbers does (test hook). */
+    void selectTableRowsForTest(RepeatingElementsTable table, int r1, int r2) {
+        tables.selectTableRow(table, r1);
+        tables.setCellRange(r1, 0, r2, Math.max(0, table.getColumns().size() - 1));
+        tables.rowsSelected = true;
         render();
     }
 

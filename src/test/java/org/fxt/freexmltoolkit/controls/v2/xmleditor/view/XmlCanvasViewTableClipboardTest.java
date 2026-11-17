@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import javafx.event.Event;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
@@ -127,5 +129,41 @@ class XmlCanvasViewTableClipboardTest {
         });
         assertEquals(2, modelChanges[0]);
         assertTrue(roundTripped.contains("<a>9</a>"), "a text callback still gets the document");
+    }
+
+    private void pressDelete() {
+        fx(() -> Event.fireEvent(view.canvasNode(), new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.DELETE,
+                false, false, false, false)));
+    }
+
+    @Test
+    void deleteOnACellRemovesOnlyThatElement() {
+        fx(view::expandAll);
+        clickCell(1, 1, false);
+        pressDelete();
+
+        XmlElement root = context.getDocument().getRootElement();
+        assertEquals(3, root.getChildElements("item").size(), "the row stays");
+        XmlElement second = root.getChildElements("item").get(1);
+        assertNull(second.getChildElement("b"), "<b> is removed, not left empty");
+        assertEquals("2", second.getChildElement("a").getTextContent());
+        assertTrue(roundTripped != null && !roundTripped.contains("<b>y</b>") && !roundTripped.contains("<b/>"));
+
+        fx(() -> {
+            context.undo();
+            view.rebuild();
+        });
+        assertEquals("y", root.getChildElements("item").get(1).getChildElement("b").getTextContent());
+    }
+
+    @Test
+    void deleteOnSelectedRowsRemovesTheRows() {
+        fx(view::expandAll);
+        fx(() -> view.selectTableRowsForTest(owner().getRepeatingTable(), 0, 1));
+        pressDelete();
+
+        XmlElement root = context.getDocument().getRootElement();
+        assertEquals(1, root.getChildElements("item").size());
+        assertEquals("3", root.getChildElements("item").get(0).getChildElement("a").getTextContent());
     }
 }

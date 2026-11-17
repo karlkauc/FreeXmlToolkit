@@ -7,9 +7,12 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.AddElementCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.AddElementInOrderCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.ChildOrder;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.CompositeXmlCommand;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.DeleteNodeCommand;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RemoveAttributeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RenameAttributeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RenameNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetAttributeCommand;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetElementTextCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.XmlCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
@@ -220,7 +223,7 @@ public final class TableEditOps {
                         }
                         XmlElement child = member.getChildElement(col.getName());
                         if (child != null) {
-                            parts.add(new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetElementTextCommand(
+                            parts.add(new SetElementTextCommand(
                                     child, value));
                         } else {
                             parts.add(createCellChild(member, col.getName(), value, order));
@@ -228,7 +231,7 @@ public final class TableEditOps {
                     }
                     case TEXT_CONTENT -> {
                         if (!member.hasElementChildren()) {
-                            parts.add(new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetElementTextCommand(
+                            parts.add(new SetElementTextCommand(
                                     member, value));
                         }
                     }
@@ -237,6 +240,67 @@ public final class TableEditOps {
             }
         }
         return new CompositeXmlCommand("Paste " + values.size() + " row(s)", parts);
+    }
+
+    /**
+     * The commands that delete the selected cells of a table (the Delete key on a cell
+     * selection): with {@code wholeRows} (rows chosen by their row number) every row of the
+     * range loses its member element; otherwise each cell's node is removed completely - an attribute cell drops the attribute,
+     * an element cell every child element of that name (no empty element is left behind), a
+     * text-content cell clears the member's own text. Cells without a node are skipped.
+     *
+     * @param table the table
+     * @param r1    one corner row of the range
+     * @param c1    one corner column of the range
+     * @param r2    the opposite corner row
+     * @param c2    the opposite corner column
+     * @param wholeRows whether the rows themselves are selected (not only cells)
+     * @return one undoable step (empty when nothing is to do)
+     */
+    public static CompositeXmlCommand deleteCells(RepeatingElementsTable table, int r1, int c1, int r2, int c2,
+                                                  boolean wholeRows) {
+        List<XmlCommand> parts = new ArrayList<>();
+        List<RepeatingElementsTable.TableRow> rows = table.getRows();
+        List<RepeatingElementsTable.TableColumn> columns = table.getColumns();
+        int top = Math.max(0, Math.min(r1, r2));
+        int bottom = Math.min(rows.size() - 1, Math.max(r1, r2));
+        int left = Math.max(0, Math.min(c1, c2));
+        int right = Math.min(columns.size() - 1, Math.max(c1, c2));
+        int deletedRows = 0;
+        for (int r = top; r <= bottom; r++) {
+            XmlElement member = rows.get(r).getElement();
+            if (member == null) {
+                continue;
+            }
+            if (wholeRows) {
+                parts.add(new DeleteNodeCommand(member));
+                deletedRows++;
+                continue;
+            }
+            for (int c = left; c <= right; c++) {
+                RepeatingElementsTable.TableColumn col = columns.get(c);
+                switch (col.getType()) {
+                    case ATTRIBUTE -> {
+                        if (member.hasAttribute(col.getName())) {
+                            parts.add(new RemoveAttributeCommand(member, col.getName()));
+                        }
+                    }
+                    case CHILD_ELEMENT -> {
+                        for (XmlElement child : member.getChildElements(col.getName())) {
+                            parts.add(new DeleteNodeCommand(child));
+                        }
+                    }
+                    case TEXT_CONTENT -> {
+                        if (!member.hasElementChildren() && !member.getTextContent().isEmpty()) {
+                            parts.add(new SetElementTextCommand(member, ""));
+                        }
+                    }
+                    default -> { }
+                }
+            }
+        }
+        String description = deletedRows > 0 ? "Delete " + deletedRows + " row(s)" : "Delete cells";
+        return new CompositeXmlCommand(description, parts);
     }
 
     /**
