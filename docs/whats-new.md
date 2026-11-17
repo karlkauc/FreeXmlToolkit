@@ -6,6 +6,9 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+- **Table headers stay in view.** In the Graphic view of an XML document, the header row of a long table stays at
+  the top while you scroll through it (inside opened cells too, stacked below the outer table's header), so you
+  always see which column is which - and can still sort, select, move or resize columns there. See [Grid](grid.md).
 - **Open what you exported.** After every export - Excel, CSV, reports, view images, statistics, submission ZIPs,
   folders of generated files - a dialog says where it was saved and offers **Open** (in Excel, the browser …),
   **Show in Folder** and **OK**. *Don't show this again* switches to a short note with an Open link. See

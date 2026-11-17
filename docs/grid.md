@@ -158,6 +158,11 @@ shows the editable grid, laid out as follows:
 - **Scroll header.** While you scroll through a long element, a bar at the top shows the
   path of containers you are inside (`root › section › body`); click one to select it and
   scroll back to its start.
+- **Sticky table headers.** While you scroll through a long table, its header row (the column
+  names, or the record numbers in a flipped table) stays at the top below the scroll header and
+  slides away with the table's last row. A table inside an opened cell keeps its header too,
+  just below the header of the table around it. It works like the real header: click a name to select
+  the column, the arrow to sort, drag to move or resize a column.
 - **Drag & drop.** Drag a node by its name cell: drop it on the upper or lower third of another
   name cell to place it before / after that node, on the middle (or anywhere in an expanded
   element's cell) to append it as a child. A blue line or frame shows the target; hold **Ctrl**

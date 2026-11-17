@@ -239,11 +239,15 @@ final class GridPainter<N> {
             drawRow(i);
         }
 
-        // Draw inline tables beside their owner rows
+        // Draw inline tables beside their owner rows; a table running through the top of the
+        // viewport keeps its header row pinned below the scroll header
+        List<FlatRow> headerChain = view.scrollHeaderRows();
+        stickyTop = headerChain.isEmpty() ? 0 : GridCanvasView.SCROLL_HEADER_HEIGHT;
+        view.pinnedHeaders.clear();
         for (int i = firstVisible; i <= lastVisible; i++) {
             FlatRow row = view.visibleRows.get(i);
             if (row.hasRepeatingTable() && row.isExpanded()) {
-                renderInlineTable(row, view.rowYPositions[i] - view.scrollOffsetY);
+                renderInlineTable(row, view.rowYPositions[i] - view.scrollOffsetY, true);
             }
         }
 
@@ -253,7 +257,7 @@ final class GridPainter<N> {
         view.gc.restore();
 
         // Sticky scroll header: the ancestors of the first visible row (zoomed, not scrolled)
-        drawScrollHeader(firstVisible);
+        drawScrollHeader(headerChain);
 
         // Draw info overlay (not scrolled)
         drawInfo();
@@ -304,7 +308,7 @@ final class GridPainter<N> {
             for (int i = first; i <= to; i++) {
                 FlatRow row = view.visibleRows.get(i);
                 if (row.hasRepeatingTable() && row.isExpanded()) {
-                    renderInlineTable(row, view.rowYPositions[i]);
+                    renderInlineTable(row, view.rowYPositions[i], false);
                 }
             }
         } finally {
@@ -340,8 +344,7 @@ final class GridPainter<N> {
         view.gc.setTextAlign(TextAlignment.LEFT);
     }
 
-    private void drawScrollHeader(int firstVisible) {
-        List<FlatRow> chain = view.scrollHeaderRows();
+    private void drawScrollHeader(List<FlatRow> chain) {
         if (chain.isEmpty()) {
             view.headerSegments = List.of();
             return;
@@ -716,14 +719,22 @@ final class GridPainter<N> {
     // ==================== Table Rendering ====================
 
     /**
+     * Top of the free area of the viewport below the scroll header and the pinned headers of the
+     * tables being drawn, relative to {@link #cullTop} (model units), set per render.
+     */
+    private double stickyTop;
+
+    /**
      * Renders an inline repeating-elements table beside its owner row's name cell, cell by
      * cell through the table's drawn grid (so the standard and the flipped orientation share
      * one renderer): corner, column headers, row numbers and data cells.
      *
      * @param tableRow the FlatRow that owns the table
      * @param tableY   the Y coordinate where the table starts (screen coordinates)
+     * @param pin      whether the header row sticks below the scroll header (and the pinned headers
+     *                 of the tables around it) while the table runs through the top of the viewport
      */
-    private void renderInlineTable(FlatRow tableRow, double tableY) {
+    private void renderInlineTable(FlatRow tableRow, double tableY, boolean pin) {
         RepeatingElementsTable table = tableRow.getRepeatingTable();
         if (table == null) {
             return;
@@ -732,57 +743,94 @@ final class GridPainter<N> {
         double tableX = table.getX();
         double tableWidth = table.getWidth();
         double tableHeight = table.getHeight();
-        int drawnCols = table.drawnColumnCount();
         int drawnRows = table.drawnRowCount();
 
-        // Cull drawn rows and columns to the view (a flipped table has one column per record)
+        // Cull drawn rows to the view (a flipped table has one column per record)
         double viewTop = cullTop - tableY;
         double viewBottom = cullBottom - tableY;
-        double viewLeft = cullLeft;
-        double viewRight = cullRight;
+
+        // A pinned header is worked out first: tables in opened cells below it stick under it
+        double pinned = pin && !exporting
+                ? GridCanvasView.pinnedHeaderTop(table, tableY, cullTop + stickyTop) : Double.NaN;
+        double outerSticky = stickyTop;
+        if (!Double.isNaN(pinned)) {
+            stickyTop = pinned + table.drawnRowHeight(0) - cullTop;
+        }
 
         view.gc.setTextBaseline(VPos.CENTER);
-        for (int dr = 0; dr < drawnRows; dr++) {
-            double rowTopRel = table.drawnRowTop(dr);
-            double rowHeight = table.drawnRowHeight(dr);
-            if (rowTopRel + rowHeight < viewTop) {
-                continue;
-            }
-            if (rowTopRel > viewBottom) {
-                break;
-            }
-            double rowTop = tableY + rowTopRel;
-            for (int dc = 0; dc < drawnCols; dc++) {
-                double colX = table.drawnColumnX(dc);
-                double colWidth = table.drawnColumnWidth(dc);
-                if (colX + colWidth < viewLeft) {
+        try {
+            for (int dr = 0; dr < drawnRows; dr++) {
+                double rowTopRel = table.drawnRowTop(dr);
+                double rowHeight = table.drawnRowHeight(dr);
+                if (rowTopRel + rowHeight < viewTop) {
                     continue;
                 }
-                if (colX > viewRight) {
+                if (rowTopRel > viewBottom) {
                     break;
                 }
-                RepeatingElementsTable.DrawnCell cell = table.cellAt(dr, dc);
-                switch (cell.kind()) {
-                    case CORNER -> drawCornerCell(colX, rowTop, colWidth, rowHeight);
-                    case COLUMN_HEADER -> drawColumnHeaderCell(table, table.getColumn(cell.columnIndex()),
-                            colX, rowTop, colWidth, rowHeight);
-                    case ROW_NUMBER -> {
-                        drawRowNumberCell(table, cell.rowIndex(), colX, rowTop, colWidth, rowHeight);
-                        if (view.problemsOfMember(tableRow, cell.rowIndex()) != null) {
-                            drawProblemMarker(colX + colWidth + 14, rowTop + GridCanvasView.ROW_HEIGHT / 2);
-                        }
-                    }
-                    case DATA -> drawDataCell(table, cell.rowIndex(), cell.columnIndex(),
-                            colX, rowTop, colWidth, rowHeight);
-                    default -> { }
-                }
+                drawTableRow(table, tableRow, dr, tableY + rowTopRel, rowHeight);
             }
+        } finally {
+            stickyTop = outerSticky;
         }
 
         // -- Table outer border --
         view.gc.setStroke(tableBorder);
         view.gc.setLineWidth(1);
         view.gc.strokeRect(tableX + 0.5, tableY + 0.5, tableWidth, tableHeight);
+
+        // -- Sticky header: drawn row 0 again at the top of the viewport (or below an outer one) --
+        if (!Double.isNaN(pinned)) {
+            double headerHeight = table.drawnRowHeight(0);
+            view.pinnedHeaders.put(table, pinned);
+            drawTableRow(table, tableRow, 0, pinned, headerHeight);
+            double bottom = pinned + headerHeight;
+            view.gc.setFill(tableBorder.deriveColor(0, 1, 1, 0.35));
+            view.gc.fillRect(tableX + 1, bottom + 1, tableWidth, 2);
+            view.gc.setStroke(tableBorder);
+            view.gc.setLineWidth(1);
+            view.gc.strokeLine(tableX + 0.5, bottom + 0.5, tableX + tableWidth + 0.5, bottom + 0.5);
+            view.gc.strokeLine(tableX + 0.5, pinned, tableX + 0.5, bottom);
+            view.gc.strokeLine(tableX + tableWidth + 0.5, pinned, tableX + tableWidth + 0.5, bottom);
+        }
+    }
+
+    /**
+     * Draws one drawn row of a table, culled to the visible columns.
+     *
+     * @param table     the table
+     * @param tableRow  the FlatRow that owns the table
+     * @param dr        the drawn row
+     * @param rowTop    the row's top (screen coordinates)
+     * @param rowHeight the row's height
+     */
+    private void drawTableRow(RepeatingElementsTable table, FlatRow tableRow, int dr, double rowTop, double rowHeight) {
+        int drawnCols = table.drawnColumnCount();
+        for (int dc = 0; dc < drawnCols; dc++) {
+            double colX = table.drawnColumnX(dc);
+            double colWidth = table.drawnColumnWidth(dc);
+            if (colX + colWidth < cullLeft) {
+                continue;
+            }
+            if (colX > cullRight) {
+                break;
+            }
+            RepeatingElementsTable.DrawnCell cell = table.cellAt(dr, dc);
+            switch (cell.kind()) {
+                case CORNER -> drawCornerCell(colX, rowTop, colWidth, rowHeight);
+                case COLUMN_HEADER -> drawColumnHeaderCell(table, table.getColumn(cell.columnIndex()),
+                        colX, rowTop, colWidth, rowHeight);
+                case ROW_NUMBER -> {
+                    drawRowNumberCell(table, cell.rowIndex(), colX, rowTop, colWidth, rowHeight);
+                    if (view.problemsOfMember(tableRow, cell.rowIndex()) != null) {
+                        drawProblemMarker(colX + colWidth + 14, rowTop + GridCanvasView.ROW_HEIGHT / 2);
+                    }
+                }
+                case DATA -> drawDataCell(table, cell.rowIndex(), cell.columnIndex(),
+                        colX, rowTop, colWidth, rowHeight);
+                default -> { }
+            }
+        }
     }
 
     private void drawHeaderCellFrame(double x, double y, double w, double h, Color fill) {
@@ -1092,7 +1140,7 @@ final class GridPainter<N> {
                 if (row.hasRepeatingTable() && row.isExpanded()) {
                     double top = g.y()[i];
                     if (top + g.height()[i] >= cullTop && top <= cullBottom) {
-                        renderInlineTable(row, top);
+                        renderInlineTable(row, top, true);
                     }
                 }
             }

@@ -204,7 +204,7 @@ final class GridDragSupport<N> {
         if (table == null || table.isFlipped() || table.getColumnSeparatorAt(p.lx(), RESIZE_HANDLE) >= 0) {
             return null;
         }
-        int dr = table.drawnRowAt(p.ly() - p.tableTop());
+        int dr = view.drawnRowAtView(table, p.ly(), p.tableTop());
         int dc = table.drawnColumnAt(p.lx());
         if (dr != 0 || dc < 1) {
             return null;

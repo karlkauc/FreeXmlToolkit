@@ -48,7 +48,7 @@ final class GridTableInteraction<N> {
      */
     void handleTableClick(MouseEvent event, RepeatingElementsTable table,
                                    double mx, double my, double tableScreenTop, FlatRow tableOwner) {
-        int dr = table.drawnRowAt(my - tableScreenTop);
+        int dr = view.drawnRowAtView(table, my, tableScreenTop);
         if (dr == 0) {
             // A resize handle in the column-header row (the last column's lies on the table's
             // right edge, outside every drawn column): double-click returns to automatic width
@@ -453,7 +453,7 @@ final class GridTableInteraction<N> {
             hoveredTableColumnIndex = -1;
         }
 
-        int dr = table.drawnRowAt(my - tableScreenTop);
+        int dr = view.drawnRowAtView(table, my, tableScreenTop);
         int dc = table.drawnColumnAt(mx);
         int rowIdx = -1;
         int colIdx = -1;

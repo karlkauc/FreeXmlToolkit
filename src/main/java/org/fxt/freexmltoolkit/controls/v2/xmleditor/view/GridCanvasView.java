@@ -1495,6 +1495,51 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         return true;
     }
 
+    // ==================== Sticky table headers ====================
+
+    /**
+     * The header rows (drawn row 0) of the tables pinned below the scroll header in the last
+     * render: table → the pinned header's top in its grid's coordinates (viewport units for the
+     * root grid, the opened cell's grid for nested tables). Recorded by the
+     * painter, read by the hit tests so clicks on a pinned header act like clicks on the real one.
+     */
+    final java.util.Map<RepeatingElementsTable, Double> pinnedHeaders = new java.util.IdentityHashMap<>();
+
+    /**
+     * Where a table's header row sticks while the table runs through the viewport: just below
+     * {@code stickyTop}, pushed up by the table's end so it never covers the last row.
+     *
+     * @param table     a table of the root grid
+     * @param tableTop  the table's top in viewport units
+     * @param stickyTop the top of the free area (below the scroll header)
+     * @return the pinned header's top in viewport units, or {@code NaN} when the header shows in place
+     */
+    static double pinnedHeaderTop(RepeatingElementsTable table, double tableTop, double stickyTop) {
+        int rows = table.drawnRowCount();
+        if (rows < 3 || tableTop >= stickyTop || tableTop + table.getHeight() <= stickyTop) {
+            return Double.NaN;
+        }
+        double limit = tableTop + table.getHeight() - table.drawnRowHeight(0) - table.drawnRowHeight(rows - 1);
+        double pinned = Math.min(stickyTop, limit);
+        return pinned > tableTop ? pinned : Double.NaN;
+    }
+
+    /**
+     * The drawn row of a table under a point, taking a pinned header into account.
+     *
+     * @param table    the table
+     * @param ly       the point's y in the table's grid coordinates
+     * @param tableTop the table's top in the same coordinates
+     * @return the drawn row (0 inside a pinned header), or -1 outside the table
+     */
+    int drawnRowAtView(RepeatingElementsTable table, double ly, double tableTop) {
+        Double pinned = pinnedHeaders.get(table);
+        if (pinned != null && ly >= pinned && ly < pinned + table.drawnRowHeight(0)) {
+            return 0;
+        }
+        return table.drawnRowAt(ly - tableTop);
+    }
+
     /** @return the visible-row indices of the row's ancestors, outermost first */
     List<Integer> ancestorIndices(int rowIndex) {
         List<Integer> indices = new ArrayList<>();
@@ -2273,7 +2318,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         if (table == null) {
             return new Pointer(block, ox, oy, row, rowTop, null, 0, null, lx, ly);
         }
-        int dr = table.drawnRowAt(ly - tableTop);
+        int dr = drawnRowAtView(table, ly, tableTop);
         int dc = table.drawnColumnAt(lx);
         RepeatingElementsTable.DrawnCell cell = dr >= 0 && dc >= 0 ? table.cellAt(dr, dc) : null;
         if (cell != null && cell.kind() == RepeatingElementsTable.CellKind.DATA
