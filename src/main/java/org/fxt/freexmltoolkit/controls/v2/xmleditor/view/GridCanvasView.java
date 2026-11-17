@@ -407,6 +407,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 hScrollBar.setValue(hScrollBar.getMax());
             }
         }
+        applyPendingScroll();
     }
 
     /**
@@ -500,11 +501,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     void rebuildTree() {
         rebuildCount++;
-        // Remember expand state (at any depth), open cells and selection by stable key
-        if (selectedRow != null) {
-            viewState.setSelectedKey(stateKey(selectedRow, keyOf(selectedRow)));
-        }
-        saveCellExpansion();
+        captureLiveState();
 
         if (!adapter.hasDocument()) {
             allRows = new ArrayList<>();
@@ -3474,6 +3471,14 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * Remembers, for every row that exists now — the root's and those inside opened cells, at any
      * depth — its expand state, and for every built table its opened cells ("row:column").
      */
+    /** Writes what the rows show now - expand state at any depth, open cells, selection - into the view state. */
+    private void captureLiveState() {
+        if (selectedRow != null) {
+            viewState.setSelectedKey(stateKey(selectedRow, keyOf(selectedRow)));
+        }
+        saveCellExpansion();
+    }
+
     private void saveCellExpansion() {
         for (FlatRow row : allRows) {
             saveLiveState(row);
@@ -3703,6 +3708,42 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     /** @return the view state (expand state, selection, column widths, table toggles) */
     public GridViewState getViewState() {
         return viewState;
+    }
+
+    /** Scroll offsets to restore once the canvas is laid out ({@code < 0} = none), see {@link #adoptViewState}. */
+    private double pendingScrollX = -1;
+    private double pendingScrollY = -1;
+
+    /**
+     * Continues where the canvas this one replaces left off - same document, parsed again after its text changed
+     * outside the grid: expanded rows, selection, column widths, table choices, filters and the scroll position.
+     */
+    public void adoptViewState(GridCanvasView<?> previous) {
+        if (previous == null) {
+            return;
+        }
+        previous.captureLiveState();
+        viewState.copyFrom(previous.viewState);
+        pendingScrollX = previous.scrollOffsetX;
+        pendingScrollY = previous.scrollOffsetY;
+        rebuildTree();
+    }
+
+    /** Applies a scroll position taken over by {@link #adoptViewState} as soon as the viewport has a size. */
+    private void applyPendingScroll() {
+        if ((pendingScrollX < 0 && pendingScrollY < 0) || viewportHeightModel() <= 0) {
+            return;
+        }
+        if (pendingScrollY >= 0 && !vScrollBar.isDisabled()) {
+            vScrollBar.setValue(Math.min(pendingScrollY, vScrollBar.getMax()));
+            scrollOffsetY = vScrollBar.getValue();
+        }
+        if (pendingScrollX >= 0 && !hScrollBar.isDisabled()) {
+            hScrollBar.setValue(Math.min(pendingScrollX, hScrollBar.getMax()));
+            scrollOffsetX = hScrollBar.getValue();
+        }
+        pendingScrollX = -1;
+        pendingScrollY = -1;
     }
 
     // ==================== Display settings ====================

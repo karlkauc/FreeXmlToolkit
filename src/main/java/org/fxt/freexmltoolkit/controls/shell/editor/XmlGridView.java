@@ -98,6 +98,17 @@ public class XmlGridView extends GridViewShell {
         setContext(ctx);
     }
 
+    /** Whether the next {@link #setContext} continues where the current canvas is, see {@link #keepViewStateOnNextContext}. */
+    private boolean keepViewState;
+
+    /**
+     * The next context shown is the same document parsed again (its text changed outside the grid): the new
+     * canvas keeps expanded rows, selection, column widths, filters and the scroll position of the current one.
+     */
+    public void keepViewStateOnNextContext() {
+        keepViewState = true;
+    }
+
     /**
      * Renders the given (already parsed) editor context — the shell shares ONE
      * {@link XmlEditorContext} across its Text/Tree/Grid views, so edits and undo history are
@@ -110,6 +121,8 @@ public class XmlGridView extends GridViewShell {
         if (ctx == this.context && showsCanvas(XmlCanvasView.class)) {
             return; // already showing this context
         }
+        XmlCanvasView previous = keepViewState ? canvasView : null;
+        keepViewState = false;
         getChildren().clear();
         this.context = ctx;
         this.canvasView = null;
@@ -136,6 +149,7 @@ public class XmlGridView extends GridViewShell {
             }
         });
         installCanvas(view);
+        view.adoptViewState(previous);
         if (problems != null) {
             view.setProblems(problems);
         }

@@ -95,6 +95,17 @@ public class JsonGridView extends GridViewShell {
         rebuildSecondary();
     }
 
+    /** Whether the next {@link #setContext} continues where the current canvas is, see {@link #keepViewStateOnNextContext}. */
+    private boolean keepViewState;
+
+    /**
+     * The next context shown is the same document parsed again (its text changed outside the grid): the new
+     * canvas keeps expanded rows, selection, column widths and the scroll position of the current one.
+     */
+    public void keepViewStateOnNextContext() {
+        keepViewState = true;
+    }
+
     /**
      * Renders the given (already parsed) editor context — the shell shares ONE
      * {@link JsonEditorContext} across its Text/Tree/Grid views, so edits and undo history are
@@ -107,6 +118,8 @@ public class JsonGridView extends GridViewShell {
         if (ctx == this.context && showsCanvas(JsonCanvasView.class)) {
             return; // already showing this context
         }
+        JsonCanvasView previous = keepViewState ? canvasView : null;
+        keepViewState = false;
         getChildren().clear();
         this.context = ctx;
         this.canvasView = null;
@@ -133,6 +146,7 @@ public class JsonGridView extends GridViewShell {
             }
         });
         installCanvas(view);
+        view.adoptViewState(previous);
         if (problems != null) {
             applySourceText(view);
             view.setProblems(problems);

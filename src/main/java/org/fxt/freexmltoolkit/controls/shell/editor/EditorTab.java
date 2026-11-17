@@ -223,6 +223,12 @@ final class EditorTab extends Tab {
             // A text replaced from outside (reload from disk) wins over grid edits not yet written:
             // the model is re-parsed from it, never serialized over it.
             markXmlTextCurrent();
+            if (viewMode.isStructured() && !structuredRefreshQueued) {
+                // edits of the text while Tree/Graphic shows (text edits of panel actions, quick fixes,
+                // editor undo): rebuild the view once the change is complete
+                structuredRefreshQueued = true;
+                Platform.runLater(this::refreshStructuredFromText);
+            }
         });
         contentStack.getChildren().add(view.getNode());
         // Overlay sits ABOVE contentStack (not inside it) so showOnly() — which toggles
@@ -3064,6 +3070,50 @@ final class EditorTab extends Tab {
             boolean visible = child == node;
             child.setVisible(visible);
             child.setManaged(visible);
+        }
+    }
+
+    /** A {@link #refreshStructuredFromText} is queued for the current text change. */
+    private boolean structuredRefreshQueued;
+
+    /**
+     * Rebuilds the shown Tree / Graphic view of an XML or JSON document whose text changed without its model -
+     * a panel action's text edits, a quick fix, an editor undo. The views' own edits write the text and mark the
+     * model current, so they rebuild nothing. The grid keeps its expanded rows, selection and scroll position;
+     * the Tree selects the node it showed.
+     */
+    private void refreshStructuredFromText() {
+        structuredRefreshQueued = false;
+        if (!viewMode.isStructured() || pendingViewMode != null || isAbandoned(this)) {
+            return;
+        }
+        boolean json = usesJsonModel();
+        boolean behind = json ? jsonEditorContext != null && lastParsedJsonRevision != textRevision
+                : document.getFileType() != EditorFileType.XSD && xmlEditorContext != null
+                        && lastParsedXmlRevision != textRevision;
+        if (!behind) {
+            return;
+        }
+        boolean grid = viewMode == ViewMode.GRAPHIC && (json ? jsonGridView != null : xmlGridView != null);
+        // the selected node (a table row or cell too), found again by its place in the new model
+        ViewAnchor anchor = captureAnchor();
+        if (grid && json) {
+            jsonGridView.keepViewStateOnNextContext();
+        } else if (grid) {
+            xmlGridView.keepViewStateOnNextContext();
+        }
+        ViewMode mode = viewMode;
+        showViewModeAfterTextChange(mode);
+        if (anchor != null && pendingViewMode == null && viewMode == mode) {
+            restoreAnchor(anchor);
+        }
+    }
+
+    /** {@link #setViewMode} for the mode already shown: parses the changed text (in the background when large). */
+    private void showViewModeAfterTextChange(ViewMode mode) {
+        setViewMode(mode);
+        if (pendingViewMode == null) { // otherwise the background parse reports it when done
+            viewModeAppliedCallback.run();
         }
     }
 

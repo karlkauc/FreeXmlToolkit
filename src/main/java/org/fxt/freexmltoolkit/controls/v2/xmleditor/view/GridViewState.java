@@ -181,4 +181,31 @@ public final class GridViewState {
             flipped.remove(groupKey);
         }
     }
+
+    // ==================== Hand-over ====================
+
+    /**
+     * Takes over everything another state remembers - for a canvas that replaces one over the same document
+     * (the text changed outside the grid and was parsed again): the stable keys still name the same nodes.
+     */
+    public void copyFrom(GridViewState other) {
+        if (other == null || other == this) {
+            return;
+        }
+        expanded.clear();
+        expanded.putAll(other.expanded);
+        selectedKey = other.selectedKey;
+        nameColumnWidths.clear();
+        nameColumnWidths.putAll(other.nameColumnWidths);
+        tablesOff.clear();
+        tablesOff.addAll(other.tablesOff);
+        flipped.clear();
+        flipped.addAll(other.flipped);
+        filters.clear();
+        filters.putAll(other.filters);
+        filtersOff.clear();
+        filtersOff.addAll(other.filtersOff);
+        cellExpansion.clear();
+        other.cellExpansion.forEach((k, v) -> cellExpansion.put(k, new java.util.LinkedHashSet<>(v)));
+    }
 }

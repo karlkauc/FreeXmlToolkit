@@ -11,6 +11,10 @@ running is shown under **Help → About FreeXmlToolkit**.
   share class or segment, two decimals - inserts `TotalPercentage` where it is missing and corrects wrong values.
   A dialog shows what changes first; the document keeps its formatting and one Undo takes everything back. See
   [FundsXML Extensions](fundsxml-extensions.md#position-weights-totalpercentage).
+- **Tree and Graphic views follow changes to the text.** When an action changes the document while the Tree or the
+  Graphic view is shown - setting the position weights, a Schematron quick fix, *Fix ISIN … in Every Place*, Undo -
+  the view shows the result at once instead of after the next switch; the grid keeps its expanded rows, selection
+  and scroll position.
 - **37 more FundsXML data-quality checks.** *Run Data Quality Checks* now runs 54 checks: units × price and nominal ×
   price against the market value, position weights against their value, exchange rates, FX forwards, duplicate
   assets, transactions and prices, positions whose ISIN or currency differs from the master data, NAV dates after

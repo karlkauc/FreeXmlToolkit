@@ -147,6 +147,40 @@ class FundsXmlPanelTest {
         }
     }
 
+    @Test
+    void theGridShowsTheSetWeights() throws Exception {
+        String fixture;
+        try (var in = getClass().getResourceAsStream("/fundsxml/dq-fixture.xml")) {
+            fixture = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        }
+        String without = fixture.replace("\n                <TotalPercentage>60.00</TotalPercentage>", "");
+        FundsXmlPanel panel = WaitForAsyncUtils.waitForAsyncFx(3000, () -> new FundsXmlPanel(host));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openGeneratedDocument(without, EditorFileType.XML, "fund.xml"));
+        WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("FundsXML4")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveViewMode(ViewMode.GRAPHIC);
+            return null;
+        });
+        EditorTab tab = WaitForAsyncUtils.waitForAsyncFx(2000, () -> (EditorTab) host.lookupAll(".tab-pane").stream()
+                .map(n -> ((javafx.scene.control.TabPane) n).getSelectionModel().getSelectedItem())
+                .filter(EditorTab.class::isInstance).findFirst().orElseThrow());
+        java.util.function.Supplier<String> grid = () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> tab.xmlGridView.getCanvasView().getAdapter().serialize());
+        assertFalse(grid.get().contains("60.00"));
+        try {
+            FundsXmlPanel.percentagesConfirmer = text -> true;
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                panel.onPercentages();
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS, () -> grid.get().contains("60.00"));
+            assertEquals(ViewMode.GRAPHIC, tab.viewMode);
+        } finally {
+            FundsXmlPanel.percentagesConfirmer = null;
+        }
+    }
+
     private static Node findNode(Node root, java.util.function.Predicate<Node> match) {
         if (match.test(root)) {
             return root;
