@@ -103,13 +103,13 @@
                             </columnConstraints>
                             <children>
                                 <Label text="%PkMeldewesenPanel.tolerance.text" wrapText="true" GridPane.rowIndex="0"/>
-                                <TextField fx:id="tolerance" id="pk-tolerance" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                                <TextField fx:id="tolerance" id="pk-tolerance" styleClass="fxt-number-field" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
                                 <Label text="%PkMeldewesenPanel.toleranceWarning.text" wrapText="true" GridPane.rowIndex="1"/>
-                                <TextField fx:id="toleranceWarning" id="pk-tolerance-warning" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                                <TextField fx:id="toleranceWarning" id="pk-tolerance-warning" styleClass="fxt-number-field" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
                                 <Label text="%PkMeldewesenPanel.lookThroughAsset.text" wrapText="true" GridPane.rowIndex="2"/>
-                                <TextField fx:id="lookThroughAsset" id="pk-look-through-asset" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                                <TextField fx:id="lookThroughAsset" id="pk-look-through-asset" styleClass="fxt-number-field" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
                                 <Label text="%PkMeldewesenPanel.lookThroughTotal.text" wrapText="true" GridPane.rowIndex="3"/>
-                                <TextField fx:id="lookThroughTotal" id="pk-look-through-total" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                                <TextField fx:id="lookThroughTotal" id="pk-look-through-total" styleClass="fxt-number-field" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
                             </children>
                         </GridPane>
                     </children>
@@ -123,7 +123,7 @@
                     <children>
                         <Label fx:id="taxonomyLabel" id="pk-taxonomy" wrapText="true"/>
                         <Label text="%PkMeldewesenPanel.version.text"/>
-                        <ComboBox fx:id="versionCombo" id="pk-taxonomy-version" maxWidth="Infinity"/>
+                        <ComboBox fx:id="versionCombo" id="pk-taxonomy-version" maxWidth="Infinity" styleClass="fxt-neutral-combo"/>
                     </children>
                 </VBox>
                 <PanelActionList>

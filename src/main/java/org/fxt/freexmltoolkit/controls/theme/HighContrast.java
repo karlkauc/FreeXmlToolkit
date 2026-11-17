@@ -32,7 +32,8 @@ public final class HighContrast {
             DesignTokens.ColorToken.CODE_KEYWORD, DesignTokens.ColorToken.CODE_DECL);
     /** Border-like tokens, raised to {@link #BORDER}. */
     static final List<DesignTokens.ColorToken> BORDER_TOKENS = List.of(
-            DesignTokens.ColorToken.BORDER_DEFAULT, DesignTokens.ColorToken.PRIMARY, DesignTokens.ColorToken.CODE_PUNCT);
+            DesignTokens.ColorToken.BORDER_DEFAULT, DesignTokens.ColorToken.INPUT_BORDER, DesignTokens.ColorToken.PRIMARY,
+            DesignTokens.ColorToken.CODE_PUNCT);
 
     private HighContrast() {
     }

@@ -39,6 +39,7 @@
     -fxt-bg-surface-2: #f2f4f8;   /* aligned with Figma bg/surface-2 */
     -fxt-bg-subtle: #e8f1fc;
     -fxt-border: #dde1e7;
+    -fxt-input-border: #7d8590;   /* edge of text fields and combo boxes: 3:1 on surface and canvas (WCAG 1.4.11) */
 
     /* Text */
     -fxt-text-primary: #1a1d21;
@@ -135,6 +136,7 @@
     -fxt-bg-surface-2: #1c232c;
     -fxt-bg-subtle: #14304f;
     -fxt-border: #2a323d;
+    -fxt-input-border: #5f6b7a;   /* 3:1 on surface (WCAG 1.4.11) */
 
     /* Text */
     -fxt-text-primary: #e6eaf0;

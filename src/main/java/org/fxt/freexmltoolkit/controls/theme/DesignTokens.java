@@ -63,6 +63,8 @@ public final class DesignTokens {
         BG_SURFACE_2("-fxt-bg-surface-2", "#f2f4f8", "#1c232c"),
         BG_SUBTLE("-fxt-bg-subtle", "#e8f1fc", "#14304f"),
         BORDER_DEFAULT("-fxt-border", "#dde1e7", "#2a323d"),
+        /** Edge of text fields and combo boxes: at least 3:1 on surface and canvas, so an input is seen as one. */
+        INPUT_BORDER("-fxt-input-border", "#7d8590", "#5f6b7a"),
 
         TEXT_PRIMARY("-fxt-text-primary", "#1a1d21", "#e6eaf0"),
         TEXT_SECONDARY("-fxt-text-secondary", "#5a6472", "#9ba6b3"),

@@ -3391,14 +3391,50 @@
     -fx-padding: 4 0 0 0;
 }
 
-/* Text inputs on the white page cards (Settings, Signature, Schema Library): the base themes
-   paint them white without an edge, which makes them invisible on a white card. */
+/* Text inputs on the white page cards (Settings, Signature, Schema Library) and in the side panels (extension
+   panels: identifier, check options …): the base themes paint them white without an edge, which makes them
+   invisible on a white card or panel. An input edge (3:1), a stronger one on hover, the primary colour with a
+   ring when focused. */
 .fxt-settings-page .text-field,
 .fxt-sign-card .text-field,
-.fxt-page-card .text-field {
-    -fx-background-color: -fxt-border, -fxt-bg-surface;
+.fxt-page-card .text-field,
+.fxt-tp-section-body .text-field {
+    -fx-background-color: -fxt-input-border, -fxt-bg-surface;
     -fx-background-insets: 0, 1;
     -fx-background-radius: 6, 5;
+    -fx-border-color: transparent;
+    -fx-prompt-text-fill: -fxt-text-muted;
+    -fx-cursor: text;
+}
+
+.fxt-tp-section-body .text-field {
+    -fx-padding: 5 8 5 8;
+}
+
+.fxt-settings-page .text-field:hover,
+.fxt-sign-card .text-field:hover,
+.fxt-page-card .text-field:hover,
+.fxt-tp-section-body .text-field:hover {
+    -fx-background-color: -fxt-text-secondary, -fxt-bg-surface;
+}
+
+.fxt-settings-page .text-field:focused,
+.fxt-sign-card .text-field:focused,
+.fxt-page-card .text-field:focused,
+.fxt-tp-section-body .text-field:focused {
+    -fx-background-color: -fxt-primary, -fxt-bg-surface;
+    -fx-background-insets: 0, 2;
+    -fx-border-color: transparent;
+}
+
+/* number inputs (check options): right-aligned like figures */
+.text-field.fxt-number-field {
+    -fx-alignment: center-right;
+}
+
+/* combo boxes in the side panels: the same input edge as the text fields */
+.fxt-tp-section-body .combo-box.fxt-neutral-combo {
+    -fx-border-color: -fxt-input-border;
 }
 
 /* The Signature page card in the editor area (Figma 50:2). */
@@ -4063,7 +4099,7 @@
 .combo-box.fxt-neutral-combo {
     -fx-background-color: -fxt-bg-surface;
     -fx-background-radius: 6;
-    -fx-border-color: -fxt-border;
+    -fx-border-color: -fxt-input-border;
     -fx-border-radius: 6;
     -fx-padding: 0;
 }
