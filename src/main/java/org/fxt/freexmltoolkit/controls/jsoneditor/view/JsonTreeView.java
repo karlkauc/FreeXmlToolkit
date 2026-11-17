@@ -116,6 +116,11 @@ public class JsonTreeView extends VBox implements PropertyChangeListener,
         treeView = new TreeView<>();
         treeView.setShowRoot(true);
         treeView.setCellFactory(tv -> new JsonTreeCell());
+        org.fxt.freexmltoolkit.controls.shared.TreeScrollHeader.install(treeView, JsonTreeView::pathLabel, node -> {
+            IconifyIcon icon = new IconifyIcon(node.getNodeType().getIcon());
+            icon.setIconSize(14);
+            return icon;
+        });
         VBox.setVgrow(treeView, Priority.ALWAYS);
 
         // Selection listener
@@ -550,6 +555,18 @@ public class JsonTreeView extends VBox implements PropertyChangeListener,
         }
         treeView.getSelectionModel().select(match);
         treeView.scrollTo(treeView.getRow(match));
+    }
+
+    /** @return a node's name in the scroll header's path: its key, its array index, or {@code $} for the root */
+    static String pathLabel(JsonNode node) {
+        JsonNode parent = node.getParent();
+        if (parent == null || parent instanceof org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonDocument) {
+            return "$";
+        }
+        if (parent.getNodeType() == org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNodeType.ARRAY) {
+            return "[" + parent.indexOf(node) + "]";
+        }
+        return node.getKey() != null ? node.getKey() : node.getDisplayLabel();
     }
 
     // ==================== Tree Cell ====================

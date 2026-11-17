@@ -39,6 +39,13 @@ public class XmlInstanceTreeView extends TreeView<XmlNode> {
     public XmlInstanceTreeView() {
         getStyleClass().add("fxt-xml-tree");
         setCellFactory(tv -> new XmlNodeCell());
+        org.fxt.freexmltoolkit.controls.shared.TreeScrollHeader.install(this,
+                node -> node instanceof XmlElement element ? element.getQualifiedName() : node.getClass().getSimpleName(),
+                node -> {
+                    IconifyIcon icon = new IconifyIcon(XmlNodeIcons.icon(node));
+                    icon.setIconSize(14);
+                    return icon;
+                });
         getSelectionModel().selectedItemProperty().addListener((obs, oldItem, newItem) -> {
             if (newItem != null && onSelectionChanged != null) {
                 onSelectionChanged.accept(newItem.getValue());

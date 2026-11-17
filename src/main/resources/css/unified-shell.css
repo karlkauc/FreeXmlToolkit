@@ -5515,3 +5515,27 @@
 .fxt-gleif-name {
     -fx-font-weight: bold;
 }
+
+/* Sticky scroll header of the tree views (controls/shared/TreeScrollHeader): the parents of the
+   topmost visible row, laid over the top of the viewport */
+.fxt-tree-scroll-header {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-border-color: transparent transparent -fxt-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 2 8 2 8;
+    -fx-spacing: 4;
+}
+
+.fxt-tree-scroll-header-segment {
+    -fx-text-fill: -fxt-primary-text;
+    -fx-cursor: hand;
+    -fx-graphic-text-gap: 4;
+}
+
+.fxt-tree-scroll-header-segment:hover {
+    -fx-underline: true;
+}
+
+.fxt-tree-scroll-header-separator {
+    -fx-text-fill: -fxt-text-secondary;
+}

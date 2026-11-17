@@ -9,6 +9,9 @@ running is shown under **Help → About FreeXmlToolkit**.
 - **Table headers stay in view.** In the Graphic view of XML and JSON documents, the header row of a long table stays
   at the top while you scroll through it (inside opened cells too, stacked below the outer table's header), so you
   always see which column is which - and can still sort, select, move or resize columns there. See [Grid](grid.md).
+- **Know where you are in the Tree view.** While you scroll through the Tree view of an XML, JSON or XSD
+  document, a bar at the top shows the parents of the topmost row (`root › section › body`); click one to select
+  it and scroll back to it. See [XML Editor](xml-editor.md#tree-view).
 - **Open what you exported.** After every export - Excel, CSV, reports, view images, statistics, submission ZIPs,
   folders of generated files - a dialog says where it was saved and offers **Open** (in Excel, the browser …),
   **Show in Folder** and **OK**. *Don't show this again* switches to a short note with an Open link. See

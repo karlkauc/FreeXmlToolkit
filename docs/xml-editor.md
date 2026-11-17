@@ -94,6 +94,8 @@ The text editor provides:
 - Edit the selected node's properties in the Properties inspector - see
   [Properties Inspector](#properties-inspector)
 - Right-click for context menu options
+- While you scroll, a bar at the top shows the parents of the topmost row (`root › section › body`); click
+  one to select it and scroll back to it. The same bar appears in the Tree view of JSON and XSD documents.
 
 ### Graphic View (Grid)
 

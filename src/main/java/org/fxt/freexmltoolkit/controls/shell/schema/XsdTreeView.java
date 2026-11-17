@@ -36,6 +36,13 @@ public class XsdTreeView extends TreeView<XsdNode> implements XmlSearchTarget {
         getStyleClass().add("fxt-xsd-tree");
         setShowRoot(true);
         setCellFactory(tv -> new XsdNodeCell());
+        org.fxt.freexmltoolkit.controls.shared.TreeScrollHeader.install(this,
+                node -> node.getName() != null && !node.getName().isBlank() ? node.getName() : XsdNodeLabels.displayText(node),
+                node -> {
+                    IconifyIcon icon = new IconifyIcon(XsdNodeLabels.icon(node.getNodeType()));
+                    icon.setIconSize(14);
+                    return icon;
+                });
     }
 
     /** Installs the shared node-editing context menu wired to the actions. */
