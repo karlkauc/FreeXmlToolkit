@@ -212,7 +212,7 @@ Opt-in integration with the [FundsXML](https://fundsxml.org/) industry standard 
 | **Quick-Validate** | Check any open XML against the active FundsXML schema with one click in the FundsXML panel |
 | **Schematron Rules** | Ready-made business-rule checks for FundsXML documents |
 | **Query Snippets** | Pre-built XPath/XQuery expressions, ready to load in the Query Console |
-| **Data-Quality Checks** | 17 checks (ISIN/LEI, weights, positions vs. NAV, master data …) with a report, also in every validation |
+| **Data-Quality Checks** | 54 checks with severity — error, warning, hint (ISIN/LEI, weights, positions vs. NAV, prices × units, dates, FX rates, master data …) with a report, also in every validation |
 | **Grid Formulas & Filters** | Counts, sums per currency, weights and filters added to a document for the Grid view |
 
 This feature is **off by default**. Enable it from Settings only if you work with FundsXML files - when you open a FundsXML document, the app offers to enable it once.

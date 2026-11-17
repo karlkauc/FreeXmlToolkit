@@ -1,108 +1,438 @@
 {
-  "comment": "FundsXML 4 data-quality checks (XQuery 3.1). Each check returns one text per finding; none = passed. The prolog is put in front of every check. Developed and tested against the fundsxml/examples repository.",
+  "comment": "FundsXML 4 data-quality checks (XQuery 3.1). Each check returns one text per finding; none = passed. The prolog is put in front of every check. severity: error | warning | info (a hint). xpath: an XPath 3.1 expression without the prolog that selects the nodes the check reports (Query Console, documentation). Developed and tested against the fundsxml/examples repository.",
   "prolog": "declare function local:isin-ok($s as xs:string) as xs:boolean {\n  matches($s, '^[A-Z]{2}[A-Z0-9]{9}[0-9]$') and (\n    let $digits := string-join(for $c in string-to-codepoints(substring($s, 1, 11))\n                               return if ($c ge 65) then string($c - 55) else codepoints-to-string($c), '')\n    let $rev := reverse(string-to-codepoints($digits) ! (. - 48))\n    let $sum := sum(for $i in 1 to count($rev) return\n                      if ($i mod 2 = 1) then (let $x := $rev[$i] * 2 return if ($x gt 9) then $x - 9 else $x) else $rev[$i])\n    return (10 - $sum mod 10) mod 10 = xs:integer(substring($s, 12, 1)))\n};\ndeclare function local:lei-ok($s as xs:string) as xs:boolean {\n  matches($s, '^[A-Z0-9]{18}[0-9]{2}$') and\n  xs:integer(string-join(for $c in string-to-codepoints($s)\n                         return if ($c ge 65) then string($c - 55) else codepoints-to-string($c), '')) mod 97 = 1\n};\n(: Where a node is: the UniqueID of its position, asset or transaction, else its path :)\ndeclare function local:where($n as node()) as xs:string {\n  let $owner := $n/ancestor-or-self::*[UniqueID or TransactionID][1]\n  return if ($owner) then local-name($owner) || ' ' || ($owner/UniqueID, $owner/TransactionID)[1]\n         else string-join($n/ancestor-or-self::* ! local-name(), '/')\n};\ndeclare function local:fund($n as node()) as xs:string {\n  let $f := $n/ancestor-or-self::Fund[1]\n  return 'Fund ' || ($f/Names/OfficialName, $f/Identifiers/LEI, '?')[1]\n};\ndeclare function local:dec($s) as xs:decimal? { if ($s castable as xs:decimal) then xs:decimal($s) else () };\n(: The node a portfolio, its weights and values belong to: share class, segment, subfund or fund :)\ndeclare function local:owner-node($n as node()) as element()? {\n  $n/ancestor-or-self::*[self::ShareClass or self::Segment or self::Subfund or self::Fund][1]\n};\ndeclare function local:owner($n as node()) as xs:string {\n  let $o := local:owner-node($n)\n  return if (empty($o)) then '?'\n         else if ($o/self::Fund) then local:fund($o)\n         else (if ($o/self::ShareClass) then 'Share class ' else if ($o/self::Segment) then 'Segment ' else 'Subfund ')\n              || ($o/Identifiers/ISIN, $o/Names/OfficialName, $o/Identifiers/LEI, '?')[1]\n};\ndeclare function local:owner-ccy($n as node()) as xs:string {\n  string((local:owner-node($n)/Currency, $n/ancestor::Fund[1]/Currency)[1])\n};\n",
   "checks": [
     {
       "key": "control-data",
+      "severity": "warning",
       "name": "DQ: Control data complete",
       "description": "ControlData has UniqueDocumentID, DocumentGenerated, ContentDate and the data supplier's name.",
+      "xpath": "/FundsXML4[not(ControlData)] | /FundsXML4/ControlData[not(UniqueDocumentID and DocumentGenerated and ContentDate and DataSupplier/Name)]",
       "query": "let $c := /FundsXML4/ControlData return (\n  if (empty($c)) then local:at(/*, 'ControlData is missing') else (),\n  for $p in ('UniqueDocumentID', 'DocumentGenerated', 'ContentDate')\n  where exists($c) and empty($c/*[local-name() = $p])\n  return local:at($c, 'ControlData/' || $p || ' is missing'),\n  if (exists($c) and empty($c/DataSupplier/Name)) then local:at(($c/DataSupplier, $c)[1], 'ControlData/DataSupplier/Name is missing') else ())"
     },
     {
       "key": "content-date",
+      "severity": "warning",
       "name": "DQ: Content date not in the future",
       "description": "The ContentDate is not later than today.",
+      "xpath": "/FundsXML4/ControlData/ContentDate[. castable as xs:date][xs:date(.) gt current-date()]",
       "query": "for $d in /FundsXML4/ControlData/ContentDate[. castable as xs:date]\nwhere xs:date($d) gt current-date()\nreturn local:at($d, 'ContentDate ' || $d || ' is in the future')"
     },
     {
       "key": "isin",
+      "severity": "warning",
       "name": "DQ: ISIN check digits",
       "description": "Every ISIN has 12 characters and a correct check digit (ISO 6166).",
+      "xpath": "//ISIN[let $s := normalize-space(.) return not(if (matches($s, '^[A-Z]{2}[A-Z0-9]{9}[0-9]$')) then (let $d := string-join(string-to-codepoints(substring($s, 1, 11)) ! (if (. ge 65) then string(. - 55) else codepoints-to-string(.))), $r := reverse(string-to-codepoints($d) ! (. - 48)), $sum := sum(for $i in 1 to count($r) return if ($i mod 2 = 1) then (let $x := $r[$i] * 2 return if ($x gt 9) then $x - 9 else $x) else $r[$i]) return (10 - $sum mod 10) mod 10 = xs:integer(substring($s, 12, 1))) else false())]",
       "query": "for $i in //ISIN[not(local:isin-ok(normalize-space(.)))]\nreturn local:at($i, local:where($i) || ': ISIN ' || $i || ' is invalid')"
     },
     {
       "key": "lei",
+      "severity": "warning",
       "name": "DQ: LEI check digits",
       "description": "Every LEI has 20 characters and correct check digits (ISO 17442).",
+      "xpath": "//LEI[let $s := normalize-space(.) return not(if (matches($s, '^[A-Z0-9]{18}[0-9]{2}$')) then xs:integer(string-join(string-to-codepoints($s) ! (if (. ge 65) then string(. - 55) else codepoints-to-string(.)))) mod 97 = 1 else false())]",
       "query": "for $l in //LEI[not(local:lei-ok(normalize-space(.)))]\nreturn local:at($l, local:where($l) || ': LEI ' || $l || ' is invalid')"
     },
     {
       "key": "currency",
+      "severity": "warning",
       "name": "DQ: Currency codes",
       "description": "Currencies and ccy attributes are three capital letters (ISO 4217).",
+      "xpath": "//*[local-name() = ('Currency', 'CurrencyBuy', 'CurrencySell', 'PriceCurrency', 'SettlementCurrency')][not(*)][not(matches(normalize-space(.), '^[A-Z]{3}$'))] | //@ccy[not(matches(., '^[A-Z]{3}$'))]",
       "query": "(for $c in //*[local-name() = ('Currency', 'CurrencyBuy', 'CurrencySell', 'PriceCurrency', 'SettlementCurrency')][not(*)]\n  [not(matches(normalize-space(.), '^[A-Z]{3}$'))]\n  return local:at($c, local:where($c) || ': ' || local-name($c) || ' ' || $c || ' is no ISO 4217 code'),\n for $a in //@ccy[not(matches(., '^[A-Z]{3}$'))]\n  return local:at($a, local:where($a) || ': ccy=' || $a || ' is no ISO 4217 code'))"
     },
     {
       "key": "weights",
+      "severity": "warning",
       "name": "DQ: Position weights add up to 100 %",
       "description": "The TotalPercentage of all positions of a fund, share class, segment or subfund on a date (over all its own portfolios) add up to 100 % (± 0.5). Share-class portfolios are weighted against the share class, not the fund.",
+      "xpath": "//Portfolios[Portfolio/Positions/Position/TotalPercentage][some $d in distinct-values(Portfolio/NavDate) satisfies abs(sum(Portfolio[NavDate = $d]/Positions/Position/TotalPercentage[. castable as xs:decimal] ! xs:decimal(.)) - 100) gt 0.5]",
       "query": "for $ps in //Portfolios[Portfolio/Positions/Position/TotalPercentage], $d in distinct-values($ps/Portfolio/NavDate)\nlet $sum := sum($ps/Portfolio[NavDate = $d]/Positions/Position/TotalPercentage ! local:dec(.))\nwhere abs($sum - 100) gt 0.5\nreturn local:at(($ps/Portfolio[NavDate = $d])[1], local:owner($ps) || ', ' || $d || ': the position weights add up to ' || $sum || ' %')"
     },
     {
       "key": "value-vs-nav",
+      "severity": "warning",
       "name": "DQ: Positions vs. net asset value",
       "description": "The market values of all positions of a fund, share class, segment or subfund on a date (in its currency, over all its own portfolios) match its own total net asset value of that date (± 1 %).",
+      "xpath": "//Portfolios[Portfolio/Positions/Position][let $ps := ., $ccy := string((ancestor::*[self::ShareClass or self::Segment or self::Subfund or self::Fund][1]/Currency, ancestor::Fund[1]/Currency)[1]) return some $d in distinct-values(Portfolio/NavDate) satisfies (let $tna := ($ps/../TotalAssetValues/TotalAssetValue[NavDate = $d]/TotalNetAssetValue/Amount[@ccy = $ccy][. castable as xs:decimal])[1] ! xs:decimal(.), $sum := sum($ps/Portfolio[NavDate = $d]/Positions/Position/TotalValue/Amount[@ccy = $ccy][. castable as xs:decimal] ! xs:decimal(.)) return exists($tna) and $tna ne 0 and abs($sum - $tna) div abs($tna) gt 0.01)]",
       "query": "for $ps in //Portfolios[Portfolio/Positions/Position], $d in distinct-values($ps/Portfolio/NavDate)\nlet $ccy := local:owner-ccy($ps)\nlet $tna := local:dec(($ps/../TotalAssetValues/TotalAssetValue[NavDate = $d]/TotalNetAssetValue/Amount[@ccy = $ccy])[1])\nlet $sum := sum($ps/Portfolio[NavDate = $d]/Positions/Position/TotalValue/Amount[@ccy = $ccy] ! local:dec(.))\nwhere exists($tna) and $tna ne 0 and abs($sum - $tna) div abs($tna) gt 0.01\nreturn local:at(($ps/Portfolio[NavDate = $d])[1], local:owner($ps) || ', ' || $d || ': positions add up to ' || $sum || ' ' || $ccy || ', the net asset value is ' || $tna || ' ' || $ccy || ' (' || round(($sum - $tna) div $tna * 100, 2) || ' %)')"
     },
     {
       "key": "duplicate-positions",
+      "severity": "warning",
       "name": "DQ: No duplicate positions",
       "description": "A portfolio lists every position (UniqueID) once.",
+      "xpath": "//Positions/Position[UniqueID = preceding-sibling::Position/UniqueID]",
       "query": "for $ps in //Positions, $id in distinct-values($ps/Position/UniqueID)\nwhere count($ps/Position[UniqueID = $id]) gt 1\nreturn local:at($ps/Position[UniqueID = $id][2], local:fund($ps) || ': position ' || $id || ' appears ' || count($ps/Position[UniqueID = $id]) || ' times')"
     },
     {
       "key": "asset-master",
+      "severity": "warning",
       "name": "DQ: Positions have master data",
       "description": "Every portfolio position's UniqueID has an Asset in AssetMasterData (when the document has AssetMasterData).",
+      "xpath": "//Positions/Position[exists(/FundsXML4/AssetMasterData/Asset)][not(UniqueID = /FundsXML4/AssetMasterData/Asset/UniqueID)]",
       "query": "let $assets := /FundsXML4/AssetMasterData/Asset/UniqueID\nwhere exists($assets)\nreturn for $pos in //Positions/Position[not(UniqueID = $assets)]\n       return local:at($pos, 'Position ' || $pos/UniqueID || ' has no Asset in AssetMasterData')"
     },
     {
       "key": "unused-assets",
+      "severity": "warning",
       "name": "DQ: Unused master data",
       "description": "Assets in AssetMasterData that no position, transaction or earning refers to.",
+      "xpath": "/FundsXML4/AssetMasterData/Asset[not(UniqueID = (//Positions/Position/UniqueID, //Transaction/AssetUniqueID, //Earning/AssetUniqueID))]",
       "query": "let $used := (//Positions/Position/UniqueID, //Transaction/AssetUniqueID, //Earning/AssetUniqueID)\nfor $a in /FundsXML4/AssetMasterData/Asset[not(UniqueID = $used)]\nreturn local:at($a, 'Asset ' || $a/UniqueID || ' (' || $a/Name || ') is not used by any position, transaction or earning')"
     },
     {
       "key": "negative-values",
+      "severity": "warning",
       "name": "DQ: No negative values of securities",
       "description": "Equities, bonds, fund shares, certificates and warrants have no negative market value.",
+      "xpath": "//Positions/Position[Equity or Bond or ShareClass or Certificate or Warrant][xs:decimal((TotalValue/Amount)[1][. castable as xs:decimal]) lt 0]",
       "query": "for $pos in //Positions/Position[Equity or Bond or ShareClass or Certificate or Warrant]\nlet $v := local:dec(($pos/TotalValue/Amount)[1])\nwhere exists($v) and $v lt 0\nreturn local:at($pos, 'Position ' || $pos/UniqueID || ' has a negative value: ' || $v)"
     },
     {
       "key": "missing-identifier",
+      "severity": "warning",
       "name": "DQ: Securities have an identifier",
       "description": "Equities, bonds, fund shares, certificates and warrants carry an identifier (ISIN …).",
+      "xpath": "//Positions/Position[Equity or Bond or ShareClass or Certificate or Warrant][not(Identifiers/*)]",
       "query": "for $pos in //Positions/Position[Equity or Bond or ShareClass or Certificate or Warrant][not(Identifiers/*)]\nreturn local:at($pos, 'Position ' || $pos/UniqueID || ' has no identifier')"
     },
     {
       "key": "nav-dates",
+      "severity": "warning",
       "name": "DQ: Portfolio dates have a net asset value",
       "description": "Every portfolio's NavDate has a TotalAssetValue of the node it belongs to (fund, share class, segment, subfund) for that date.",
+      "xpath": "//Portfolio[NavDate][exists(../../TotalAssetValues/TotalAssetValue)][not(NavDate = ../../TotalAssetValues/TotalAssetValue/NavDate)]",
       "query": "for $p in //Portfolio[NavDate]\nlet $tavs := $p/../../TotalAssetValues/TotalAssetValue\nwhere exists($tavs) and not($p/NavDate = $tavs/NavDate)\nreturn local:at($p, local:owner($p) || ': no net asset value for the portfolio date ' || $p/NavDate)"
     },
     {
       "key": "share-classes-sum",
+      "severity": "warning",
       "name": "DQ: Share classes add up to the fund",
       "description": "The net asset values of the share classes (in fund currency) add up to the fund's (± 0.5 %) for each date.",
+      "xpath": "//Fund[SingleFund/ShareClasses/ShareClass/TotalAssetValues]/FundDynamicData/TotalAssetValues/TotalAssetValue[let $t := ., $f := ancestor::Fund[1], $ccy := string($f/Currency), $tna := ($t/TotalNetAssetValue/Amount[@ccy = $ccy][. castable as xs:decimal])[1] ! xs:decimal(.), $cl := $f/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue[NavDate = $t/NavDate]/TotalNetAssetValue/Amount[@ccy = $ccy][. castable as xs:decimal] return exists($tna) and exists($cl) and $tna ne 0 and abs(sum($cl ! xs:decimal(.)) - $tna) div abs($tna) gt 0.005]",
       "query": "for $f in //Fund[SingleFund/ShareClasses/ShareClass/TotalAssetValues]\nlet $ccy := string($f/Currency)\nfor $tav in $f/FundDynamicData/TotalAssetValues/TotalAssetValue\nlet $d := $tav/NavDate\nlet $tna := local:dec(($tav/TotalNetAssetValue/Amount[@ccy = $ccy])[1])\nlet $classes := $f/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue[NavDate = $d]/TotalNetAssetValue/Amount[@ccy = $ccy]\nlet $sum := sum($classes ! local:dec(.))\nwhere exists($tna) and exists($classes) and $tna ne 0 and abs($sum - $tna) div abs($tna) gt 0.005\nreturn local:at($tav, local:fund($f) || ', ' || $d || ': share classes add up to ' || $sum || ' ' || $ccy || ', the fund has ' || $tna || ' ' || $ccy)"
     },
     {
       "key": "price-x-shares",
+      "severity": "warning",
       "name": "DQ: Price × shares = share class value",
       "description": "NAV price × shares outstanding of a share class matches its net asset value (± 1 %).",
+      "xpath": "//ShareClass/TotalAssetValues/TotalAssetValue[let $t := ., $price := ($t/../../Prices/Price[NavDate = $t/NavDate])[1], $p := ($price/NavPrice[. castable as xs:decimal])[1] ! xs:decimal(.), $sh := ($t/SharesOutstanding[. castable as xs:decimal])[1] ! xs:decimal(.), $tna := (($t/TotalNetAssetValue/Amount[@ccy = $price/PriceCurrency], $t/TotalNetAssetValue/Amount)[. castable as xs:decimal])[1] ! xs:decimal(.) return exists($p) and exists($sh) and exists($tna) and $tna ne 0 and abs($p * $sh - $tna) div abs($tna) gt 0.01]",
       "query": "for $sc in //ShareClass[Prices/Price and TotalAssetValues/TotalAssetValue]\nfor $tav in $sc/TotalAssetValues/TotalAssetValue\nlet $price := $sc/Prices/Price[NavDate = $tav/NavDate][1]\nlet $p := local:dec(($price/NavPrice)[1])\nlet $shares := local:dec(($tav/SharesOutstanding)[1])\nlet $tna := local:dec(($tav/TotalNetAssetValue/Amount[@ccy = $price/PriceCurrency], $tav/TotalNetAssetValue/Amount)[1])\nwhere exists($p) and exists($shares) and exists($tna) and $tna ne 0 and abs($p * $shares - $tna) div abs($tna) gt 0.01\nreturn local:at($tav, 'Share class ' || ($sc/Identifiers/ISIN, $sc/Names/OfficialName)[1] || ', ' || $tav/NavDate || ': ' || $p || ' × ' || $shares || ' = ' || round($p * $shares, 2) || ', the net asset value is ' || $tna)"
     },
     {
       "key": "transaction-dates",
+      "severity": "warning",
       "name": "DQ: Transactions settle after entry",
       "description": "A transaction's ValutaDate is not before its EntryDate.",
+      "xpath": "//Transaction[ValutaDate castable as xs:date and EntryDate castable as xs:date][xs:date(ValutaDate) lt xs:date(EntryDate)]",
       "query": "for $t in //Transaction[ValutaDate castable as xs:date and EntryDate castable as xs:date]\nwhere xs:date($t/ValutaDate) lt xs:date($t/EntryDate)\nreturn local:at($t, 'Transaction ' || $t/TransactionID || ': ValutaDate ' || $t/ValutaDate || ' is before EntryDate ' || $t/EntryDate)"
     },
     {
       "key": "matured",
+      "severity": "warning",
       "name": "DQ: No matured instruments held",
       "description": "Positions in bonds, futures, options, swaps, warrants … whose maturity date is before the content date.",
+      "xpath": "/FundsXML4/AssetMasterData/Asset[/FundsXML4/ControlData/ContentDate castable as xs:date][(AssetDetails/*/MaturityDate)[1] castable as xs:date][xs:date((AssetDetails/*/MaturityDate)[1]) lt xs:date(/FundsXML4/ControlData/ContentDate)][UniqueID = //Positions/Position/UniqueID]",
       "query": "let $content := /FundsXML4/ControlData/ContentDate[. castable as xs:date] ! xs:date(.)\nwhere exists($content)\nreturn for $a in /FundsXML4/AssetMasterData/Asset[AssetDetails/*/MaturityDate castable as xs:date]\n       let $m := xs:date(($a/AssetDetails/*/MaturityDate)[1])\n       where $m lt $content and $a/UniqueID = //Positions/Position/UniqueID\n       return local:at($a, 'Asset ' || $a/UniqueID || ' (' || $a/Name || ') matured on ' || $m || ' but is still held')"
+    },
+    {
+      "key": "fund-ccy-value",
+      "severity": "warning",
+      "name": "DQ: Positions valued in their owner's currency",
+      "description": "Every portfolio position has a TotalValue amount in the currency of its fund, share class, segment or subfund (the sums against the net asset value need it).",
+      "xpath": "//Portfolio/Positions/Position[let $ccy := string((ancestor::*[self::ShareClass or self::Segment or self::Subfund or self::Fund][1]/Currency, ancestor::Fund[1]/Currency)[1]) return $ccy ne '' and not(TotalValue/Amount/@ccy = $ccy)]",
+      "query": "for $pos in //Portfolio/Positions/Position\nlet $ccy := local:owner-ccy($pos)\nwhere $ccy ne '' and not($pos/TotalValue/Amount/@ccy = $ccy)\nreturn local:at($pos, local:owner($pos) || ': position ' || $pos/UniqueID || ' has no TotalValue in ' || $ccy)"
+    },
+    {
+      "key": "fund-ccy-tna",
+      "severity": "warning",
+      "name": "DQ: Net asset value in the owner's currency",
+      "description": "Every TotalAssetValue has a TotalNetAssetValue amount in the currency of its fund, share class, segment or subfund.",
+      "xpath": "//TotalAssetValues/TotalAssetValue[TotalNetAssetValue/Amount][let $ccy := string((ancestor::*[self::ShareClass or self::Segment or self::Subfund or self::Fund][1]/Currency, ancestor::Fund[1]/Currency)[1]) return $ccy ne '' and not(TotalNetAssetValue/Amount/@ccy = $ccy)]",
+      "query": "for $tav in //TotalAssetValues/TotalAssetValue[TotalNetAssetValue/Amount]\nlet $ccy := local:owner-ccy($tav)\nwhere $ccy ne '' and not($tav/TotalNetAssetValue/Amount/@ccy = $ccy)\nreturn local:at($tav, local:owner($tav) || ', ' || $tav/NavDate || ': the net asset value is not given in ' || $ccy)"
+    },
+    {
+      "key": "duplicate-assets",
+      "severity": "error",
+      "name": "DQ: No duplicate assets",
+      "description": "AssetMasterData lists every asset (UniqueID) once.",
+      "xpath": "/FundsXML4/AssetMasterData/Asset[UniqueID = preceding-sibling::Asset/UniqueID]",
+      "query": "let $assets := /FundsXML4/AssetMasterData/Asset\nfor $id in distinct-values($assets/UniqueID)\nlet $same := $assets[UniqueID = $id]\nwhere count($same) gt 1\nreturn local:at($same[2], 'Asset ' || $id || ' appears ' || count($same) || ' times in AssetMasterData')"
+    },
+    {
+      "key": "duplicate-isin-assets",
+      "severity": "warning",
+      "name": "DQ: One asset per ISIN",
+      "description": "No two assets in AssetMasterData carry the same ISIN.",
+      "xpath": "/FundsXML4/AssetMasterData/Asset[Identifiers/ISIN ! normalize-space(.) = preceding-sibling::Asset/Identifiers/ISIN ! normalize-space(.)]",
+      "query": "let $assets := /FundsXML4/AssetMasterData/Asset[Identifiers/ISIN]\nfor $isin in distinct-values($assets/Identifiers/ISIN ! normalize-space(.))\nlet $same := $assets[Identifiers/ISIN ! normalize-space(.) = $isin]\nwhere count($same) gt 1\nreturn local:at($same[2], 'ISIN ' || $isin || ' belongs to ' || count($same) || ' assets: ' || string-join($same/UniqueID, ', '))"
+    },
+    {
+      "key": "position-asset-isin",
+      "severity": "warning",
+      "name": "DQ: Position ISIN matches the master data",
+      "description": "A position's ISIN is the ISIN of the asset with the same UniqueID in AssetMasterData.",
+      "xpath": "//Portfolio/Positions/Position[Identifiers/ISIN][let $pos := ., $a := (/FundsXML4/AssetMasterData/Asset[UniqueID = $pos/UniqueID])[1] return exists($a/Identifiers/ISIN) and normalize-space($pos/Identifiers/ISIN[1]) ne normalize-space($a/Identifiers/ISIN[1])]",
+      "query": "let $isins := map:merge(for $a in /FundsXML4/AssetMasterData/Asset[Identifiers/ISIN]\n                        return map { string($a/UniqueID): normalize-space($a/Identifiers/ISIN[1]) },\n                        map { 'duplicates': 'use-first' })\nfor $pos in //Portfolio/Positions/Position[Identifiers/ISIN]\nlet $own := normalize-space($pos/Identifiers/ISIN[1])\nlet $master := $isins(string($pos/UniqueID))\nwhere exists($master) and $own ne $master\nreturn local:at($pos/Identifiers/ISIN[1], 'Position ' || $pos/UniqueID || ': ISIN ' || $own || ', the asset has ISIN ' || $master)"
+    },
+    {
+      "key": "transaction-asset",
+      "severity": "warning",
+      "name": "DQ: Transactions and earnings have master data",
+      "description": "Every AssetUniqueID of a transaction or earning has an Asset in AssetMasterData (when the document has AssetMasterData).",
+      "xpath": "(//Transaction/AssetUniqueID | //Earning/AssetUniqueID)[exists(/FundsXML4/AssetMasterData/Asset)][not(. = /FundsXML4/AssetMasterData/Asset/UniqueID)]",
+      "query": "let $ids := /FundsXML4/AssetMasterData/Asset/UniqueID\nwhere exists($ids)\nreturn for $ref in (//Transaction/AssetUniqueID, //Earning/AssetUniqueID)[not(. = $ids)]\n       let $owner := if ($ref/parent::Transaction) then 'Transaction ' || $ref/../TransactionID else 'Earning ' || $ref/../EarningID\n       return local:at($ref, $owner || ': asset ' || $ref || ' is not in AssetMasterData')"
+    },
+    {
+      "key": "duplicate-transactions",
+      "severity": "error",
+      "name": "DQ: No duplicate transactions",
+      "description": "A portfolio lists every transaction (TransactionID) once; cancellations (CancellationFlag) are not counted.",
+      "xpath": "//Transactions/Transaction[not(CancellationFlag = ('true', '1'))][TransactionID = preceding-sibling::Transaction[not(CancellationFlag = ('true', '1'))]/TransactionID]",
+      "query": "for $ts in //Transactions\nlet $live := $ts/Transaction[not(CancellationFlag = ('true', '1'))]\nfor $id in distinct-values($live/TransactionID)\nlet $same := $live[TransactionID = $id]\nwhere count($same) gt 1\nreturn local:at($same[2], local:owner($ts) || ': transaction ' || $id || ' appears ' || count($same) || ' times')"
+    },
+    {
+      "key": "security-isin",
+      "severity": "warning",
+      "name": "DQ: Securities in the master data have an ISIN",
+      "description": "Assets of type EQ (equity), BO (bond) and SC (fund share) carry an ISIN.",
+      "xpath": "/FundsXML4/AssetMasterData/Asset[AssetType = ('EQ', 'BO', 'SC')][not(Identifiers/ISIN)]",
+      "query": "for $a in /FundsXML4/AssetMasterData/Asset[AssetType = ('EQ', 'BO', 'SC')][not(Identifiers/ISIN)]\nreturn local:at($a, 'Asset ' || $a/UniqueID || ' (' || $a/Name || ', ' || $a/AssetType || ') has no ISIN')"
+    },
+    {
+      "key": "derivative-underlying",
+      "severity": "warning",
+      "name": "DQ: Options and futures have an underlying",
+      "description": "Assets of type OP (option) and FU (future) name at least one underlying.",
+      "xpath": "/FundsXML4/AssetMasterData/Asset[AssetType = ('OP', 'FU')][not(AssetDetails/*/Underlyings/Underlying)]",
+      "query": "for $a in /FundsXML4/AssetMasterData/Asset[AssetType = ('OP', 'FU')][not(AssetDetails/*/Underlyings/Underlying)]\nreturn local:at($a, 'Asset ' || $a/UniqueID || ' (' || $a/Name || ', ' || $a/AssetType || ') has no underlying')"
+    },
+    {
+      "key": "country-codes",
+      "severity": "warning",
+      "name": "DQ: Country codes",
+      "description": "Country elements hold two capital letters (ISO 3166-1 alpha-2); the schema only checks the length.",
+      "xpath": "//*[local-name() = ('Country', 'SystemCountry', 'BusinessCountry', 'CountryCode', 'CountryOfDomicile', 'DomicileCountry', 'FundCustodianCountry', 'InvestorCountry', 'IssuerCountry', 'ListOfInvestedCountries')][not(*)][normalize-space(.) ne ''][not(matches(normalize-space(.), '^[A-Z]{2}$'))]",
+      "query": "for $c in //*[local-name() = ('Country', 'SystemCountry', 'BusinessCountry', 'CountryCode', 'CountryOfDomicile',\n                              'DomicileCountry', 'FundCustodianCountry', 'InvestorCountry', 'IssuerCountry',\n                              'ListOfInvestedCountries')][not(*)][normalize-space(.) ne '']\n             [not(matches(normalize-space(.), '^[A-Z]{2}$'))]\nreturn local:at($c, local:where($c) || ': ' || local-name($c) || ' ' || $c || ' is no ISO 3166 code')"
+    },
+    {
+      "key": "bic",
+      "severity": "warning",
+      "name": "DQ: BIC format",
+      "description": "A SwiftBIC has 8 or 11 characters: bank, country, location and an optional branch (ISO 9362); the schema only checks the length.",
+      "xpath": "//SwiftBIC[not(matches(normalize-space(.), '^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$'))]",
+      "query": "for $b in //SwiftBIC[not(matches(normalize-space(.), '^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$'))]\nreturn local:at($b, local:where($b) || ': BIC ' || $b || ' is invalid')"
+    },
+    {
+      "key": "generated-date",
+      "severity": "warning",
+      "name": "DQ: Document generated after its content date",
+      "description": "DocumentGenerated is neither before the ContentDate nor in the future.",
+      "xpath": "/FundsXML4/ControlData/DocumentGenerated[. castable as xs:dateTime][let $g := xs:date(substring(., 1, 10)) return $g gt current-date() or (../ContentDate castable as xs:date and $g lt xs:date(../ContentDate))]",
+      "query": "for $c in /FundsXML4/ControlData[DocumentGenerated castable as xs:dateTime]\nlet $generated := xs:date(substring($c/DocumentGenerated, 1, 10))\nlet $content := $c/ContentDate[. castable as xs:date] ! xs:date(.)\nreturn (\n  if (exists($content) and $generated lt $content)\n  then local:at($c/DocumentGenerated, 'DocumentGenerated ' || $c/DocumentGenerated || ' is before the ContentDate ' || $content) else (),\n  if ($generated gt current-date())\n  then local:at($c/DocumentGenerated, 'DocumentGenerated ' || $c/DocumentGenerated || ' is in the future') else ())"
+    },
+    {
+      "key": "navdate-after-content",
+      "severity": "warning",
+      "name": "DQ: No NAV date after the content date",
+      "description": "No NavDate (portfolio, net asset value, price) is later than the ContentDate.",
+      "xpath": "//NavDate[. castable as xs:date][/FundsXML4/ControlData/ContentDate castable as xs:date][xs:date(.) gt xs:date(/FundsXML4/ControlData/ContentDate)]",
+      "query": "let $content := /FundsXML4/ControlData/ContentDate[. castable as xs:date] ! xs:date(.)\nwhere exists($content)\nreturn for $d in //NavDate[. castable as xs:date][xs:date(.) gt $content]\n       return local:at($d, local:owner($d) || ': ' || local-name($d/..) || ' of ' || $d || ' is after the ContentDate ' || $content)"
+    },
+    {
+      "key": "navdate-before-inception",
+      "severity": "warning",
+      "name": "DQ: No NAV date before inception",
+      "description": "No NavDate of a fund, share class, segment or subfund is earlier than its InceptionDate.",
+      "xpath": "//NavDate[. castable as xs:date][let $o := ancestor::*[self::ShareClass or self::Segment or self::Subfund or self::Fund][1], $i := ($o/InceptionDate, $o/*[ends-with(local-name(), 'StaticData')]/InceptionDate)[. castable as xs:date][1] return exists($i) and xs:date(.) lt xs:date($i)]",
+      "query": "for $d in //NavDate[. castable as xs:date]\nlet $o := local:owner-node($d)\nlet $inception := ($o/InceptionDate, $o/*[ends-with(local-name(), 'StaticData')]/InceptionDate)[. castable as xs:date][1]\nwhere exists($inception) and xs:date($d) lt xs:date($inception)\nreturn local:at($d, local:owner($d) || ': ' || local-name($d/..) || ' of ' || $d || ' is before the InceptionDate ' || $inception)"
+    },
+    {
+      "key": "share-class-dates",
+      "severity": "warning",
+      "name": "DQ: Share class dates match the fund",
+      "description": "Every net asset value date of a share class is also a net asset value date of its fund.",
+      "xpath": "//Fund[FundDynamicData/TotalAssetValues/TotalAssetValue]/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue[not(NavDate = ancestor::Fund[1]/FundDynamicData/TotalAssetValues/TotalAssetValue/NavDate)]",
+      "query": "for $f in //Fund[FundDynamicData/TotalAssetValues/TotalAssetValue]\nlet $dates := $f/FundDynamicData/TotalAssetValues/TotalAssetValue/NavDate\nfor $tav in $f/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue[not(NavDate = $dates)]\nreturn local:at($tav, local:owner($tav) || ': net asset value of ' || $tav/NavDate || ', the fund has none for that date')"
+    },
+    {
+      "key": "bond-dates",
+      "severity": "error",
+      "name": "DQ: Bonds mature after issue",
+      "description": "A bond's MaturityDate is not before its IssueDate.",
+      "xpath": "/FundsXML4/AssetMasterData/Asset/AssetDetails/Bond[MaturityDate castable as xs:date and IssueDate castable as xs:date][xs:date(MaturityDate) lt xs:date(IssueDate)]",
+      "query": "for $b in /FundsXML4/AssetMasterData/Asset/AssetDetails/Bond[MaturityDate castable as xs:date and IssueDate castable as xs:date]\nwhere xs:date($b/MaturityDate) lt xs:date($b/IssueDate)\nreturn local:at($b, 'Asset ' || $b/../../UniqueID || ' (' || $b/../../Name || '): MaturityDate ' || $b/MaturityDate || ' is before IssueDate ' || $b/IssueDate)"
+    },
+    {
+      "key": "earning-dates",
+      "severity": "warning",
+      "name": "DQ: Earnings settle after entry",
+      "description": "An earning's ValutaDate is not before its EntryDate.",
+      "xpath": "//Earning[ValutaDate castable as xs:date and EntryDate castable as xs:date][xs:date(ValutaDate) lt xs:date(EntryDate)]",
+      "query": "for $e in //Earning[ValutaDate castable as xs:date and EntryDate castable as xs:date]\nwhere xs:date($e/ValutaDate) lt xs:date($e/EntryDate)\nreturn local:at($e, 'Earning ' || $e/EarningID || ': ValutaDate ' || $e/ValutaDate || ' is before EntryDate ' || $e/EntryDate)"
+    },
+    {
+      "key": "transaction-after-content",
+      "severity": "warning",
+      "name": "DQ: No transactions after the content date",
+      "description": "No transaction is entered after the ContentDate.",
+      "xpath": "//Transaction[EntryDate castable as xs:date][/FundsXML4/ControlData/ContentDate castable as xs:date][xs:date(EntryDate) gt xs:date(/FundsXML4/ControlData/ContentDate)]",
+      "query": "let $content := /FundsXML4/ControlData/ContentDate[. castable as xs:date] ! xs:date(.)\nwhere exists($content)\nreturn for $t in //Transaction[EntryDate castable as xs:date][xs:date(EntryDate) gt $content]\n       return local:at($t, 'Transaction ' || $t/TransactionID || ': EntryDate ' || $t/EntryDate || ' is after the ContentDate ' || $content)"
+    },
+    {
+      "key": "units-x-price",
+      "severity": "warning",
+      "name": "DQ: Units × price = market value",
+      "description": "For equities and fund shares, units (shares) × price matches the market value in the same currency (± 1 %).",
+      "xpath": "//Portfolio/Positions/Position/(Equity | ShareClass)[let $s := ., $u := (($s/Units, $s/Shares)[. castable as xs:decimal])[1] ! xs:decimal(.), $p := ($s/Price/Amount[@ccy = $s/MarketValue/Amount/@ccy][. castable as xs:decimal])[1], $mv := ($s/MarketValue/Amount[@ccy = $p/@ccy][. castable as xs:decimal])[1] ! xs:decimal(.) return exists($u) and exists($p) and exists($mv) and $mv ne 0 and abs($u * xs:decimal($p) - $mv) div abs($mv) gt 0.01]",
+      "query": "for $pos in //Portfolio/Positions/Position, $s in $pos/(Equity | ShareClass)\nlet $units := local:dec(($s/Units, $s/Shares)[1])\nlet $pairs := for $p in $s/Price/Amount\n              let $mv := ($s/MarketValue/Amount[@ccy = $p/@ccy])[1]\n              where exists(local:dec($p)) and exists(local:dec($mv)) and local:dec($mv) ne 0\n              return map { 'price': local:dec($p), 'value': local:dec($mv), 'ccy': string($p/@ccy) }\nlet $pair := $pairs[1]\nwhere exists($units) and exists($pair) and abs($units * $pair?price - $pair?value) div abs($pair?value) gt 0.01\nreturn local:at($s, 'Position ' || $pos/UniqueID || ': ' || $units || ' × ' || $pair?price || ' = ' || round($units * $pair?price, 2) || ' ' || $pair?ccy || ', the market value is ' || $pair?value || ' ' || $pair?ccy)"
+    },
+    {
+      "key": "nominal-x-price",
+      "severity": "warning",
+      "name": "DQ: Nominal × price = bond market value",
+      "description": "For bonds, nominal × clean price / 100 × pool factor × index factor matches the market value (without interest) in the same currency (± 1 %).",
+      "xpath": "//Portfolio/Positions/Position/Bond[let $b := ., $n := ($b/Nominal[. castable as xs:decimal])[1] ! xs:decimal(.), $f := (($b/Poolfactor[. castable as xs:decimal])[1] ! xs:decimal(.), 1)[1] * (($b/Indexfactor[. castable as xs:decimal])[1] ! xs:decimal(.), 1)[1], $p := ($b/Price/Amount[@ccy = $b/MarketValue/Amount/@ccy][. castable as xs:decimal])[1], $mv := ($b/MarketValue/Amount[@ccy = $p/@ccy][. castable as xs:decimal])[1] ! xs:decimal(.) return exists($n) and exists($p) and exists($mv) and $mv ne 0 and abs($n * xs:decimal($p) div 100 * $f - $mv) div abs($mv) gt 0.01]",
+      "query": "for $pos in //Portfolio/Positions/Position, $b in $pos/Bond\nlet $nominal := local:dec($b/Nominal)\nlet $factor := (local:dec($b/Poolfactor), 1)[1] * (local:dec($b/Indexfactor), 1)[1]\nlet $pairs := for $p in $b/Price/Amount\n              let $mv := ($b/MarketValue/Amount[@ccy = $p/@ccy])[1]\n              where exists(local:dec($p)) and exists(local:dec($mv)) and local:dec($mv) ne 0\n              return map { 'price': local:dec($p), 'value': local:dec($mv), 'ccy': string($p/@ccy) }\nlet $pair := $pairs[1]\nlet $calc := $nominal * $pair?price div 100 * $factor\nwhere exists($nominal) and exists($pair) and abs($calc - $pair?value) div abs($pair?value) gt 0.01\nreturn local:at($b, 'Position ' || $pos/UniqueID || ': ' || $nominal || ' × ' || $pair?price || ' % = ' || round($calc, 2) || ' ' || $pair?ccy || ', the market value is ' || $pair?value || ' ' || $pair?ccy)"
+    },
+    {
+      "key": "weight-vs-value",
+      "severity": "warning",
+      "name": "DQ: Position weight matches its value",
+      "description": "A position's TotalPercentage matches its TotalValue against the net asset value of its owner on that date (± 0.1 percentage points).",
+      "xpath": "//Portfolio/Positions/Position/TotalPercentage[. castable as xs:decimal][let $pf := ../../.., $ccy := string((ancestor::*[self::ShareClass or self::Segment or self::Subfund or self::Fund][1]/Currency, ancestor::Fund[1]/Currency)[1]), $tna := ($pf/../../TotalAssetValues/TotalAssetValue[NavDate = $pf/NavDate]/TotalNetAssetValue/Amount[@ccy = $ccy][. castable as xs:decimal])[1] ! xs:decimal(.), $v := (../TotalValue/Amount[@ccy = $ccy][. castable as xs:decimal])[1] ! xs:decimal(.) return exists($tna) and $tna ne 0 and exists($v) and abs($v div $tna * 100 - xs:decimal(.)) gt 0.1]",
+      "query": "for $p in //Portfolio[Positions/Position/TotalPercentage]\nlet $ccy := local:owner-ccy($p)\nlet $tna := local:dec(($p/../../TotalAssetValues/TotalAssetValue[NavDate = $p/NavDate]/TotalNetAssetValue/Amount[@ccy = $ccy])[1])\nwhere exists($tna) and $tna ne 0\nreturn for $pos in $p/Positions/Position\n       let $pct := local:dec($pos/TotalPercentage)\n       let $value := local:dec(($pos/TotalValue/Amount[@ccy = $ccy])[1])\n       let $calc := $value div $tna * 100\n       where exists($pct) and exists($value) and abs($calc - $pct) gt 0.1\n       return local:at($pos/TotalPercentage, local:owner($p) || ', ' || $p/NavDate || ': position ' || $pos/UniqueID || ' has ' || $pct || ' %, its value is ' || round($calc, 2) || ' % of the net asset value')"
+    },
+    {
+      "key": "fx-rates",
+      "severity": "error",
+      "name": "DQ: Exchange rates are positive",
+      "description": "An FXRate is greater than 0, and 1 when it converts a currency into itself.",
+      "xpath": "//FXRate[. castable as xs:decimal][xs:decimal(.) le 0 or (@fromCcy = @toCcy and xs:decimal(.) ne 1)]",
+      "query": "for $r in //FXRate[exists(local:dec(.))][local:dec(.) le 0 or (@fromCcy = @toCcy and local:dec(.) ne 1)]\nreturn local:at($r, local:where($r) || ': FX rate ' || $r/@fromCcy || '→' || $r/@toCcy || ' is ' || $r)"
+    },
+    {
+      "key": "fx-consistency",
+      "severity": "warning",
+      "name": "DQ: One exchange rate per currency pair",
+      "description": "The positions of a portfolio use the same rate for the same currency pair.",
+      "xpath": "//Portfolio/Positions/Position/FXRates/FXRate[. castable as xs:decimal][let $r := . return some $o in ancestor::Portfolio[1]/Positions/Position/FXRates/FXRate[@fromCcy = $r/@fromCcy and @toCcy = $r/@toCcy and @mulDiv = $r/@mulDiv][. castable as xs:decimal] satisfies xs:decimal($o) ne xs:decimal($r)]",
+      "query": "for $p in //Portfolio\nlet $rates := $p/Positions/Position/FXRates/FXRate\nfor $pair in distinct-values($rates ! (@fromCcy || '→' || @toCcy || ' (' || @mulDiv || ')'))\nlet $same := $rates[@fromCcy || '→' || @toCcy || ' (' || @mulDiv || ')' = $pair]\nlet $values := distinct-values($same ! local:dec(.))\nwhere count($values) gt 1\nreturn local:at($same[local:dec(.) ne $values[1]][1], local:owner($p) || ', ' || $p/NavDate || ': ' || $pair || ' is used with ' || count($values) || ' rates: ' || string-join($values ! string(.), ', '))"
+    },
+    {
+      "key": "value-direction",
+      "severity": "warning",
+      "name": "DQ: Position values agree in sign",
+      "description": "The TotalValue amounts of a position in different currencies are all positive or all negative.",
+      "xpath": "//Portfolio/Positions/Position[TotalValue/Amount[. castable as xs:decimal][xs:decimal(.) gt 0] and TotalValue/Amount[. castable as xs:decimal][xs:decimal(.) lt 0]]",
+      "query": "for $pos in //Portfolio/Positions/Position\nlet $v := $pos/TotalValue/Amount ! local:dec(.)\nwhere some $x in $v satisfies $x gt 0 and (some $y in $v satisfies $y lt 0)\nreturn local:at($pos, 'Position ' || $pos/UniqueID || ' has positive and negative values: ' || string-join($pos/TotalValue/Amount ! (. || ' ' || @ccy), ', '))"
+    },
+    {
+      "key": "share-class-ratio",
+      "severity": "warning",
+      "name": "DQ: Share class ratios add up to 100 %",
+      "description": "When every share class gives its Ratio for a date, the ratios add up to 100 % (± 0.5).",
+      "xpath": "//Fund[SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue/Ratio][let $tavs := SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue return some $d in distinct-values($tavs/NavDate) satisfies (let $day := $tavs[NavDate = $d] return (every $t in $day satisfies $t/Ratio castable as xs:decimal) and abs(sum($day/Ratio ! xs:decimal(.)) - 100) gt 0.5)]",
+      "query": "for $f in //Fund[SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue/Ratio]\nlet $tavs := $f/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue\nfor $d in distinct-values($tavs/NavDate)\nlet $day := $tavs[NavDate = $d]\nlet $sum := sum($day/Ratio ! local:dec(.))\nwhere every $t in $day satisfies exists(local:dec($t/Ratio))\n  and abs($sum - 100) gt 0.5\nreturn local:at($day[1], local:fund($f) || ', ' || $d || ': the share class ratios add up to ' || $sum || ' %')"
+    },
+    {
+      "key": "positive-nav",
+      "severity": "warning",
+      "name": "DQ: Prices and net asset values are positive",
+      "description": "NAV prices are greater than 0; shares outstanding and net asset values are not negative.",
+      "xpath": "//Prices/Price/NavPrice[. castable as xs:decimal][xs:decimal(.) le 0] | //TotalAssetValue/SharesOutstanding[. castable as xs:decimal][xs:decimal(.) lt 0] | //TotalAssetValue/TotalNetAssetValue/Amount[. castable as xs:decimal][xs:decimal(.) lt 0]",
+      "query": "(for $p in //Prices/Price/NavPrice[local:dec(.) le 0]\n  return local:at($p, local:owner($p) || ', ' || $p/../NavDate || ': NAV price ' || $p),\n for $s in //TotalAssetValue/SharesOutstanding[local:dec(.) lt 0]\n  return local:at($s, local:owner($s) || ', ' || $s/../NavDate || ': shares outstanding ' || $s),\n for $a in //TotalAssetValue/TotalNetAssetValue/Amount[local:dec(.) lt 0]\n  return local:at($a, local:owner($a) || ', ' || $a/../../NavDate || ': net asset value ' || $a || ' ' || $a/@ccy))"
+    },
+    {
+      "key": "duplicate-prices",
+      "severity": "warning",
+      "name": "DQ: One price per date",
+      "description": "A share class has one price per NavDate, price nature and currency.",
+      "xpath": "//Prices/Price[let $p := . return exists(preceding-sibling::Price[NavDate = $p/NavDate and string(PriceNature) = string($p/PriceNature) and string(PriceCurrency) = string($p/PriceCurrency)])]",
+      "query": "for $ps in //Prices\nfor $k in distinct-values($ps/Price ! (NavDate || ' ' || PriceNature || ' ' || PriceCurrency))\nlet $same := $ps/Price[NavDate || ' ' || PriceNature || ' ' || PriceCurrency = $k]\nwhere count($same) gt 1\nreturn local:at($same[2], local:owner($ps) || ': ' || count($same) || ' prices for ' || normalize-space($k))"
+    },
+    {
+      "key": "price-currency",
+      "severity": "warning",
+      "name": "DQ: A price in the share class currency",
+      "description": "For every price date a share class has a price in its own currency.",
+      "xpath": "//ShareClass[Currency and Prices/Price/PriceCurrency]/Prices/Price[let $p := ., $sc := ../.. return not($sc/Prices/Price[NavDate = $p/NavDate]/PriceCurrency = $sc/Currency)]",
+      "query": "for $sc in //ShareClass[Currency and Prices/Price/PriceCurrency]\nfor $d in distinct-values($sc/Prices/Price/NavDate)\nlet $prices := $sc/Prices/Price[NavDate = $d]\nwhere not($prices/PriceCurrency = $sc/Currency)\nreturn local:at($prices[1], local:owner($sc) || ', ' || $d || ': no price in ' || $sc/Currency || ' (only ' || string-join(distinct-values($prices/PriceCurrency), ', ') || ')')"
+    },
+    {
+      "key": "position-currency",
+      "severity": "warning",
+      "name": "DQ: Position currency matches the master data",
+      "description": "A position's Currency is the Currency of its asset in AssetMasterData.",
+      "xpath": "//Portfolio/Positions/Position[Currency][let $pos := ., $a := (/FundsXML4/AssetMasterData/Asset[UniqueID = $pos/UniqueID][Currency])[1] return exists($a) and string($pos/Currency) ne string($a/Currency)]",
+      "query": "let $ccys := map:merge(for $a in /FundsXML4/AssetMasterData/Asset[Currency]\n                       return map { string($a/UniqueID): string($a/Currency) },\n                       map { 'duplicates': 'use-first' })\nfor $pos in //Portfolio/Positions/Position[Currency]\nlet $master := $ccys(string($pos/UniqueID))\nwhere exists($master) and string($pos/Currency) ne $master\nreturn local:at($pos/Currency, 'Position ' || $pos/UniqueID || ': currency ' || $pos/Currency || ', the asset has ' || $master)"
+    },
+    {
+      "key": "fx-forward",
+      "severity": "warning",
+      "name": "DQ: FX forwards are consistent",
+      "description": "An FX forward buys and sells different currencies, both amounts are positive, and the agreed rate matches AmountBuy / AmountSell or its inverse (± 1 %).",
+      "xpath": "/FundsXML4/AssetMasterData/Asset/AssetDetails/FXForward[let $b := (AmountBuy[. castable as xs:decimal])[1] ! xs:decimal(.), $s := (AmountSell[. castable as xs:decimal])[1] ! xs:decimal(.), $r := (AgreedFxRate[. castable as xs:decimal])[1] ! xs:decimal(.) return (exists(CurrencyBuy) and string(CurrencyBuy) eq string(CurrencySell)) or $b le 0 or $s le 0 or (exists($b) and exists($s) and exists($r) and $b gt 0 and $s gt 0 and $r gt 0 and abs($b div $s - $r) div $r gt 0.01 and abs($s div $b - $r) div $r gt 0.01)]",
+      "query": "for $fx in /FundsXML4/AssetMasterData/Asset/AssetDetails/FXForward\nlet $id := 'Asset ' || $fx/../../UniqueID || ' (' || $fx/../../Name || ')'\nlet $buy := local:dec($fx/AmountBuy)\nlet $sell := local:dec($fx/AmountSell)\nlet $rate := local:dec($fx/AgreedFxRate)\nreturn (\n  if ($fx/CurrencyBuy and string($fx/CurrencyBuy) eq string($fx/CurrencySell))\n  then local:at($fx, $id || ': buys and sells ' || $fx/CurrencyBuy) else (),\n  if ((exists($buy) and $buy le 0) or (exists($sell) and $sell le 0))\n  then local:at($fx, $id || ': AmountBuy ' || $buy || ' and AmountSell ' || $sell || ' must be positive') else (),\n  if (exists($buy) and exists($sell) and exists($rate) and $buy gt 0 and $sell gt 0 and $rate gt 0\n      and abs($buy div $sell - $rate) div $rate gt 0.01 and abs($sell div $buy - $rate) div $rate gt 0.01)\n  then local:at($fx, $id || ': agreed rate ' || $rate || ', the amounts give ' || round($buy div $sell, 6) || ' (or ' || round($sell div $buy, 6) || ')') else ())"
+    },
+    {
+      "key": "bond-price-range",
+      "severity": "warning",
+      "name": "DQ: Bond prices are plausible",
+      "description": "A bond position's clean price (in percent of nominal) is greater than 0 and at most 250.",
+      "xpath": "//Portfolio/Positions/Position/Bond/Price/Amount[. castable as xs:decimal][xs:decimal(.) le 0 or xs:decimal(.) gt 250]",
+      "query": "for $p in //Portfolio/Positions/Position/Bond/Price/Amount[exists(local:dec(.))][local:dec(.) le 0 or local:dec(.) gt 250]\nreturn local:at($p, 'Position ' || $p/ancestor::Position[1]/UniqueID || ': bond price ' || $p || ' ' || $p/@ccy || ' is not plausible')"
+    },
+    {
+      "key": "fund-identifiers",
+      "severity": "info",
+      "name": "DQ: Funds have a LEI, share classes an ISIN",
+      "description": "Hint: funds carry a LEI and share classes an ISIN, as most receivers expect.",
+      "xpath": "//Fund[not(Identifiers/LEI)] | //ShareClasses/ShareClass[not(Identifiers/ISIN)]",
+      "query": "(for $f in //Fund[not(Identifiers/LEI)]\n  return local:at($f, local:fund($f) || ' has no LEI'),\n for $sc in //ShareClasses/ShareClass[not(Identifiers/ISIN)]\n  return local:at($sc, local:owner($sc) || ' has no ISIN'))"
+    },
+    {
+      "key": "otc-counterparty-lei",
+      "severity": "info",
+      "name": "DQ: OTC derivatives name their counterparty's LEI",
+      "description": "Hint: FX forwards (FX) and swaps (SW) name the counterparty's LEI (EMIR reporting).",
+      "xpath": "/FundsXML4/AssetMasterData/Asset[AssetType = ('FX', 'SW')][not(AssetDetails/*/Counterparty/Identifiers/LEI)]",
+      "query": "for $a in /FundsXML4/AssetMasterData/Asset[AssetType = ('FX', 'SW')][not(AssetDetails/*/Counterparty/Identifiers/LEI)]\nreturn local:at($a, 'Asset ' || $a/UniqueID || ' (' || $a/Name || ', ' || $a/AssetType || ') has no counterparty LEI')"
+    },
+    {
+      "key": "account-counterparty",
+      "severity": "info",
+      "name": "DQ: Accounts name their bank",
+      "description": "Hint: accounts (AC) name the bank with a LEI or BIC.",
+      "xpath": "/FundsXML4/AssetMasterData/Asset[AssetType = 'AC'][not(AssetDetails/Account/Counterparty/Identifiers/(LEI | SwiftBIC))]",
+      "query": "for $a in /FundsXML4/AssetMasterData/Asset[AssetType = 'AC'][not(AssetDetails/Account/Counterparty/Identifiers/(LEI | SwiftBIC))]\nreturn local:at($a, 'Account ' || $a/UniqueID || ' (' || $a/Name || ') has no counterparty LEI or BIC')"
+    },
+    {
+      "key": "derivative-exposure",
+      "severity": "info",
+      "name": "DQ: Derivative positions have exposures",
+      "description": "Hint: positions in futures, options, swaps and FX forwards give their exposure (Exposures).",
+      "xpath": "//Portfolio/Positions/Position[Future or Option or Swap or FXForward][not(Exposures/Exposure)]",
+      "query": "for $pos in //Portfolio/Positions/Position[Future or Option or Swap or FXForward][not(Exposures/Exposure)]\nreturn local:at($pos, 'Position ' || $pos/UniqueID || ' (' || local-name($pos/(Future | Option | Swap | FXForward)[1]) || ') has no exposure')"
+    },
+    {
+      "key": "zero-positions",
+      "severity": "info",
+      "name": "DQ: Positions with a value",
+      "description": "Hint: positions whose every TotalValue amount is 0 (closed positions that are still reported).",
+      "xpath": "//Portfolio/Positions/Position[TotalValue/Amount][every $a in TotalValue/Amount satisfies ($a castable as xs:decimal and xs:decimal($a) = 0)]",
+      "query": "for $pos in //Portfolio/Positions/Position[TotalValue/Amount]\nwhere every $a in $pos/TotalValue/Amount satisfies local:dec($a) = 0\nreturn local:at($pos, 'Position ' || $pos/UniqueID || ' has a value of 0')"
+    },
+    {
+      "key": "stale-navdate",
+      "severity": "info",
+      "name": "DQ: Recent portfolios",
+      "description": "Hint: the latest portfolio of a fund, share class, segment or subfund is more than 31 days older than the ContentDate.",
+      "xpath": "//Portfolios[/FundsXML4/ControlData/ContentDate castable as xs:date][Portfolio/NavDate[. castable as xs:date]][xs:date(/FundsXML4/ControlData/ContentDate) - max(Portfolio/NavDate[. castable as xs:date] ! xs:date(.)) gt xs:dayTimeDuration('P31D')]",
+      "query": "let $content := /FundsXML4/ControlData/ContentDate[. castable as xs:date] ! xs:date(.)\nwhere exists($content)\nreturn for $ps in //Portfolios[Portfolio/NavDate[. castable as xs:date]]\n       let $latest := max($ps/Portfolio/NavDate[. castable as xs:date] ! xs:date(.))\n       where $content - $latest gt xs:dayTimeDuration('P31D')\n       return local:at(($ps/Portfolio[NavDate = string($latest)], $ps)[1], local:owner($ps) || ': the latest portfolio is of ' || $latest || ', ' || days-from-duration($content - $latest) || ' days before the ContentDate')"
     }
   ],
   "snippets": [
@@ -161,6 +491,13 @@
       "type": "XQUERY",
       "category": "EXTRACTION",
       "query": "for $sc in //ShareClass, $p in $sc/Prices/Price\nreturn string-join(($sc/Identifiers/ISIN, $sc/Names/OfficialName, $p/NavDate, $p/NavPrice || ' ' || $p/PriceCurrency), ' | ')"
+    },
+    {
+      "name": "FundsXML: UCITS 5/10/40 concentration",
+      "description": "Weight per issuer (LEI or name from AssetMasterData, else the position) of the securities of every fund portfolio: issuers over 10 %, and the sum of all issuers over 5 % (UCITS limit 40 %). Only meaningful for UCITS funds; government bonds, which UCITS treats separately, count like any issuer.",
+      "type": "XQUERY",
+      "category": "ANALYSIS",
+      "query": "let $assets := /FundsXML4/AssetMasterData/Asset\nfor $p in (//FundDynamicData | //SubfundDynamicData)/Portfolios/Portfolio\nlet $pos := $p/Positions/Position[Equity or Bond or ShareClass or Certificate or Warrant][TotalPercentage castable as xs:decimal]\nlet $issuers := for $x in $pos\n                let $a := $assets[UniqueID = $x/UniqueID][1]\n                return map { 'issuer': string(($a/AssetDetails/*/Issuer/Identifiers/LEI, $a/AssetDetails/*/Issuer/Name, $a/Name, $x/UniqueID)[1]),\n                             'weight': xs:decimal($x/TotalPercentage) }\nlet $byIssuer := for $i in distinct-values($issuers ! ?issuer)\n                 return map { 'issuer': $i, 'weight': sum($issuers[?issuer = $i] ! ?weight) }\nlet $over5 := sum($byIssuer[?weight gt 5] ! ?weight)\nreturn (\n  ($p/ancestor::*[self::Fund or self::Subfund][1]/Names/OfficialName)[1] || ', ' || $p/NavDate || ': issuers over 5 % add up to ' || $over5 || ' %' || (if ($over5 gt 40) then ' (over the 40 % limit)' else ''),\n  for $i in $byIssuer[?weight gt 10] order by $i?weight descending\n  return '  ' || $i?issuer || ': ' || $i?weight || ' % (over the 10 % limit)')"
     }
   ]
 }

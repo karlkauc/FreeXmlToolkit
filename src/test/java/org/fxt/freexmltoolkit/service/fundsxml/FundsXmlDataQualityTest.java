@@ -44,7 +44,7 @@ class FundsXmlDataQualityTest {
     void cleanDocument() throws Exception {
         String xml = fixture();
         assertTrue(FundsXmlDataQuality.isFundsXml(xml));
-        assertEquals(17, FundsXmlDataQuality.checks().size());
+        assertEquals(54, FundsXmlDataQuality.checks().size());
         assertEquals(Map.of(), findings(xml));
     }
 
@@ -112,8 +112,8 @@ class FundsXmlDataQualityTest {
     @DisplayName("the report lists every check; the snippets are registered with the fundsxml tag")
     void reportAndSnippets() throws Exception {
         String html = FundsXmlDataQuality.htmlReport(FundsXmlDataQuality.run(fixture()), "fund.xml");
-        assertTrue(html.contains("17 checks · all passed") && html.contains("ISIN check digits"), html);
-        assertEquals(25, FundsXmlDataQuality.checks().size() + FundsXmlDataQuality.snippets().size());
+        assertTrue(html.contains("54 checks · all passed") && html.contains("ISIN check digits"), html);
+        assertEquals(63, FundsXmlDataQuality.checks().size() + FundsXmlDataQuality.snippets().size());
         assertTrue(FundsXmlDataQuality.snippets().stream().allMatch(s -> s.query != null && !s.query.isBlank()));
     }
 
@@ -131,7 +131,7 @@ class FundsXmlDataQualityTest {
                         </Transactions>
                         <Earnings><Earning><EarningID>E1</EarningID><AssetUniqueID>X9</AssetUniqueID><EarningKind>COUPON</EarningKind></Earning></Earnings>""")
                 .replace("</AssetMasterData>", """
-                        <Asset><UniqueID>X9</UniqueID><Identifiers><ISIN>DE0005140008</ISIN></Identifiers><Currency>EUR</Currency><Name>SOLD BOND</Name><AssetType>BO</AssetType></Asset>
+                        <Asset><UniqueID>X9</UniqueID><Identifiers><ISIN>DE0007164600</ISIN></Identifiers><Currency>EUR</Currency><Name>SOLD BOND</Name><AssetType>BO</AssetType></Asset>
                         </AssetMasterData>""");
         assertEquals(Map.of(), findings(xml));
     }
@@ -172,7 +172,8 @@ class FundsXmlDataQualityTest {
                 shareClass("AT0000A0K2H3", "3000000.00", "1800000.00", "50.00", "1200000.00", "40.00")));
         assertEquals(List.of("Share class AT0000A0K2H3, 2025-10-01: the position weights add up to 90 %"),
                 wrongWeights.get("weights"), wrongWeights.toString());
-        assertEquals(1, wrongWeights.size(), wrongWeights.toString());
+        // the wrong weight also no longer matches the position's value
+        assertEquals(java.util.Set.of("weights", "weight-vs-value"), wrongWeights.keySet(), wrongWeights.toString());
 
         Map<String, List<String>> wrongValue = findings(withShareClasses(
                 shareClass("AT0000A0K2G5", "7000000.00", "4200000.00", "60.00", "2100000.00", "40.00"), b));

@@ -217,12 +217,15 @@ public class FundsXmlPanel extends VBox {
             }
             job.message(I18n.t("FundsXmlPanel.writing-report"));
             String html = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.htmlReport(results, name);
-            long failed = results.stream().filter(r -> !r.passed()).count();
+            long failed = results.stream().filter(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.Result::failed).count();
+            long hints = results.stream().filter(r -> !r.passed() && !r.failed()).count();
             job.close();
             Platform.runLater(() -> {
                 editorHost.openGeneratedDocument(html, EditorFileType.HTML, name.replaceFirst("\\.xml$", "") + "-dq.html");
                 editorHost.setActiveViewMode(ViewMode.PREVIEW);
-                if (failed == 0) {
+                if (failed == 0 && hints > 0) {
+                    PanelStatus.success(status, I18n.t("FundsXmlPanel.dqPassedWithHints", results.size(), hints));
+                } else if (failed == 0) {
                     PanelStatus.success(status, I18n.t("FundsXmlPanel.dqPassed", results.size()));
                 } else {
                     PanelStatus.info(status, I18n.t("FundsXmlPanel.dqFindings", failed, results.size()));

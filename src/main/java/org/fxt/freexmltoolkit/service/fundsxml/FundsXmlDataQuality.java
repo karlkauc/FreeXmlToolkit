@@ -31,17 +31,40 @@ import net.sf.saxon.s9api.XdmValue;
  * The data-quality checks for FundsXML 4 documents ({@code plugins/fundsxml/dq-checks.json}): XQuery
  * checks that each return one text per finding — control data, ISIN and LEI check digits, currency
  * codes, weights, positions against the net asset value, master data, share classes, transactions,
- * matured instruments. They run from the FundsXML panel and with every validation of a FundsXML
- * document, and are offered as snippets in the Query Console together with analysis queries.
+ * matured instruments, dates, valuation and master-data consistency. Each check has a severity:
+ * {@code error} (the data cannot be right), {@code warning} (the default) or {@code info} (a hint). They
+ * run from the FundsXML panel and with every validation of a FundsXML document, and are offered as
+ * snippets in the Query Console together with analysis queries.
  */
 public final class FundsXmlDataQuality {
 
     /** A check of the catalog. */
     public static final class Check {
+        /** Severity of the findings when the catalog names none. */
+        public static final String DEFAULT_SEVERITY = "warning";
+        private static final Set<String> SEVERITIES = Set.of("error", "warning", "info");
+
         public String key;
         public String name;
         public String description;
         public String query;
+        /** {@code error}, {@code warning} or {@code info}; {@code null} = {@value #DEFAULT_SEVERITY} */
+        public String severity;
+        /**
+         * An XPath 3.1 expression, without the prolog, that selects the nodes this check reports — for the
+         * Query Console and the documentation; {@link #run} uses {@link #query}.
+         */
+        public String xpath;
+
+        /** @return the severity of this check's findings: {@code error}, {@code warning} or {@code info} */
+        public String severity() {
+            return severity != null && SEVERITIES.contains(severity) ? severity : DEFAULT_SEVERITY;
+        }
+
+        /** @return whether the findings of this check are hints */
+        public boolean isHint() {
+            return "info".equals(severity());
+        }
     }
 
     /** A query snippet of the catalog. */
@@ -79,6 +102,11 @@ public final class FundsXmlDataQuality {
 
         public boolean passed() {
             return error == null && findings.isEmpty();
+        }
+
+        /** @return whether the check did not run or found more than hints */
+        public boolean failed() {
+            return error != null || (!findings.isEmpty() && !check.isHint());
         }
 
         /** @return the line of finding {@code index}, 0 when it has none */
@@ -216,26 +244,39 @@ public final class FundsXmlDataQuality {
 
     /** @return the results as an HTML report (summary, then each check with its findings) */
     public static String htmlReport(List<Result> results, String documentName) {
-        long failed = results.stream().filter(r -> !r.passed()).count();
+        long failed = results.stream().filter(Result::failed).count();
+        long hints = results.stream().filter(r -> !r.passed() && !r.failed()).count();
         StringBuilder html = new StringBuilder("""
                 <!DOCTYPE html><html><head><meta charset="UTF-8"><title>FundsXML data quality</title><style>
                 body{font-family:system-ui,sans-serif;margin:24px;color:#1a1d21}
                 h1{font-size:20px} .summary{margin:8px 0 16px;color:#5a6472}
                 table{border-collapse:collapse;width:100%} td,th{border-bottom:1px solid #dde1e7;padding:6px 8px;text-align:left;vertical-align:top}
-                .ok{color:#1f7a35;font-weight:600} .fail{color:#c92a2a;font-weight:600} .err{color:#a65500;font-weight:600}
+                .ok{color:#1f7a35;font-weight:600} .fail{color:#c92a2a;font-weight:600} .warn{color:#a65500;font-weight:600}
+                .err{color:#a65500;font-weight:600} .hint{color:#1864ab;font-weight:600}
+                .sev{color:#5a6472;font-size:12px}
                 ul{margin:0;padding-left:18px} .desc{color:#5a6472;font-size:12px}
                 </style></head><body>
                 """);
         html.append("<h1>FundsXML data quality</h1><div class=\"summary\">").append(escape(documentName == null ? "" : documentName))
                 .append(" · ").append(results.size()).append(" checks · ")
-                .append(failed == 0 ? "all passed" : failed + " with findings").append("</div><table>")
-                .append("<tr><th>Check</th><th>Result</th><th>Findings</th></tr>");
+                .append(failed == 0 ? "all passed" : failed + " with findings")
+                .append(hints == 0 ? "" : " · " + hints + " with hints").append("</div><table>")
+                .append("<tr><th>Check</th><th>Severity</th><th>Result</th><th>Findings</th></tr>");
         for (Result r : results) {
+            String severity = r.check().severity();
+            String findingClass = switch (severity) {
+                case "error" -> "fail";
+                case "info" -> "hint";
+                default -> "warn";
+            };
+            String noun = r.check().isHint() ? " hint" : " finding";
             String status = r.error() != null ? "<span class=\"err\">not run</span>"
                     : r.findings().isEmpty() ? "<span class=\"ok\">passed</span>"
-                    : "<span class=\"fail\">" + r.findings().size() + (r.findings().size() == 1 ? " finding" : " findings") + "</span>";
+                    : "<span class=\"" + findingClass + "\">" + r.findings().size() + noun
+                            + (r.findings().size() == 1 ? "" : "s") + "</span>";
             html.append("<tr><td>").append(escape(r.check().name.replaceFirst("^DQ: ", "")))
-                    .append("<div class=\"desc\">").append(escape(r.check().description)).append("</div></td><td>")
+                    .append("<div class=\"desc\">").append(escape(r.check().description)).append("</div></td>")
+                    .append("<td class=\"sev\">").append(severity).append("</td><td>")
                     .append(status).append("</td><td>");
             if (r.error() != null) {
                 html.append(escape(r.error()));

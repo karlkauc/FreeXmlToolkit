@@ -147,35 +147,436 @@ The validation uses whichever FundsXML schema version is currently marked as act
 ## Data-Quality Checks
 
 **Run Data Quality Checks** in the FundsXML side panel checks the active FundsXML document with
-17 XQuery checks and opens a report (passed / findings / not run, with every finding). While it runs, the panel shows
-*Check 5 of 17: …* with a bar and **Cancel** (stops between two checks); downloads, validation, grid setup,
-documentation and **Check Identifiers Online** show their progress the same way:
+54 XQuery checks and opens a report (severity, passed / findings / hints / not run, with every finding). While it
+runs, the panel shows *Check 5 of 54: …* with a bar and **Cancel** (stops between two checks); downloads, validation,
+grid setup, documentation and **Check Identifiers Online** show their progress the same way.
 
-| Check | What it looks at |
-|---|---|
-| Control data complete | `UniqueDocumentID`, `DocumentGenerated`, `ContentDate`, data supplier name |
-| Content date not in the future | `ControlData/ContentDate` |
-| ISIN / LEI check digits | every `ISIN` (ISO 6166) and `LEI` (ISO 17442) |
-| Currency codes | currency elements and `ccy` attributes are ISO 4217 codes |
-| Position weights add up to 100 % | `TotalPercentage` of the positions per date (± 0.5), for each node with its own portfolios: fund, subfund, segment and share class — a share-class portfolio is weighted against its share class, not the fund |
-| Positions vs. net asset value | market values against the `TotalNetAssetValue` of the same node and date, in that node's currency (± 1 %) |
-| No duplicate positions | one `UniqueID` per portfolio |
-| Positions have master data / unused master data | positions without an `Asset`, assets nobody refers to |
-| No negative values of securities | equities, bonds, fund shares, certificates, warrants |
-| Securities have an identifier | the same positions without `Identifiers` |
-| Portfolio dates have a net asset value | each `Portfolio/NavDate` has a `TotalAssetValue` of the same node (fund, share class …) |
-| Share classes add up to the fund | share class net asset values against the fund's (± 0.5 %) |
-| Price × shares = share class value | `NavPrice` × `SharesOutstanding` against the share class's net asset value (± 1 %) |
-| Transactions settle after entry | `ValutaDate` not before `EntryDate` |
-| No matured instruments held | maturity dates before the content date of held assets |
+Every check has a **severity**: *error* — the data cannot be right (an asset listed twice, a bond that matures before
+it is issued, a negative exchange rate); *warning* — most likely wrong, often with a tolerance; *info* — a **hint**
+that usually needs no change but that receivers often ask for (a fund without LEI, an OTC derivative without
+counterparty LEI). A document with hints only counts as passed. Checks the schema already enforces (code lists,
+required elements and attributes) are not repeated.
+
+**Control data and identifiers**
+
+| Check | Severity | What it looks at |
+|---|---|---|
+| Control data complete | warning | ControlData has UniqueDocumentID, DocumentGenerated, ContentDate and the data supplier's name. |
+| Content date not in the future | warning | The ContentDate is not later than today. |
+| Document generated after its content date | warning | DocumentGenerated is neither before the ContentDate nor in the future. |
+| ISIN check digits | warning | Every ISIN has 12 characters and a correct check digit (ISO 6166). |
+| LEI check digits | warning | Every LEI has 20 characters and correct check digits (ISO 17442). |
+| Currency codes | warning | Currencies and ccy attributes are three capital letters (ISO 4217). |
+| Country codes | warning | Country elements hold two capital letters (ISO 3166-1 alpha-2); the schema only checks the length. |
+| BIC format | warning | A SwiftBIC has 8 or 11 characters: bank, country, location and an optional branch (ISO 9362); the schema only checks the length. |
+
+**Positions and valuation**
+
+| Check | Severity | What it looks at |
+|---|---|---|
+| Position weights add up to 100 % | warning | The TotalPercentage of all positions of a fund, share class, segment or subfund on a date (over all its own portfolios) add up to 100 % (± 0.5). Share-class portfolios are weighted against the share class, not the fund. |
+| Positions vs. net asset value | warning | The market values of all positions of a fund, share class, segment or subfund on a date (in its currency, over all its own portfolios) match its own total net asset value of that date (± 1 %). |
+| Position weight matches its value | warning | A position's TotalPercentage matches its TotalValue against the net asset value of its owner on that date (± 0.1 percentage points). |
+| Positions valued in their owner's currency | warning | Every portfolio position has a TotalValue amount in the currency of its fund, share class, segment or subfund (the sums against the net asset value need it). |
+| Position values agree in sign | warning | The TotalValue amounts of a position in different currencies are all positive or all negative. |
+| No duplicate positions | warning | A portfolio lists every position (UniqueID) once. |
+| No negative values of securities | warning | Equities, bonds, fund shares, certificates and warrants have no negative market value. |
+| Securities have an identifier | warning | Equities, bonds, fund shares, certificates and warrants carry an identifier (ISIN …). |
+| Units × price = market value | warning | For equities and fund shares, units (shares) × price matches the market value in the same currency (± 1 %). |
+| Nominal × price = bond market value | warning | For bonds, nominal × clean price / 100 × pool factor × index factor matches the market value (without interest) in the same currency (± 1 %). |
+| Bond prices are plausible | warning | A bond position's clean price (in percent of nominal) is greater than 0 and at most 250. |
+| Exchange rates are positive | error | An FXRate is greater than 0, and 1 when it converts a currency into itself. |
+| One exchange rate per currency pair | warning | The positions of a portfolio use the same rate for the same currency pair. |
+
+**Master data and references**
+
+| Check | Severity | What it looks at |
+|---|---|---|
+| Positions have master data | warning | Every portfolio position's UniqueID has an Asset in AssetMasterData (when the document has AssetMasterData). |
+| Unused master data | warning | Assets in AssetMasterData that no position, transaction or earning refers to. |
+| No duplicate assets | error | AssetMasterData lists every asset (UniqueID) once. |
+| One asset per ISIN | warning | No two assets in AssetMasterData carry the same ISIN. |
+| Position ISIN matches the master data | warning | A position's ISIN is the ISIN of the asset with the same UniqueID in AssetMasterData. |
+| Position currency matches the master data | warning | A position's Currency is the Currency of its asset in AssetMasterData. |
+| Transactions and earnings have master data | warning | Every AssetUniqueID of a transaction or earning has an Asset in AssetMasterData (when the document has AssetMasterData). |
+| Securities in the master data have an ISIN | warning | Assets of type EQ (equity), BO (bond) and SC (fund share) carry an ISIN. |
+| Options and futures have an underlying | warning | Assets of type OP (option) and FU (future) name at least one underlying. |
+| FX forwards are consistent | warning | An FX forward buys and sells different currencies, both amounts are positive, and the agreed rate matches AmountBuy / AmountSell or its inverse (± 1 %). |
+| No matured instruments held | warning | Positions in bonds, futures, options, swaps, warrants … whose maturity date is before the content date. |
+| Bonds mature after issue | error | A bond's MaturityDate is not before its IssueDate. |
+
+**Net asset values, share classes and prices**
+
+| Check | Severity | What it looks at |
+|---|---|---|
+| Portfolio dates have a net asset value | warning | Every portfolio's NavDate has a TotalAssetValue of the node it belongs to (fund, share class, segment, subfund) for that date. |
+| Net asset value in the owner's currency | warning | Every TotalAssetValue has a TotalNetAssetValue amount in the currency of its fund, share class, segment or subfund. |
+| Share classes add up to the fund | warning | The net asset values of the share classes (in fund currency) add up to the fund's (± 0.5 %) for each date. |
+| Share class ratios add up to 100 % | warning | When every share class gives its Ratio for a date, the ratios add up to 100 % (± 0.5). |
+| Share class dates match the fund | warning | Every net asset value date of a share class is also a net asset value date of its fund. |
+| Price × shares = share class value | warning | NAV price × shares outstanding of a share class matches its net asset value (± 1 %). |
+| Prices and net asset values are positive | warning | NAV prices are greater than 0; shares outstanding and net asset values are not negative. |
+| One price per date | warning | A share class has one price per NavDate, price nature and currency. |
+| A price in the share class currency | warning | For every price date a share class has a price in its own currency. |
+
+**Dates, transactions and earnings**
+
+| Check | Severity | What it looks at |
+|---|---|---|
+| No NAV date after the content date | warning | No NavDate (portfolio, net asset value, price) is later than the ContentDate. |
+| No NAV date before inception | warning | No NavDate of a fund, share class, segment or subfund is earlier than its InceptionDate. |
+| Transactions settle after entry | warning | A transaction's ValutaDate is not before its EntryDate. |
+| Earnings settle after entry | warning | An earning's ValutaDate is not before its EntryDate. |
+| No transactions after the content date | warning | No transaction is entered after the ContentDate. |
+| No duplicate transactions | error | A portfolio lists every transaction (TransactionID) once; cancellations (CancellationFlag) are not counted. |
+
+**Hints**
+
+| Check | Severity | What it looks at |
+|---|---|---|
+| Funds have a LEI, share classes an ISIN | info | Funds carry a LEI and share classes an ISIN, as most receivers expect. |
+| OTC derivatives name their counterparty's LEI | info | FX forwards (FX) and swaps (SW) name the counterparty's LEI (EMIR reporting). |
+| Accounts name their bank | info | Accounts (AC) name the bank with a LEI or BIC. |
+| Derivative positions have exposures | info | Positions in futures, options, swaps and FX forwards give their exposure (Exposures). |
+| Positions with a value | info | Positions whose every TotalValue amount is 0 (closed positions that are still reported). |
+| Recent portfolios | info | The latest portfolio of a fund, share class, segment or subfund is more than 31 days older than the ContentDate. |
+
+??? note "The XPath of every check"
+
+    Each XPath selects the nodes its check reports; it needs no prolog, so it runs as it is in the Query Console
+    (XPath mode). An empty result means the check passes.
+
+    **Control data complete** (`control-data`, warning)
+
+    ```xpath
+    /FundsXML4[not(ControlData)] | /FundsXML4/ControlData[not(UniqueDocumentID and DocumentGenerated and ContentDate and DataSupplier/Name)]
+    ```
+
+    **Content date not in the future** (`content-date`, warning)
+
+    ```xpath
+    /FundsXML4/ControlData/ContentDate[. castable as xs:date][xs:date(.) gt current-date()]
+    ```
+
+    **Document generated after its content date** (`generated-date`, warning)
+
+    ```xpath
+    /FundsXML4/ControlData/DocumentGenerated[. castable as xs:dateTime][let $g := xs:date(substring(., 1, 10)) return $g gt current-date() or (../ContentDate castable as xs:date and $g lt xs:date(../ContentDate))]
+    ```
+
+    **ISIN check digits** (`isin`, warning)
+
+    ```xpath
+    //ISIN[let $s := normalize-space(.) return not(if (matches($s, '^[A-Z]{2}[A-Z0-9]{9}[0-9]$')) then (let $d := string-join(string-to-codepoints(substring($s, 1, 11)) ! (if (. ge 65) then string(. - 55) else codepoints-to-string(.))), $r := reverse(string-to-codepoints($d) ! (. - 48)), $sum := sum(for $i in 1 to count($r) return if ($i mod 2 = 1) then (let $x := $r[$i] * 2 return if ($x gt 9) then $x - 9 else $x) else $r[$i]) return (10 - $sum mod 10) mod 10 = xs:integer(substring($s, 12, 1))) else false())]
+    ```
+
+    **LEI check digits** (`lei`, warning)
+
+    ```xpath
+    //LEI[let $s := normalize-space(.) return not(if (matches($s, '^[A-Z0-9]{18}[0-9]{2}$')) then xs:integer(string-join(string-to-codepoints($s) ! (if (. ge 65) then string(. - 55) else codepoints-to-string(.)))) mod 97 = 1 else false())]
+    ```
+
+    **Currency codes** (`currency`, warning)
+
+    ```xpath
+    //*[local-name() = ('Currency', 'CurrencyBuy', 'CurrencySell', 'PriceCurrency', 'SettlementCurrency')][not(*)][not(matches(normalize-space(.), '^[A-Z]{3}$'))] | //@ccy[not(matches(., '^[A-Z]{3}$'))]
+    ```
+
+    **Country codes** (`country-codes`, warning)
+
+    ```xpath
+    //*[local-name() = ('Country', 'SystemCountry', 'BusinessCountry', 'CountryCode', 'CountryOfDomicile', 'DomicileCountry', 'FundCustodianCountry', 'InvestorCountry', 'IssuerCountry', 'ListOfInvestedCountries')][not(*)][normalize-space(.) ne ''][not(matches(normalize-space(.), '^[A-Z]{2}$'))]
+    ```
+
+    **BIC format** (`bic`, warning)
+
+    ```xpath
+    //SwiftBIC[not(matches(normalize-space(.), '^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$'))]
+    ```
+
+    **Position weights add up to 100 %** (`weights`, warning)
+
+    ```xpath
+    //Portfolios[Portfolio/Positions/Position/TotalPercentage][some $d in distinct-values(Portfolio/NavDate) satisfies abs(sum(Portfolio[NavDate = $d]/Positions/Position/TotalPercentage[. castable as xs:decimal] ! xs:decimal(.)) - 100) gt 0.5]
+    ```
+
+    **Positions vs. net asset value** (`value-vs-nav`, warning)
+
+    ```xpath
+    //Portfolios[Portfolio/Positions/Position][let $ps := ., $ccy := string((ancestor::*[self::ShareClass or self::Segment or self::Subfund or self::Fund][1]/Currency, ancestor::Fund[1]/Currency)[1]) return some $d in distinct-values(Portfolio/NavDate) satisfies (let $tna := ($ps/../TotalAssetValues/TotalAssetValue[NavDate = $d]/TotalNetAssetValue/Amount[@ccy = $ccy][. castable as xs:decimal])[1] ! xs:decimal(.), $sum := sum($ps/Portfolio[NavDate = $d]/Positions/Position/TotalValue/Amount[@ccy = $ccy][. castable as xs:decimal] ! xs:decimal(.)) return exists($tna) and $tna ne 0 and abs($sum - $tna) div abs($tna) gt 0.01)]
+    ```
+
+    **Position weight matches its value** (`weight-vs-value`, warning)
+
+    ```xpath
+    //Portfolio/Positions/Position/TotalPercentage[. castable as xs:decimal][let $pf := ../../.., $ccy := string((ancestor::*[self::ShareClass or self::Segment or self::Subfund or self::Fund][1]/Currency, ancestor::Fund[1]/Currency)[1]), $tna := ($pf/../../TotalAssetValues/TotalAssetValue[NavDate = $pf/NavDate]/TotalNetAssetValue/Amount[@ccy = $ccy][. castable as xs:decimal])[1] ! xs:decimal(.), $v := (../TotalValue/Amount[@ccy = $ccy][. castable as xs:decimal])[1] ! xs:decimal(.) return exists($tna) and $tna ne 0 and exists($v) and abs($v div $tna * 100 - xs:decimal(.)) gt 0.1]
+    ```
+
+    **Positions valued in their owner's currency** (`fund-ccy-value`, warning)
+
+    ```xpath
+    //Portfolio/Positions/Position[let $ccy := string((ancestor::*[self::ShareClass or self::Segment or self::Subfund or self::Fund][1]/Currency, ancestor::Fund[1]/Currency)[1]) return $ccy ne '' and not(TotalValue/Amount/@ccy = $ccy)]
+    ```
+
+    **Position values agree in sign** (`value-direction`, warning)
+
+    ```xpath
+    //Portfolio/Positions/Position[TotalValue/Amount[. castable as xs:decimal][xs:decimal(.) gt 0] and TotalValue/Amount[. castable as xs:decimal][xs:decimal(.) lt 0]]
+    ```
+
+    **No duplicate positions** (`duplicate-positions`, warning)
+
+    ```xpath
+    //Positions/Position[UniqueID = preceding-sibling::Position/UniqueID]
+    ```
+
+    **No negative values of securities** (`negative-values`, warning)
+
+    ```xpath
+    //Positions/Position[Equity or Bond or ShareClass or Certificate or Warrant][xs:decimal((TotalValue/Amount)[1][. castable as xs:decimal]) lt 0]
+    ```
+
+    **Securities have an identifier** (`missing-identifier`, warning)
+
+    ```xpath
+    //Positions/Position[Equity or Bond or ShareClass or Certificate or Warrant][not(Identifiers/*)]
+    ```
+
+    **Units × price = market value** (`units-x-price`, warning)
+
+    ```xpath
+    //Portfolio/Positions/Position/(Equity | ShareClass)[let $s := ., $u := (($s/Units, $s/Shares)[. castable as xs:decimal])[1] ! xs:decimal(.), $p := ($s/Price/Amount[@ccy = $s/MarketValue/Amount/@ccy][. castable as xs:decimal])[1], $mv := ($s/MarketValue/Amount[@ccy = $p/@ccy][. castable as xs:decimal])[1] ! xs:decimal(.) return exists($u) and exists($p) and exists($mv) and $mv ne 0 and abs($u * xs:decimal($p) - $mv) div abs($mv) gt 0.01]
+    ```
+
+    **Nominal × price = bond market value** (`nominal-x-price`, warning)
+
+    ```xpath
+    //Portfolio/Positions/Position/Bond[let $b := ., $n := ($b/Nominal[. castable as xs:decimal])[1] ! xs:decimal(.), $f := (($b/Poolfactor[. castable as xs:decimal])[1] ! xs:decimal(.), 1)[1] * (($b/Indexfactor[. castable as xs:decimal])[1] ! xs:decimal(.), 1)[1], $p := ($b/Price/Amount[@ccy = $b/MarketValue/Amount/@ccy][. castable as xs:decimal])[1], $mv := ($b/MarketValue/Amount[@ccy = $p/@ccy][. castable as xs:decimal])[1] ! xs:decimal(.) return exists($n) and exists($p) and exists($mv) and $mv ne 0 and abs($n * xs:decimal($p) div 100 * $f - $mv) div abs($mv) gt 0.01]
+    ```
+
+    **Bond prices are plausible** (`bond-price-range`, warning)
+
+    ```xpath
+    //Portfolio/Positions/Position/Bond/Price/Amount[. castable as xs:decimal][xs:decimal(.) le 0 or xs:decimal(.) gt 250]
+    ```
+
+    **Exchange rates are positive** (`fx-rates`, error)
+
+    ```xpath
+    //FXRate[. castable as xs:decimal][xs:decimal(.) le 0 or (@fromCcy = @toCcy and xs:decimal(.) ne 1)]
+    ```
+
+    **One exchange rate per currency pair** (`fx-consistency`, warning)
+
+    ```xpath
+    //Portfolio/Positions/Position/FXRates/FXRate[. castable as xs:decimal][let $r := . return some $o in ancestor::Portfolio[1]/Positions/Position/FXRates/FXRate[@fromCcy = $r/@fromCcy and @toCcy = $r/@toCcy and @mulDiv = $r/@mulDiv][. castable as xs:decimal] satisfies xs:decimal($o) ne xs:decimal($r)]
+    ```
+
+    **Positions have master data** (`asset-master`, warning)
+
+    ```xpath
+    //Positions/Position[exists(/FundsXML4/AssetMasterData/Asset)][not(UniqueID = /FundsXML4/AssetMasterData/Asset/UniqueID)]
+    ```
+
+    **Unused master data** (`unused-assets`, warning)
+
+    ```xpath
+    /FundsXML4/AssetMasterData/Asset[not(UniqueID = (//Positions/Position/UniqueID, //Transaction/AssetUniqueID, //Earning/AssetUniqueID))]
+    ```
+
+    **No duplicate assets** (`duplicate-assets`, error)
+
+    ```xpath
+    /FundsXML4/AssetMasterData/Asset[UniqueID = preceding-sibling::Asset/UniqueID]
+    ```
+
+    **One asset per ISIN** (`duplicate-isin-assets`, warning)
+
+    ```xpath
+    /FundsXML4/AssetMasterData/Asset[Identifiers/ISIN ! normalize-space(.) = preceding-sibling::Asset/Identifiers/ISIN ! normalize-space(.)]
+    ```
+
+    **Position ISIN matches the master data** (`position-asset-isin`, warning)
+
+    ```xpath
+    //Portfolio/Positions/Position[Identifiers/ISIN][let $pos := ., $a := (/FundsXML4/AssetMasterData/Asset[UniqueID = $pos/UniqueID])[1] return exists($a/Identifiers/ISIN) and normalize-space($pos/Identifiers/ISIN[1]) ne normalize-space($a/Identifiers/ISIN[1])]
+    ```
+
+    **Position currency matches the master data** (`position-currency`, warning)
+
+    ```xpath
+    //Portfolio/Positions/Position[Currency][let $pos := ., $a := (/FundsXML4/AssetMasterData/Asset[UniqueID = $pos/UniqueID][Currency])[1] return exists($a) and string($pos/Currency) ne string($a/Currency)]
+    ```
+
+    **Transactions and earnings have master data** (`transaction-asset`, warning)
+
+    ```xpath
+    (//Transaction/AssetUniqueID | //Earning/AssetUniqueID)[exists(/FundsXML4/AssetMasterData/Asset)][not(. = /FundsXML4/AssetMasterData/Asset/UniqueID)]
+    ```
+
+    **Securities in the master data have an ISIN** (`security-isin`, warning)
+
+    ```xpath
+    /FundsXML4/AssetMasterData/Asset[AssetType = ('EQ', 'BO', 'SC')][not(Identifiers/ISIN)]
+    ```
+
+    **Options and futures have an underlying** (`derivative-underlying`, warning)
+
+    ```xpath
+    /FundsXML4/AssetMasterData/Asset[AssetType = ('OP', 'FU')][not(AssetDetails/*/Underlyings/Underlying)]
+    ```
+
+    **FX forwards are consistent** (`fx-forward`, warning)
+
+    ```xpath
+    /FundsXML4/AssetMasterData/Asset/AssetDetails/FXForward[let $b := (AmountBuy[. castable as xs:decimal])[1] ! xs:decimal(.), $s := (AmountSell[. castable as xs:decimal])[1] ! xs:decimal(.), $r := (AgreedFxRate[. castable as xs:decimal])[1] ! xs:decimal(.) return (exists(CurrencyBuy) and string(CurrencyBuy) eq string(CurrencySell)) or $b le 0 or $s le 0 or (exists($b) and exists($s) and exists($r) and $b gt 0 and $s gt 0 and $r gt 0 and abs($b div $s - $r) div $r gt 0.01 and abs($s div $b - $r) div $r gt 0.01)]
+    ```
+
+    **No matured instruments held** (`matured`, warning)
+
+    ```xpath
+    /FundsXML4/AssetMasterData/Asset[/FundsXML4/ControlData/ContentDate castable as xs:date][(AssetDetails/*/MaturityDate)[1] castable as xs:date][xs:date((AssetDetails/*/MaturityDate)[1]) lt xs:date(/FundsXML4/ControlData/ContentDate)][UniqueID = //Positions/Position/UniqueID]
+    ```
+
+    **Bonds mature after issue** (`bond-dates`, error)
+
+    ```xpath
+    /FundsXML4/AssetMasterData/Asset/AssetDetails/Bond[MaturityDate castable as xs:date and IssueDate castable as xs:date][xs:date(MaturityDate) lt xs:date(IssueDate)]
+    ```
+
+    **Portfolio dates have a net asset value** (`nav-dates`, warning)
+
+    ```xpath
+    //Portfolio[NavDate][exists(../../TotalAssetValues/TotalAssetValue)][not(NavDate = ../../TotalAssetValues/TotalAssetValue/NavDate)]
+    ```
+
+    **Net asset value in the owner's currency** (`fund-ccy-tna`, warning)
+
+    ```xpath
+    //TotalAssetValues/TotalAssetValue[TotalNetAssetValue/Amount][let $ccy := string((ancestor::*[self::ShareClass or self::Segment or self::Subfund or self::Fund][1]/Currency, ancestor::Fund[1]/Currency)[1]) return $ccy ne '' and not(TotalNetAssetValue/Amount/@ccy = $ccy)]
+    ```
+
+    **Share classes add up to the fund** (`share-classes-sum`, warning)
+
+    ```xpath
+    //Fund[SingleFund/ShareClasses/ShareClass/TotalAssetValues]/FundDynamicData/TotalAssetValues/TotalAssetValue[let $t := ., $f := ancestor::Fund[1], $ccy := string($f/Currency), $tna := ($t/TotalNetAssetValue/Amount[@ccy = $ccy][. castable as xs:decimal])[1] ! xs:decimal(.), $cl := $f/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue[NavDate = $t/NavDate]/TotalNetAssetValue/Amount[@ccy = $ccy][. castable as xs:decimal] return exists($tna) and exists($cl) and $tna ne 0 and abs(sum($cl ! xs:decimal(.)) - $tna) div abs($tna) gt 0.005]
+    ```
+
+    **Share class ratios add up to 100 %** (`share-class-ratio`, warning)
+
+    ```xpath
+    //Fund[SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue/Ratio][let $tavs := SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue return some $d in distinct-values($tavs/NavDate) satisfies (let $day := $tavs[NavDate = $d] return (every $t in $day satisfies $t/Ratio castable as xs:decimal) and abs(sum($day/Ratio ! xs:decimal(.)) - 100) gt 0.5)]
+    ```
+
+    **Share class dates match the fund** (`share-class-dates`, warning)
+
+    ```xpath
+    //Fund[FundDynamicData/TotalAssetValues/TotalAssetValue]/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue[not(NavDate = ancestor::Fund[1]/FundDynamicData/TotalAssetValues/TotalAssetValue/NavDate)]
+    ```
+
+    **Price × shares = share class value** (`price-x-shares`, warning)
+
+    ```xpath
+    //ShareClass/TotalAssetValues/TotalAssetValue[let $t := ., $price := ($t/../../Prices/Price[NavDate = $t/NavDate])[1], $p := ($price/NavPrice[. castable as xs:decimal])[1] ! xs:decimal(.), $sh := ($t/SharesOutstanding[. castable as xs:decimal])[1] ! xs:decimal(.), $tna := (($t/TotalNetAssetValue/Amount[@ccy = $price/PriceCurrency], $t/TotalNetAssetValue/Amount)[. castable as xs:decimal])[1] ! xs:decimal(.) return exists($p) and exists($sh) and exists($tna) and $tna ne 0 and abs($p * $sh - $tna) div abs($tna) gt 0.01]
+    ```
+
+    **Prices and net asset values are positive** (`positive-nav`, warning)
+
+    ```xpath
+    //Prices/Price/NavPrice[. castable as xs:decimal][xs:decimal(.) le 0] | //TotalAssetValue/SharesOutstanding[. castable as xs:decimal][xs:decimal(.) lt 0] | //TotalAssetValue/TotalNetAssetValue/Amount[. castable as xs:decimal][xs:decimal(.) lt 0]
+    ```
+
+    **One price per date** (`duplicate-prices`, warning)
+
+    ```xpath
+    //Prices/Price[let $p := . return exists(preceding-sibling::Price[NavDate = $p/NavDate and string(PriceNature) = string($p/PriceNature) and string(PriceCurrency) = string($p/PriceCurrency)])]
+    ```
+
+    **A price in the share class currency** (`price-currency`, warning)
+
+    ```xpath
+    //ShareClass[Currency and Prices/Price/PriceCurrency]/Prices/Price[let $p := ., $sc := ../.. return not($sc/Prices/Price[NavDate = $p/NavDate]/PriceCurrency = $sc/Currency)]
+    ```
+
+    **No NAV date after the content date** (`navdate-after-content`, warning)
+
+    ```xpath
+    //NavDate[. castable as xs:date][/FundsXML4/ControlData/ContentDate castable as xs:date][xs:date(.) gt xs:date(/FundsXML4/ControlData/ContentDate)]
+    ```
+
+    **No NAV date before inception** (`navdate-before-inception`, warning)
+
+    ```xpath
+    //NavDate[. castable as xs:date][let $o := ancestor::*[self::ShareClass or self::Segment or self::Subfund or self::Fund][1], $i := ($o/InceptionDate, $o/*[ends-with(local-name(), 'StaticData')]/InceptionDate)[. castable as xs:date][1] return exists($i) and xs:date(.) lt xs:date($i)]
+    ```
+
+    **Transactions settle after entry** (`transaction-dates`, warning)
+
+    ```xpath
+    //Transaction[ValutaDate castable as xs:date and EntryDate castable as xs:date][xs:date(ValutaDate) lt xs:date(EntryDate)]
+    ```
+
+    **Earnings settle after entry** (`earning-dates`, warning)
+
+    ```xpath
+    //Earning[ValutaDate castable as xs:date and EntryDate castable as xs:date][xs:date(ValutaDate) lt xs:date(EntryDate)]
+    ```
+
+    **No transactions after the content date** (`transaction-after-content`, warning)
+
+    ```xpath
+    //Transaction[EntryDate castable as xs:date][/FundsXML4/ControlData/ContentDate castable as xs:date][xs:date(EntryDate) gt xs:date(/FundsXML4/ControlData/ContentDate)]
+    ```
+
+    **No duplicate transactions** (`duplicate-transactions`, error)
+
+    ```xpath
+    //Transactions/Transaction[not(CancellationFlag = ('true', '1'))][TransactionID = preceding-sibling::Transaction[not(CancellationFlag = ('true', '1'))]/TransactionID]
+    ```
+
+    **Funds have a LEI, share classes an ISIN** (`fund-identifiers`, info)
+
+    ```xpath
+    //Fund[not(Identifiers/LEI)] | //ShareClasses/ShareClass[not(Identifiers/ISIN)]
+    ```
+
+    **OTC derivatives name their counterparty's LEI** (`otc-counterparty-lei`, info)
+
+    ```xpath
+    /FundsXML4/AssetMasterData/Asset[AssetType = ('FX', 'SW')][not(AssetDetails/*/Counterparty/Identifiers/LEI)]
+    ```
+
+    **Accounts name their bank** (`account-counterparty`, info)
+
+    ```xpath
+    /FundsXML4/AssetMasterData/Asset[AssetType = 'AC'][not(AssetDetails/Account/Counterparty/Identifiers/(LEI | SwiftBIC))]
+    ```
+
+    **Derivative positions have exposures** (`derivative-exposure`, info)
+
+    ```xpath
+    //Portfolio/Positions/Position[Future or Option or Swap or FXForward][not(Exposures/Exposure)]
+    ```
+
+    **Positions with a value** (`zero-positions`, info)
+
+    ```xpath
+    //Portfolio/Positions/Position[TotalValue/Amount][every $a in TotalValue/Amount satisfies ($a castable as xs:decimal and xs:decimal($a) = 0)]
+    ```
+
+    **Recent portfolios** (`stale-navdate`, info)
+
+    ```xpath
+    //Portfolios[/FundsXML4/ControlData/ContentDate castable as xs:date][Portfolio/NavDate[. castable as xs:date]][xs:date(/FundsXML4/ControlData/ContentDate) - max(Portfolio/NavDate[. castable as xs:date] ! xs:date(.)) gt xs:dayTimeDuration('P31D')]
+    ```
 
 The checks also run with every validation of a FundsXML document while the extension is on; their
-findings appear as warnings with the source **FundsXML DQ**. Each finding carries the line of the element it is
+findings appear as errors, warnings or hints — the severity of their check — with the source **FundsXML DQ**. Each finding carries the line of the element it is
 about (the position, the ISIN, the transaction …): a click in the PROBLEMS pane shows it in the current
 view — Text, Tree or the Graphic grid, where the row or table cell is highlighted. In the Query Console they are available as
 snippets (**FUNDSXML** section) together with analysis queries — all funds, top 10 positions, exposure
 by asset type and by currency, positions over 5 %, positions without ISIN, derivatives, share class
-prices — so each can be run, adapted and saved on its own. The checks were developed against the
+prices, the UCITS 5/10/40 issuer concentration — so each can be run, adapted and saved on its own. The checks were developed against the
 documents of the official [fundsxml/examples](https://github.com/fundsxml/examples) repository.
 
 ## Grid Formulas and Filters
