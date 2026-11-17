@@ -49,6 +49,8 @@
                                            text="%FundsXmlPanel.fundsxml-identifiers-online.text" color="TOOL" onAction="#onIdentifiersOnline"/>
                         <PanelActionButton id="fundsxml-grid-setup" iconLiteral="bi-calculator"
                                            text="%FundsXmlPanel.fundsxml-grid-setup.text" color="TOOL" onAction="#onGridSetup"/>
+                        <PanelActionButton id="fundsxml-percentages" iconLiteral="bi-percent"
+                                           text="%FundsXmlPanel.fundsxml-percentages.text" color="TOOL" onAction="#onPercentages"/>
                     </children>
                 </PanelActionList>
             </children>

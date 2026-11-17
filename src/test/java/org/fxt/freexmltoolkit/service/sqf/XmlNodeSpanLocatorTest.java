@@ -91,4 +91,30 @@ class XmlNodeSpanLocatorTest {
         int subOffset = xml.indexOf("<sub/>");
         assertEquals("\t", XmlNodeSpanLocator.indentationAt(xml, subOffset));
     }
+    @Test
+    void resolvesManyPathsWithOneScan() {
+        StringBuilder xml = new StringBuilder("<root><list>");
+        for (int i = 1; i <= 5000; i++) {
+            xml.append("<item><v>").append(i).append("</v></item>");
+        }
+        xml.append("</list></root>");
+        String text = xml.toString();
+        List<List<Step>> paths = new java.util.ArrayList<>();
+        for (int i = 1; i <= 5000; i++) {
+            paths.add(path("root", 1, "list", 1, "item", i, "v", 1));
+        }
+        paths.add(path("root", 1, "list", 1, "item", 5001));
+        paths.add(path("root", 1, "missing", 1));
+        paths.add(List.of());
+        List<Optional<ElementRegion>> regions = XmlNodeSpanLocator.elementRegions(text, paths);
+        assertEquals(paths.size(), regions.size());
+        for (int i : new int[] {1, 2, 4999, 5000}) {
+            ElementRegion region = regions.get(i - 1).orElseThrow();
+            assertEquals(String.valueOf(i), text.substring(region.contentStart(), region.contentEnd()));
+            assertEquals(XmlNodeSpanLocator.elementRegion(text, paths.get(i - 1)), regions.get(i - 1));
+        }
+        assertFalse(regions.get(5000).isPresent());
+        assertFalse(regions.get(5001).isPresent());
+        assertFalse(regions.get(5002).isPresent());
+    }
 }

@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -101,6 +102,51 @@ class FundsXmlPanelTest {
     }
 
     /** Depth-first search over the panel's children (callers run it on the FX thread). */
+    @Test
+    void setsThePositionWeightsAsOneUndoStep() throws Exception {
+        String fixture;
+        try (var in = getClass().getResourceAsStream("/fundsxml/dq-fixture.xml")) {
+            fixture = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        }
+        String without = fixture.replace("\n                <TotalPercentage>60.00</TotalPercentage>", "")
+                .replace("<TotalPercentage>40.00</TotalPercentage>", "<TotalPercentage>39.00</TotalPercentage>");
+        List<String> asked = new ArrayList<>();
+        FundsXmlPanel panel = WaitForAsyncUtils.waitForAsyncFx(3000, () -> new FundsXmlPanel(host));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openGeneratedDocument(without, EditorFileType.XML, "fund.xml"));
+        WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("39.00")).orElse(false));
+        try {
+            // declined: nothing changes
+            FundsXmlPanel.percentagesConfirmer = text -> asked.add(text) && false;
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                panel.onPercentages();
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS, () -> asked.size() == 1);
+            assertTrue(asked.getFirst().startsWith("1 to insert, 1 to correct, 0 right, 0 skipped"), asked.getFirst());
+            assertTrue(asked.getFirst().contains("P1 (Fund Test Fund, 2025-10-01): + 60.00"), asked.getFirst());
+            assertTrue(asked.getFirst().contains("P2 (Fund Test Fund, 2025-10-01): 39.00 → 40.00"), asked.getFirst());
+            WaitForAsyncUtils.waitForFxEvents();
+            assertEquals(without, host.getActiveText().orElseThrow());
+
+            // accepted: inserted and corrected, one undo takes both back
+            FundsXmlPanel.percentagesConfirmer = text -> asked.add(text);
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                panel.onPercentages();
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS,
+                    () -> host.getActiveText().map(fixture::equals).orElse(false));
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                host.getActiveCodeArea().undo();
+                return null;
+            });
+            assertEquals(without, host.getActiveText().orElseThrow(), "one undo takes all back");
+        } finally {
+            FundsXmlPanel.percentagesConfirmer = null;
+        }
+    }
+
     private static Node findNode(Node root, java.util.function.Predicate<Node> match) {
         if (match.test(root)) {
             return root;

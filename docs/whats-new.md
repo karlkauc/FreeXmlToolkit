@@ -6,6 +6,11 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+- **Set the position weights of a FundsXML document.** *Set Position Weights (TotalPercentage)* in the FundsXML
+  panel computes every portfolio position's share of the net asset value - its value in the currency of the fund,
+  share class or segment, two decimals - inserts `TotalPercentage` where it is missing and corrects wrong values.
+  A dialog shows what changes first; the document keeps its formatting and one Undo takes everything back. See
+  [FundsXML Extensions](fundsxml-extensions.md#position-weights-totalpercentage).
 - **37 more FundsXML data-quality checks.** *Run Data Quality Checks* now runs 54 checks: units × price and nominal ×
   price against the market value, position weights against their value, exchange rates, FX forwards, duplicate
   assets, transactions and prices, positions whose ISIN or currency differs from the master data, NAV dates after

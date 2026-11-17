@@ -3,7 +3,9 @@ package org.fxt.freexmltoolkit.service.sqf;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import net.sf.saxon.s9api.Axis;
@@ -97,32 +99,41 @@ public final class XmlNodeSpanLocator {
         if (xml == null || path == null || path.isEmpty()) {
             return Optional.empty();
         }
-        List<El> roots = scan(xml);
-        List<El> level = roots;
-        El current = null;
-        for (Step step : path) {
-            current = nth(level, step);
-            if (current == null) {
-                return Optional.empty();
-            }
-            level = current.children;
-        }
-        List<Span> childSpans = new ArrayList<>();
-        for (El child : current.children) {
-            childSpans.add(new Span(child.start, child.end));
-        }
-        return Optional.of(new ElementRegion(new Span(current.start, current.end),
-                current.startTagEnd, current.contentStart, current.contentEnd, childSpans));
+        return elementRegions(xml, List.of(path)).getFirst();
     }
 
-    private static El nth(List<El> level, Step step) {
-        int seen = 0;
-        for (El el : level) {
-            if (el.name.equals(step.localName()) && ++seen == step.position()) {
-                return el;
-            }
+    /**
+     * Resolves several positional paths with one scan of the text - for edits at many elements of one
+     * document (thousands of positions under one parent stay linear: each element indexes its children by
+     * name once).
+     *
+     * @return per path its element's text layout, empty when the path does not resolve
+     */
+    public static List<Optional<ElementRegion>> elementRegions(String xml, List<List<Step>> paths) {
+        List<Optional<ElementRegion>> regions = new ArrayList<>(paths.size());
+        if (xml == null) {
+            paths.forEach(p -> regions.add(Optional.empty()));
+            return regions;
         }
-        return null;
+        El document = new El("", 0);
+        document.children.addAll(scan(xml));
+        for (List<Step> path : paths) {
+            El current = path == null || path.isEmpty() ? null : document;
+            for (int i = 0; current != null && i < path.size(); i++) {
+                current = current.nth(path.get(i));
+            }
+            regions.add(Optional.ofNullable(current).map(XmlNodeSpanLocator::region));
+        }
+        return regions;
+    }
+
+    private static ElementRegion region(El el) {
+        List<Span> childSpans = new ArrayList<>(el.children.size());
+        for (El child : el.children) {
+            childSpans.add(new Span(child.start, child.end));
+        }
+        return new ElementRegion(new Span(el.start, el.end), el.startTagEnd, el.contentStart, el.contentEnd,
+                childSpans);
     }
 
     /**
@@ -234,10 +245,25 @@ public final class XmlNodeSpanLocator {
         int contentStart = -1;
         int contentEnd = -1;
         final List<El> children = new ArrayList<>();
+        /** children by local name, built on the first lookup */
+        private Map<String, List<El>> byName;
 
         El(String name, int start) {
             this.name = name;
             this.start = start;
+        }
+
+        /** @return the child the step names (1-based among same-name children), or {@code null} */
+        El nth(Step step) {
+            if (byName == null) {
+                byName = new HashMap<>();
+                for (El child : children) {
+                    byName.computeIfAbsent(child.name, k -> new ArrayList<>()).add(child);
+                }
+            }
+            List<El> named = byName.get(step.localName());
+            return named != null && step.position() >= 1 && step.position() <= named.size()
+                    ? named.get(step.position() - 1) : null;
         }
     }
 

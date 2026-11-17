@@ -161,6 +161,11 @@ public final class FundsXmlDataQuality {
         return List.copyOf(catalog().snippets);
     }
 
+    /** @return the catalog's prolog: the helper functions every check can use ({@code local:owner} …) */
+    static String prolog() {
+        return catalog().prolog;
+    }
+
     /** @return the full XQuery of a check: prolog plus its query, its findings as strings */
     public static String fullQuery(Check check) {
         return catalog().prolog + "\n" + AT_TEXT + check.query;

@@ -599,6 +599,28 @@ stylesheet behind it, `plugins/fundsxml/fundsxml-grid-setup.xsl`, can be used in
 any FundsXML file as well. For a signed document you are asked first: the copy no longer matches the
 signature.
 
+## Position Weights (TotalPercentage)
+
+**Set Position Weights (TotalPercentage)** in the side panel fills in and checks the `TotalPercentage` of every
+portfolio position (`Portfolio/Positions/Position`) of the active document:
+
+- **Value:** the position's `TotalValue` amount in the currency of the node the portfolio belongs to - fund, share
+  class, segment or subfund - divided by that node's `TotalNetAssetValue` (same currency) on the portfolio's
+  `NavDate`, × 100, rounded half up to **two decimals**. A share-class portfolio is weighted against its share class,
+  not the fund - the same rule as the data-quality check *Position weight matches its value*.
+- **Missing:** the element is inserted after `TotalValue` (or `OtherTotalValues`), where the schema expects it,
+  indented like its neighbours.
+- **Present:** a value that rounds to the same two decimals stays as it is (`3.104922` when `3.10` is computed);
+  any other value - wrong, empty or not a number - is replaced.
+- **Skipped:** positions without a `TotalValue` in the node's currency, or whose node has no net asset value on that
+  date; the confirmation lists them with the reason.
+
+Before anything changes, a dialog shows how many values are inserted, corrected, already right and skipped, with
+the first positions (`ID_004 (Fund X, 2025-10-01): 3.5 → 3.10`, `+ 2.47` for an inserted one). The changes go into
+the open document as text edits - its formatting stays - and **Edit → Undo** takes all of them back at once. If the
+document changes while the values are computed, nothing is set. For a signed document you are asked first: new
+values no longer match the signature.
+
 ## The FundsXML Side Panel
 
 Select the **FundsXML** activity in the activity bar to open its side panel.
@@ -611,7 +633,7 @@ sections:
 | Section | What you can do |
 |---------|-----------------|
 | **MANAGEMENT** | Pick the **Active version** and force a manual **Download / Update Content**. A **progress bar with stage text** at the bottom of the panel tracks running downloads - including automatic background downloads. |
-| **VALIDATE** | **Validate active document** - check the open XML against the active FundsXML schema. **Run Data Quality Checks**, **Check Identifiers Online** (are the LEIs registered and valid, do the ISINs exist and are they still traded? Findings in the Problems panel - see [Online Identifier Lookup](identifier-lookup.md)) and **Add Grid Formulas & Filters**. |
+| **VALIDATE** | **Validate active document** - check the open XML against the active FundsXML schema. **Run Data Quality Checks**, **Check Identifiers Online** (are the LEIs registered and valid, do the ISINs exist and are they still traded? Findings in the Problems panel - see [Online Identifier Lookup](identifier-lookup.md)), **Add Grid Formulas & Filters** and **Set Position Weights (TotalPercentage)** (see [Position Weights](#position-weights-totalpercentage)). |
 | **CHECK AN IDENTIFIER** | Checks a pasted ISIN, LEI, BIC or IBAN; LEIs and ISINs can be looked up online ([Online Identifier Lookup](identifier-lookup.md)). |
 | **DOCS & RESOURCES** | Open the schema and browse the downloaded content (see below). |
 

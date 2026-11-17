@@ -288,6 +288,95 @@ public class FundsXmlPanel extends VBox {
         });
     }
 
+    /** Test hook: answers the confirmation of {@link #onPercentages} (gets header and details) instead of a dialog. */
+    static java.util.function.Predicate<String> percentagesConfirmer;
+    /** Lines of changes and skipped positions the confirmation lists before "… and N more". */
+    private static final int LISTED = 30;
+
+    /**
+     * Sets the TotalPercentage of every portfolio position of the active document from its value and the net
+     * asset value: plans in the background, asks once, applies the edits as one undo step - if the document did
+     * not change meanwhile.
+     */
+    @FXML
+    public void onPercentages() {
+        String xml = editorHost.getActiveText().orElse(null);
+        EditorHost.ValidationTarget target = editorHost.validationTarget();
+        if (xml == null || target == null || !org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.isFundsXml(xml)) {
+            PanelStatus.precondition(status, I18n.t("FundsXmlPanel.notFundsXml"));
+            return;
+        }
+        String title = I18n.t("FundsXmlPanel.fundsxml-percentages.text");
+        if (org.fxt.freexmltoolkit.service.fundsxml.FundsXmlGridSetup.isSigned(xml) && percentagesConfirmer == null
+                && !org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation(title,
+                        I18n.t("FundsXmlPanel.signedHeader"), I18n.t("FundsXmlPanel.percentages-signed"))) {
+            return;
+        }
+        PanelJobs.Job job = start("percentages", title, false);
+        if (job == null) {
+            return;
+        }
+        job.message(I18n.t("FundsXmlPanel.percentages-computing"));
+        FxtGui.executorService.submit(() -> {
+            try {
+                var plan = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPercentages.plan(xml);
+                job.close();
+                Platform.runLater(() -> confirmAndApply(plan, target, title));
+            } catch (java.io.IOException | RuntimeException e) {
+                job.close();
+                Platform.runLater(() -> PanelStatus.failure(status, I18n.t("FundsXmlPanel.percentages-failed"),
+                        e.getMessage(), false));
+            }
+        });
+    }
+
+    private void confirmAndApply(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPercentages.Plan plan,
+                                 EditorHost.ValidationTarget target, String title) {
+        if (plan.edits().isEmpty()) {
+            if (plan.skipped().isEmpty()) {
+                PanelStatus.success(status, I18n.t("FundsXmlPanel.percentages-all-right", plan.unchanged()));
+            } else {
+                PanelStatus.info(status, I18n.t("FundsXmlPanel.percentages-right-skipped", plan.unchanged(),
+                        plan.skipped().size(), plan.skipped().getFirst().reason()));
+            }
+            return;
+        }
+        String header = I18n.t("FundsXmlPanel.percentages-header", plan.inserted(), plan.corrected(),
+                plan.unchanged(), plan.skipped().size());
+        StringBuilder detail = new StringBuilder();
+        int shown = 0;
+        for (var c : plan.changes()) {
+            if (shown++ == LISTED) {
+                detail.append(I18n.t("FundsXmlPanel.percentages-more", plan.changes().size() - LISTED)).append('\n');
+                break;
+            }
+            detail.append(c.position()).append(" (").append(c.owner()).append(", ").append(c.navDate()).append("): ")
+                    .append(c.inserted() ? "+ " + c.to() : c.from() + " → " + c.to()).append('\n');
+        }
+        if (!plan.skipped().isEmpty()) {
+            detail.append('\n').append(I18n.t("FundsXmlPanel.percentages-skipped")).append('\n');
+            plan.skipped().stream().limit(LISTED / 3).forEach(s -> detail.append(s.position()).append(" (")
+                    .append(s.owner()).append(", ").append(s.navDate()).append("): ").append(s.reason()).append('\n'));
+            if (plan.skipped().size() > LISTED / 3) {
+                detail.append(I18n.t("FundsXmlPanel.percentages-more", plan.skipped().size() - LISTED / 3)).append('\n');
+            }
+        }
+        boolean yes = percentagesConfirmer != null ? percentagesConfirmer.test(header + "\n" + detail)
+                : org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation(title, header,
+                        detail + "\n" + I18n.t("FundsXmlPanel.percentages-note"));
+        if (!yes) {
+            return;
+        }
+        EditorHost.ValidationTarget now = editorHost.validationTarget();
+        if (now == null || now.tab() != target.tab() || now.revision() != target.revision()) {
+            PanelStatus.info(status, I18n.t("FundsXmlPanel.percentages-changed"));
+            return;
+        }
+        if (editorHost.replaceActiveTextEdits(plan.edits())) {
+            PanelStatus.success(status, I18n.t("FundsXmlPanel.percentages-done", plan.inserted(), plan.corrected()));
+        }
+    }
+
     @FXML
     public void onGenerateDocs() {
         PanelJobs.Job job = start("docs", I18n.t("FundsXmlPanel.generating-documentation"), false);
