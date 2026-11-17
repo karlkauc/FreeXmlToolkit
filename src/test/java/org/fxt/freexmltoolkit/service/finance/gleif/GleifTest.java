@@ -191,6 +191,30 @@ class GleifTest {
         assertEquals(0, GleifCheck.check("<r>no lei</r>", offline).leis());
     }
 
+    /** A synthetic example LEI of the FundsXML samples (marker XMPL, valid check digits). */
+    static final String EXAMPLE_LEI = "XMPL00FNDGLOBEQ00172";
+
+    @Test
+    void exampleLeisAreNeitherSentToGleifNorReported() {
+        String text = "<r>\n<LEI>" + GLEIF_LEI + "</LEI>\n<LEI>" + EXAMPLE_LEI + "</LEI>\n<LEI>" + EXAMPLE_LEI + "</LEI>\n</r>";
+        List<List<String>> asked = new ArrayList<>();
+        LeiCache cache = new LeiCache(new GleifClient(saved(asked), CLOCK), null, CLOCK, Duration.ofHours(1));
+
+        GleifCheck.Result result = GleifCheck.check(text, cache);
+
+        assertEquals(List.of(List.of(GLEIF_LEI)), asked, "only the real LEI is sent");
+        assertEquals(1, result.leis());
+        assertEquals(1, result.examples(), "distinct example LEIs");
+        assertTrue(result.findings().stream().noneMatch(f -> f.lei().equals(EXAMPLE_LEI)), result.findings().toString());
+
+        asked.clear();
+        GleifCheck.Result only = GleifCheck.check("<LEI>" + EXAMPLE_LEI + "</LEI>", cache);
+        assertTrue(asked.isEmpty());
+        assertEquals(0, only.leis());
+        assertEquals(1, only.examples());
+        assertTrue(only.findings().isEmpty());
+    }
+
     /** Wrong check digits (the sample in the FundsXML examples): not registered either. */
     static final String WRONG_CHECK_DIGITS = "724500Y6P2B0MRLY2T56";
 

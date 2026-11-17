@@ -16,6 +16,7 @@ import org.fxmisc.richtext.event.MouseOverTextEvent;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.shell.ThemeManager;
 import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.service.finance.FinancialIdentifiers;
 import org.fxt.freexmltoolkit.service.finance.gleif.Gleif;
 import org.fxt.freexmltoolkit.service.finance.gleif.LeiRecord;
 import org.fxt.freexmltoolkit.service.finance.gleif.LeiScanner;
@@ -77,6 +78,11 @@ public final class IdentifierHover {
         double x = e.getScreenPosition().getX();
         double y = e.getScreenPosition().getY() + 14;
         String lei = Gleif.allowed() ? leiAt(area, e.getCharacterIndex()) : null;
+        if (lei != null && FinancialIdentifiers.isExampleLei(lei)) {
+            current = lei;
+            show(new String[] {"LEI " + lei, I18n.t("IdentifierHover.example")}, x, y);
+            return;
+        }
         if (lei != null) {
             current = lei;
             hover(lei, Gleif.cache().cached(lei).orElse(null), Gleif.hoverLookups(),
@@ -84,6 +90,11 @@ public final class IdentifierHover {
             return;
         }
         String isin = Isin.allowed() ? isinAt(area, e.getCharacterIndex()) : null;
+        if (isin != null && FinancialIdentifiers.isExampleIsin(isin)) {
+            current = isin;
+            show(new String[] {"ISIN " + isin, I18n.t("IdentifierHover.example")}, x, y);
+            return;
+        }
         if (isin != null) {
             current = isin;
             hover(isin, Isin.cache().cached(isin).orElse(null), Isin.hoverLookups(),

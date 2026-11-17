@@ -28,7 +28,7 @@ public final class IdentifierDocumentCheck {
         List<ValidationProblem> problems = new ArrayList<>(existing.stream()
                 .filter(p -> !IdentifierCheck.SOURCES.contains(p.source())).toList());
         problems.addAll(ValidationRunner.toProblems(new IdentifierCheck.Result(result.leis(), result.isins(),
-                result.findings(), List.of(), result.leiRecords(), result.isinRecords())));
+                result.findings(), List.of(), result.leiRecords(), result.isinRecords(), result.examples())));
         return problems;
     }
 
@@ -79,10 +79,13 @@ public final class IdentifierDocumentCheck {
             return new Outcome(Kind.FAILED, failures, result.leis(), result.isins(), 0);
         }
         if (!asked) {
-            return new Outcome(Kind.NONE, I18n.t("IdentifierDocumentCheck.none"), 0, 0, 0);
+            return new Outcome(Kind.NONE, result.examples() > 0
+                    ? I18n.t("IdentifierDocumentCheck.only-examples", result.examples())
+                    : I18n.t("IdentifierDocumentCheck.none"), 0, 0, 0);
         }
         String counted = I18n.t("IdentifierDocumentCheck.counted", result.leis(), result.isins());
-        String tail = failures.isEmpty() ? "" : " - " + failures;
+        String tail = (failures.isEmpty() ? "" : " - " + failures)
+                + (result.examples() > 0 ? " " + I18n.t("IdentifierDocumentCheck.examples", result.examples()) : "");
         if (result.findings().isEmpty()) {
             return new Outcome(failures.isEmpty() ? Kind.OK : Kind.FINDINGS,
                     I18n.t("IdentifierDocumentCheck.ok", counted) + tail, result.leis(), result.isins(), 0);

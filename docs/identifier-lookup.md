@@ -71,6 +71,12 @@ An ISIN only OpenFIGI knows is no finding. The findings have the source **GLEIF*
 findings of an earlier check; schema and rule findings stay, also when the document is validated again while its text
 is unchanged. When one service cannot be reached, the panel says so and the other part still counts.
 
+**Example identifiers are skipped.** Synthetic identifiers marked `XMPL` - an LEI starting with `XMPL`
+(`XMPL00FNDGLOBEQ00172`), an ISIN whose national part starts with it (`ATXMPLF01010`) - are what the FundsXML sample
+files use. They have valid check digits but belong to nobody, so no service knows them. They are not sent and get no
+finding; the result names how many were skipped ("5 example identifiers (XMPL) not looked up"). Their check digits
+are still checked locally. The hover shows "Synthetic example identifier" for them.
+
 **Open the entry.** A finding row carries a link to the identifier's entry at the service that answered - **GLEIF**
 (the LEI's record at `search.gleif.org`), **ESMA FIRDS** (the instrument's record in the ESMA register, as shown in the
 register's details page) or **OpenFIGI** (a search for the ISIN, also for an ISIN neither service knows). Click it, or
@@ -127,5 +133,7 @@ fxt-cli validate reports/ --gleif --isin           # validation plus the online 
 `fxt-cli isin` with `1` when an ISIN is invalid or known to neither service; both with `3` when a service cannot be
 reached. `validate --gleif` / `--isin` add the findings to the report (sources `GLEIF` / `ISIN`, rules `GLEIF-LEI` /
 `ISIN-LOOKUP`); an unreachable service is an *info* there. The OpenFIGI API key comes from `FXT_OPENFIGI_APIKEY` or
-the setting. The command line ignores the GUI settings "on every validation" - only `--gleif` / `--isin` turn the
+the setting. Example identifiers (`XMPL`) found in a file are not looked up: `lei --file` / `isin --file` list them as
+"synthetic example identifier" (`examples` in JSON), `validate` adds one *info* with their number; an `XMPL` value
+given on the command line itself is looked up. The command line ignores the GUI settings "on every validation" - only `--gleif` / `--isin` turn the
 checks on. See [Command Line](command-line.md#lei).

@@ -18,7 +18,8 @@ import org.fxt.freexmltoolkit.service.finance.isin.IsinScanner;
 /**
  * Checks the identifiers of a document online: LEIs at GLEIF, ISINs at ESMA FIRDS (OpenFIGI for the rest). One finding
  * per occurrence; a service that cannot be reached is reported in {@link Result#failures()} while the other part
- * still counts. Shared by the panels, the Tools menu, the validation stage and {@code fxt-cli}.
+ * still counts. Synthetic example identifiers ({@code XMPL…} LEIs, {@code CCXMPL…} ISINs) are never sent, only
+ * counted in {@link Result#examples()}. Shared by the panels, the Tools menu, the validation stage and {@code fxt-cli}.
  */
 public final class IdentifierCheck {
 
@@ -51,9 +52,10 @@ public final class IdentifierCheck {
      * @param failures why a service could not be asked
      * @param leiRecords  GLEIF's answers
      * @param isinRecords the ISIN answers
+     * @param examples    distinct synthetic example LEIs and ISINs that were not looked up
      */
     public record Result(int leis, int isins, List<Finding> findings, List<Failure> failures,
-                         Map<String, LeiRecord> leiRecords, Map<String, IsinRecord> isinRecords) {
+                         Map<String, LeiRecord> leiRecords, Map<String, IsinRecord> isinRecords, int examples) {
     }
 
     private IdentifierCheck() {
@@ -74,10 +76,12 @@ public final class IdentifierCheck {
         List<Finding> findings = new ArrayList<>();
         List<Failure> failures = new ArrayList<>();
         int leiCount = 0;
+        int examples = 0;
         Map<String, LeiRecord> leiRecords = Map.of();
         if (leiCache != null) {
             GleifCheck.Result r = GleifCheck.check(text, leiCache);
             leiCount = r.leis();
+            examples += r.examples();
             leiRecords = r.records();
             if (r.failure() != null) {
                 failures.add(new Failure(GleifCheck.SOURCE, r.failure()));
@@ -93,8 +97,10 @@ public final class IdentifierCheck {
         int isinCount = 0;
         Map<String, IsinRecord> isinRecords = Map.of();
         if (isinCache != null) {
-            var occurrences = IsinScanner.scan(text);
+            var all = IsinScanner.scan(text);
+            var occurrences = all.stream().filter(o -> !FinancialIdentifiers.isExampleIsin(o.isin())).toList();
             var distinct = IsinScanner.distinct(occurrences);
+            examples += IsinScanner.distinct(all).size() - distinct.size();
             isinCount = distinct.size();
             if (!distinct.isEmpty()) {
                 try {
@@ -132,6 +138,6 @@ public final class IdentifierCheck {
             }
         }
         findings.sort(Comparator.comparingInt(Finding::line).thenComparingInt(Finding::column));
-        return new Result(leiCount, isinCount, findings, failures, leiRecords, isinRecords);
+        return new Result(leiCount, isinCount, findings, failures, leiRecords, isinRecords, examples);
     }
 }

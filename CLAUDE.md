@@ -263,7 +263,8 @@ keyed per OpenFIGI mode (`#firds`), `~/.freeXmlToolkit/isin/cache.json`, setting
 `isin.openfigi` (default on) / `isin.openfigi.apiKey` (encrypted, env `FXT_OPENFIGI_APIKEY`) / `isin.cacheHours`, policy
 `isin.allowed`, `isin.openfigi.allowed`, CLI overrides).
 Combined: `service/finance/IdentifierCheck` (LEIs + ISINs, findings with source `GLEIF` / `ISIN`, `Failure` per source,
-never throws). Users: `ValidationRunner.identifierProblems` / `toProblems` (stage at the end of `runWithReport`),
+never throws; synthetic `XMPL` identifiers - `FinancialIdentifiers.isExampleLei/isExampleIsin` - are never sent, only
+counted in `Result.examples`). Users: `ValidationRunner.identifierProblems` / `toProblems` (stage at the end of `runWithReport`),
 `plugins/IdentifierChecker` (control in `IndustryPanel`, `FundsXmlPanel`, `PkMeldewesenPanel`: Look up at GLEIF / Look up
 online, issuer LEI link), `IdentifierDocumentCheck` (`runOnActive(host, done)` → `Outcome`; merge via
 `EditorHost.publishIdentifierCheck`; a later validation of the same text keeps the online findings per source unless it

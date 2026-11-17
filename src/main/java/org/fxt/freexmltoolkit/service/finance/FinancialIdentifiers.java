@@ -66,6 +66,23 @@ public final class FinancialIdentifiers {
         return mod97(lei) == 1 ? null : "LEI " + value + " has wrong check digits.";
     }
 
+    /**
+     * Marker of synthetic example identifiers (the fundsxml/examples samples and the bundled examples): an LEI that
+     * starts with it, an ISIN whose national part starts with it. No LEI issuer uses this prefix and the national
+     * numbering agencies do not hand out such ISINs, so these values are never looked up online.
+     */
+    public static final String EXAMPLE_MARKER = "XMPL";
+
+    /** @return whether a 20-character LEI is a synthetic example ({@code XMPL…}) */
+    public static boolean isExampleLei(String lei) {
+        return lei != null && lei.length() == 20 && lei.startsWith(EXAMPLE_MARKER);
+    }
+
+    /** @return whether a 12-character ISIN is a synthetic example ({@code CCXMPL…}) */
+    public static boolean isExampleIsin(String isin) {
+        return isin != null && isin.length() == 12 && isin.startsWith(EXAMPLE_MARKER, 2);
+    }
+
     /** @return why {@code value} is no valid ISIN, or {@code null} */
     public static String checkIsin(String value) {
         String isin = value == null ? "" : value.strip();

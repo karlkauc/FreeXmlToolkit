@@ -6,6 +6,10 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+- **Example identifiers are not looked up online.** **Check Identifiers Online**, the online stage of a validation,
+  the hover and `fxt-cli` skip the synthetic `XMPL` LEIs and ISINs of the FundsXML sample files instead of reporting
+  each one as "not registered at GLEIF" or "not in ESMA FIRDS"; the result says how many were skipped. See
+  [Online Identifier Lookup](identifier-lookup.md#check-every-identifier-of-a-document).
 - **Wrong LEI check digits in the online check.** In XML, **Check Identifiers Online** now also reports a value with
   wrong check digits in an LEI element (`<LEI>`, `IssuerLEI`, …) as an error. Before, such a value was not recognised
   as an LEI and silently skipped. See [Online Identifier Lookup](identifier-lookup.md#check-every-identifier-of-a-document).

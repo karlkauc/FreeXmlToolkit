@@ -306,10 +306,14 @@ final class ValidateCommand implements Callable<Integer> {
             return result;
         }
         var check = org.fxt.freexmltoolkit.service.finance.IdentifierCheck.check(content, gleif, isin);
-        if (check.leis() + check.isins() == 0) {
+        if (check.leis() + check.isins() + check.examples() == 0) {
             return result;
         }
         List<Finding> findings = new ArrayList<>(result.findings());
+        if (check.examples() > 0) {
+            findings.add(new Finding("Online", Severity.INFO, 0, 0, check.examples()
+                    + " synthetic example identifiers (marker XMPL) not looked up online", null, null));
+        }
         for (var f : check.failures()) {
             findings.add(new Finding(f.source(), Severity.INFO, 0, 0, "Not checked online: " + f.message(), null, null));
         }

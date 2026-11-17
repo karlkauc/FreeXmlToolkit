@@ -222,7 +222,7 @@ class IndustryPanelTest {
             WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
                 org.fxt.freexmltoolkit.controls.shell.editor.IdentifierDocumentCheck.publish(host, host.validationTarget(),
                         new org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Result(2, 0, List.of(), List.of(),
-                                java.util.Map.of(), java.util.Map.of()));
+                                java.util.Map.of(), java.util.Map.of(), 0));
                 return null;
             });
             assertTrue(WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.getActiveProblems().isEmpty()));

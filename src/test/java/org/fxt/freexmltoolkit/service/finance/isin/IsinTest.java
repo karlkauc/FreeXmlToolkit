@@ -197,6 +197,32 @@ class IsinTest {
     }
 
     @Test
+    void exampleIdentifiersAreNotLookedUp() {
+        assertTrue(org.fxt.freexmltoolkit.service.finance.FinancialIdentifiers.isExampleIsin("ATXMPLF01010"));
+        assertFalse(org.fxt.freexmltoolkit.service.finance.FinancialIdentifiers.isExampleIsin("XMPL00000000"));
+        assertFalse(org.fxt.freexmltoolkit.service.finance.FinancialIdentifiers.isExampleIsin(ETF));
+        assertTrue(org.fxt.freexmltoolkit.service.finance.FinancialIdentifiers.isExampleLei("XMPL00FNDGLOBEQ00172"));
+        assertFalse(org.fxt.freexmltoolkit.service.finance.FinancialIdentifiers.isExampleLei("5299009FXTMMFCP00069"));
+
+        String text = "<r>\n<LEI>XMPL00FNDGLOBEQ00172</LEI>\n<ISIN>ATXMPLF01010</ISIN>\n<ISIN>ATXMPLF01010</ISIN>\n</r>";
+        // a service that is asked fails the test: the failure would show up in the result
+        LeiCache leis = new LeiCache(new GleifClient(uri -> {
+            throw new IOException("GLEIF must not be asked");
+        }, Clock.systemUTC()), null, Clock.systemUTC(), Duration.ofHours(1));
+        Isin.Cache isins = new Isin.Cache(null, Clock.systemUTC(), Duration.ofHours(1), () -> new IsinLookup(uri -> {
+            throw new IOException("FIRDS must not be asked");
+        }, null, Clock.systemUTC(), true, null));
+
+        IdentifierCheck.Result result = IdentifierCheck.check(text, leis, isins);
+
+        assertTrue(result.failures().isEmpty(), result.failures().toString());
+        assertTrue(result.findings().isEmpty(), result.findings().toString());
+        assertEquals(0, result.leis());
+        assertEquals(0, result.isins());
+        assertEquals(2, result.examples(), "one LEI and one ISIN, distinct");
+    }
+
+    @Test
     void cfiCodesArePairedWithTheirIsin() {
         String xml = """
                 <Rpt>

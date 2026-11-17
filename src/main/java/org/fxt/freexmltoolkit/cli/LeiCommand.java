@@ -80,6 +80,7 @@ final class LeiCommand implements Callable<Integer> {
         }
         Set<String> wanted = new LinkedHashSet<>();
         List<String> invalid = new ArrayList<>();
+        Set<String> examples = new LinkedHashSet<>();
         for (String lei : leis) {
             String l = lei.strip().toUpperCase(java.util.Locale.ROOT);
             String problem = FinancialIdentifiers.checkLei(l);
@@ -91,7 +92,14 @@ final class LeiCommand implements Callable<Integer> {
         }
         for (Path file : files) {
             CliSupport.requireFile(commandLine, file, "File");
-            wanted.addAll(LeiScanner.distinct(LeiScanner.scan(CliSupport.read(file))));
+            for (String found : LeiScanner.distinct(LeiScanner.scan(CliSupport.read(file)))) {
+                // synthetic example identifiers in files are skipped; typed ones are looked up
+                if (FinancialIdentifiers.isExampleLei(found) && !wanted.contains(found)) {
+                    examples.add(found);
+                } else {
+                    wanted.add(found);
+                }
+            }
         }
         Map<String, LeiRecord> records;
         try {
@@ -114,6 +122,9 @@ final class LeiCommand implements Callable<Integer> {
             JsonArray bad = new JsonArray();
             invalid.forEach(bad::add);
             root.add("invalid", bad);
+            JsonArray synthetic = new JsonArray();
+            examples.forEach(synthetic::add);
+            root.add("examples", synthetic);
             out.println(new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(root));
         } else {
             invalid.forEach(out::println);
@@ -125,7 +136,8 @@ final class LeiCommand implements Callable<Integer> {
                     out.println("  " + p.severity().name().toLowerCase(java.util.Locale.ROOT) + ": " + p.message());
                 }
             }
-            if (records.isEmpty() && invalid.isEmpty()) {
+            examples.forEach(e -> out.println(e + " - synthetic example identifier (marker XMPL), not looked up"));
+            if (records.isEmpty() && invalid.isEmpty() && examples.isEmpty()) {
                 out.println("No LEI found.");
             }
         }
