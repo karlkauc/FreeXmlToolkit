@@ -2211,6 +2211,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#position-weights-totalpercentage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Position Weights (TotalPercentage)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#the-fundsxml-side-panel" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3534,6 +3545,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#position-weights-totalpercentage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Position Weights (TotalPercentage)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#the-fundsxml-side-panel" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4415,6 +4437,26 @@ funnel line and filters the rows when you click it. Running the action again add
 stylesheet behind it, <code>plugins/fundsxml/fundsxml-grid-setup.xsl</code>, can be used in the Transform panel on
 any FundsXML file as well. For a signed document you are asked first: the copy no longer matches the
 signature.</p>
+<h2 id="position-weights-totalpercentage">Position Weights (TotalPercentage)<a class="headerlink" href="#position-weights-totalpercentage" title="Permanent link">¶</a></h2>
+<p><strong>Set Position Weights (TotalPercentage)</strong> in the side panel fills in and checks the <code>TotalPercentage</code> of every
+portfolio position (<code>Portfolio/Positions/Position</code>) of the active document:</p>
+<ul>
+<li><strong>Value:</strong> the position's <code>TotalValue</code> amount in the currency of the node the portfolio belongs to - fund, share
+  class, segment or subfund - divided by that node's <code>TotalNetAssetValue</code> (same currency) on the portfolio's
+  <code>NavDate</code>, × 100, rounded half up to <strong>two decimals</strong>. A share-class portfolio is weighted against its share class,
+  not the fund - the same rule as the data-quality check <em>Position weight matches its value</em>.</li>
+<li><strong>Missing:</strong> the element is inserted after <code>TotalValue</code> (or <code>OtherTotalValues</code>), where the schema expects it,
+  indented like its neighbours.</li>
+<li><strong>Present:</strong> a value that rounds to the same two decimals stays as it is (<code>3.104922</code> when <code>3.10</code> is computed);
+  any other value - wrong, empty or not a number - is replaced.</li>
+<li><strong>Skipped:</strong> positions without a <code>TotalValue</code> in the node's currency, or whose node has no net asset value on that
+  date; the confirmation lists them with the reason.</li>
+</ul>
+<p>Before anything changes, a dialog shows how many values are inserted, corrected, already right and skipped, with
+the first positions (<code>ID_004 (Fund X, 2025-10-01): 3.5 → 3.10</code>, <code>+ 2.47</code> for an inserted one). The changes go into
+the open document as text edits - its formatting stays - and <strong>Edit → Undo</strong> takes all of them back at once. If the
+document changes while the values are computed, nothing is set. For a signed document you are asked first: new
+values no longer match the signature.</p>
 <h2 id="the-fundsxml-side-panel">The FundsXML Side Panel<a class="headerlink" href="#the-fundsxml-side-panel" title="Permanent link">¶</a></h2>
 <p>Select the <strong>FundsXML</strong> activity in the activity bar to open its side panel.</p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/unified-shell-fundsxml.png" data-desc-position="bottom"><img alt="FundsXML side panel with the version picker, validate action and docs &amp; resources buttons" src="../img/unified-shell-fundsxml.png"></a></p>
@@ -4434,7 +4476,7 @@ sections:</p>
 </tr>
 <tr>
 <td><strong>VALIDATE</strong></td>
-<td><strong>Validate active document</strong> - check the open XML against the active FundsXML schema. <strong>Run Data Quality Checks</strong>, <strong>Check Identifiers Online</strong> (are the LEIs registered and valid, do the ISINs exist and are they still traded? Findings in the Problems panel - see <a href="../identifier-lookup/">Online Identifier Lookup</a>) and <strong>Add Grid Formulas &amp; Filters</strong>.</td>
+<td><strong>Validate active document</strong> - check the open XML against the active FundsXML schema. <strong>Run Data Quality Checks</strong>, <strong>Check Identifiers Online</strong> (are the LEIs registered and valid, do the ISINs exist and are they still traded? Findings in the Problems panel - see <a href="../identifier-lookup/">Online Identifier Lookup</a>), <strong>Add Grid Formulas &amp; Filters</strong> and <strong>Set Position Weights (TotalPercentage)</strong> (see <a href="#position-weights-totalpercentage">Position Weights</a>).</td>
 </tr>
 <tr>
 <td><strong>CHECK AN IDENTIFIER</strong></td>
