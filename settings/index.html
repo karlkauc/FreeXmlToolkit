@@ -3717,6 +3717,9 @@ The <strong>Mode</strong> dropdown controls this:</p>
 <li><strong>Auto</strong> is intentionally conservative: any adapter it cannot confidently identify as a
   dedicated GPU falls back to software rendering. If your dedicated GPU is not detected,
   switch the mode to <strong>Hardware</strong>.</li>
+<li>When the graphics card fails to draw the window (an error of the render pipeline, e.g. while scrolling a very large
+  HTML report in the preview), the application says so once. With <strong>Auto</strong> it uses software rendering from the next
+  start on; with <strong>Hardware</strong> it suggests switching to <strong>Software</strong>.</li>
 </ul>
 <h2 id="managing-your-templates">Managing your templates<a class="headerlink" href="#managing-your-templates" title="Permanent link">¶</a></h2>
 <blockquote>

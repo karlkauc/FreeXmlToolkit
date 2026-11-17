@@ -4868,6 +4868,9 @@ document without a key.</p>
 <p>Exit code <code>0</code> when every LEI is issued and its entity active, <code>1</code> when one is invalid, unknown, lapsed, retired or
 annulled or its entity inactive, <code>3</code> when GLEIF cannot be reached or the administrator turned lookups off
 (<code>gleif.allowed=false</code>).</p>
+<p>In a terminal the command shows which request runs in one line on stderr (cleared at the end); with stderr redirected
+it prints nothing extra. The same holds for <code>isin</code> and <code>validate --gleif/--isin</code>. Synthetic example LEIs (<code>XMPL…</code>)
+found in a file are listed, not looked up.</p>
 <h2 id="isin">isin<a class="headerlink" href="#isin" title="Permanent link">¶</a></h2>
 <p>Looks ISINs up at ESMA FIRDS (name, CFI code, issuer LEI, currency, EU trading venues), the ISINs FIRDS does not know
 at OpenFIGI (name, security type, ticker, FIGI). See <a href="../identifier-lookup/">Online Identifier Lookup</a>.</p>

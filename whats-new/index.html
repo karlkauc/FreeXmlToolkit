@@ -3554,6 +3554,20 @@
 running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
 <h2 id="unreleased">Unreleased<a class="headerlink" href="#unreleased" title="Permanent link">¶</a></h2>
 <ul>
+<li><strong>Large HTML reports in the preview.</strong> Scrolling through a very large check report (a 150 MB QMV report gives a
+  2.7 MB page) could stop the window from painting with hardware rendering on Windows. The application no longer
+  caches a graphics texture for every shape, a report of 1 MB and more offers <strong>Open in Browser</strong> above the preview,
+  and an error of the graphics card is noticed: reported anonymously, said once, and with rendering on <strong>Auto</strong> the
+  next start uses software rendering. See <a href="../settings/">Settings</a>.</li>
+<li><strong>See what a long check is doing - and stop it.</strong> The side panels of every extension (ISO 20022, ebInterface,
+  FinDatEx, XBRL, KAG-Meldewesen, ESMA Reporting, PK-Meldewesen, FundsXML) show a progress block while a check,
+  report or tool runs: a bar, what runs right now (<em>GLEIF: request 5 of 16 · ESMA FIRDS: request 23 of 87</em>,
+  <em>Rules: record 12400 · line 310000 of 1800000</em>, <em>Step 3 of 4: checking the FMA rules…</em>), the time so far and
+  <strong>Cancel</strong> where the work can stop. <strong>Check Identifiers Online</strong> asks GLEIF and the ISIN services at the same time,
+  keeps every answer as it arrives (a cancelled or refused check continues where it stopped), estimates the time left
+  for OpenFIGI and suggests an API key when it will be slow. Also in the Validation panel's online stage, the Tools
+  menu (a small window) and <code>fxt-cli lei / isin / validate --gleif --isin</code> (one line on stderr). See
+  <a href="../identifier-lookup/#progress-cancelling-and-continuing">Online Identifier Lookup</a>.</li>
 <li><strong>Large reports use far less memory while validating.</strong> "Validate while typing" no longer validates an unchanged
   document again when only the caret moves or you switch tabs, and a document is never validated twice at the same
   time. The FMA rules of PK-Meldewesen (validation and HTML check report) run one after the other. With a 150 MB

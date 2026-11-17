@@ -2445,6 +2445,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#progress-cancelling-and-continuing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Progress, cancelling and continuing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#with-every-validation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3268,6 +3279,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#progress-cancelling-and-continuing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Progress, cancelling and continuing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#with-every-validation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3444,11 +3466,31 @@ register's details page) or <strong>OpenFIGI</strong> (a search for the ISIN, al
 right-click the row → <strong>Open at …</strong>, to see the entry in the browser; <strong>Copy Problem</strong> includes the address. The
 Validation panel's problem list offers the same menu item. FIRDS answers cached by version 3.3.0 do not know the
 record's page and are looked up again on the next check.</p>
+<h2 id="progress-cancelling-and-continuing">Progress, cancelling and continuing<a class="headerlink" href="#progress-cancelling-and-continuing" title="Permanent link">¶</a></h2>
+<p>A document with thousands of identifiers takes a while: GLEIF answers 200 LEIs per request and ESMA FIRDS 100 ISINs,
+at most one request a second each; OpenFIGI, asked about the ISINs FIRDS does not know, answers 10 per request and at
+most one request every 2.5 seconds without an API key. While the check runs, the panel shows:</p>
+<ul>
+<li>a bar over all requests, the time so far and <strong>Cancel</strong>;</li>
+<li>what runs now, for both services side by side - <em>GLEIF: request 5 of 16 · LEIs 801–1000 of 3110 · ESMA FIRDS:
+  request 23 of 87 · ISINs 2201–2300 of 8605</em>; for OpenFIGI with the time left (<em>OpenFIGI: request 12 of 310 · 3100
+  ISINs not in FIRDS · about 12 min left</em>);</li>
+<li>how many identifiers are known from earlier checks (they are not asked again while their answer is recent);</li>
+<li>when OpenFIGI will take more than two minutes without an API key, the link <strong>Set an API key - about 10× faster</strong>,
+  which opens <strong>Settings → Network &amp; Security</strong> at the ISIN card.</li>
+</ul>
+<p>GLEIF and the ISIN services are asked at the same time. <strong>Cancel</strong> stops at the next request (at most one request's
+wait): the findings of everything answered so far go to the Problems panel, and the panel says how many were not
+checked. Every answer is kept as soon as it arrives, so the next check - and a check after a service refused (OpenFIGI's
+<em>too many requests</em>) - asks only for the rest. <strong>Tools → Check Identifiers Online</strong> shows the same in a small window;
+<strong>Hide</strong> keeps the check running.</p>
 <h2 id="with-every-validation">With every validation<a class="headerlink" href="#with-every-validation" title="Permanent link">¶</a></h2>
 <p><strong>Settings → Network &amp; Security</strong> has a card for each kind: <strong>Check LEIs at GLEIF on every validation (F8)</strong> and
 <strong>Check ISINs online on every validation (F8)</strong> add the same checks to every validation of an XML document (F8,
 Validation panel, the extensions' <strong>Check Active Document</strong>). Both are off by default. When a service cannot be
-reached, the validation shows one warning and goes on.</p>
+reached, the validation shows one warning and goes on. The Validation panel shows the online stage's progress with
+<strong>Cancel</strong>, which ends only that stage: the schema and rule findings are complete, the online findings cover what was
+answered.</p>
 <h2 id="hover">Hover<a class="headerlink" href="#hover" title="Permanent link">¶</a></h2>
 <p>When the mouse rests on an LEI or ISIN in the text editor, a tooltip shows what the services said about it - from
 the answers already known. <strong>Look up LEIs at GLEIF when the mouse rests on them</strong> / <strong>Look up ISINs when the mouse
@@ -3526,7 +3568,8 @@ reached. <code>validate --gleif</code> / <code>--isin</code> add the findings to
 the setting. Example identifiers (<code>XMPL</code>) found in a file are not looked up: <code>lei --file</code> / <code>isin --file</code> list them as
 "synthetic example identifier" (<code>examples</code> in JSON), <code>validate</code> adds one <em>info</em> with their number; an <code>XMPL</code> value
 given on the command line itself is looked up. The command line ignores the GUI settings "on every validation" - only <code>--gleif</code> / <code>--isin</code> turn the
-checks on. See <a href="../command-line/#lei">Command Line</a>.</p>
+checks on. In a terminal, <code>lei</code>, <code>isin</code> and <code>validate --gleif/--isin</code> show the progress in one line on stderr
+(nothing when the output is redirected). See <a href="../command-line/#lei">Command Line</a>.</p>
 
 
 

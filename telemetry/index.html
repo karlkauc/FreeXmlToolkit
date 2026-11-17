@@ -3551,7 +3551,7 @@ first start.</p>
 </tr>
 <tr>
 <td><code>meta.where</code></td>
-<td>Where in the app it happened, e.g. <code>uncaught</code> (an exception no code handled), <code>executor</code> (a background task), <code>dialog.&lt;title&gt;</code> (an error dialog was shown — the dialog's English title in every interface language; a dialog without a known cause carries the fixed code <code>ui.error_dialog</code> or <code>ui.action_failed</code>), or <code>log.&lt;class&gt;</code> / <code>logwarn.&lt;class&gt;</code> (the application logged an exception as an error / warning; the log message itself is never sent). The same exception is counted once, however many of these paths it passes.</td>
+<td>Where in the app it happened, e.g. <code>uncaught</code> (an exception no code handled), <code>render</code> (an error of JavaFX's render thread, which JavaFX only prints to the console: read from that output, with its class and line names only), <code>executor</code> (a background task), <code>dialog.&lt;title&gt;</code> (an error dialog was shown — the dialog's English title in every interface language; a dialog without a known cause carries the fixed code <code>ui.error_dialog</code> or <code>ui.action_failed</code>), or <code>log.&lt;class&gt;</code> / <code>logwarn.&lt;class&gt;</code> (the application logged an exception as an error / warning; the log message itself is never sent). The same exception is counted once, however many of these paths it passes.</td>
 </tr>
 </tbody>
 </table>
