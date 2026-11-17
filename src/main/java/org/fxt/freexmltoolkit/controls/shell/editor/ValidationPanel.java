@@ -1122,10 +1122,7 @@ public class ValidationPanel extends VBox {
             }
             String line = item.line() > 0 ? "Ln " + item.line() + ": " : "";
             setText("[" + item.source() + "] " + line + item.message());
-            boolean warning = "warning".equalsIgnoreCase(item.severity());
-            IconifyIcon icon = icon(warning ? "bi-exclamation-triangle-fill" : "bi-x-circle", 13);
-            icon.getStyleClass().add(warning ? "sev-warning" : "sev-error");
-            setGraphic(icon);
+            setGraphic(ProblemsPanel.levelIcon(item.level(), 13));
             javafx.scene.control.ContextMenu menu = new javafx.scene.control.ContextMenu();
             if (item.hasFixes()) {
                 menu.getItems().add(org.fxt.freexmltoolkit.controls.shell.editor.quickfix.QuickFixMenuFactory

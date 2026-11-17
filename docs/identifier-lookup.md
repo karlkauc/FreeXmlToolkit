@@ -84,6 +84,14 @@ right-click the row → **Open at …**, to see the entry in the browser; **Copy
 Validation panel's problem list offers the same menu item. FIRDS answers cached by version 3.3.0 do not know the
 record's page and are looked up again on the next check.
 
+## Many findings
+
+Findings that usually need no change - an ISIN not in ESMA FIRDS or not traded on an EU venue, an LEI whose
+registration is pending - are **hints** (blue ⓘ), not warnings. In the Problems panel, group the findings by
+**Security / object** to see each ISIN or LEI once with all its occurrences, and use **Fix ISIN … in Every Place** to
+take the CFI code and issuer LEI from ESMA FIRDS in every place the document reports them (one undo step). See
+[Large lists](unified-shell.md#large-lists-categories-search-grouping-export).
+
 ## Progress, cancelling and continuing
 
 A document with thousands of identifiers takes a while: GLEIF answers 200 LEIs per request and ESMA FIRDS 100 ISINs,

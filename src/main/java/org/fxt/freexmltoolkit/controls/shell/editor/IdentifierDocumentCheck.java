@@ -39,8 +39,8 @@ public final class IdentifierDocumentCheck {
     /** Shows the result in the PROBLEMS panel of the document the check read. FX thread. */
     public static void publish(EditorHost host, EditorHost.ValidationTarget target, IdentifierCheck.Result result) {
         List<ValidationProblem> problems = merge(host.isActive(target) ? List.copyOf(host.getActiveProblems()) : List.of(), result);
-        int warnings = (int) problems.stream().filter(p -> "warning".equalsIgnoreCase(p.severity())).count();
-        int errors = problems.size() - warnings;
+        int warnings = (int) problems.stream().filter(p -> p.level() == ValidationProblem.Level.WARNING).count();
+        int errors = (int) problems.stream().filter(p -> p.level() == ValidationProblem.Level.ERROR).count();
         host.publishIdentifierCheck(target, problems.isEmpty() ? EditorHost.ValidationState.VALID : EditorHost.ValidationState.INVALID,
                 problems.size(), errors == 0 && warnings == 0 ? I18n.t("IndustryPanel.no-problems")
                         : I18n.t("IdentifierDocumentCheck.summary", errors, warnings), problems);

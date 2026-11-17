@@ -96,7 +96,8 @@ public final class RegValidator implements DocumentValidator {
         }
         try {
             for (RegRuleSet.Finding f : rules.run(content, documentName)) {
-                problems.add(new Problem(f.severity(), f.line(), f.ruleId() + " " + f.message()));
+                problems.add(new Problem(f.severity(), f.line(), f.ruleId() + " " + f.message())
+                        .withRule(f.ruleId()).withCategory("PLUGIN_RULE"));
             }
         } catch (Exception e) {
             logger.debug("{} checks failed", name, e);

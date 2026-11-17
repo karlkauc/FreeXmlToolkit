@@ -108,7 +108,13 @@ public final class PkRuleCheck {
      * @param detail   the stylesheet's detail text, or the amounts of a comparison; may be empty
      * @param line     1-based line in the report, 0 when unknown
      */
-    public record Finding(PkRuleCatalog.Rule rule, String status, String vrg, String object, String detail, int line) {
+    public record Finding(PkRuleCatalog.Rule rule, String status, String vrg, String object, String detail, int line,
+                          String asset, String title) {
+
+        /** A finding not about one position (no asset key, no title). */
+        public Finding(PkRuleCatalog.Rule rule, String status, String vrg, String object, String detail, int line) {
+            this(rule, status, vrg, object, detail, line, "", "");
+        }
 
         /** @return {@code error}, {@code warning} or {@code info} */
         public String severity() {
@@ -324,7 +330,10 @@ public final class PkRuleCheck {
         if (row != null && !key.isEmpty() && !key.equals(object)) {
             object = object + " · " + key;
         }
-        findings.add(new Finding(rule, status, vrg, object, detail(c), line(c, row, vrg, group, locator)));
+        // the position the check is about: its asset key (an ISIN or the fund's own id) and title, for grouping
+        String asset = row != null ? attr(row, "key") : "";
+        String title = row != null ? attr(row, "title") : "";
+        findings.add(new Finding(rule, status, vrg, object, detail(c), line(c, row, vrg, group, locator), asset, title));
     }
 
     /** @return the detail text of a check: its {@code d} attribute, or actual/expected/difference */

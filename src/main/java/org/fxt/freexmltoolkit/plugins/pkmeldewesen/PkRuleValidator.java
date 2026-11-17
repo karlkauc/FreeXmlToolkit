@@ -52,6 +52,24 @@ final class PkRuleValidator implements DocumentValidator {
         return "PK-Meldewesen";
     }
 
+    /**
+     * @return the finding as a problem with its FMA code, the category of its rule group and what it is about: the
+     *         position (asset key and title) or, for checks of a whole risk community, the VRG
+     */
+    static Problem problem(PkRuleCheck.Finding finding) {
+        Problem problem = new Problem(finding.severity(), finding.line(), finding.message())
+                .withRule(finding.rule().code())
+                .withCategory(org.fxt.freexmltoolkit.controls.shell.editor.ProblemCategory
+                        .ofFmaGroup(finding.rule().group(), finding.rule().additional()).name());
+        if (finding.asset() != null && !finding.asset().isBlank()) {
+            return problem.withSubject("ASSET", finding.asset(), finding.title());
+        }
+        if (finding.vrg() != null && !finding.vrg().isBlank()) {
+            return problem.withSubject("RECORD", "gesamt".equals(finding.vrg()) ? "VRG –" : "VRG " + finding.vrg(), null);
+        }
+        return problem;
+    }
+
     @Override
     public boolean accepts(String content, String documentName) {
         if (!enabled.get()) {
@@ -66,7 +84,7 @@ final class PkRuleValidator implements DocumentValidator {
         List<Problem> problems = new ArrayList<>();
         try {
             for (PkRuleCheck.Finding finding : PkRuleCheck.run(content, documentName, options.get())) {
-                problems.add(new Problem(finding.severity(), finding.line(), finding.message()));
+                problems.add(problem(finding));
             }
         } catch (Exception e) {
             logger.debug("PK rule check failed", e);

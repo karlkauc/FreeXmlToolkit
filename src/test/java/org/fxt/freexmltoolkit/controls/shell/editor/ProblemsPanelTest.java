@@ -43,6 +43,15 @@ class ProblemsPanelTest {
         stage.show();
     }
 
+    /** The grouping is a stored setting: every test starts with the list. */
+    @org.junit.jupiter.api.AfterEach
+    void backToTheList() {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setGrouping(null);
+            return null;
+        });
+    }
+
     @Test
     void hiddenInitiallyAndShowsWithCountsWhenProblemsArrive() {
         WaitForAsyncUtils.waitForFxEvents();
@@ -241,14 +250,24 @@ class ProblemsPanelTest {
         WaitForAsyncUtils.waitForFxEvents();
         assertTrue(panel.isCollapsed());
         assertTrue(panel.isVisible(), "collapsed panel keeps its header visible");
-        assertFalse(panel.lookup("#problems-panel-list").isVisible());
+        assertFalse(shown(panel.lookup("#problems-panel-list")), "the list is hidden with its container");
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             panel.setCollapsed(false);
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();
-        assertTrue(panel.lookup("#problems-panel-list").isVisible());
+        assertTrue(shown(panel.lookup("#problems-panel-list")));
+    }
+
+    /** @return whether the node and all its parents are visible */
+    private static boolean shown(javafx.scene.Node node) {
+        for (javafx.scene.Node n = node; n != null; n = n.getParent()) {
+            if (!n.isVisible()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Test
@@ -408,7 +427,8 @@ class ProblemsPanelTest {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             var menu = panel.contextMenu(first);
             var ids = menu.getItems().stream().map(javafx.scene.control.MenuItem::getId).toList();
-            assertEquals(List.of("problems-ctx-copy-message", "problems-ctx-copy", "problems-ctx-copy-all"), ids);
+            assertEquals(List.of("problems-ctx-copy-message", "problems-ctx-copy", "problems-ctx-copy-all",
+                    "problems-ctx-export-shown"), ids);
             for (int i = 0; i < 3; i++) {
                 menu.getItems().get(i).fire();
                 copied[i] = javafx.scene.input.Clipboard.getSystemClipboard().getString();
@@ -439,5 +459,195 @@ class ProblemsPanelTest {
 
     private static boolean isMac() {
         return System.getProperty("os.name", "").toLowerCase().contains("mac");
+    }
+
+    // ---- categories, hints, grouping, export, collective fix -------------------------------------------
+
+    static final String ISIN = "US0378331005";
+
+    private static ValidationProblem isinProblem(String isin, ProblemCategory category, String severity, int line) {
+        return new ValidationProblem("ISIN", severity, line, "ISIN " + isin + " finding", null, null)
+                .withSubject(new ProblemSubject(ProblemSubject.Kind.ISIN, isin, "Name of " + isin))
+                .withCategory(category);
+    }
+
+    private void setProblems(List<ValidationProblem> problems) {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveProblems(problems);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+
+    private List<ValidationProblem> mixed() {
+        List<ValidationProblem> problems = new java.util.ArrayList<>();
+        for (int i = 0; i < 50; i++) {
+            problems.add(isinProblem(ISIN, ProblemCategory.ISIN_NOT_TRADED, "info", 10 + i));
+        }
+        problems.add(isinProblem(ISIN, ProblemCategory.ISIN_CFI, "warning", 100));
+        problems.add(isinProblem("IE00B4L5Y983", ProblemCategory.ISIN_UNKNOWN, "warning", 200));
+        problems.add(new ValidationProblem("XSD", "error", 3, "cvc-type.3.1.3: wrong value"));
+        return problems;
+    }
+
+    @Test
+    void hintsHaveTheirOwnCounterAndCategoriesAndSearchFilter() {
+        setProblems(mixed());
+        var hintChip = (javafx.scene.control.Labeled) panel.lookup("#problems-filter-hints");
+        assertEquals("50", hintChip.getText());
+        assertEquals("2", ((javafx.scene.control.Labeled) panel.lookup("#problems-filter-warnings")).getText(),
+                "hints no longer count as warnings");
+        assertEquals("1", ((javafx.scene.control.Labeled) panel.lookup("#problems-filter-errors")).getText(),
+                "nor as errors");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setFilter(ProblemsPanel.Filter.HINTS);
+            return null;
+        });
+        assertEquals(50, panel.getProblemCount());
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setFilter(ProblemsPanel.Filter.ALL);
+            panel.setCategoryShown(ProblemCategory.ISIN_NOT_TRADED, false);
+            return null;
+        });
+        assertEquals(3, panel.getProblemCount(), "the hint category hidden");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setCategoryShown(ProblemCategory.ISIN_NOT_TRADED, true);
+            panel.setQuery("ie00b4");
+            return null;
+        });
+        assertEquals(1, panel.getProblemCount(), "search finds the security by its ISIN");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setQuery("");
+            return null;
+        });
+    }
+
+    @Test
+    void groupedBySecurityAndShownInTheList() {
+        setProblems(mixed());
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setGrouping(ProblemGroups.By.SUBJECT);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        @SuppressWarnings("unchecked")
+        javafx.scene.control.TreeView<Object> tree =
+                (javafx.scene.control.TreeView<Object>) panel.lookup("#problems-panel-tree");
+        assertTrue(tree.isVisible());
+        var groups = WaitForAsyncUtils.waitForAsyncFx(2000, () -> tree.getRoot().getChildren().stream()
+                .map(javafx.scene.control.TreeItem::getValue).toList());
+        assertEquals(3, groups.size(), "two securities and the schema error");
+        ProblemGroups.Group apple = (ProblemGroups.Group) groups.stream()
+                .filter(g -> g instanceof ProblemGroups.Group gr && gr.subject() != null && ISIN.equals(gr.subject().key()))
+                .findFirst().orElseThrow();
+        assertEquals(51, apple.count(), "51 occurrences of one security are one group");
+        assertEquals(2, apple.kinds().size());
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.showInList(apple);
+            return null;
+        });
+        assertNull(panel.getGrouping(), "back to the list");
+        assertEquals(51, panel.getProblemCount(), "only the group's problems");
+        assertTrue(panel.lookup("#problems-focus").isVisible());
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.onClearFocus();
+            return null;
+        });
+        assertEquals(53, panel.getProblemCount());
+    }
+
+    @Test
+    void theShownProblemsAreExportedToExcel(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) throws Exception {
+        setProblems(mixed());
+        java.nio.file.Path target = dir.resolve("out.xlsx");
+        java.util.concurrent.CompletableFuture<java.io.File> written = new java.util.concurrent.CompletableFuture<>();
+        ProblemsPanel.exportTarget = name -> target.toFile();
+        ProblemsPanel.onExported = written::complete;
+        try {
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                panel.setFilter(ProblemsPanel.Filter.WARNINGS);
+                panel.onExportShown();
+                return null;
+            });
+            java.io.File file = written.get(20, java.util.concurrent.TimeUnit.SECONDS);
+            try (var workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook(java.nio.file.Files.newInputStream(file.toPath()))) {
+                var problems = workbook.getSheet("Problems");
+                assertEquals(2, problems.getLastRowNum(), "the two warnings");
+                assertEquals("ISIN " + ISIN, problems.getRow(1).getCell(7).getStringCellValue());
+                assertTrue(workbook.getSheet("By Object").getLastRowNum() >= 2);
+                assertTrue(workbook.getSheet("Summary").getRow(8).getCell(1).getStringCellValue().contains("Warnings")
+                        || java.util.stream.IntStream.rangeClosed(0, workbook.getSheet("Summary").getLastRowNum())
+                        .mapToObj(r -> workbook.getSheet("Summary").getRow(r))
+                        .filter(java.util.Objects::nonNull)
+                        .anyMatch(r -> r.getCell(1) != null && r.getCell(1).toString().contains("Warnings")),
+                        "the filter is named");
+            }
+        } finally {
+            ProblemsPanel.exportTarget = null;
+            ProblemsPanel.onExported = null;
+        }
+    }
+
+    @Test
+    void aCollectiveFixCorrectsTheSecurityInEveryPlace() throws Exception {
+        String isin = ISIN;
+        StringBuilder xml = new StringBuilder("<Report>\n");
+        for (int i = 0; i < 20; i++) {
+            xml.append("<Position><ISIN>").append(isin).append("</ISIN><CFI>ESVUFR</CFI></Position>\n");
+        }
+        xml.append("</Report>\n");
+        String firds = "{\"grouped\":{\"isin\":{\"groups\":[{\"doclist\":{\"docs\":[{\"id\":\"1\",\"isin\":\"" + isin
+                + "\",\"gnr_full_name\":\"Apple\",\"gnr_cfi_code\":\"DBFTFB\"}]}}]}},"
+                + "\"facet_counts\":{\"facet_pivot\":{\"isin,status\":[]}}}";
+        var previous = org.fxt.freexmltoolkit.service.finance.isin.Isin.cache();
+        var cache = new org.fxt.freexmltoolkit.service.finance.isin.Isin.Cache(null, java.time.Clock.systemUTC(),
+                java.time.Duration.ofHours(1), () -> new org.fxt.freexmltoolkit.service.finance.isin.IsinLookup(
+                uri -> new org.fxt.freexmltoolkit.service.finance.isin.IsinLookup.Response(200,
+                        firds.getBytes(java.nio.charset.StandardCharsets.UTF_8)), null, java.time.Clock.systemUTC(), false, null),
+                () -> false);
+        cache.lookup(List.of(isin)); // FIRDS knows the CFI code
+        org.fxt.freexmltoolkit.service.finance.isin.Isin.setCache(cache);
+        ProblemsPanel.fixConfirmer = text -> text.contains("20 values");
+        try {
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openGeneratedDocument(xml.toString(), EditorFileType.XML, "r.xml"));
+            WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS,
+                    () -> host.getActiveText().map(t -> t.contains("ESVUFR")).orElse(false));
+            List<ValidationProblem> problems = new java.util.ArrayList<>();
+            for (int i = 0; i < 20; i++) {
+                problems.add(isinProblem(isin, ProblemCategory.ISIN_CFI, "warning", 2 + i));
+            }
+            setProblems(problems);
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                panel.setGrouping(ProblemGroups.By.SUBJECT);
+                return null;
+            });
+            WaitForAsyncUtils.waitForFxEvents();
+            var fix = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                @SuppressWarnings("unchecked")
+                var tree = (javafx.scene.control.TreeView<Object>) panel.lookup("#problems-panel-tree");
+                var menu = panel.groupMenu(tree.getRoot().getChildren().getFirst().getValue());
+                return menu.getItems().stream().filter(m -> "problems-group-fix".equals(m.getId())).findFirst().orElseThrow();
+            });
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                fix.fire();
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(10, java.util.concurrent.TimeUnit.SECONDS,
+                    () -> host.getActiveText().map(t -> !t.contains("ESVUFR")).orElse(false));
+            String text = host.getActiveText().orElseThrow();
+            assertEquals(20, text.split("<CFI>DBFTFB</CFI>", -1).length - 1, "every place");
+            assertEquals(0, WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveProblems().size()),
+                    "the fixed findings are gone");
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                host.getActiveCodeArea().undo();
+                return null;
+            });
+            assertTrue(host.getActiveText().orElseThrow().contains("<CFI>ESVUFR</CFI>"), "one undo takes all back");
+        } finally {
+            org.fxt.freexmltoolkit.service.finance.isin.Isin.setCache(previous);
+            ProblemsPanel.fixConfirmer = null;
+        }
     }
 }

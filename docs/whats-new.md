@@ -6,6 +6,13 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+- **Work off large lists of problems.** The Problems panel gets a third counter for **hints** (findings that usually
+  need no change: not traded in the EU, registration pending), a **category** filter (document, LEI, ISIN, FMA rule
+  groups, extension rules), a **search** field and **grouping** by security / object, rule or category: a security
+  that occurs a hundred times is one group. Where ESMA FIRDS knows better, **Fix ISIN … in Every Place** corrects the
+  CFI code and issuer LEI in every position at once (one undo step). **Export** writes the shown or all problems to
+  Excel with sheets per problem, per object and per rule. See
+  [Large lists](unified-shell.md#large-lists-categories-search-grouping-export).
 - **Large HTML reports in the preview.** Scrolling through a very large check report (a 150 MB QMV report gives a
   2.7 MB page) could stop the window from painting with hardware rendering on Windows. The application no longer
   caches a graphics texture for every shape, a report of 1 MB and more offers **Open in Browser** above the preview,

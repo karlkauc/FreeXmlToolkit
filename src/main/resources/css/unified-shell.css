@@ -2700,7 +2700,8 @@
 
 /* the counters are filter toggles: flat, a pill while the filter is on */
 .fxt-problems-chip-error,
-.fxt-problems-chip-warning {
+.fxt-problems-chip-warning,
+.fxt-problems-chip-info {
     -fx-background-color: transparent;
     -fx-background-radius: 8px;
     -fx-border-color: transparent;
@@ -2710,12 +2711,14 @@
 }
 
 .fxt-problems-chip-error:hover,
-.fxt-problems-chip-warning:hover {
+.fxt-problems-chip-warning:hover,
+.fxt-problems-chip-info:hover {
     -fx-background-color: -fxt-bg-surface-2;
 }
 
 .fxt-problems-chip-error:selected,
-.fxt-problems-chip-warning:selected {
+.fxt-problems-chip-warning:selected,
+.fxt-problems-chip-info:selected {
     -fx-background-color: -fxt-bg-surface-2;
     -fx-border-color: -fxt-border;
 }
@@ -2731,6 +2734,87 @@
 }
 
 .fxt-problems-chip-warning .iconify-icon {
+    -fx-icon-color: -fxt-warning;
+}
+
+/* hints (not traded in the EU, pending registration …): info colour on the icon, readable text */
+.fxt-problems-chip-info {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-graphic-text-gap: 4;
+}
+
+.fxt-problems-chip-info .iconify-icon {
+    -fx-icon-color: -fxt-info;
+}
+
+/* category filter, search, grouping and export in the header */
+.fxt-problems-tool {
+    -fx-font-size: 11.5px;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 1px 6px;
+    -fx-cursor: hand;
+}
+
+.fxt-problems-tool:hover,
+.fxt-problems-tool:showing {
+    -fx-background-color: -fxt-bg-surface-2;
+}
+
+.fxt-problems-tool .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-problems-search {
+    -fx-font-size: 11.5px;
+    -fx-pref-width: 200;
+    -fx-padding: 2 8 2 8;
+}
+
+.fxt-problems-focus {
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-primary;
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-background-radius: 8px;
+    -fx-padding: 1px 4px 1px 8px;
+}
+
+.fxt-problems-tree {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.fxt-problems-tree .tree-cell {
+    -fx-padding: 5 8 5 4;
+    -fx-background-color: transparent;
+}
+
+.fxt-problems-tree .tree-cell:filled:selected {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-problems-group-title {
+    -fx-font-size: 12.5px;
+    -fx-font-weight: 600;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-problems-group-count {
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-muted;
+}
+
+.fxt-problems-list .list-cell .iconify-icon.sev-info,
+.fxt-problems-tree .tree-cell .iconify-icon.sev-info {
+    -fx-icon-color: -fxt-info;
+}
+
+.fxt-problems-tree .tree-cell .iconify-icon.sev-error {
+    -fx-icon-color: -fxt-danger;
+}
+
+.fxt-problems-tree .tree-cell .iconify-icon.sev-warning {
     -fx-icon-color: -fxt-warning;
 }
 
@@ -3273,6 +3357,10 @@
 .fxt-vp-results .iconify-icon.sev-warning,
 .fxt-vp-problems .list-cell .iconify-icon.sev-warning {
     -fx-icon-color: -fxt-warning;
+}
+
+.fxt-vp-problems .list-cell .iconify-icon.sev-info {
+    -fx-icon-color: -fxt-info;
 }
 
 .fxt-vp-results .iconify-icon.sev-ok {

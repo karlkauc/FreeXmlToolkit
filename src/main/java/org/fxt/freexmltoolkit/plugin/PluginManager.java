@@ -362,9 +362,15 @@ public final class PluginManager {
     /**
      * A problem found by a plugin validator.
      *
-     * @param source the validator's name
+     * @param source  the validator's name
+     * @param problem the validator's problem (rule, category, subject), or {@code null}
      */
-    public record ValidatorProblem(String source, String severity, int line, String message) {
+    public record ValidatorProblem(String source, String severity, int line, String message,
+                                   DocumentValidator.Problem problem) {
+
+        public ValidatorProblem(String source, String severity, int line, String message) {
+            this(source, severity, line, message, null);
+        }
     }
 
     /** Runs the validators that accept the document; a failing validator becomes one error. */
@@ -384,7 +390,7 @@ public final class PluginManager {
             try {
                 for (DocumentValidator.Problem p : validator.validate(content, documentName)) {
                     problems.add(new ValidatorProblem(source, p.severity() == null ? "error" : p.severity(),
-                            Math.max(0, p.line()), p.message()));
+                            Math.max(0, p.line()), p.message(), p));
                 }
             } catch (RuntimeException | LinkageError e) {
                 logger.warn("Validator {} failed", source, e);

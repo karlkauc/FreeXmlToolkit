@@ -759,6 +759,28 @@ public class EditorHost extends BorderPane {
     }
 
     /**
+     * Applies several edits to the active document as <b>one</b> undo step (RichTextFX multi-change), without
+     * replacing the text between them - also for edits spread over a 150 MB document.
+     *
+     * @param edits non-overlapping, any order
+     * @return {@code true} when the active tab is an editor and took the edits
+     */
+    public boolean replaceActiveTextEdits(java.util.List<org.fxt.freexmltoolkit.service.xmledit.TextEdit> edits) {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (!(tab instanceof EditorTab et) || edits.isEmpty()) {
+            return false;
+        }
+        java.util.List<org.fxt.freexmltoolkit.service.xmledit.TextEdit> descending = new java.util.ArrayList<>(edits);
+        descending.sort((a, b) -> Integer.compare(b.start(), a.start())); // earlier offsets stay valid
+        var change = et.view.getCodeArea().createMultiChange(descending.size());
+        for (var edit : descending) {
+            change.replaceText(edit.start(), edit.end(), edit.replacement());
+        }
+        change.commit();
+        return true;
+    }
+
+    /**
      * Replaces a text region of the (possibly non-active) open document at
      * {@code path} — one native undo entry in that document's editor. Used by
      * Replace-in-Files so open documents are edited through their buffer instead

@@ -274,6 +274,25 @@ CLI `lei`, `isin` (`--no-openfigi`), `validate --gleif --isin` (the CLI ignores 
 the computer only on a click or with those settings on. Tests: `OnlineFakes` (saved answers `gleif/lei-records.json`,
 `isin/firds-select.json`, `isin/openfigi-mapping.json`). Docs: `docs/identifier-lookup.md`.
 
+## Problems: categories, subjects, grouping
+
+`ValidationProblem` carries `category` (`ProblemCategory`: groups DOCUMENT / LEI / ISIN / FMA / EXTENSION / OTHER;
+`of(problem)` derives it from source, rule and severity when a source sets none) and `subject` (`ProblemSubject`: kind
+ISIN / LEI / ASSET / RECORD, key, label; `ofAsset` decides by the key's form); `level()` = ERROR / WARNING / INFO
+(`"info"` is a **hint**, never an error). Sources: `ValidationRunner.toProblems` (online findings: subject from
+`Finding.id`, name from the records, INFO stays `info`), `ValidationRunner.fromPlugin` (`DocumentValidator.Problem`
+has optional `rule`, `category` (a `ProblemCategory` name), `subjectKind/Key/Label` - `withRule/withCategory/withSubject`;
+`PluginManager.ValidatorProblem.problem` carries it), `PkRuleValidator.problem` (FMA code, `ofFmaGroup`, asset key +
+`row/@title` via `PkRuleCheck.Finding.asset/title`, else the VRG), `RegValidator` (rule id). `ProblemGroups.group(problems,
+By.SUBJECT|RULE|CATEGORY)` → `Group` → `Kind` → occurrences (`ruleKey`: category for online findings, rule id, XSD
+`cvc-` code, else message). `ProblemsPanel`: hint chip, category `MenuButton`, search (250 ms), group-by box (setting
+`editor.problems.groupBy`), lazy `TreeView` (≥ 5,000 problems grouped off the FX thread; ≤ 2,000 leaves per node, then
+"show in list"), focus ("show in list" → label with ✕), export (shown / all / group, hooks `exportTarget`,
+`onExported`), collective fix (`service/finance/IdentifierFixes.plan` → `TextEdit`s at the CFI / issuer-LEI values of
+`IsinPairs` from the FIRDS records in `Isin.cache()`; `EditorHost.replaceActiveTextEdits` = one RichTextFX multi-change
+= one undo; hook `fixConfirmer`). Row menus are built when opened. Excel: `ValidationExcelExporter` (SXSSF; Summary,
+Problems (split beyond the row limit), By Object, By Rule).
+
 ## Progress of long jobs
 
 `service/progress/`: `Progress` (UI-free, thread-safe: `message`, `progress(done, total)` (`total <= 0` = indeterminate),

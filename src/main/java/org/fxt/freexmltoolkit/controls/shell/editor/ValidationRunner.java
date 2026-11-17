@@ -335,7 +335,7 @@ public final class ValidationRunner {
         // Plugins' own checks (only on a well-formed document: they read it as XML)
         if (problems.stream().noneMatch(p -> "Well-formed".equals(p.source()))) {
             for (var found : org.fxt.freexmltoolkit.plugin.PluginManager.getInstance().validate(xml, documentName)) {
-                problems.add(new ValidationProblem(found.source(), found.severity(), found.line(), found.message()));
+                problems.add(fromPlugin(found));
             }
         }
         boolean leis = org.fxt.freexmltoolkit.service.finance.gleif.Gleif.onValidation();
@@ -385,16 +385,68 @@ public final class ValidationRunner {
                 || org.fxt.freexmltoolkit.service.finance.isin.Isin.onValidation();
     }
 
+    /** @return a plugin validator's problem with its rule, category and subject */
+    static ValidationProblem fromPlugin(org.fxt.freexmltoolkit.plugin.PluginManager.ValidatorProblem found) {
+        var p = found.problem();
+        ValidationProblem problem = new ValidationProblem(found.source(), found.severity(), found.line(), found.message(),
+                p == null ? null : p.rule(), null);
+        if (p == null) {
+            return problem.withCategory(ProblemCategory.of(problem));
+        }
+        if (p.subjectKey() != null && !p.subjectKey().isBlank()) {
+            ProblemSubject subject;
+            if (p.subjectKind() == null || "ASSET".equalsIgnoreCase(p.subjectKind())) {
+                subject = ProblemSubject.ofAsset(p.subjectKey(), p.subjectLabel());
+            } else {
+                ProblemSubject.Kind kind;
+                try {
+                    kind = ProblemSubject.Kind.valueOf(p.subjectKind().strip().toUpperCase(java.util.Locale.ROOT));
+                } catch (IllegalArgumentException e) {
+                    kind = ProblemSubject.Kind.RECORD;
+                }
+                subject = new ProblemSubject(kind, p.subjectKey(), p.subjectLabel());
+            }
+            problem = problem.withSubject(subject);
+        }
+        ProblemCategory category = null;
+        if (p.category() != null) {
+            try {
+                category = ProblemCategory.valueOf(p.category().strip());
+            } catch (IllegalArgumentException e) {
+                category = null;
+            }
+        }
+        return problem.withCategory(category != null ? category : ProblemCategory.of(problem));
+    }
+
+    /** @return the security (ISIN) or entity (LEI) an online finding is about, with its name when known */
+    static ProblemSubject subjectOf(org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Result result,
+                                    org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Finding f) {
+        if (f.id() == null || f.id().isBlank()) {
+            return null;
+        }
+        if (org.fxt.freexmltoolkit.service.finance.gleif.GleifCheck.SOURCE.equals(f.source())) {
+            var record = result.leiRecords().get(f.id());
+            return new ProblemSubject(ProblemSubject.Kind.LEI, f.id(), record == null ? null : record.legalName());
+        }
+        var record = result.isinRecords().get(f.id());
+        return new ProblemSubject(ProblemSubject.Kind.ISIN, f.id(), record == null ? null : record.name());
+    }
+
     /** @return the findings and failures of an online check as problems */
     public static List<ValidationProblem> toProblems(org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Result result) {
         List<ValidationProblem> problems = new ArrayList<>();
         for (var f : result.failures()) {
-            problems.add(new ValidationProblem(f.source(), "warning", 0, "Not checked online: " + f.message()));
+            problems.add(new ValidationProblem(f.source(), "warning", 0, "Not checked online: " + f.message())
+                    .withCategory(ProblemCategory.ONLINE_SERVICE));
         }
         for (var f : result.findings()) {
-            problems.add(new ValidationProblem(f.source(),
-                    f.severity() == org.fxt.freexmltoolkit.service.finance.IdentifierCheck.Severity.ERROR ? "error" : "warning",
-                    f.line(), f.message(), f.rule(), null).withColumn(f.column()).withLink(entryUrl(result, f)));
+            ValidationProblem p = new ValidationProblem(f.source(), switch (f.severity()) {
+                case ERROR -> "error";
+                case WARNING -> "warning";
+                case INFO -> "info"; // a hint: not traded in the EU, pending registration …
+            }, f.line(), f.message(), f.rule(), null).withColumn(f.column()).withLink(entryUrl(result, f));
+            problems.add(p.withSubject(subjectOf(result, f)).withCategory(ProblemCategory.of(p)));
         }
         return problems;
     }
