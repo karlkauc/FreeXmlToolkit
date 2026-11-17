@@ -140,6 +140,8 @@ public interface XmlSchemaProvider {
      * @param defaultValue The default value
      * @param fixedValue The fixed value
      * @param documentation The documentation text
+     * @param checker The exact check of the element's simple value, or {@code null} when it has none or it cannot
+     *                be built
      */
     record ElementTypeInfo(
             String name,
@@ -152,7 +154,8 @@ public interface XmlSchemaProvider {
             Map<String, String> facets,
             String defaultValue,
             String fixedValue,
-            String documentation
+            String documentation,
+            SimpleTypeChecker checker
     ) {
         /**
          * Checks if this element has enumeration values.
@@ -187,6 +190,7 @@ public interface XmlSchemaProvider {
      * @param defaultValue The default value
      * @param fixedValue The fixed value
      * @param documentation The documentation text
+     * @param checker The exact check of the attribute's simple type, or {@code null} when it cannot be built
      */
     record AttributeTypeInfo(
             String name,
@@ -197,7 +201,8 @@ public interface XmlSchemaProvider {
             Map<String, String> facets,
             String defaultValue,
             String fixedValue,
-            String documentation
+            String documentation,
+            SimpleTypeChecker checker
     ) {
         /**
          * Checks if this attribute has enumeration values.

@@ -19,12 +19,16 @@ package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
+import org.fxt.freexmltoolkit.controls.theme.SemanticStyle;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.SimpleTypeChecker;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationResult;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.XsdType;
@@ -35,13 +39,15 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.Xsd
  * <p>This factory analyzes the XSD type and facets to create the most appropriate
  * editing widget for each value type:</p>
  * <ul>
- *   <li>Enumerations → ComboBox</li>
+ *   <li>Enumerations (also unions of enumerations) → ComboBox</li>
  *   <li>Boolean → Toggle button</li>
- *   <li>Date/DateTime → DatePicker</li>
- *   <li>Integer/Decimal → Spinner</li>
- *   <li>Pattern-constrained → TextField with validation</li>
- *   <li>Others → TextField with length validation</li>
+ *   <li>date / dateTime / time → pickers that keep timezone and fractional seconds</li>
+ *   <li>integer family / decimal / float / double → Spinner in XSD lexical form</li>
+ *   <li>Others → TextField with the format as hint</li>
  * </ul>
+ *
+ * <p>With a {@link SimpleTypeChecker} from the schema every widget flags values the declared type does not allow,
+ * with the reason. Values are never blocked: the editor writes them and warns.</p>
  *
  * @author Claude Code
  * @since 2.0
@@ -87,6 +93,7 @@ public class TypeAwareWidgetFactory {
                 typeInfo.facets(),
                 typeInfo.fixedValue(),
                 typeInfo.defaultValue(),
+                typeInfo.checker(),
                 currentValue,
                 onValueChange
         );
@@ -119,19 +126,23 @@ public class TypeAwareWidgetFactory {
                 typeInfo.facets(),
                 typeInfo.fixedValue(),
                 typeInfo.defaultValue(),
+                typeInfo.checker(),
                 currentValue,
                 onValueChange
         );
     }
 
     /**
-     * Creates a widget based on the XSD type and facets.
+     * Creates a widget based on the XSD type and facets. With a checker every widget checks the value against the
+     * exact declared type (all facets of all derivation steps); without one the widgets fall back to their own
+     * checks.
      */
     private EditWidget createWidgetForType(XsdType xsdType,
                                            java.util.List<String> enumerationValues,
                                            Map<String, String> facets,
                                            String fixedValue,
                                            String defaultValue,
+                                           SimpleTypeChecker checker,
                                            String currentValue,
                                            Consumer<String> onValueChange) {
 
@@ -144,6 +155,7 @@ public class TypeAwareWidgetFactory {
         String effectiveValue = (currentValue == null || currentValue.isEmpty()) && defaultValue != null
                 ? defaultValue
                 : currentValue;
+        Function<String, ValidationResult> check = checker != null ? checker::check : null;
 
         // Check for enumeration first (overrides type)
         if (enumerationValues != null && !enumerationValues.isEmpty()) {
@@ -151,57 +163,51 @@ public class TypeAwareWidgetFactory {
             return new EnumerationComboBox(enumerationValues, effectiveValue, onValueChange);
         }
 
-        // Create widget based on type
         return switch (xsdType) {
-            case BOOLEAN -> {
-                logger.debug("Creating boolean toggle widget");
-                yield new BooleanToggle(effectiveValue, onValueChange);
-            }
-            case DATE -> {
-                logger.debug("Creating date picker widget");
-                yield new XmlDatePicker(effectiveValue, onValueChange, false);
-            }
-            case DATE_TIME -> {
-                logger.debug("Creating datetime picker widget");
-                yield new XmlDateTimePicker(effectiveValue, onValueChange);
-            }
-            case TIME -> {
-                logger.debug("Creating time picker widget");
-                yield new XmlTimePicker(effectiveValue, onValueChange);
-            }
-            case INTEGER -> {
-                logger.debug("Creating integer spinner widget");
-                yield new NumericSpinner(effectiveValue, onValueChange, facets, true);
-            }
-            case DECIMAL, FLOAT, DOUBLE -> {
-                logger.debug("Creating decimal spinner widget");
-                yield new NumericSpinner(effectiveValue, onValueChange, facets, false);
-            }
-            case ANY_URI -> {
-                logger.debug("Creating URI widget");
-                yield new UriTextField(effectiveValue, onValueChange);
-            }
+            case BOOLEAN -> new BooleanToggle(effectiveValue, onValueChange);
+            case DATE -> new XmlDatePicker(effectiveValue, onValueChange, check);
+            case DATE_TIME -> new XmlDateTimePicker(effectiveValue, onValueChange, check);
+            case TIME -> new XmlTimePicker(effectiveValue, onValueChange, check);
+            case INTEGER -> new NumericSpinner(effectiveValue, onValueChange, facets, NumericSpinner.Kind.INTEGER, check);
+            case DECIMAL -> new NumericSpinner(effectiveValue, onValueChange, facets, NumericSpinner.Kind.DECIMAL, check);
+            case FLOAT, DOUBLE ->
+                    new NumericSpinner(effectiveValue, onValueChange, facets, NumericSpinner.Kind.FLOATING, check);
+            case ANY_URI -> new UriTextField(effectiveValue, onValueChange);
+            case DURATION, G_YEAR, G_YEAR_MONTH, G_MONTH, G_MONTH_DAY, G_DAY, HEX_BINARY, BASE64_BINARY, QNAME ->
+                    new ValidatedTextField(effectiveValue, onValueChange, check, formatHint(xsdType));
             default -> {
-                // Check for pattern facet
+                if (check != null) {
+                    // Pattern, lengths, whiteSpace and the lexical space of tokens/names/lists/unions at once
+                    yield new ValidatedTextField(effectiveValue, onValueChange, check, null);
+                }
                 String pattern = facets != null ? facets.get("pattern") : null;
-                if (pattern != null && !pattern.isEmpty()) {
-                    logger.debug("Creating pattern-validated text field");
+                if (pattern != null && !pattern.isEmpty() && !pattern.contains("\n")) {
                     yield new PatternTextField(effectiveValue, onValueChange, pattern);
                 }
-
-                // Check for length constraints
                 Integer minLength = parseFacetInt(facets, "minLength");
                 Integer maxLength = parseFacetInt(facets, "maxLength");
                 Integer length = parseFacetInt(facets, "length");
-
                 if (length != null || minLength != null || maxLength != null) {
-                    logger.debug("Creating length-validated text field");
                     yield new LengthValidatedField(effectiveValue, onValueChange, minLength, maxLength, length);
                 }
-
-                // Default text field
                 yield createDefaultTextField(effectiveValue, onValueChange, facets);
             }
+        };
+    }
+
+    /** An example of the lexical form, shown while the field is empty. */
+    static String formatHint(XsdType type) {
+        return switch (type) {
+            case DURATION -> "P1Y2M3DT4H5M6S";
+            case G_YEAR -> "2024";
+            case G_YEAR_MONTH -> "2024-05";
+            case G_MONTH -> "--05";
+            case G_MONTH_DAY -> "--12-24";
+            case G_DAY -> "---15";
+            case HEX_BINARY -> "0FB7";
+            case BASE64_BINARY -> "SGVsbG8=";
+            case QNAME -> "prefix:name";
+            default -> null;
         };
     }
 
@@ -301,7 +307,7 @@ public class TypeAwareWidgetFactory {
             this.fixedValue = fixedValue;
             this.textField = new TextField(fixedValue);
             this.textField.setEditable(false);
-            this.textField.setStyle("-fx-background-color: #fff3cd; -fx-text-fill: #856404;");
+            SemanticStyle.style(textField, DesignTokens.ColorToken.TYPE_FRAME_BG, c -> "-fx-background-color: " + c + ";");
         }
 
         /**

@@ -18,10 +18,9 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
-import java.text.ParseException;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import javafx.scene.Node;
@@ -29,239 +28,117 @@ import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
+import javafx.util.StringConverter;
 
-import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
-import org.fxt.freexmltoolkit.controls.theme.SemanticStyle;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationResult;
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationSeverity;
 import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
- * Spinner widget for XSD numeric types (integer, decimal, float, double).
+ * Spinner for the XSD numeric types (the integer family, decimal, float, double).
  *
- * <p>Supports facets like minInclusive, maxInclusive, totalDigits, fractionDigits.</p>
- *
- * @author Claude Code
- * @since 2.0
+ * <p>The text is the value: it is written in XSD's lexical form, never rounded, clamped or formatted with the
+ * user's locale. A comma typed as decimal separator becomes a point ({@code 3,5} → {@code 3.5}); float and double
+ * also take exponents, {@code INF}, {@code -INF} and {@code NaN}; an empty value stays empty. The arrows step by 1,
+ * or by the smallest fraction {@code fractionDigits} allows, with exact decimal arithmetic and within the inclusive
+ * and exclusive bounds. Invalid values are flagged with the reason, not blocked.</p>
  */
 public class NumericSpinner implements TypeAwareWidgetFactory.EditWidget {
 
-    private final Spinner<Double> spinner;
-    private final boolean integerOnly;
-    private final Double minValue;
-    private final Double maxValue;
-    private final Integer totalDigits;
-    private final Integer fractionDigits;
-    private ValidationResult validationResult = ValidationResult.valid();
+    /** The number family. */
+    public enum Kind {
+        /** xs:integer and its derivations: digits only. */
+        INTEGER,
+        /** xs:decimal: digits with an optional fraction. */
+        DECIMAL,
+        /** xs:float and xs:double: also exponents and the special values. */
+        FLOATING
+    }
 
-    // Pattern for numeric input
-    private static final Pattern INTEGER_PATTERN = Pattern.compile("-?\\d*");
-    private static final Pattern DECIMAL_PATTERN = Pattern.compile("-?\\d*\\.?\\d*");
+    private static final Pattern INTEGER_CHARS = Pattern.compile("[+-]?\\d*");
+    private static final Pattern DECIMAL_CHARS = Pattern.compile("[+-]?[\\d.,]*");
+    private static final Pattern FLOATING_CHARS = Pattern.compile("[+-]?[\\d.,eE+\\-INFa]*");
+
+    private final Spinner<String> spinner;
+    private final Kind kind;
+    private final Map<String, String> facets;
+    private final Function<String, ValidationResult> validator;
+    private ValidationResult validationResult = ValidationResult.valid();
 
     /**
      * Creates a new NumericSpinner.
      *
-     * @param currentValue  the current value as string
-     * @param onValueChange callback when value changes
-     * @param facets        the facets map (minInclusive, maxInclusive, etc.)
-     * @param integerOnly   true for integer types, false for decimal/float/double
+     * @param currentValue  the current value
+     * @param onValueChange callback when the value changes (may be {@code null})
+     * @param facets        the facets (bounds, total/fractionDigits; may be {@code null})
+     * @param integerOnly   {@code true} for the integer family, {@code false} for decimal
      */
     public NumericSpinner(String currentValue, Consumer<String> onValueChange,
                           Map<String, String> facets, boolean integerOnly) {
-        this.integerOnly = integerOnly;
+        this(currentValue, onValueChange, facets, integerOnly ? Kind.INTEGER : Kind.DECIMAL, null);
+    }
 
-        // Parse facets
-        this.minValue = parseFacetDouble(facets, "minInclusive");
-        this.maxValue = parseFacetDouble(facets, "maxInclusive");
-        this.totalDigits = parseFacetInt(facets, "totalDigits");
-        this.fractionDigits = parseFacetInt(facets, "fractionDigits");
+    /**
+     * Creates a new NumericSpinner.
+     *
+     * @param currentValue  the current value
+     * @param onValueChange callback when the value changes (may be {@code null})
+     * @param facets        the facets (bounds, total/fractionDigits; may be {@code null})
+     * @param kind          the number family
+     * @param validator     the exact check of the declared type; {@code null} = lexical form and bounds only
+     */
+    public NumericSpinner(String currentValue, Consumer<String> onValueChange, Map<String, String> facets,
+                          Kind kind, Function<String, ValidationResult> validator) {
+        this.kind = kind;
+        this.facets = facets == null ? Map.of() : Map.copyOf(facets);
+        this.validator = validator;
 
-        // Determine bounds
-        double min = minValue != null ? minValue : (integerOnly ? Integer.MIN_VALUE : -Double.MAX_VALUE);
-        double max = maxValue != null ? maxValue : (integerOnly ? Integer.MAX_VALUE : Double.MAX_VALUE);
-        double step = integerOnly ? 1 : 0.1;
-
-        // Parse initial value
-        double initial = 0;
-        if (currentValue != null && !currentValue.isEmpty()) {
-            try {
-                initial = Double.parseDouble(currentValue);
-            } catch (NumberFormatException e) {
-                validationResult = ValidationResult.warning(I18n.t("NumericSpinner.invalid-number", currentValue));
-            }
-        }
-
-        // Clamp initial value to bounds
-        initial = Math.max(min, Math.min(max, initial));
-
-        // Create spinner
         spinner = new Spinner<>();
-        SpinnerValueFactory.DoubleSpinnerValueFactory valueFactory =
-                new SpinnerValueFactory.DoubleSpinnerValueFactory(min, max, initial, step);
-
-        // Format for display
-        if (integerOnly) {
-            valueFactory.setConverter(new javafx.util.StringConverter<>() {
-                @Override
-                public String toString(Double value) {
-                    return value != null ? String.valueOf(value.longValue()) : "0";
-                }
-
-                @Override
-                public Double fromString(String string) {
-                    if (string == null || string.isEmpty()) {
-                        return 0.0;
-                    }
-                    try {
-                        return (double) Long.parseLong(string);
-                    } catch (NumberFormatException e) {
-                        return 0.0;
-                    }
-                }
-            });
-        } else {
-            // Use appropriate decimal format based on fractionDigits
-            int decimals = fractionDigits != null ? fractionDigits : 2;
-            DecimalFormat df = new DecimalFormat();
-            df.setMaximumFractionDigits(decimals);
-            df.setMinimumFractionDigits(0);
-            df.setGroupingUsed(false);
-
-            valueFactory.setConverter(new javafx.util.StringConverter<>() {
-                @Override
-                public String toString(Double value) {
-                    return value != null ? df.format(value) : "0";
-                }
-
-                @Override
-                public Double fromString(String string) {
-                    if (string == null || string.isEmpty()) {
-                        return 0.0;
-                    }
-                    try {
-                        return df.parse(string).doubleValue();
-                    } catch (ParseException e) {
-                        return 0.0;
-                    }
-                }
-            });
-        }
-
-        spinner.setValueFactory(valueFactory);
+        LexicalValueFactory factory = new LexicalValueFactory();
+        factory.setValue(currentValue == null ? "" : currentValue);
+        spinner.setValueFactory(factory);
         spinner.setEditable(true);
-        spinner.setPrefWidth(120);
+        spinner.setPrefWidth(140);
 
-        // Add text formatter for input validation
         TextField editor = spinner.getEditor();
-        Pattern pattern = integerOnly ? INTEGER_PATTERN : DECIMAL_PATTERN;
-        editor.setTextFormatter(new TextFormatter<>(change -> {
-            String newText = change.getControlNewText();
-            if (newText.isEmpty() || pattern.matcher(newText).matches()) {
-                return change;
-            }
-            return null;
+        editor.setText(factory.getValue());
+        Pattern allowed = switch (kind) {
+            case INTEGER -> INTEGER_CHARS;
+            case DECIMAL -> DECIMAL_CHARS;
+            case FLOATING -> FLOATING_CHARS;
+        };
+        // Typing is limited to the family's characters; replacing the whole text (the current value, a paste over
+        // everything) is not, so an unusual existing value is shown and kept rather than dropped
+        editor.setTextFormatter(new TextFormatter<String>(change -> {
+            boolean wholeText = change.getRangeStart() == 0 && change.getRangeEnd() == change.getControlText().length();
+            return wholeText || allowed.matcher(change.getControlNewText().strip()).matches() ? change : null;
         }));
-
-        // Listen for changes
-        spinner.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                validate(newVal);
-                if (onValueChange != null) {
-                    onValueChange.accept(formatValue(newVal));
-                }
+        editor.textProperty().addListener((obs, oldVal, newVal) -> {
+            validate();
+            if (onValueChange != null) {
+                onValueChange.accept(getValue());
             }
         });
-
-        // Style
-        applyValidationStyle();
+        validate();
     }
 
-    private Double parseFacetDouble(Map<String, String> facets, String name) {
-        if (facets == null || !facets.containsKey(name)) {
-            return null;
-        }
-        try {
-            return Double.parseDouble(facets.get(name));
-        } catch (NumberFormatException e) {
-            return null;
-        }
+    /**
+     * The value in XSD form: the editor's text (typed but not yet committed text counts), trimmed, with a comma
+     * decimal separator turned into a point.
+     */
+    @Override
+    public String getValue() {
+        return normalize(spinner.getEditor().getText());
     }
 
-    private Integer parseFacetInt(Map<String, String> facets, String name) {
-        if (facets == null || !facets.containsKey(name)) {
-            return null;
-        }
-        try {
-            return Integer.parseInt(facets.get(name));
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    private void validate(Double value) {
-        if (minValue != null && value < minValue) {
-            validationResult = ValidationResult.warning("Value must be >= " + formatValue(minValue));
-        } else if (maxValue != null && value > maxValue) {
-            validationResult = ValidationResult.warning("Value must be <= " + formatValue(maxValue));
-        } else if (totalDigits != null) {
-            String strVal = formatValue(value).replace("-", "").replace(".", "");
-            if (strVal.length() > totalDigits) {
-                validationResult = ValidationResult.warning(I18n.t("NumericSpinner.value-cannot-have-more-than", totalDigits));
-            } else {
-                validationResult = ValidationResult.valid();
-            }
-        } else {
-            validationResult = ValidationResult.valid();
-        }
-        applyValidationStyle();
-    }
-
-    private String formatValue(Double value) {
-        if (integerOnly) {
-            return String.valueOf(value.longValue());
-        } else if (fractionDigits != null) {
-            return String.format("%." + fractionDigits + "f", value);
-        } else {
-            // Remove trailing zeros
-            BigDecimal bd = BigDecimal.valueOf(value);
-            return bd.stripTrailingZeros().toPlainString();
-        }
-    }
-
-    private void applyValidationStyle() {
-        if (!validationResult.isValid() ||
-                validationResult.severity() == ValidationSeverity.WARNING) {
-            SemanticStyle.style(spinner, DesignTokens.ColorToken.WARNING, c -> "-fx-border-color: " + c + "; -fx-border-width: 2px;");
-        } else {
-            SemanticStyle.style(spinner, DesignTokens.ColorToken.SUCCESS, c -> "-fx-border-color: " + c + "; -fx-border-width: 1px;");
-        }
+    @Override
+    public void setValue(String value) {
+        spinner.getValueFactory().setValue(value == null ? "" : value);
+        spinner.getEditor().setText(spinner.getValueFactory().getValue());
     }
 
     @Override
     public Node getNode() {
         return spinner;
-    }
-
-    @Override
-    public String getValue() {
-        Double value = spinner.getValue();
-        return value != null ? formatValue(value) : "0";
-    }
-
-    @Override
-    public void setValue(String value) {
-        if (value == null || value.isEmpty()) {
-            spinner.getValueFactory().setValue(0.0);
-            return;
-        }
-        try {
-            double parsed = Double.parseDouble(value);
-            spinner.getValueFactory().setValue(parsed);
-            validate(parsed);
-        } catch (NumberFormatException e) {
-            validationResult = ValidationResult.warning(I18n.t("NumericSpinner.invalid-number", value));
-            applyValidationStyle();
-        }
     }
 
     @Override
@@ -273,5 +150,164 @@ public class NumericSpinner implements TypeAwareWidgetFactory.EditWidget {
     @Override
     public ValidationResult getValidationResult() {
         return validationResult;
+    }
+
+    /** The number family of this spinner. */
+    public Kind getKind() {
+        return kind;
+    }
+
+    /**
+     * Brings typed text into XSD form: trimmed; a single comma without a point is the decimal separator.
+     *
+     * @param text the typed text
+     * @return the lexical value ({@code ""} for no value)
+     */
+    static String normalize(String text) {
+        if (text == null) {
+            return "";
+        }
+        String value = text.strip();
+        if (value.indexOf(',') >= 0 && value.indexOf('.') < 0 && value.indexOf(',') == value.lastIndexOf(',')) {
+            value = value.replace(',', '.');
+        }
+        return value;
+    }
+
+    private void validate() {
+        String value = getValue();
+        if (value.isEmpty()) {
+            validationResult = ValidationResult.valid();
+        } else if (validator != null) {
+            validationResult = validator.apply(value);
+        } else {
+            validationResult = basicCheck(value);
+        }
+        WidgetFeedback.show(spinner, validationResult);
+    }
+
+    /** Lexical form and bounds, for spinners without the schema's exact check. */
+    private ValidationResult basicCheck(String value) {
+        BigDecimal number = parse(value);
+        if (number == null) {
+            boolean special = kind == Kind.FLOATING && (value.equals("INF") || value.equals("-INF")
+                    || value.equals("+INF") || value.equals("NaN"));
+            return special ? ValidationResult.valid()
+                    : ValidationResult.error(I18n.t("NumericSpinner.invalid-number", value));
+        }
+        if (kind == Kind.INTEGER && number.stripTrailingZeros().scale() > 0) {
+            return ValidationResult.error(I18n.t("NumericSpinner.invalid-number", value));
+        }
+        BigDecimal min = bound("minInclusive");
+        BigDecimal max = bound("maxInclusive");
+        BigDecimal minEx = bound("minExclusive");
+        BigDecimal maxEx = bound("maxExclusive");
+        if (min != null && number.compareTo(min) < 0 || minEx != null && number.compareTo(minEx) <= 0
+                || max != null && number.compareTo(max) > 0 || maxEx != null && number.compareTo(maxEx) >= 0) {
+            return ValidationResult.error(I18n.t("NumericSpinner.out-of-range", value));
+        }
+        return ValidationResult.valid();
+    }
+
+    private BigDecimal parse(String value) {
+        if (kind != Kind.FLOATING && (value.indexOf('e') >= 0 || value.indexOf('E') >= 0)) {
+            return null;
+        }
+        try {
+            return new BigDecimal(value.startsWith("+") ? value.substring(1) : value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private BigDecimal bound(String facet) {
+        String text = facets.get(facet);
+        if (text == null) {
+            return null;
+        }
+        try {
+            return new BigDecimal(text.strip());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /** The step of the arrows: 1, or 10^-fractionDigits for decimals with a fraction limit. */
+    private BigDecimal step() {
+        if (kind == Kind.DECIMAL) {
+            try {
+                int fd = Integer.parseInt(facets.getOrDefault("fractionDigits", "0").strip());
+                if (fd > 0) {
+                    return BigDecimal.ONE.movePointLeft(fd);
+                }
+            } catch (NumberFormatException e) {
+                // step 1
+            }
+        }
+        return BigDecimal.ONE;
+    }
+
+    /** Values are lexical strings; the arrows compute exactly and stay inside the bounds. */
+    private final class LexicalValueFactory extends SpinnerValueFactory<String> {
+
+        LexicalValueFactory() {
+            setConverter(new StringConverter<>() {
+                @Override
+                public String toString(String value) {
+                    return value == null ? "" : value;
+                }
+
+                @Override
+                public String fromString(String text) {
+                    return normalize(text);
+                }
+            });
+        }
+
+        @Override
+        public void decrement(int steps) {
+            stepBy(-steps);
+        }
+
+        @Override
+        public void increment(int steps) {
+            stepBy(steps);
+        }
+
+        private void stepBy(int steps) {
+            String text = getValue();
+            BigDecimal current = text == null || text.isEmpty() ? null : parse(normalize(text));
+            if (current == null && text != null && !text.isEmpty()) {
+                return; // not a number: leave the text for the user to correct
+            }
+            BigDecimal next = current == null ? startValue() : current.add(step().multiply(BigDecimal.valueOf(steps)));
+            BigDecimal min = bound("minInclusive");
+            BigDecimal max = bound("maxInclusive");
+            BigDecimal minEx = bound("minExclusive");
+            BigDecimal maxEx = bound("maxExclusive");
+            if (min != null && next.compareTo(min) < 0 || minEx != null && next.compareTo(minEx) <= 0
+                    || max != null && next.compareTo(max) > 0 || maxEx != null && next.compareTo(maxEx) >= 0) {
+                return; // the next step would leave the allowed range
+            }
+            setValue(next.toPlainString());
+            spinner.getEditor().setText(getValue());
+        }
+
+        /** The first value of an empty spinner: 0 when allowed, else the nearest bound. */
+        private BigDecimal startValue() {
+            BigDecimal min = bound("minInclusive");
+            BigDecimal max = bound("maxInclusive");
+            if (min != null && min.signum() > 0) {
+                return min;
+            }
+            if (max != null && max.signum() < 0) {
+                return max;
+            }
+            BigDecimal minEx = bound("minExclusive");
+            if (minEx != null && minEx.signum() >= 0) {
+                return minEx.add(step());
+            }
+            return BigDecimal.ZERO;
+        }
     }
 }

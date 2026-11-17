@@ -48,6 +48,12 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
     /** Filters over large contexts likewise. */
     private final AsyncFilters filters;
 
+    /**
+     * Receives the warning when a written value is not valid for the bound schema (values are written anyway).
+     * The canvas shows it as a toast; tests replace it.
+     */
+    private java.util.function.Consumer<String> warningHandler = message -> { };
+
     public XmlGridAdapter(XmlEditorContext context) {
         this.context = context;
         this.formulas = new AsyncFormulas(() -> context.getCommandManager().getRevision(),
@@ -144,6 +150,12 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
     @Override
     public void installViewHooks(GridCanvasView<XmlNode> view) {
         context.addPropertyChangeListener("mixedContentDetected", this::onMixedContentDetected);
+        warningHandler = message -> {
+            javafx.stage.Window window = view.getScene() != null ? view.getScene().getWindow() : null;
+            if (window != null) {
+                ToastNotification.show(window, message, ToastNotification.Type.WARNING);
+            }
+        };
         formulas.setOnReady(view::formulasChanged);
         filters.setOnReady(view::rebuildTree);
     }
@@ -764,19 +776,57 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
             context.executeCommand(new SetProcessingInstructionCommand(pi, pi.getTarget(), newValue));
             return true;
         }
-        // Editing value
+        // Editing value: written even when the schema does not allow it, with a warning
         if (row.getType() == FlatRow.RowType.ATTRIBUTE) {
-            if (modelNode instanceof XmlElement element) {
-                context.executeCommand(new SetAttributeCommand(element, row.getLabel(), newValue));
+            if (modelNode instanceof XmlElement element
+                    && context.executeCommand(new SetAttributeCommand(element, row.getLabel(), newValue))) {
+                warnIfNotAllowed(pathFor(element), row.getLabel(), "@" + row.getLabel(), newValue);
             }
         } else if (row.getType() == FlatRow.RowType.ELEMENT) {
-            if (modelNode instanceof XmlElement element) {
-                context.executeCommand(new SetElementTextCommand(element, newValue));
+            if (modelNode instanceof XmlElement element
+                    && context.executeCommand(new SetElementTextCommand(element, newValue))) {
+                warnIfNotAllowed(pathFor(element), null, element.getName(), newValue);
             }
-        } else if (row.getType() == FlatRow.RowType.TEXT && modelNode instanceof XmlText text) {
-            context.executeCommand(new SetTextCommand(text, newValue));
+        } else if (row.getType() == FlatRow.RowType.TEXT && modelNode instanceof XmlText text
+                && context.executeCommand(new SetTextCommand(text, newValue))
+                && text.getParent() instanceof XmlElement owner && isOnlyText(owner)) {
+            warnIfNotAllowed(pathFor(owner), null, owner.getName(), newValue);
         }
         return true;
+    }
+
+    /** @return {@code true} when the element's content is text only (its value is the edited text node) */
+    private static boolean isOnlyText(XmlElement element) {
+        return element.getChildren().stream().allMatch(c -> c instanceof XmlText);
+    }
+
+    /**
+     * Why the schema does not allow {@code value} for the element at {@code elementXPath} (or its attribute), or
+     * {@code null} when it does or no schema is bound.
+     */
+    String schemaProblem(String elementXPath, String attributeName, String value) {
+        if (!context.hasSchema() || elementXPath == null) {
+            return null;
+        }
+        var provider = context.getSchemaProvider();
+        var result = attributeName != null
+                ? provider.validateAttributeValue(elementXPath, attributeName, value)
+                : provider.validateElementValue(elementXPath, value);
+        boolean problem = !result.isValid()
+                || result.severity() != org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationSeverity.INFO;
+        return problem && result.errorMessage() != null ? result.errorMessage() : null;
+    }
+
+    private void warnIfNotAllowed(String elementXPath, String attributeName, String label, String value) {
+        String problem = schemaProblem(elementXPath, attributeName, value);
+        if (problem != null) {
+            warningHandler.accept(I18n.t("XmlGridAdapter.value-not-allowed", label, problem));
+        }
+    }
+
+    /** Replaces the receiver of the warnings about values the schema does not allow (tests). */
+    void setWarningHandler(java.util.function.Consumer<String> handler) {
+        this.warningHandler = handler != null ? handler : message -> { };
     }
 
     @Override
@@ -787,27 +837,81 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
         if (col == null || rowElement == null) {
             return true;
         }
+        boolean written = false;
         if (col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE) {
-            context.executeCommand(new SetAttributeCommand(rowElement, columnName, newValue));
+            written = context.executeCommand(new SetAttributeCommand(rowElement, columnName, newValue));
         } else if (col.getType() == RepeatingElementsTable.ColumnType.CHILD_ELEMENT) {
             XmlElement childElement = rowElement.getChildElement(columnName);
             if (childElement != null) {
-                context.executeCommand(new SetElementTextCommand(childElement, newValue));
+                written = context.executeCommand(new SetElementTextCommand(childElement, newValue));
             } else if (newValue != null && !newValue.isEmpty()) {
                 // The member lacks this column's element: create it with the typed text
-                context.executeCommand(TableEditOps.createCellChild(rowElement, columnName, newValue));
+                written = context.executeCommand(TableEditOps.createCellChild(rowElement, columnName, newValue));
             }
         } else if (col.getType() == RepeatingElementsTable.ColumnType.TEXT_CONTENT) {
-            context.executeCommand(new SetElementTextCommand(rowElement, newValue));
+            written = context.executeCommand(new SetElementTextCommand(rowElement, newValue));
+        }
+        if (written) {
+            CellTarget target = cellTarget(rowElement, col);
+            if (target != null) {
+                warnIfNotAllowed(target.elementXPath(), target.attributeName(), target.label(), newValue);
+            }
         }
         return true;
+    }
+
+    /** Where the schema declares a table cell's value: the member, its child or its attribute. */
+    private record CellTarget(String elementXPath, String attributeName, String label) {
+    }
+
+    private static CellTarget cellTarget(XmlElement member, RepeatingElementsTable.TableColumn col) {
+        String memberPath = pathFor(member);
+        return switch (col.getType()) {
+            case ATTRIBUTE -> new CellTarget(memberPath, col.getName(), member.getName() + "/@" + col.getName());
+            case CHILD_ELEMENT -> new CellTarget(memberPath + "/" + col.getName(), null,
+                    member.getName() + "/" + col.getName());
+            case TEXT_CONTENT -> new CellTarget(memberPath, null, member.getName());
+            default -> null;
+        };
     }
 
     @Override
     public boolean pasteCells(RepeatingElementsTable table, int startRow, int startCol,
                               List<List<String>> values) {
         CompositeXmlCommand cmd = TableEditOps.pasteCells(table, startRow, startCol, values);
-        return !cmd.isEmpty() && context.executeCommand(cmd);
+        boolean written = !cmd.isEmpty() && context.executeCommand(cmd);
+        if (written) {
+            warnAboutPastedValues(table, startCol, values);
+        }
+        return written;
+    }
+
+    /** One warning for all pasted values the schema does not allow (they are written anyway). */
+    private void warnAboutPastedValues(RepeatingElementsTable table, int startCol, List<List<String>> values) {
+        if (!context.hasSchema() || table.getElements().isEmpty()) {
+            return;
+        }
+        XmlElement member = table.getElements().get(0);
+        List<RepeatingElementsTable.TableColumn> columns = table.getColumns();
+        int count = 0;
+        String firstLabel = null;
+        String firstProblem = null;
+        for (List<String> row : values) {
+            for (int j = 0; j < row.size() && startCol + j < columns.size(); j++) {
+                CellTarget target = cellTarget(member, columns.get(startCol + j));
+                String problem = target == null ? null
+                        : schemaProblem(target.elementXPath(), target.attributeName(), row.get(j));
+                if (problem != null) {
+                    if (count++ == 0) {
+                        firstLabel = target.label();
+                        firstProblem = problem;
+                    }
+                }
+            }
+        }
+        if (count > 0) {
+            warningHandler.accept(I18n.t("XmlGridAdapter.pasted-values-not-allowed", count, firstLabel, firstProblem));
+        }
     }
 
     @Override

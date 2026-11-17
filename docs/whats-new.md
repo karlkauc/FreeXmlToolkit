@@ -6,6 +6,13 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+- **Typed values in the Graphic view follow the schema exactly.** Decimal values such as FundsXML's
+  `TotalPercentage` keep their fraction again under a German (or any other) language - typing `3,5` writes `3.5`.
+  Number spinners no longer round, clamp or turn an empty value into 0; date and time pickers keep timezones and
+  fractional seconds, always write seconds and never insert today's date. Types derived in several steps, simple
+  content (amounts with a currency), lists, unions, durations and the Gregorian and binary types are recognised; every
+  editor checks the value against all facets with the validation's engine. A value the schema does not allow is
+  written with a notification naming the reason instead of silently. See [Grid](grid.md#typed-values).
 - **Set the position weights of a FundsXML document.** *Set Position Weights (TotalPercentage)* in the FundsXML
   panel computes every portfolio position's share of the net asset value - its value in the currency of the fund,
   share class or segment, two decimals - inserts `TotalPercentage` where it is missing and corrects wrong values.

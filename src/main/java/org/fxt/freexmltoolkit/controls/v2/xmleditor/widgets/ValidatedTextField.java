@@ -19,68 +19,67 @@ package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationResult;
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationSeverity;
 
 /**
- * Default text field widget with optional schema-based validation.
- *
- * <p>Used when no more specific widget type is appropriate.</p>
- *
- * @author Claude Code
- * @since 2.0
+ * Text field for every type without a more specific widget (strings and tokens, names, durations, Gregorian
+ * parts, binary, QNames, lists, unions). Checks the value live against the declared type when a validator is given
+ * and shows the reason; the value is never blocked.
  */
 public class ValidatedTextField implements TypeAwareWidgetFactory.EditWidget {
 
     private final TextField textField;
-    private final XmlSchemaProvider schemaProvider;
-    private final Map<String, String> facets;
+    private final Function<String, ValidationResult> validator;
+    private XmlSchemaProvider schemaProvider;
     private String elementXPath;
     private ValidationResult validationResult = ValidationResult.valid();
 
     /**
-     * Creates a new ValidatedTextField.
+     * Creates a new ValidatedTextField checked through the schema provider once {@link #setElementXPath} is set.
      *
      * @param currentValue   the current value
-     * @param onValueChange  callback when value changes
-     * @param schemaProvider the schema provider for validation (can be null)
-     * @param facets         the facets map (can be null)
+     * @param onValueChange  callback when the value changes (may be {@code null})
+     * @param schemaProvider the schema provider for validation (may be {@code null})
+     * @param facets         unused, kept for callers
      */
     public ValidatedTextField(String currentValue, Consumer<String> onValueChange,
                               XmlSchemaProvider schemaProvider, Map<String, String> facets) {
+        this(currentValue, onValueChange, (Function<String, ValidationResult>) null, null);
         this.schemaProvider = schemaProvider;
-        this.facets = facets;
+    }
 
+    /**
+     * Creates a new ValidatedTextField.
+     *
+     * @param currentValue  the current value
+     * @param onValueChange callback when the value changes (may be {@code null})
+     * @param validator     the check of the declared type (may be {@code null})
+     * @param promptText    a hint of the expected form shown while empty (may be {@code null})
+     */
+    public ValidatedTextField(String currentValue, Consumer<String> onValueChange,
+                              Function<String, ValidationResult> validator, String promptText) {
+        this.validator = validator;
         this.textField = new TextField(currentValue != null ? currentValue : "");
-
-        // Listen for changes
+        if (promptText != null) {
+            textField.setPromptText(promptText);
+        }
         textField.textProperty().addListener((obs, oldVal, newVal) -> {
             validate(newVal);
             if (onValueChange != null) {
                 onValueChange.accept(newVal);
             }
         });
-
-        // Validate on focus lost
-        textField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
-            if (!isFocused) {
-                validate(textField.getText());
-            }
-        });
-
-        // Apply initial style
-        textField.setStyle("-fx-background-radius: 3; -fx-border-radius: 3; " +
-                "-fx-border-color: #ced4da; -fx-border-width: 1px;");
+        validate(textField.getText());
     }
 
     /**
-     * Sets the element XPath for validation context.
+     * Sets the element XPath for validation through the schema provider.
      *
      * @param elementXPath the XPath to the element being edited
      */
@@ -89,39 +88,14 @@ public class ValidatedTextField implements TypeAwareWidgetFactory.EditWidget {
     }
 
     private void validate(String value) {
-        // If we have a schema provider and element path, use it for validation
-        if (schemaProvider != null && elementXPath != null) {
+        if (validator != null) {
+            validationResult = validator.apply(value);
+        } else if (schemaProvider != null && elementXPath != null) {
             validationResult = schemaProvider.validateElementValue(elementXPath, value);
-        } else if (facets != null && !facets.isEmpty()) {
-            // Manual facet validation
-            validationResult = validateWithFacets(value);
         } else {
             validationResult = ValidationResult.valid();
         }
-
-        applyValidationStyle();
-    }
-
-    private ValidationResult validateWithFacets(String _value) {
-        return ValidationResult.valid();
-    }
-
-    private void applyValidationStyle() {
-        String baseStyle = "-fx-background-radius: 3; -fx-border-radius: 3;";
-
-        if (!validationResult.isValid()) {
-            textField.setStyle(baseStyle +
-                    "-fx-border-color: #dc3545; -fx-border-width: 2px; -fx-background-color: #ffe6e6;");
-            Tooltip.install(textField, new Tooltip(validationResult.errorMessage()));
-        } else if (validationResult.severity() == ValidationSeverity.WARNING) {
-            textField.setStyle(baseStyle +
-                    "-fx-border-color: #ffc107; -fx-border-width: 2px; -fx-background-color: #fff8e1;");
-            Tooltip.install(textField, new Tooltip(validationResult.errorMessage()));
-        } else {
-            textField.setStyle(baseStyle +
-                    "-fx-border-color: #ced4da; -fx-border-width: 1px;");
-            textField.setTooltip(null);
-        }
+        WidgetFeedback.show(textField, validationResult);
     }
 
     @Override
@@ -137,7 +111,6 @@ public class ValidatedTextField implements TypeAwareWidgetFactory.EditWidget {
     @Override
     public void setValue(String value) {
         textField.setText(value);
-        validate(value);
     }
 
     @Override

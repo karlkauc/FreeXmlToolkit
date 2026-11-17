@@ -18,9 +18,8 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -33,110 +32,113 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.Val
 import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
- * Time picker widget for XSD time types.
+ * Hour/minute/second picker for xs:time.
  *
- * <p>Uses ISO 8601 format (HH:mm:ss) as required by XML Schema.</p>
- *
- * @author Claude Code
- * @since 2.0
+ * <p>Writes {@code hh:mm:ss} (always with seconds). A value the user does not change is written back exactly as it
+ * was; a changed time keeps the original fractional seconds and timezone, which are shown next to the spinners.
+ * A value the spinners cannot show (malformed, {@code 24:00:00}) stays as written until a spinner is changed.</p>
  */
 public class XmlTimePicker implements TypeAwareWidgetFactory.EditWidget {
-
-    private static final DateTimeFormatter ISO_TIME_FORMAT = DateTimeFormatter.ISO_LOCAL_TIME;
 
     private final HBox container;
     private final Spinner<Integer> hourSpinner;
     private final Spinner<Integer> minuteSpinner;
     private final Spinner<Integer> secondSpinner;
+    private final Label suffixLabel = new Label();
     private final Consumer<String> onValueChange;
+    private final Function<String, ValidationResult> validator;
+    private String original = "";
+    private String fraction = "";
+    private String zone = "";
+    private boolean changed;
+    private boolean updating;
     private ValidationResult validationResult = ValidationResult.valid();
 
     /**
      * Creates a new XmlTimePicker.
      *
-     * @param currentValue  the current value in ISO format (HH:mm:ss)
-     * @param onValueChange callback when value changes
+     * @param currentValue  the current value
+     * @param onValueChange callback when the value changes (may be {@code null})
      */
     public XmlTimePicker(String currentValue, Consumer<String> onValueChange) {
+        this(currentValue, onValueChange, null);
+    }
+
+    /**
+     * Creates a new XmlTimePicker.
+     *
+     * @param currentValue  the current value
+     * @param onValueChange callback when the value changes (may be {@code null})
+     * @param validator     the exact check of the declared type (may be {@code null})
+     */
+    public XmlTimePicker(String currentValue, Consumer<String> onValueChange,
+                         Function<String, ValidationResult> validator) {
         this.onValueChange = onValueChange;
+        this.validator = validator;
 
         container = new HBox(3);
         container.setAlignment(Pos.CENTER_LEFT);
+        hourSpinner = createSpinner(23);
+        minuteSpinner = createSpinner(59);
+        secondSpinner = createSpinner(59);
 
-        // Hour spinner
-        hourSpinner = new Spinner<>();
-        hourSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 23, 0));
-        hourSpinner.setEditable(true);
-        hourSpinner.setPrefWidth(60);
-        styleSpinner(hourSpinner);
+        Label colon1 = new Label(":");
+        colon1.getStyleClass().add("fxt-text-lg");
+        Label colon2 = new Label(":");
+        colon2.getStyleClass().add("fxt-text-lg");
+        suffixLabel.getStyleClass().add("fxt-text-sm");
 
-        // Minute spinner
-        minuteSpinner = new Spinner<>();
-        minuteSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, 0));
-        minuteSpinner.setEditable(true);
-        minuteSpinner.setPrefWidth(60);
-        styleSpinner(minuteSpinner);
+        load(currentValue);
 
-        // Second spinner
-        secondSpinner = new Spinner<>();
-        secondSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, 0));
-        secondSpinner.setEditable(true);
-        secondSpinner.setPrefWidth(60);
-        styleSpinner(secondSpinner);
-
-        // Labels
-        Label colonLabel1 = new Label(":");
-        colonLabel1.setStyle("-fx-font-weight: bold;");
-        colonLabel1.getStyleClass().add("fxt-text-lg");
-        Label colonLabel2 = new Label(":");
-        colonLabel2.setStyle("-fx-font-weight: bold;");
-        colonLabel2.getStyleClass().add("fxt-text-lg");
-
-        // Parse initial value
-        if (currentValue != null && !currentValue.isEmpty()) {
-            try {
-                LocalTime time = parseTime(currentValue);
-                hourSpinner.getValueFactory().setValue(time.getHour());
-                minuteSpinner.getValueFactory().setValue(time.getMinute());
-                secondSpinner.getValueFactory().setValue(time.getSecond());
-            } catch (DateTimeParseException e) {
-                validationResult = ValidationResult.warning(I18n.t("XmlTimePicker.invalid-time-format", currentValue));
-            }
-        }
-
-        // Listen for changes
         hourSpinner.valueProperty().addListener((obs, oldVal, newVal) -> notifyChange());
         minuteSpinner.valueProperty().addListener((obs, oldVal, newVal) -> notifyChange());
         secondSpinner.valueProperty().addListener((obs, oldVal, newVal) -> notifyChange());
 
-        container.getChildren().addAll(
-                hourSpinner, colonLabel1,
-                minuteSpinner, colonLabel2,
-                secondSpinner
-        );
+        container.getChildren().addAll(hourSpinner, colon1, minuteSpinner, colon2, secondSpinner, suffixLabel);
     }
 
-    private LocalTime parseTime(String value) {
-        // Handle time with timezone suffix
-        String timeOnly = value;
-        if (value.contains("+") || value.contains("Z")) {
-            int idx = value.indexOf("+");
-            if (idx < 0) {
-                idx = value.indexOf("Z");
-            }
-            if (idx > 0) {
-                timeOnly = value.substring(0, idx);
-            }
+    private static Spinner<Integer> createSpinner(int max) {
+        Spinner<Integer> spinner = new Spinner<>();
+        spinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, max, 0));
+        spinner.setEditable(true);
+        spinner.setPrefWidth(60);
+        return spinner;
+    }
+
+    private void load(String value) {
+        updating = true;
+        try {
+            original = value == null ? "" : value;
+            changed = false;
+            XsdTemporal.Parts parts = XsdTemporal.parseTime(original);
+            LocalTime time = parts != null ? parts.time() : LocalTime.MIDNIGHT;
+            fraction = parts != null ? parts.fraction() : "";
+            zone = parts != null ? parts.zone() : "";
+            hourSpinner.getValueFactory().setValue(time.getHour());
+            minuteSpinner.getValueFactory().setValue(time.getMinute());
+            secondSpinner.getValueFactory().setValue(time.getSecond());
+            suffixLabel.setText(fraction + zone);
+            validationResult = parts == null && !original.isBlank()
+                    ? ValidationResult.error(I18n.t("XmlTimePicker.invalid-time-format", original))
+                    : check();
+        } finally {
+            updating = false;
         }
-        return LocalTime.parse(timeOnly, ISO_TIME_FORMAT);
+        WidgetFeedback.show(container, validationResult);
     }
 
-    private void styleSpinner(Spinner<Integer> spinner) {
-        spinner.setStyle("-fx-border-color: #ced4da; -fx-border-radius: 3;");
+    private ValidationResult check() {
+        String value = getValue();
+        return validator != null && !value.isEmpty() ? validator.apply(value) : ValidationResult.valid();
     }
 
     private void notifyChange() {
-        validationResult = ValidationResult.valid();
+        if (updating) {
+            return;
+        }
+        changed = true;
+        validationResult = check();
+        WidgetFeedback.show(container, validationResult);
         if (onValueChange != null) {
             onValueChange.accept(getValue());
         }
@@ -149,31 +151,19 @@ public class XmlTimePicker implements TypeAwareWidgetFactory.EditWidget {
 
     @Override
     public String getValue() {
-        int hours = hourSpinner.getValue() != null ? hourSpinner.getValue() : 0;
-        int minutes = minuteSpinner.getValue() != null ? minuteSpinner.getValue() : 0;
-        int seconds = secondSpinner.getValue() != null ? secondSpinner.getValue() : 0;
+        if (!changed) {
+            return original;
+        }
+        return XsdTemporal.formatTime(value(hourSpinner), value(minuteSpinner), value(secondSpinner), fraction) + zone;
+    }
 
-        LocalTime time = LocalTime.of(hours, minutes, seconds);
-        return time.format(ISO_TIME_FORMAT);
+    private static int value(Spinner<Integer> spinner) {
+        return spinner.getValue() != null ? spinner.getValue() : 0;
     }
 
     @Override
     public void setValue(String value) {
-        if (value == null || value.isEmpty()) {
-            hourSpinner.getValueFactory().setValue(0);
-            minuteSpinner.getValueFactory().setValue(0);
-            secondSpinner.getValueFactory().setValue(0);
-            return;
-        }
-        try {
-            LocalTime time = parseTime(value);
-            hourSpinner.getValueFactory().setValue(time.getHour());
-            minuteSpinner.getValueFactory().setValue(time.getMinute());
-            secondSpinner.getValueFactory().setValue(time.getSecond());
-            validationResult = ValidationResult.valid();
-        } catch (DateTimeParseException e) {
-            validationResult = ValidationResult.warning(I18n.t("XmlTimePicker.invalid-time-format", value));
-        }
+        load(value);
     }
 
     @Override

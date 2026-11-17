@@ -18,11 +18,9 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -37,130 +35,135 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.Val
 import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
- * Combined date and time picker widget for XSD dateTime types.
+ * Date and time picker for xs:dateTime and xs:dateTimeStamp.
  *
- * <p>Uses ISO 8601 format (YYYY-MM-DDTHH:mm:ss) as required by XML Schema.</p>
- *
- * @author Claude Code
- * @since 2.0
+ * <p>Writes {@code YYYY-MM-DDThh:mm:ss} (always with seconds). A value the user does not change is written back
+ * exactly as it was; a changed one keeps the original fractional seconds and timezone ({@code Z}, {@code ±hh:mm}),
+ * shown next to the spinners. An empty or unreadable value is never replaced by today's date unless the user picks
+ * something.</p>
  */
 public class XmlDateTimePicker implements TypeAwareWidgetFactory.EditWidget {
-
-    private static final DateTimeFormatter ISO_DATE_TIME_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-    private static final DateTimeFormatter ISO_DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
 
     private final HBox container;
     private final DatePicker datePicker;
     private final Spinner<Integer> hourSpinner;
     private final Spinner<Integer> minuteSpinner;
     private final Spinner<Integer> secondSpinner;
+    private final Label suffixLabel = new Label();
     private final Consumer<String> onValueChange;
+    private final Function<String, ValidationResult> validator;
+    private String original = "";
+    private String fraction = "";
+    private String zone = "";
+    private boolean changed;
+    private boolean updating;
     private ValidationResult validationResult = ValidationResult.valid();
 
     /**
      * Creates a new XmlDateTimePicker.
      *
-     * @param currentValue  the current value in ISO format (YYYY-MM-DDTHH:mm:ss)
-     * @param onValueChange callback when value changes
+     * @param currentValue  the current value
+     * @param onValueChange callback when the value changes (may be {@code null})
      */
     public XmlDateTimePicker(String currentValue, Consumer<String> onValueChange) {
+        this(currentValue, onValueChange, null);
+    }
+
+    /**
+     * Creates a new XmlDateTimePicker.
+     *
+     * @param currentValue  the current value
+     * @param onValueChange callback when the value changes (may be {@code null})
+     * @param validator     the exact check of the declared type (may be {@code null})
+     */
+    public XmlDateTimePicker(String currentValue, Consumer<String> onValueChange,
+                             Function<String, ValidationResult> validator) {
         this.onValueChange = onValueChange;
+        this.validator = validator;
 
         container = new HBox(5);
         container.setAlignment(Pos.CENTER_LEFT);
 
-        // Date picker
         datePicker = new DatePicker();
         datePicker.setEditable(true);
         datePicker.setPrefWidth(130);
         datePicker.setConverter(new StringConverter<>() {
             @Override
             public String toString(LocalDate date) {
-                return date != null ? date.format(ISO_DATE_FORMAT) : "";
+                return date != null ? XsdTemporal.formatDate(date) : "";
             }
 
             @Override
             public LocalDate fromString(String string) {
-                if (string == null || string.isEmpty()) {
-                    return null;
-                }
-                try {
-                    return LocalDate.parse(string, ISO_DATE_FORMAT);
-                } catch (DateTimeParseException e) {
-                    return null;
-                }
+                XsdTemporal.Parts parts = XsdTemporal.parseDate(string);
+                return parts != null ? parts.date() : null;
             }
         });
 
-        // Time spinners
-        hourSpinner = createSpinner(0, 23, 0);
-        minuteSpinner = createSpinner(0, 59, 0);
-        secondSpinner = createSpinner(0, 59, 0);
+        hourSpinner = createSpinner(23);
+        minuteSpinner = createSpinner(59);
+        secondSpinner = createSpinner(59);
 
-        // Labels
         Label tLabel = new Label("T");
-        tLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #6c757d;");
-        tLabel.getStyleClass().add("fxt-text-md");
+        tLabel.getStyleClass().addAll("fxt-text-md", "theme-text-muted");
         Label colon1 = new Label(":");
-        colon1.setStyle("-fx-font-weight: bold;");
         Label colon2 = new Label(":");
-        colon2.setStyle("-fx-font-weight: bold;");
+        suffixLabel.getStyleClass().add("fxt-text-sm");
 
-        // Parse initial value
-        if (currentValue != null && !currentValue.isEmpty()) {
-            try {
-                LocalDateTime dateTime = parseDateTime(currentValue);
-                datePicker.setValue(dateTime.toLocalDate());
-                hourSpinner.getValueFactory().setValue(dateTime.getHour());
-                minuteSpinner.getValueFactory().setValue(dateTime.getMinute());
-                secondSpinner.getValueFactory().setValue(dateTime.getSecond());
-            } catch (DateTimeParseException e) {
-                validationResult = ValidationResult.warning(I18n.t("XmlDateTimePicker.invalid-datetime-format", currentValue));
-            }
-        } else {
-            datePicker.setValue(LocalDate.now());
-        }
+        load(currentValue);
 
-        // Listen for changes
         datePicker.valueProperty().addListener((obs, oldVal, newVal) -> notifyChange());
         hourSpinner.valueProperty().addListener((obs, oldVal, newVal) -> notifyChange());
         minuteSpinner.valueProperty().addListener((obs, oldVal, newVal) -> notifyChange());
         secondSpinner.valueProperty().addListener((obs, oldVal, newVal) -> notifyChange());
 
-        container.getChildren().addAll(
-                datePicker, tLabel,
-                hourSpinner, colon1,
-                minuteSpinner, colon2,
-                secondSpinner
-        );
+        container.getChildren().addAll(datePicker, tLabel, hourSpinner, colon1, minuteSpinner, colon2,
+                secondSpinner, suffixLabel);
     }
 
-    private Spinner<Integer> createSpinner(int min, int max, int initial) {
+    private static Spinner<Integer> createSpinner(int max) {
         Spinner<Integer> spinner = new Spinner<>();
-        spinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(min, max, initial));
+        spinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, max, 0));
         spinner.setEditable(true);
         spinner.setPrefWidth(55);
-        spinner.setStyle("-fx-border-color: #ced4da; -fx-border-radius: 3;");
         return spinner;
     }
 
-    private LocalDateTime parseDateTime(String value) {
-        // Handle timezone suffix
-        String dtOnly = value;
-        if (value.contains("+") || value.endsWith("Z")) {
-            int idx = value.lastIndexOf("+");
-            if (idx < 0) {
-                idx = value.lastIndexOf("Z");
-            }
-            if (idx > 0) {
-                dtOnly = value.substring(0, idx);
-            }
+    private void load(String value) {
+        updating = true;
+        try {
+            original = value == null ? "" : value;
+            changed = false;
+            XsdTemporal.Parts parts = XsdTemporal.parseDateTime(original);
+            LocalTime time = parts != null ? parts.time() : LocalTime.MIDNIGHT;
+            fraction = parts != null ? parts.fraction() : "";
+            zone = parts != null ? parts.zone() : "";
+            datePicker.setValue(parts != null ? parts.date() : null);
+            hourSpinner.getValueFactory().setValue(time.getHour());
+            minuteSpinner.getValueFactory().setValue(time.getMinute());
+            secondSpinner.getValueFactory().setValue(time.getSecond());
+            suffixLabel.setText(fraction + zone);
+            validationResult = parts == null && !original.isBlank()
+                    ? ValidationResult.error(I18n.t("XmlDateTimePicker.invalid-datetime-format", original))
+                    : check();
+        } finally {
+            updating = false;
         }
-        return LocalDateTime.parse(dtOnly, ISO_DATE_TIME_FORMAT);
+        WidgetFeedback.show(container, validationResult);
+    }
+
+    private ValidationResult check() {
+        String value = getValue();
+        return validator != null && !value.isEmpty() ? validator.apply(value) : ValidationResult.valid();
     }
 
     private void notifyChange() {
-        validationResult = ValidationResult.valid();
+        if (updating) {
+            return;
+        }
+        changed = true;
+        validationResult = check();
+        WidgetFeedback.show(container, validationResult);
         if (onValueChange != null) {
             onValueChange.accept(getValue());
         }
@@ -173,38 +176,26 @@ public class XmlDateTimePicker implements TypeAwareWidgetFactory.EditWidget {
 
     @Override
     public String getValue() {
+        if (!changed) {
+            return original;
+        }
         LocalDate date = datePicker.getValue();
         if (date == null) {
+            // Only the time was changed: the date the user sees is empty, so today's is the one meant
             date = LocalDate.now();
         }
+        return XsdTemporal.formatDate(date) + "T"
+                + XsdTemporal.formatTime(value(hourSpinner), value(minuteSpinner), value(secondSpinner), fraction)
+                + zone;
+    }
 
-        int hours = hourSpinner.getValue() != null ? hourSpinner.getValue() : 0;
-        int minutes = minuteSpinner.getValue() != null ? minuteSpinner.getValue() : 0;
-        int seconds = secondSpinner.getValue() != null ? secondSpinner.getValue() : 0;
-
-        LocalDateTime dateTime = LocalDateTime.of(date, LocalTime.of(hours, minutes, seconds));
-        return dateTime.format(ISO_DATE_TIME_FORMAT);
+    private static int value(Spinner<Integer> spinner) {
+        return spinner.getValue() != null ? spinner.getValue() : 0;
     }
 
     @Override
     public void setValue(String value) {
-        if (value == null || value.isEmpty()) {
-            datePicker.setValue(LocalDate.now());
-            hourSpinner.getValueFactory().setValue(0);
-            minuteSpinner.getValueFactory().setValue(0);
-            secondSpinner.getValueFactory().setValue(0);
-            return;
-        }
-        try {
-            LocalDateTime dateTime = parseDateTime(value);
-            datePicker.setValue(dateTime.toLocalDate());
-            hourSpinner.getValueFactory().setValue(dateTime.getHour());
-            minuteSpinner.getValueFactory().setValue(dateTime.getMinute());
-            secondSpinner.getValueFactory().setValue(dateTime.getSecond());
-            validationResult = ValidationResult.valid();
-        } catch (DateTimeParseException e) {
-            validationResult = ValidationResult.warning(I18n.t("XmlDateTimePicker.invalid-datetime-format", value));
-        }
+        load(value);
     }
 
     @Override

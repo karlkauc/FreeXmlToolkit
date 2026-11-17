@@ -62,6 +62,8 @@ public class XsdDocumentationData {
     private OpenContent defaultOpenContent;
     /** Resolves named types for sample values; set by the schema processing service. */
     private NamedTypeResolver namedTypeResolver;
+    /** Finds global declarations by QName; set by the schema processing service. */
+    private GlobalDefinitionLookup globalDefinitionLookup;
 
     public OpenContent getDefaultOpenContent() {
         return defaultOpenContent;
@@ -81,6 +83,18 @@ public class XsdDocumentationData {
 
     public void setNamedTypeResolver(NamedTypeResolver namedTypeResolver) {
         this.namedTypeResolver = namedTypeResolver;
+    }
+
+    /**
+     * The lookup of global declarations the schema processing service provides, or {@code null} when this data was
+     * not produced by it.
+     */
+    public GlobalDefinitionLookup getGlobalDefinitionLookup() {
+        return globalDefinitionLookup;
+    }
+
+    public void setGlobalDefinitionLookup(GlobalDefinitionLookup globalDefinitionLookup) {
+        this.globalDefinitionLookup = globalDefinitionLookup;
     }
 
     public String getAttributeFormDefault() {

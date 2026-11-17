@@ -117,8 +117,9 @@ shows the editable grid, laid out as follows:
   state and the selection survive edits, undo and sorting (rows are tracked by their XPath).
 - **Editing every node kind.** Double-click a value to edit it - with a bound schema the editor
   follows the declared type: a **dropdown** for enumerations (elements and attributes, in tree rows,
-  table columns and opened cells), date pickers, number spinners, length/pattern checks - also comments, CDATA sections
-  and processing instructions; double-click the name of an attribute or a processing
+  table columns and opened cells, also unions of enumerated types), date pickers, number spinners and checked text
+  fields - also comments, CDATA sections and processing instructions (see
+  [Typed values](#typed-values) below); double-click the name of an attribute or a processing
   instruction to rename it. **Enter** or a click anywhere else keeps the new value, **Esc**
   discards it. A context menu closes as soon as you click somewhere else. **Click the type icon** of a row (or press **Ctrl+Alt+T**) to
   change the node's type - element, attribute, text, CDATA, comment or processing instruction;
@@ -238,6 +239,31 @@ shows the editable grid, laid out as follows:
 - **Go to Definition**: right-click an element → **Go to Definition** opens the bound XSD in the
   Graphic view, expanded along the element's path, with the card of its declaration selected - see
   [Go to Definition](xml-editor.md#go-to-definition). The entry is disabled while no schema is bound.
+
+### Typed values {#typed-values}
+
+With a bound XSD the inline editor follows the type behind an element or attribute, however it is declared: a
+named type derived in several steps (FundsXML's `PercentageType` → `xs:decimal`), simple content of a complex type
+(an amount with a currency attribute), a list or a union.
+
+| Type | Editor |
+|------|--------|
+| Enumerations, unions of enumerations | Dropdown (you can still type another value) |
+| `boolean` | Toggle |
+| `date`, `dateTime`, `dateTimeStamp`, `time` | Date picker / hour-minute-second spinners. A timezone (`Z`, `+01:00`, `-05:00`) and fractional seconds are kept and shown next to the spinners; a value you do not change is written back exactly as it was |
+| `integer` and its derivations, `decimal`, `float`, `double` | Number spinner. The value is written as XSD expects it (`3.5`), whatever your language: a comma you type is taken as the decimal separator. Nothing is rounded or replaced by 0; an empty value stays empty. The arrows step by 1 or by the smallest fraction `fractionDigits` allows and stop at the bounds. `float`/`double` also take exponents (`1.5E3`), `INF`, `-INF` and `NaN` |
+| `duration`, `gYear`, `gYearMonth`, `gMonth`, `gMonthDay`, `gDay`, `hexBinary`, `base64Binary`, `QName` | Text field showing an example of the form (`P1Y2M3DT4H5M6S`, `--12-24`, …) while empty |
+| Strings, tokens, names, lists, other types | Text field |
+
+Every editor checks the value against the complete type while you type, with the same engine as the validation:
+the built-in type's form and range (`unsignedByte` 0–255, `positiveInteger` ≥ 1, valid dates), and every facet of
+every derivation step - patterns (XSD regular expressions, all steps must match), length limits after whitespace
+normalisation, inclusive and exclusive bounds, `totalDigits`, `fractionDigits`, `explicitTimezone`. A value that
+does not fit gets a red outline and the reason as tooltip.
+
+Such a value is **not blocked**: it is written, and a notification names the field and the reason - also for a table
+cell and for a pasted block of cells (one notification with the number of values). The Problems panel lists it
+after the next validation (**F8**).
 
 ## The Grid (Graphic view for JSON) {#json-grid}
 

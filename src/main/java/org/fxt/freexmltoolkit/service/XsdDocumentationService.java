@@ -843,6 +843,15 @@ public class XsdDocumentationService {
                     : new org.fxt.freexmltoolkit.domain.NamedTypeResolver.Resolution(resolved.baseType(),
                     resolved.mergedRestriction(), resolved.list());
         });
+        // The XML editor's type-aware inputs build exact simple types from the declarations
+        xsdDocumentationData.setGlobalDefinitionLookup((kind, qName, context) -> qName == null ? null
+                : switch (kind) {
+                    case "simpleType" -> lookupGlobalDefinition(kind, simpleTypeMap, qName, context);
+                    case "complexType" -> lookupGlobalDefinition(kind, complexTypeMap, qName, context);
+                    case "element" -> lookupGlobalDefinition(kind, elementMap, qName, context);
+                    case "attribute" -> lookupGlobalDefinition(kind, attributeMap, qName, context);
+                    default -> null;
+                });
     }
 
     /**

@@ -210,16 +210,18 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
         }
         return findAttribute(elementXPath, attributeName).map(attribute -> {
             org.w3c.dom.Node node = attribute.getCurrentNode();
+            SimpleTypeChecker checker = checkerFor(attribute);
             return new AttributeTypeInfo(
                     attributeName(attribute),
                     attribute.getElementType(),
-                    determineXsdType(attribute),
+                    determineXsdType(attribute, checker),
                     attribute.isMandatory(),
-                    getEnumerationValues(attribute),
-                    getFacetsMap(attribute),
+                    enumerationValues(attribute, checker),
+                    facets(attribute, checker),
                     node != null ? getAttributeValue(node, "default", null) : null,
                     node != null ? getAttributeValue(node, "fixed", null) : null,
-                    attribute.getDocumentationAsHtml());
+                    attribute.getDocumentationAsHtml(),
+                    checker);
         });
     }
 
@@ -261,6 +263,9 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
             return ValidationResult.valid();
         }
 
+        if (typeInfo.get().checker() != null) {
+            return typeInfo.get().checker().check(value);
+        }
         return validateValue(value, typeInfo.get().typeName(), typeInfo.get().xsdType(),
                 typeInfo.get().enumerationValues(), typeInfo.get().facets());
     }
@@ -276,6 +281,9 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
             return ValidationResult.valid();
         }
 
+        if (typeInfo.get().checker() != null) {
+            return typeInfo.get().checker().check(value);
+        }
         return validateValue(value, typeInfo.get().typeName(), typeInfo.get().xsdType(),
                 typeInfo.get().enumerationValues(), typeInfo.get().facets());
     }
@@ -397,13 +405,10 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
      */
     private ElementTypeInfo createElementTypeInfo(XsdExtendedElement element) {
         String typeName = element.getElementType();
-        XsdType xsdType = determineXsdType(element);
-
-        // Get enumeration values
-        List<String> enumerationValues = getEnumerationValues(element);
-
-        // Get facets
-        Map<String, String> facets = getFacetsMap(element);
+        SimpleTypeChecker checker = checkerFor(element);
+        XsdType xsdType = determineXsdType(element, checker);
+        List<String> enumerationValues = enumerationValues(element, checker);
+        Map<String, String> facets = facets(element, checker);
 
         // Get cardinality - use cardinalityNode if available
         String minOccurs = "1";
@@ -435,8 +440,56 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
                 facets,
                 defaultValue,
                 fixedValue,
-                element.getDocumentationAsHtml()
+                element.getDocumentationAsHtml(),
+                checker
         );
+    }
+
+    /**
+     * The exact check of a declaration's simple value, built from its DOM node, or {@code null} when it has none
+     * (element-only content, external reference) or the type cannot be built.
+     */
+    private SimpleTypeChecker checkerFor(XsdExtendedElement declaration) {
+        org.w3c.dom.Node node = declaration.getCurrentNode();
+        if (node == null) {
+            return null;
+        }
+        return SimpleTypeChecker.forDeclaration(node, xsdDocumentationData.getGlobalDefinitionLookup()).orElse(null);
+    }
+
+    /**
+     * The widget category: from the built-in the checked type derives from (follows simple content, any depth of
+     * named restrictions, lists and unions), else from the documentation model.
+     */
+    private XsdType determineXsdType(XsdExtendedElement element, SimpleTypeChecker checker) {
+        if (checker == null) {
+            return determineXsdType(element);
+        }
+        if (checker.isClosedEnumeration()) {
+            return XsdType.ENUMERATION;
+        }
+        if (checker.variety() == SimpleTypeChecker.Variety.UNION) {
+            return XsdType.STRING;
+        }
+        String builtin = checker.builtinName();
+        if (checker.variety() == SimpleTypeChecker.Variety.LIST || builtin == null) {
+            return XsdType.STRING;
+        }
+        XsdType type = XsdType.fromTypeName(builtin);
+        return type == XsdType.UNKNOWN ? XsdType.STRING : type;
+    }
+
+    /** The values to pick from: the checker's (incl. enumerated union members), else the documentation model's. */
+    private List<String> enumerationValues(XsdExtendedElement element, SimpleTypeChecker checker) {
+        if (checker == null) {
+            return getEnumerationValues(element);
+        }
+        return checker.isClosedEnumeration() ? new ArrayList<>(checker.enumerations()) : Collections.emptyList();
+    }
+
+    /** The effective facets of all derivation steps (from the checker), else the documentation model's. */
+    private Map<String, String> facets(XsdExtendedElement element, SimpleTypeChecker checker) {
+        return checker == null ? getFacetsMap(element) : new HashMap<>(checker.facets());
     }
 
     /**

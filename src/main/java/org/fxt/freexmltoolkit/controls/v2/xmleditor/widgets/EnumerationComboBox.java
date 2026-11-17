@@ -93,6 +93,9 @@ public class EnumerationComboBox implements TypeAwareWidgetFactory.EditWidget {
             applyValidationStyle();
         }
 
+        // The skin syncs the editor only once it exists: show the value right away
+        comboBox.getEditor().setText(currentValue != null ? currentValue : "");
+
         // Listen for changes
         comboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
             validateAndNotify(newVal);
@@ -142,12 +145,16 @@ public class EnumerationComboBox implements TypeAwareWidgetFactory.EditWidget {
 
     @Override
     public String getValue() {
-        return comboBox.getValue();
+        // The editor holds a typed value before the combo commits it (on Enter or focus loss)
+        String typed = comboBox.isEditable() ? comboBox.getEditor().getText() : null;
+        String value = typed != null ? typed : comboBox.getValue();
+        return value != null ? value : "";
     }
 
     @Override
     public void setValue(String value) {
         comboBox.setValue(value);
+        comboBox.getEditor().setText(value != null ? value : "");
     }
 
     @Override
