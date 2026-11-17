@@ -35,7 +35,8 @@ Administrators can remove it completely with `plugin.pk-meldewesen.enabled=false
       the taxonomy the report declares; **Open Example Report** opens a quarterly report of a
       fictitious pension fund with a few rule violations to try everything out;
     - **CHECK** - **Validate Active Report** validates it against its schema and the FMA rules
-      (as **F8** does); **Rule Report (HTML)** opens the rule report in the preview; **Check Identifiers Online**
+      (as **F8** does) without leaving the panel: the panel shows *Validating the report…*, then *✓ Valid* or the
+      number of errors and warnings, the findings open in the Problems panel; **Rule Report (HTML)** opens the rule report in the preview; **Check Identifiers Online**
       checks the report's LEIs at GLEIF and ISINs at ESMA FIRDS / OpenFIGI (findings in the Problems panel, see
       [Online Identifier Lookup](identifier-lookup.md));
     - **CHECK AN IDENTIFIER** - checks a pasted LEI or ISIN and looks it up online;

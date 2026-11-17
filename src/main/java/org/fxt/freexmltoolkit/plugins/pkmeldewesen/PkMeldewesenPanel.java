@@ -158,7 +158,52 @@ public final class PkMeldewesenPanel extends VBox {
             PanelStatus.info(status, I18n.t("PkMeldewesenPanel.no-report"));
             return;
         }
-        ui.editorHost().runValidation();
+        if (!ui.editorHost().hasValidateHandler()) {
+            return; // no shell validation (embedded panel)
+        }
+        Run run = start("validate", "#pk-validate", I18n.t("PkMeldewesenPanel.validating"), false);
+        if (run == null) {
+            return;
+        }
+        run.job().message(I18n.t("PkMeldewesenPanel.validating-detail"));
+        PanelStatus.info(status, I18n.t("PkMeldewesenPanel.validating"));
+        var host = ui.editorHost();
+        // the result of this run (published to the document) ends the job and shows in the status line
+        javafx.beans.InvalidationListener[] listener = new javafx.beans.InvalidationListener[1];
+        javafx.animation.PauseTransition timeout = new javafx.animation.PauseTransition(javafx.util.Duration.minutes(15));
+        Runnable finish = () -> {
+            host.validationStatusProperty().removeListener(listener[0]);
+            timeout.stop();
+            run.end();
+        };
+        listener[0] = obs -> {
+            org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.ValidationStatus st = host.validationStatusProperty().get();
+            if (st == null || st.state() == org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.ValidationState.NOT_VALIDATED) {
+                return;
+            }
+            finish.run();
+            // the host sets the status before the problems: read them once both are in place
+            javafx.application.Platform.runLater(() -> showValidated(host.getActiveProblems()));
+        };
+        timeout.setOnFinished(e -> finish.run());
+        // an invalidation listener only hears a property whose value was read since its last change
+        host.validationStatusProperty().get();
+        host.validationStatusProperty().addListener(listener[0]);
+        timeout.play();
+        host.runValidationInPlace();
+    }
+
+    /** "✓ Valid (schema and FMA rules)" or the counts of a validation of the active report, in the status line. */
+    private void showValidated(java.util.List<org.fxt.freexmltoolkit.controls.shell.editor.ValidationProblem> problems) {
+        long errors = problems.stream().filter(p -> p.level()
+                == org.fxt.freexmltoolkit.controls.shell.editor.ValidationProblem.Level.ERROR).count();
+        long warnings = problems.stream().filter(p -> p.level()
+                == org.fxt.freexmltoolkit.controls.shell.editor.ValidationProblem.Level.WARNING).count();
+        if (errors + warnings == 0) {
+            PanelStatus.success(status, I18n.t("PkMeldewesenPanel.validated-ok"));
+        } else {
+            PanelStatus.info(status, I18n.t("PkMeldewesenPanel.validated-problems", errors, warnings));
+        }
     }
 
     /** Lists the installed taxonomy versions, the one in use selected. */

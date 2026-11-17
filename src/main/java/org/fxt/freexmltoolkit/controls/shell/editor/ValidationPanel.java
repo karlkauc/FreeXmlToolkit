@@ -489,6 +489,11 @@ public class ValidationPanel extends VBox {
                     if (input != null && !runResult.failed()) {
                         lastRun.put(input.target().tab(), input);
                     }
+                    java.util.function.Consumer<ExplicitResult> resultHook = onExplicitResult;
+                    if (resultHook != null && !runResult.failed() && (!live || explicitJoined)) {
+                        // a validation the user asked for (F8, toolbar, a panel's Validate): told where it is shown
+                        resultHook.accept(new ExplicitResult(state, result, hasSchema));
+                    }
                     if (target != null && !editorHost.isActive(target)) {
                         // the user switched documents meanwhile: keep the result with the one validated
                         editorHost.publishValidation(target, state, result.size(), summary, result);
@@ -576,6 +581,22 @@ public class ValidationPanel extends VBox {
         problemsList.getSelectionModel().clearSelection();
         problems.setAll(result);
         editorHost.setActiveProblems(result);
+    }
+
+    /**
+     * The result of a validation the user asked for (not "while typing").
+     *
+     * @param problems  the problems found
+     * @param hasSchema whether a schema or Schematron was checked (else well-formedness only)
+     */
+    public record ExplicitResult(EditorHost.ValidationState state, List<ValidationProblem> problems, boolean hasSchema) {
+    }
+
+    private java.util.function.Consumer<ExplicitResult> onExplicitResult;
+
+    /** Is told the result of every validation the user asked for (the shell shows it where the user works). */
+    public void setOnExplicitResult(java.util.function.Consumer<ExplicitResult> handler) {
+        this.onExplicitResult = handler;
     }
 
     /** @return how many validation runs were started (for tests). */

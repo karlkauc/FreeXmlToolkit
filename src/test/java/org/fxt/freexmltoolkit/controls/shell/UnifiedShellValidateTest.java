@@ -155,10 +155,43 @@ class UnifiedShellValidateTest {
     }
 
     private ValidationPanel validationPanel() {
-        // lookupAll must run on the FX thread (scene graph may still be mutating)
-        return WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.lookupAll("*").stream()
-                .filter(n -> n instanceof ValidationPanel)
-                .map(n -> (ValidationPanel) n)
-                .findFirst().orElse(null));
+        // the panel validates also while its page is not shown (validation stays on the page the user works on)
+        return WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.validationPanelForTesting());
+    }
+
+    @Test
+    void validatingKeepsThePageTheUserWorksOn(@TempDir Path tmp) throws Exception {
+        java.util.List<String> notes = new java.util.concurrent.CopyOnWriteArrayList<>();
+        UnifiedShellView.validationNoteHook = notes::add;
+        try {
+            Path valid = tmp.resolve("ok.xml");
+            Files.writeString(valid, "<root><a/></root>");
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                shell.getSelectionModel().select(Activity.EXPLORER);
+                shell.getEditorHost().openFile(valid);
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                    () -> shell.getEditorHost().getActiveText().map(t -> t.contains("root")).orElse(false));
+            clickToolbarValidate();
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> !notes.isEmpty());
+            assertEquals(Activity.EXPLORER, shell.getSelectionModel().getActive(), "no switch to the Validation page");
+            assertEquals("✓ Well-formed · no schema bound", notes.getFirst());
+
+            Path broken = tmp.resolve("broken.xml");
+            Files.writeString(broken, "<root><a></root>");
+            notes.clear();
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.getEditorHost().openFile(broken));
+            WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                    () -> shell.getEditorHost().getActiveText().map(t -> t.contains("<a></root>")).orElse(false));
+            clickToolbarValidate();
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> !notes.isEmpty());
+            assertEquals(Activity.EXPLORER, shell.getSelectionModel().getActive());
+            assertTrue(notes.getFirst().startsWith("✗ "), notes.getFirst());
+            assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.lookup("#problems-panel-list") != null
+                    && shell.lookup("#problems-panel-list").getParent().isVisible()), "the problems show below the editor");
+        } finally {
+            UnifiedShellView.validationNoteHook = null;
+        }
     }
 }

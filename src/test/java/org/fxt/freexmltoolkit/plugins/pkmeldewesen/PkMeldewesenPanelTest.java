@@ -214,4 +214,32 @@ class PkMeldewesenPanelTest {
             org.fxt.freexmltoolkit.service.finance.OnlineFakes.reset();
         }
     }
+
+    @Test
+    void validatingTheReportShowsTheResultInThePanel(@TempDir Path tmp) throws Exception {
+        Path report = tmp.resolve("report.xml");
+        try (var in = getClass().getResourceAsStream("/pkmeldewesen/synthetic-pfq.xml")) {
+            Files.write(report, in.readAllBytes());
+        }
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(report));
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> text("#pk-report-summary").startsWith("PK-QMV"));
+        // the shell's validation, replaced: one FMA error and one warning, published like the Validation panel does
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setValidateHandler(() -> { });
+            host.setValidateInPlaceHandler(() -> javafx.application.Platform.runLater(() -> host.publishValidation(
+                    host.validationTarget(), org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.ValidationState.INVALID,
+                    2, "2 problems", java.util.List.of(
+                            new org.fxt.freexmltoolkit.controls.shell.editor.ValidationProblem("PK-Meldewesen", "error", 3, "a"),
+                            new org.fxt.freexmltoolkit.controls.shell.editor.ValidationProblem("PK-Meldewesen", "warning", 4, "b"),
+                            new org.fxt.freexmltoolkit.controls.shell.editor.ValidationProblem("ISIN", "info", 5, "c")))));
+            panel.onValidate();
+            return null;
+        });
+        try {
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> text("#pk-status").startsWith("✗"));
+        } catch (java.util.concurrent.TimeoutException e) {
+            fail("status: " + text("#pk-status"));
+        }
+        assertEquals("✗ 1 errors · ⚠ 1 warnings - see Problems", text("#pk-status"), "hints are not counted");
+    }
 }

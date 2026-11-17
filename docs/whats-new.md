@@ -12,6 +12,10 @@ running is shown under **Help → About FreeXmlToolkit**.
 - **Know where you are in the Tree view.** While you scroll through the Tree view of an XML, JSON or XSD
   document, a bar at the top shows the parents of the topmost row (`root › section › body`); click one to select
   it and scroll back to it. See [XML Editor](xml-editor.md#tree-view).
+- **Validate where you work.** **Validate** (toolbar, F8, Tools menu, *Validate Active Report* in PK-Meldewesen …)
+  no longer switches to the Validation page: the problems open in the Problems panel below the editor, the status
+  bar shows the result and a short note says *✓ Valid* or how many errors, warnings and hints were found. Project
+  and batch validation still use the Validation page, where their per-file results are.
 - **Open what you exported.** After every export - Excel, CSV, reports, view images, statistics, submission ZIPs,
   folders of generated files - a dialog says where it was saved and offers **Open** (in Excel, the browser …),
   **Show in Folder** and **OK**. *Don't show this again* switches to a short note with an Open link. See

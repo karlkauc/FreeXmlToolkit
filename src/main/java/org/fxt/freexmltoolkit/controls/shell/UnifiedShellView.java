@@ -1646,6 +1646,7 @@ public class UnifiedShellView extends BorderPane {
     private org.fxt.freexmltoolkit.controls.shell.editor.ValidationPanel validationPanel() {
         if (validationPanel == null) {
             validationPanel = new org.fxt.freexmltoolkit.controls.shell.editor.ValidationPanel(editorHost);
+            validationPanel.setOnExplicitResult(this::showValidationResult);
         }
         return validationPanel;
     }
@@ -1929,16 +1930,57 @@ public class UnifiedShellView extends BorderPane {
     }
 
     /**
-     * Validates the active document from the editor toolbar: well-formedness only when
-     * no XSD is bound, and against the bound XSD when one is. Switches to the Validation
-     * activity so the result and any problems are shown.
+     * Validates the active document (toolbar, F8, Tools → Validate, a panel's Validate): well-formedness only when no
+     * XSD is bound, and against the bound XSD / Schematron and the extensions' rules when one is. The page the user
+     * works on stays: the problems go to the PROBLEMS panel below the editor, the status bar and the editor markers;
+     * {@link #showValidationResult} says how it went.
      */
     private void validateActive() {
         if (editorHost.getActiveDocument().isEmpty()) {
             return;
         }
-        selectionModel.select(Activity.VALIDATION);
         validationPanel().revalidate();
+    }
+
+    /** @return the Validation panel (created on first use; also when its page was never shown) - tests */
+    org.fxt.freexmltoolkit.controls.shell.editor.ValidationPanel validationPanelForTesting() {
+        return validationPanel();
+    }
+
+    /** Test hook: told the note shown after a validation the user asked for, instead of the toast. */
+    static java.util.function.Consumer<String> validationNoteHook;
+
+    /**
+     * Shows the result of a validation the user asked for where the user works: valid → a short note at the bottom
+     * right; problems → the PROBLEMS panel opens at the first one, plus a note with the count. Nothing extra while
+     * the Validation page is open (it shows the result itself).
+     */
+    private void showValidationResult(org.fxt.freexmltoolkit.controls.shell.editor.ValidationPanel.ExplicitResult result) {
+        if (selectionModel.getActive() == Activity.VALIDATION) {
+            return;
+        }
+        long errors = result.problems().stream()
+                .filter(p -> p.level() == org.fxt.freexmltoolkit.controls.shell.editor.ValidationProblem.Level.ERROR).count();
+        long warnings = result.problems().stream()
+                .filter(p -> p.level() == org.fxt.freexmltoolkit.controls.shell.editor.ValidationProblem.Level.WARNING).count();
+        long hints = result.problems().size() - errors - warnings;
+        String note;
+        org.fxt.freexmltoolkit.controls.v2.xmleditor.view.ToastNotification.Type type;
+        if (result.problems().isEmpty()) {
+            note = I18n.t(result.hasSchema() ? "UnifiedShellView.validated-valid" : "UnifiedShellView.validated-well-formed");
+            type = org.fxt.freexmltoolkit.controls.v2.xmleditor.view.ToastNotification.Type.SUCCESS;
+        } else {
+            note = I18n.t("UnifiedShellView.validated-problems", errors, warnings, hints);
+            type = errors > 0 ? org.fxt.freexmltoolkit.controls.v2.xmleditor.view.ToastNotification.Type.ERROR
+                    : org.fxt.freexmltoolkit.controls.v2.xmleditor.view.ToastNotification.Type.WARNING;
+            editorHost.revealProblems();
+        }
+        if (validationNoteHook != null) {
+            validationNoteHook.accept(note);
+            return;
+        }
+        org.fxt.freexmltoolkit.controls.v2.xmleditor.view.ToastNotification.show(
+                getScene() != null ? getScene().getWindow() : null, note, type);
     }
 
     /**

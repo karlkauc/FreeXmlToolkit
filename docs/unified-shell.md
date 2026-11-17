@@ -386,7 +386,7 @@ fallback. The toolbar groups its actions three ways:
 
 - **New** (Ctrl+N) - Open the guided [New File dialog](#new-file-dialog) to create an XML, XSD, XSLT, Schematron, JSON, XProc, XQuery, XPath, or HTML file from a template or schema
 - **Open** (Ctrl+O) - Open one or more files
-- **Validate** (F8) - Validate the active document; this is the toolbar's primary action and the only filled button in the row - it is filled in the green of the Validation workflow (see [Colours: workflows and actions](#colours-workflows-and-actions)). XML validates against the bound XSD/Schematron if one is set, otherwise for well-formedness.
+- **Validate** (F8) - Validate the active document; this is the toolbar's primary action and the only filled button in the row - it is filled in the green of the Validation workflow (see [Colours: workflows and actions](#colours-workflows-and-actions)). XML validates against the bound XSD/Schematron if one is set, otherwise for well-formedness. The page you work on stays: the problems open in the **PROBLEMS** panel below the editor (at the first one), the status bar shows the result, and a short note at the bottom right says *✓ Valid* or how many errors, warnings and hints were found. The **Validation** page shows the result too when you open it.
 
 ### Split buttons (click the ▾ arrow for related actions)
 
@@ -1317,7 +1317,7 @@ On the command line, also as a Git merge driver: [`fxt-cli merge`](command-line.
 ## Jump to Validation Errors
 
 Validation errors appear in the **PROBLEMS** panel below the editor and in the **Validation**
-side panel. The result stays with its document: switch to another tab (or to the Validation result that
+side panel - validating (F8, the toolbar, a panel's *Validate*) does not switch to the Validation page. The result stays with its document: switch to another tab (or to the Validation result that
 **Validate** / F8 opens) and back, and the status and problems are shown again, as long as you have not
 changed the text since. **Select** a problem to show it **in the view you are in** - the view does not change
 (with the [AI assistant](ai-assistant.md) on, the right-click menu also offers **Fix with AI** and **Explain with AI**):

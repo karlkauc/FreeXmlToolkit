@@ -70,7 +70,10 @@ appearing in the recent list.
 1. Pick a mode with the **Single file | Batch** toggle.
 2. Click **Run Validation**.
 
-- **Single file** validates the active document against the bound XSD and/or Schematron.
+- **Single file** validates the active document against the bound XSD and/or Schematron. You do not need to open
+  this page for it: **F8**, the toolbar's **Validate** and the extensions' *Validate* buttons validate where you are -
+  the problems open in the Problems panel below the editor, a short note says how it went, and this page shows the
+  same result when you come to it.
 - **Batch** validates a whole set of XML files. In Batch mode, **Run Validation** opens a
   small menu with two ways to pick the files:
     - **Select XML files…** - a file chooser where you pick one or more XML files.
