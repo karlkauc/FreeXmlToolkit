@@ -394,7 +394,7 @@ public class ProblemsPanel extends VBox {
             showGroups(ProblemGroups.group(shown, by));
             return;
         }
-        tree.getRoot().getChildren().setAll(new TreeItem<>(I18n.t("ProblemsPanel.grouping")));
+        tree.getRoot().getChildren().setAll(List.of(new TreeItem<>(I18n.t("ProblemsPanel.grouping"))));
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             List<ProblemGroups.Group> groups = ProblemGroups.group(shown, by);
             javafx.application.Platform.runLater(() -> {
