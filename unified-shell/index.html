@@ -5427,7 +5427,7 @@ fallback. The toolbar groups its actions three ways:</p>
 <ul>
 <li><strong>New</strong> (Ctrl+N) - Open the guided <a href="#new-file-dialog">New File dialog</a> to create an XML, XSD, XSLT, Schematron, JSON, XProc, XQuery, XPath, or HTML file from a template or schema</li>
 <li><strong>Open</strong> (Ctrl+O) - Open one or more files</li>
-<li><strong>Validate</strong> (F8) - Validate the active document; this is the toolbar's primary action and the only filled button in the row - it is filled in the green of the Validation workflow (see <a href="#colours-workflows-and-actions">Colours: workflows and actions</a>). XML validates against the bound XSD/Schematron if one is set, otherwise for well-formedness.</li>
+<li><strong>Validate</strong> (F8) - Validate the active document; this is the toolbar's primary action and the only filled button in the row - it is filled in the green of the Validation workflow (see <a href="#colours-workflows-and-actions">Colours: workflows and actions</a>). XML validates against the bound XSD/Schematron if one is set, otherwise for well-formedness. The page you work on stays: the problems open in the <strong>PROBLEMS</strong> panel below the editor (at the first one), the status bar shows the result, and a short note at the bottom right says <em>✓ Valid</em> or how many errors, warnings and hints were found. The <strong>Validation</strong> page shows the result too when you open it.</li>
 </ul>
 <h3 id="split-buttons-click-the-arrow-for-related-actions">Split buttons (click the ▾ arrow for related actions)<a class="headerlink" href="#split-buttons-click-the-arrow-for-related-actions" title="Permanent link">¶</a></h3>
 <p>Clicking the button itself runs the main action; clicking the small <strong>▾ arrow</strong> opens a menu
@@ -6631,7 +6631,7 @@ as in Git.</p>
 <p>On the command line, also as a Git merge driver: <a href="../command-line/#merge"><code>fxt-cli merge</code></a>.</p>
 <h2 id="jump-to-validation-errors">Jump to Validation Errors<a class="headerlink" href="#jump-to-validation-errors" title="Permanent link">¶</a></h2>
 <p>Validation errors appear in the <strong>PROBLEMS</strong> panel below the editor and in the <strong>Validation</strong>
-side panel. The result stays with its document: switch to another tab (or to the Validation result that
+side panel - validating (F8, the toolbar, a panel's <em>Validate</em>) does not switch to the Validation page. The result stays with its document: switch to another tab (or to the Validation result that
 <strong>Validate</strong> / F8 opens) and back, and the status and problems are shown again, as long as you have not
 changed the text since. <strong>Select</strong> a problem to show it <strong>in the view you are in</strong> - the view does not change
 (with the <a href="../ai-assistant/">AI assistant</a> on, the right-click menu also offers <strong>Fix with AI</strong> and <strong>Explain with AI</strong>):</p>
