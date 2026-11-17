@@ -846,6 +846,8 @@ public class SchematronDocumentationGenerator extends VBox {
                 Files.writeString(file.toPath(), generatedDocumentation);
                 statusLabel.setText(I18n.t("SchematronDocumentationGenerator.documentation-exported-to", file.getName()));
                 logger.info("Documentation exported to: {}", file.getAbsolutePath());
+                org.fxt.freexmltoolkit.controls.shell.editor.ExportResult.saved(getScene() != null ? getScene().getWindow() : null,
+                        I18n.t("SchematronDocumentationGenerator.what"), file);
             } catch (Exception e) {
                 logger.error("Export failed", e);
                 org.fxt.freexmltoolkit.util.DialogHelper.showError(I18n.t("SchematronDocumentationGenerator.export-error"), null,

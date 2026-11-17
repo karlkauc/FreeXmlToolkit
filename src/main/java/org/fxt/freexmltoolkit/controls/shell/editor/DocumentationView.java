@@ -439,6 +439,19 @@ public class DocumentationView extends BorderPane {
                     File target = options.output().isDirectory()
                             ? new File(options.output(), "index.html") : options.output();
                     openInDesktop(target);
+                } else if (finalResult.startsWith("Generated")) {
+                    // not opened: confirm where it is, with Open / Show in Folder
+                    javafx.stage.Window window = getScene() != null ? getScene().getWindow() : null;
+                    File index = new File(options.output(), "index.html");
+                    if (options.output().isDirectory() && index.isFile()) {
+                        ExportResult.saved(window, I18n.t("DocumentationView.what"), index); // Open = the start page
+                    } else if (options.output().isDirectory()) {
+                        String[] files = options.output().list();
+                        ExportResult.savedFolder(window, I18n.t("DocumentationView.what"), options.output().toPath(),
+                                files == null ? 0 : files.length);
+                    } else {
+                        ExportResult.saved(window, I18n.t("DocumentationView.what"), options.output());
+                    }
                 }
             });
         });

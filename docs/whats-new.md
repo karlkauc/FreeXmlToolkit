@@ -6,6 +6,10 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+- **Open what you exported.** After every export - Excel, CSV, reports, view images, statistics, submission ZIPs,
+  folders of generated files - a dialog says where it was saved and offers **Open** (in Excel, the browser …),
+  **Show in Folder** and **OK**. *Don't show this again* switches to a short note with an Open link. See
+  [After an Export](unified-shell.md#after-an-export).
 - **Work off large lists of problems.** The Problems panel gets a third counter for **hints** (findings that usually
   need no change: not traded in the EU, registration pending), a **category** filter (document, LEI, ISIN, FMA rule
   groups, extension rules), a **search** field and **grouping** by security / object, rule or category: a security

@@ -1095,6 +1095,22 @@ not overwritten. A comment at the top of `order.xml` suggests what to try next:
 
 ![Welcome page with the FUNDSXML quick-access row](img/unified-shell-welcome-fundsxml.png)
 
+## After an Export {#after-an-export}
+
+Whenever the application writes a file you asked for - Excel and CSV exports, reports, a view as image, query and
+transformation results, statistics, a submission ZIP, a folder of generated files - a dialog confirms where it was
+saved (the path can be copied) and offers:
+
+- **Open** - the file in the program your system uses for it (Excel for `.xlsx`, the browser for `.html` …); for a
+  folder, **Open Folder**;
+- **Show in Folder** - selects the file in Explorer, Finder or your file manager;
+- **OK** - closes the dialog.
+
+Tick **Don't show this again** to get a short note at the bottom right instead, with an **Open** link; switch the
+dialog back on under **Settings → Files → After an Export**. Exports whose result already shows - a PDF in the
+preview, a result opened as a tab, documentation opened with *Open after generation* - do not ask. The command line
+never shows the dialog.
+
 ## Tools that read the saved file {#tools-that-read-the-saved-file}
 
 Some tools read the document **from disk** rather than from the editor: **Generate Sample

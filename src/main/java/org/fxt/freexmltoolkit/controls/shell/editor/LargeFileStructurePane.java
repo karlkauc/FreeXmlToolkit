@@ -737,8 +737,11 @@ final class LargeFileStructurePane extends VBox {
         host.background(I18n.t("LargeFileView.exporting", parent.xpath()),
                 (cancelled, progress) -> LargeRecordExport.export(structure, parent, format, target.toPath(), cancelled,
                         progress),
-                result -> host.status(I18n.t("LargeFileView.exported", String.format(Locale.ROOT, "%,d", result.rows()),
-                        target.getName())));
+                result -> {
+                    host.status(I18n.t("LargeFileView.exported", String.format(Locale.ROOT, "%,d", result.rows()),
+                            target.getName()));
+                    ExportResult.saved(host.window(), I18n.t("LargeFileView.export-what", parent.name()), target);
+                });
     }
 
     static String label(Node node) {

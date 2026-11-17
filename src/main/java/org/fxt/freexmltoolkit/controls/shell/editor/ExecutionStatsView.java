@@ -162,6 +162,8 @@ public class ExecutionStatsView extends VBox {
                     ? ExecutionStatsService.toCsv(stats)
                     : ExecutionStatsService.toJson(stats);
             Files.writeString(file.toPath(), content, StandardCharsets.UTF_8);
+            ExportResult.saved(getScene() != null ? getScene().getWindow() : null,
+                    I18n.t("ExecutionStatsView.what"), file);
         } catch (Exception e) {
             org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("ExecutionStatsView.export-failed"),
                     I18n.t("ExecutionStatsView.the-statistics-could-not-be", file.getName()),

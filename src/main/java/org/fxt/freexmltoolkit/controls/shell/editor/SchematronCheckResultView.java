@@ -85,6 +85,8 @@ public class SchematronCheckResultView extends VBox {
         try {
             Files.writeString(file.toPath(), content);
             summary.setText(I18n.t("SchematronCheckResultView.exported-issue-s-to", issues.size(), file.getName()));
+            ExportResult.saved(getScene() != null ? getScene().getWindow() : null,
+                    I18n.t("SchematronCheckResultView.what"), file);
         } catch (Exception ex) {
             summary.setText(I18n.t("SchematronCheckResultView.export-failed", ex.getMessage()));
         }

@@ -634,6 +634,14 @@
                                                 <Label fx:id="assocStatus" wrapText="true" styleClass="fxt-placeholder-text"/>
                                             </children>
                                         </SettingsCard>
+                                        <SettingsCard title="%SettingsPanel.export-card.title" iconLiteral="bi-box-arrow-up-right">
+                                            <children>
+                                                <CheckBox fx:id="exportConfirm" id="settings-export-confirm"
+                                                          text="%SettingsPanel.exportConfirm.text"/>
+                                                <Label text="%SettingsPanel.export-confirm-hint.text"
+                                                       wrapText="true" styleClass="fxt-placeholder-text"/>
+                                            </children>
+                                        </SettingsCard>
                                             </children>
                                         </SettingsCardGrid>
                                     </children>

@@ -232,7 +232,7 @@ public final class ViewExport {
                     if (error != null) {
                         reportError(I18n.t("ExportViewDialog.title"), error);
                     } else {
-                        ToastNotification.success(owner, I18n.t("ViewExport.saved", target.getFileName()));
+                        ExportResult.saved(owner, I18n.t("ViewExport.what"), target);
                     }
                 }));
     }

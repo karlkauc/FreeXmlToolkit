@@ -187,6 +187,52 @@ public class ToastNotification extends HBox {
         sequence.play();
     }
 
+    /** A toast with an action link stays this long (time to reach the link). */
+    private static final double ACTION_DISPLAY_DURATION_MS = 6000;
+
+    /**
+     * A success toast anchored to {@code owner} with a link ("Open") that runs {@code action} and closes the toast. It
+     * stays longer than a plain toast and does not fade while the mouse is over it.
+     */
+    public static void success(javafx.stage.Window owner, String message, String actionText, Runnable action) {
+        if (owner == null || !owner.isShowing()) {
+            return;
+        }
+        ToastNotification toast = new ToastNotification(message, Type.SUCCESS);
+        javafx.stage.Popup popup = new javafx.stage.Popup();
+        javafx.scene.control.Hyperlink link = new javafx.scene.control.Hyperlink(actionText);
+        link.setId("toast-action");
+        link.setOnAction(e -> {
+            popup.hide();
+            action.run();
+        });
+        toast.getChildren().add(link);
+        popup.setAutoFix(false);
+        popup.setAutoHide(false);
+        popup.getContent().add(toast);
+        popup.show(owner);
+        toast.applyCss();
+        toast.autosize();
+        popup.setX(owner.getX() + owner.getWidth() - toast.prefWidth(-1) - MARGIN);
+        popup.setY(owner.getY() + owner.getHeight() - toast.prefHeight(-1) - MARGIN - 32);
+
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(FADE_DURATION_MS), toast);
+        fadeIn.setFromValue(0);
+        fadeIn.setToValue(1);
+        PauseTransition pause = new PauseTransition(Duration.millis(ACTION_DISPLAY_DURATION_MS));
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(FADE_DURATION_MS), toast);
+        fadeOut.setFromValue(1);
+        fadeOut.setToValue(0);
+        SequentialTransition sequence = new SequentialTransition(fadeIn, pause, fadeOut);
+        sequence.setOnFinished(e -> popup.hide());
+        toast.setOnMouseEntered(e -> {
+            sequence.pause();
+            toast.setOpacity(1);
+        });
+        toast.setOnMouseExited(e -> sequence.play());
+        sequence.play();
+    }
+
     /** Convenience: show a success toast anchored to {@code owner}. */
     public static void success(javafx.stage.Window owner, String message) {
         show(owner, message, Type.SUCCESS);

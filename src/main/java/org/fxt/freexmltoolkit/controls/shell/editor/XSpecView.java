@@ -255,6 +255,7 @@ public class XSpecView extends VBox {
         }
         try {
             Files.writeString(target.toPath(), runner.junit(current), StandardCharsets.UTF_8);
+            ExportResult.saved(getScene() != null ? getScene().getWindow() : null, I18n.t("XSpecView.what"), target);
         } catch (Exception e) {
             DialogHelper.showError(I18n.t("XSpecView.export-junit-report"), I18n.t("XSpecView.the-report-could-not-be"), e.getMessage(), e);
         }

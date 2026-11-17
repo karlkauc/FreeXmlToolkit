@@ -58,6 +58,7 @@ Any key of the user's settings file works. These are the ones most often managed
 | `standards.xsd`, `standards.xml` | `auto` / `1.0` / `1.1` | Default XSD and XML version in expert mode |
 | `standards.schematronBinding` | `default` / `xslt` / `xslt2` / `xslt3` | Default query binding of a Schematron without `@queryBinding` in expert mode |
 | `fundsxml.enabled` | `true` / `false` | FundsXML extension |
+| `export.confirm` | `true` / `false` | After an export: the dialog with Open / Show in Folder (`true`, default) or only a note with an Open link (Settings → Files → After an Export) |
 | `largefile.backup` | `true` / `false` | Keep the previous version as `<name>.bak` when the Large File Viewer writes into a file (Settings → Appearance → Memory) |
 | `ui.language` | `system` / `en` / `de` | Language of the interface (Settings → Appearance → Language) |
 | `ui.theme` | `light` / `dark` / `system` | Theme (Settings → Appearance → Theme) |

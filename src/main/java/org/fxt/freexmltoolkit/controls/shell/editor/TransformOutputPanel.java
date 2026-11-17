@@ -405,18 +405,21 @@ public class TransformOutputPanel extends VBox {
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(
                 extension.toUpperCase(java.util.Locale.ROOT), "*." + extension));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getScene() != null ? getScene().getWindow() : null);
-        if (file != null) {
-            saveResultTo(file);
+        if (file != null && saveResultTo(file)) {
+            ExportResult.saved(getScene() != null ? getScene().getWindow() : null,
+                    I18n.t("TransformOutputPanel.what"), file);
         }
     }
 
-    /** Writes the current result text to {@code file} (UTF-8); also used by tests. */
-    public void saveResultTo(File file) {
+    /** Writes the current result text to {@code file} (UTF-8); also used by tests. @return whether it was written */
+    public boolean saveResultTo(File file) {
         try {
             Files.writeString(file.toPath(), resultText(),
                     StandardCharsets.UTF_8);
+            return true;
         } catch (Exception e) {
             statusLabel.setText("save: " + e.getMessage());
+            return false;
         }
     }
 

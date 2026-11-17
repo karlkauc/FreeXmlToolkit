@@ -184,6 +184,13 @@ sent, and manages the providers (Ollama, LM Studio, OpenAI-compatible services, 
 **Remove** and **Use for AI actions**. Changes are saved at once. When the administrator sets `ai.allowed=false`, the
 group is not shown at all.
 
+## After an export {#after-an-export}
+
+**Settings → Files → After an Export → Confirm every export (Open / Show in Folder)** (on by default): after every
+export a dialog shows where the file was saved, with **Open**, **Show in Folder** and **OK**. Off, a short note at
+the bottom right with an **Open** link appears instead. The dialog's *Don't show this again* switches it off as well.
+See [After an Export](unified-shell.md#after-an-export).
+
 ## Clearing the Cache Folder
 
 The **Clear Cache Folder** button in the **TEMP & CACHE** section deletes the contents of the

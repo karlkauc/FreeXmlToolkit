@@ -1315,6 +1315,7 @@ public class SignatureView extends ScrollPane {
                 try {
                     java.nio.file.Files.write(target.toPath(), result.binary());
                     PanelStatus.success(status, result.message() + " · " + target.getName() + warnings);
+                    ExportResult.saved(window(), I18n.t("SignatureView.decrypted-what"), target);
                 } catch (java.io.IOException e) {
                     PanelStatus.failure(status, I18n.t("SignatureView.decryption-failed"), e.getMessage(), false);
                 }

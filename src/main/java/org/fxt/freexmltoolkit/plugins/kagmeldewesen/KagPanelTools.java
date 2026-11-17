@@ -203,7 +203,11 @@ final class KagPanelTools {
                 }
             }
             return report.funds().size();
-        }, funds -> PanelStatus.success(panel.status(), funds + (funds == 1 ? " fund" : " funds") + " written to "
-                + target.getFileName() + "."));
+        }, funds -> {
+            PanelStatus.success(panel.status(), funds + (funds == 1 ? " fund" : " funds") + " written to "
+                    + target.getFileName() + ".");
+            org.fxt.freexmltoolkit.controls.shell.editor.ExportResult.saved(ui.window(),
+                    org.fxt.freexmltoolkit.i18n.I18n.t("KagPanelTools.derimv-what"), target);
+        });
     }
 }

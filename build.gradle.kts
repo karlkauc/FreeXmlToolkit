@@ -491,6 +491,7 @@ tasks.test {
     // several TestFX tests deliberately exercise error paths, and a blocking showAndWait() on the
     // FX thread would freeze the headless suite.
     systemProperty("fxt.suppressErrorDialogs", "true")
+    systemProperty("fxt.suppressExportDialogs", "true")
     systemProperty("fxt.telemetry.disabled", "true") // also set for all Test tasks in withType<Test>
 
     // The documentation screenshot generator must NOT run as part of the normal test suite:
@@ -615,6 +616,7 @@ tasks.register<Test>("sampleXmlAudit") {
     filter { includeTestsMatching("org.fxt.freexmltoolkit.service.sampleaudit.SampleXmlGeneratorRealWorldAuditTest") }
     systemProperty("sample.audit", "true")
     systemProperty("fxt.suppressErrorDialogs", "true")
+    systemProperty("fxt.suppressExportDialogs", "true")
     systemProperty("fxt.telemetry.disabled", "true") // also set for all Test tasks in withType<Test>
     listOf(
         "sample.audit.only", "sample.audit.parallel", "sample.audit.workerHeap",

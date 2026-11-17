@@ -160,6 +160,7 @@ public class SettingsPanel extends VBox {
     @FXML private Label renderingGpuStatus;
     @FXML private ComboBox<String> maxMemory;
     @FXML private CheckBox largeFileBackup;
+    @FXML private CheckBox exportConfirm;
     @FXML private Label memoryStatus;
 
     // Temp & cache
@@ -592,6 +593,7 @@ public class SettingsPanel extends VBox {
         renderingMode.setValue("Auto");
         maxMemory.setValue(memoryLabel(0));
         largeFileBackup.setSelected(false);
+        exportConfirm.setSelected(true);
         indentSpaces.getValueFactory().setValue(4);
         jsonIndent.getValueFactory().setValue(2);
         autoFormat.setSelected(false);
@@ -1334,6 +1336,7 @@ public class SettingsPanel extends VBox {
         keys.put(renderingMode, new String[] {"rendering.mode"});
         keys.put(maxMemory, new String[] {org.fxt.freexmltoolkit.app.MemoryLimit.PROPERTY});
         keys.put(largeFileBackup, new String[] {LargeFilePatcher.BACKUP_PROPERTY});
+        keys.put(exportConfirm, new String[] {ExportResult.CONFIRM_KEY});
         keys.put(useSystemTemp, new String[] {"useSystemTempFolder"});
         keys.put(customTempDir, new String[] {"customTempFolder"});
         keys.put(logCleanup, new String[] {PropertiesService.LOG_CLEANUP_ENABLED});
@@ -1814,6 +1817,7 @@ public class SettingsPanel extends VBox {
             maxMemory.setValue(memoryLabel(org.fxt.freexmltoolkit.app.MemoryLimit.configuredMb(
                     props.get(org.fxt.freexmltoolkit.app.MemoryLimit.PROPERTY))));
             largeFileBackup.setSelected(Boolean.parseBoolean(props.get(LargeFilePatcher.BACKUP_PROPERTY)));
+            exportConfirm.setSelected(!"false".equalsIgnoreCase(props.get(ExportResult.CONFIRM_KEY)));
             useSystemTemp.setSelected(props.isUseSystemTempFolder());
             logCleanup.setSelected(props.isLogCleanupEnabled());
             logMaxAge.getValueFactory().setValue(props.getLogCleanupMaxAgeDays());
@@ -1908,6 +1912,7 @@ public class SettingsPanel extends VBox {
             props.setRenderingMode(renderingModeValue(renderingMode.getValue()));
             props.set(org.fxt.freexmltoolkit.app.MemoryLimit.PROPERTY, String.valueOf(memoryValue(maxMemory.getValue())));
             props.set(LargeFilePatcher.BACKUP_PROPERTY, String.valueOf(largeFileBackup.isSelected()));
+            props.set(ExportResult.CONFIRM_KEY, String.valueOf(exportConfirm.isSelected()));
             props.setUseSystemTempFolder(useSystemTemp.isSelected());
             props.setLogCleanupEnabled(logCleanup.isSelected());
             props.setLogCleanupMaxAgeDays(logMaxAge.getValue());

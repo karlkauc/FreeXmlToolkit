@@ -1036,9 +1036,8 @@ public class ValidationPanel extends VBox {
                 ValidationExcelExporter.export(snapshot, sourceName, output.toPath());
                 Platform.runLater(() -> {
                     PanelStatus.success(status, I18n.t("ValidationPanel.exported", EditorActions.problemCount(snapshot.size())));
-                    ProblemsPanel.showExported(I18n.t("ValidationPanel.export-problems"),
-                            I18n.t("ValidationPanel.wrote-to", EditorActions.problemCount(snapshot.size()), output.getAbsolutePath()),
-                            output);
+                    ExportResult.saved(getScene() != null ? getScene().getWindow() : null,
+                            I18n.t("ProblemsPanel.exported-what", snapshot.size()), output);
                 });
             } catch (Exception ex) {
                 Platform.runLater(() -> PanelStatus.failure(status, I18n.t("ValidationPanel.export-problems"),

@@ -617,8 +617,8 @@ public class QueryConsole extends Region {
                 new FileChooser.ExtensionFilter("XML (*.xml)", "*.xml"),
                 new FileChooser.ExtensionFilter("All Files (*.*)", "*.*"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getScene() == null ? null : getScene().getWindow());
-        if (file != null) {
-            saveResultsToFile(file);
+        if (file != null && saveResultsToFile(file)) {
+            ExportResult.saved(getScene() == null ? null : getScene().getWindow(), I18n.t("QueryConsole.what"), file);
         }
     }
 

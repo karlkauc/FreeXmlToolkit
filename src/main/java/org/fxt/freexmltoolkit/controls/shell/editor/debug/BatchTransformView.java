@@ -194,6 +194,11 @@ public class BatchTransformView extends VBox {
         int written = BatchTransformRunner.writeAll(lastResults, Path.of(dir.getAbsolutePath()),
                 format.getFileExtension());
         summary.setText(I18n.t("BatchTransformView.wrote-file-s-to", written, dir.getName()));
+        if (written > 0) {
+            org.fxt.freexmltoolkit.controls.shell.editor.ExportResult.savedFolder(
+                    getScene() != null ? getScene().getWindow() : null, I18n.t("BatchTransformView.what"), dir.toPath(),
+                    written);
+        }
     }
 
     public int getFileCount() {

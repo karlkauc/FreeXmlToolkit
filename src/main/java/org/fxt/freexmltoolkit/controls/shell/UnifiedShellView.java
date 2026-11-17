@@ -2697,7 +2697,10 @@ public class UnifiedShellView extends BorderPane {
     private void reportConversion(org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner.Result result,
                                   java.io.File file, boolean imported,
                                   org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument exported) {
-        if (!result.isError()) {
+        if (!result.isError() && !imported) {
+            org.fxt.freexmltoolkit.controls.shell.editor.ExportResult.saved(getScene() != null ? getScene().getWindow() : null,
+                    I18n.t("UnifiedShellView.spreadsheet-what"), file);
+        } else if (!result.isError()) {
             org.fxt.freexmltoolkit.util.DialogHelper.showInformation(I18n.t("UnifiedShellView.spreadsheet-converter"),
                     I18n.t("UnifiedShellView.conversion-finished"), I18n.t("UnifiedShellView.done", file.getAbsolutePath()));
         } else if (result.error() instanceof org.fxt.freexmltoolkit.service.XmlSpreadsheetConverterService.RowLimitExceededException limit) {

@@ -293,6 +293,16 @@ By.SUBJECT|RULE|CATEGORY)` → `Group` → `Kind` → occurrences (`ruleKey`: ca
 = one undo; hook `fixConfirmer`). Row menus are built when opened. Excel: `ValidationExcelExporter` (SXSSF; Summary,
 Problems (split beyond the row limit), By Object, By Rule).
 
+## After an export
+
+`controls/shell/editor/ExportResult`: `saved(window, what, file)` / `savedFolder(window, what, folder, files)` - the one
+confirmation after an export (dialog via `DialogHelper.createStyledAlert`: path, Open / Open Folder, Show in Folder
+(`DesktopActions.open` / `reveal`), OK, "don't show again"); setting `export.confirm` (Settings → Files, policy key) off →
+`ToastNotification.success(owner, text, actionText, action)` with an Open link. Call it from the UI success branch only
+(never runners/exporters → the CLI never shows it); not where the result already shows (PDF preview, a tab, docs opened).
+Hooks: `ExportResult.handler` (gets `Saved`), `ExportResult.desktop`; system property `fxt.suppressExportDialogs` (set by
+the test task and the scratch runner) shows nothing.
+
 ## Progress of long jobs
 
 `service/progress/`: `Progress` (UI-free, thread-safe: `message`, `progress(done, total)` (`total <= 0` = indeterminate),

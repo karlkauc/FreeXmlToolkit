@@ -177,15 +177,25 @@ final class AnalysisSupport {
         status.setText(I18n.t("AnalysisSupport.exporting", format.label()));
         FxtGui.executorService.submit(() -> {
             String outcome;
+            boolean ok = false;
             try {
                 writer.write(format, file.toPath());
-                outcome = "Exported " + file.getName();
+                outcome = I18n.t("AnalysisSupport.exported", file.getName());
+                ok = true;
             } catch (Exception ex) {
                 logger.warn("Schema analysis export failed", ex);
-                outcome = "Export failed: " + (ex.getMessage() != null ? ex.getMessage() : ex.toString());
+                outcome = I18n.t("AnalysisSupport.export-failed", ex.getMessage() != null ? ex.getMessage() : ex.toString());
             }
             String text = outcome;
-            Platform.runLater(() -> status.setText(text));
+            boolean written = ok;
+            Platform.runLater(() -> {
+                status.setText(text);
+                if (written) {
+                    org.fxt.freexmltoolkit.controls.shell.editor.ExportResult.saved(
+                            owner.getScene() != null ? owner.getScene().getWindow() : null,
+                            I18n.t("AnalysisSupport.what", baseName), file);
+                }
+            });
         });
     }
 

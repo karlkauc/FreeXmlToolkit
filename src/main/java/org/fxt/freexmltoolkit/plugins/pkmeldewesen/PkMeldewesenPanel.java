@@ -495,6 +495,8 @@ public final class PkMeldewesenPanel extends VBox {
                 Platform.runLater(() -> {
                     run.end();
                     PanelStatus.success(status, I18n.t("PkMeldewesenPanel.submission-done", zip.toString()));
+                    org.fxt.freexmltoolkit.controls.shell.editor.ExportResult.saved(ui.window(),
+                            I18n.t("PkMeldewesenPanel.submission-what"), zip);
                 });
             } catch (java.io.IOException | RuntimeException e) {
                 Platform.runLater(() -> {

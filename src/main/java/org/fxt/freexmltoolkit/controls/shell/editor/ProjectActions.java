@@ -286,6 +286,24 @@ public final class ProjectActions {
                 editorHost.openGeneratedDocument(result.text(), typeOf(result), name);
                 return;
             }
+            ExportResult.saved(editorHost.getScene() != null ? editorHost.getScene().getWindow() : null,
+                    I18n.t("ProjectActions.scenario-what", scenario.name), result.written());
+            return;
+        }
+        // every file ran and wrote into one folder: that folder is the result
+        java.util.Set<java.nio.file.Path> folders = new java.util.HashSet<>();
+        boolean allWritten = !results.isEmpty();
+        for (ScenarioRunner.FileResult r : results) {
+            if (!r.result().ok() || r.result().written() == null) {
+                allWritten = false;
+                break;
+            }
+            folders.add(r.result().written().toAbsolutePath().getParent());
+        }
+        if (allWritten && folders.size() == 1 && folders.iterator().next() != null) {
+            ExportResult.savedFolder(editorHost.getScene() != null ? editorHost.getScene().getWindow() : null,
+                    I18n.t("ProjectActions.scenario-what", scenario.name), folders.iterator().next(), results.size());
+            return;
         }
         DialogHelper.showInformation(I18n.t("ProjectActions.run-scenario"),
                 I18n.t("ProjectActions.scenario-ran", scenario.name, results.size(),

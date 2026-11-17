@@ -476,6 +476,8 @@ public class BreakpointsView extends VBox {
         }
         try {
             java.nio.file.Files.writeString(file.toPath(), exportText(), java.nio.charset.StandardCharsets.UTF_8);
+            org.fxt.freexmltoolkit.controls.shell.editor.ExportResult.saved(
+                    getScene() == null ? null : getScene().getWindow(), I18n.t("BreakpointsView.what"), file);
         } catch (java.io.IOException e) {
             showError(I18n.t("BreakpointsView.could-not-export-the-breakpoints", e.getMessage()));
         }

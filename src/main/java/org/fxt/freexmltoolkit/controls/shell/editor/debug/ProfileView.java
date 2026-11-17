@@ -244,6 +244,8 @@ public class ProfileView extends VBox {
         }
         try {
             Files.writeString(file.toPath(), content, StandardCharsets.UTF_8);
+            org.fxt.freexmltoolkit.controls.shell.editor.ExportResult.saved(
+                    getScene() != null ? getScene().getWindow() : null, I18n.t("ProfileView.what"), file);
         } catch (IOException e) {
             DialogHelper.showError(I18n.t("ProfileView.export-profile"), I18n.t("ProfileView.the-profile-could-not-be"), e.getMessage(), e);
         }

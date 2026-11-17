@@ -101,6 +101,8 @@ public class SchematronReportView extends VBox {
         try {
             Files.writeString(file.toPath(), content);
             status.setText(I18n.t("SchematronReportView.saved", file.getName()));
+            ExportResult.saved(getScene() != null ? getScene().getWindow() : null,
+                    I18n.t("SchematronReportView.what"), file);
         } catch (Exception ex) {
             status.setText(I18n.t("SchematronReportView.save-failed", ex.getMessage()));
         }

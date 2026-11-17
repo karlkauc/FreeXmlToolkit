@@ -455,10 +455,16 @@ public class TypeLibraryPanel extends VBox {
                             ? new org.fxt.freexmltoolkit.service.telemetry.QueryFailure("partial_write",
                                     org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.ERROR, null)
                             : null);
-            javafx.application.Platform.runLater(() -> alert(
-                    javafx.scene.control.Alert.AlertType.INFORMATION, title,
-                    "Wrote " + written.size() + " of " + profile.getBatchCount()
-                            + " files to:\n" + dir.getAbsolutePath()));
+            javafx.application.Platform.runLater(() -> {
+                if (!written.isEmpty() && written.size() == files.size()) {
+                    ExportResult.savedFolder(getScene() != null ? getScene().getWindow() : null,
+                            I18n.t("TypeLibraryPanel.batch-what"), dir.toPath(), written.size());
+                } else {
+                    alert(javafx.scene.control.Alert.AlertType.INFORMATION, title,
+                            "Wrote " + written.size() + " of " + profile.getBatchCount()
+                                    + " files to:\n" + dir.getAbsolutePath());
+                }
+            });
         });
     }
 
