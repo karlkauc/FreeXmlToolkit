@@ -1137,6 +1137,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="The Grid (Graphic view for XML)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#typed-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Typed values
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3207,6 +3224,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="The Grid (Graphic view for XML)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#typed-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Typed values
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3354,8 +3388,9 @@ shows the editable grid, laid out as follows:</p>
   state and the selection survive edits, undo and sorting (rows are tracked by their XPath).</li>
 <li><strong>Editing every node kind.</strong> Double-click a value to edit it - with a bound schema the editor
   follows the declared type: a <strong>dropdown</strong> for enumerations (elements and attributes, in tree rows,
-  table columns and opened cells), date pickers, number spinners, length/pattern checks - also comments, CDATA sections
-  and processing instructions; double-click the name of an attribute or a processing
+  table columns and opened cells, also unions of enumerated types), date pickers, number spinners and checked text
+  fields - also comments, CDATA sections and processing instructions (see
+  <a href="#typed-values">Typed values</a> below); double-click the name of an attribute or a processing
   instruction to rename it. <strong>Enter</strong> or a click anywhere else keeps the new value, <strong>Esc</strong>
   discards it. A context menu closes as soon as you click somewhere else. <strong>Click the type icon</strong> of a row (or press <strong>Ctrl+Alt+T</strong>) to
   change the node's type - element, attribute, text, CDATA, comment or processing instruction;
@@ -3474,6 +3509,52 @@ shows the editable grid, laid out as follows:</p>
   Graphic view, expanded along the element's path, with the card of its declaration selected - see
   <a href="../xml-editor/#go-to-definition">Go to Definition</a>. The entry is disabled while no schema is bound.</li>
 </ul>
+<h3 id="typed-values">Typed values<a class="headerlink" href="#typed-values" title="Permanent link">¶</a></h3>
+<p>With a bound XSD the inline editor follows the type behind an element or attribute, however it is declared: a
+named type derived in several steps (FundsXML's <code>PercentageType</code> → <code>xs:decimal</code>), simple content of a complex type
+(an amount with a currency attribute), a list or a union.</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Editor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Enumerations, unions of enumerations</td>
+<td>Dropdown (you can still type another value)</td>
+</tr>
+<tr>
+<td><code>boolean</code></td>
+<td>Toggle</td>
+</tr>
+<tr>
+<td><code>date</code>, <code>dateTime</code>, <code>dateTimeStamp</code>, <code>time</code></td>
+<td>Date picker / hour-minute-second spinners. A timezone (<code>Z</code>, <code>+01:00</code>, <code>-05:00</code>) and fractional seconds are kept and shown next to the spinners; a value you do not change is written back exactly as it was</td>
+</tr>
+<tr>
+<td><code>integer</code> and its derivations, <code>decimal</code>, <code>float</code>, <code>double</code></td>
+<td>Number spinner. The value is written as XSD expects it (<code>3.5</code>), whatever your language: a comma you type is taken as the decimal separator. Nothing is rounded or replaced by 0; an empty value stays empty. The arrows step by 1 or by the smallest fraction <code>fractionDigits</code> allows and stop at the bounds. <code>float</code>/<code>double</code> also take exponents (<code>1.5E3</code>), <code>INF</code>, <code>-INF</code> and <code>NaN</code></td>
+</tr>
+<tr>
+<td><code>duration</code>, <code>gYear</code>, <code>gYearMonth</code>, <code>gMonth</code>, <code>gMonthDay</code>, <code>gDay</code>, <code>hexBinary</code>, <code>base64Binary</code>, <code>QName</code></td>
+<td>Text field showing an example of the form (<code>P1Y2M3DT4H5M6S</code>, <code>--12-24</code>, …) while empty</td>
+</tr>
+<tr>
+<td>Strings, tokens, names, lists, other types</td>
+<td>Text field</td>
+</tr>
+</tbody>
+</table>
+<p>Every editor checks the value against the complete type while you type, with the same engine as the validation:
+the built-in type's form and range (<code>unsignedByte</code> 0–255, <code>positiveInteger</code> ≥ 1, valid dates), and every facet of
+every derivation step - patterns (XSD regular expressions, all steps must match), length limits after whitespace
+normalisation, inclusive and exclusive bounds, <code>totalDigits</code>, <code>fractionDigits</code>, <code>explicitTimezone</code>. A value that
+does not fit gets a red outline and the reason as tooltip.</p>
+<p>Such a value is <strong>not blocked</strong>: it is written, and a notification names the field and the reason - also for a table
+cell and for a pasted block of cells (one notification with the number of values). The Problems panel lists it
+after the next validation (<strong>F8</strong>).</p>
 <h2 id="json-grid">The Grid (Graphic view for JSON)<a class="headerlink" href="#json-grid" title="Permanent link">¶</a></h2>
 <p>JSON documents (<code>.json</code>, <code>.jsonc</code>, <code>.json5</code>) get the <strong>same grid</strong> in the <strong>Graphic</strong> view -
 same header strip, same rows, same keyboard shortcuts and context menu - so a JSON file
