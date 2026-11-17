@@ -26,7 +26,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationResult;
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationSeverity;
 import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
@@ -101,21 +100,10 @@ public class PatternTextField implements TypeAwareWidgetFactory.EditWidget {
     }
 
     private void applyValidationStyle() {
-        String baseStyle = "-fx-background-radius: 3; -fx-border-radius: 3;";
-
-        if (!validationResult.isValid() ||
-                validationResult.severity() == ValidationSeverity.WARNING) {
-            textField.setStyle(baseStyle +
-                    "-fx-border-color: #ffc107; -fx-border-width: 2px; -fx-background-color: #fff8e1;");
-
-            // Update tooltip with error
-            if (validationResult.errorMessage() != null) {
-                Tooltip.install(textField, new Tooltip(validationResult.errorMessage()));
-            }
-        } else {
-            textField.setStyle(baseStyle +
-                    "-fx-border-color: #28a745; -fx-border-width: 1px;");
-            Tooltip.install(textField, new Tooltip(I18n.t("PatternTextField.pattern-valid", patternString)));
+        WidgetFeedback.show(textField, validationResult);
+        if (validationResult.errorMessage() == null) {
+            // No problem: the tooltip keeps telling the expected pattern
+            textField.setTooltip(new Tooltip(I18n.t("PatternTextField.pattern", patternString)));
         }
     }
 

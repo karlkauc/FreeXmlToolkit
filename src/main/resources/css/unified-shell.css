@@ -5545,3 +5545,61 @@
 .fxt-tree-scroll-header-separator {
     -fx-text-fill: -fxt-text-secondary;
 }
+
+/* ===== Type-aware inline editors of the XML grid (controls/v2/xmleditor/widgets) =====
+   Colours only from tokens; the text/background pairs are the ones ContrastTest checks. */
+.toggle-button.fxt-bool-toggle {
+    -fx-background-color: -fxt-border, -fxt-bg-canvas;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 3, 2;
+    -fx-text-fill: -fxt-text-secondary;
+}
+.toggle-button.fxt-bool-toggle:selected {
+    -fx-font-weight: bold;
+}
+.toggle-button.fxt-bool-toggle.fxt-bool-true:selected {
+    -fx-background-color: -fxt-success, -fxt-success-bg;
+    -fx-text-fill: -fxt-success-text;
+}
+.toggle-button.fxt-bool-toggle.fxt-bool-false:selected {
+    -fx-background-color: -fxt-danger, -fxt-bg-surface;
+    -fx-text-fill: -fxt-danger;
+}
+.button.fxt-uri-prefix {
+    -fx-padding: 2 4;
+    -fx-background-color: -fxt-border, -fxt-bg-canvas;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 2, 1;
+    -fx-text-fill: -fxt-text-secondary;
+}
+.button.fxt-uri-prefix:hover {
+    -fx-background-color: -fxt-primary-fill;
+    -fx-background-insets: 0;
+    -fx-text-fill: -fxt-on-primary;
+}
+.fxt-cardinality-badge {
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-width: 1px;
+    -fx-background-color: -fxt-bg-surface;
+}
+.fxt-cardinality-badge.fxt-cardinality-required { -fx-border-color: -fxt-danger; }
+.fxt-cardinality-badge.fxt-cardinality-required .label { -fx-text-fill: -fxt-danger; }
+.fxt-cardinality-badge.fxt-cardinality-optional { -fx-border-color: -fxt-border; -fx-background-color: -fxt-bg-canvas; }
+.fxt-cardinality-badge.fxt-cardinality-optional .label { -fx-text-fill: -fxt-text-secondary; }
+.fxt-cardinality-badge.fxt-cardinality-multi { -fx-border-color: -fxt-primary; -fx-background-color: -fxt-bg-subtle; }
+.fxt-cardinality-badge.fxt-cardinality-multi .label { -fx-text-fill: -fxt-primary-text; }
+.fxt-cardinality-badge.fxt-cardinality-unbounded { -fx-border-color: -fxt-info; }
+.fxt-cardinality-badge.fxt-cardinality-unbounded .label { -fx-text-fill: -fxt-text-primary; }
+.label.fxt-cardinality-asterisk {
+    -fx-text-fill: -fxt-danger;
+    -fx-font-weight: bold;
+}
+.iconify-icon.fxt-cardinality-required { -fx-icon-color: -fxt-danger; }
+.iconify-icon.fxt-cardinality-optional { -fx-icon-color: -fxt-neutral; }
+.iconify-icon.fxt-cardinality-multi { -fx-icon-color: -fxt-primary; }
+.iconify-icon.fxt-cardinality-unbounded { -fx-icon-color: -fxt-info; }
+.fxt-cardinality-dot.fxt-cardinality-required { -fx-fill: -fxt-danger; -fx-stroke: derive(-fxt-danger, -25%); }
+.fxt-cardinality-dot.fxt-cardinality-optional { -fx-fill: -fxt-neutral; -fx-stroke: derive(-fxt-neutral, -25%); }
+.fxt-cardinality-dot.fxt-cardinality-multi { -fx-fill: -fxt-primary; -fx-stroke: derive(-fxt-primary, -25%); }
+.fxt-cardinality-dot.fxt-cardinality-unbounded { -fx-fill: -fxt-info; -fx-stroke: derive(-fxt-info, -25%); }

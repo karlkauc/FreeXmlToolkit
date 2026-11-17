@@ -62,28 +62,24 @@ public class BooleanToggle implements TypeAwareWidgetFactory.EditWidget {
         trueButton = new ToggleButton("true");
         trueButton.setToggleGroup(toggleGroup);
         trueButton.setPrefWidth(60);
-        styleButton(trueButton, false);
+        trueButton.getStyleClass().addAll("fxt-bool-toggle", "fxt-bool-true");
 
         falseButton = new ToggleButton("false");
         falseButton.setToggleGroup(toggleGroup);
         falseButton.setPrefWidth(60);
-        styleButton(falseButton, false);
+        falseButton.getStyleClass().addAll("fxt-bool-toggle", "fxt-bool-false");
 
         // Set initial state
         if (isTrue(currentValue)) {
             trueButton.setSelected(true);
-            styleButton(trueButton, true);
         } else if (isFalse(currentValue)) {
             falseButton.setSelected(true);
-            styleButton(falseButton, true);
         }
 
         // Listen for changes
         trueButton.setOnAction(e -> {
             if (trueButton.isSelected()) {
                 this.currentValue = "true";
-                styleButton(trueButton, true);
-                styleButton(falseButton, false);
                 if (onValueChange != null) {
                     onValueChange.accept("true");
                 }
@@ -93,8 +89,6 @@ public class BooleanToggle implements TypeAwareWidgetFactory.EditWidget {
         falseButton.setOnAction(e -> {
             if (falseButton.isSelected()) {
                 this.currentValue = "false";
-                styleButton(falseButton, true);
-                styleButton(trueButton, false);
                 if (onValueChange != null) {
                     onValueChange.accept("false");
                 }
@@ -112,21 +106,6 @@ public class BooleanToggle implements TypeAwareWidgetFactory.EditWidget {
         return "false".equalsIgnoreCase(value) || "0".equals(value);
     }
 
-    private void styleButton(ToggleButton button, boolean selected) {
-        if (selected) {
-            if (button == trueButton) {
-                button.setStyle("-fx-background-color: #28a745; -fx-text-fill: white; " +
-                        "-fx-font-weight: bold; -fx-background-radius: 3;");
-            } else {
-                button.setStyle("-fx-background-color: #dc3545; -fx-text-fill: white; " +
-                        "-fx-font-weight: bold; -fx-background-radius: 3;");
-            }
-        } else {
-            button.setStyle("-fx-background-color: #e9ecef; -fx-text-fill: #495057; " +
-                    "-fx-background-radius: 3;");
-        }
-    }
-
     @Override
     public Node getNode() {
         return container;
@@ -142,15 +121,11 @@ public class BooleanToggle implements TypeAwareWidgetFactory.EditWidget {
         this.currentValue = value;
         trueButton.setSelected(false);
         falseButton.setSelected(false);
-        styleButton(trueButton, false);
-        styleButton(falseButton, false);
 
         if (isTrue(value)) {
             trueButton.setSelected(true);
-            styleButton(trueButton, true);
         } else if (isFalse(value)) {
             falseButton.setSelected(true);
-            styleButton(falseButton, true);
         }
     }
 

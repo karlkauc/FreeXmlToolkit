@@ -22,7 +22,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 
@@ -44,11 +43,11 @@ import org.fxt.freexmltoolkit.i18n.I18n;
  */
 public class CardinalityIndicator {
 
-    // Colors
-    private static final String REQUIRED_COLOR = "#dc3545";   // Red
-    private static final String OPTIONAL_COLOR = "#6c757d";   // Gray
-    private static final String MULTI_COLOR = "#007bff";      // Blue
-    private static final String UNBOUNDED_COLOR = "#17a2b8";  // Teal
+    // Colour roles: style classes fxt-cardinality-<role> (token colours in unified-shell.css)
+    private static final String REQUIRED_COLOR = "required";
+    private static final String OPTIONAL_COLOR = "optional";
+    private static final String MULTI_COLOR = "multi";
+    private static final String UNBOUNDED_COLOR = "unbounded";
 
     private CardinalityIndicator() {
         // Utility class
@@ -88,13 +87,10 @@ public class CardinalityIndicator {
 
         // Badge label
         Label label = new Label(info.displayText());
-        label.setStyle("-fx-text-fill: " + info.color() + ";");
         label.getStyleClass().add("fxt-text-2xs");
 
         badge.getChildren().add(label);
-        badge.setStyle("-fx-background-color: " + lightenColor(info.color()) + "; " +
-                "-fx-background-radius: 3; -fx-border-radius: 3; " +
-                "-fx-border-color: " + info.color() + "; -fx-border-width: 1px;");
+        badge.getStyleClass().addAll("fxt-cardinality-badge", roleClass(info.color()));
 
         // Tooltip
         Tooltip tooltip = new Tooltip(info.tooltip());
@@ -117,8 +113,7 @@ public class CardinalityIndicator {
         }
 
         Label asterisk = new Label("*");
-        asterisk.setStyle("-fx-text-fill: " + REQUIRED_COLOR + "; -fx-font-weight: bold;");
-        asterisk.getStyleClass().add("fxt-text-lg");
+        asterisk.getStyleClass().addAll("fxt-text-lg", "fxt-cardinality-asterisk");
 
         Tooltip tooltip = new Tooltip(I18n.t("CardinalityIndicator.required-element"));
         tooltip.setShowDelay(Duration.millis(200));
@@ -141,23 +136,23 @@ public class CardinalityIndicator {
         switch (info.type()) {
             case EXACTLY_ONE -> {
                 icon = new IconifyIcon("bi-record-fill");
-                icon.setIconColor(Color.web(REQUIRED_COLOR));
+                icon.getStyleClass().add(roleClass(REQUIRED_COLOR));
             }
             case OPTIONAL -> {
                 icon = new IconifyIcon("bi-record");
-                icon.setIconColor(Color.web(OPTIONAL_COLOR));
+                icon.getStyleClass().add(roleClass(OPTIONAL_COLOR));
             }
             case REQUIRED_MULTI -> {
                 icon = new IconifyIcon("bi-plus-circle-fill");
-                icon.setIconColor(Color.web(MULTI_COLOR));
+                icon.getStyleClass().add(roleClass(MULTI_COLOR));
             }
             case OPTIONAL_MULTI -> {
                 icon = new IconifyIcon("bi-plus-circle");
-                icon.setIconColor(Color.web(UNBOUNDED_COLOR));
+                icon.getStyleClass().add(roleClass(UNBOUNDED_COLOR));
             }
             default -> {
                 icon = new IconifyIcon("bi-question-circle");
-                icon.setIconColor(Color.web(OPTIONAL_COLOR));
+                icon.getStyleClass().add(roleClass(OPTIONAL_COLOR));
             }
         }
 
@@ -181,8 +176,7 @@ public class CardinalityIndicator {
         CardinalityInfo info = parseCardinality(minOccurs, maxOccurs);
 
         Circle dot = new Circle(4);
-        dot.setFill(Color.web(info.color()));
-        dot.setStroke(Color.web(info.color()).darker());
+        dot.getStyleClass().addAll("fxt-cardinality-dot", roleClass(info.color()));
         dot.setStrokeWidth(1);
 
         Tooltip tooltip = new Tooltip(info.tooltip());
@@ -337,17 +331,8 @@ public class CardinalityIndicator {
         }
     }
 
-    /**
-     * Creates a lighter version of a color for backgrounds.
-     */
-    private static String lightenColor(String hexColor) {
-        // Simple approach: return a predefined light version
-        return switch (hexColor) {
-            case REQUIRED_COLOR -> "#f8d7da";  // Light red
-            case OPTIONAL_COLOR -> "#e9ecef";  // Light gray
-            case MULTI_COLOR -> "#cce5ff";     // Light blue
-            case UNBOUNDED_COLOR -> "#d1ecf1"; // Light teal
-            default -> "#f8f9fa";              // Very light gray
-        };
+    /** @return the style class of a colour role */
+    private static String roleClass(String role) {
+        return "fxt-cardinality-" + role;
     }
 }

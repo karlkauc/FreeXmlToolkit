@@ -31,7 +31,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationResult;
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationSeverity;
 import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
@@ -107,9 +106,7 @@ public class UriTextField implements TypeAwareWidgetFactory.EditWidget {
         };
 
         Button btn = new Button(label);
-        btn.getStyleClass().add("fxt-text-2xs");
-        btn.setStyle("-fx-padding: 2 4; -fx-background-radius: 2; " +
-                "-fx-background-color: #e9ecef; -fx-text-fill: #495057;");
+        btn.getStyleClass().addAll("fxt-text-2xs", "fxt-uri-prefix");
         btn.setTooltip(new Tooltip(I18n.t("UriTextField.insert", prefix)));
 
         btn.setOnAction(e -> {
@@ -124,14 +121,6 @@ public class UriTextField implements TypeAwareWidgetFactory.EditWidget {
             textField.requestFocus();
             textField.positionCaret(textField.getText().length());
         });
-
-        // Hover effect
-        btn.setOnMouseEntered(e ->
-                btn.setStyle("-fx-padding: 2 4; -fx-background-radius: 2; " +
-                        "-fx-background-color: #007bff; -fx-text-fill: white;"));
-        btn.setOnMouseExited(e ->
-                btn.setStyle("-fx-padding: 2 4; -fx-background-radius: 2; " +
-                        "-fx-background-color: #e9ecef; -fx-text-fill: #495057;"));
 
         return btn;
     }
@@ -151,18 +140,7 @@ public class UriTextField implements TypeAwareWidgetFactory.EditWidget {
     }
 
     private void applyValidationStyle() {
-        String baseStyle = "-fx-background-radius: 3; -fx-border-radius: 3;";
-
-        if (!validationResult.isValid() ||
-                validationResult.severity() == ValidationSeverity.WARNING) {
-            textField.setStyle(baseStyle +
-                    "-fx-border-color: #ffc107; -fx-border-width: 2px;");
-            textField.setTooltip(new Tooltip(validationResult.errorMessage()));
-        } else {
-            textField.setStyle(baseStyle +
-                    "-fx-border-color: #28a745; -fx-border-width: 1px;");
-            textField.setTooltip(new Tooltip(I18n.t("UriTextField.valid-uri")));
-        }
+        WidgetFeedback.show(textField, validationResult);
     }
 
     @Override
