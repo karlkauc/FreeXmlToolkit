@@ -3593,6 +3593,9 @@ looks and feels exactly like an XML file in the grid:</p>
   Unselected</strong>, <strong>Display as Table</strong>, <strong>Flip Rows/Columns</strong>, <strong>Copy Table as Tab-separated
   Text</strong>, <strong>Expand All / Collapse All</strong>, <strong>Sort Column</strong> and <strong>Delete</strong>. Copy Cell Content is
   Ctrl+Shift+C, as in the XML grid.</li>
+<li><strong>Delete in a table</strong> works as in the XML grid: on selected <strong>cells</strong> only their properties
+  are removed (key and value - no empty value is left), the objects stay; rows selected on
+  their <strong>row numbers</strong> are deleted as whole objects. One <strong>Undo</strong> restores everything.</li>
 <li>All edits go through the document's <strong>undo history</strong> (Ctrl+Z / Ctrl+Y) and are written back
   into the text - the Text, Tree and Graphic views share one model, and the <strong>Properties</strong>
   inspector edits keys and values from any of them.</li>
