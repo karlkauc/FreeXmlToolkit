@@ -1535,6 +1535,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Jump to Validation Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#large-lists-categories-search-grouping-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Large lists: categories, search, grouping, export
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -4729,6 +4746,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Jump to Validation Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#large-lists-categories-search-grouping-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Large lists: categories, search, grouping, export
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -6571,10 +6605,37 @@ changed the text since. <strong>Select</strong> a problem to show it <strong>in 
 <li>In the <strong>Graphic</strong> view the grid selects the element's row or table cell (opening tables and
   cells on the way) and flashes it; for an XSD the diagram selects the schema node.</li>
 </ul>
-<p>The counters in the PROBLEMS header (red ✕ errors, orange ⚠ warnings) are filters: click one to list only that
-severity, click it again to list all problems. The counters keep counting all problems; when new results contain none
-of the filtered severity, the filter goes away. Findings of <a href="../identifier-lookup/">Check Identifiers Online</a> carry a
-link to the identifier's entry at GLEIF, ESMA FIRDS or OpenFIGI.</p>
+<p>The counters in the PROBLEMS header (red ✕ errors, orange ⚠ warnings, blue ⓘ hints) are filters: click one to list
+only that severity, click it again to list all problems. The counters keep counting all problems; when new results
+contain none of the filtered severity, the filter goes away. <strong>Hints</strong> are findings that need no change as a rule -
+an ISIN not in ESMA FIRDS or not traded in the EU, an LEI whose registration is pending; they count neither as errors
+nor as warnings. Findings of <a href="../identifier-lookup/">Check Identifiers Online</a> carry a link to the identifier's entry at
+GLEIF, ESMA FIRDS or OpenFIGI.</p>
+<h3 id="large-lists-categories-search-grouping-export">Large lists: categories, search, grouping, export<a class="headerlink" href="#large-lists-categories-search-grouping-export" title="Permanent link">¶</a></h3>
+<p>A check of a large report can give hundreds of thousands of findings - one per occurrence. The header has the tools to
+work them off:</p>
+<ul>
+<li><strong>Categories</strong> - every finding belongs to a category, grouped: <em>Document</em> (not well-formed, schema, Schematron),
+  <em>LEI</em> (check digits, not registered, lapsed, pending), <em>ISIN</em> (unknown, CFI code differs, issuer LEI differs, not
+  traded in the EU), <em>FMA rules</em> (master data, Form 800, reconciliation and totals, assets, look-through, allocation,
+  Form 900, whole report, additional checks), <em>Extension rules</em> and <em>Other</em>. The menu shows each with its count; tick
+  them on and off, or show all / none.</li>
+<li><strong>Search</strong> - text, an ISIN or LEI, a rule code, a security's name.</li>
+<li><strong>Group</strong> - <em>List</em> (one row per finding, as before), <em>Security / object</em> (one group per ISIN, LEI, asset or VRG: a
+  security that occurs a hundred times is one row, with its kinds of problems and their occurrences below), <em>Rule</em> and
+  <em>Category</em>. Findings without a security (wrong totals, schema errors) come after the securities, grouped by rule.
+  Errors come first, then the groups with the most occurrences. Click an occurrence to jump to it.</li>
+<li>A group's right-click menu: <strong>Show in List</strong> (only the group's findings, with a label to leave), <strong>Copy These
+  Problems</strong>, <strong>Export These Problems to Excel…</strong> and, where ESMA FIRDS knows better, <strong>Fix ISIN … in Every Place</strong>:
+  the reported CFI code and issuer LEI of the security are replaced with the FIRDS values in every position of the
+  document - after one confirmation that lists old → new and how often, as one undo step. A rule or category group
+  fixes all its securities at once.</li>
+<li><strong>Export</strong> - the shown (filtered) or all problems to an Excel workbook: <em>Summary</em> (filter, counts per severity and
+  category), <em>Problems</em> (severity, category, rule, security / object and its name, line, message, link), <em>By Object</em>
+  (one row per security with its occurrences and kinds of problems) and <em>By Rule</em>. The row menu offers the export
+  too.</li>
+</ul>
+<p>The chosen grouping is remembered.</p>
 <p>See <a href="../validation-panel/">Validation Panel</a> for details.</p>
 <h2 id="properties-inspector">Properties Inspector<a class="headerlink" href="#properties-inspector" title="Permanent link">¶</a></h2>
 <p>The right-hand <strong>Properties</strong> inspector shows and edits the selected node of XML, XSD and JSON documents in every view - see <strong><a href="../inspector/">Properties Inspector</a></strong>.</p>

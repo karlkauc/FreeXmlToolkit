@@ -2445,6 +2445,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#many-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Many findings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#progress-cancelling-and-continuing" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3279,6 +3290,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#many-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Many findings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#progress-cancelling-and-continuing" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3466,6 +3488,12 @@ register's details page) or <strong>OpenFIGI</strong> (a search for the ISIN, al
 right-click the row → <strong>Open at …</strong>, to see the entry in the browser; <strong>Copy Problem</strong> includes the address. The
 Validation panel's problem list offers the same menu item. FIRDS answers cached by version 3.3.0 do not know the
 record's page and are looked up again on the next check.</p>
+<h2 id="many-findings">Many findings<a class="headerlink" href="#many-findings" title="Permanent link">¶</a></h2>
+<p>Findings that usually need no change - an ISIN not in ESMA FIRDS or not traded on an EU venue, an LEI whose
+registration is pending - are <strong>hints</strong> (blue ⓘ), not warnings. In the Problems panel, group the findings by
+<strong>Security / object</strong> to see each ISIN or LEI once with all its occurrences, and use <strong>Fix ISIN … in Every Place</strong> to
+take the CFI code and issuer LEI from ESMA FIRDS in every place the document reports them (one undo step). See
+<a href="../unified-shell/#large-lists-categories-search-grouping-export">Large lists</a>.</p>
 <h2 id="progress-cancelling-and-continuing">Progress, cancelling and continuing<a class="headerlink" href="#progress-cancelling-and-continuing" title="Permanent link">¶</a></h2>
 <p>A document with thousands of identifiers takes a while: GLEIF answers 200 LEIs per request and ESMA FIRDS 100 ISINs,
 at most one request a second each; OpenFIGI, asked about the ISINs FIRDS does not know, answers 10 per request and at
