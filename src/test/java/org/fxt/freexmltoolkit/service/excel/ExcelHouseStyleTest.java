@@ -85,6 +85,17 @@ class ExcelHouseStyleTest {
             assertEquals("FF" + FxtExcelTheme.Accent.WARNING.text(), warning.getXSSFColor().getARGBHex());
             assertEquals("'=SUM(A1) is not a formula here", problems.getRow(3).getCell(4).getStringCellValue());
             assertNotNull(problems.getCTWorksheet().getAutoFilter());
+            // document properties: what was checked and what came out
+            var core = workbook.getProperties().getCoreProperties();
+            assertEquals("Validation Problems — order.xml", core.getTitle());
+            assertEquals("order.xml", core.getSubject());
+            assertEquals("Validation Report", core.getCategory());
+            assertTrue(core.getDescription().startsWith("3 problems (2 errors, 1 warnings, 0 hints)"), core.getDescription());
+            assertTrue(core.getKeywords().contains("Document"), core.getKeywords());
+            var custom = workbook.getProperties().getCustomProperties();
+            assertEquals(2, custom.getProperty("Errors").getI4());
+            assertEquals("order.xml", custom.getProperty("Source File").getLpwstr());
+            assertEquals("All problems", custom.getProperty("Filter").getLpwstr());
         }
     }
 

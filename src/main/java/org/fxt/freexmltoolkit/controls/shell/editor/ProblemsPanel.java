@@ -595,8 +595,8 @@ public class ProblemsPanel extends VBox {
                     if (onExported != null) {
                         onExported.accept(output);
                     } else {
-                        org.fxt.freexmltoolkit.util.DialogHelper.showInformation(I18n.t("ProblemsPanel.export"), null,
-                                I18n.t("ProblemsPanel.exported", problems.size(), output.getAbsolutePath()));
+                        showExported(I18n.t("ProblemsPanel.export"),
+                                I18n.t("ProblemsPanel.exported", problems.size(), output.getAbsolutePath()), output);
                     }
                 });
             } catch (Exception ex) {
@@ -608,6 +608,19 @@ public class ProblemsPanel extends VBox {
                 });
             }
         });
+    }
+
+    /**
+     * Says where the workbook was written, with <b>Open Report</b> next to OK: opens it in the program the system
+     * uses for .xlsx files (Excel).
+     */
+    static void showExported(String title, String message, java.io.File workbook) {
+        if (org.fxt.freexmltoolkit.util.DialogHelper.showInformationWithAction(title, null, message,
+                I18n.t("ProblemsPanel.open-report"), "OK")) {
+            org.fxt.freexmltoolkit.util.DesktopActions.open(workbook, e -> org.fxt.freexmltoolkit.util.DialogHelper
+                    .showActionError(title, I18n.t("ProblemsPanel.open-report-failed", workbook.getName()),
+                            I18n.t("ProblemsPanel.open-report-remedy", workbook.getParent()), e.getMessage()));
+        }
     }
 
     /** Test hook: told about a finished export instead of the message box. */
