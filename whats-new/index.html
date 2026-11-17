@@ -3554,6 +3554,14 @@
 running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
 <h2 id="unreleased">Unreleased<a class="headerlink" href="#unreleased" title="Permanent link">¶</a></h2>
 <ul>
+<li><strong>37 more FundsXML data-quality checks.</strong> <em>Run Data Quality Checks</em> now runs 54 checks: units × price and nominal ×
+  price against the market value, position weights against their value, exchange rates, FX forwards, duplicate
+  assets, transactions and prices, positions whose ISIN or currency differs from the master data, NAV dates after
+  the content date or before inception, share-class ratios and dates, country codes and BICs. Every check has a
+  severity - error, warning or <strong>hint</strong> (a fund without LEI, an OTC derivative without counterparty LEI): hints do not
+  fail a document. The report shows the severity, the Problems panel files each finding under it, and the
+  documentation lists an XPath for every check to run on its own in the Query Console. A new analysis snippet shows
+  the UCITS 5/10/40 issuer concentration. See <a href="../fundsxml-extensions/#data-quality-checks">FundsXML Extensions</a>.</li>
 <li><strong>File sizes on the Welcome page.</strong> The recent files show their size next to when they were last changed; a long
   name is shortened instead of pushing the date out of view.</li>
 <li><strong>Table headers stay in view.</strong> In the Graphic view of XML and JSON documents, the header row of a long table stays
