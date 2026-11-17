@@ -85,7 +85,7 @@ public class EditorWelcomePane extends VBox {
         fillTrend();
 
         recentList.setItems(recentFiles);
-        recentList.setCellFactory(lv -> new RecentCell(this::knownModified));
+        recentList.setCellFactory(lv -> new RecentCell(this::knownModified, this::knownSize));
         recentList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             if (newV != null) {
                 // Defer out of the selection-change processing (opening builds an editor and
@@ -153,15 +153,25 @@ public class EditorWelcomePane extends VBox {
 
     /** Replaces the recent-files list (most-recent first). */
     public void setRecentFiles(List<File> files) {
-        setRecentFiles(files, java.util.Map.of());
+        setRecentFiles(files, java.util.Map.of(), java.util.Map.of());
+    }
+
+    /** {@link #setRecentFiles(List, java.util.Map, java.util.Map)} without known sizes. */
+    public void setRecentFiles(List<File> files, java.util.Map<File, Long> lastModified) {
+        setRecentFiles(files, lastModified, java.util.Map.of());
     }
 
     /**
-     * Sets the recent files with their last-modified times, read beforehand off the FX thread: the
-     * list cells used to stat each file on every layout pass, which stalls on unreachable network paths.
+     * Sets the recent files with their last-modified times and sizes, read beforehand off the FX
+     * thread: the list cells used to stat each file on every layout pass, which stalls on
+     * unreachable network paths.
+     *
+     * @param sizes the files' sizes in bytes ({@code -1} or absent = unknown / missing file)
      */
-    public void setRecentFiles(List<File> files, java.util.Map<File, Long> lastModified) {
+    public void setRecentFiles(List<File> files, java.util.Map<File, Long> lastModified,
+                               java.util.Map<File, Long> sizes) {
         this.recentModified = lastModified;
+        this.recentSizes = sizes;
         // Clear the selection before replacing the items to avoid a JavaFX
         // ListViewBehavior IndexOutOfBoundsException (see javafx-listview-setall-crash).
         recentList.getSelectionModel().clearSelection();
@@ -174,6 +184,20 @@ public class EditorWelcomePane extends VBox {
     private long knownModified(File file) {
         Long known = recentModified.get(file);
         return known != null ? known : file.lastModified();
+    }
+
+    /** Sizes of the recent files as passed in (see {@link #setRecentFiles(List, java.util.Map, java.util.Map)}). */
+    private java.util.Map<File, Long> recentSizes = java.util.Map.of();
+
+    /** @return the file's size as passed in, or -1 when unknown (never read here: no stat on the FX thread) */
+    private long knownSize(File file) {
+        Long known = recentSizes.get(file);
+        return known != null ? known : -1;
+    }
+
+    /** @return a readable size ({@code 12.30 KB}), or an empty text for an unknown size */
+    static String sizeText(long bytes) {
+        return bytes < 0 ? "" : org.fxt.freexmltoolkit.util.FormattingUtils.formatFileSize(bytes);
     }
 
     /**
@@ -357,20 +381,32 @@ public class EditorWelcomePane extends VBox {
         private final Label name = new Label();
         private final Label path = new Label();
         private final Label time = new Label();
+        private final Label size = new Label();
         private final IconifyIcon icon = new IconifyIcon();
         private final HBox row;
 
         private final java.util.function.ToLongFunction<File> lastModified;
+        private final java.util.function.ToLongFunction<File> sizes;
 
-        RecentCell(java.util.function.ToLongFunction<File> lastModified) {
+        RecentCell(java.util.function.ToLongFunction<File> lastModified, java.util.function.ToLongFunction<File> sizes) {
             this.lastModified = lastModified;
+            this.sizes = sizes;
             name.getStyleClass().add("fxt-recent-name");
             path.getStyleClass().add("fxt-recent-path");
             time.getStyleClass().add("fxt-recent-time");
+            size.getStyleClass().add("fxt-recent-size");
             icon.setIconSize(16);
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
-            row = new HBox(10, icon, new VBox(2, name, path), spacer, time);
+            VBox facts = new VBox(2, time, size);
+            facts.setAlignment(Pos.CENTER_RIGHT);
+            // time and size keep their width; a long name or folder is shortened instead
+            facts.setMinWidth(Region.USE_PREF_SIZE);
+            VBox names = new VBox(2, name, path);
+            names.setMinWidth(0);
+            row = new HBox(10, icon, names, spacer, facts);
+            // the cell takes the list's width (no horizontal scrolling): long names are shortened
+            setPrefWidth(0);
             row.setAlignment(Pos.CENTER_LEFT);
         }
 
@@ -384,6 +420,10 @@ public class EditorWelcomePane extends VBox {
                 name.setText(item.getName());
                 path.setText(item.getParent() == null ? "" : item.getParent());
                 time.setText(relativeTime(lastModified.applyAsLong(item)));
+                String sizeText = sizeText(sizes.applyAsLong(item));
+                size.setText(sizeText);
+                size.setVisible(!sizeText.isEmpty());
+                size.setManaged(!sizeText.isEmpty());
                 setGraphic(row);
             }
         }

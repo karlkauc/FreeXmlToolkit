@@ -121,6 +121,24 @@ class EditorWelcomePaneTest {
     }
 
     @Test
+    void recentEntriesShowTheirSizeReadably() {
+        File known = new File("/tmp/report.xml");
+        File missing = new File("/tmp/gone.xml");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            pane.setRecentFiles(List.of(known, missing),
+                    java.util.Map.of(known, 0L, missing, 0L),
+                    java.util.Map.of(known, 185_597_952L, missing, -1L));
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        java.util.List<String> sizes = WaitForAsyncUtils.waitForAsyncFx(2000, () -> pane.lookupAll(".fxt-recent-size")
+                .stream().filter(javafx.scene.Node::isVisible).map(n -> ((javafx.scene.control.Label) n).getText()).toList());
+        assertEquals(List.of("177.00 MB"), sizes, "the known size readable, none for a missing file");
+        assertEquals("512 B", EditorWelcomePane.sizeText(512));
+        assertEquals("", EditorWelcomePane.sizeText(-1));
+    }
+
+    @Test
     void showsDataBackedStatCards() {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             pane.setStats(new EditorWelcomePane.WelcomeStats(7, 3, 12, 5));

@@ -6,6 +6,8 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+- **File sizes on the Welcome page.** The recent files show their size next to when they were last changed; a long
+  name is shortened instead of pushing the date out of view.
 - **Table headers stay in view.** In the Graphic view of XML and JSON documents, the header row of a long table stays
   at the top while you scroll through it (inside opened cells too, stacked below the outer table's header), so you
   always see which column is which - and can still sort, select, move or resize columns there. See [Grid](grid.md).

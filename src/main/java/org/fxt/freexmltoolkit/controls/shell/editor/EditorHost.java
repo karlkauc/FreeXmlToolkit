@@ -1750,8 +1750,10 @@ public class EditorHost extends BorderPane {
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             java.util.List<File> recent = recentFiles();
             java.util.Map<File, Long> modified = new java.util.HashMap<>();
+            java.util.Map<File, Long> sizes = new java.util.HashMap<>();
             for (File file : recent) {
                 modified.put(file, file.lastModified());
+                sizes.put(file, file.isFile() ? file.length() : -1L);
             }
             EditorWelcomePane.WelcomeStats stats = welcomeStats(recent.size());
             boolean fundsXml = fundsXmlContentAvailable();
@@ -1761,7 +1763,7 @@ public class EditorHost extends BorderPane {
                     return;
                 }
                 welcomePane.setRecentProjects(projects, ProjectActions::openProject);
-                welcomePane.setRecentFiles(recent, modified);
+                welcomePane.setRecentFiles(recent, modified, sizes);
                 welcomePane.setStats(stats);
                 welcomePane.setFundsXmlVisible(fundsXml);
             });

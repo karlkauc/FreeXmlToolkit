@@ -1047,7 +1047,8 @@ When no document is open, the editor shows a welcome dashboard with:
   the application in the last seven days.
 - **Tips banner** - A short hint banner with handy shortcuts (for example, drag a file onto the
   window to open it, or use Ctrl+F / Ctrl+H to find and replace).
-- **Recent files** list - Click an entry to reopen it. While the list is still empty it
+- **Recent files** list - Each entry shows the file name, its folder, when it was last changed
+  and its size (e.g. `177.00 MB`). Click an entry to reopen it. While the list is still empty it
   shows a hint: files you open or create appear here - start with **Open File** or
   **New File** above.
 - **What do you want to do?** - A task list with six rows:
