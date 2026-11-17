@@ -6,6 +6,7 @@ import java.util.List;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.AddArrayItemCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.AddPropertyCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.CompositeJsonCommand;
+import org.fxt.freexmltoolkit.controls.jsoneditor.commands.DeleteNodeCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.JsonCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.RenameKeyCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.SetPrimitiveValueCommand;
@@ -176,5 +177,48 @@ public final class JsonTableEditOps {
             }
         }
         return new CompositeJsonCommand("Paste cells", parts);
+    }
+
+    /**
+     * The commands that delete the selected cells of a JSON table (the Delete key on a cell
+     * selection): with {@code wholeRows} (rows chosen by their row number) every row of the
+     * range loses its object; otherwise each cell's property is removed completely (key and
+     * value, no empty value left behind). Cells without a property are skipped.
+     *
+     * @param table     the table
+     * @param r1        one corner row of the range
+     * @param c1        one corner column of the range
+     * @param r2        the opposite corner row
+     * @param c2        the opposite corner column
+     * @param wholeRows whether the rows themselves are selected (not only cells)
+     * @return one undoable step (empty when nothing is to do)
+     */
+    public static CompositeJsonCommand deleteCells(RepeatingElementsTable table, int r1, int c1, int r2, int c2,
+                                                   boolean wholeRows) {
+        List<JsonCommand> parts = new ArrayList<>();
+        List<RepeatingElementsTable.TableRow> rows = table.getRows();
+        List<RepeatingElementsTable.TableColumn> columns = table.getColumns();
+        int top = Math.max(0, Math.min(r1, r2));
+        int bottom = Math.min(rows.size() - 1, Math.max(r1, r2));
+        int left = Math.max(0, Math.min(c1, c2));
+        int right = Math.min(columns.size() - 1, Math.max(c1, c2));
+        int deletedRows = 0;
+        for (int r = top; r <= bottom; r++) {
+            if (!(rows.get(r).getNode() instanceof JsonObject member)) {
+                continue;
+            }
+            if (wholeRows) {
+                parts.add(new DeleteNodeCommand(member));
+                deletedRows++;
+                continue;
+            }
+            for (int c = left; c <= right; c++) {
+                JsonNode property = member.getProperty(columns.get(c).getName());
+                if (property != null) {
+                    parts.add(new DeleteNodeCommand(property));
+                }
+            }
+        }
+        return new CompositeJsonCommand(deletedRows > 0 ? "Delete " + deletedRows + " row(s)" : "Delete cells", parts);
     }
 }

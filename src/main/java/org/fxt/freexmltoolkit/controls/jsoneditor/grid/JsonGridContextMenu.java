@@ -360,7 +360,7 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         // === Delete ===
         deleteItem = new MenuItem(I18n.t("JsonGridContextMenu.delete"));
         deleteItem.setGraphic(createColoredIcon("bi-trash", ActionColor.DELETE));
-        deleteItem.setOnAction(e -> deleteNode());
+        deleteItem.setOnAction(e -> deleteFromMenu());
         deleteItem.setAccelerator(new KeyCodeCombination(KeyCode.DELETE));
 
         menu.getItems().addAll(
@@ -888,6 +888,28 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
             return;
         }
         execute(new MoveNodeCommand(selected, newIndex));
+    }
+
+    /**
+     * "Delete" from the menu: on a table cell only that cell's property goes (like the Delete key
+     * on a cell selection), elsewhere the selected node.
+     */
+    private void deleteFromMenu() {
+        if (clickedTable != null && clickedColumnName != null && clickedRowIndex >= 0) {
+            List<RepeatingElementsTable.TableColumn> columns = clickedTable.getColumns();
+            for (int c = 0; c < columns.size(); c++) {
+                if (columns.get(c).getName().equals(clickedColumnName)) {
+                    CompositeJsonCommand cmd = JsonTableEditOps.deleteCells(
+                            clickedTable, clickedRowIndex, c, clickedRowIndex, c, false);
+                    if (!cmd.isEmpty() && context.executeCommand(cmd)) {
+                        context.getSelectionModel().clearSelection();
+                        refresh();
+                    }
+                    return;
+                }
+            }
+        }
+        deleteNode();
     }
 
     private void deleteNode() {

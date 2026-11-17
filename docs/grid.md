@@ -305,6 +305,9 @@ looks and feels exactly like an XML file in the grid:
   Unselected**, **Display as Table**, **Flip Rows/Columns**, **Copy Table as Tab-separated
   Text**, **Expand All / Collapse All**, **Sort Column** and **Delete**. Copy Cell Content is
   Ctrl+Shift+C, as in the XML grid.
+- **Delete in a table** works as in the XML grid: on selected **cells** only their properties
+  are removed (key and value - no empty value is left), the objects stay; rows selected on
+  their **row numbers** are deleted as whole objects. One **Undo** restores everything.
 - All edits go through the document's **undo history** (Ctrl+Z / Ctrl+Y) and are written back
   into the text - the Text, Tree and Graphic views share one model, and the **Properties**
   inspector edits keys and values from any of them.

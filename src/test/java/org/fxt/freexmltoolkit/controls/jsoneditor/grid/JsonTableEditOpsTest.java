@@ -138,4 +138,49 @@ class JsonTableEditOpsTest {
         assertEquals(1L, ((Number) ((org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonPrimitive)
                 ((JsonObject) people().get(0)).getProperty("a")).getValue()).longValue());
     }
+
+    private int col(String key) {
+        List<RepeatingElementsTable.TableColumn> columns = table.getColumns();
+        for (int c = 0; c < columns.size(); c++) {
+            if (columns.get(c).getName().equals(key)) {
+                return c;
+            }
+        }
+        throw new AssertionError("no column " + key);
+    }
+
+    @Test
+    void deletingACellRemovesOnlyThatProperty() {
+        load("{\"people\": [{\"a\": 1, \"b\": 2}, {\"a\": 3, \"b\": 4}]}");
+        int b = col("b");
+        assertTrue(context.executeCommand(JsonTableEditOps.deleteCells(table, 0, b, 0, b, false)));
+        assertEquals(2, people().getChildCount(), "the row stays");
+        assertEquals(List.of("a"), keys(people().getChildren().get(0)), "key and value are gone");
+        assertEquals(List.of("a", "b"), keys(people().getChildren().get(1)));
+
+        context.undo();
+        assertEquals(List.of("a", "b"), keys(people().getChildren().get(0)));
+    }
+
+    @Test
+    void deletingACellRangeIsOneStepAndSkipsMissingProperties() {
+        load("{\"people\": [{\"a\": 1, \"b\": 2, \"c\": 0}, {\"a\": 3, \"c\": 5}]}");
+        assertTrue(context.executeCommand(JsonTableEditOps.deleteCells(table, 1, col("b"), 0, col("a"), false)));
+        assertEquals(List.of("c"), keys(people().getChildren().get(0)));
+        assertEquals(List.of("c"), keys(people().getChildren().get(1)));
+        context.undo();
+        assertEquals(List.of("a", "b", "c"), keys(people().getChildren().get(0)));
+        assertEquals(List.of("a", "c"), keys(people().getChildren().get(1)));
+    }
+
+    @Test
+    void wholeRowsLoseTheirObjectAndEmptyCellsGiveNothingToDo() {
+        load("{\"people\": [{\"a\": 1, \"b\": 2}, {\"a\": 3}, {\"a\": 5}]}");
+        assertTrue(JsonTableEditOps.deleteCells(table, 1, col("b"), 1, col("b"), false).isEmpty());
+        JsonGridAdapter adapter = new JsonGridAdapter(context);
+        assertTrue(adapter.supportsCellDelete());
+        assertTrue(adapter.deleteCells(table, 0, 0, 1, 0, true));
+        assertEquals(1, people().getChildCount());
+        assertEquals("5", JsonGridRecord.cellText(((JsonObject) people().getChildren().get(0)).getProperty("a")));
+    }
 }

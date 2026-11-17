@@ -634,6 +634,17 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
     }
 
     @Override
+    public boolean supportsCellDelete() {
+        return true;
+    }
+
+    @Override
+    public boolean deleteCells(RepeatingElementsTable table, int r1, int c1, int r2, int c2, boolean wholeRows) {
+        CompositeJsonCommand cmd = JsonTableEditOps.deleteCells(table, r1, c1, r2, c2, wholeRows);
+        return !cmd.isEmpty() && context.executeCommand(cmd);
+    }
+
+    @Override
     public boolean pasteCells(RepeatingElementsTable table, int startRow, int startCol,
                               List<List<String>> values) {
         CompositeJsonCommand cmd = JsonTableEditOps.pasteCells(table, startRow, startCol, values);
