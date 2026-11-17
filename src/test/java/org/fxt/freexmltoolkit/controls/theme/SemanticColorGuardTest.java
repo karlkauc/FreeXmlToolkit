@@ -45,7 +45,6 @@ class SemanticColorGuardTest {
             "src/main/java/org/fxt/freexmltoolkit/controls/v2/xmleditor/widgets/BooleanToggle.java",
             "src/main/java/org/fxt/freexmltoolkit/controls/v2/xmleditor/widgets/UriTextField.java",
             "src/main/java/org/fxt/freexmltoolkit/controls/v2/xmleditor/widgets/PatternTextField.java",
-            "src/main/java/org/fxt/freexmltoolkit/controls/v2/xmleditor/widgets/CardinalityIndicator.java",
             "src/main/java/org/fxt/freexmltoolkit/controls/unified/UnifiedSearchBar.java",
             "src/main/java/org/fxt/freexmltoolkit/controls/v2/xmleditor/widgets/LengthValidatedField.java",
             "src/main/java/org/fxt/freexmltoolkit/controls/v2/editor/dialogs/TypeUsageDialog.java",
