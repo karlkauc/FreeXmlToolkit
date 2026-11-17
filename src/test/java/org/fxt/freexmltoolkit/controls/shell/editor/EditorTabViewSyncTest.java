@@ -248,4 +248,29 @@ class EditorTabViewSyncTest {
         assertArrayEquals(new int[] {first, first + 3},
                 WaitForAsyncUtils.waitForAsyncFx(2000, () -> tab.view.getLinkedNodeLines()));
     }
+
+    @Test
+    void aNodeChosenInTheGridOfALargeDocumentIsFoundBackInText(@TempDir Path tmp) throws Exception {
+        // larger than the full-scan limit (8 MB): the node is found through the model's source lines
+        StringBuilder xml = new StringBuilder("<?xml version=\"1.0\"?>\n<Meldung>\n");
+        for (int i = 0; i < 100_000; i++) {
+            xml.append("  <Datenpunkt nr=\"").append(i).append("\">\n    <TemplateCode>PK.900.01</TemplateCode>\n")
+                    .append("    <Wert>").append(i).append("</Wert>\n  </Datenpunkt>\n");
+        }
+        xml.append("</Meldung>\n");
+        assertTrue(xml.length() > 8 * 1024 * 1024);
+        EditorTab tab = open(tmp, "large.xml", xml.toString());
+        switchTo(ViewMode.GRAPHIC);
+        waitFor(() -> tab.xmlEditorContext != null && tab.xmlEditorContext.getDocument() != null);
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            var datenpunkt = tab.xmlEditorContext.getDocument().getRootElement().getChildElements().get(50_000);
+            tab.currentXmlSelection = datenpunkt.getChildElements().getFirst(); // its TemplateCode
+            return null;
+        });
+        switchTo(ViewMode.TEXT);
+        int line = 3 + 50_000 * 4; // <Datenpunkt nr="50000"> is on line 3 + 4 * 50000, TemplateCode below it
+        waitFor(() -> tab.view.getCodeArea().getCurrentParagraph() + 1 == line + 1);
+        assertArrayEquals(new int[] {line + 1, line + 1},
+                WaitForAsyncUtils.waitForAsyncFx(2000, () -> tab.view.getLinkedNodeLines()), "TemplateCode's line is tinted");
+    }
 }

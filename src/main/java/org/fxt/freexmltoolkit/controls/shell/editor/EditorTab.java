@@ -574,11 +574,18 @@ final class EditorTab extends Tab {
      * is current here (pending diagram and grid edits were written back before the switch).
      */
     private void revealPathInText(java.util.List<Integer> path) {
-        String text = view.getText();
-        if (text == null || text.length() > TEXT_RANGE_SCAN_LIMIT) {
+        pendingTextReveal = null;
+        EditorFileType type = document.getFileType();
+        if (view.getCodeArea().getLength() > TEXT_RANGE_SCAN_LIMIT) {
+            if (type.isXmlFamily() && type != EditorFileType.XSD) {
+                revealLargeXmlPath(path);
+            }
             return;
         }
-        EditorFileType type = document.getFileType();
+        String text = view.getText();
+        if (text == null) {
+            return;
+        }
         int start;
         int end;
         if (type == EditorFileType.JSON) {
@@ -610,6 +617,11 @@ final class EditorTab extends Tab {
         } else {
             return;
         }
+        placeOnNode(start, end);
+    }
+
+    /** Puts the caret on a node's start and tints its lines ({@code start}..{@code end} offsets). */
+    private void placeOnNode(int start, int end) {
         var area = view.getCodeArea();
         area.moveTo(Math.min(start, area.getLength()));
         area.requestFollowCaret();
@@ -617,6 +629,56 @@ final class EditorTab extends Tab {
         int lastLine = area.offsetToPosition(Math.max(start, end - 1),
                 org.fxmisc.richtext.model.TwoDimensional.Bias.Forward).getMajor() + 1;
         view.setLinkedNodeLines(firstLine, lastLine);
+    }
+
+    /** How far {@link #revealLargeXmlPath} reads around a node (start tag back, element end forward). */
+    private static final int LARGE_REVEAL_SCAN = 4 * 1024 * 1024;
+
+    /**
+     * A node path the Text view reveals once the model's lines describe the text again (a deferred
+     * write-back of grid edits to a large document is still running), or {@code null}.
+     */
+    private java.util.List<Integer> pendingTextReveal;
+
+    /**
+     * {@link #revealPathInText} for a document too large to scan whole: the shared model knows the
+     * node's source line, the start tag is found on it and the end read from there (up to
+     * {@link #LARGE_REVEAL_SCAN} characters; beyond that only the start tag is tinted).
+     */
+    private void revealLargeXmlPath(java.util.List<Integer> path) {
+        if (xmlEditorContext == null || xmlEditorContext.getDocument() == null || path == null) {
+            return;
+        }
+        if (xmlModelLinesRevision != textRevision) {
+            if (xmlTextBehindModel || xmlWriteBackRunning) {
+                pendingTextReveal = path; // the write-back brings the lines (modelLinesFrom)
+            }
+            return;
+        }
+        var element = navigate(xmlEditorContext.getDocument().getRootElement(), path);
+        if (element == null || element.getSourceLineNumber() <= 0) {
+            return;
+        }
+        var area = view.getCodeArea();
+        int paragraph = element.getSourceLineNumber() - 1;
+        if (paragraph >= area.getParagraphs().size()) {
+            return;
+        }
+        // Only a window around the node is read: the whole text of a 150-MB document is a copy of 300 MB
+        int lineEnd = area.getAbsolutePosition(paragraph, area.getParagraphLength(paragraph));
+        int before = Math.max(0, lineEnd - LARGE_REVEAL_SCAN);
+        int found = org.fxt.freexmltoolkit.controls.shared.utilities.XmlElementAtCaret.startTagBefore(
+                area.getText(before, lineEnd), lineEnd - before, element.getQualifiedName(), LARGE_REVEAL_SCAN);
+        if (found < 0) {
+            int lineStart = area.getAbsolutePosition(paragraph, 0);
+            placeOnNode(lineStart, lineStart + 1);
+            return;
+        }
+        int start = before + found;
+        String after = area.getText(start, Math.min(area.getLength(), start + LARGE_REVEAL_SCAN));
+        int end = org.fxt.freexmltoolkit.controls.shared.utilities.XmlElementAtCaret.elementEndFrom(
+                after, 0, LARGE_REVEAL_SCAN);
+        placeOnNode(start, end > 0 ? start + end : start + 1);
     }
 
     /**
@@ -1163,6 +1225,11 @@ final class EditorTab extends Tab {
         if (caretMapRevision != textRevision) {
             caretMapDoc = null; // the model maps the caret now (see ensureCaretMapAsync)
             caretMapRevision = -1;
+        }
+        java.util.List<Integer> reveal = pendingTextReveal;
+        pendingTextReveal = null;
+        if (reveal != null && viewMode == ViewMode.TEXT) {
+            revealPathInText(reveal);
         }
     }
 

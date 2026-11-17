@@ -253,4 +253,124 @@ public final class XmlElementAtCaret {
         }
         return sameNameCount > 1 ? "/" + element.name + "[" + position + "]" : "/" + element.name;
     }
+
+    // ---- local lookups (documents too large for a full scan) -----------------
+
+    /**
+     * The start of the start tag of an element named {@code qname} that ends at or before
+     * {@code before} - the last {@code <qname} followed by whitespace, {@code >} or {@code /}.
+     *
+     * @param xml    the document text
+     * @param before an offset (e.g. the end of the line a parser reported for the element)
+     * @param qname  the element's qualified name
+     * @param limit  how far back to look at most
+     * @return the offset of the {@code <}, or -1
+     */
+    public static int startTagBefore(String xml, int before, String qname, int limit) {
+        if (xml == null || qname == null || qname.isEmpty()) {
+            return -1;
+        }
+        String needle = "<" + qname;
+        int floor = Math.max(0, before - limit);
+        int from = Math.min(before, xml.length() - 1);
+        while (from >= floor) {
+            int idx = xml.lastIndexOf(needle, from);
+            if (idx < floor) {
+                return -1;
+            }
+            int after = idx + needle.length();
+            if (after < xml.length()) {
+                char c = xml.charAt(after);
+                if (Character.isWhitespace(c) || c == '>' || c == '/') {
+                    return idx;
+                }
+            }
+            from = idx - 1;
+        }
+        return -1;
+    }
+
+    /**
+     * The end of the element whose start tag begins at {@code start}: just past its end tag (or its
+     * {@code />}), skipping comments, CDATA sections, processing instructions and quoted attribute
+     * values. Reads at most {@code limit} characters.
+     *
+     * @param xml   the document text
+     * @param start the offset of the element's {@code <}
+     * @param limit how many characters to read at most
+     * @return the offset just past the element, or -1 when it does not end within the limit
+     */
+    public static int elementEndFrom(String xml, int start, int limit) {
+        if (xml == null || start < 0 || start >= xml.length() || xml.charAt(start) != '<') {
+            return -1;
+        }
+        int n = (int) Math.min(xml.length(), (long) start + limit);
+        int depth = 0;
+        int i = start;
+        while (i < n) {
+            int lt = xml.indexOf('<', i);
+            if (lt < 0 || lt >= n) {
+                return -1;
+            }
+            int skipTo = -1;
+            if (xml.startsWith("<!--", lt)) {
+                skipTo = endOf(xml, "-->", lt + 4);
+            } else if (xml.startsWith("<![CDATA[", lt)) {
+                skipTo = endOf(xml, "]]>", lt + 9);
+            } else if (xml.startsWith("<?", lt)) {
+                skipTo = endOf(xml, "?>", lt + 2);
+            } else if (xml.startsWith("<!", lt)) {
+                skipTo = endOf(xml, ">", lt + 2);
+            }
+            if (skipTo >= 0 || xml.startsWith("<!", lt) || xml.startsWith("<?", lt)) {
+                if (skipTo < 0) {
+                    return -1;
+                }
+                i = skipTo;
+                continue;
+            }
+            int gt = tagEnd(xml, lt, n);
+            if (gt < 0) {
+                return -1;
+            }
+            if (lt + 1 < xml.length() && xml.charAt(lt + 1) == '/') {
+                depth--;
+                if (depth == 0) {
+                    return gt + 1;
+                }
+            } else if (xml.charAt(gt - 1) == '/') {
+                if (depth == 0) {
+                    return gt + 1;
+                }
+            } else {
+                depth++;
+            }
+            i = gt + 1;
+        }
+        return -1;
+    }
+
+    /** @return the offset just past {@code end} searched from {@code from}, or -1 */
+    private static int endOf(String xml, String end, int from) {
+        int idx = xml.indexOf(end, from);
+        return idx < 0 ? -1 : idx + end.length();
+    }
+
+    /** @return the offset of the {@code >} closing the tag at {@code lt} (quoted values skipped), or -1 */
+    private static int tagEnd(String xml, int lt, int n) {
+        char quote = 0;
+        for (int i = lt + 1; i < n; i++) {
+            char c = xml.charAt(i);
+            if (quote != 0) {
+                if (c == quote) {
+                    quote = 0;
+                }
+            } else if (c == '"' || c == '\'') {
+                quote = c;
+            } else if (c == '>') {
+                return i;
+            }
+        }
+        return -1;
+    }
 }
