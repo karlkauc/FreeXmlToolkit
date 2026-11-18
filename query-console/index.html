@@ -1247,6 +1247,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#variables-trace-and-the-execution-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Variables, trace and the execution plan
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#when-a-query-fails" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3361,6 +3372,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#variables-trace-and-the-execution-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Variables, trace and the execution plan
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#when-a-query-fails" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3597,6 +3619,17 @@ the hits together.</p>
 activity. For XSLT transformations, parameters, recent-stylesheet history, watch-and-rerun, and
 the OUTPUT panel's result table and HTML preview, use the <a href="../transform-panel/#transform-panel">Transform Panel</a>.</p>
 </div>
+<h3 id="variables-trace-and-the-execution-plan">Variables, trace and the execution plan<a class="headerlink" href="#variables-trace-and-the-execution-plan" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>External variables.</strong> An XQuery that declares <code>declare variable $n as xs:integer external;</code> gets a field for
+  each such variable under the input (required ones in bold, the type as placeholder). The values are text,
+  converted to the declared type. A query file (<code>.xq</code>) asks for a required value on its first run and remembers it
+  for that file.</li>
+<li><strong>Trace.</strong> <code>trace()</code> output of the last XQuery run is listed in the <strong>Trace (n)</strong> menu next to the results; a
+  click copies a line.</li>
+<li><strong>Show Execution Plan</strong> (the diagram button in XQuery mode, and Run ▾ → Show Execution Plan for a <code>.xq</code> tab)
+  opens Saxon's plan of the query after optimization in a tab.</li>
+</ul>
 <h3 id="when-a-query-fails">When a query fails<a class="headerlink" href="#when-a-query-fails" title="Permanent link">¶</a></h3>
 <p>The console checks the expression <strong>while you type</strong> (it is compiled, not run, shortly after you stop typing):</p>
 <ul>
@@ -3734,7 +3767,10 @@ content cache and are re-registered automatically on every start.</p>
 autocomplete in both the XPath and
 XQuery input fields. Suggestions appear automatically after trigger characters (<code>/</code>, <code>[</code>, <code>@</code>, <code>(</code>,
 <code>$</code>, <code>::</code>) or on demand with <strong>Ctrl+Space</strong>. Depending on context it suggests element names, attribute
-names, XPath axes, functions, and (in XQuery) variables. Navigate with the arrow keys and press
+names, XPath axes, functions, and (in XQuery) variables. The functions are Saxon's own library (over 200, with
+<code>map:</code>, <code>array:</code> and <code>math:</code>), each with its signature (<code>substring($value as xs:string?, $start as xs:numeric[,
+$length as xs:numeric?])</code>) - and only those of the chosen language version: XPath 2.0 does not offer
+<code>parse-json</code>. Navigate with the arrow keys and press
 <strong>Enter</strong> or <strong>Tab</strong> to insert; <strong>Escape</strong> dismisses the popup. Functions and axes are inserted with
 their parentheses / <code>::</code> automatically.</p>
 <h3 id="saving-loading-and-examples">Saving, Loading and Examples<a class="headerlink" href="#saving-loading-and-examples" title="Permanent link">¶</a></h3>

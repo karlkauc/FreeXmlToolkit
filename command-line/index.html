@@ -3920,7 +3920,15 @@ every newer construct listed (exit code 1) before anything runs.</p>
 </tr>
 <tr>
 <td><code>-p</code>, <code>--param NAME=VALUE</code></td>
-<td>Stylesheet parameter or external XQuery variable (string); repeatable</td>
+<td>Stylesheet parameter or external XQuery variable; the text is converted to the declared type (<code>as="xs:integer"</code>, <code>xs:date</code>, …); repeatable</td>
+</tr>
+<tr>
+<td><code>--initial-template [NAME]</code></td>
+<td>XSLT 3.0: start at a named template - without NAME the stylesheet's <code>xsl:initial-template</code>. No input needed (with one, it is the global context item)</td>
+</tr>
+<tr>
+<td><code>--initial-mode NAME</code></td>
+<td>XSLT 3.0: apply templates to the input in this mode</td>
 </tr>
 <tr>
 <td><code>-m</code>, <code>--method METHOD</code></td>

@@ -3576,9 +3576,32 @@
 running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
 <h2 id="unreleased">Unreleased<a class="headerlink" href="#unreleased" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong>The document's namespaces need no declaration in the Query Console.</strong> Its prefixes are declared for every query
+<li><strong>Stylesheet errors you can act on.</strong> A stylesheet that does not compile lists every error with its position, the
+  source line with a <code>^</code> under the failing part (the function inside a <code>select</code>, a wrong attribute) and a hint;
+  "Did you mean" works inside XPath expressions too. XSLT documents are checked while you type: errors are
+  underlined and listed in PROBLEMS, an error in an included module names the module. Compile warnings are no
+  longer lost.</li>
+<li><strong>Parameters from the stylesheet.</strong> The Transform panel offers a row for each <code>xsl:param</code> the stylesheet
+  declares, with its type; required ones must be filled in. Values are converted to the declared type, so <code>21</code>
+  reaches an <code>xs:integer</code> parameter. The Query Console gets fields for an XQuery's external variables, and a <code>.xq</code>
+  file asks for them once.</li>
+<li><strong>Start where you want.</strong> A transformation can start at <code>xsl:initial-template</code>, a named template, a mode or a
+  public function - templates and functions need no input document. On the command line: <code>fxt-cli transform
+  --initial-template</code> / <code>--initial-mode</code>.</li>
+<li><strong><code>trace()</code> output is shown.</strong> It is listed under the result (Transform panel) or in the Query Console's Trace
+  menu, together with <code>xsl:message</code> output, instead of going to a console nobody sees.</li>
+<li><strong>The stylesheet's <code>xsl:output</code> is respected.</strong> For its own method, the stylesheet's indent, doctype and HTML
+  version win; new <strong>Indent</strong> and <strong>Omit XML declaration</strong> options apply where it says nothing.</li>
+<li><strong>Show Execution Plan.</strong> Saxon's plan of a query or stylesheet after optimization, in a tab.</li>
+<li>
+<p><strong>Complete function suggestions.</strong> Completion now offers all of Saxon's 200+ functions with their signatures,
+  only those of the chosen XPath / XQuery version.</p>
+</li>
+<li>
+<p><strong>The document's namespaces need no declaration in the Query Console.</strong> Its prefixes are declared for every query
   (<code>//fx:Fund</code> just works), and on a document with a default namespace a <strong>Default namespace</strong> chip makes <code>//Fund</code>
-  find the elements - the most frequent reason for an empty result. Completion proposes names that match.</li>
+  find the elements - the most frequent reason for an empty result. Completion proposes names that match.</p>
+</li>
 <li><strong>Hits while typing.</strong> As soon as an expression checks without errors, the line under the input says what it would
   find - <em>"12 hits"</em>, <em>"Result: 42"</em> or <em>"No hit"</em> - before you run it.</li>
 <li><strong>Cancel and a time limit.</strong> Run turns into Cancel while a query runs; an XQuery stops at once, and a run stops after
