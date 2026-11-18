@@ -521,27 +521,10 @@ final class EditorDebugSupport {
      * reloading, reformatting) are ignored. Installed once per tab.
      */
     private void followEditsWithBreakpoints(EditorTab et) {
-        var area = et.view.getCodeArea();
-        if (area == null || area.getProperties().containsKey(BREAKPOINT_SHIFT_KEY)) {
-            return;
-        }
-        area.getProperties().put(BREAKPOINT_SHIFT_KEY, Boolean.TRUE);
-        org.fxt.freexmltoolkit.controls.v2.editor.TextEdits.of(area).subscribe(change -> {
+        LineShiftTracker.install(et.view.getCodeArea(), BREAKPOINT_SHIFT_KEY, shift -> {
             var gutter = breakpointGutterOf(et);
-            if (gutter == null || gutter.getTarget() == null) {
-                return;
-            }
-            int lengthBefore = area.getLength() - change.getInsertedLength() + change.getRemovedLength();
-            if (change.getRemovedLength() == lengthBefore) {
-                return; // the whole text was replaced (load, reload, format): no edit to follow
-            }
-            String removed = change.getRemoved();
-            String inserted = change.getInserted();
-            var shift = new org.fxt.freexmltoolkit.debugger.LineShift(
-                    lineOf(area.getText(), change.getPosition()), columnOf(area.getText(), change.getPosition()),
-                    org.fxt.freexmltoolkit.debugger.LineShift.newlines(removed),
-                    org.fxt.freexmltoolkit.debugger.LineShift.newlines(inserted));
-            if (shift.isNeutral() || !gutter.getTarget().shiftLines(gutter.getFilePath(), shift)) {
+            if (gutter == null || gutter.getTarget() == null
+                    || !gutter.getTarget().shiftLines(gutter.getFilePath(), shift)) {
                 return;
             }
             et.view.refreshGutter();
@@ -551,27 +534,6 @@ final class EditorDebugSupport {
                 persistDebugBreakpoints(debug);
             }
         });
-    }
-
-    /** 1-based line of {@code offset} in {@code text}. */
-    static int lineOf(String text, int offset) {
-        int line = 1;
-        for (int i = 0; i < Math.min(offset, text.length()); i++) {
-            if (text.charAt(i) == '\n') {
-                line++;
-            }
-        }
-        return line;
-    }
-
-    /** 0-based column of {@code offset} in {@code text}. */
-    static int columnOf(String text, int offset) {
-        int end = Math.min(offset, text.length());
-        if (end <= 0) {
-            return 0;
-        }
-        int start = text.lastIndexOf('\n', end - 1);
-        return end - (start + 1);
     }
 
     /** @return whether F9 / Toggle Breakpoint applies: the active tab is a saved XSLT document. */

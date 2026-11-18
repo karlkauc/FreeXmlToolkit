@@ -90,6 +90,24 @@
                                iconLiteral="bi-arrow-left-right" color="MODIFY"
                                accelerator="Shortcut+Shift+H" onAction="#onReplaceInFiles"/>
                 <SeparatorMenuItem/>
+                <Menu fx:id="bookmarksMenu" id="menu-edit-bookmarks" text="%ShellMenuBar.bookmarksMenu.text">
+                    <items>
+                        <ShellMenuItem id="menu-bookmark-toggle" text="%ShellMenuBar.menu-bookmark-toggle.text" iconLiteral="bi-bookmark-plus"
+                                       color="CREATE" accelerator="Shortcut+F2" onAction="#onToggleBookmark"/>
+                        <ShellMenuItem id="menu-bookmark-rename" text="%ShellMenuBar.menu-bookmark-rename.text" iconLiteral="bi-pencil"
+                                       color="MODIFY" accelerator="Shortcut+Shift+F2" onAction="#onRenameBookmark"/>
+                        <ShellMenuItem id="menu-bookmark-next" text="%ShellMenuBar.menu-bookmark-next.text" iconLiteral="bi-chevron-down"
+                                       color="NAVIGATE" accelerator="F2" onAction="#onNextBookmark"/>
+                        <ShellMenuItem id="menu-bookmark-previous" text="%ShellMenuBar.menu-bookmark-previous.text" iconLiteral="bi-chevron-up"
+                                       color="NAVIGATE" accelerator="Shift+F2" onAction="#onPreviousBookmark"/>
+                        <SeparatorMenuItem/>
+                        <ShellMenuItem id="menu-bookmark-clear" text="%ShellMenuBar.menu-bookmark-clear.text" iconLiteral="bi-trash"
+                                       color="DELETE" onAction="#onClearBookmarks"/>
+                        <ShellMenuItem id="menu-bookmark-show" text="%ShellMenuBar.menu-bookmark-show.text" iconLiteral="bi-bookmarks"
+                                       color="NAVIGATE" onAction="#onShowBookmarks"/>
+                    </items>
+                </Menu>
+                <SeparatorMenuItem/>
                 <ShellMenuItem id="menu-edit-copy-view" text="%ShellMenuBar.menu-edit-copy-view.text" iconLiteral="bi-clipboard"
                                color="TOOL" onAction="#onCopyViewAsImage"/>
                 <SeparatorMenuItem/>

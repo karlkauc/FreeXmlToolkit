@@ -17,7 +17,7 @@ class ActivityTest {
     @Test
     void allExpectedActivitiesArePresentInOrder() {
         Activity[] expected = {
-                Activity.EXPLORER, Activity.SEARCH, Activity.FAVORITES, Activity.VALIDATION,
+                Activity.EXPLORER, Activity.SEARCH, Activity.FAVORITES, Activity.BOOKMARKS, Activity.VALIDATION,
                 Activity.TRANSFORM, Activity.SCHEMA, Activity.SCHEMA_LIBRARY, Activity.PDF_FOP,
                 Activity.SIGNATURE, Activity.fromId("fundsxml").orElseThrow(),
                 Activity.fromId("pk-meldewesen").orElseThrow(), Activity.SETTINGS

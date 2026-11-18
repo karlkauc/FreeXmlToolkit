@@ -1186,6 +1186,75 @@
     -fx-text-fill: -fxt-text-secondary;
 }
 
+/* ----- Line bookmarks: gutter badge, scroll-bar markers, Bookmarks panel ----- */
+/* Quick bookmark 1-9 in the gutter and the panel: a small filled badge with the digit. */
+.fxt-bookmark-badge {
+    -fx-background-color: -fxt-indigo;
+    -fx-background-radius: 2;
+    -fx-text-fill: -fxt-on-primary;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 9px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 2 0 2;
+    -fx-min-width: 10;
+    -fx-alignment: center;
+}
+
+.fxt-bookmark-badge.fxt-bookmark-badge-orphaned {
+    -fx-background-color: -fxt-warning;
+}
+
+/* Markers over the editor's vertical scroll bar (ScrollMarkerStrip). */
+.fxt-scroll-marker {
+    -fx-background-color: -fxt-text-muted;
+    -fx-background-radius: 1;
+    -fx-opacity: 0.9;
+}
+
+.fxt-scroll-marker.fxt-scroll-marker-bookmark {
+    -fx-background-color: -fxt-indigo;
+}
+
+.fxt-scroll-marker.fxt-scroll-marker-bookmark-orphaned {
+    -fx-background-color: -fxt-warning;
+}
+
+.fxt-scroll-marker:hover {
+    -fx-opacity: 1;
+    -fx-scale-x: 1.2;
+    -fx-scale-y: 1.6;
+}
+
+.fxt-open-editors .list-cell.fxt-bookmarks-file {
+    -fx-padding: 6 6 2 6;
+}
+
+.fxt-bookmarks-file-name {
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-bookmarks-missing .fxt-bookmarks-file-name {
+    -fx-text-fill: -fxt-text-muted;
+}
+
+.fxt-bookmarks-missing .fxt-bookmarks-file-name .text {
+    -fx-strikethrough: true;
+}
+
+.fxt-bookmarks-count {
+    -fx-text-fill: -fxt-text-muted;
+    -fx-font-size: 10px;
+}
+
+.fxt-bookmarks-title {
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-bookmarks-detail {
+    -fx-text-fill: -fxt-text-secondary;
+}
+
 /* ----- Settings page (main editor area, color-coded section cards) ----- */
 .fxt-settings-page {
     -fx-padding: 24 28 24 28;

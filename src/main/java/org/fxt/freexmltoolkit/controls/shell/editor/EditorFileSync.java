@@ -101,6 +101,7 @@ final class EditorFileSync {
                 et.document.setPath(normalized);
                 et.refreshIcon();
                 host.debugSupport.installBreakpointGutter(et);
+                host.bookmarks.followPath(et);
                 EditorHost.rememberRecentFile(normalized);
                 UsageEvents.fileSaved(et.document.getFileType().docKind(), 1);
             }
@@ -275,6 +276,7 @@ final class EditorFileSync {
             if (tab.document.getFileType().isXmlFamily()) {
                 GridWarmup.start(); // the first switch to the Graphic view then skips class loading
             }
+            host.bookmarks.textLoaded(tab, content);
             host.documentLoadedHandler.accept(tab.document, content);
             Runnable after = tab.afterLoad;
             tab.afterLoad = null;
@@ -371,6 +373,9 @@ final class EditorFileSync {
                     }
                     tab.document.setDiskStamp(written);
                     tab.document.setEncoding(writtenEncoding);
+                    if (target.equals(tab.document.getPath())) {
+                        host.bookmarks.saved(tab); // Save As: moved along once the document has its new path
+                    }
                     if (tab.document.getFileType() == EditorFileType.XSD) {
                         host.schemaBinding.reloadXmlSchemasBoundTo(target);
                     }
@@ -457,6 +462,9 @@ final class EditorFileSync {
             tab.document.setDirty(false);
             // Our own write must not be reported as an external change.
             tab.document.setDiskStamp(DiskStamp.of(target));
+            if (target.equals(tab.document.getPath())) {
+                host.bookmarks.saved(tab); // Save As moves them once the document has its new path
+            }
             if (tab.document.getFileType() == EditorFileType.XSD) {
                 // XML documents bound to this schema pick up the saved declarations.
                 host.schemaBinding.reloadXmlSchemasBoundTo(target);
@@ -697,6 +705,7 @@ final class EditorFileSync {
                     return;
                 }
                 tab.replaceContentFromDisk(read.text());
+                host.bookmarks.textLoaded(tab, read.text());
                 tab.document.setEncoding(read.encoding());
                 tab.document.setDirty(false);
                 tab.document.setDiskStamp(stamp);
@@ -837,6 +846,7 @@ final class EditorFileSync {
             tab.document.setPath(target);
             tab.refreshIcon();
             host.debugSupport.installBreakpointGutter(tab);
+            host.bookmarks.followPath(tab);
             EditorHost.rememberRecentFile(target);
             return true;
         }

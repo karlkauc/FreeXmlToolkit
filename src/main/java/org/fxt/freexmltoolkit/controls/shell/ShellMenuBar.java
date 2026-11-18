@@ -86,6 +86,7 @@ public final class ShellMenuBar extends MenuBar {
     @FXML private Menu openRecentMenu;
     @FXML private Menu openFavoriteMenu;
     @FXML private Menu projectMenu;
+    @FXML private Menu bookmarksMenu;
     @FXML private ShellMenuItem closeProjectItem;
     @FXML private Menu recentProjectsMenu;
     @FXML private ShellMenuItem projectSettingsItem;
@@ -128,6 +129,7 @@ public final class ShellMenuBar extends MenuBar {
         openRecentMenu.setGraphic(ShellMenuItem.icon("bi-clock-history", ActionColor.NAVIGATE));
         openFavoriteMenu.setGraphic(ShellMenuItem.icon("bi-star", ActionColor.NAVIGATE));
         projectMenu.setGraphic(ShellMenuItem.icon("bi-briefcase", ActionColor.NAVIGATE));
+        bookmarksMenu.setGraphic(ShellMenuItem.icon("bi-bookmark", ActionColor.NAVIGATE));
         projectMenu.setOnShowing(e -> updateProjectItems());
         recentProjectsMenu.setGraphic(ShellMenuItem.icon("bi-clock-history", ActionColor.NAVIGATE));
         // filled before it shows (an empty menu never opens)
@@ -357,6 +359,9 @@ public final class ShellMenuBar extends MenuBar {
                 item.setDisable(type != EditorFileType.XML);
             } else if ("menu-tools-add-favorite".equals(id)) {
                 item.setDisable(document.map(OpenDocument::getPath).isEmpty());
+            } else if ("menu-bookmark-toggle".equals(id) || "menu-bookmark-rename".equals(id)
+                    || "menu-bookmark-clear".equals(id)) {
+                item.setDisable(!editorHost.canBookmark()); // a text document
             } else if ("menu-tools-toggle-breakpoint".equals(id)) {
                 item.setDisable(!editorHost.canToggleBreakpoint()); // a saved XSLT document
             } else if ("menu-tools-run-to-cursor".equals(id) || "menu-tools-debug-config".equals(id)) {
@@ -513,6 +518,12 @@ public final class ShellMenuBar extends MenuBar {
     @FXML public void onFormat() { run("format", shell::onFormat); }
     @FXML public void onMinify() { run("minify", shell::onMinify); }
     @FXML public void onInsertTemplate() { run("insert_template", shell::onInsertTemplate); }
+    @FXML public void onToggleBookmark() { run("bookmark_toggle", editorHost::toggleBookmarkAtCaret); }
+    @FXML public void onRenameBookmark() { run("bookmark_rename", editorHost::renameBookmarkAtCaret); }
+    @FXML public void onNextBookmark() { run("bookmark_next", editorHost::nextBookmark); }
+    @FXML public void onPreviousBookmark() { run("bookmark_previous", editorHost::previousBookmark); }
+    @FXML public void onClearBookmarks() { run("bookmark_clear", editorHost::clearBookmarksInActive); }
+    @FXML public void onShowBookmarks() { run("bookmark_show", shell::showBookmarksPanel); }
 
     @FXML public void onToggleSidePanel() { run("toggle_side_panel", shell::toggleLeftPanel); }
     @FXML public void onToggleInspector() {

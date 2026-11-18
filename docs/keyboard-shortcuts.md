@@ -35,6 +35,11 @@ under **Help → Keyboard Shortcuts**, and every menu item shows its shortcut ne
 | Ctrl+T | Insert Template… (needs an open document) |
 | Alt+Enter / Ctrl+. | Quick Fix - apply a [Schematron Quick Fix](schematron-quick-fixes.md) on the caret line |
 | Ctrl+D | Add the active document to favorites |
+| Ctrl+F2 | Toggle the [bookmark](bookmarks.md) on the caret line |
+| Ctrl+Shift+F2 | Name the bookmark on the caret line |
+| F2 / Shift+F2 | Next / previous bookmark (in the text editor; continues in the next file) |
+| Ctrl+1 … Ctrl+9 | Jump to quick bookmark 1 … 9 |
+| Ctrl+Shift+1 … Ctrl+Shift+9 | Set / remove quick bookmark 1 … 9 on the caret line |
 
 !!! warning "Changed shortcut"
     **Ctrl+Shift+F no longer formats the document.** Following the VS Code convention, it

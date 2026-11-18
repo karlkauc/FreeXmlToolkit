@@ -6,6 +6,11 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+- **Bookmarks.** Mark lines in any text editor (Ctrl+F2 or a click left of the line number), give them a name,
+  number up to nine of them for Ctrl+1 … Ctrl+9, and move between them with F2 / Shift+F2 - across files. They
+  follow your edits, survive a restart, find their line again when the file was changed outside the editor, and
+  show as marks over the scroll bar. The new **Bookmarks** activity lists them for all files.
+  [More](bookmarks.md)
 - **Stylesheet errors you can act on.** A stylesheet that does not compile lists every error with its position, the
   source line with a `^` under the failing part (the function inside a `select`, a wrong attribute) and a hint;
   "Did you mean" works inside XPath expressions too. XSLT documents are checked while you type: errors are

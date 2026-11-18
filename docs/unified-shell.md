@@ -781,6 +781,13 @@ Click **Manage…** to open the full management view as a tab in the main editor
 
 See [Favorites System](favorites-system.md) for more.
 
+## Bookmarks Panel {#bookmarks}
+
+Mark lines in any text editor with **Ctrl+F2** (or a click left of the line number), name them, number them 1–9
+(**Ctrl+Shift+digit** sets, **Ctrl+digit** jumps) and move between them with **F2** / **Shift+F2**. Bookmarks
+follow your edits, are kept across restarts and show as marks over the editor's scroll bar. The **Bookmarks**
+activity lists them for all files, grouped by file. See **[Bookmarks](bookmarks.md)**.
+
 ## Validation Panel
 
 The **Validation** activity validates the active document or whole folders against XSD, Schematron and JSON Schema and lists the problems - see **[Validation Panel](validation-panel.md)**.

@@ -293,6 +293,22 @@ By.SUBJECT|RULE|CATEGORY)` → `Group` → `Kind` → occurrences (`ruleKey`: ca
 = one undo; hook `fixConfirmer`). Row menus are built when opened. Excel: `ValidationExcelExporter` (SXSSF; Summary,
 Problems (split beyond the row limit), By Object, By Rule).
 
+## Line bookmarks
+
+`service/bookmarks/`: `Bookmark` (line, name, number 1–9, trimmed `lineText` ≤ 200, `orphaned`), `BookmarkAnchor`
+(re-anchoring by line text ±50 lines, nearest wins, else orphaned), `BookmarkService` (key = absolute normalized path or
+`untitled:<id>` (memory only, `renamePath` on first save, `copyPath` on Save As without numbers); numbers unique app-wide;
+`shiftLines(LineShift)` - a deleted line moves the bookmark to the edit's line, duplicates merge; JSON
+`~/.freeXmlToolkit/bookmarks.json`, debounced 500 ms + shutdown hook; listeners get the key, `null` = several).
+Editor: `controls/shell/editor/EditorBookmarks` (per tab: gutter contributor `"bookmarks"` = `BookmarkGutter`
+(MOUSE_PRESSED toggles, context menu), `LineShiftTracker` (shared with the breakpoints; `offsetToPosition`, whole-text
+replacements ignored), scroll-bar markers `controls/shared/ScrollMarkerStrip` via `EditorTab.scrollMarkers`, editor
+context menu "Bookmark ▸"; `textLoaded` re-anchors on open/reload, `saved` refreshes line texts, `followPath` on Save As;
+test hooks `EditorHost.setBookmarkPrompts`). `QueryEditorView` has an extra gutter now (so breakpoints show on XQuery too).
+Shell: Ctrl+F2 / Ctrl+Shift+F2 / F2 + Shift+F2 (only with the text editor focused) / Ctrl(+Shift)+1…9 in
+`UnifiedShellView.handleShortcut`, Edit → Bookmarks submenu, activity `bookmarks` → `BookmarksPanel` (FXML). Docs:
+`docs/bookmarks.md`.
+
 ## After an export
 
 `controls/shell/editor/ExportResult`: `saved(window, what, file)` / `savedFolder(window, what, folder, files)` - the one

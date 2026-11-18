@@ -27,6 +27,7 @@ public final class Activity {
     public static final Activity EXPLORER = new Activity("explorer", "Explorer", "bi-folder2-open", Workflow.WORKSPACE, null);
     public static final Activity SEARCH = new Activity("search", "Search", "bi-search", Workflow.SEARCH, null);
     public static final Activity FAVORITES = new Activity("favorites", "Favorites", "bi-star", Workflow.FAVORITES, null);
+    public static final Activity BOOKMARKS = new Activity("bookmarks", "Bookmarks", "bi-bookmarks", Workflow.FAVORITES, null);
     public static final Activity VALIDATION = new Activity("validation", "Validation", "bi-check2-circle", Workflow.VALIDATION, null);
     public static final Activity TRANSFORM = new Activity("transform", "Transform", "bi-arrow-repeat", Workflow.TRANSFORM, null);
     public static final Activity SCHEMA = new Activity("schema", "Schema", "bi-diagram-3", Workflow.SCHEMA, null);
@@ -35,7 +36,7 @@ public final class Activity {
     public static final Activity SIGNATURE = new Activity("signature", "Signature", "bi-shield-lock", Workflow.SIGNATURE, null);
     public static final Activity SETTINGS = new Activity("settings", "Settings", "bi-gear", Workflow.NEUTRAL, null);
 
-    private static final List<Activity> BUILT_IN = List.of(EXPLORER, SEARCH, FAVORITES, VALIDATION, TRANSFORM,
+    private static final List<Activity> BUILT_IN = List.of(EXPLORER, SEARCH, FAVORITES, BOOKMARKS, VALIDATION, TRANSFORM,
             SCHEMA, SCHEMA_LIBRARY, PDF_FOP, SIGNATURE, SETTINGS);
     /** Plugin activities by id: one instance each. */
     private static final Map<String, Activity> PLUGIN_ACTIVITIES = new ConcurrentHashMap<>();

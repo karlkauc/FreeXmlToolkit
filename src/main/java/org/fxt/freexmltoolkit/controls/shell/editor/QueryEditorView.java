@@ -34,6 +34,9 @@ final class QueryEditorView implements EditorView {
     /** The run target's text (the check declares its prefixes and suggests its namespaces), or {@code null}. */
     private Supplier<String> xmlContext;
     private final QueryInputMarks marks;
+    private final java.util.function.IntFunction<javafx.scene.Node> lineNumbers = LineNumberFactory.get(codeArea);
+    /** Extra gutter slot (bookmarks, breakpoints) before the line number, or {@code null}. */
+    private java.util.function.IntFunction<javafx.scene.Node> extraGutter;
 
     /** The start of a document: enough for its namespace declarations, cheap to check against. */
     private static String head(String text) {
@@ -43,7 +46,7 @@ final class QueryEditorView implements EditorView {
     QueryEditorView(boolean xquery) {
         QuerySettings.install();
         codeArea.getStyleClass().add("fxt-query-editor");
-        codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
+        codeArea.setParagraphGraphicFactory(lineNumbers);
         // syntax highlighting, the check while typing and run errors as marks
         marks = new QueryInputMarks(codeArea,
                 () -> xquery ? QueryLanguage.XQUERY : QueryLanguage.XPATH,
@@ -94,6 +97,28 @@ final class QueryEditorView implements EditorView {
     @Override
     public String getText() {
         return codeArea.getText();
+    }
+
+    @Override
+    public boolean setExtraGutterFactory(java.util.function.IntFunction<javafx.scene.Node> factory) {
+        extraGutter = factory;
+        refreshGutter();
+        return true;
+    }
+
+    @Override
+    public void refreshGutter() {
+        var extra = extraGutter;
+        codeArea.setParagraphGraphicFactory(extra == null ? lineNumbers : line -> {
+            javafx.scene.layout.HBox box = new javafx.scene.layout.HBox();
+            box.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+            javafx.scene.Node slot = extra.apply(line);
+            if (slot != null) {
+                box.getChildren().add(slot);
+            }
+            box.getChildren().add(lineNumbers.apply(line));
+            return box;
+        });
     }
 
     @Override

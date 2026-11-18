@@ -223,6 +223,42 @@ class UnifiedShellViewTest {
     }
 
     @Test
+    void bookmarkShortcutsWorkOnTheActiveDocument(@org.junit.jupiter.api.io.TempDir java.nio.file.Path tmp) throws Exception {
+        java.nio.file.Path xml = tmp.resolve("shortcut-bookmarks.xml");
+        java.nio.file.Files.writeString(xml, "<root>\n  <a/>\n  <b/>\n</root>\n");
+        var service = org.fxt.freexmltoolkit.service.bookmarks.BookmarkService.getInstance();
+        String key = org.fxt.freexmltoolkit.service.bookmarks.BookmarkService.keyOf(xml);
+        try {
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.getEditorHost().openFile(xml));
+            WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS,
+                    () -> shell.getEditorHost().getActiveDocument().map(d -> xml.equals(d.getPath())).orElse(false)
+                            && shell.getEditorHost().getActiveText().map(t -> t.contains("<b/>")).orElse(false));
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.getEditorHost().goToLine(2));
+
+            fireShortcut(javafx.scene.input.KeyCode.F2, false); // Ctrl+F2
+            assertEquals(java.util.List.of(2), service.forKey(key).stream()
+                    .map(org.fxt.freexmltoolkit.service.bookmarks.Bookmark::line).toList(), "Ctrl+F2 toggles");
+
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.getEditorHost().goToLine(3));
+            fireShortcut(javafx.scene.input.KeyCode.DIGIT3, true); // Ctrl+Shift+3
+            assertEquals(3, service.byNumber(3).orElseThrow().bookmark().line(), "Ctrl+Shift+3 numbers the caret line");
+
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.getEditorHost().goToLine(1));
+            fireShortcut(javafx.scene.input.KeyCode.DIGIT3, false); // Ctrl+3
+            WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS,
+                    () -> shell.getEditorHost().getActiveCaretLineColumn()[0] == 3);
+
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.showBookmarksPanel());
+            assertEquals(Activity.BOOKMARKS, shell.getSelectionModel().getActive());
+            assertNotNull(shell.lookup("#bookmarks-list"), "the Bookmarks panel lists them");
+            assertEquals(3, UnifiedShellView.bookmarkDigit(javafx.scene.input.KeyCode.NUMPAD3));
+            assertEquals(0, UnifiedShellView.bookmarkDigit(javafx.scene.input.KeyCode.DIGIT0), "Ctrl+0 stays the zoom reset");
+        } finally {
+            service.clear(key);
+        }
+    }
+
+    @Test
     void ctrlLTogglesTheLeftPanelAndCtrlShiftPTheInspector() {
         WaitForAsyncUtils.waitForFxEvents();
         assertNull(shell.lookup(".fxt-side-panel"), "dashboard starts without a side panel");
