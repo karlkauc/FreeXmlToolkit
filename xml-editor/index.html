@@ -4545,6 +4545,10 @@ is active - see <a href="../query-console/#query-documents-the-target-selector">
 <ul>
 <li>See your XML document as a hierarchical tree</li>
 <li>Click any node (element, text, comment, CDATA, or processing instruction) to select it</li>
+<li>An element's attributes are rows of their own (<code>name = "value"</code>), listed before its children</li>
+<li>Press <strong>Delete</strong> to remove the selected node completely - no empty element is left in its place.
+  On an attribute row only that attribute goes. The next node is selected, so you can press
+  <strong>Delete</strong> again; one <strong>Undo</strong> restores it</li>
 <li>Edit the selected node's properties in the Properties inspector - see
   <a href="#properties-inspector">Properties Inspector</a></li>
 <li>Right-click for context menu options</li>
@@ -4679,11 +4683,12 @@ and your full <strong>Undo / Redo</strong> history - are preserved when you swit
 and Graphic views.</p>
 <p>Switching views also keeps your place. The node at the caret is selected and opened in the Tree and the grid.
 Coming back to the Text view, the caret goes to the node you last selected, and the node's lines are tinted
-(see <a href="../unified-shell/#view-modes">View Modes</a>).</p>
+(see <a href="../unified-shell/#view-modes">View Modes</a>) - in very large documents (hundreds of MB) too.</p>
 <blockquote>
 <p><strong>Note:</strong> Adding, deleting, or moving whole nodes (structural editing) is done in the
-<strong>Graphic</strong> view (the grid) via its right-click context menu. The Text and Tree views provide
-property editing through the inspector.</p>
+<strong>Graphic</strong> view (the grid) via its right-click context menu. The Tree view can delete the
+selected node with <strong>Delete</strong>; otherwise the Text and Tree views provide property editing
+through the inspector.</p>
 </blockquote>
 <hr>
 <h2 id="search-find">Search (Find)<a class="headerlink" href="#search-find" title="Permanent link">¶</a></h2>
