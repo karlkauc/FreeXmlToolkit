@@ -1,8 +1,8 @@
 package org.fxt.freexmltoolkit.service.query;
 
-import net.sf.saxon.s9api.XPathCompiler;
-
 import org.fxt.freexmltoolkit.service.standards.XPathVersion;
+
+import net.sf.saxon.s9api.XPathCompiler;
 
 /**
  * The XPath compiler settings shared by running a query ({@code XmlServiceImpl}) and checking it while it is

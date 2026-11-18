@@ -61,7 +61,7 @@ class PanelJobsTest {
         PanelJobs.Job other = fx(() -> jobs.start("report", "Check report", false));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> fx(view::getMessage).equals("Check report  (+1 more)"));
         fx(() -> {
-            other.close();
+            other.finish();
             return null;
         });
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> "GLEIF: request 3 of 16".equals(fx(view::getMessage)));
@@ -79,7 +79,7 @@ class PanelJobsTest {
         });
         assertTrue(job.isCancelled());
 
-        job.close();
+        job.finish();
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> !fx(view::isRunning));
         assertEquals("", fx(view::getMessage));
         assertNotNull(fx(() -> jobs.start("identifiers", "again", true)), "a finished job can start again");
@@ -99,7 +99,7 @@ class PanelJobsTest {
                 return null;
             });
             assertEquals(Progress.Hint.OPENFIGI_API_KEY, opened[0]);
-            job.close();
+            job.finish();
         } finally {
             PanelJobs.setHintHandler(null);
         }

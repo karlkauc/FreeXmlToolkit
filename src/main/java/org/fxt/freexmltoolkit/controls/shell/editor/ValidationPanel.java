@@ -519,7 +519,7 @@ public class ValidationPanel extends VBox {
                 });
             } finally {
                 if (onlineJob != null) {
-                    onlineJob.close();
+                    onlineJob.finish();
                 }
                 Platform.runLater(this::runFinished); // after the result, which was posted first
             }

@@ -20,7 +20,7 @@ class CliProgressTest {
         assertEquals("ESMA FIRDS: request 1 of 87  [1/87]", progress.line());
         progress.message("x".repeat(300));
         assertEquals(100, progress.line().length(), "long messages are cut to the line width");
-        progress.close();
+        progress.clear();
         String written = out.toString();
         assertTrue(written.startsWith("\rESMA FIRDS: request 1 of 87"), written);
         assertTrue(written.endsWith("\r"), "the line is cleared");

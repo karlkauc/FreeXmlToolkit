@@ -37,6 +37,9 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.SaxonResourceAccess;
+import org.fxt.freexmltoolkit.service.progress.CancelledException;
+import org.fxt.freexmltoolkit.service.progress.Durations;
+import org.fxt.freexmltoolkit.service.progress.Progress;
 
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.QName;
@@ -48,11 +51,6 @@ import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.XdmNodeKind;
 import net.sf.saxon.s9api.Xslt30Transformer;
 import net.sf.saxon.s9api.XsltExecutable;
-
-import org.fxt.freexmltoolkit.i18n.I18n;
-import org.fxt.freexmltoolkit.service.progress.CancelledException;
-import org.fxt.freexmltoolkit.service.progress.Durations;
-import org.fxt.freexmltoolkit.service.progress.Progress;
 
 /**
  * Runs the FMA validation rules of the quarterly report (PK-QMV, module pfq) — the rules of the
@@ -200,7 +198,7 @@ public final class PkRuleCheck {
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new CancelledException();
+            throw new CancelledException(e);
         }
     }
 

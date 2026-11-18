@@ -8,7 +8,7 @@ import org.fxt.freexmltoolkit.service.progress.Progress;
  * Progress of a long command on stderr: one line, rewritten in place (at most five times a second), cleared at the
  * end. Only on a terminal ({@link #forTerminal}): redirected or piped output gets nothing, stdout never anything.
  */
-final class CliProgress implements Progress, AutoCloseable {
+final class CliProgress implements Progress {
 
     private static final int WIDTH = 100;
     private static final long INTERVAL_MILLIS = 200;
@@ -32,7 +32,7 @@ final class CliProgress implements Progress, AutoCloseable {
     /** Clears the line of a progress made by {@link #forTerminal} (nothing for {@link Progress#NONE}). */
     static void end(Progress progress) {
         if (progress instanceof CliProgress cli) {
-            cli.close();
+            cli.clear();
         }
     }
 
@@ -72,8 +72,8 @@ final class CliProgress implements Progress, AutoCloseable {
         lastLength = line.length();
     }
 
-    @Override
-    public synchronized void close() {
+    /** Clears the progress line. */
+    synchronized void clear() {
         if (lastLength > 0) {
             err.print("\r" + " ".repeat(lastLength) + "\r");
             err.flush();

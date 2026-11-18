@@ -937,11 +937,9 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
                 CellTarget target = cellTarget(member, columns.get(startCol + j));
                 String problem = target == null ? null
                         : schemaProblem(target.elementXPath(), target.attributeName(), row.get(j));
-                if (problem != null) {
-                    if (count++ == 0) {
-                        firstLabel = target.label();
-                        firstProblem = problem;
-                    }
+                if (problem != null && count++ == 0) {
+                    firstLabel = target.label();
+                    firstProblem = problem;
                 }
             }
         }

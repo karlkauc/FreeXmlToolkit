@@ -1,12 +1,11 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.TaskProgressListener;
 import org.fxt.freexmltoolkit.service.XsdDocumentationImageService;
 import org.fxt.freexmltoolkit.service.XsdDocumentationPdfService;

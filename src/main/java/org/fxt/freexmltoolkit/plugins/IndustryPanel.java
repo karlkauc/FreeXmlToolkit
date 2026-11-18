@@ -31,9 +31,9 @@ import org.fxt.freexmltoolkit.controls.shell.editor.ViewMode;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.plugin.DocumentValidator;
+import org.fxt.freexmltoolkit.plugin.PluginUi;
 import org.fxt.freexmltoolkit.service.progress.CancelledException;
 import org.fxt.freexmltoolkit.service.progress.Progress;
-import org.fxt.freexmltoolkit.plugin.PluginUi;
 
 /**
  * The side panel of an industry plugin: what the plugin does, the active document (what the plugin
@@ -333,7 +333,7 @@ public class IndustryPanel extends VBox {
                 T result = job.run(progressJob);
                 progressJob.checkCancelled(); // a job that ignored Cancel: its result is dropped
                 Platform.runLater(() -> {
-                    progressJob.close();
+                    progressJob.finish();
                     busy.end();
                     status.setText("");
                     status.setGraphic(null);
@@ -341,13 +341,13 @@ public class IndustryPanel extends VBox {
                 });
             } catch (CancelledException e) {
                 Platform.runLater(() -> {
-                    progressJob.close();
+                    progressJob.finish();
                     busy.end();
                     PanelStatus.info(status, I18n.t("IndustryPanel.cancelled", what));
                 });
             } catch (Exception | OutOfMemoryError e) {
                 Platform.runLater(() -> {
-                    progressJob.close();
+                    progressJob.finish();
                     busy.end();
                     PanelStatus.failure(status, what, I18n.t("IndustryPanel.failed", what),
                             I18n.t("IndustryPanel.failed-remedy"), String.valueOf(e.getMessage()), false);
@@ -510,7 +510,7 @@ public class IndustryPanel extends VBox {
             List<DocumentValidator.Problem> found = problems;
             String error = failure;
             Platform.runLater(() -> {
-                job.close();
+                job.finish();
                 checkButton.setDisable(!recognised);
                 if (job.isCancelled()) {
                     PanelStatus.info(status, I18n.t("IndustryPanel.cancelled", I18n.t("IndustryPanel.checking")));
@@ -578,7 +578,7 @@ public class IndustryPanel extends VBox {
     /** Ends the job of a check that waited for the shell's validation. */
     private void endCheckJob() {
         if (checkJob != null) {
-            checkJob.close();
+            checkJob.finish();
             checkJob = null;
         }
     }
@@ -598,7 +598,7 @@ public class IndustryPanel extends VBox {
         Busy busy = Busy.start(button);
         PanelStatus.info(status, I18n.t("IndustryPanel.working", what));
         org.fxt.freexmltoolkit.controls.shell.editor.IdentifierDocumentCheck.runOnActive(ui.editorHost(), job, outcome -> {
-            job.close();
+            job.finish();
             busy.end();
             refreshCounts();
             outcome.showIn(status);

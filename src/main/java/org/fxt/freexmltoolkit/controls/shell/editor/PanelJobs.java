@@ -130,7 +130,7 @@ public final class PanelJobs {
     }
 
     /** One running job: what it reports, read by the display. Thread-safe. */
-    public final class Job implements Progress, AutoCloseable {
+    public final class Job implements Progress {
 
         private final String id;
         private final String label;
@@ -194,9 +194,11 @@ public final class PanelJobs {
             }
         }
 
-        /** Ends the job: the display shows the next one or hides. Any thread. */
-        @Override
-        public void close() {
+        /**
+         * Ends the job: the display shows the next one or hides. Any thread. Not {@link AutoCloseable}: a job
+         * usually ends on another thread than the one that started it.
+         */
+        public void finish() {
             if (Platform.isFxApplicationThread()) {
                 end(this);
             } else {

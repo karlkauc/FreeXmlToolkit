@@ -34,8 +34,8 @@ import org.fxt.freexmltoolkit.controls.shell.editor.PanelStatus;
 import org.fxt.freexmltoolkit.controls.shell.editor.ViewMode;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.plugin.PluginUi;
-import org.fxt.freexmltoolkit.util.DesktopActions;
 import org.fxt.freexmltoolkit.service.progress.CancelledException;
+import org.fxt.freexmltoolkit.util.DesktopActions;
 
 /**
  * The PK-Meldewesen side panel: what the active report is (module, pension fund, period,
@@ -619,7 +619,7 @@ public final class PkMeldewesenPanel extends VBox {
     private record Run(org.fxt.freexmltoolkit.controls.shell.editor.PanelJobs.Job job, Runnable unbusy) {
         /** Ends the job (FX thread). */
         void end() {
-            job.close();
+            job.finish();
             unbusy.run();
         }
     }

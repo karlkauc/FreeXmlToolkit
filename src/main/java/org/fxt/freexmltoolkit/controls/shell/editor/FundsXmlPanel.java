@@ -149,7 +149,7 @@ public class FundsXmlPanel extends VBox {
 
     private void endDownload() {
         if (downloadJob != null) {
-            downloadJob.close();
+            downloadJob.finish();
             downloadJob = null;
         }
     }
@@ -181,7 +181,7 @@ public class FundsXmlPanel extends VBox {
             try {
                 summary = FundsXmlRunner.validateSummary(xml);
             } finally {
-                job.close();
+                job.finish();
             }
             Platform.runLater(() -> PanelStatus.info(status, summary));
         });
@@ -206,11 +206,11 @@ public class FundsXmlPanel extends VBox {
             try {
                 results = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.run(xml, job);
             } catch (org.fxt.freexmltoolkit.service.progress.CancelledException e) {
-                job.close();
+                job.finish();
                 Platform.runLater(() -> PanelStatus.info(status, I18n.t("IndustryPanel.cancelled", I18n.t("FundsXmlPanel.checking"))));
                 return;
             } catch (RuntimeException | OutOfMemoryError e) {
-                job.close();
+                job.finish();
                 Platform.runLater(() -> PanelStatus.failure(status, I18n.t("FundsXmlPanel.checking"),
                         String.valueOf(e.getMessage()), false));
                 return;
@@ -219,7 +219,7 @@ public class FundsXmlPanel extends VBox {
             String html = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.htmlReport(results, name);
             long failed = results.stream().filter(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.Result::failed).count();
             long hints = results.stream().filter(r -> !r.passed() && !r.failed()).count();
-            job.close();
+            job.finish();
             Platform.runLater(() -> {
                 editorHost.openGeneratedDocument(html, EditorFileType.HTML, name.replaceFirst("\\.xml$", "") + "-dq.html");
                 editorHost.setActiveViewMode(ViewMode.PREVIEW);
@@ -248,7 +248,7 @@ public class FundsXmlPanel extends VBox {
         }
         PanelStatus.info(status, I18n.t("IndustryPanel.working", I18n.t("IdentifierDocumentCheck.title")));
         IdentifierDocumentCheck.runOnActive(editorHost, job, outcome -> {
-            job.close();
+            job.finish();
             outcome.showIn(status);
         });
     }
@@ -275,14 +275,14 @@ public class FundsXmlPanel extends VBox {
         FxtGui.executorService.submit(() -> {
             try {
                 String result = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlGridSetup.apply(xml, true);
-                job.close();
+                job.finish();
                 Platform.runLater(() -> {
                     editorHost.openGeneratedDocument(result, EditorFileType.XML, name.replaceFirst("\\.xml$", "") + "-grid.xml");
                     editorHost.setActiveViewMode(ViewMode.GRAPHIC);
                     PanelStatus.success(status, I18n.t("FundsXmlPanel.gridSetupDone"));
                 });
             } catch (java.io.IOException | RuntimeException e) {
-                job.close();
+                job.finish();
                 Platform.runLater(() -> PanelStatus.failure(status, I18n.t("FundsXmlPanel.gridSetupFailed"), e.getMessage(), false));
             }
         });
@@ -320,10 +320,10 @@ public class FundsXmlPanel extends VBox {
         FxtGui.executorService.submit(() -> {
             try {
                 var plan = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPercentages.plan(xml);
-                job.close();
+                job.finish();
                 Platform.runLater(() -> confirmAndApply(plan, target, title));
             } catch (java.io.IOException | RuntimeException e) {
-                job.close();
+                job.finish();
                 Platform.runLater(() -> PanelStatus.failure(status, I18n.t("FundsXmlPanel.percentages-failed"),
                         e.getMessage(), false));
             }
@@ -394,7 +394,7 @@ public class FundsXmlPanel extends VBox {
                 ok = false;
                 msg = "Documentation failed: " + t.getMessage();
             } finally {
-                job.close();
+                job.finish();
             }
             String finalMsg = msg;
             boolean finalOk = ok;

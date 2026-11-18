@@ -156,7 +156,7 @@ public final class IsinLookup {
             int batchSize = apiKey == null ? OPENFIGI_BATCH : OPENFIGI_BATCH_WITH_KEY;
             long interval = figiInterval();
             int figiRequests = (missing.size() + batchSize - 1) / batchSize;
-            if (apiKey == null && (long) figiRequests * interval > SLOW_OPENFIGI_MILLIS) {
+            if (apiKey == null && figiRequests * interval > SLOW_OPENFIGI_MILLIS) {
                 progress.hint(Progress.Hint.OPENFIGI_API_KEY);
             }
             for (int i = 0; i < missing.size(); i += batchSize) {
@@ -164,7 +164,7 @@ public final class IsinLookup {
                 int n = i / batchSize + 1;
                 progress.checkCancelled();
                 progress.message(I18n.t("Progress.openfigi-request", n, figiRequests, missing.size(),
-                        remaining((long) (figiRequests - n + 1) * interval)));
+                        remaining((figiRequests - n + 1) * interval)));
                 progress.progress(firdsRequests + n - 1L, firdsRequests + figiRequests);
                 Map<String, IsinRecord> found = openFigi(batch, progress);
                 Map<String, IsinRecord> settled = new LinkedHashMap<>();

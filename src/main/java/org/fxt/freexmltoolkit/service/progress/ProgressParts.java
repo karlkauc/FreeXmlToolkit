@@ -11,6 +11,8 @@ import java.util.List;
 public final class ProgressParts {
 
     private final Progress parent;
+    /** Guards the arrays; private, so no caller can hold it. */
+    private final Object lock = new Object();
     private final String[] messages;
     private final long[] done;
     private final long[] total;
@@ -28,7 +30,7 @@ public final class ProgressParts {
         return new Progress() {
             @Override
             public void message(String text) {
-                synchronized (ProgressParts.this) {
+                synchronized (lock) {
                     messages[index] = text;
                 }
                 publishMessage();
@@ -36,7 +38,7 @@ public final class ProgressParts {
 
             @Override
             public void progress(long d, long t) {
-                synchronized (ProgressParts.this) {
+                synchronized (lock) {
                     done[index] = d;
                     total[index] = t;
                 }
@@ -67,7 +69,7 @@ public final class ProgressParts {
 
     /** Clears a finished part's message, so the others are shown alone. */
     public void finished(int index) {
-        synchronized (this) {
+        synchronized (lock) {
             messages[index] = null;
             done[index] = total[index];
         }
@@ -76,7 +78,7 @@ public final class ProgressParts {
 
     private void publishMessage() {
         List<String> shown = new ArrayList<>();
-        synchronized (this) {
+        synchronized (lock) {
             for (String m : messages) {
                 if (m != null && !m.isBlank()) {
                     shown.add(m);
@@ -91,7 +93,7 @@ public final class ProgressParts {
     private void publishProgress() {
         long d = 0;
         long t = 0;
-        synchronized (this) {
+        synchronized (lock) {
             for (int i = 0; i < done.length; i++) {
                 d += Math.max(0, done[i]);
                 t += Math.max(0, total[i]);

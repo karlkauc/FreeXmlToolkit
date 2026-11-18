@@ -513,7 +513,7 @@ public final class SimpleTypeChecker {
             if (enumeration != null) {
                 facets.enumeration = enumeration;
                 Vector<Object> nsDecls = new Vector<>();
-                for (int i = 0; i < enumeration.size(); i++) {
+                for (Object ignored : enumeration) {
                     nsDecls.add(null);
                 }
                 facets.enumNSDecls = nsDecls;

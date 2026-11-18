@@ -22,7 +22,7 @@ import org.fxt.freexmltoolkit.util.DialogHelper;
 public final class IdentifierDocumentCheck {
 
     /** The window of a running Tools-menu check (one at a time), or {@code null}. FX thread. */
-    private static javafx.stage.Stage running;
+    private static volatile javafx.stage.Stage running; // FX thread only; volatile for the static analysis
 
     private IdentifierDocumentCheck() {
     }
@@ -159,7 +159,7 @@ public final class IdentifierDocumentCheck {
         running = (javafx.stage.Stage) dialog.getDialogPane().getScene().getWindow();
         dialog.show();
         runOnActive(host, job, outcome -> {
-            job.close();
+            job.finish();
             dialog.close();
             running = null;
             switch (outcome.kind()) {

@@ -6,6 +6,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.fxt.freexmltoolkit.service.QueryErrorHints;
+import org.fxt.freexmltoolkit.service.standards.XPathVersion;
+
 import net.sf.saxon.s9api.Location;
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.SaxonApiException;
@@ -13,9 +16,6 @@ import net.sf.saxon.s9api.XPathCompiler;
 import net.sf.saxon.s9api.XQueryCompiler;
 import net.sf.saxon.s9api.XmlProcessingError;
 import net.sf.saxon.trans.XPathException;
-
-import org.fxt.freexmltoolkit.service.QueryErrorHints;
-import org.fxt.freexmltoolkit.service.standards.XPathVersion;
 
 /**
  * Turns a failed XPath / XQuery run into a {@link QueryError} (code, position, cleaned message, hint,

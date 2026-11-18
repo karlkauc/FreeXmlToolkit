@@ -336,6 +336,9 @@
             <Field name="exportTarget"/>
             <Field name="pendingAnswer"/>
             <Field name="chooser"/>
+            <Field name="percentagesConfirmer"/>
+            <Field name="fixConfirmer"/>
+            <Field name="onExported"/>
         </Or>
     </Match>
 

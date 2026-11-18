@@ -8,4 +8,9 @@ public final class CancelledException extends RuntimeException {
     public CancelledException() {
         super("cancelled", null, false, false);
     }
+
+    /** A cancellation noticed through {@code cause} (an interrupted wait). */
+    public CancelledException(Throwable cause) {
+        super("cancelled", cause, false, false);
+    }
 }

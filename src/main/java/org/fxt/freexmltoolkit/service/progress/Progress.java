@@ -83,7 +83,7 @@ public interface Progress {
                 Thread.sleep(Math.min(left, 100));
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new CancelledException();
+                throw new CancelledException(e);
             }
         }
         checkCancelled();

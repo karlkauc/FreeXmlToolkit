@@ -12,6 +12,7 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.SchematronService;
 import org.fxt.freexmltoolkit.service.SchematronServiceImpl;
 import org.fxt.freexmltoolkit.service.XmlService;
@@ -20,7 +21,6 @@ import org.fxt.freexmltoolkit.service.sqf.SqfCorrelator;
 import org.fxt.freexmltoolkit.service.sqf.SqfFixSuggestion;
 import org.fxt.freexmltoolkit.service.sqf.SqfModel.SqfCatalog;
 import org.fxt.freexmltoolkit.service.sqf.SvrlNodeLocator;
-import org.fxt.freexmltoolkit.i18n.I18n;
 import org.xml.sax.SAXParseException;
 
 /**

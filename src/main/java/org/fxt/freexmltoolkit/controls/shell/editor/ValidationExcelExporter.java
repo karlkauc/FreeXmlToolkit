@@ -75,8 +75,7 @@ public final class ValidationExcelExporter {
     public static void export(List<ValidationProblem> problems, String sourceFileName, String filter, Path outputPath)
             throws IOException {
         logger.info("Exporting {} validation problem(s) to Excel: {}", problems.size(), outputPath);
-        SXSSFWorkbook workbook = new SXSSFWorkbook(ROW_WINDOW);
-        try {
+        try (SXSSFWorkbook workbook = new SXSSFWorkbook(ROW_WINDOW)) {
             ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
             if (metadataService != null) {
                 metadataService.setExcelMetadata(workbook.getXSSFWorkbook(), "Validation Problems");
@@ -90,8 +89,6 @@ public final class ValidationExcelExporter {
             try (OutputStream out = Files.newOutputStream(outputPath)) {
                 workbook.write(out);
             }
-        } finally {
-            workbook.close();
         }
         logger.info("Excel export completed: {}", outputPath);
     }
