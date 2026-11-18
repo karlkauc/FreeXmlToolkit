@@ -3554,6 +3554,9 @@
 running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
 <h2 id="unreleased">Unreleased<a class="headerlink" href="#unreleased" title="Permanent link">¶</a></h2>
 <ul>
+<li><strong>Hints for common query errors.</strong> When an XPath or XQuery expression fails with <code>XPTY0019</code> (a <code>/</code> step on a
+  value), <code>XPTY0020</code>, <code>XPTY0004</code> or <code>FORG0001</code>, the result now explains the usual cause and shows how to write it
+  instead - in the Query Console, the Run menu and <code>fxt-cli query</code>. See <a href="../query-console/">Query Console</a>.</li>
 <li><strong>New elements in the Graphic view go where the schema wants them.</strong> Typing or pasting a value into an empty
   table cell (for example <code>TotalPercentage</code> of a FundsXML position that has none) used to append the new element
   after all others, which made the document invalid. It is now inserted at its schema position - <code>TotalPercentage</code>

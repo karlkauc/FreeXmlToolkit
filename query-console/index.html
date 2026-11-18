@@ -3541,6 +3541,40 @@ pane shows the previous run's XML result with syntax highlighting.</em></p>
 <li>Type your expression, then click <strong>Run</strong> (in XPath mode, <strong>Enter</strong> also runs).</li>
 <li>The result appears on the right. Use <strong>Copy</strong> to put it on the clipboard.</li>
 </ol>
+<p>When a run fails, the results pane shows the processor's message. For the mistakes made most often in hand-written
+expressions it adds a <strong>Hint:</strong> with the usual cause and how to write it instead:</p>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Typical cause</th>
+<th>Hint</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>XPTY0019</code></td>
+<td>A <code>/</code> step on a value, e.g. <code>distinct-values(//Ccy)/../Name</code></td>
+<td>Use <code>!</code> for values, or keep the nodes and atomize at the end</td>
+</tr>
+<tr>
+<td><code>XPTY0020</code></td>
+<td>An axis step in a predicate on values, e.g. <code>distinct-values(//Ccy)[../Name]</code></td>
+<td>Filter the nodes before they become values: <code>//Fund[Ccy = "EUR"]/Name</code></td>
+</tr>
+<tr>
+<td><code>XPTY0004</code></td>
+<td>Text where a number is needed, e.g. <code>"5" + 1</code></td>
+<td>Convert first: <code>number(.)</code>, <code>xs:date(@Date)</code></td>
+</tr>
+<tr>
+<td><code>FORG0001</code></td>
+<td>A value in the wrong format for a cast, e.g. <code>xs:decimal("1.234,5")</code></td>
+<td><code>xs:date</code> needs <code>2026-11-17</code>, <code>xs:decimal</code> a dot; <code>number(.)</code> gives <code>NaN</code> instead of failing</td>
+</tr>
+</tbody>
+</table>
+<p>The same hint appears for <strong>Run Query</strong> in the Run menu and in <code>fxt-cli query</code>.</p>
 <p>The console always runs against the <strong>active</strong> document. For an <strong>XML</strong> document it evaluates the
 expression directly; for a <strong>JSON</strong> document the toggle reads <strong>JSONPath</strong> and the input is
 evaluated as a <strong>JSONPath</strong> expression. When no document is open, <strong>Run</strong> is disabled and the results pane shows
