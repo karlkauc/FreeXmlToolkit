@@ -91,6 +91,10 @@ The text editor provides:
 
 - See your XML document as a hierarchical tree
 - Click any node (element, text, comment, CDATA, or processing instruction) to select it
+- An element's attributes are rows of their own (`name = "value"`), listed before its children
+- Press **Delete** to remove the selected node completely - no empty element is left in its place.
+  On an attribute row only that attribute goes. The next node is selected, so you can press
+  **Delete** again; one **Undo** restores it
 - Edit the selected node's properties in the Properties inspector - see
   [Properties Inspector](#properties-inspector)
 - Right-click for context menu options
@@ -240,11 +244,12 @@ and Graphic views.
 
 Switching views also keeps your place. The node at the caret is selected and opened in the Tree and the grid.
 Coming back to the Text view, the caret goes to the node you last selected, and the node's lines are tinted
-(see [View Modes](unified-shell.md#view-modes)).
+(see [View Modes](unified-shell.md#view-modes)) - in very large documents (hundreds of MB) too.
 
 > **Note:** Adding, deleting, or moving whole nodes (structural editing) is done in the
-> **Graphic** view (the grid) via its right-click context menu. The Text and Tree views provide
-> property editing through the inspector.
+> **Graphic** view (the grid) via its right-click context menu. The Tree view can delete the
+> selected node with **Delete**; otherwise the Text and Tree views provide property editing
+> through the inspector.
 
 ---
 

@@ -19,6 +19,13 @@ running is shown under **Help → About FreeXmlToolkit**.
   after all others, which made the document invalid. It is now inserted at its schema position - `TotalPercentage`
   right after `TotalValue`; without a schema the column order decides. *Add Child Element*, *Paste as Child* and the
   entry helpers' Children list do the same. See [Grid](grid.md).
+- **Delete removes exactly what you selected.** In the Tree view of XML and JSON documents **Delete** now removes the
+  selected element, property or array item completely (before, it did nothing); an XML element's attributes are rows
+  of their own there, and Delete on one removes only that attribute. In the Graphic view, Delete on table **cells**
+  removes only those cells' elements, attributes or properties - no empty element is left and the row stays - while
+  rows selected on their row numbers go as whole rows; Delete on an attribute row removes only the attribute. In the
+  XML, JSON and XSD Tree the next node is selected afterwards, so Delete can be pressed again; one Undo restores
+  everything. See [Grid](grid.md) and [XML Editor](xml-editor.md#tree-view).
 - **Typed values in the Graphic view follow the schema exactly.** Decimal values such as FundsXML's
   `TotalPercentage` keep their fraction again under a German (or any other) language - typing `3,5` writes `3.5`.
   Number spinners no longer round, clamp or turn an empty value into 0; date and time pickers keep timezones and
@@ -43,6 +50,15 @@ running is shown under **Help → About FreeXmlToolkit**.
   fail a document. The report shows the severity, the Problems panel files each finding under it, and the
   documentation lists an XPath for every check to run on its own in the Query Console. A new analysis snippet shows
   the UCITS 5/10/40 issuer concentration. See [FundsXML Extensions](fundsxml-extensions.md#data-quality-checks).
+- **Back to the right line in large documents.** Switching from the Graphic or Tree view to the Text view now puts
+  the caret on the selected node in documents of any size; before, documents larger than 8 MB stayed where they were.
+- **Problem exports describe themselves.** The Excel workbook exported from the Problems or Validation panel carries
+  document properties - title, subject, description, keywords - that name the checked document and sum up its
+  counts and filter.
+- **Clearer input fields.** Text fields and drop-downs in the side panels and on the Settings cards have a visible
+  border that gets stronger on hover and takes the accent colour when focused, so they stand out from the background.
+- **No freeze when choosing the editor font.** The font list in *Settings → Editor → Editor font* is measured in the background;
+  on Windows with many installed fonts opening it could freeze the window for several seconds.
 - **File sizes on the Welcome page.** The recent files show their size next to when they were last changed; a long
   name is shortened instead of pushing the date out of view.
 - **Table headers stay in view.** In the Graphic view of XML and JSON documents, the header row of a long table stays

@@ -56,6 +56,7 @@ The tree view provides a hierarchical view of your JSON structure:
 | **Search** | Search for keys or values within the tree |
 | **Sync with Editor** | Synchronize selection between tree and text |
 | **Type Icons** | Visual icons for objects, arrays, strings, numbers, booleans, and null |
+| **Delete** | Press **Delete** to remove the selected property or array item completely; the next one is selected and one **Undo** restores it |
 
 The tree shares the document model with the grid view and the Properties inspector, so an
 edit made there shows up in the tree immediately, and Ctrl+F searches keys and values.

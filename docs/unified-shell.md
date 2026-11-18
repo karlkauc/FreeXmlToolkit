@@ -1358,7 +1358,8 @@ work them off:
 - **Export** - the shown (filtered) or all problems to an Excel workbook: *Summary* (filter, counts per severity and
   category), *Problems* (severity, category, rule, security / object and its name, line, message, link), *By Object*
   (one row per security with its occurrences and kinds of problems) and *By Rule*. The row menu offers the export
-  too.
+  too. The workbook's document properties (title, subject, description, keywords) name the checked document and
+  sum up the counts and the filter, so the file can be found and told apart later.
 
 The chosen grouping is remembered.
 

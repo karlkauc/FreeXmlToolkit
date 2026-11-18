@@ -120,7 +120,8 @@ you chose stay recognisable; only their brightness is adjusted.
 and JSON editors, the Query Console, the transform output and the debugger's value views.
 
 - **Font** - the bundled JetBrains Mono or any monospace font installed on your computer (the list
-  is filled when you open it; you can also type a name). A font that is missing on another
+  is filled in the background once the Settings page is open - until then it offers the default
+  and the chosen font; you can also type a name). A font that is missing on another
   computer falls back to an installed monospace font.
 - **Size (pt)** - 8 to 32 points, default 11. The smaller code panels (console, output) use the
   same number in pixels, so they stay a little more compact.
