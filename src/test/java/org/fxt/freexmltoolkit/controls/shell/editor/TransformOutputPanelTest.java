@@ -348,8 +348,9 @@ class TransformOutputPanelTest {
     void theStylesheetsPlanOpensInATab(@TempDir Path tmp) throws Exception {
         transformGreeting(tmp);
         WaitForAsyncUtils.waitForAsyncFx(2000, panel::onShowPlan);
-        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.lookup(".fxt-plan-view") != null);
-        PlanView plan = (PlanView) host.lookup(".fxt-plan-view");
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                () -> WaitForAsyncUtils.waitForAsyncFx(1000, () -> host.lookup(".fxt-plan-view")) != null);
+        PlanView plan = (PlanView) WaitForAsyncUtils.waitForAsyncFx(1000, () -> host.lookup(".fxt-plan-view"));
         assertTrue(plan.getText().contains("templateRule") || plan.getText().contains("template"),
                 plan.getText().substring(0, Math.min(300, plan.getText().length())));
     }
