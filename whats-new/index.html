@@ -3576,9 +3576,25 @@
 running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
 <h2 id="unreleased">Unreleased<a class="headerlink" href="#unreleased" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong>A broken document is named as such.</strong> When the queried XML is not well-formed, the Query Console no longer
+<li><strong>The document's namespaces need no declaration in the Query Console.</strong> Its prefixes are declared for every query
+  (<code>//fx:Fund</code> just works), and on a document with a default namespace a <strong>Default namespace</strong> chip makes <code>//Fund</code>
+  find the elements - the most frequent reason for an empty result. Completion proposes names that match.</li>
+<li><strong>Hits while typing.</strong> As soon as an expression checks without errors, the line under the input says what it would
+  find - <em>"12 hits"</em>, <em>"Result: 42"</em> or <em>"No hit"</em> - before you run it.</li>
+<li><strong>Cancel and a time limit.</strong> Run turns into Cancel while a query runs; an XQuery stops at once, and a run stops after
+  60 seconds (Settings → Queries). A run now evaluates the query once for its text, table and hits (it used to run up to
+  three times).</li>
+<li><strong>XPath 1.0 and older XQuery versions report errors like the rest.</strong> XPath 1.0 errors carry codes and positions and
+  say when a function exists only in a later version; the check while typing uses the chosen XQuery version.</li>
+<li>
+<p><strong>Query files find their modules.</strong> In a <code>.xq</code> file, <code>import module … at "lib.xq"</code> resolves next to the query file,
+  and an error inside a module names the module and line.</p>
+</li>
+<li>
+<p><strong>A broken document is named as such.</strong> When the queried XML is not well-formed, the Query Console no longer
   shows a confusing query error (XQuery used to say <em>"the context item is absent"</em>): it reports an <em>error in the
-  document</em> with its line and column, and a click opens the document there.</li>
+  document</em> with its line and column, and a click opens the document there.</p>
+</li>
 <li>
 <p><strong><code>doc()</code> finds files next to the document.</strong> XPath in the Query Console, in <code>.xpath</code> files and in
   <code>fxt-cli query</code> now resolves relative <code>doc()</code> and <code>unparsed-text()</code> paths next to the saved document (it used to

@@ -3571,6 +3571,26 @@ evaluated as a <strong>JSONPath</strong> expression. When no document is open, <
 <p>The <code>map:</code>, <code>array:</code> and <code>math:</code> function namespaces are
 <strong>pre-declared</strong> in the console, so XPath 3.1 expressions using <code>map:merge()</code>,
 <code>array:size()</code>, <code>math:pow()</code> etc. run directly - no namespace prolog needed.</p>
+<p><strong>Namespaces of the document.</strong> The prefixes the document declares are declared for the query too: on a document with
+<code>xmlns:fx="…"</code>, <code>//fx:Fund</code> runs without <code>declare namespace</code> (a declaration in the query wins). When the root element
+is in a <strong>default namespace</strong> (<code>&lt;FundsXML xmlns="…"&gt;</code>), a <strong>Default namespace</strong> chip appears next to the target:</p>
+<ul>
+<li><strong>On</strong> (default): names without a prefix match the document's default namespace, so <code>//Fund</code> finds the funds.</li>
+<li><strong>Off</strong>: names without a prefix match only elements in no namespace, as the XPath standard says; write <code>*:Fund</code> or a
+  prefix. Completion then proposes <code>*:Fund</code>.</li>
+</ul>
+<p>The chip, the setting under <strong>Settings → Schemas &amp; Validation → Queries</strong> and query files share one choice. XPath 1.0
+cannot bind a default namespace, so the chip is hidden there.</p>
+<p><strong>Hits while typing.</strong> When the expression checks without errors, the console runs it in the background and the line
+under the input says what it would find: <em>"3 hits (preview, Ctrl+Enter runs)"</em>, <em>"Result: 42"</em> or <em>"No hit"</em>. The
+preview runs on documents up to 5 MB, stops after 1.5 seconds and skips expressions that read files (<code>doc()</code>,
+<code>collection()</code>, <code>unparsed-text()</code>). It marks nothing in the document - that stays <strong>Run</strong>'s job. Turn it off under
+<strong>Settings → Schemas &amp; Validation → Queries</strong>.</p>
+<p><strong>Cancel and time limit.</strong> While a query runs, <strong>Run</strong> turns into <strong>Cancel</strong> with the seconds so far. An XQuery stops at
+once (at its next <code>for</code>/<code>let</code> clause, function call or constructor); an XPath expression cannot be interrupted, so the
+console stops waiting and the expression finishes in the background without showing its result. A run stops on its own
+after the <strong>time limit</strong> (60 seconds by default, 0 = none; Settings → Queries). One run computes the text, the table and
+the hits together.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The Query Console is an additional, faster access point - it does not replace the <strong>Transform</strong>
@@ -3646,9 +3666,18 @@ the OUTPUT panel's result table and HTML preview, use the <a href="../transform-
 <p><strong>Copy</strong> and <strong>Save</strong> in the RESULTS header take the error as text, with position and hint.</p>
 <p>When a query <strong>finds nothing</strong> although the document is in a namespace and the query uses names without a prefix
 (<code>//Fund</code> on <code>&lt;funds xmlns="urn:…"&gt;</code>), the line under the input explains it and suggests <code>*:Fund</code>.</p>
+<p>With <strong>XPath 1.0</strong> chosen as the version (expert mode), errors carry the same codes as the newer versions
+(<code>XPST0003</code>, <code>XPST0017</code> unknown function, <code>XPST0008</code> unknown variable) with a position where the XPath 1.0 engine names
+a token; a function that exists only in a later version says so: <em>"distinct-values() exists from XPath 2.0 on; the
+query runs as XPath 1.0."</em> The check while typing uses the XPath 1.0 engine too. For <strong>XQuery 1.0 / 3.0</strong> the check while
+typing reports constructs and functions the version does not have (<code>FXT-COMPAT</code>, at their position) before you run.
+An error inside an <strong>imported module</strong> names the module and its line (<em>"in module lib.xq, line 2"</em>) instead of marking
+a place in the query.</p>
 <p>In an XPath or XQuery <strong>file</strong> (<code>.xpath</code>, <code>.xq</code>), the same check runs while you type, and a failed <strong>Run Query</strong> is
 underlined in the editor and listed in the <strong>Problems</strong> panel with line and column. The next successful run removes
-it. <code>fxt-cli query</code> prints the same text (see <a href="../command-line/#query">Command Line</a>).</p>
+it. <code>fxt-cli query</code> prints the same text (see <a href="../command-line/#query">Command Line</a>). A query file imports its modules
+(<code>import module … at "lib.xq"</code>) and resolves its own relative paths next to the query file; the run target is the
+document's base URI, so <code>doc(resolve-uri('rates.xml', base-uri(.)))</code> reads a file next to the target.</p>
 <h3 id="showing-results-in-the-document">Showing Results in the Document<a class="headerlink" href="#showing-results-in-the-document" title="Permanent link">¶</a></h3>
 <p>When a result contains nodes of the document - elements, attributes or text, as in
 <code>//Position[TotalPercentage &gt; 30]</code> - the RESULTS header shows a <strong>Text | Hits</strong> switch and a
