@@ -71,6 +71,18 @@ Like the text editor, every console area zooms with the mouse: hold **Ctrl** and
 3. Type your expression, then click **Run** (in XPath mode, **Enter** also runs).
 4. The result appears on the right. Use **Copy** to put it on the clipboard.
 
+When a run fails, the results pane shows the processor's message. For the mistakes made most often in hand-written
+expressions it adds a **Hint:** with the usual cause and how to write it instead:
+
+| Error | Typical cause | Hint |
+|---|---|---|
+| `XPTY0019` | A `/` step on a value, e.g. `distinct-values(//Ccy)/../Name` | Use `!` for values, or keep the nodes and atomize at the end |
+| `XPTY0020` | An axis step in a predicate on values, e.g. `distinct-values(//Ccy)[../Name]` | Filter the nodes before they become values: `//Fund[Ccy = "EUR"]/Name` |
+| `XPTY0004` | Text where a number is needed, e.g. `"5" + 1` | Convert first: `number(.)`, `xs:date(@Date)` |
+| `FORG0001` | A value in the wrong format for a cast, e.g. `xs:decimal("1.234,5")` | `xs:date` needs `2026-11-17`, `xs:decimal` a dot; `number(.)` gives `NaN` instead of failing |
+
+The same hint appears for **Run Query** in the Run menu and in `fxt-cli query`.
+
 The console always runs against the **active** document. For an **XML** document it evaluates the
 expression directly; for a **JSON** document the toggle reads **JSONPath** and the input is
 evaluated as a **JSONPath** expression. When no document is open, **Run** is disabled and the results pane shows

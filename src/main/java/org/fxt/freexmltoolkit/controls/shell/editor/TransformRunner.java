@@ -250,6 +250,17 @@ public final class TransformRunner {
     public record QueryRun(String text, QueryFailure failure) {
     }
 
+    /**
+     * A failed XPath / XQuery run: {@code "ERROR: "} + the processor's message, plus a
+     * {@link org.fxt.freexmltoolkit.service.QueryErrorHints hint} for the dynamic errors users most often
+     * make in their own expressions.
+     */
+    private static QueryRun failed(String message, QueryFailure failure) {
+        String text = org.fxt.freexmltoolkit.service.QueryErrorHints.withHint("ERROR: " + message,
+                failure == null ? null : failure.errorCode());
+        return new QueryRun(text, failure);
+    }
+
     /** As {@link #runXQuery}, additionally reporting why a failed run failed. */
     public static QueryRun xquery(String xml, String xqueryContent,
                                   java.util.Map<String, Object> externalVariables,
@@ -290,9 +301,9 @@ public final class TransformRunner {
                     .transformXQuery(xml, baseUri, xqueryContent, baseUri, externalVariables, outputFormat);
             return result.isSuccess()
                     ? new QueryRun(result.getOutputContent(), null)
-                    : new QueryRun("ERROR: " + result.getErrorMessage(), QueryFailure.ofCode(result.getErrorCode()));
+                    : failed(result.getErrorMessage(), QueryFailure.ofCode(result.getErrorCode()));
         } catch (Exception e) {
-            return new QueryRun("ERROR: " + e.getMessage(), QueryFailure.of(e));
+            return failed(e.getMessage(), QueryFailure.of(e));
         }
     }
 
@@ -414,7 +425,7 @@ public final class TransformRunner {
                     version == null ? org.fxt.freexmltoolkit.service.standards.XPathVersion.V3_1 : version);
             return new QueryRun(result != null ? result : "", null);
         } catch (Throwable t) {
-            return new QueryRun("ERROR: " + t.getMessage(), QueryFailure.of(t));
+            return failed(t.getMessage(), QueryFailure.of(t));
         }
     }
 
