@@ -1247,6 +1247,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#when-a-query-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When a query fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#showing-results-in-the-document" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3350,6 +3361,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#when-a-query-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When a query fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#showing-results-in-the-document" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3541,8 +3563,37 @@ pane shows the previous run's XML result with syntax highlighting.</em></p>
 <li>Type your expression, then click <strong>Run</strong> (in XPath mode, <strong>Enter</strong> also runs).</li>
 <li>The result appears on the right. Use <strong>Copy</strong> to put it on the clipboard.</li>
 </ol>
-<p>When a run fails, the results pane shows the processor's message. For the mistakes made most often in hand-written
-expressions it adds a <strong>Hint:</strong> with the usual cause and how to write it instead:</p>
+<p>See <a href="#when-a-query-fails">When a query fails</a> for how errors are shown.</p>
+<p>The console always runs against the <strong>active</strong> document. For an <strong>XML</strong> document it evaluates the
+expression directly; for a <strong>JSON</strong> document the toggle reads <strong>JSONPath</strong> and the input is
+evaluated as a <strong>JSONPath</strong> expression. When no document is open, <strong>Run</strong> is disabled and the results pane shows
+<em>"No document open."</em></p>
+<p>The <code>map:</code>, <code>array:</code> and <code>math:</code> function namespaces are
+<strong>pre-declared</strong> in the console, so XPath 3.1 expressions using <code>map:merge()</code>,
+<code>array:size()</code>, <code>math:pow()</code> etc. run directly - no namespace prolog needed.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The Query Console is an additional, faster access point - it does not replace the <strong>Transform</strong>
+activity. For XSLT transformations, parameters, recent-stylesheet history, watch-and-rerun, and
+the OUTPUT panel's result table and HTML preview, use the <a href="../transform-panel/#transform-panel">Transform Panel</a>.</p>
+</div>
+<h3 id="when-a-query-fails">When a query fails<a class="headerlink" href="#when-a-query-fails" title="Permanent link">¶</a></h3>
+<p>The console checks the expression <strong>while you type</strong> (it is compiled, not run, shortly after you stop typing):</p>
+<ul>
+<li>A <strong>syntax or static error</strong> (missing bracket, unknown function, variable or prefix) gets a red wavy underline,
+  and the line under the input names it, for example <em>XPST0003 · column 7: expected "]", found "<eof>"</eof></em>.</li>
+<li>A <strong>compiler warning</strong> gets an amber underline. The most useful one says that a <code>/</code> step will fail because its
+  left side is a value, not a node (<code>distinct-values(//Ccy)/../Name</code>) - before you run it.</li>
+<li>Resting the mouse on an underline shows the message.</li>
+</ul>
+<p>When a run fails, the RESULTS area shows the error instead of the result:</p>
+<ul>
+<li><strong>Code</strong> (e.g. <code>XPTY0019</code>) as a link to its explanation in the W3C specification, the <strong>kind</strong> (syntax, static,
+  type or run-time error) and the <strong>position</strong> - a click puts the cursor at the error in the input.</li>
+<li>The <strong>message</strong> without Saxon's internal notation, and the query line with a <strong><code>^</code> under the error</strong>. The error is
+  also underlined in the input until you change it.</li>
+<li>A <strong>Hint</strong> with the usual cause and how to write it instead, for the errors made most often:</li>
+</ul>
 <table>
 <thead>
 <tr>
@@ -3564,8 +3615,8 @@ expressions it adds a <strong>Hint:</strong> with the usual cause and how to wri
 </tr>
 <tr>
 <td><code>XPTY0004</code></td>
-<td>Text where a number is needed, e.g. <code>"5" + 1</code></td>
-<td>Convert first: <code>number(.)</code>, <code>xs:date(@Date)</code></td>
+<td>Several values where one is needed (<code>//Fund/Name + 1</code>), or text where a number is needed (<code>"5" + 1</code>)</td>
+<td>Pick one with <code>[1]</code>, aggregate, or use <code>!</code>; convert with <code>number(.)</code>, <code>xs:date(@Date)</code></td>
 </tr>
 <tr>
 <td><code>FORG0001</code></td>
@@ -3574,20 +3625,19 @@ expressions it adds a <strong>Hint:</strong> with the usual cause and how to wri
 </tr>
 </tbody>
 </table>
-<p>The same hint appears for <strong>Run Query</strong> in the Run menu and in <code>fxt-cli query</code>.</p>
-<p>The console always runs against the <strong>active</strong> document. For an <strong>XML</strong> document it evaluates the
-expression directly; for a <strong>JSON</strong> document the toggle reads <strong>JSONPath</strong> and the input is
-evaluated as a <strong>JSONPath</strong> expression. When no document is open, <strong>Run</strong> is disabled and the results pane shows
-<em>"No document open."</em></p>
-<p>The <code>map:</code>, <code>array:</code> and <code>math:</code> function namespaces are
-<strong>pre-declared</strong> in the console, so XPath 3.1 expressions using <code>map:merge()</code>,
-<code>array:size()</code>, <code>math:pow()</code> etc. run directly - no namespace prolog needed.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The Query Console is an additional, faster access point - it does not replace the <strong>Transform</strong>
-activity. For XSLT transformations, parameters, recent-stylesheet history, watch-and-rerun, and
-the OUTPUT panel's result table and HTML preview, use the <a href="../transform-panel/#transform-panel">Transform Panel</a>.</p>
-</div>
+<ul>
+<li><strong>Did you mean</strong> buttons for an unknown function (<code>distinct-value</code> → <code>distinct-values</code>; also <em>"substring() exists,
+  but takes 2 or 3 arguments"</em>), an unknown variable (<code>$nme</code> → <code>$name</code>) or an undeclared prefix (<code>*:Fund</code>, or in
+  XQuery a <code>declare namespace</code> with the document's namespace). A click corrects the input.</li>
+<li><strong>Ask AI to fix</strong> (when the <a href="../ai-assistant/">AI assistant</a> is on) sends the query and the error to the assistant;
+  its corrected query is checked against the document before it is offered.</li>
+</ul>
+<p><strong>Copy</strong> and <strong>Save</strong> in the RESULTS header take the error as text, with position and hint.</p>
+<p>When a query <strong>finds nothing</strong> although the document is in a namespace and the query uses names without a prefix
+(<code>//Fund</code> on <code>&lt;funds xmlns="urn:…"&gt;</code>), the line under the input explains it and suggests <code>*:Fund</code>.</p>
+<p>In an XPath or XQuery <strong>file</strong> (<code>.xpath</code>, <code>.xq</code>), the same check runs while you type, and a failed <strong>Run Query</strong> is
+underlined in the editor and listed in the <strong>Problems</strong> panel with line and column. The next successful run removes
+it. <code>fxt-cli query</code> prints the same text (see <a href="../command-line/#query">Command Line</a>).</p>
 <h3 id="showing-results-in-the-document">Showing Results in the Document<a class="headerlink" href="#showing-results-in-the-document" title="Permanent link">¶</a></h3>
 <p>When a result contains nodes of the document - elements, attributes or text, as in
 <code>//Position[TotalPercentage &gt; 30]</code> - the RESULTS header shows a <strong>Text | Hits</strong> switch and a
