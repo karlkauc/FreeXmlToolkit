@@ -19,9 +19,18 @@ import org.fxt.freexmltoolkit.i18n.I18n;
  * @param suggestions corrections that can be applied to the query
  * @param query       the query text the positions refer to
  * @param language    the query language
+ * @param documentLine   for a {@link Kind#DOCUMENT} error: 1-based line in the queried document, or -1
+ * @param documentColumn its column, or -1
  */
 public record QueryError(String code, Kind kind, int line, int column, int length, String message, String hint,
-                         List<Suggestion> suggestions, String query, QueryLanguage language) {
+                         List<Suggestion> suggestions, String query, QueryLanguage language, int documentLine,
+                         int documentColumn) {
+
+    /** An error located in the query only. */
+    public QueryError(String code, Kind kind, int line, int column, int length, String message, String hint,
+                      List<Suggestion> suggestions, String query, QueryLanguage language) {
+        this(code, kind, line, column, length, message, hint, suggestions, query, language, -1, -1);
+    }
 
     /** What kind of error it is, from the error code's family. */
     public enum Kind {
@@ -33,6 +42,8 @@ public record QueryError(String code, Kind kind, int line, int column, int lengt
         TYPE,
         /** Another error while running: conversion, cardinality, missing document (FO*, XPDY*, …). */
         DYNAMIC,
+        /** The queried document is not well-formed XML (SXXP0003): the query is not at fault. */
+        DOCUMENT,
         /** No error code. */
         OTHER;
 
@@ -43,6 +54,9 @@ public record QueryError(String code, Kind kind, int line, int column, int lengt
             }
             if (code.equals("XPST0003")) {
                 return SYNTAX;
+            }
+            if (code.equals("SXXP0003")) {
+                return DOCUMENT;
             }
             if (code.startsWith("XPST") || code.startsWith("XQST") || code.equals("FXT-COMPAT")) {
                 return STATIC;
@@ -90,9 +104,21 @@ public record QueryError(String code, Kind kind, int line, int column, int lengt
         return hasPosition() ? QueryText.offsetOf(query, line, column) : -1;
     }
 
-    /** @return "line 3, column 15" (or just the column for one-line queries), or {@code ""} without a position */
+    /** @return whether the error has a position in the queried document ({@link Kind#DOCUMENT}) */
+    public boolean hasDocumentPosition() {
+        return documentLine > 0;
+    }
+
+    /**
+     * @return "line 3, column 15" (or just the column for one-line queries), "document line 3, column 14" for an
+     *         error in the document, or {@code ""} without a position
+     */
     public String positionLabel() {
         if (!hasPosition()) {
+            if (hasDocumentPosition()) {
+                return documentColumn > 0 ? I18n.t("QueryError.document-line-column", documentLine, documentColumn)
+                        : I18n.t("QueryError.document-line", documentLine);
+            }
             return "";
         }
         return query.indexOf('\n') < 0 ? I18n.t("QueryError.column", column)

@@ -437,9 +437,19 @@ public final class TransformRunner {
 
     /** As {@link #xpath(String, String)} in an XPath version (1.0 runs on the JDK's XPath 1.0 engine). */
     public static QueryRun xpath(String xml, String xpath, org.fxt.freexmltoolkit.service.standards.XPathVersion version) {
+        return xpath(xml, xpath, version, null);
+    }
+
+    /**
+     * As {@link #xpath(String, String, org.fxt.freexmltoolkit.service.standards.XPathVersion)} for a document with a
+     * location: {@code baseUri} (its {@code file:} URI, or {@code null}) lets relative {@code doc()} /
+     * {@code unparsed-text()} calls resolve next to the document.
+     */
+    public static QueryRun xpath(String xml, String xpath, org.fxt.freexmltoolkit.service.standards.XPathVersion version,
+                                 String baseUri) {
         try {
             String result = ServiceRegistry.get(XmlService.class).getXmlFromXpath(xml, xpath,
-                    version == null ? org.fxt.freexmltoolkit.service.standards.XPathVersion.V3_1 : version);
+                    version == null ? org.fxt.freexmltoolkit.service.standards.XPathVersion.V3_1 : version, baseUri);
             return new QueryRun(result != null ? result : "", null);
         } catch (Throwable t) {
             return failed(t, t.getMessage(), QueryFailure.of(t), xpath, QueryLanguage.XPATH, version, xml);

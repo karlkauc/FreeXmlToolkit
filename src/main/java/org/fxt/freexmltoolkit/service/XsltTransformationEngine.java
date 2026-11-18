@@ -1189,11 +1189,13 @@ public class XsltTransformationEngine {
             // document must not abort a query that doesn't depend on it (e.g. a
             // collection()/doc()-based query): degrade gracefully and run without a
             // context item, logging a warning instead.
+            SaxonApiException contextFailure = null;
             if (xmlContent != null && !xmlContent.trim().isEmpty()) {
                 try {
                     XdmNode sourceDoc = parseXmlDocument(saxonProcessor, xmlContent, inputSystemId);
                     evaluator.setContextItem(sourceDoc);
                 } catch (SaxonApiException contextEx) {
+                    contextFailure = contextEx;
                     logger.warn("XQuery context document is not well-formed; running the query without a "
                             + "context item. Queries that rely on collection()/doc() are unaffected. Cause: {}",
                             contextEx.getMessage());
@@ -1212,6 +1214,12 @@ public class XsltTransformationEngine {
             try {
                 evaluator.run(serializer);
             } catch (SaxonApiException e) {
+                if (contextFailure != null && "XPDY0002".equals(localCode(e.getErrorCode()))) {
+                    // the query needed the document, which is not well-formed: that is the error to show,
+                    // not "the context item is absent"
+                    contextFailure.addSuppressed(e);
+                    throw contextFailure;
+                }
                 if (!isUnserializableItemError(e)) {
                     throw e;
                 }

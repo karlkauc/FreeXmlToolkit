@@ -270,6 +270,9 @@ public final class EditorActions {
         boolean xquery = type == EditorFileType.XQUERY;
         out.showPending(I18n.t("EditorActions.running-query-against", target.displayName()));
         String queryTarget = doc.getDisplayName();
+        // relative doc() / unparsed-text() resolve next to the target file, else next to the saved query
+        String baseUri = target.file() != null ? target.file().toURI().toString()
+                : !doc.isUntitled() && doc.getPath() != null ? doc.getPath().toUri().toString() : null;
         final int gen = ++queryRunGeneration;
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
@@ -291,7 +294,8 @@ public final class EditorActions {
             if (xquery) {
                 TransformRunner.QueryRun run = TransformRunner.xquery(xml, query, Map.of(),
                         XsltTransformationEngine.OutputFormat.XML, standards(
-                                org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_QUERY_CONSOLE).xquery());
+                                org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_QUERY_CONSOLE).xquery(),
+                        baseUri);
                 String result = run.text();
                 XQueryTableRunner.XQueryTable table = XQueryTableRunner.run(xml, query);
                 boolean ok = !result.startsWith("ERROR");
@@ -307,7 +311,7 @@ public final class EditorActions {
                 });
             } else {
                 TransformRunner.QueryRun run = TransformRunner.xpath(xml, query, standards(
-                        org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_QUERY_CONSOLE).xpath());
+                        org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_QUERY_CONSOLE).xpath(), baseUri);
                 String result = run.text();
                 boolean ok = !result.startsWith("ERROR");
                 UsageEvents.xpathExecuted(t0, run.failure());
@@ -344,6 +348,9 @@ public final class EditorActions {
             return;
         }
         String message = error.code() == null ? error.message() : error.code() + ": " + error.message();
+        if (error.hasDocumentPosition()) {
+            message = message + " (" + error.positionLabel() + ")";
+        }
         if (error.hint() != null) {
             message = message + " - " + error.hint().replace('\n', ' ');
         }

@@ -186,7 +186,7 @@ fxt-cli query --query-file QUERY.xq [options] [FILE|FOLDER|-]...
 | `--lang-version VERSION` | XPath `1.0`, `2.0`, `3.0`, `3.1` (default) or XQuery `1.0`, `3.0`, `3.1` (default); see [Language Versions](language-versions.md) |
 | `--include GLOB,...` | File names to query inside folders; default `*.xml,*.json,*.yaml,*.yml` |
 | `--[no-]with-filename` | Prefix each result line with its file; default: when there is more than one input |
-| `-f`, `--format FORMAT` | `text` (default) or `json`: one object per input with `file`, `result`, `error`; a failed XPath / XQuery also has `code`, `kind` (`syntax`, `static`, `type`, `dynamic`), `line`, `column`, `hint` and `suggestions` |
+| `-f`, `--format FORMAT` | `text` (default) or `json`: one object per input with `file`, `result`, `error`; a failed XPath / XQuery also has `code`, `kind` (`syntax`, `static`, `type`, `dynamic`, `document`), `line`, `column`, `hint` and `suggestions`; `kind` `document` means the input is not well-formed and has `documentLine` / `documentColumn` instead of a position in the query |
 | `-o`, `--output FILE` | Write the results to `FILE` |
 
 `-` as input reads standard input. An XQuery may run without input. YAML files are queried with

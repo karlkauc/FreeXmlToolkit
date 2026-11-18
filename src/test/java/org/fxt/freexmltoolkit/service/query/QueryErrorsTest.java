@@ -187,6 +187,47 @@ class QueryErrorsTest {
         assertNull(QueryErrors.emptyResultHint("count(//p:Fund)", NS_XML), "prefixed");
     }
 
+    private static final String BROKEN = "<funds>\n  <Fund>\n    <Name>A</Nam>\n  </Fund>\n</funds>";
+
+    @Test
+    void aDocumentThatIsNotWellFormedIsReportedAsTheDocumentsError() {
+        QueryError x = xpath(BROKEN, "//Fund/Name");
+        assertEquals("SXXP0003", x.code());
+        assertEquals(QueryError.Kind.DOCUMENT, x.kind());
+        assertFalse(x.hasPosition(), "nothing to mark in the query");
+        assertEquals(3, x.documentLine());
+        assertTrue(x.documentColumn() > 0);
+        assertTrue(x.message().startsWith("The element type \"Name\" must be terminated"), x.message());
+        assertNotNull(x.hint());
+        assertTrue(x.format().startsWith("SXXP0003 · error in the document · document line 3, column "), x.format());
+
+        QueryError q = xquery(BROKEN, "for $f in //Fund return $f/Name");
+        assertEquals("SXXP0003", q.code(), "not XPDY0002 'the context item is absent'");
+        assertEquals(3, q.documentLine());
+
+        TransformRunner.QueryRun noContext = TransformRunner.xquery(BROKEN, "1 + 1", Map.of(), OutputFormat.XML);
+        assertNull(noContext.error(), "a query that does not need the document still runs");
+    }
+
+    @Test
+    void relativeDocCallsResolveNextToTheDocument(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir)
+            throws Exception {
+        java.nio.file.Files.writeString(dir.resolve("other.xml"), "<x>found</x>");
+        String base = dir.resolve("main.xml").toUri().toString();
+        TransformRunner.QueryRun run = TransformRunner.xpath("<a/>", "string(doc('other.xml')/x)",
+                org.fxt.freexmltoolkit.service.standards.XPathVersion.V3_1, base);
+        assertNull(run.error(), run.text());
+        assertEquals("found", run.text().strip());
+
+        QueryError missing = xpath("<a/>", "doc('nope.xml')//x");
+        assertEquals("FODC0002", missing.code());
+        assertTrue(missing.hint().contains("file:///"), missing.hint());
+        QueryError unsaved = xquery("<a/>", "doc('other.xml')//x");
+        assertEquals("XTDE1162", unsaved.code());
+        assertNotNull(unsaved.hint());
+        assertNotNull(xquery("<a/>", "doc('C:\\\\data\\\\x.xml')").hint(), "FODC0005: a Windows path");
+    }
+
     @Test
     void errorsWithoutSaxonDetailsStillFormat() {
         QueryError e = QueryErrors.of(null, "boom", "x", QueryLanguage.XPATH);

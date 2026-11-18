@@ -79,7 +79,11 @@ public final class QueryErrorView extends VBox {
         show(codeLabel, url == null && !code.isEmpty());
         kindLabel.setText(e.kind().label());
         positionLink.setText(e.positionLabel());
-        show(positionLink, e.hasPosition());
+        if (positionLink.getTooltip() != null) {
+            positionLink.getTooltip().setText(org.fxt.freexmltoolkit.i18n.I18n.t(e.hasPosition()
+                    ? "QueryErrorView.positionLink.tooltip" : "QueryErrorView.positionLink.document-tooltip"));
+        }
+        show(positionLink, e.hasPosition() || e.hasDocumentPosition());
         messageLabel.setText(e.message());
         excerptLabel.setText(e.excerpt());
         show(excerptLabel, !e.excerpt().isEmpty());

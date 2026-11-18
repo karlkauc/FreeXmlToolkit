@@ -41,7 +41,11 @@ public final class QueryErrors {
     private static final Pattern DECLARED_NS = Pattern.compile(
             "declare\\s+namespace\\s+([\\p{L}_][\\w.\\-]*)\\s*=\\s*[\"']([^\"']*)[\"']");
     private static final List<String> WRAPPERS = List.of("Invalid XPath expression or XML: ",
-            "XQuery execution failed: ", "Unexpected error: ", "ERROR: ");
+            "XQuery execution failed: ", "Unexpected error: ", "ERROR: ", "Error reported by XML parser: ");
+    /** A code Saxon puts in front of some messages ("SXXP0003   Error reported by XML parser: …"). */
+    private static final Pattern LEADING_CODE = Pattern.compile("^[A-Z]{4}\\d{4}\\s+");
+    /** "on line 3 column 14" in a message without a locator. */
+    private static final Pattern LINE_COLUMN = Pattern.compile("line (\\d+),? column (\\d+)");
 
     private QueryErrors() {
     }
@@ -91,6 +95,9 @@ public final class QueryErrors {
             message = sae.getMessage();
         } else if (message == null && failure != null) {
             message = failure.getMessage();
+        }
+        if (QueryError.Kind.of(code) == QueryError.Kind.DOCUMENT) {
+            return documentError(code, xpe, message, text, language, xml);
         }
         return build(code, line, column, message, failing, text, language, version, xml);
     }
@@ -153,6 +160,29 @@ public final class QueryErrors {
     }
 
     // ---------------------------------------------------------------------------------------------
+
+    /**
+     * The queried document is not well-formed: the locator's line and column are the document's, not the query's.
+     */
+    private static QueryError documentError(String code, XPathException xpe, String rawMessage, String query,
+                                            QueryLanguage language, String xml) {
+        int line = -1;
+        int column = -1;
+        Location at = xpe == null ? null : xpe.getLocator();
+        if (at != null && at.getLineNumber() > 0) {
+            line = at.getLineNumber();
+            column = at.getColumnNumber() > 0 ? at.getColumnNumber() : -1;
+        } else if (rawMessage != null) {
+            Matcher m = LINE_COLUMN.matcher(rawMessage);
+            if (m.find()) {
+                line = Integer.parseInt(m.group(1));
+                column = Integer.parseInt(m.group(2));
+            }
+        }
+        String message = clean(rawMessage == null ? "" : rawMessage, query, xml);
+        return new QueryError(code, QueryError.Kind.DOCUMENT, -1, -1, 1, message, QueryErrorHints.hintFor(code),
+                List.of(), query, language, line, column);
+    }
 
     private static QueryError build(String code, int line, int column, String rawMessage, String failing,
                                     String query, QueryLanguage language, XPathVersion version, String xml) {
@@ -443,6 +473,11 @@ public final class QueryErrors {
         boolean stripped = true;
         while (stripped) {
             stripped = false;
+            Matcher code = LEADING_CODE.matcher(m);
+            if (code.find()) {
+                m = m.substring(code.end());
+                stripped = true;
+            }
             for (String w : WRAPPERS) {
                 if (m.startsWith(w)) {
                     m = m.substring(w.length()).strip();

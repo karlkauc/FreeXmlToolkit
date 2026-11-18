@@ -186,12 +186,14 @@ final class QueryCommand implements Callable<Integer> {
                 error = "YAML files are queried with JSONPath (-l jsonpath)";
             }
             if (error == null) {
+                String baseUri = source == null || source.file() == STDIN ? null
+                        : source.file().toAbsolutePath().toUri().toString();
                 TransformRunner.QueryRun run = switch (lang) {
-                    case xpath -> TransformRunner.xpath(content, query, xpathVersion);
+                    case xpath -> TransformRunner.xpath(content, query, xpathVersion, baseUri);
                     case jsonpath -> yaml ? TransformRunner.yamlPath(content, query)
                             : TransformRunner.jsonPath(content, query);
                     case xquery -> TransformRunner.xquery(content, query, new LinkedHashMap<>(variables),
-                            XsltTransformationEngine.OutputFormat.XML, xqueryVersion);
+                            XsltTransformationEngine.OutputFormat.XML, xqueryVersion, baseUri);
                 };
                 if (run.failure() != null) {
                     error = run.text().startsWith("ERROR: ") ? run.text().substring(7) : run.text();
@@ -273,6 +275,13 @@ final class QueryCommand implements Callable<Integer> {
         if (e.hasPosition()) {
             o.addProperty("line", e.line());
             o.addProperty("column", e.column());
+        }
+        if (e.hasDocumentPosition()) {
+            // kind "document": the input is not well-formed; the position is in the input, not in the query
+            o.addProperty("documentLine", e.documentLine());
+            if (e.documentColumn() > 0) {
+                o.addProperty("documentColumn", e.documentColumn());
+            }
         }
         if (e.hint() != null) {
             o.addProperty("hint", e.hint());

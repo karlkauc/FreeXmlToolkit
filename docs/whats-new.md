@@ -6,6 +6,14 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+- **A broken document is named as such.** When the queried XML is not well-formed, the Query Console no longer
+  shows a confusing query error (XQuery used to say *"the context item is absent"*): it reports an *error in the
+  document* with its line and column, and a click opens the document there.
+- **`doc()` finds files next to the document.** XPath in the Query Console, in `.xpath` files and in
+  `fxt-cli query` now resolves relative `doc()` and `unparsed-text()` paths next to the saved document (it used to
+  look in the program's folder), like XQuery already did. When a file cannot be read, a hint explains relative and
+  `file:` paths.
+
 - **No pause when Settings is the first thing you open.** Settings asked the system for its list of fonts before
   showing the syntax colour preview, which froze the window for seconds on computers with many fonts. The bundled
   editor font needs no list now, and the list is read in the background at start.

@@ -171,6 +171,31 @@ class QueryConsoleErrorTest {
         assertTrue(text.contains("urn:funds") && text.contains("*:Fund"), text);
     }
 
+    @Test
+    void aBrokenDocumentIsShownAsTheDocumentsErrorAndItsPositionOpensTheDocumentThere(@TempDir Path tmp)
+            throws Exception {
+        QueryConsole console = open(tmp, "<funds>\n  <Fund>\n    <Name>A</Nam>\n  </Fund>\n</funds>");
+        run(console, "//Fund/Name");
+        QueryErrorView view = console.errorView();
+        assertEquals("SXXP0003", view.error().code());
+        String position = ((Hyperlink) view.lookup("#query-error-position")).getText();
+        assertTrue(position.startsWith("document line 3, column "), position);
+        assertTrue(((Label) view.lookup("#query-error-hint")).getText().contains("not well-formed"));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, view::onGoToPosition);
+        assertEquals(3, WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveCaretLineColumn()[0]),
+                "the caret is at the error in the document");
+    }
+
+    @Test
+    void aRelativeDocCallReadsTheFileNextToTheDocument(@TempDir Path tmp) throws Exception {
+        Files.writeString(tmp.resolve("rates.xml"), "<rates><EUR>1</EUR></rates>");
+        QueryConsole console = open(tmp, "<funds><Fund/></funds>");
+        run(console, "name(doc('rates.xml')/*/*)");
+        assertFalse(console.errorView().isVisible(), console.getResultsText());
+        assertEquals("EUR", console.getResultsText().strip());
+    }
+
     private static final class URIHolder {
         String uri;
     }

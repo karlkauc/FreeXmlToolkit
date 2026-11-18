@@ -791,6 +791,12 @@ public class XmlServiceImpl implements XmlService {
     @Override
     public String getXmlFromXpath(String xml, String xPath,
                                   org.fxt.freexmltoolkit.service.standards.XPathVersion version) {
+        return getXmlFromXpath(xml, xPath, version, null);
+    }
+
+    @Override
+    public String getXmlFromXpath(String xml, String xPath,
+                                  org.fxt.freexmltoolkit.service.standards.XPathVersion version, String baseUri) {
         if (version == org.fxt.freexmltoolkit.service.standards.XPathVersion.V1_0) {
             return org.fxt.freexmltoolkit.service.standards.Xpath10Engine.evaluate(xml, xPath, java.util.Map.of(),
                     java.util.Map.of());
@@ -801,11 +807,15 @@ public class XmlServiceImpl implements XmlService {
 
             // Parse XML document using Saxon
             net.sf.saxon.s9api.DocumentBuilder docBuilder = processor.newDocumentBuilder();
-            Source source = new StreamSource(new StringReader(xml));
+            Source source = new StreamSource(new StringReader(xml), baseUri);
             XdmNode doc = docBuilder.build(source);
 
             // Compile and evaluate XPath expression
             XPathCompiler xpathCompiler = newXPathCompiler(version);
+            if (baseUri != null) {
+                // without it relative doc() paths resolve against the program's working folder
+                xpathCompiler.setBaseURI(java.net.URI.create(baseUri));
+            }
             XPathExecutable xpathExecutable = xpathCompiler.compile(xPath);
             XPathSelector xpathSelector = xpathExecutable.load();
             xpathSelector.setContextItem(doc);

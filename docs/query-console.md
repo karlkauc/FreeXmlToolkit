@@ -113,6 +113,8 @@ When a run fails, the RESULTS area shows the error instead of the result:
 | `XPTY0020` | An axis step in a predicate on values, e.g. `distinct-values(//Ccy)[../Name]` | Filter the nodes before they become values: `//Fund[Ccy = "EUR"]/Name` |
 | `XPTY0004` | Several values where one is needed (`//Fund/Name + 1`), or text where a number is needed (`"5" + 1`) | Pick one with `[1]`, aggregate, or use `!`; convert with `number(.)`, `xs:date(@Date)` |
 | `FORG0001` | A value in the wrong format for a cast, e.g. `xs:decimal("1.234,5")` | `xs:date` needs `2026-11-17`, `xs:decimal` a dot; `number(.)` gives `NaN` instead of failing |
+| `SXXP0003` | The **document** is not well-formed XML - the query may be fine | Shown as *error in the document* with *document line 3, column 14*; a click on it opens the document there. **Validate** (F8) lists all problems |
+| `FODC0002`, `FODC0005`, `XTDE1162`, `FOUT1170` | `doc()` / `unparsed-text()` cannot find or read a file | Relative paths resolve next to the saved document (an unsaved one has no location); absolute paths are `file:` URIs: `doc("file:///C:/data/funds.xml")`, not `C:\data\funds.xml` |
 
 - **Did you mean** buttons for an unknown function (`distinct-value` → `distinct-values`; also *"substring() exists,
   but takes 2 or 3 arguments"*), an unknown variable (`$nme` → `$name`) or an undeclared prefix (`*:Fund`, or in

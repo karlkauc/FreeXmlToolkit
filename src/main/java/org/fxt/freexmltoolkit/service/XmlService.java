@@ -150,6 +150,16 @@ public interface XmlService {
         return getXmlFromXpath(xml, xPath);
     }
 
+    /**
+     * As {@link #getXmlFromXpath(String, String, org.fxt.freexmltoolkit.service.standards.XPathVersion)} for a
+     * document with a location: {@code baseUri} (a {@code file:} URI, or {@code null}) is the expression's static
+     * base URI and the document's base URI, so relative {@code doc()} / {@code unparsed-text()} resolve next to it.
+     */
+    default String getXmlFromXpath(String xml, String xPath,
+                                   org.fxt.freexmltoolkit.service.standards.XPathVersion version, String baseUri) {
+        return getXmlFromXpath(xml, xPath, version);
+    }
+
     String getXmlFromXpath(String xPath, Node node);
 
     String getXmlFromXpath(String xPath);

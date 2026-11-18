@@ -495,6 +495,7 @@ public class QueryConsole extends Region {
         boolean json = isJsonActive();
         boolean yaml = isYamlActive();
         var version = xpathVersion();
+        String baseUri = activeBaseUri();
         setResultsText("Running…");
         hits.clear();
         String revision = editorHost.activeRevisionKey();
@@ -507,7 +508,7 @@ public class QueryConsole extends Region {
                     path.length() > 60 ? path.substring(0, 57) + "…" : path);
             TransformRunner.QueryRun run = yaml ? TransformRunner.yamlPath(content, path)
                     : json ? TransformRunner.jsonPath(content, path)
-                    : TransformRunner.xpath(content, path, version);
+                    : TransformRunner.xpath(content, path, version, baseUri);
             String result = run.text();
             boolean ok = !result.startsWith("ERROR");
             if (json) {
@@ -537,6 +538,12 @@ public class QueryConsole extends Region {
         });
     }
 
+    /** @return the saved active document's {@code file:} URI, or {@code null} for an unsaved one */
+    private String activeBaseUri() {
+        return editorHost.getActiveDocument().filter(d -> !d.isUntitled() && d.getPath() != null)
+                .map(d -> d.getPath().toUri().toString()).orElse(null);
+    }
+
     /**
      * Executes the XQuery area against the active document (async), mirroring
      * {@link TransformPanel#runXQuery()}: an empty external-variables map and the
@@ -554,8 +561,7 @@ public class QueryConsole extends Region {
         String xml = editorHost.getActiveText().orElse("");
         // A saved document's location is the query's base URI: relative doc() / unparsed-text() resolve
         // next to it (without one, Saxon fails with FODC0005 / XTDE1162)
-        String baseUri = editorHost.getActiveDocument().filter(d -> !d.isUntitled() && d.getPath() != null)
-                .map(d -> d.getPath().toUri().toString()).orElse(null);
+        String baseUri = activeBaseUri();
         var version = xqueryVersion();
         setResultsText("Running…");
         hits.clear();
@@ -713,6 +719,11 @@ public class QueryConsole extends Region {
 
     /** Puts the caret at the error and selects what it marks. */
     private void goToError(QueryError error) {
+        if (error.hasDocumentPosition()) {
+            // the document is not well-formed: the place to fix is in the document, not in the query
+            editorHost.goToLine(error.documentLine(), error.documentColumn());
+            return;
+        }
         CodeArea input = isXQueryMode() ? xqueryArea : xpathField;
         int offset = error.offset();
         if (offset < 0 || !error.query().equals(input.getText())) {

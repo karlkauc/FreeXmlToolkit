@@ -6,15 +6,20 @@ import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Short explanations of the dynamic errors users most often get from their own XPath / XQuery
- * expressions (telemetry: XPTY0019, XPTY0020, XPTY0004, FORG0001). The processor's message names
- * the rule that was broken; the hint says what usually causes it and how to write it instead.
+ * expressions (telemetry: XPTY0019, XPTY0020, XPTY0004, FORG0001), a document that is not well-formed
+ * (SXXP0003) and files that {@code doc()} / {@code unparsed-text()} cannot read (FODC0002, FODC0005,
+ * XTDE1162, FOUT1170). The processor's message names the rule that was broken; the hint says what usually
+ * causes it and how to write it instead.
  *
  * <p>Texts live in the i18n bundles under {@code QueryErrorHints.<code>}.</p>
  */
 public final class QueryErrorHints {
 
     /** The error codes that have a hint. */
-    static final Set<String> CODES = Set.of("XPTY0019", "XPTY0020", "XPTY0004", "FORG0001");
+    static final Set<String> CODES = Set.of("XPTY0019", "XPTY0020", "XPTY0004", "FORG0001", "SXXP0003");
+
+    /** Codes of a file a query reads that cannot be found or read; they share one hint. */
+    static final Set<String> FILE_CODES = Set.of("FODC0002", "FODC0005", "XTDE1162", "FOUT1170");
 
     private QueryErrorHints() {
     }
@@ -27,6 +32,9 @@ public final class QueryErrorHints {
      */
     public static String hintFor(String code) {
         String local = localPart(code);
+        if (local != null && FILE_CODES.contains(local)) {
+            return I18n.t("QueryErrorHints.file");
+        }
         return local != null && CODES.contains(local) ? I18n.t("QueryErrorHints." + local) : null;
     }
 
