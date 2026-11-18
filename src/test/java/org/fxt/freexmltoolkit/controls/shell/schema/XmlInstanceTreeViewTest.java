@@ -65,4 +65,32 @@ class XmlInstanceTreeViewTest {
         });
         assertNull(WaitForAsyncUtils.waitForAsyncFx(2000, () -> tree.getRoot()));
     }
+
+    @Test
+    void attributesAreRowsOfTheirOwnThatReportTheirElement() {
+        XmlEditorContext ctx = context("<order id=\"1\" status=\"open\"><item>a</item></order>");
+        XmlNode[] reported = {null};
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            tree.setOnSelectionChanged(n -> reported[0] = n);
+            tree.setModel(ctx);
+            return null;
+        });
+        TreeItem<XmlNode> root = WaitForAsyncUtils.waitForAsyncFx(2000, () -> tree.getRoot());
+        var first = root.getChildren().get(0).getValue();
+        var second = root.getChildren().get(1).getValue();
+        assertTrue(first instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlAttribute a
+                && "id".equals(a.getName()) && "1".equals(a.getValue()), "attributes come first");
+        assertTrue(second instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlAttribute a
+                && "status".equals(a.getName()));
+        assertSame(root.getValue(), tree.ownerOf(first));
+        assertTrue(ctx.getDocument().getRootElement().getChildren().stream()
+                .noneMatch(c -> c instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlAttribute),
+                "the stand-ins are not part of the model");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            tree.selectAttribute((XmlElement) root.getValue(), "status");
+            return null;
+        });
+        assertSame(root.getValue(), reported[0], "an attribute row reports its element");
+    }
 }

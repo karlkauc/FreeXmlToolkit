@@ -20,7 +20,8 @@ class XmlNodeIconsTest {
     @Test
     void everyNodeKindHasAResolvableIcon() {
         List<XmlNode> nodes = List.of(new XmlElement("a"), new XmlText("t"), new XmlComment("c"),
-                new XmlCData("d"), new XmlProcessingInstruction("pi", "x"), new XmlDocument());
+                new XmlCData("d"), new XmlProcessingInstruction("pi", "x"), new XmlDocument(),
+                new org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlAttribute("n", "v"));
         IconifyIconService icons = IconifyIconService.getInstance();
         for (XmlNode node : nodes) {
             String icon = XmlNodeIcons.icon(node);

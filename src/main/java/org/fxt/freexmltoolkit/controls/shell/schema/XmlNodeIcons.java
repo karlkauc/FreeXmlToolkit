@@ -30,6 +30,9 @@ public final class XmlNodeIcons {
         if (node instanceof XmlProcessingInstruction) {
             return "bi-gear";
         }
+        if (node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlAttribute) {
+            return "bi-at";
+        }
         if (node instanceof XmlDocument) {
             return "bi-file-earmark";
         }

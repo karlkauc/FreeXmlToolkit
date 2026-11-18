@@ -18,6 +18,7 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlAttribute;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlCData;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument;
@@ -32,7 +33,10 @@ import org.fxt.freexmltoolkit.i18n.I18n;
  * which renders an XSD schema). It renders the shared {@link XmlNode} model — the same node
  * instances the Grid view and inspector edit — so selecting a node feeds the inspector and edits
  * round-trip. Element, text, comment, CDATA and processing-instruction nodes are shown (the node
- * types the inspector can edit); whitespace-only text is omitted.
+ * types the inspector can edit); whitespace-only text is omitted. An element's attributes are rows of
+ * their own before its children ({@code name = "value"}), backed by {@link XmlAttribute} stand-ins that
+ * are not part of the model: selecting one reports its element, Delete hands the stand-in over (its
+ * element via {@link #ownerOf}).
  */
 public class XmlInstanceTreeView extends TreeView<XmlNode> {
 
@@ -42,12 +46,16 @@ public class XmlInstanceTreeView extends TreeView<XmlNode> {
     /** Collapsed nodes to keep collapsed while the items are built again ({@link #rebuildPreservingState}). */
     private Set<java.util.UUID> keepCollapsed = Set.of();
     private final Map<java.util.UUID, TreeItem<XmlNode>> nodeToItem = new HashMap<>();
+    /** The element of each attribute row's stand-in (the stand-ins are not in the model). */
+    private final Map<XmlAttribute, XmlElement> attributeOwners = new java.util.IdentityHashMap<>();
 
     public XmlInstanceTreeView() {
         getStyleClass().add("fxt-xml-tree");
         setCellFactory(tv -> new XmlNodeCell());
         org.fxt.freexmltoolkit.controls.shared.TreeScrollHeader.install(this,
-                node -> node instanceof XmlElement element ? element.getQualifiedName() : node.getClass().getSimpleName(),
+                node -> node instanceof XmlElement element ? element.getQualifiedName()
+                        : node instanceof XmlAttribute attribute ? "@" + attribute.getName()
+                        : node.getClass().getSimpleName(),
                 node -> {
                     IconifyIcon icon = new IconifyIcon(XmlNodeIcons.icon(node));
                     icon.setIconSize(14);
@@ -55,7 +63,9 @@ public class XmlInstanceTreeView extends TreeView<XmlNode> {
                 });
         getSelectionModel().selectedItemProperty().addListener((obs, oldItem, newItem) -> {
             if (newItem != null && onSelectionChanged != null) {
-                onSelectionChanged.accept(newItem.getValue());
+                // an attribute row stands for its element (the inspector edits the attributes there)
+                XmlNode node = newItem.getValue();
+                onSelectionChanged.accept(node instanceof XmlAttribute a && ownerOf(a) != null ? ownerOf(a) : node);
             }
         });
         // Delete removes the selected node completely (the shell runs it as one undo step)
@@ -76,6 +86,27 @@ public class XmlInstanceTreeView extends TreeView<XmlNode> {
         this.onDeleteRequested = onDeleteRequested;
     }
 
+    /** @return the element of an attribute row's stand-in, or {@code null} */
+    public XmlElement ownerOf(XmlNode node) {
+        return node instanceof XmlAttribute attribute ? attributeOwners.get(attribute) : null;
+    }
+
+    /** Selects the row of the element's attribute {@code name} (no-op if absent). */
+    public void selectAttribute(XmlElement element, String name) {
+        TreeItem<XmlNode> elementItem = element == null ? null : nodeToItem.get(element.getId());
+        if (elementItem == null) {
+            return;
+        }
+        for (TreeItem<XmlNode> child : elementItem.getChildren()) {
+            if (child.getValue() instanceof XmlAttribute attribute && attribute.getName().equals(name)) {
+                selectNode(element); // expands the ancestors
+                getSelectionModel().select(child);
+                scrollTo(getRow(child));
+                return;
+            }
+        }
+    }
+
     /**
      * Builds the items again from the (edited) model, keeping collapsed nodes collapsed and the
      * selection when its node still exists.
@@ -88,13 +119,16 @@ public class XmlInstanceTreeView extends TreeView<XmlNode> {
             }
         }
         TreeItem<XmlNode> selected = getSelectionModel().getSelectedItem();
+        XmlElement selectedOwner = selected == null ? null : ownerOf(selected.getValue());
         keepCollapsed = collapsed;
         try {
             setModel(ctx);
         } finally {
             keepCollapsed = Set.of();
         }
-        if (selected != null) {
+        if (selectedOwner != null) {
+            selectAttribute(selectedOwner, ((XmlAttribute) selected.getValue()).getName());
+        } else if (selected != null) {
             selectNode(selected.getValue());
         }
     }
@@ -140,6 +174,7 @@ public class XmlInstanceTreeView extends TreeView<XmlNode> {
      */
     public void setModel(XmlEditorContext ctx) {
         nodeToItem.clear();
+        attributeOwners.clear();
         if (ctx == null || ctx.getDocument() == null) {
             setRoot(null);
             return;
@@ -174,6 +209,11 @@ public class XmlInstanceTreeView extends TreeView<XmlNode> {
         item.setExpanded(!keepCollapsed.contains(node.getId()));
         nodeToItem.put(node.getId(), item);
         if (node instanceof XmlElement element) {
+            for (Map.Entry<String, String> attr : element.getAttributes().entrySet()) {
+                XmlAttribute standIn = new XmlAttribute(attr.getKey(), attr.getValue());
+                attributeOwners.put(standIn, element);
+                item.getChildren().add(new TreeItem<>(standIn));
+            }
             for (XmlNode child : element.getChildren()) {
                 if (isRenderable(child)) {
                     item.getChildren().add(buildItem(child));
@@ -208,11 +248,9 @@ public class XmlInstanceTreeView extends TreeView<XmlNode> {
             // "Go to Definition" applies to element rows only (and only when wired).
             setContextMenu(item instanceof XmlElement && onGoToDefinition != null ? cellMenu() : null);
             if (item instanceof XmlElement element) {
-                StringBuilder label = new StringBuilder(element.getQualifiedName());
-                for (Map.Entry<String, String> attr : element.getAttributes().entrySet()) {
-                    label.append(' ').append(attr.getKey()).append("=\"").append(attr.getValue()).append('"');
-                }
-                setText(label.toString());
+                setText(element.getQualifiedName()); // the attributes are rows of their own
+            } else if (item instanceof XmlAttribute attribute) {
+                setText(attribute.getName() + " = \"" + attribute.getValue() + "\"");
             } else if (item instanceof XmlText text) {
                 setText("\"" + text.getText().strip() + "\"");
             } else if (item instanceof XmlComment comment) {

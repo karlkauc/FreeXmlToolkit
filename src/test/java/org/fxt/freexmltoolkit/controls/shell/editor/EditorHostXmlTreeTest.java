@@ -122,6 +122,34 @@ class EditorHostXmlTreeTest {
                                 && "TotalPercentage".equals(e.getName()))), "undo brings it back into the tree");
     }
 
+    @Test
+    void deleteOnAnAttributeRowRemovesOnlyTheAttribute(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("amount.xml");
+        Files.writeString(xml, "<Position><Amount ccy=\"EUR\" isFundCcy=\"true\">5</Amount></Position>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("Position")).orElse(false));
+        showTree();
+
+        selectAndDelete(".fxt-xml-tree",
+                (org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode n) ->
+                        n instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlAttribute a
+                                && "isFundCcy".equals(a.getName()));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> !t.contains("isFundCcy")).orElse(false));
+        assertTrue(host.getActiveText().orElseThrow().contains("<Amount ccy=\"EUR\">5</Amount>"),
+                host.getActiveText().orElseThrow());
+
+        var tree = (org.fxt.freexmltoolkit.controls.shell.schema.XmlInstanceTreeView) host.lookup(".fxt-xml-tree");
+        var selected = WaitForAsyncUtils.waitForAsyncFx(2000, () -> tree.getSelectionModel().getSelectedItem().getValue());
+        assertTrue(selected instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlAttribute a
+                && "ccy".equals(a.getName()), "the remaining attribute is selected");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.undoXml());
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("isFundCcy=\"true\"")).orElse(false));
+    }
+
     /** Selects the first tree item whose value matches and presses Delete on the tree. */
     @SuppressWarnings("unchecked")
     private <T> void selectAndDelete(String selector, java.util.function.Predicate<T> match) {

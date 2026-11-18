@@ -3070,6 +3070,11 @@ final class EditorTab extends Tab {
      * and selects its next sibling, else the previous one, else the parent. The root element stays.
      */
     void deleteFromXmlTree(org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode node) {
+        var owner = xmlInstanceTreeView.ownerOf(node);
+        if (owner != null) {
+            deleteAttributeFromXmlTree(owner, ((org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlAttribute) node).getName());
+            return;
+        }
         if (node == null || !(node.getParent()
                 instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement)) {
             return; // the root element (its parent is the document) cannot go
@@ -3084,6 +3089,27 @@ final class EditorTab extends Tab {
             xmlInstanceTreeView.selectNode(next);
         } else {
             selectionCallback.run();
+        }
+    }
+
+    /**
+     * Delete on an attribute row of the XML Tree: removes only that attribute (one undo step, written
+     * into the text) and selects the next attribute of the element, else the previous one, else the element.
+     */
+    private void deleteAttributeFromXmlTree(org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement element,
+                                            String name) {
+        java.util.List<String> names = new java.util.ArrayList<>(element.getAttributes().keySet());
+        int index = names.indexOf(name);
+        String next = index + 1 < names.size() ? names.get(index + 1) : index > 0 ? names.get(index - 1) : null;
+        if (!editXml(new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RemoveAttributeCommand(element, name))) {
+            return;
+        }
+        currentXmlSelection = null;
+        xmlInstanceTreeView.rebuildPreservingState(xmlEditorContext);
+        if (next != null) {
+            xmlInstanceTreeView.selectAttribute(element, next);
+        } else {
+            xmlInstanceTreeView.selectNode(element);
         }
     }
 
