@@ -53,12 +53,19 @@ class VerifiedGenerationTest {
     }
 
     @Test
-    void aPrefixedExpressionFailsBecauseTheConsoleDeclaresNoPrefixes() throws Exception {
-        ScriptedProvider provider = new ScriptedProvider("```xpath\ncount(//f:fund)\n```", "```xpath\ncount(//*:fund)\n```");
+    void aPrefixTheDocumentDoesNotDeclareFailsAndItsOwnPrefixVerifies() throws Exception {
+        ScriptedProvider provider = new ScriptedProvider("```xpath\ncount(//g:fund)\n```", "```xpath\ncount(//*:fund)\n```");
         VerifiedGeneration.Outcome outcome = new VerifiedGeneration().run(provider, first(), CandidateExtractor.xpath(),
                 xpathVerifier(), 3, null, CancelToken.none());
         assertEquals(VerifiedGeneration.Status.VERIFIED, outcome.status());
         assertEquals(1, outcome.repairRounds());
+
+        // the Query Console declares the document's prefixes (f:), so the verifier does too
+        ScriptedProvider own = new ScriptedProvider("```xpath\ncount(//f:fund)\n```");
+        VerifiedGeneration.Outcome first = new VerifiedGeneration().run(own, first(), CandidateExtractor.xpath(),
+                xpathVerifier(), 3, null, CancelToken.none());
+        assertEquals(VerifiedGeneration.Status.VERIFIED, first.status());
+        assertEquals(0, first.repairRounds());
     }
 
     @Test

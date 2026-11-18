@@ -31,9 +31,17 @@ final class QueryEditorView implements EditorView {
     private final VBox root = new VBox();
     private final XPathIntelliSenseEngine intelliSense;
     private Runnable runHandler;
+    /** The run target's text (the check declares its prefixes and suggests its namespaces), or {@code null}. */
+    private Supplier<String> xmlContext;
     private final QueryInputMarks marks;
 
+    /** The start of a document: enough for its namespace declarations, cheap to check against. */
+    private static String head(String text) {
+        return text == null ? null : text.substring(0, Math.min(text.length(), 16_384));
+    }
+
     QueryEditorView(boolean xquery) {
+        QuerySettings.install();
         codeArea.getStyleClass().add("fxt-query-editor");
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         // syntax highlighting, the check while typing and run errors as marks
@@ -43,7 +51,11 @@ final class QueryEditorView implements EditorView {
                     var tool = StandardsSettings.current().forTool(StandardsSettings.TOOL_QUERY_CONSOLE, null);
                     return xquery ? tool.xquery().xpathVersion() : tool.xpath();
                 },
-                () -> null, null);
+                () -> xmlContext == null ? null : head(xmlContext.get()), null);
+        if (xquery) {
+            marks.setXQueryVersion(() -> StandardsSettings.current()
+                    .forTool(StandardsSettings.TOOL_QUERY_CONSOLE, null).xquery());
+        }
         CodeAreaFontZoom.install(codeArea);
 
         intelliSense = new XPathIntelliSenseEngine(codeArea, xquery);
@@ -88,6 +100,7 @@ final class QueryEditorView implements EditorView {
     @Override
     public void configureQuerySupport(Runnable runHandler, Supplier<String> xmlContextSupplier) {
         this.runHandler = runHandler;
+        this.xmlContext = xmlContextSupplier;
         if (xmlContextSupplier != null) {
             intelliSense.setXmlContentSupplier(xmlContextSupplier);
         }

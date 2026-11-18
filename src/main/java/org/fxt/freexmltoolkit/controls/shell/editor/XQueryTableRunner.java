@@ -125,7 +125,7 @@ public final class XQueryTableRunner {
         }
     }
 
-    private static XQueryTable toTable(XdmValue result) {
+    static XQueryTable toTable(XdmValue result) {
         List<XdmItem> items = new ArrayList<>();
         for (XdmItem item : result) {
             items.add(item);

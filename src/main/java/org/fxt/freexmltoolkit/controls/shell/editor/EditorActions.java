@@ -270,9 +270,10 @@ public final class EditorActions {
         boolean xquery = type == EditorFileType.XQUERY;
         out.showPending(I18n.t("EditorActions.running-query-against", target.displayName()));
         String queryTarget = doc.getDisplayName();
-        // relative doc() / unparsed-text() resolve next to the target file, else next to the saved query
-        String baseUri = target.file() != null ? target.file().toURI().toString()
-                : !doc.isUntitled() && doc.getPath() != null ? doc.getPath().toUri().toString() : null;
+        // the query's own location resolves `import module at` and doc() calls written in it; the target file is the
+        // document's base URI (an open target has none: then the query's folder)
+        String queryBaseUri = !doc.isUntitled() && doc.getPath() != null ? doc.getPath().toUri().toString() : null;
+        String baseUri = target.file() != null ? target.file().toURI().toString() : queryBaseUri;
         final int gen = ++queryRunGeneration;
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
@@ -291,13 +292,23 @@ public final class EditorActions {
                 });
                 return;
             }
+            // like the console: the target's prefixes are declared, unprefixed names match its default namespace
+            var bindings = org.fxt.freexmltoolkit.service.query.DocumentNamespaces.forQueries(xml);
             if (xquery) {
-                TransformRunner.QueryRun run = TransformRunner.xquery(xml, query, Map.of(),
-                        XsltTransformationEngine.OutputFormat.XML, standards(
-                                org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_QUERY_CONSOLE).xquery(),
-                        baseUri);
+                var version = standards(
+                        org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_QUERY_CONSOLE).xquery();
+                // one evaluation gives the text and the table; the time limit of the console applies
+                QueryEvaluation.Result evaluation = QueryEvaluation.run(new QueryEvaluation.Request(
+                        org.fxt.freexmltoolkit.service.query.QueryLanguage.XQUERY, version.xpathVersion(), version,
+                        xml, query, baseUri, queryBaseUri, bindings.prefixes(),
+                        QuerySettings.defaultNamespace(bindings, version.xpathVersion()), null,
+                        QuerySettings.timeoutSeconds() * 1000L));
+                TransformRunner.QueryRun run = evaluation.timedOut()
+                        ? new TransformRunner.QueryRun("ERROR: " + I18n.t("QueryConsole.timed-out",
+                                QuerySettings.timeoutSeconds()), evaluation.failure())
+                        : evaluation.run();
                 String result = run.text();
-                XQueryTableRunner.XQueryTable table = XQueryTableRunner.run(xml, query);
+                XQueryTableRunner.XQueryTable table = evaluation.table();
                 boolean ok = !result.startsWith("ERROR");
                 UsageEvents.xqueryExecuted(t0, run.failure());
                 long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
@@ -310,8 +321,12 @@ public final class EditorActions {
                     }
                 });
             } else {
-                TransformRunner.QueryRun run = TransformRunner.xpath(xml, query, standards(
-                        org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_QUERY_CONSOLE).xpath(), baseUri);
+                var version = standards(
+                        org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_QUERY_CONSOLE).xpath();
+                TransformRunner.QueryRun run = QueryEvaluation.run(new QueryEvaluation.Request(
+                        org.fxt.freexmltoolkit.service.query.QueryLanguage.XPATH, version, null, xml, query, baseUri,
+                        baseUri, bindings.prefixes(), QuerySettings.defaultNamespace(bindings, version), null, 0))
+                        .run();
                 String result = run.text();
                 boolean ok = !result.startsWith("ERROR");
                 UsageEvents.xpathExecuted(t0, run.failure());

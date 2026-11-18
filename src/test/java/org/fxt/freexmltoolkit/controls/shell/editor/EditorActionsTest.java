@@ -391,6 +391,37 @@ class EditorActionsTest {
     }
 
     @Test
+    void aQueryTabImportsModulesNextToTheQueryAndReadsDocumentsNextToTheTarget(@TempDir Path tmp) throws Exception {
+        EditorHost host = shell.getEditorHost();
+        Path data = Files.createDirectories(tmp.resolve("data"));
+        Path ext = data.resolve("ext.xml");
+        Files.writeString(ext, "<r><item>FROM-EXT</item></r>");
+        Files.writeString(data.resolve("rates.xml"), "<rates>RATE</rates>");
+        Path queries = Files.createDirectories(tmp.resolve("queries"));
+        Files.writeString(queries.resolve("lib.xq"),
+                "module namespace m = \"urn:m\"; declare function m:tag($s) { '[' || $s || ']' };");
+        Path xq = queries.resolve("q.xq");
+        Files.writeString(xq, "import module namespace m = \"urn:m\" at \"lib.xq\";\n"
+                + "m:tag(//item) || m:tag(string(doc(resolve-uri('rates.xml', base-uri(.)))))");
+
+        openAndAwait(host, xq, "item");
+        var queryDoc = host.getActiveDocument().orElseThrow();
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setQueryTarget(queryDoc, new QueryTarget.FsFile(ext.toFile()));
+            return null;
+        });
+        EditorActions actions = new EditorActions(host);
+        var out = WaitForAsyncUtils.waitForAsyncFx(2000, host::transformOutputPanel);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            actions.runActiveQuery();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                () -> out.getOutputText() != null && out.getOutputText().contains("[RATE]"));
+        assertTrue(out.getOutputText().contains("[FROM-EXT][RATE]"), out.getOutputText());
+    }
+
+    @Test
     void targetFallsBackToAutomaticWhenTargetDocumentIsClosed(@TempDir Path tmp) throws Exception {
         EditorHost host = shell.getEditorHost();
         Path a = tmp.resolve("a.xml");

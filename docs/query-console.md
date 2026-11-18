@@ -82,6 +82,29 @@ The `map:`, `array:` and `math:` function namespaces are
 **pre-declared** in the console, so XPath 3.1 expressions using `map:merge()`,
 `array:size()`, `math:pow()` etc. run directly - no namespace prolog needed.
 
+**Namespaces of the document.** The prefixes the document declares are declared for the query too: on a document with
+`xmlns:fx="…"`, `//fx:Fund` runs without `declare namespace` (a declaration in the query wins). When the root element
+is in a **default namespace** (`<FundsXML xmlns="…">`), a **Default namespace** chip appears next to the target:
+
+- **On** (default): names without a prefix match the document's default namespace, so `//Fund` finds the funds.
+- **Off**: names without a prefix match only elements in no namespace, as the XPath standard says; write `*:Fund` or a
+  prefix. Completion then proposes `*:Fund`.
+
+The chip, the setting under **Settings → Schemas & Validation → Queries** and query files share one choice. XPath 1.0
+cannot bind a default namespace, so the chip is hidden there.
+
+**Hits while typing.** When the expression checks without errors, the console runs it in the background and the line
+under the input says what it would find: *"3 hits (preview, Ctrl+Enter runs)"*, *"Result: 42"* or *"No hit"*. The
+preview runs on documents up to 5 MB, stops after 1.5 seconds and skips expressions that read files (`doc()`,
+`collection()`, `unparsed-text()`). It marks nothing in the document - that stays **Run**'s job. Turn it off under
+**Settings → Schemas & Validation → Queries**.
+
+**Cancel and time limit.** While a query runs, **Run** turns into **Cancel** with the seconds so far. An XQuery stops at
+once (at its next `for`/`let` clause, function call or constructor); an XPath expression cannot be interrupted, so the
+console stops waiting and the expression finishes in the background without showing its result. A run stops on its own
+after the **time limit** (60 seconds by default, 0 = none; Settings → Queries). One run computes the text, the table and
+the hits together.
+
 !!! note
     The Query Console is an additional, faster access point - it does not replace the **Transform**
     activity. For XSLT transformations, parameters, recent-stylesheet history, watch-and-rerun, and
@@ -127,9 +150,19 @@ When a run fails, the RESULTS area shows the error instead of the result:
 When a query **finds nothing** although the document is in a namespace and the query uses names without a prefix
 (`//Fund` on `<funds xmlns="urn:…">`), the line under the input explains it and suggests `*:Fund`.
 
+With **XPath 1.0** chosen as the version (expert mode), errors carry the same codes as the newer versions
+(`XPST0003`, `XPST0017` unknown function, `XPST0008` unknown variable) with a position where the XPath 1.0 engine names
+a token; a function that exists only in a later version says so: *"distinct-values() exists from XPath 2.0 on; the
+query runs as XPath 1.0."* The check while typing uses the XPath 1.0 engine too. For **XQuery 1.0 / 3.0** the check while
+typing reports constructs and functions the version does not have (`FXT-COMPAT`, at their position) before you run.
+An error inside an **imported module** names the module and its line (*"in module lib.xq, line 2"*) instead of marking
+a place in the query.
+
 In an XPath or XQuery **file** (`.xpath`, `.xq`), the same check runs while you type, and a failed **Run Query** is
 underlined in the editor and listed in the **Problems** panel with line and column. The next successful run removes
-it. `fxt-cli query` prints the same text (see [Command Line](command-line.md#query)).
+it. `fxt-cli query` prints the same text (see [Command Line](command-line.md#query)). A query file imports its modules
+(`import module … at "lib.xq"`) and resolves its own relative paths next to the query file; the run target is the
+document's base URI, so `doc(resolve-uri('rates.xml', base-uri(.)))` reads a file next to the target.
 
 ### Showing Results in the Document
 

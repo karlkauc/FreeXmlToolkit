@@ -10,8 +10,9 @@ import org.fxt.freexmltoolkit.service.ai.tool.ToolContext;
 
 /**
  * Checks an XPath expression or an XQuery query: it compiles, runs on the document in the sandbox and returns the
- * item count and the first results. Namespace prefixes are not declared from the document, so a verified expression
- * runs the same in the Query Console (which declares none).
+ * item count and the first results. The document's namespace prefixes are declared, as the Query Console declares
+ * them, so a verified {@code //fx:Fund} runs the same there. The default namespace is not bound: a verified
+ * expression uses {@code *:Name} or a prefix and so also runs with the console's default-namespace option off.
  */
 public final class QueryVerifier implements Verifier {
 
@@ -19,6 +20,7 @@ public final class QueryVerifier implements Verifier {
     private final String xml;
     private final String xmlBaseUri;
     private final ToolContext context;
+    private final Map<String, String> prefixes;
     private volatile SandboxedQuery.Outcome lastOutcome;
 
     public QueryVerifier(SandboxedQuery.Language language, String xml, String xmlBaseUri, ToolContext context) {
@@ -26,6 +28,7 @@ public final class QueryVerifier implements Verifier {
         this.xml = xml;
         this.xmlBaseUri = xmlBaseUri;
         this.context = context;
+        this.prefixes = org.fxt.freexmltoolkit.service.query.DocumentNamespaces.forQueries(xml).prefixes();
     }
 
     /** The result of the last check (shown under the expression). */
@@ -36,7 +39,7 @@ public final class QueryVerifier implements Verifier {
     @Override
     public Verification verify(String candidate, CancelToken cancel) {
         SandboxedQuery.Outcome outcome = SandboxedQuery.run(language, xml, xmlBaseUri, candidate, null, Map.of(),
-                Map.of(), context.limits().timeout(), context.files().roots(), false);
+                prefixes, context.limits().timeout(), context.files().roots(), false);
         lastOutcome = outcome;
         String kind = language == SandboxedQuery.Language.XPATH ? "XPath" : "XQuery";
         List<Check> checks = new ArrayList<>();

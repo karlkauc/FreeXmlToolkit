@@ -1145,8 +1145,55 @@ public class XsltTransformationEngine {
     public XsltTransformationResult transformXQuery(String xmlContent, String inputSystemId,
                                                      String xqueryContent, String querySystemId,
                                                      Map<String, Object> externalVariables, OutputFormat outputFormat) {
+        return evaluateXQuery(xmlContent, inputSystemId, xqueryContent, querySystemId, externalVariables,
+                outputFormat, XQueryOptions.DEFAULT).result();
+    }
+
+    /**
+     * How {@link #evaluateXQuery} runs a query beyond {@link #transformXQuery}.
+     *
+     * @param namespaces              prefixes declared in the static context before the query's own prolog
+     *                                (which wins); nullable
+     * @param defaultElementNamespace the default namespace for element names, or {@code null}
+     * @param keepResult              evaluate once into a value kept in the outcome (with a line-numbered document)
+     *                                instead of streaming to the serializer
+     * @param stop                    asked while the query runs; {@code true} stops it (the query is then compiled
+     *                                with tracing); nullable
+     * @param deadlineNanos           {@link System#nanoTime()} after which the run stops, or 0 for none
+     */
+    public record XQueryOptions(Map<String, String> namespaces, String defaultElementNamespace, boolean keepResult,
+                                java.util.function.BooleanSupplier stop, long deadlineNanos) {
+        /** As {@link #transformXQuery}: nothing declared, streamed, no time limit. */
+        public static final XQueryOptions DEFAULT = new XQueryOptions(null, null, false, null, 0);
+
+        boolean stoppable() {
+            return stop != null || deadlineNanos != 0;
+        }
+    }
+
+    /**
+     * A run of {@link #evaluateXQuery}: the result as {@link #transformXQuery} returns it, plus the context
+     * document and the result value when {@link XQueryOptions#keepResult()} was set (else {@code null}).
+     *
+     * @param cancelled the run was stopped by {@link XQueryOptions#stop()}
+     * @param timedOut  the run was stopped at {@link XQueryOptions#deadlineNanos()}
+     */
+    public record XQueryOutcome(XsltTransformationResult result, XdmNode document, XdmValue value, boolean cancelled,
+                                boolean timedOut) {
+    }
+
+    /**
+     * Runs an XQuery like {@link #transformXQuery(String, String, String, String, Map, OutputFormat)}, optionally
+     * keeping the result value (so a caller builds a table or locates hits without running the query again),
+     * with declared namespaces and a way to stop it.
+     */
+    public XQueryOutcome evaluateXQuery(String xmlContent, String inputSystemId, String xqueryContent,
+                                        String querySystemId, Map<String, Object> externalVariables,
+                                        OutputFormat outputFormat, XQueryOptions options) {
         long startTime = System.currentTimeMillis();
         boolean located = querySystemId != null && !querySystemId.isBlank();
+        XQueryOptions opts = options == null ? XQueryOptions.DEFAULT : options;
+        XdmNode sourceDoc = null;
 
         try {
             logger.debug("Starting XQuery transformation with {} output format", outputFormat);
@@ -1156,12 +1203,25 @@ public class XsltTransformationEngine {
             if (located) {
                 xqueryCompiler.setBaseURI(java.net.URI.create(querySystemId));
             }
+            if (opts.namespaces() != null) {
+                opts.namespaces().forEach(xqueryCompiler::declareNamespace);
+            }
+            if (opts.defaultElementNamespace() != null) {
+                xqueryCompiler.declareNamespace("", opts.defaultElementNamespace());
+            }
+            if (opts.stoppable()) {
+                xqueryCompiler.setCompileWithTracing(true); // the stop check runs as a trace listener
+            }
 
             // Detect output method from XQuery declare option statements
             OutputFormat effectiveFormat = detectXQueryOutputFormat(xqueryContent, outputFormat);
 
-            // the same text at another location resolves its imports differently
-            String cacheKey = "xquery_" + xqueryContent.hashCode() + (located ? "_" + querySystemId : "");
+            // the same text at another location resolves its imports differently; declared namespaces and
+            // tracing change the compiled query as well
+            String cacheKey = "xquery_" + xqueryContent.hashCode() + (located ? "_" + querySystemId : "")
+                    + (opts.namespaces() == null ? "" : "_ns" + opts.namespaces().hashCode())
+                    + (opts.defaultElementNamespace() == null ? "" : "_dns" + opts.defaultElementNamespace())
+                    + (opts.stoppable() ? "_traced" : "");
             XQueryExecutable executable = compiledXQueries.get(cacheKey);
 
             if (executable == null) {
@@ -1175,6 +1235,9 @@ public class XsltTransformationEngine {
 
             // Create evaluator
             XQueryEvaluator evaluator = executable.load();
+            if (opts.stoppable()) {
+                evaluator.setTraceListener(new XsltSandbox.DeadlineListener(opts.deadlineNanos(), opts.stop()));
+            }
 
             // Set external variables
             if (externalVariables != null && !externalVariables.isEmpty()) {
@@ -1192,7 +1255,9 @@ public class XsltTransformationEngine {
             SaxonApiException contextFailure = null;
             if (xmlContent != null && !xmlContent.trim().isEmpty()) {
                 try {
-                    XdmNode sourceDoc = parseXmlDocument(saxonProcessor, xmlContent, inputSystemId);
+                    sourceDoc = opts.keepResult()
+                            ? parseXmlDocument(saxonProcessor, xmlContent, inputSystemId, true)
+                            : parseXmlDocument(saxonProcessor, xmlContent, inputSystemId);
                     evaluator.setContextItem(sourceDoc);
                 } catch (SaxonApiException contextEx) {
                     contextFailure = contextEx;
@@ -1211,8 +1276,14 @@ public class XsltTransformationEngine {
             TransformationProfile profile = new TransformationProfile();
             profile.startTransformation();
 
+            XdmValue value = null;
             try {
-                evaluator.run(serializer);
+                if (opts.keepResult()) {
+                    value = evaluator.evaluate();
+                    serializer.serializeXdmValue(value);
+                } else {
+                    evaluator.run(serializer);
+                }
             } catch (SaxonApiException e) {
                 if (contextFailure != null && "XPDY0002".equals(localCode(e.getErrorCode()))) {
                     // the query needed the document, which is not well-formed: that is the error to show,
@@ -1230,7 +1301,10 @@ public class XsltTransformationEngine {
                 configureSerializer(serializer, effectiveFormat);
                 serializer.setOutputProperty(Serializer.Property.METHOD, "adaptive");
                 serializer.setOutputProperty(Serializer.Property.ITEM_SEPARATOR, "\n");
-                serializer.serializeXdmValue(evaluator.evaluate());
+                if (value == null) {
+                    value = evaluator.evaluate();
+                }
+                serializer.serializeXdmValue(value);
             }
 
             profile.endTransformation();
@@ -1245,20 +1319,33 @@ public class XsltTransformationEngine {
             logger.debug("XQuery transformation completed in {}ms, output size: {} characters",
                     result.getExecutionTime(), result.getOutputContent().length());
 
-            return result;
+            return new XQueryOutcome(result, sourceDoc, opts.keepResult() ? value : null, false, false);
 
-        } catch (SaxonApiException e) {
-            // A Saxon error is the query's or the data's (its code reaches the action event through
-            // the result); logged without the throwable so the log bridge does not count it again.
-            logger.warn("XQuery transformation failed: {}", e.getMessage());
-            XsltTransformationResult failed = XsltTransformationResult.error("XQuery execution failed: " + e.getMessage(),
-                    localCode(e.getErrorCode()), null);
-            failed.setCause(e); // its locator gives the query line and column for display
-            return failed;
-
+        } catch (SaxonApiException | RuntimeException e) {
+            if (XsltSandbox.causedBy(e, XsltSandbox.Stopped.class)) {
+                return new XQueryOutcome(XsltTransformationResult.error("XQuery cancelled", "cancelled", null),
+                        sourceDoc, null, true, false);
+            }
+            if (XsltSandbox.causedBy(e, XsltSandbox.DeadlineExceeded.class)) {
+                return new XQueryOutcome(XsltTransformationResult.error("XQuery stopped at the time limit",
+                        "timeout", null), sourceDoc, null, false, true);
+            }
+            if (e instanceof SaxonApiException sae) {
+                // A Saxon error is the query's or the data's (its code reaches the action event through
+                // the result); logged without the throwable so the log bridge does not count it again.
+                logger.warn("XQuery transformation failed: {}", sae.getMessage());
+                XsltTransformationResult failed = XsltTransformationResult.error(
+                        "XQuery execution failed: " + sae.getMessage(), localCode(sae.getErrorCode()), null);
+                failed.setCause(sae); // its locator gives the query line and column for display
+                return new XQueryOutcome(failed, sourceDoc, null, false, false);
+            }
+            logger.error("Unexpected error during XQuery transformation", e);
+            return new XQueryOutcome(XsltTransformationResult.error("Unexpected error: " + e.getMessage(), e),
+                    sourceDoc, null, false, false);
         } catch (Exception e) {
             logger.error("Unexpected error during XQuery transformation", e);
-            return XsltTransformationResult.error("Unexpected error: " + e.getMessage(), e);
+            return new XQueryOutcome(XsltTransformationResult.error("Unexpected error: " + e.getMessage(), e),
+                    sourceDoc, null, false, false);
         }
     }
 
@@ -1685,7 +1772,14 @@ public class XsltTransformationEngine {
 
     static XdmNode parseXmlDocument(Processor processor, String xmlContent, String baseUri)
             throws SaxonApiException {
+        return parseXmlDocument(processor, xmlContent, baseUri, false);
+    }
+
+    /** As {@link #parseXmlDocument(Processor, String, String)}, optionally with line numbers on the nodes. */
+    static XdmNode parseXmlDocument(Processor processor, String xmlContent, String baseUri, boolean lineNumbers)
+            throws SaxonApiException {
         DocumentBuilder builder = processor.newDocumentBuilder();
+        builder.setLineNumbering(lineNumbers);
         StreamSource source = new StreamSource(new StringReader(sanitizeXmlPrologue(xmlContent)));
         if (baseUri != null && !baseUri.isBlank()) {
             source.setSystemId(baseUri);

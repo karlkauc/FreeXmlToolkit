@@ -797,110 +797,141 @@ public class XmlServiceImpl implements XmlService {
     @Override
     public String getXmlFromXpath(String xml, String xPath,
                                   org.fxt.freexmltoolkit.service.standards.XPathVersion version, String baseUri) {
+        return evaluateXPath(xml, xPath, version, baseUri, null, null, false).text();
+    }
+
+    @Override
+    public XPathOutcome evaluateXPath(String xml, String xPath,
+                                      org.fxt.freexmltoolkit.service.standards.XPathVersion version, String baseUri,
+                                      java.util.Map<String, String> namespaces, String defaultElementNamespace,
+                                      boolean keepResult) {
         if (version == org.fxt.freexmltoolkit.service.standards.XPathVersion.V1_0) {
-            return org.fxt.freexmltoolkit.service.standards.Xpath10Engine.evaluate(xml, xPath, java.util.Map.of(),
-                    java.util.Map.of());
+            String text = org.fxt.freexmltoolkit.service.standards.Xpath10Engine.evaluate(xml, xPath,
+                    namespaces == null ? java.util.Map.of() : namespaces, java.util.Map.of());
+            if (!keepResult) {
+                return new XPathOutcome(text, null, null);
+            }
+            // the JDK engine gives the text; Saxon in 1.0 compatibility mode gives the nodes for hits and tables
+            try {
+                XdmNode doc = parse(xml, baseUri, true);
+                XPathCompiler compiler = newXPathCompiler(version);
+                compiler.setBackwardsCompatible(true);
+                declare(compiler, baseUri, namespaces, null);
+                return new XPathOutcome(text, doc, compiler.evaluate(xPath, doc));
+            } catch (SaxonApiException | RuntimeException e) {
+                return new XPathOutcome(text, null, null);
+            }
         }
         try {
-            // Use Saxon's native XPath API for full XPath 3.1 support
-            // This supports XPath 2.0/3.0/3.1 functions like format-number(), current-date(), etc.
-
-            // Parse XML document using Saxon
-            net.sf.saxon.s9api.DocumentBuilder docBuilder = processor.newDocumentBuilder();
-            Source source = new StreamSource(new StringReader(xml), baseUri);
-            XdmNode doc = docBuilder.build(source);
-
-            // Compile and evaluate XPath expression
+            // Saxon's XPath API: XPath 2.0/3.0/3.1 functions like format-number(), current-date(), …
+            XdmNode doc = parse(xml, baseUri, keepResult);
             XPathCompiler xpathCompiler = newXPathCompiler(version);
-            if (baseUri != null) {
-                // without it relative doc() paths resolve against the program's working folder
-                xpathCompiler.setBaseURI(java.net.URI.create(baseUri));
-            }
-            XPathExecutable xpathExecutable = xpathCompiler.compile(xPath);
-            XPathSelector xpathSelector = xpathExecutable.load();
+            declare(xpathCompiler, baseUri, namespaces, defaultElementNamespace);
+            XPathSelector xpathSelector = xpathCompiler.compile(xPath).load();
             xpathSelector.setContextItem(doc);
-
-            // Evaluate the XPath expression
             XdmValue result = xpathSelector.evaluate();
-
-            // Build result string
-            StringBuilder resultBuilder = new StringBuilder();
-
-            if (result.size() == 0) {
-                // Empty result set
-                return "";
-            }
-
-            for (XdmItem item : result) {
-                if (item.isAtomicValue()) {
-                    // Atomic value (string, number, boolean, date, etc.)
-                    // This handles XPath 2.0+ functions like format-number(), sum(), count(), etc.
-                    resultBuilder.append(item.getStringValue());
-                    if (result.size() > 1) {
-                        resultBuilder.append(System.lineSeparator());
-                    }
-                } else if (item instanceof XdmNode node) {
-                    // Node result
-                    switch (node.getNodeKind()) {
-                        case ELEMENT:
-                            // Element nodes - serialize to XML
-                            StringWriter elementWriter = new StringWriter();
-                            Serializer serializer = processor.newSerializer(elementWriter);
-                            serializer.setOutputProperty(Serializer.Property.OMIT_XML_DECLARATION, "yes");
-                            serializer.setOutputProperty(Serializer.Property.INDENT, "yes");
-                            serializer.serializeNode(node);
-
-                            resultBuilder.append(elementWriter.toString());
-                            resultBuilder.append(System.lineSeparator());
-                            break;
-
-                        case TEXT:
-                            // Text nodes - output text content
-                            String textContent = node.getStringValue();
-                            if (textContent != null && !textContent.trim().isEmpty()) {
-                                resultBuilder.append(textContent.trim());
-                                resultBuilder.append(System.lineSeparator());
-                            }
-                            break;
-
-                        case ATTRIBUTE:
-                            // Attribute nodes - output only the value
-                            resultBuilder.append(node.getStringValue());
-                            resultBuilder.append(System.lineSeparator());
-                            break;
-
-                        case COMMENT:
-                            // Comment nodes - output in XML comment format
-                            resultBuilder.append("<!--").append(node.getStringValue()).append("-->");
-                            resultBuilder.append(System.lineSeparator());
-                            break;
-
-                        case PROCESSING_INSTRUCTION:
-                            // Processing instruction nodes
-                            resultBuilder.append("<?").append(node.getNodeName().getLocalName())
-                                    .append(" ").append(node.getStringValue()).append("?>");
-                            resultBuilder.append(System.lineSeparator());
-                            break;
-
-                        default:
-                            // Other node types - get string value
-                            resultBuilder.append(node.getStringValue());
-                            resultBuilder.append(System.lineSeparator());
-                            break;
-                    }
-                }
-            }
-
-            String finalResult = resultBuilder.toString();
-            logger.debug("XPath result: {}", finalResult);
-            return finalResult;
-
+            String text = formatXPathResult(processor, result);
+            logger.debug("XPath result: {}", text);
+            return new XPathOutcome(text, keepResult ? doc : null, keepResult ? result : null);
         } catch (SaxonApiException e) {
             // The expression's or the document's fault; the exception thrown carries the code to the
             // caller's action event, so the log bridge must not count it again (WARN without throwable).
             logger.warn("Saxon XPath error: {}", e.getMessage());
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    private XdmNode parse(String xml, String baseUri, boolean lineNumbers) throws SaxonApiException {
+        net.sf.saxon.s9api.DocumentBuilder docBuilder = processor.newDocumentBuilder();
+        docBuilder.setLineNumbering(lineNumbers);
+        return docBuilder.build(new StreamSource(new StringReader(xml), baseUri));
+    }
+
+    private static void declare(XPathCompiler compiler, String baseUri, java.util.Map<String, String> namespaces,
+                                String defaultElementNamespace) {
+        if (baseUri != null) {
+            // without it relative doc() paths resolve against the program's working folder
+            compiler.setBaseURI(java.net.URI.create(baseUri));
+        }
+        if (namespaces != null) {
+            namespaces.forEach(compiler::declareNamespace);
+        }
+        if (defaultElementNamespace != null) {
+            compiler.declareNamespace("", defaultElementNamespace);
+        }
+    }
+
+    /**
+     * The console's text of an XPath result: elements serialized and indented, text and attribute nodes as their
+     * value, atomic values one per line.
+     */
+    public static String formatXPathResult(Processor processor, XdmValue result) throws SaxonApiException {
+        if (result.size() == 0) {
+            return "";
+        }
+        StringBuilder resultBuilder = new StringBuilder();
+
+        for (XdmItem item : result) {
+            if (item.isAtomicValue()) {
+                // Atomic value (string, number, boolean, date, etc.)
+                // This handles XPath 2.0+ functions like format-number(), sum(), count(), etc.
+                resultBuilder.append(item.getStringValue());
+                if (result.size() > 1) {
+                    resultBuilder.append(System.lineSeparator());
+                }
+            } else if (item instanceof XdmNode node) {
+                // Node result
+                switch (node.getNodeKind()) {
+                    case ELEMENT:
+                        // Element nodes - serialize to XML
+                        StringWriter elementWriter = new StringWriter();
+                        Serializer serializer = processor.newSerializer(elementWriter);
+                        serializer.setOutputProperty(Serializer.Property.OMIT_XML_DECLARATION, "yes");
+                        serializer.setOutputProperty(Serializer.Property.INDENT, "yes");
+                        serializer.serializeNode(node);
+
+                        resultBuilder.append(elementWriter.toString());
+                        resultBuilder.append(System.lineSeparator());
+                        break;
+
+                    case TEXT:
+                        // Text nodes - output text content
+                        String textContent = node.getStringValue();
+                        if (textContent != null && !textContent.trim().isEmpty()) {
+                            resultBuilder.append(textContent.trim());
+                            resultBuilder.append(System.lineSeparator());
+                        }
+                        break;
+
+                    case ATTRIBUTE:
+                        // Attribute nodes - output only the value
+                        resultBuilder.append(node.getStringValue());
+                        resultBuilder.append(System.lineSeparator());
+                        break;
+
+                    case COMMENT:
+                        // Comment nodes - output in XML comment format
+                        resultBuilder.append("<!--").append(node.getStringValue()).append("-->");
+                        resultBuilder.append(System.lineSeparator());
+                        break;
+
+                    case PROCESSING_INSTRUCTION:
+                        // Processing instruction nodes
+                        resultBuilder.append("<?").append(node.getNodeName().getLocalName())
+                                .append(" ").append(node.getStringValue()).append("?>");
+                        resultBuilder.append(System.lineSeparator());
+                        break;
+
+                    default:
+                        // Other node types - get string value
+                        resultBuilder.append(node.getStringValue());
+                        resultBuilder.append(System.lineSeparator());
+                        break;
+                }
+            }
+        }
+
+        return resultBuilder.toString();
     }
 
     @Override

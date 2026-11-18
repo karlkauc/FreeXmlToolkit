@@ -263,7 +263,7 @@ public final class TransformRunner {
     }
 
     /** A failed XPath / XQuery run: its structured error, shown as {@code "ERROR: "} + the formatted error. */
-    private static QueryRun failed(Throwable cause, String message, QueryFailure failure, String query,
+    static QueryRun failed(Throwable cause, String message, QueryFailure failure, String query,
                                    QueryLanguage language, XPathVersion version, String xml) {
         QueryError error = QueryErrors.from(cause, failure == null ? null : failure.errorCode(), message, query,
                 language, version, xml);
@@ -271,7 +271,7 @@ public final class TransformRunner {
     }
 
     /** The XPath level of an XQuery version (for function lookups), {@code null} = 3.1. */
-    private static XPathVersion xpathLevel(org.fxt.freexmltoolkit.service.standards.XQueryVersion version) {
+    static XPathVersion xpathLevel(org.fxt.freexmltoolkit.service.standards.XQueryVersion version) {
         return version == null ? null : version.xpathVersion();
     }
 
@@ -306,14 +306,27 @@ public final class TransformRunner {
                                   XsltTransformationEngine.OutputFormat outputFormat,
                                   org.fxt.freexmltoolkit.service.standards.XQueryVersion version,
                                   String baseUri) {
-        String incompatible = xqueryIncompatibility(xqueryContent, version);
-        if (incompatible != null) {
-            QueryError error = QueryErrors.of("FXT-COMPAT", incompatible, xqueryContent, QueryLanguage.XQUERY);
+        return xquery(xml, xqueryContent, externalVariables, outputFormat, version, baseUri, baseUri);
+    }
+
+    /**
+     * As {@link #xquery(String, String, java.util.Map, XsltTransformationEngine.OutputFormat,
+     * org.fxt.freexmltoolkit.service.standards.XQueryVersion, String)} for a query and a document in different
+     * places: {@code inputBaseUri} is the document's base URI, {@code queryBaseUri} the query's static base URI
+     * ({@code import module at}, relative {@code doc()} in the query). Either may be {@code null}.
+     */
+    public static QueryRun xquery(String xml, String xqueryContent,
+                                  java.util.Map<String, Object> externalVariables,
+                                  XsltTransformationEngine.OutputFormat outputFormat,
+                                  org.fxt.freexmltoolkit.service.standards.XQueryVersion version,
+                                  String inputBaseUri, String queryBaseUri) {
+        QueryError error = QueryErrors.compatibility(xqueryContent, version);
+        if (error != null) {
             return new QueryRun("ERROR: " + error.format(), QueryFailure.invalidInput("compat.xquery"), error);
         }
         try {
             XsltTransformationResult result = XsltTransformationEngine.getInstance()
-                    .transformXQuery(xml, baseUri, xqueryContent, baseUri, externalVariables, outputFormat);
+                    .transformXQuery(xml, inputBaseUri, xqueryContent, queryBaseUri, externalVariables, outputFormat);
             return result.isSuccess()
                     ? new QueryRun(result.getOutputContent(), null)
                     : failed(result.getCause(), result.getErrorMessage(), QueryFailure.ofCode(result.getErrorCode()),

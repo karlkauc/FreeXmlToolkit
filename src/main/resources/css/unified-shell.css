@@ -1553,6 +1553,28 @@
     -fx-text-fill: -fxt-text-secondary;
 }
 .fxt-query-error-view .fxt-query-error-hint-icon { -fx-icon-color: -fxt-warning-text; }
+/* Default-namespace chip of the Query Console: outlined; selected = on (colour only, no size change) */
+.fxt-query-ns-chip {
+    -fx-background-color: transparent;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 1 8 1 6;
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-cursor: hand;
+}
+.fxt-query-ns-chip:selected {
+    -fx-background-color: -fxt-primary-fill;
+    -fx-border-color: -fxt-primary-fill;
+    -fx-text-fill: -fxt-on-primary;
+}
+.fxt-query-ns-chip:hover {
+    -fx-border-color: -fxt-primary;
+}
+.fxt-query-ns-chip:selected .iconify-icon {
+    -fx-icon-color: -fxt-on-primary;
+}
+
 .fxt-query-error-view .fxt-query-error-suggestion {
     -fx-font-family: "JetBrains Mono", monospace;
     -fx-background-color: -fxt-bg-canvas;

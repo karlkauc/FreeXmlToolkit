@@ -160,6 +160,9 @@ public class SettingsPanel extends VBox {
     @FXML private Label renderingGpuStatus;
     @FXML private ComboBox<String> maxMemory;
     @FXML private CheckBox largeFileBackup;
+    @FXML private Spinner<Integer> queryTimeout;
+    @FXML private CheckBox queryDefaultNamespace;
+    @FXML private CheckBox queryLivePreview;
     @FXML private CheckBox exportConfirm;
     @FXML private Label memoryStatus;
 
@@ -593,6 +596,9 @@ public class SettingsPanel extends VBox {
         renderingMode.setValue("Auto");
         maxMemory.setValue(memoryLabel(0));
         largeFileBackup.setSelected(false);
+        queryTimeout.getValueFactory().setValue(QuerySettings.DEFAULT_TIMEOUT_SECONDS);
+        queryDefaultNamespace.setSelected(true);
+        queryLivePreview.setSelected(true);
         exportConfirm.setSelected(true);
         indentSpaces.getValueFactory().setValue(4);
         jsonIndent.getValueFactory().setValue(2);
@@ -1337,6 +1343,9 @@ public class SettingsPanel extends VBox {
         keys.put(renderingMode, new String[] {"rendering.mode"});
         keys.put(maxMemory, new String[] {org.fxt.freexmltoolkit.app.MemoryLimit.PROPERTY});
         keys.put(largeFileBackup, new String[] {LargeFilePatcher.BACKUP_PROPERTY});
+        keys.put(queryTimeout, new String[] {QuerySettings.TIMEOUT_KEY});
+        keys.put(queryDefaultNamespace, new String[] {QuerySettings.DEFAULT_NAMESPACE_KEY});
+        keys.put(queryLivePreview, new String[] {QuerySettings.LIVE_PREVIEW_KEY});
         keys.put(exportConfirm, new String[] {ExportResult.CONFIRM_KEY});
         keys.put(useSystemTemp, new String[] {"useSystemTempFolder"});
         keys.put(customTempDir, new String[] {"customTempFolder"});
@@ -1818,6 +1827,9 @@ public class SettingsPanel extends VBox {
             maxMemory.setValue(memoryLabel(org.fxt.freexmltoolkit.app.MemoryLimit.configuredMb(
                     props.get(org.fxt.freexmltoolkit.app.MemoryLimit.PROPERTY))));
             largeFileBackup.setSelected(Boolean.parseBoolean(props.get(LargeFilePatcher.BACKUP_PROPERTY)));
+            queryTimeout.getValueFactory().setValue(QuerySettings.timeoutSeconds());
+            queryDefaultNamespace.setSelected(QuerySettings.useDocumentDefaultNamespace());
+            queryLivePreview.setSelected(QuerySettings.livePreview());
             exportConfirm.setSelected(!"false".equalsIgnoreCase(props.get(ExportResult.CONFIRM_KEY)));
             useSystemTemp.setSelected(props.isUseSystemTempFolder());
             logCleanup.setSelected(props.isLogCleanupEnabled());
@@ -1913,6 +1925,9 @@ public class SettingsPanel extends VBox {
             props.setRenderingMode(renderingModeValue(renderingMode.getValue()));
             props.set(org.fxt.freexmltoolkit.app.MemoryLimit.PROPERTY, String.valueOf(memoryValue(maxMemory.getValue())));
             props.set(LargeFilePatcher.BACKUP_PROPERTY, String.valueOf(largeFileBackup.isSelected()));
+            props.set(QuerySettings.TIMEOUT_KEY, String.valueOf(queryTimeout.getValue()));
+            props.set(QuerySettings.DEFAULT_NAMESPACE_KEY, String.valueOf(queryDefaultNamespace.isSelected()));
+            props.set(QuerySettings.LIVE_PREVIEW_KEY, String.valueOf(queryLivePreview.isSelected()));
             props.set(ExportResult.CONFIRM_KEY, String.valueOf(exportConfirm.isSelected()));
             props.setUseSystemTempFolder(useSystemTemp.isSelected());
             props.setLogCleanupEnabled(logCleanup.isSelected());

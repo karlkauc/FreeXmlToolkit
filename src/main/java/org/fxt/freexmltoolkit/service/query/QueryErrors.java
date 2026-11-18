@@ -73,6 +73,11 @@ public final class QueryErrors {
     public static QueryError from(Throwable failure, String fallbackCode, String fallbackText, String query,
                                   QueryLanguage language, XPathVersion version, String xml) {
         String text = query == null ? "" : query;
+        org.fxt.freexmltoolkit.service.standards.Xpath10Engine.Xpath10Exception x10 = xpath10(failure);
+        if (x10 != null) {
+            int[] pos = x10.offset() < 0 ? new int[] {-1, -1} : QueryText.position(text, x10.offset());
+            return build(x10.code(), pos[0], pos[1], x10.detail(), null, text, language, version, xml);
+        }
         XPathException xpe = xpathException(failure);
         String code = fallbackCode;
         int line = -1;
@@ -87,9 +92,17 @@ public final class QueryErrors {
                 code = xpe.getErrorCodeQName().getLocalPart();
             }
             message = xpe.getMessage();
-            int[] pos = position(xpe.getLocator(), text);
-            line = pos[0];
-            column = pos[1];
+            String module = moduleOf(xpe.getLocator(), text);
+            if (module != null) {
+                // the position is in an imported module, not in this query: name it instead of marking a wrong place
+                message = message + " (" + org.fxt.freexmltoolkit.i18n.I18n.t("QueryError.in-module", module,
+                        xpe.getLocator().getLineNumber()) + ")";
+                failing = null;
+            } else {
+                int[] pos = position(xpe.getLocator(), text);
+                line = pos[0];
+                column = pos[1];
+            }
         } else if (failure instanceof SaxonApiException sae && sae.getErrorCode() != null) {
             code = sae.getErrorCode().getLocalName();
             message = sae.getMessage();
@@ -100,6 +113,36 @@ public final class QueryErrors {
             return documentError(code, xpe, message, text, language, xml);
         }
         return build(code, line, column, message, failing, text, language, version, xml);
+    }
+
+    /**
+     * The constructs and functions of {@code query} that XQuery {@code version} does not have, as one
+     * {@code FXT-COMPAT} error at the first one's position (an issue in an imported module has none in the query).
+     *
+     * @return the error, or {@code null} when the query fits (always for 3.1 / {@code null})
+     */
+    public static QueryError compatibility(String query,
+                                           org.fxt.freexmltoolkit.service.standards.XQueryVersion version) {
+        if (query == null || version == null
+                || version == org.fxt.freexmltoolkit.service.standards.XQueryVersion.V3_1) {
+            return null;
+        }
+        var issues = org.fxt.freexmltoolkit.service.standards.XQueryCompatibilityCheck.check(query, version);
+        if (issues.isEmpty()) {
+            return null;
+        }
+        var first = issues.get(0);
+        String message = org.fxt.freexmltoolkit.service.standards.XQueryCompatibilityCheck.format(issues,
+                version.label());
+        QueryError plain = of("FXT-COMPAT", message, query, QueryLanguage.XQUERY);
+        if (first.module() != null || first.line() < 1) {
+            return plain;
+        }
+        int column = Math.max(1, first.column());
+        int offset = QueryText.offsetOf(query, first.line(), column);
+        int[] token = QueryText.tokenAt(query, offset);
+        return new QueryError(plain.code(), plain.kind(), first.line(), column, Math.max(1, token[1] - token[0]),
+                plain.message(), plain.hint(), List.of(), query, QueryLanguage.XQUERY);
     }
 
     /** As {@link #from} for an error known only by code and message (no position). */
@@ -117,23 +160,46 @@ public final class QueryErrors {
      * @param xml      the document, for namespace suggestions; nullable
      */
     public static Check check(String query, QueryLanguage language, XPathVersion version, String xml) {
+        return check(query, language, version, null, xml);
+    }
+
+    /**
+     * As {@link #check(String, QueryLanguage, XPathVersion, String)} for an XQuery of {@code xqueryVersion}: below
+     * 3.1 the constructs and functions that version does not have are reported first ({@code FXT-COMPAT}, at their
+     * position), as the run reports them.
+     */
+    public static Check check(String query, QueryLanguage language, XPathVersion version,
+                              org.fxt.freexmltoolkit.service.standards.XQueryVersion xqueryVersion, String xml) {
         if (query == null || query.isBlank()) {
             return new Check(null, List.of());
         }
+        if (language == QueryLanguage.XQUERY) {
+            QueryError compat = compatibility(query, xqueryVersion);
+            if (compat != null) {
+                return new Check(compat, List.of());
+            }
+        }
         List<XmlProcessingError> reported = new ArrayList<>();
+        // the console and query tabs declare the document's prefixes for a run; the check does the same
+        Map<String, String> prefixes = DocumentNamespaces.forQueries(xml).prefixes();
         try {
             if (language == QueryLanguage.XQUERY) {
                 XQueryCompiler compiler = PROCESSOR.newXQueryCompiler();
+                prefixes.forEach(compiler::declareNamespace);
                 compiler.setErrorReporter(reported::add);
                 compiler.compile(query);
+            } else if (version == XPathVersion.V1_0) {
+                // the run uses the JDK's XPath 1.0 engine: the check must use it too
+                org.fxt.freexmltoolkit.service.standards.Xpath10Engine.check(query, prefixes);
             } else {
                 XPathCompiler compiler = PROCESSOR.newXPathCompiler();
                 QueryCompilers.configureXPath(compiler, version);
+                prefixes.forEach(compiler::declareNamespace);
                 compiler.setWarningHandler(reported::add);
                 compiler.compile(query);
             }
             return new Check(null, warnings(reported, query));
-        } catch (SaxonApiException e) {
+        } catch (SaxonApiException | org.fxt.freexmltoolkit.service.standards.Xpath10Engine.Xpath10Exception e) {
             return new Check(from(e, null, e.getMessage(), query, language, version, xml), warnings(reported, query));
         } catch (RuntimeException e) {
             // a check must never break typing; an unexpected compiler failure is reported by the run
@@ -396,6 +462,29 @@ public final class QueryErrors {
         return -1;
     }
 
+    private static final Pattern MODULE_AT = Pattern.compile(
+            "import\\s+module\\s+namespace[^;]*?\\bat\\s+[\"']([^\"']+)[\"']");
+
+    /**
+     * @return the {@code at} location of the imported module the locator points into, or {@code null} when it is
+     *         the query itself (or unknown)
+     */
+    static String moduleOf(Location location, String query) {
+        String systemId = location == null ? null : location.getSystemId();
+        if (systemId == null || systemId.isEmpty()) {
+            return null;
+        }
+        String file = systemId.substring(systemId.lastIndexOf('/') + 1);
+        Matcher m = MODULE_AT.matcher(query);
+        while (m.find()) {
+            String at = m.group(1);
+            if (at.substring(at.lastIndexOf('/') + 1).equals(file)) {
+                return at;
+            }
+        }
+        return null;
+    }
+
     /** @return {line, column}, both 1-based, or {-1, -1} */
     private static int[] position(Location location, String query) {
         if (location == null || location.getLineNumber() < 1 || query.isEmpty()) {
@@ -526,6 +615,15 @@ public final class QueryErrors {
             }
         }
         return byUri;
+    }
+
+    private static org.fxt.freexmltoolkit.service.standards.Xpath10Engine.Xpath10Exception xpath10(Throwable t) {
+        for (Throwable c = t; c != null; c = c.getCause() == c ? null : c.getCause()) {
+            if (c instanceof org.fxt.freexmltoolkit.service.standards.Xpath10Engine.Xpath10Exception x) {
+                return x;
+            }
+        }
+        return null;
     }
 
     private static XPathException xpathException(Throwable t) {

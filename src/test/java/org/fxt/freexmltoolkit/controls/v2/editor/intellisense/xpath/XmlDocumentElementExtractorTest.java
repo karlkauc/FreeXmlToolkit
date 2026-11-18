@@ -681,4 +681,23 @@ class XmlDocumentElementExtractorTest {
             assertEquals(2, tChildren.size(), "Should return 2 children starting with 't'");
         }
     }
+
+    @org.junit.jupiter.api.Test
+    void namesInTheDefaultNamespaceAreProposedSoThatTheyMatch() {
+        XmlDocumentElementExtractor extractor = new XmlDocumentElementExtractor();
+        extractor.extractFromXml("<FundsXML xmlns=\"urn:funds\" xmlns:fx=\"urn:fx\"><Fund/><fx:Code/></FundsXML>");
+        org.junit.jupiter.api.Assertions.assertEquals("urn:funds", extractor.getDefaultNamespace());
+        var previous = XmlDocumentElementExtractor.unprefixedMatchesDefault;
+        try {
+            XmlDocumentElementExtractor.unprefixedMatchesDefault = () -> true;
+            org.junit.jupiter.api.Assertions.assertEquals("Fund", extractor.insertName("Fund"));
+            XmlDocumentElementExtractor.unprefixedMatchesDefault = () -> false;
+            org.junit.jupiter.api.Assertions.assertEquals("*:Fund", extractor.insertName("Fund"),
+                    "an unprefixed Fund would match nothing");
+            org.junit.jupiter.api.Assertions.assertEquals("fx:Code", extractor.insertName("fx:Code"),
+                    "the document's prefixes are declared for the query");
+        } finally {
+            XmlDocumentElementExtractor.unprefixedMatchesDefault = previous;
+        }
+    }
 }

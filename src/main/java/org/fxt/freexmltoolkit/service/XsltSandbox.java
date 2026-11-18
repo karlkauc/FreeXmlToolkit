@@ -96,6 +96,13 @@ public final class XsltSandbox {
         }
     }
 
+    /** Thrown when the caller asked the run to stop (a Cancel button). */
+    static final class Stopped extends RuntimeException {
+        Stopped() {
+            super("stopped", null, false, false);
+        }
+    }
+
     /** Thrown when the run serialized more than {@link #MAX_OUTPUT_CHARS}. */
     static final class OutputLimitExceeded extends RuntimeException {
         OutputLimitExceeded() {
@@ -110,13 +117,26 @@ public final class XsltSandbox {
      */
     static final class DeadlineListener implements TraceListener {
         private final long deadlineNanos;
+        private final java.util.function.BooleanSupplier stop;
 
         DeadlineListener(long deadlineNanos) {
+            this(deadlineNanos, null);
+        }
+
+        /**
+         * @param deadlineNanos {@link System#nanoTime()} to stop at, or 0 for no time limit
+         * @param stop          asked on every check; {@code true} stops the run ({@link Stopped}); nullable
+         */
+        DeadlineListener(long deadlineNanos, java.util.function.BooleanSupplier stop) {
             this.deadlineNanos = deadlineNanos;
+            this.stop = stop;
         }
 
         private void check() {
-            if (System.nanoTime() - deadlineNanos > 0) {
+            if (stop != null && stop.getAsBoolean()) {
+                throw new Stopped();
+            }
+            if (deadlineNanos != 0 && System.nanoTime() - deadlineNanos > 0) {
                 throw new DeadlineExceeded();
             }
         }

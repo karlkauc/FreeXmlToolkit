@@ -131,6 +131,10 @@ public record QueryFailure(String errorCode, TelemetryEvent.Status status, Error
         if (t instanceof XPathException e && e.getErrorCodeQName() != null) {
             return e.getErrorCodeQName().getLocalPart();
         }
+        if (t instanceof org.fxt.freexmltoolkit.service.standards.Xpath10Engine.Xpath10Exception e
+                && e.code() != null) {
+            return e.code(); // the JDK XPath 1.0 engine's message, translated to Saxon's code
+        }
         return null;
     }
 

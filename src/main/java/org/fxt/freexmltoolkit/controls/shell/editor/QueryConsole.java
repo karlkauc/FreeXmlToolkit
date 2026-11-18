@@ -4,7 +4,6 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
-import java.util.Map;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -43,6 +42,7 @@ import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.XPathSnippetRepository;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPostDownloadRegistrar;
+import org.fxt.freexmltoolkit.service.query.DocumentNamespaces;
 import org.fxt.freexmltoolkit.service.query.QueryError;
 import org.fxt.freexmltoolkit.service.query.QueryErrors;
 import org.fxt.freexmltoolkit.service.query.QueryLanguage;
@@ -110,6 +110,8 @@ public class QueryConsole extends Region {
     private XPathIntelliSenseEngine xqueryIntelliSense;
 
     @FXML private Button runButton;
+    @FXML private ToggleButton defaultNsToggle;
+    @FXML private javafx.scene.control.Tooltip defaultNsTooltip;
     @FXML private Button askButton;
 
     /** Monotonic run id; a late async result is dropped if a newer run has started (FX-thread only). */
@@ -152,6 +154,7 @@ public class QueryConsole extends Region {
             updateChecks();
         });
         updatePathLabel();
+        updateDefaultNamespaceChip(); // the console opens on a document that is already active
         fillExamplesMenu();
     }
 
@@ -168,6 +171,7 @@ public class QueryConsole extends Region {
     }
 
     private void initInput() {
+        QuerySettings.install();
         // Make explicit which document the query runs against (always the active editor tab).
         target.textProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
                 () -> editorHost.getActiveDocument()
@@ -207,6 +211,9 @@ public class QueryConsole extends Region {
                 this::documentHead, this::showCheck);
         xqueryMarks = new QueryInputMarks(xqueryArea, () -> QueryLanguage.XQUERY,
                 () -> xqueryVersion().xpathVersion(), this::documentHead, this::showCheck);
+        xqueryMarks.setXQueryVersion(this::xqueryVersion);
+        xpathMarks.setPreview(query -> preview(QueryLanguage.XPATH, query));
+        xqueryMarks.setPreview(query -> preview(QueryLanguage.XQUERY, query));
         showCheck(QueryInputMarks.Status.NONE);
         // Editor-style zoom: Ctrl+MouseWheel changes the font size, Ctrl+0 resets.
         CodeAreaFontZoom.install(xpathField);
@@ -359,6 +366,7 @@ public class QueryConsole extends Region {
         }
         boolean xquery = xqueryToggle.isSelected();
         boolean json = isJsonActive();
+        updateDefaultNamespaceChip();
         xpathMarks.setEnabled(!xquery && !json);
         xqueryMarks.setEnabled(xquery && !json);
         showCheck(QueryInputMarks.Status.NONE);
@@ -471,6 +479,11 @@ public class QueryConsole extends Region {
     /** Runs the current query (XPath or XQuery) against the active document. */
     @FXML
     public void run() {
+        if (running != null) {
+            cancelRun(false); // the button reads "Cancel" while a run is going
+            return;
+        }
+        updateDefaultNamespaceChip(); // the document may have changed since
         if (xqueryToggle.isSelected()) {
             runXQuery();
         } else {
@@ -500,15 +513,22 @@ public class QueryConsole extends Region {
         hits.clear();
         String revision = editorHost.activeRevisionKey();
         final int gen = ++runGeneration;
-        FxtGui.executorService.submit(() -> {
+        QueryEvaluation.Cancel cancel = startRunning(gen);
+        startWorker(() -> {
             long t0 = System.nanoTime();
+            // the document's prefixes are declared, and unprefixed names match its default namespace (setting)
+            var bindings = yaml || json ? DocumentNamespaces.Bindings.NONE : DocumentNamespaces.forQueries(content);
+            String defaultNs = QuerySettings.defaultNamespace(bindings, version);
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
                     json ? org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.JSONPATH
                             : org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XPATH,
                     path.length() > 60 ? path.substring(0, 57) + "…" : path);
+            QueryEvaluation.Result evaluation = yaml || json ? null
+                    : QueryEvaluation.run(new QueryEvaluation.Request(QueryLanguage.XPATH, version, null, content,
+                            path, baseUri, baseUri, bindings.prefixes(), defaultNs, cancel, 0));
             TransformRunner.QueryRun run = yaml ? TransformRunner.yamlPath(content, path)
                     : json ? TransformRunner.jsonPath(content, path)
-                    : TransformRunner.xpath(content, path, version, baseUri);
+                    : cancel.isCancelled() ? cancelledRun() : evaluation.run();
             String result = run.text();
             boolean ok = !result.startsWith("ERROR");
             if (json) {
@@ -518,15 +538,15 @@ public class QueryConsole extends Region {
             }
             long elapsedMs = probe.finish(content.length(), ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
-            List<org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.ResultItem> items = ok && !json
-                    ? locateItems(() -> org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.locateItems(content,
-                            new org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.XPathQuery(path, Map.of(), version)))
-                    : List.of();
-            // the run checked the expression at its version; the table projects the same result (XML only)
-            XQueryTableRunner.XQueryTable table = ok && !json ? XQueryTableRunner.xpath(content, path, version) : null;
-            String emptyHint = ok && !json && result.isBlank() ? QueryErrors.emptyResultHint(path, content) : null;
+            // one evaluation gave the text, the hits and the table (XML only)
+            List<org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.ResultItem> items = ok && evaluation != null
+                    ? evaluation.items() : List.of();
+            XQueryTableRunner.XQueryTable table = ok && evaluation != null ? evaluation.table() : null;
+            String emptyHint = ok && !json && result.isBlank() && defaultNs == null
+                    ? QueryErrors.emptyResultHint(path, content) : null;
             Platform.runLater(() -> {
                 if (gen == runGeneration) {
+                    stopRunning();
                     setResultsText(result);
                     updateStatsLabel(result, elapsedMs);
                     hits.setItems(items, revision);
@@ -536,6 +556,179 @@ public class QueryConsole extends Region {
                 }
             });
         });
+    }
+
+    // ----- a run that can be cancelled -------------------------------------------------------------
+
+    /** The run going on, or {@code null}. */
+    private QueryEvaluation.Cancel running;
+    /** Counts the seconds of the run going on on the Run button and stops it at the time limit. */
+    private javafx.animation.Timeline runClock;
+
+    /** Runs a query off the FX thread on a thread of its own, so a cancelled XPath never blocks the next run. */
+    private static void startWorker(Runnable work) {
+        Thread.ofPlatform().daemon().name("query-console-run").start(work);
+    }
+
+    /** Marks a run as going on: after half a second Run turns into Cancel, at the time limit the run stops. */
+    private QueryEvaluation.Cancel startRunning(int gen) {
+        QueryEvaluation.Cancel cancel = new QueryEvaluation.Cancel();
+        running = cancel;
+        stopClock();
+        long started = System.nanoTime();
+        int limit = QuerySettings.timeoutSeconds();
+        runClock = new javafx.animation.Timeline(new javafx.animation.KeyFrame(javafx.util.Duration.millis(500),
+                e -> {
+                    long seconds = (System.nanoTime() - started) / 1_000_000_000L;
+                    if (running != cancel || gen != runGeneration) {
+                        stopClock();
+                        return;
+                    }
+                    if (limit > 0 && seconds >= limit) {
+                        cancelRun(true);
+                        return;
+                    }
+                    runButton.setText(I18n.t("QueryConsole.cancel-run", seconds));
+                }));
+        runClock.setCycleCount(javafx.animation.Animation.INDEFINITE);
+        runClock.play();
+        return cancel;
+    }
+
+    /** The run ended: Run is Run again. */
+    private void stopRunning() {
+        running = null;
+        stopClock();
+        updateModeTexts();
+    }
+
+    private void stopClock() {
+        if (runClock != null) {
+            runClock.stop();
+            runClock = null;
+        }
+    }
+
+    /**
+     * Stops the run going on: an XQuery stops at once, an XPath runs to its end in the background and its result
+     * is dropped.
+     *
+     * @param timedOut whether the time limit stopped it (else the user)
+     */
+    void cancelRun(boolean timedOut) {
+        QueryEvaluation.Cancel cancel = running;
+        if (cancel == null) {
+            return;
+        }
+        cancel.cancel();
+        runGeneration++;
+        stopRunning();
+        setResultsText(timedOut ? I18n.t("QueryConsole.timed-out", QuerySettings.timeoutSeconds())
+                : I18n.t("QueryConsole.cancelled"));
+    }
+
+    /** @return whether a run is going on (tests) */
+    boolean isRunning() {
+        return running != null;
+    }
+
+    private static TransformRunner.QueryRun cancelledRun() {
+        return new TransformRunner.QueryRun("", new org.fxt.freexmltoolkit.service.telemetry.QueryFailure(
+                "cancelled", org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.CANCELLED, null));
+    }
+
+    /**
+     * Shows the default-namespace chip for a document whose root element is in a namespace without a prefix: on,
+     * unprefixed names in a query match that namespace ({@code //Fund} finds the FundsXML funds); off, they match
+     * only elements in no namespace, as the standard says.
+     */
+    void updateDefaultNamespaceChip() {
+        if (defaultNsToggle == null) {
+            return;
+        }
+        String head = isJsonActive() ? null : documentHead();
+        String uri = head == null ? null : DocumentNamespaces.forQueries(head).defaultNamespace();
+        boolean show = uri != null && !(xpathVersion() == org.fxt.freexmltoolkit.service.standards.XPathVersion.V1_0
+                && !xqueryToggle.isSelected());
+        defaultNsToggle.setVisible(show);
+        defaultNsToggle.setManaged(show);
+        if (show) {
+            boolean on = QuerySettings.useDocumentDefaultNamespace();
+            defaultNsToggle.setSelected(on);
+            defaultNsTooltip.setText(I18n.t(on ? "QueryConsole.default-namespace-on" : "QueryConsole.default-namespace-off",
+                    uri));
+        }
+    }
+
+    /** The chip was clicked: store the choice and check the query again under it. */
+    @FXML
+    public void onToggleDefaultNamespace() {
+        QuerySettings.setUseDocumentDefaultNamespace(defaultNsToggle.isSelected());
+        updateChecks();
+    }
+
+    // ----- the hit count while typing ---------------------------------------------------------------
+
+    /** Time limit of a preview run. */
+    static final long PREVIEW_MILLIS = 1_500;
+    /** Larger documents get no preview (parsing alone would take too long while typing). */
+    static final int PREVIEW_MAX_CHARS = 5_000_000;
+    /** Calls that read files: not run while typing. */
+    private static final java.util.regex.Pattern FILE_ACCESS = java.util.regex.Pattern.compile(
+            "(?<![\\w.:-])(?:fn:)?(doc|doc-available|collection|uri-collection|unparsed-text|unparsed-text-lines"
+                    + "|unparsed-text-available|json-doc)\\s*\\(");
+
+    /**
+     * The preview of a query that checked clean (FX thread: takes what it needs), or {@code null} when the setting is
+     * off, there is no XML document, it is too large or the query reads files.
+     */
+    private java.util.function.Supplier<String> preview(QueryLanguage language, String query) {
+        if (!QuerySettings.livePreview() || isJsonActive() || FILE_ACCESS.matcher(query).find()) {
+            return null;
+        }
+        String xml = editorHost.getActiveText().orElse(null);
+        if (xml == null || xml.isBlank() || xml.length() > PREVIEW_MAX_CHARS) {
+            return null;
+        }
+        var xpathVersion = language == QueryLanguage.XQUERY ? xqueryVersion().xpathVersion() : xpathVersion();
+        var xqVersion = language == QueryLanguage.XQUERY ? xqueryVersion() : null;
+        String baseUri = activeBaseUri();
+        return () -> previewText(QueryEvaluation.run(previewRequest(language, xpathVersion, xqVersion, xml, query,
+                baseUri).countOnly()), query, xml);
+    }
+
+    private static QueryEvaluation.Request previewRequest(QueryLanguage language,
+                                                          org.fxt.freexmltoolkit.service.standards.XPathVersion xpathVersion,
+                                                          org.fxt.freexmltoolkit.service.standards.XQueryVersion xqVersion,
+                                                          String xml, String query, String baseUri) {
+        var bindings = DocumentNamespaces.forQueries(xml);
+        QueryEvaluation.Cancel cancel = new QueryEvaluation.Cancel();
+        return new QueryEvaluation.Request(language, xpathVersion, xqVersion, xml, query, baseUri, baseUri,
+                bindings.prefixes(), QuerySettings.defaultNamespace(bindings, xpathVersion), cancel, PREVIEW_MILLIS);
+    }
+
+    /** "12 hits", "Result: 42", "No hit" (+ namespace hint), or the time limit; {@code null} after a failure. */
+    static String previewText(QueryEvaluation.Result r, String query, String xml) {
+        if (r.timedOut() || r.cancelled()) {
+            return I18n.t("QueryConsole.preview-stopped", PREVIEW_MILLIS / 1000.0);
+        }
+        if (!r.ok()) {
+            return null; // Run shows the error with everything that belongs to it
+        }
+        if (r.count() == 0) {
+            String hint = QuerySettings.defaultNamespace(DocumentNamespaces.forQueries(xml), null) == null
+                    ? QueryErrors.emptyResultHint(query, xml) : null;
+            return hint == null ? I18n.t("QueryConsole.preview-none") : I18n.t("QueryConsole.preview-none") + " " + hint;
+        }
+        if (r.nodeCount() == 0 && r.count() == 1) {
+            String value = r.text().replaceFirst("^<\\?xml[^>]*\\?>", "").strip();
+            return I18n.t("QueryConsole.preview-value", value.length() > 80 ? value.substring(0, 80) + "…" : value);
+        }
+        String count = String.format("%,d", r.count());
+        if (r.nodeCount() == r.count()) {
+            return r.count() == 1 ? I18n.t("QueryConsole.preview-hit") : I18n.t("QueryConsole.preview-hits", count);
+        }
+        return I18n.t("QueryConsole.preview-items", count);
     }
 
     /** @return the saved active document's {@code file:} URI, or {@code null} for an unsaved one */
@@ -567,25 +760,38 @@ public class QueryConsole extends Region {
         hits.clear();
         String revision = editorHost.activeRevisionKey();
         final int gen = ++runGeneration;
-        FxtGui.executorService.submit(() -> {
+        QueryEvaluation.Cancel cancel = startRunning(gen);
+        long timeoutMillis = QuerySettings.timeoutSeconds() * 1000L;
+        startWorker(() -> {
             long t0 = System.nanoTime();
+            var bindings = DocumentNamespaces.forQueries(xml);
+            String defaultNs = QuerySettings.defaultNamespace(bindings, version.xpathVersion());
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
                     org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XQUERY, "Query console");
-            TransformRunner.QueryRun run = TransformRunner.xquery(xml, xquery, Map.of(), OutputFormat.XML,
-                    version, baseUri);
+            QueryEvaluation.Result evaluation = QueryEvaluation.run(new QueryEvaluation.Request(
+                    QueryLanguage.XQUERY, version.xpathVersion(), version, xml, xquery, baseUri, baseUri,
+                    bindings.prefixes(), defaultNs, cancel, timeoutMillis));
+            TransformRunner.QueryRun run = evaluation.cancelled() || cancel.isCancelled() ? cancelledRun()
+                    : evaluation.run();
             String result = run.text();
             boolean ok = !result.startsWith("ERROR");
             UsageEvents.xqueryExecuted(t0, run.failure());
             long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
-            XQueryTableRunner.XQueryTable table = ok ? XQueryTableRunner.run(xml, xquery, baseUri) : null;
+            XQueryTableRunner.XQueryTable table = ok ? evaluation.table() : null;
             List<org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.ResultItem> items = ok
-                    ? locateItems(() -> org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.locateXQueryItems(
-                            xml, xquery, Map.of(), baseUri))
-                    : List.of();
-            String emptyHint = ok && result.isBlank() ? QueryErrors.emptyResultHint(xquery, xml) : null;
+                    ? evaluation.items() : List.of();
+            String emptyHint = ok && result.isBlank() && defaultNs == null
+                    ? QueryErrors.emptyResultHint(xquery, xml) : null;
+            boolean timedOut = evaluation.timedOut();
             Platform.runLater(() -> {
+                if (gen == runGeneration && timedOut) {
+                    stopRunning();
+                    setResultsText(I18n.t("QueryConsole.timed-out", timeoutMillis / 1000));
+                    return;
+                }
                 if (gen == runGeneration) {
+                    stopRunning();
                     setResultsText(result);
                     hits.setItems(items, revision);
                     showRunError(run.error(), xqueryMarks); // after the hits, which show the results text
@@ -595,16 +801,6 @@ public class QueryConsole extends Region {
                 }
             });
         });
-    }
-
-    /** A query whose hits cannot be located (unusual documents) still shows its text result. */
-    private static List<org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.ResultItem> locateItems(
-            java.util.concurrent.Callable<List<org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.ResultItem>> run) {
-        try {
-            return run.call();
-        } catch (Exception e) {
-            return List.of();
-        }
     }
 
     /** @return whether the active document is JSON or YAML (queried with JSONPath) */
@@ -800,6 +996,10 @@ public class QueryConsole extends Region {
     }
 
     /** Test seam: the XPath input. */
+    ToggleButton defaultNsToggle() {
+        return defaultNsToggle;
+    }
+
     CodeArea xpathInput() {
         return xpathField;
     }

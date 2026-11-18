@@ -59,6 +59,9 @@ Any key of the user's settings file works. These are the ones most often managed
 | `standards.schematronBinding` | `default` / `xslt` / `xslt2` / `xslt3` | Default query binding of a Schematron without `@queryBinding` in expert mode |
 | `fundsxml.enabled` | `true` / `false` | FundsXML extension |
 | `export.confirm` | `true` / `false` | After an export: the dialog with Open / Show in Folder (`true`, default) or only a note with an Open link (Settings → Files → After an Export) |
+| `query.timeoutSeconds` | number (`0` = none) | Time limit of a Query Console / query file run in seconds (default `60`; Settings → Schemas & Validation → Queries) |
+| `query.useDocumentDefaultNamespace` | `true` / `false` | Unprefixed names in a query match the document's default namespace (default `true`) |
+| `query.livePreview` | `true` / `false` | Count the hits of a query while typing (default `true`) |
 | `largefile.backup` | `true` / `false` | Keep the previous version as `<name>.bak` when the Large File Viewer writes into a file (Settings → Appearance → Memory) |
 | `ui.language` | `system` / `en` / `de` | Language of the interface (Settings → Appearance → Language) |
 | `ui.theme` | `light` / `dark` / `system` | Theme (Settings → Appearance → Theme) |

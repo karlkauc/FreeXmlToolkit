@@ -6,6 +6,19 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+- **The document's namespaces need no declaration in the Query Console.** Its prefixes are declared for every query
+  (`//fx:Fund` just works), and on a document with a default namespace a **Default namespace** chip makes `//Fund`
+  find the elements - the most frequent reason for an empty result. Completion proposes names that match.
+- **Hits while typing.** As soon as an expression checks without errors, the line under the input says what it would
+  find - *"12 hits"*, *"Result: 42"* or *"No hit"* - before you run it.
+- **Cancel and a time limit.** Run turns into Cancel while a query runs; an XQuery stops at once, and a run stops after
+  60 seconds (Settings → Queries). A run now evaluates the query once for its text, table and hits (it used to run up to
+  three times).
+- **XPath 1.0 and older XQuery versions report errors like the rest.** XPath 1.0 errors carry codes and positions and
+  say when a function exists only in a later version; the check while typing uses the chosen XQuery version.
+- **Query files find their modules.** In a `.xq` file, `import module … at "lib.xq"` resolves next to the query file,
+  and an error inside a module names the module and line.
+
 - **A broken document is named as such.** When the queried XML is not well-formed, the Query Console no longer
   shows a confusing query error (XQuery used to say *"the context item is absent"*): it reports an *error in the
   document* with its line and column, and a click opens the document there.
