@@ -99,6 +99,8 @@ The console checks the expression **while you type** (it is compiled, not run, s
 
 When a run fails, the RESULTS area shows the error instead of the result:
 
+![A failed XPath in the Query Console: code, kind and position, the query line with a caret under the failing "/", and the hint](img/query-console-error.png)
+
 - **Code** (e.g. `XPTY0019`) as a link to its explanation in the W3C specification, the **kind** (syntax, static,
   type or run-time error) and the **position** - a click puts the cursor at the error in the input.
 - The **message** without Saxon's internal notation, and the query line with a **`^` under the error**. The error is

@@ -76,6 +76,17 @@ class QueryErrorsTest {
     }
 
     @Test
+    void aSlashInsideTheFailingCallsArgumentIsNotTheOneMarked() {
+        String query = "distinct-values(//Fund/Ccy)/../Name";
+        QueryError e = xpath(query);
+        assertEquals("XPTY0019", e.code());
+        assertEquals(query.indexOf(")/") + 1, e.offset(), "the '/' after distinct-values(…), not //Fund/Ccy");
+
+        QueryWarning w = QueryErrors.check(query, QueryLanguage.XPATH, null, XML).warnings().get(0);
+        assertEquals(query.indexOf(")/") + 2, w.column(), "the warning marks the same '/'");
+    }
+
+    @Test
     void conversionsAndOperatorsMarkTheCallOrOperator() {
         assertEquals("xs:decimal(Amount)", marked(xpath("//Fund/xs:decimal(Amount)")));
         QueryError plus = xpath("//Fund/Name + 1");

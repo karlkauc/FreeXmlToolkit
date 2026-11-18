@@ -33,6 +33,9 @@ public final class QueryErrors {
 
     private static final Pattern VARIABLE = Pattern.compile("\\$([\\p{L}_][\\w.\\-]*(?::[\\p{L}_][\\w.\\-]*)?)");
     private static final Pattern PREFIX = Pattern.compile("[Pp]refix '?([\\p{L}_][\\w.\\-]*)'? (?:has not been|is not) declared");
+    private static final Pattern CALL_START = Pattern.compile("^(?:fn:)?([\\p{L}_][\\w.\\-]*(?::[\\p{L}_][\\w.\\-]*)?)\\(");
+    private static final Pattern SUPPLIED_CALL = Pattern.compile(
+            "supplied expression \\{(?:fn:)?([\\p{L}_][\\w.\\-]*(?::[\\p{L}_][\\w.\\-]*)?)\\(");
     private static final Pattern OPERAND_OF = Pattern.compile("operand of '([^']+)'");
     private static final Pattern EQNAME = Pattern.compile("Q\\{([^}]*)\\}");
     private static final Pattern DECLARED_NS = Pattern.compile(
@@ -71,7 +74,11 @@ public final class QueryErrors {
         int line = -1;
         int column = -1;
         String message = fallbackText;
+        String failing = null;
         if (xpe != null) {
+            if (xpe.getFailingExpression() != null) {
+                failing = xpe.getFailingExpression().toString();
+            }
             if (xpe.getErrorCodeQName() != null) {
                 code = xpe.getErrorCodeQName().getLocalPart();
             }
@@ -85,12 +92,12 @@ public final class QueryErrors {
         } else if (message == null && failure != null) {
             message = failure.getMessage();
         }
-        return build(code, line, column, message, text, language, version, xml);
+        return build(code, line, column, message, failing, text, language, version, xml);
     }
 
     /** As {@link #from} for an error known only by code and message (no position). */
     public static QueryError of(String code, String message, String query, QueryLanguage language) {
-        return build(code, -1, -1, message, query == null ? "" : query, language, null, null);
+        return build(code, -1, -1, message, null, query == null ? "" : query, language, null, null);
     }
 
     /**
@@ -147,8 +154,8 @@ public final class QueryErrors {
 
     // ---------------------------------------------------------------------------------------------
 
-    private static QueryError build(String code, int line, int column, String rawMessage, String query,
-                                    QueryLanguage language, XPathVersion version, String xml) {
+    private static QueryError build(String code, int line, int column, String rawMessage, String failing,
+                                    String query, QueryLanguage language, XPathVersion version, String xml) {
         String message = clean(rawMessage == null ? "" : rawMessage, query, xml);
         int length = 1;
         int[] named = locateNamed(code, message, query);
@@ -159,7 +166,8 @@ public final class QueryErrors {
             length = Math.max(1, named[1] - named[0]);
         } else if (line > 0 && column > 0) {
             int offset = QueryText.offsetOf(query, line, column);
-            int[] token = refine(code, message, query, offset, QueryText.tokenAt(query, offset));
+            int[] token = refine(code, message, operandCall(failing, rawMessage), query, offset,
+                    QueryText.tokenAt(query, offset));
             int[] pos = QueryText.position(query, token[0]);
             line = pos[0];
             column = pos[1];
@@ -188,7 +196,8 @@ public final class QueryErrors {
             String code = e.getErrorCode() == null ? null : e.getErrorCode().getLocalName();
             if (pos[0] > 0) {
                 int offset = QueryText.offsetOf(query, pos[0], pos[1]);
-                int[] token = refine(code, message, query, offset, QueryText.tokenAt(query, offset));
+                int[] token = refine(code, message, operandCall(null, e.getMessage()), query, offset,
+                        QueryText.tokenAt(query, offset));
                 pos = QueryText.position(query, token[0]);
                 length = Math.max(1, token[1] - token[0]);
             }
@@ -206,9 +215,16 @@ public final class QueryErrors {
      *   <li>a closing parenthesis: the whole call {@code name(…)}</li>
      * </ul>
      */
-    private static int[] refine(String code, String message, String query, int offset, int[] token) {
+    private static int[] refine(String code, String message, String call, String query, int offset, int[] token) {
         if ("XPTY0019".equals(code) || message.contains("operand of '/'")) {
-            int slash = binarySlashFrom(query, offset);
+            // Saxon may point into the left operand's argument (distinct-values(//item/@sku)/..): start after the
+            // call that is the left operand when it encloses the position
+            int from = offset;
+            int[] enclosing = call == null ? null : enclosingCall(query, call, offset);
+            if (enclosing != null) {
+                from = enclosing[1];
+            }
+            int slash = binarySlashFrom(query, from);
             if (slash >= 0) {
                 return new int[] {slash, slash + 1};
             }
@@ -236,6 +252,53 @@ public final class QueryErrors {
             }
         }
         return token;
+    }
+
+    /**
+     * The function call that is the failing operand: from Saxon's failing expression
+     * ({@code distinct-values(data(…))}) or from a warning's "supplied expression {distinct-values(...)}".
+     *
+     * @return the function name as it may appear in the query, or {@code null}
+     */
+    private static String operandCall(String failing, String message) {
+        Matcher m = failing == null ? null : CALL_START.matcher(failing);
+        if (m != null && m.find()) {
+            return m.group(1);
+        }
+        Matcher w = message == null ? null : SUPPLIED_CALL.matcher(message);
+        return w != null && w.find() ? w.group(1) : null;
+    }
+
+    /** {open, end} of the call {@code name(…)} in the query that contains {@code offset}, the innermost one. */
+    private static int[] enclosingCall(String query, String name, int offset) {
+        int[] best = null;
+        int i = 0;
+        while ((i = query.indexOf(name, i)) >= 0) {
+            int nameEnd = i + name.length();
+            boolean whole = (i == 0 || !QueryText.isNameChar(query.charAt(i - 1)) || query.charAt(i - 1) == ':')
+                    && nameEnd < query.length() && query.charAt(nameEnd) == '(';
+            if (whole && i <= offset) {
+                int close = matchingClose(query, nameEnd);
+                if (close >= offset) {
+                    best = new int[] {i, close + 1};
+                }
+            }
+            i = nameEnd;
+        }
+        return best;
+    }
+
+    private static int matchingClose(String query, int open) {
+        int depth = 0;
+        for (int i = open; i < query.length(); i++) {
+            char c = query.charAt(i);
+            if (c == '(') {
+                depth++;
+            } else if (c == ')' && --depth == 0) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /** The first "/" from {@code from} that has an operand on its left (not a leading "/" or "//"). */
