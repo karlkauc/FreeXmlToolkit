@@ -13,8 +13,10 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.shared.CodeAreaFontZoom;
 import org.fxt.freexmltoolkit.controls.shared.PlainTextCodeArea;
-import org.fxt.freexmltoolkit.controls.shared.XPathSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.XPathIntelliSenseEngine;
+import org.fxt.freexmltoolkit.service.query.QueryError;
+import org.fxt.freexmltoolkit.service.query.QueryLanguage;
+import org.fxt.freexmltoolkit.service.standards.StandardsSettings;
 
 /**
  * {@link EditorView} for standalone XPath/XQuery documents ({@code .xpath},
@@ -29,12 +31,19 @@ final class QueryEditorView implements EditorView {
     private final VBox root = new VBox();
     private final XPathIntelliSenseEngine intelliSense;
     private Runnable runHandler;
+    private final QueryInputMarks marks;
 
     QueryEditorView(boolean xquery) {
         codeArea.getStyleClass().add("fxt-query-editor");
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
-        codeArea.textProperty().addListener((obs, oldText, newText) ->
-                codeArea.setStyleSpans(0, XPathSyntaxHighlighter.computeHighlighting(newText)));
+        // syntax highlighting, the check while typing and run errors as marks
+        marks = new QueryInputMarks(codeArea,
+                () -> xquery ? QueryLanguage.XQUERY : QueryLanguage.XPATH,
+                () -> {
+                    var tool = StandardsSettings.current().forTool(StandardsSettings.TOOL_QUERY_CONSOLE, null);
+                    return xquery ? tool.xquery().xpathVersion() : tool.xpath();
+                },
+                () -> null, null);
         CodeAreaFontZoom.install(codeArea);
 
         intelliSense = new XPathIntelliSenseEngine(codeArea, xquery);
@@ -82,5 +91,15 @@ final class QueryEditorView implements EditorView {
         if (xmlContextSupplier != null) {
             intelliSense.setXmlContentSupplier(xmlContextSupplier);
         }
+    }
+
+    @Override
+    public void showQueryError(QueryError error) {
+        marks.showError(error);
+    }
+
+    /** @return the marks of the query (tests) */
+    QueryInputMarks marks() {
+        return marks;
     }
 }

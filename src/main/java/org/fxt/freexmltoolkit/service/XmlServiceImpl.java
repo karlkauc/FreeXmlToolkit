@@ -746,18 +746,7 @@ public class XmlServiceImpl implements XmlService {
      * library to the version (the map/array/math prefixes are only declared from 3.0 on).
      */
     private XPathCompiler newXPathCompiler(org.fxt.freexmltoolkit.service.standards.XPathVersion version) {
-        XPathCompiler xpathCompiler = processor.newXPathCompiler();
-        if (version != org.fxt.freexmltoolkit.service.standards.XPathVersion.V3_1) {
-            xpathCompiler.setLanguageVersion(version.saxonLanguageVersion());
-            if (version == org.fxt.freexmltoolkit.service.standards.XPathVersion.V2_0
-                    || version == org.fxt.freexmltoolkit.service.standards.XPathVersion.V1_0) {
-                return xpathCompiler;
-            }
-        }
-        xpathCompiler.declareNamespace("map", "http://www.w3.org/2005/xpath-functions/map");
-        xpathCompiler.declareNamespace("array", "http://www.w3.org/2005/xpath-functions/array");
-        xpathCompiler.declareNamespace("math", "http://www.w3.org/2005/xpath-functions/math");
-        return xpathCompiler;
+        return org.fxt.freexmltoolkit.service.query.QueryCompilers.configureXPath(processor.newXPathCompiler(), version);
     }
 
     @Override
@@ -900,7 +889,7 @@ public class XmlServiceImpl implements XmlService {
             // The expression's or the document's fault; the exception thrown carries the code to the
             // caller's action event, so the log bridge must not count it again (WARN without throwable).
             logger.warn("Saxon XPath error: {}", e.getMessage());
-            throw new RuntimeException("Invalid XPath expression or XML: " + e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 

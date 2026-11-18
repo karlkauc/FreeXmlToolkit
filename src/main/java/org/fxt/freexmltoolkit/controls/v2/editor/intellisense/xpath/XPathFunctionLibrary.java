@@ -298,6 +298,11 @@ public final class XPathFunctionLibrary {
 
     // ===================== PUBLIC API =====================
 
+    /** @return the names of all known functions (unprefixed for {@code fn:}, e.g. {@code distinct-values}, {@code xs:date}) */
+    public static List<String> functionNames() {
+        return FUNCTIONS.stream().map(FunctionInfo::name).distinct().toList();
+    }
+
     /**
      * Returns all XPath functions as CompletionItems.
      */

@@ -837,6 +837,13 @@ public class EditorHost extends BorderPane {
         }
     }
 
+    /** Marks a failed query run's error in the active query editor ({@code null} removes it). */
+    public void showActiveQueryError(org.fxt.freexmltoolkit.service.query.QueryError error) {
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et) {
+            et.view.showQueryError(error);
+        }
+    }
+
     /** @return a key of the active document's content (changes with every edit), or {@code ""} */
     public String activeRevisionKey() {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();

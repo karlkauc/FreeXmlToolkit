@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  A failed XPath / XQuery run in the Query Console: code (link to the W3C error index), kind, position
+  (click = caret there), message, the query line with a caret, the hint, "Did you mean" corrections and
+  Ask AI (Copy / Save in the RESULTS header take the error as text). Loaded by QueryErrorView via the
+  fx:root pattern; QueryErrorView is root and controller.
+  The suggestion buttons are added in code.
+-->
+<fx:root type="javafx.scene.layout.VBox" spacing="8" styleClass="fxt-query-error-view"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <HBox spacing="6" alignment="CENTER_LEFT" styleClass="fxt-query-error-header">
+            <children>
+                <IconifyIcon iconLiteral="bi-x-octagon-fill" iconSize="16" styleClass="fxt-query-error-icon"/>
+                <Hyperlink fx:id="codeLink" id="query-error-code" styleClass="fxt-query-error-code"
+                           onAction="#onOpenSpec">
+                    <tooltip>
+                        <Tooltip text="%QueryErrorView.codeLink.tooltip"/>
+                    </tooltip>
+                </Hyperlink>
+                <Label fx:id="codeLabel" styleClass="fxt-query-error-code"/>
+                <Label fx:id="kindLabel" id="query-error-kind" styleClass="fxt-query-error-kind"/>
+                <Hyperlink fx:id="positionLink" id="query-error-position" onAction="#onGoToPosition">
+                    <tooltip>
+                        <Tooltip text="%QueryErrorView.positionLink.tooltip"/>
+                    </tooltip>
+                </Hyperlink>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="askAiButton" id="query-error-ask-ai" text="%QueryErrorView.askAiButton.text"
+                        styleClass="fxt-tool-button" onAction="#onAskAi">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-stars" iconSize="16"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="%QueryErrorView.askAiButton.tooltip"/>
+                    </tooltip>
+                </Button>
+            </children>
+        </HBox>
+        <Label fx:id="messageLabel" id="query-error-message" wrapText="true" styleClass="fxt-query-error-message"/>
+        <Label fx:id="excerptLabel" id="query-error-excerpt" styleClass="fxt-query-error-excerpt"/>
+        <VBox fx:id="hintBox" spacing="2" styleClass="fxt-query-error-hint">
+            <children>
+                <HBox spacing="4" alignment="CENTER_LEFT">
+                    <children>
+                        <IconifyIcon iconLiteral="bi-lightbulb" iconSize="14" styleClass="fxt-query-error-hint-icon"/>
+                        <Label text="%QueryErrorView.hint.text" styleClass="fxt-query-error-hint-title"/>
+                    </children>
+                </HBox>
+                <Label fx:id="hintLabel" id="query-error-hint" wrapText="true"/>
+            </children>
+        </VBox>
+        <FlowPane fx:id="suggestionPane" id="query-error-suggestions" hgap="6" vgap="4" alignment="CENTER_LEFT">
+            <children>
+                <Label text="%QueryErrorView.didYouMean.text" styleClass="fxt-query-error-hint-title"/>
+            </children>
+        </FlowPane>
+    </children>
+</fx:root>

@@ -1013,6 +1013,14 @@ class FxtCliTest {
             assertEquals("", out);
             assertEquals(ExitCodes.NOT_RUN, run("query", "-e", "count(//i", a));
             assertTrue(err.contains("error:"), err);
+            assertTrue(err.contains("XPST0003 · syntax error · column 9") && err.contains("^"), err);
+            assertEquals(ExitCodes.NOT_RUN, run("query", "-f", "json", "-e", "distinct-value(//i)", a));
+            com.google.gson.JsonObject failed = com.google.gson.JsonParser.parseString(out).getAsJsonArray()
+                    .get(0).getAsJsonObject();
+            assertEquals("XPST0017", failed.get("code").getAsString(), out);
+            assertEquals("static", failed.get("kind").getAsString());
+            assertEquals(1, failed.get("column").getAsInt());
+            assertEquals("distinct-values", failed.getAsJsonArray("suggestions").get(0).getAsString());
             Path broken = write("q2/broken.xml", "<r>");
             assertEquals(ExitCodes.NOT_RUN, run("query", "-e", "count(//i)", broken, a));
             assertTrue(out.contains("3") && err.contains(broken + ": error:"), out + " / " + err);

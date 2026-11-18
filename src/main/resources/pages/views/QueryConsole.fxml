@@ -121,6 +121,8 @@
                 <!-- Enter adds a line (queries can span lines); say how to run (UX plan 7) -->
                 <Label fx:id="runHint" id="query-run-hint" text="%QueryConsole.runHint.text"
                        styleClass="fxt-placeholder-text"/>
+                <!-- the check while typing: first error / warning, or why a run matched nothing -->
+                <Label fx:id="checkLabel" id="query-check" wrapText="true" styleClass="fxt-query-check"/>
             </children>
         </VBox>
 

@@ -6,9 +6,14 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
-- **Hints for common query errors.** When an XPath or XQuery expression fails with `XPTY0019` (a `/` step on a
-  value), `XPTY0020`, `XPTY0004` or `FORG0001`, the result now explains the usual cause and shows how to write it
-  instead - in the Query Console, the Run menu and `fxt-cli query`. See [Query Console](query-console.md).
+- **Query errors you can act on.** A failed XPath or XQuery shows its error code (linked to the W3C explanation), the
+  kind of error and its position; the query line with a `^` under the error; a hint for the usual cause
+  (`XPTY0019`, `XPTY0020`, `XPTY0004`, `FORG0001`); and "Did you mean" corrections for unknown functions, variables
+  and prefixes, applied with one click. The console checks the expression while you type and underlines errors
+  and warnings before you run it, explains an empty result on a document in a namespace, and offers *Ask AI to fix*
+  when the assistant is on. In `.xq` / `.xpath` files a failed run is underlined and listed in Problems;
+  `fxt-cli query` prints the same and adds `code`, `line`, `column` and `hint` to its JSON. See
+  [Query Console](query-console.md#when-a-query-fails).
 - **New elements in the Graphic view go where the schema wants them.** Typing or pasting a value into an empty
   table cell (for example `TotalPercentage` of a FundsXML position that has none) used to append the new element
   after all others, which made the document invalid. It is now inserted at its schema position - `TotalPercentage`

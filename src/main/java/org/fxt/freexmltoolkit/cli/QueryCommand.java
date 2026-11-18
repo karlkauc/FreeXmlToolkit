@@ -176,6 +176,7 @@ final class QueryCommand implements Callable<Integer> {
             }
             String error = null;
             String result = null;
+            org.fxt.freexmltoolkit.service.query.QueryError queryError = null;
             if (lang == Language.xquery && !content.isBlank()) {
                 // the engine would run an XQuery without context on a broken document
                 error = XmlStructuralDiff.wellFormednessError(content);
@@ -194,6 +195,7 @@ final class QueryCommand implements Callable<Integer> {
                 };
                 if (run.failure() != null) {
                     error = run.text().startsWith("ERROR: ") ? run.text().substring(7) : run.text();
+                    queryError = run.error();
                 } else {
                     // like grep, results only: the serializer's XML declaration is not one
                     result = stripTrailingNewline(XML_DECLARATION.matcher(run.text()).replaceFirst(""));
@@ -208,7 +210,7 @@ final class QueryCommand implements Callable<Integer> {
                     append(text, result, prefix ? name + ": " : "");
                 }
             }
-            json.add(entry(name, result, error));
+            json.add(queryError == null ? entry(name, result, error) : entry(name, queryError));
         }
 
         String out = format == Format.json
@@ -259,6 +261,28 @@ final class QueryCommand implements Callable<Integer> {
     private static boolean isYaml(Path file) {
         String extension = CliSupport.extension(file).toLowerCase(Locale.ROOT);
         return extension.equals("yaml") || extension.equals("yml");
+    }
+
+    /** A failed XPath / XQuery: message plus code, kind, position, hint and corrections. */
+    private static JsonObject entry(String file, org.fxt.freexmltoolkit.service.query.QueryError e) {
+        JsonObject o = entry(file, null, e.message());
+        if (e.code() != null) {
+            o.addProperty("code", e.code());
+        }
+        o.addProperty("kind", e.kind().name().toLowerCase(java.util.Locale.ROOT));
+        if (e.hasPosition()) {
+            o.addProperty("line", e.line());
+            o.addProperty("column", e.column());
+        }
+        if (e.hint() != null) {
+            o.addProperty("hint", e.hint());
+        }
+        if (!e.suggestions().isEmpty()) {
+            com.google.gson.JsonArray suggestions = new com.google.gson.JsonArray();
+            e.suggestions().forEach(sg -> suggestions.add(sg.label()));
+            o.add("suggestions", suggestions);
+        }
+        return o;
     }
 
     private static JsonObject entry(String file, String result, String error) {

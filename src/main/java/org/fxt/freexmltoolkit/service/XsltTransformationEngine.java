@@ -1243,8 +1243,10 @@ public class XsltTransformationEngine {
             // A Saxon error is the query's or the data's (its code reaches the action event through
             // the result); logged without the throwable so the log bridge does not count it again.
             logger.warn("XQuery transformation failed: {}", e.getMessage());
-            return XsltTransformationResult.error("XQuery execution failed: " + e.getMessage(),
+            XsltTransformationResult failed = XsltTransformationResult.error("XQuery execution failed: " + e.getMessage(),
                     localCode(e.getErrorCode()), null);
+            failed.setCause(e); // its locator gives the query line and column for display
+            return failed;
 
         } catch (Exception e) {
             logger.error("Unexpected error during XQuery transformation", e);

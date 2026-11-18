@@ -71,17 +71,7 @@ Like the text editor, every console area zooms with the mouse: hold **Ctrl** and
 3. Type your expression, then click **Run** (in XPath mode, **Enter** also runs).
 4. The result appears on the right. Use **Copy** to put it on the clipboard.
 
-When a run fails, the results pane shows the processor's message. For the mistakes made most often in hand-written
-expressions it adds a **Hint:** with the usual cause and how to write it instead:
-
-| Error | Typical cause | Hint |
-|---|---|---|
-| `XPTY0019` | A `/` step on a value, e.g. `distinct-values(//Ccy)/../Name` | Use `!` for values, or keep the nodes and atomize at the end |
-| `XPTY0020` | An axis step in a predicate on values, e.g. `distinct-values(//Ccy)[../Name]` | Filter the nodes before they become values: `//Fund[Ccy = "EUR"]/Name` |
-| `XPTY0004` | Text where a number is needed, e.g. `"5" + 1` | Convert first: `number(.)`, `xs:date(@Date)` |
-| `FORG0001` | A value in the wrong format for a cast, e.g. `xs:decimal("1.234,5")` | `xs:date` needs `2026-11-17`, `xs:decimal` a dot; `number(.)` gives `NaN` instead of failing |
-
-The same hint appears for **Run Query** in the Run menu and in `fxt-cli query`.
+See [When a query fails](#when-a-query-fails) for how errors are shown.
 
 The console always runs against the **active** document. For an **XML** document it evaluates the
 expression directly; for a **JSON** document the toggle reads **JSONPath** and the input is
@@ -96,6 +86,46 @@ The `map:`, `array:` and `math:` function namespaces are
     The Query Console is an additional, faster access point - it does not replace the **Transform**
     activity. For XSLT transformations, parameters, recent-stylesheet history, watch-and-rerun, and
     the OUTPUT panel's result table and HTML preview, use the [Transform Panel](transform-panel.md#transform-panel).
+
+### When a query fails
+
+The console checks the expression **while you type** (it is compiled, not run, shortly after you stop typing):
+
+- A **syntax or static error** (missing bracket, unknown function, variable or prefix) gets a red wavy underline,
+  and the line under the input names it, for example *XPST0003 · column 7: expected "]", found "<eof>"*.
+- A **compiler warning** gets an amber underline. The most useful one says that a `/` step will fail because its
+  left side is a value, not a node (`distinct-values(//Ccy)/../Name`) - before you run it.
+- Resting the mouse on an underline shows the message.
+
+When a run fails, the RESULTS area shows the error instead of the result:
+
+- **Code** (e.g. `XPTY0019`) as a link to its explanation in the W3C specification, the **kind** (syntax, static,
+  type or run-time error) and the **position** - a click puts the cursor at the error in the input.
+- The **message** without Saxon's internal notation, and the query line with a **`^` under the error**. The error is
+  also underlined in the input until you change it.
+- A **Hint** with the usual cause and how to write it instead, for the errors made most often:
+
+| Error | Typical cause | Hint |
+|---|---|---|
+| `XPTY0019` | A `/` step on a value, e.g. `distinct-values(//Ccy)/../Name` | Use `!` for values, or keep the nodes and atomize at the end |
+| `XPTY0020` | An axis step in a predicate on values, e.g. `distinct-values(//Ccy)[../Name]` | Filter the nodes before they become values: `//Fund[Ccy = "EUR"]/Name` |
+| `XPTY0004` | Several values where one is needed (`//Fund/Name + 1`), or text where a number is needed (`"5" + 1`) | Pick one with `[1]`, aggregate, or use `!`; convert with `number(.)`, `xs:date(@Date)` |
+| `FORG0001` | A value in the wrong format for a cast, e.g. `xs:decimal("1.234,5")` | `xs:date` needs `2026-11-17`, `xs:decimal` a dot; `number(.)` gives `NaN` instead of failing |
+
+- **Did you mean** buttons for an unknown function (`distinct-value` → `distinct-values`; also *"substring() exists,
+  but takes 2 or 3 arguments"*), an unknown variable (`$nme` → `$name`) or an undeclared prefix (`*:Fund`, or in
+  XQuery a `declare namespace` with the document's namespace). A click corrects the input.
+- **Ask AI to fix** (when the [AI assistant](ai-assistant.md) is on) sends the query and the error to the assistant;
+  its corrected query is checked against the document before it is offered.
+
+**Copy** and **Save** in the RESULTS header take the error as text, with position and hint.
+
+When a query **finds nothing** although the document is in a namespace and the query uses names without a prefix
+(`//Fund` on `<funds xmlns="urn:…">`), the line under the input explains it and suggests `*:Fund`.
+
+In an XPath or XQuery **file** (`.xpath`, `.xq`), the same check runs while you type, and a failed **Run Query** is
+underlined in the editor and listed in the **Problems** panel with line and column. The next successful run removes
+it. `fxt-cli query` prints the same text (see [Command Line](command-line.md#query)).
 
 ### Showing Results in the Document
 

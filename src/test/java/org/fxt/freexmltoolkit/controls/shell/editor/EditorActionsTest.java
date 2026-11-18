@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -150,6 +151,46 @@ class EditorActionsTest {
                 "Run Query must be enabled for an XQuery document");
         assertTrue(actionDisabled("doc-action-validate"),
                 "Validate must be disabled for an XQuery document");
+    }
+
+    @Test
+    void aFailedQueryTabRunGoesToProblemsAndIsMarkedInTheEditor(@TempDir Path tmp) throws Exception {
+        EditorHost host = shell.getEditorHost();
+        Path xml = tmp.resolve("order.xml");
+        Files.writeString(xml, "<order><item>A</item><item>x</item></order>");
+        Path xq = tmp.resolve("broken.xq");
+        Files.writeString(xq, "for $i in /order/item\nreturn xs:decimal($i)");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("order")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xq));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("return")).orElse(false));
+
+        EditorActions actions = new EditorActions(host);
+        WaitForAsyncUtils.waitForAsyncFx(2000, actions::runActiveQuery);
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> !host.getActiveProblems().isEmpty()));
+        ValidationProblem problem = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveProblems().get(0));
+        assertEquals(2, problem.line(), "the line of the failing call");
+        assertTrue(problem.column() > 0, "with a column");
+        assertTrue(problem.message().startsWith("FORG0001: "), problem.message());
+        org.fxmisc.richtext.CodeArea area = WaitForAsyncUtils.waitForAsyncFx(2000, host::getActiveCodeArea);
+        int line2 = area.getText().indexOf('\n') + 1;
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            for (int i = line2; i < area.getLength(); i++) {
+                if (area.getStyleOfChar(i).contains("fxt-query-error")) {
+                    return true;
+                }
+            }
+            return false;
+        }), "marked in line 2 of the editor");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> area.replaceText("for $i in /order/item\nreturn string($i)"));
+        WaitForAsyncUtils.waitForAsyncFx(2000, actions::runActiveQuery);
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.getActiveProblems().isEmpty()));
     }
 
     @Test

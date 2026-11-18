@@ -1493,6 +1493,80 @@
     -fx-font-style: italic;
 }
 
+/* Error marks in the query inputs and query editors (QueryInputMarks): a failed run or the check while
+   typing - red wavy underline for errors, amber for compiler warnings. */
+.fxt-query-input .fxt-query-error,
+.fxt-query-editor .fxt-query-error {
+    -rtfx-underline-color: -fxt-danger;
+    -rtfx-underline-width: 1.5;
+    -rtfx-underline-dash-array: 2 2;
+    -rtfx-underline-wave: true;
+}
+.fxt-query-input .fxt-query-warning,
+.fxt-query-editor .fxt-query-warning {
+    -rtfx-underline-color: -fxt-warning;
+    -rtfx-underline-width: 1.5;
+    -rtfx-underline-dash-array: 2 2;
+    -rtfx-underline-wave: true;
+}
+
+/* The line under the query input: first finding of the check, or why a run matched nothing. */
+.fxt-query-check {
+    -fx-font-size: 11px;
+    -fx-graphic-text-gap: 6;
+}
+.fxt-query-check.fxt-query-check-error { -fx-text-fill: -fxt-danger; }
+.fxt-query-check.fxt-query-check-error .iconify-icon { -fx-icon-color: -fxt-danger; }
+.fxt-query-check.fxt-query-check-warning { -fx-text-fill: -fxt-warning-text; }
+.fxt-query-check.fxt-query-check-warning .iconify-icon { -fx-icon-color: -fxt-warning-text; }
+.fxt-query-check.fxt-query-check-info { -fx-text-fill: -fxt-text-secondary; }
+.fxt-query-check.fxt-query-check-info .iconify-icon { -fx-icon-color: -fxt-info; }
+
+/* A failed run in the Query Console (QueryErrorView). */
+.fxt-query-error-view {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-danger;
+    -fx-border-width: 0 0 0 3;
+    -fx-padding: 8 10 8 10;
+}
+.fxt-query-error-view .fxt-query-error-icon { -fx-icon-color: -fxt-danger; }
+.fxt-query-error-view .fxt-query-error-code {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+.fxt-query-error-view .fxt-query-error-kind { -fx-text-fill: -fxt-text-secondary; }
+.fxt-query-error-view .fxt-query-error-message {
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-size: 12px;
+}
+.fxt-query-error-view .fxt-query-error-excerpt {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-primary;
+    -fx-background-color: -fxt-bg-canvas;
+    -fx-padding: 4 6 4 6;
+    -fx-background-radius: 4;
+}
+.fxt-query-error-view .fxt-query-error-hint-title {
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+}
+.fxt-query-error-view .fxt-query-error-hint-icon { -fx-icon-color: -fxt-warning-text; }
+.fxt-query-error-view .fxt-query-error-suggestion {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-background-color: -fxt-bg-canvas;
+    -fx-text-fill: -fxt-primary-text;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 2 8 2 8;
+    -fx-cursor: hand;
+}
+.fxt-query-error-view .fxt-query-error-suggestion:hover {
+    -fx-border-color: -fxt-primary;
+}
+
 /* Query results CodeArea: reads like the transform output (surface background),
    with XML/JSON syntax highlighting for query results. The classes are emitted
    by XmlSyntaxHighlighter (tagmark/anytag/attribute/avalue/comment — palette

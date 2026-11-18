@@ -35,15 +35,11 @@ class QueryErrorHintsTest {
     }
 
     @Test
-    void theHintIsAppendedOnceAndIndented() {
-        String text = QueryErrorHints.withHint("ERROR: boom", "XPTY0019");
-        assertTrue(text.startsWith("ERROR: boom\nHint: A path step"), text);
-        for (String line : text.split("\n")) {
-            assertTrue(line.startsWith("ERROR:") || line.startsWith("Hint: ") || line.startsWith("      "), line);
-        }
-        assertEquals(text, QueryErrorHints.withHint(text, "XPTY0019"), "no second hint");
-        assertEquals("ERROR: boom", QueryErrorHints.withHint("ERROR: boom", "XPST0003"));
-        assertEquals("ERROR: boom", QueryErrorHints.withHint("ERROR: boom", null));
+    void xpty0004AboutSeveralItemsGetsTheCardinalityHint() {
+        assertTrue(QueryErrorHints.hintFor("XPTY0004",
+                "A sequence of more than one item is not allowed as the first operand of '+'").contains("[1]"));
+        assertTrue(QueryErrorHints.hintFor("XPTY0004", "Arithmetic operator is not defined")
+                .startsWith("A value has the wrong type"));
     }
 
     @Test
@@ -53,6 +49,7 @@ class QueryErrorHintsTest {
         assertEquals("XPTY0019", run.failure().errorCode(), run.text());
         assertEquals(TelemetryEvent.Status.ERROR, run.failure().status(), "classification unchanged");
         assertTrue(run.text().contains("\nHint: A path step \"/\" was applied to a value"), run.text());
+        assertNotNull(run.error(), "structured error");
     }
 
     @Test

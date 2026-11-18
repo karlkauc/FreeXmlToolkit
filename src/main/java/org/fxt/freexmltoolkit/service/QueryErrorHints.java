@@ -31,23 +31,18 @@ public final class QueryErrorHints {
     }
 
     /**
-     * Appends the hint for {@code code} to an error text as an indented "Hint:" block.
+     * The hint for an error, chosen by its message where one code has several usual causes: an XPTY0004 about
+     * "more than one item" is a cardinality mistake, not a wrong type.
      *
-     * @param errorText the error text shown to the user
-     * @param code      the error code; nullable
-     * @return the text with the hint, or {@code errorText} unchanged when the code has none or it is already there
+     * @param code    the error code; nullable
+     * @param message the processor's message; nullable
+     * @return the hint text, or {@code null}
      */
-    public static String withHint(String errorText, String code) {
-        String hint = hintFor(code);
-        if (hint == null || errorText == null) {
-            return errorText;
+    public static String hintFor(String code, String message) {
+        if ("XPTY0004".equals(localPart(code)) && message != null && message.contains("more than one item")) {
+            return I18n.t("QueryErrorHints.XPTY0004.cardinality");
         }
-        String label = I18n.t("QueryErrorHints.label");
-        if (errorText.contains(label + " ")) {
-            return errorText;
-        }
-        String indent = " ".repeat(label.length() + 1);
-        return errorText + "\n" + label + " " + hint.replace("\n", "\n" + indent);
+        return hintFor(code);
     }
 
     private static String localPart(String code) {

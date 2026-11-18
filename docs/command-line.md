@@ -186,7 +186,7 @@ fxt-cli query --query-file QUERY.xq [options] [FILE|FOLDER|-]...
 | `--lang-version VERSION` | XPath `1.0`, `2.0`, `3.0`, `3.1` (default) or XQuery `1.0`, `3.0`, `3.1` (default); see [Language Versions](language-versions.md) |
 | `--include GLOB,...` | File names to query inside folders; default `*.xml,*.json,*.yaml,*.yml` |
 | `--[no-]with-filename` | Prefix each result line with its file; default: when there is more than one input |
-| `-f`, `--format FORMAT` | `text` (default) or `json`: one object per input with `file`, `result`, `error` |
+| `-f`, `--format FORMAT` | `text` (default) or `json`: one object per input with `file`, `result`, `error`; a failed XPath / XQuery also has `code`, `kind` (`syntax`, `static`, `type`, `dynamic`), `line`, `column`, `hint` and `suggestions` |
 | `-o`, `--output FILE` | Write the results to `FILE` |
 
 `-` as input reads standard input. An XQuery may run without input. YAML files are queried with
@@ -197,6 +197,19 @@ defaults: no Java calls, no remote `doc()`.
 The exit code is 0 when at least one result is not empty, 1 when all results are empty, 3 when the
 expression fails or an input cannot be read or is not well-formed (the other inputs still run, the
 errors go to standard error).
+
+A failing expression is reported with its error code, kind and position, the expression line with a caret
+under the error, a hint for the usual cause and, for an unknown function, variable or prefix, the closest
+correct names:
+
+```text
+fund.xml: error: XPTY0019 · type error · column 23
+The required item type of the first operand of '/' is node(); the supplied value "EUR" is an atomic value
+  distinct-values(//Ccy)/../Name
+                        ^
+Hint: A path step "/" was applied to a value (text, number, date) instead of a node.
+      …
+```
 
 ```bash
 fxt-cli query -e 'count(//Position)' fund.xml                                   # 27

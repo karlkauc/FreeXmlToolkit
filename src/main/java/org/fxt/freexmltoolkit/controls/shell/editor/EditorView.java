@@ -179,4 +179,11 @@ public interface EditorView {
     default void configureQuerySupport(Runnable runHandler,
             java.util.function.Supplier<String> xmlContextSupplier) {
     }
+
+    /**
+     * Marks a failed query run's error in a query editor until the next edit ({@code null} removes the mark).
+     * No-op for non-query editors.
+     */
+    default void showQueryError(org.fxt.freexmltoolkit.service.query.QueryError error) {
+    }
 }

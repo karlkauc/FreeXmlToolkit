@@ -302,6 +302,7 @@ public final class EditorActions {
                     if (gen == queryRunGeneration) {
                         out.showXQueryResult(result, table,
                                 XsltTransformationEngine.OutputFormat.XML, elapsedMs);
+                        publishQueryError(doc, run.error());
                     }
                 });
             } else {
@@ -315,10 +316,44 @@ public final class EditorActions {
                 Platform.runLater(() -> {
                     if (gen == queryRunGeneration) {
                         out.showQueryResult(result, elapsedMs);
+                        publishQueryError(doc, run.error());
                     }
                 });
             }
         });
+    }
+
+    /** The query document whose run error is in the Problems panel (cleared by its next successful run). */
+    private OpenDocument queryErrorShownFor;
+
+    /**
+     * A query tab's run error goes to the Problems panel (line + column, a click jumps there) and is marked in
+     * the editor; a successful run removes what an earlier failed run published. Only while that tab is still
+     * the active one.
+     */
+    void publishQueryError(OpenDocument doc, org.fxt.freexmltoolkit.service.query.QueryError error) {
+        if (editorHost.getActiveDocument().orElse(null) != doc) {
+            return;
+        }
+        editorHost.showActiveQueryError(error);
+        if (error == null) {
+            if (queryErrorShownFor == doc) {
+                editorHost.setActiveProblems(List.of());
+                queryErrorShownFor = null;
+            }
+            return;
+        }
+        String message = error.code() == null ? error.message() : error.code() + ": " + error.message();
+        if (error.hint() != null) {
+            message = message + " - " + error.hint().replace('\n', ' ');
+        }
+        ValidationProblem problem = new ValidationProblem(doc.getFileType() == EditorFileType.XQUERY ? "XQuery" : "XPath",
+                "error", Math.max(error.line(), 0), message);
+        if (error.hasPosition()) {
+            problem = problem.withColumn(error.column());
+        }
+        editorHost.setActiveProblems(List.of(problem));
+        queryErrorShownFor = doc;
     }
 
     /**

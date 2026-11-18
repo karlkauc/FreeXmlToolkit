@@ -35,8 +35,10 @@ import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shared.CodeAreaFontZoom;
 import org.fxt.freexmltoolkit.controls.shared.PlainTextCodeArea;
-import org.fxt.freexmltoolkit.controls.shared.XPathSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
+import org.fxt.freexmltoolkit.service.query.QueryError;
+import org.fxt.freexmltoolkit.service.query.QueryErrors;
+import org.fxt.freexmltoolkit.service.query.QueryLanguage;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.XPathIntelliSenseEngine;
 import org.fxt.freexmltoolkit.domain.XPathSnippet;
 import org.fxt.freexmltoolkit.i18n.I18n;
@@ -91,6 +93,17 @@ public class QueryConsole extends Region {
     private final Label xpathPlaceholder = placeholder("");
     /** Below the input: names the active mode and how to run it. */
     @FXML private Label runHint;
+    /** Below the input: the check while typing (first error / warning) or why a run matched nothing. */
+    @FXML private Label checkLabel;
+    /** Syntax highlighting + error marks of the two inputs. */
+    private QueryInputMarks xpathMarks;
+    private QueryInputMarks xqueryMarks;
+    /** A failed run, shown in place of the results text. */
+    private final QueryErrorView errorView = new QueryErrorView();
+    private VirtualizedScrollPane<CodeArea> resultsScroll;
+    /** The head of the active document (its root element's namespaces), cached per revision. */
+    private String documentHeadRevision;
+    private String documentHead;
 
     // XPath/XQuery autocompletion engines, one per input (created in buildInput()).
     private XPathIntelliSenseEngine xpathIntelliSense;
@@ -136,6 +149,7 @@ public class QueryConsole extends Region {
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> {
             updateRunDisabled();
             updatePathLabel();
+            updateChecks();
         });
         updatePathLabel();
         fillExamplesMenu();
@@ -189,8 +203,11 @@ public class QueryConsole extends Region {
         // XPath/XQuery syntax highlighting. IntelliSense/autocomplete is wired below.
         xpathField.setParagraphGraphicFactory(LineNumberFactory.get(xpathField));
         xqueryArea.setParagraphGraphicFactory(LineNumberFactory.get(xqueryArea));
-        attachHighlighting(xpathField);
-        attachHighlighting(xqueryArea);
+        xpathMarks = new QueryInputMarks(xpathField, () -> QueryLanguage.XPATH, this::xpathVersion,
+                this::documentHead, this::showCheck);
+        xqueryMarks = new QueryInputMarks(xqueryArea, () -> QueryLanguage.XQUERY,
+                () -> xqueryVersion().xpathVersion(), this::documentHead, this::showCheck);
+        showCheck(QueryInputMarks.Status.NONE);
         // Editor-style zoom: Ctrl+MouseWheel changes the font size, Ctrl+0 resets.
         CodeAreaFontZoom.install(xpathField);
         CodeAreaFontZoom.install(xqueryArea);
@@ -243,9 +260,13 @@ public class QueryConsole extends Region {
         resultsArea.getStyleClass().addAll("fxt-transform-output", "fxt-query-results");
         resultsArea.setParagraphGraphicFactory(LineNumberFactory.get(resultsArea));
         CodeAreaFontZoom.install(resultsArea);
-        VirtualizedScrollPane<CodeArea> resultsScroll = new VirtualizedScrollPane<>(resultsArea);
+        resultsScroll = new VirtualizedScrollPane<>(resultsArea);
         VBox.setVgrow(resultsScroll, Priority.ALWAYS);
+        resultsBox.getChildren().add(errorView);
         resultsBox.getChildren().add(resultsScroll);
+        errorView.setOnGoTo(this::goToError);
+        errorView.setOnApply(this::applySuggestion);
+        errorView.setOnAskAi(this::askAiToFix);
         hits = new QueryHits(editorHost, resultsScroll);
         VBox.setVgrow(hits.list(), Priority.ALWAYS);
         resultsBox.getChildren().add(hits.list());
@@ -328,6 +349,20 @@ public class QueryConsole extends Region {
         xpathField.setVisible(!xquery);
         xpathField.setManaged(!xquery);
         updateModeTexts();
+        updateChecks();
+    }
+
+    /** The check while typing runs for the visible input only, and not for JSONPath. */
+    private void updateChecks() {
+        if (xpathMarks == null) {
+            return;
+        }
+        boolean xquery = xqueryToggle.isSelected();
+        boolean json = isJsonActive();
+        xpathMarks.setEnabled(!xquery && !json);
+        xqueryMarks.setEnabled(xquery && !json);
+        showCheck(QueryInputMarks.Status.NONE);
+        (xquery ? xqueryMarks : xpathMarks).recheck();
     }
 
     /** The active mode as the user reads it: XPath, JSONPath (JSON document) or XQuery. */
@@ -488,11 +523,14 @@ public class QueryConsole extends Region {
                     : List.of();
             // the run checked the expression at its version; the table projects the same result (XML only)
             XQueryTableRunner.XQueryTable table = ok && !json ? XQueryTableRunner.xpath(content, path, version) : null;
+            String emptyHint = ok && !json && result.isBlank() ? QueryErrors.emptyResultHint(path, content) : null;
             Platform.runLater(() -> {
                 if (gen == runGeneration) {
                     setResultsText(result);
                     updateStatsLabel(result, elapsedMs);
                     hits.setItems(items, revision);
+                    showRunError(run.error(), xpathMarks); // after the hits, which show the results text
+                    xpathMarks.showInfo(emptyHint);
                     rememberTable(result, table, elapsedMs, true);
                 }
             });
@@ -539,10 +577,13 @@ public class QueryConsole extends Region {
                     ? locateItems(() -> org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.locateXQueryItems(
                             xml, xquery, Map.of(), baseUri))
                     : List.of();
+            String emptyHint = ok && result.isBlank() ? QueryErrors.emptyResultHint(xquery, xml) : null;
             Platform.runLater(() -> {
                 if (gen == runGeneration) {
                     setResultsText(result);
                     hits.setItems(items, revision);
+                    showRunError(run.error(), xqueryMarks); // after the hits, which show the results text
+                    xqueryMarks.showInfo(emptyHint);
                     updateStatsLabel(result, elapsedMs);
                     rememberTable(result, table, elapsedMs, false);
                 }
@@ -658,13 +699,103 @@ public class QueryConsole extends Region {
     }
 
     /**
-     * Attaches lightweight XPath/XQuery syntax highlighting to a query
-     * {@link CodeArea}: re-styles on every text change. Expressions are short, so
-     * synchronous highlighting on the FX thread is fine.
+     * Shows a failed run: the error view in place of the results text and a mark in the input until the
+     * next edit; {@code null} (a successful run or a JSONPath error) shows the results text.
      */
-    private void attachHighlighting(CodeArea area) {
-        area.textProperty().addListener((obs, oldText, newText) ->
-                area.setStyleSpans(0, XPathSyntaxHighlighter.computeHighlighting(newText)));
+    private void showRunError(QueryError error, QueryInputMarks marks) {
+        errorView.show(error);
+        resultsScroll.setVisible(error == null);
+        resultsScroll.setManaged(error == null);
+        if (error != null) {
+            marks.showError(error);
+        }
+    }
+
+    /** Puts the caret at the error and selects what it marks. */
+    private void goToError(QueryError error) {
+        CodeArea input = isXQueryMode() ? xqueryArea : xpathField;
+        int offset = error.offset();
+        if (offset < 0 || !error.query().equals(input.getText())) {
+            return;
+        }
+        int end = Math.min(input.getLength(), offset + Math.max(1, error.length()));
+        input.selectRange(Math.min(offset, end), end);
+        input.requestFollowCaret();
+        input.requestFocus();
+    }
+
+    /** Applies a "Did you mean" correction to the query it was made for. */
+    private void applySuggestion(QueryError.Suggestion suggestion) {
+        CodeArea input = isXQueryMode() ? xqueryArea : xpathField;
+        QueryError error = errorView.error();
+        if (error == null || !error.query().equals(input.getText())) {
+            return;
+        }
+        input.replaceText(suggestion.start(), suggestion.end(), suggestion.replacement());
+        input.moveTo(suggestion.start() + suggestion.replacement().length());
+        input.requestFocus();
+    }
+
+    /** "Ask AI to fix": the error goes to the assistant with the current query, which it refines. */
+    private void askAiToFix(QueryError error) {
+        boolean xquery = isXQueryMode();
+        CodeArea input = xquery ? xqueryArea : xpathField;
+        org.fxt.freexmltoolkit.controls.shell.editor.ai.AiActions.askQuery(editorHost,
+                I18n.t("QueryErrorView.ask.question", error.format()), xquery, input.getText(), input::getText,
+                expression -> setText(input, expression));
+    }
+
+    /** Shows the check's first finding (or a run's information) under the input. */
+    private void showCheck(QueryInputMarks.Status status) {
+        boolean shown = status != null && status.severity() != QueryInputMarks.Severity.NONE;
+        checkLabel.setVisible(shown);
+        checkLabel.setManaged(shown);
+        checkLabel.getStyleClass().removeAll("fxt-query-check-error", "fxt-query-check-warning", "fxt-query-check-info");
+        if (!shown) {
+            checkLabel.setText("");
+            return;
+        }
+        checkLabel.setText(status.text());
+        String icon = switch (status.severity()) {
+            case ERROR -> "bi-x-octagon-fill";
+            case WARNING -> "bi-exclamation-triangle";
+            default -> "bi-info-circle";
+        };
+        checkLabel.getStyleClass().add("fxt-query-check-" + status.severity().name().toLowerCase(java.util.Locale.ROOT));
+        IconifyIcon graphic = new IconifyIcon(icon);
+        graphic.setIconSize(14);
+        checkLabel.setGraphic(graphic);
+    }
+
+    /** The first 16 KB of the active document (enough for its root element), cached per revision. */
+    private String documentHead() {
+        String revision = editorHost.activeRevisionKey();
+        if (!revision.equals(documentHeadRevision)) {
+            String text = editorHost.getActiveText().orElse(null);
+            documentHead = text == null ? null : text.substring(0, Math.min(text.length(), 16_384));
+            documentHeadRevision = revision;
+        }
+        return documentHead;
+    }
+
+    /** Test seam: the error view of the last failed run. */
+    QueryErrorView errorView() {
+        return errorView;
+    }
+
+    /** Test seam: the marks of the active mode's input. */
+    QueryInputMarks activeMarks() {
+        return isXQueryMode() ? xqueryMarks : xpathMarks;
+    }
+
+    /** Test seam: the XPath input. */
+    CodeArea xpathInput() {
+        return xpathField;
+    }
+
+    /** Test seam: the line under the input. */
+    Label checkLabel() {
+        return checkLabel;
     }
 
     // ---------------------------------------------------------------------
