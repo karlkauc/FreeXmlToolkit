@@ -3503,7 +3503,6 @@
 .fxt-page-card .text-field:focused,
 .fxt-tp-section-body .text-field:focused {
     -fx-background-color: -fxt-primary, -fxt-bg-surface;
-    -fx-background-insets: 0, 2;
     -fx-border-color: transparent;
 }
 
@@ -5628,9 +5627,6 @@
     -fx-background-radius: 3, 2;
     -fx-text-fill: -fxt-text-secondary;
 }
-.toggle-button.fxt-bool-toggle:selected {
-    -fx-font-weight: bold;
-}
 .toggle-button.fxt-bool-toggle.fxt-bool-true:selected {
     -fx-background-color: -fxt-success, -fxt-success-bg;
     -fx-text-fill: -fxt-success-text;
@@ -5647,7 +5643,6 @@
     -fx-text-fill: -fxt-text-secondary;
 }
 .button.fxt-uri-prefix:hover {
-    -fx-background-color: -fxt-primary-fill;
-    -fx-background-insets: 0;
+    -fx-background-color: -fxt-primary-fill, -fxt-primary-fill;
     -fx-text-fill: -fxt-on-primary;
 }
