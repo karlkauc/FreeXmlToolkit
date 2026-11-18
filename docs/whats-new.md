@@ -6,6 +6,14 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+- **No pause when Settings is the first thing you open.** Settings asked the system for its list of fonts before
+  showing the syntax colour preview, which froze the window for seconds on computers with many fonts. The bundled
+  editor font needs no list now, and the list is read in the background at start.
+- **An update is offered only once its package can be downloaded.** Right after a release is published its packages
+  are still being uploaded; an update check in those minutes offered the new version and the download failed.
+
+## 3.4.0 (2026-11-18)
+
 - **Query errors you can act on.** A failed XPath or XQuery shows its error code (linked to the W3C explanation), the
   kind of error and its position; the query line with a `^` under the error; a hint for the usual cause
   (`XPTY0019`, `XPTY0020`, `XPTY0004`, `FORG0001`); and "Did you mean" corrections for unknown functions, variables

@@ -869,6 +869,11 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
 
     @Override
     public String getPlatformIdentifier() {
+        return platformIdentifier();
+    }
+
+    /** @return the platform part of the app-image asset name ({@code windows-x64}, {@code macos-arm64}, …) */
+    public static String platformIdentifier() {
         String os = System.getProperty("os.name").toLowerCase();
         String arch = System.getProperty("os.arch");
 
@@ -897,10 +902,17 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
 
         // Build the download URL for the app-image ZIP
         // Format: https://github.com/karlkauc/FreeXmlToolkit/releases/download/v{VERSION}/FreeXmlToolkit-{PLATFORM}-app-image-{VERSION}.zip
-        return String.format(
-                "https://github.com/%s/%s/releases/download/v%s/FreeXmlToolkit-%s-app-image-%s.zip",
-                GITHUB_OWNER, GITHUB_REPO, version, platform, version
-        );
+        return String.format("https://github.com/%s/%s/releases/download/v%s/%s",
+                GITHUB_OWNER, GITHUB_REPO, version, appImageAssetName(platform, version));
+    }
+
+    /**
+     * @param platform {@link #platformIdentifier()}
+     * @param version the release version without {@code v}
+     * @return the release asset an update downloads
+     */
+    public static String appImageAssetName(String platform, String version) {
+        return "FreeXmlToolkit-" + platform + "-app-image-" + version + ".zip";
     }
 
     /**

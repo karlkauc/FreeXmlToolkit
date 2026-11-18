@@ -540,6 +540,7 @@ public class FxtGui extends Application {
                 }
             }
             logger.debug("All fonts loaded in background");
+            org.fxt.freexmltoolkit.controls.shared.EditorFont.warmUp();
         });
     }
 
