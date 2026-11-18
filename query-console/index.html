@@ -3624,6 +3624,16 @@ the OUTPUT panel's result table and HTML preview, use the <a href="../transform-
 <td>A value in the wrong format for a cast, e.g. <code>xs:decimal("1.234,5")</code></td>
 <td><code>xs:date</code> needs <code>2026-11-17</code>, <code>xs:decimal</code> a dot; <code>number(.)</code> gives <code>NaN</code> instead of failing</td>
 </tr>
+<tr>
+<td><code>SXXP0003</code></td>
+<td>The <strong>document</strong> is not well-formed XML - the query may be fine</td>
+<td>Shown as <em>error in the document</em> with <em>document line 3, column 14</em>; a click on it opens the document there. <strong>Validate</strong> (F8) lists all problems</td>
+</tr>
+<tr>
+<td><code>FODC0002</code>, <code>FODC0005</code>, <code>XTDE1162</code>, <code>FOUT1170</code></td>
+<td><code>doc()</code> / <code>unparsed-text()</code> cannot find or read a file</td>
+<td>Relative paths resolve next to the saved document (an unsaved one has no location); absolute paths are <code>file:</code> URIs: <code>doc("file:///C:/data/funds.xml")</code>, not <code>C:\data\funds.xml</code></td>
+</tr>
 </tbody>
 </table>
 <ul>

@@ -4009,7 +4009,7 @@ an exit code like <code>grep</code>.</p>
 </tr>
 <tr>
 <td><code>-f</code>, <code>--format FORMAT</code></td>
-<td><code>text</code> (default) or <code>json</code>: one object per input with <code>file</code>, <code>result</code>, <code>error</code>; a failed XPath / XQuery also has <code>code</code>, <code>kind</code> (<code>syntax</code>, <code>static</code>, <code>type</code>, <code>dynamic</code>), <code>line</code>, <code>column</code>, <code>hint</code> and <code>suggestions</code></td>
+<td><code>text</code> (default) or <code>json</code>: one object per input with <code>file</code>, <code>result</code>, <code>error</code>; a failed XPath / XQuery also has <code>code</code>, <code>kind</code> (<code>syntax</code>, <code>static</code>, <code>type</code>, <code>dynamic</code>, <code>document</code>), <code>line</code>, <code>column</code>, <code>hint</code> and <code>suggestions</code>; <code>kind</code> <code>document</code> means the input is not well-formed and has <code>documentLine</code> / <code>documentColumn</code> instead of a position in the query</td>
 </tr>
 <tr>
 <td><code>-o</code>, <code>--output FILE</code></td>
