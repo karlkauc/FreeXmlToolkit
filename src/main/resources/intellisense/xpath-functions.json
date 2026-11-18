@@ -1,0 +1,3754 @@
+{
+  "generatedFrom": "Saxon-HE 12.10",
+  "functions": [
+    {
+      "name": "QName",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "uri",
+          "type": "xs:string?"
+        },
+        {
+          "name": "qname",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:QName",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Creates a QName from a namespace URI and a lexical name"
+    },
+    {
+      "name": "abs",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:numeric?"
+        }
+      ],
+      "returns": "xs:numeric?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns absolute value"
+    },
+    {
+      "name": "accumulator-after",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "a",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "item()*",
+      "since": "3.0",
+      "xsltOnly": true,
+      "description": "XSLT: the value of an accumulator after a node"
+    },
+    {
+      "name": "accumulator-before",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "a",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "item()*",
+      "since": "3.0",
+      "xsltOnly": true,
+      "description": "XSLT: the value of an accumulator before a node"
+    },
+    {
+      "name": "adjust-date-to-timezone",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:date?"
+        },
+        {
+          "name": "timezone",
+          "type": "xs:dayTimeDuration?"
+        }
+      ],
+      "returns": "xs:date?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Adjusts a date to a timezone"
+    },
+    {
+      "name": "adjust-dateTime-to-timezone",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:dateTime?"
+        },
+        {
+          "name": "timezone",
+          "type": "xs:dayTimeDuration?"
+        }
+      ],
+      "returns": "xs:dateTime?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Adjusts a date and time to a timezone"
+    },
+    {
+      "name": "adjust-time-to-timezone",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:time?"
+        },
+        {
+          "name": "timezone",
+          "type": "xs:dayTimeDuration?"
+        }
+      ],
+      "returns": "xs:time?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Adjusts a time to a timezone"
+    },
+    {
+      "name": "analyze-string",
+      "min": 2,
+      "max": 3,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        },
+        {
+          "name": "pattern",
+          "type": "xs:string"
+        },
+        {
+          "name": "flags",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "element()",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Splits a string into regex matches and non-matches (as XML)"
+    },
+    {
+      "name": "apply",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "function",
+          "type": "function(*)"
+        },
+        {
+          "name": "arguments",
+          "type": "array(*)"
+        }
+      ],
+      "returns": "item()*",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Calls a function with the members of an array as arguments"
+    },
+    {
+      "name": "array:append",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "array",
+          "type": "array(*)"
+        },
+        {
+          "name": "member",
+          "type": "item()*"
+        }
+      ],
+      "returns": "array(*)",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Appends to array"
+    },
+    {
+      "name": "array:filter",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "array",
+          "type": "array(*)"
+        },
+        {
+          "name": "predicate",
+          "type": "(function(item()*) as xs:boolean)"
+        }
+      ],
+      "returns": "array(*)",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Keeps the members for which a function returns true"
+    },
+    {
+      "name": "array:flatten",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        }
+      ],
+      "returns": "item()*",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Flattens nested arrays into a sequence"
+    },
+    {
+      "name": "array:fold-left",
+      "min": 3,
+      "max": 3,
+      "params": [
+        {
+          "name": "array",
+          "type": "array(*)"
+        },
+        {
+          "name": "zero",
+          "type": "item()*"
+        },
+        {
+          "name": "action",
+          "type": "(function(item()*, item()*) as item()*)"
+        }
+      ],
+      "returns": "item()*",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Accumulates the members of an array from the left"
+    },
+    {
+      "name": "array:fold-right",
+      "min": 3,
+      "max": 3,
+      "params": [
+        {
+          "name": "array",
+          "type": "array(*)"
+        },
+        {
+          "name": "zero",
+          "type": "item()*"
+        },
+        {
+          "name": "action",
+          "type": "(function(item()*, item()*) as item()*)"
+        }
+      ],
+      "returns": "item()*",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Accumulates the members of an array from the right"
+    },
+    {
+      "name": "array:for-each",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "array",
+          "type": "array(*)"
+        },
+        {
+          "name": "action",
+          "type": "(function(item()*) as item()*)"
+        }
+      ],
+      "returns": "array(*)",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Applies a function to every member of an array"
+    },
+    {
+      "name": "array:for-each-pair",
+      "min": 3,
+      "max": 3,
+      "params": [
+        {
+          "name": "array1",
+          "type": "array(*)"
+        },
+        {
+          "name": "array2",
+          "type": "array(*)"
+        },
+        {
+          "name": "action",
+          "type": "(function(item()*, item()*) as item()*)"
+        }
+      ],
+      "returns": "array(*)",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Applies a function to pairs of members of two arrays"
+    },
+    {
+      "name": "array:get",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "array",
+          "type": "array(*)"
+        },
+        {
+          "name": "position",
+          "type": "xs:integer"
+        }
+      ],
+      "returns": "item()*",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Gets array element"
+    },
+    {
+      "name": "array:head",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "array",
+          "type": "array(*)"
+        }
+      ],
+      "returns": "item()*",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Returns the first member of an array"
+    },
+    {
+      "name": "array:insert-before",
+      "min": 3,
+      "max": 3,
+      "params": [
+        {
+          "name": "array",
+          "type": "array(*)"
+        },
+        {
+          "name": "position",
+          "type": "xs:integer"
+        },
+        {
+          "name": "member",
+          "type": "item()*"
+        }
+      ],
+      "returns": "array(*)",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Inserts a member into an array"
+    },
+    {
+      "name": "array:join",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "arrays",
+          "type": "array(*)*"
+        }
+      ],
+      "returns": "array(*)",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Joins arrays"
+    },
+    {
+      "name": "array:put",
+      "min": 3,
+      "max": 3,
+      "params": [
+        {
+          "name": "array",
+          "type": "array(*)"
+        },
+        {
+          "name": "position",
+          "type": "xs:integer"
+        },
+        {
+          "name": "member",
+          "type": "item()*"
+        }
+      ],
+      "returns": "array(*)",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Puts element in array"
+    },
+    {
+      "name": "array:remove",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "array",
+          "type": "array(*)"
+        },
+        {
+          "name": "positions",
+          "type": "xs:integer*"
+        }
+      ],
+      "returns": "array(*)",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Removes members from an array"
+    },
+    {
+      "name": "array:reverse",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "array",
+          "type": "array(*)"
+        }
+      ],
+      "returns": "array(*)",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Reverses an array"
+    },
+    {
+      "name": "array:size",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "array",
+          "type": "array(*)"
+        }
+      ],
+      "returns": "xs:integer",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Returns array size"
+    },
+    {
+      "name": "array:sort",
+      "min": 1,
+      "max": 3,
+      "params": [
+        {
+          "name": "array",
+          "type": "array(*)"
+        },
+        {
+          "name": "collation",
+          "type": "xs:string?"
+        },
+        {
+          "name": "key",
+          "type": "(function(item()*) as xs:anyAtomicType*)"
+        }
+      ],
+      "returns": "array(*)",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Sorts the members of an array"
+    },
+    {
+      "name": "array:subarray",
+      "min": 2,
+      "max": 3,
+      "params": [
+        {
+          "name": "array",
+          "type": "array(*)"
+        },
+        {
+          "name": "start",
+          "type": "xs:integer"
+        },
+        {
+          "name": "length",
+          "type": "xs:integer"
+        }
+      ],
+      "returns": "array(*)",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Returns a part of an array"
+    },
+    {
+      "name": "array:tail",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "array",
+          "type": "array(*)"
+        }
+      ],
+      "returns": "array(*)",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Returns an array without its first member"
+    },
+    {
+      "name": "available-environment-variables",
+      "min": 0,
+      "max": 0,
+      "params": [],
+      "returns": "xs:string*",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns the names of the environment variables"
+    },
+    {
+      "name": "available-system-properties",
+      "min": 0,
+      "max": 0,
+      "params": [],
+      "returns": "xs:QName*",
+      "since": "3.0",
+      "xsltOnly": true,
+      "description": "Returns the names of the available system properties"
+    },
+    {
+      "name": "avg",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "values",
+          "type": "xs:anyAtomicType*"
+        }
+      ],
+      "returns": "xs:anyAtomicType?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns average of numeric values"
+    },
+    {
+      "name": "base-uri",
+      "min": 0,
+      "max": 1,
+      "params": [
+        {
+          "name": "node",
+          "type": "node()?"
+        }
+      ],
+      "returns": "xs:anyURI?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns base URI of node"
+    },
+    {
+      "name": "boolean",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        }
+      ],
+      "returns": "xs:boolean",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Converts argument to boolean"
+    },
+    {
+      "name": "ceiling",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:numeric?"
+        }
+      ],
+      "returns": "xs:numeric?",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Returns smallest integer >= argument"
+    },
+    {
+      "name": "codepoint-equal",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "value1",
+          "type": "xs:string?"
+        },
+        {
+          "name": "value2",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "xs:boolean?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Compares two strings by their code points"
+    },
+    {
+      "name": "codepoints-to-string",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "values",
+          "type": "xs:integer*"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Creates a string from Unicode code points"
+    },
+    {
+      "name": "collation-key",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string"
+        },
+        {
+          "name": "collation",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:base64Binary",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Returns a key that sorts like a string under a collation"
+    },
+    {
+      "name": "collection",
+      "min": 0,
+      "max": 1,
+      "params": [
+        {
+          "name": "uri",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "item()*",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the documents of a collection"
+    },
+    {
+      "name": "compare",
+      "min": 2,
+      "max": 3,
+      "params": [
+        {
+          "name": "value1",
+          "type": "xs:string?"
+        },
+        {
+          "name": "value2",
+          "type": "xs:string?"
+        },
+        {
+          "name": "collation",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:integer?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Compares two strings"
+    },
+    {
+      "name": "concat",
+      "min": 2,
+      "max": -1,
+      "params": [
+        {
+          "name": "value1",
+          "type": "xs:anyAtomicType*"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Concatenates two or more strings"
+    },
+    {
+      "name": "contains",
+      "min": 2,
+      "max": 3,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        },
+        {
+          "name": "substring",
+          "type": "xs:string?"
+        },
+        {
+          "name": "collation",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:boolean",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Returns true if first string contains second"
+    },
+    {
+      "name": "contains-token",
+      "min": 2,
+      "max": 3,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string*"
+        },
+        {
+          "name": "token",
+          "type": "xs:string"
+        },
+        {
+          "name": "collation",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:boolean",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Returns true if a whitespace-separated list contains a token"
+    },
+    {
+      "name": "copy-of",
+      "min": 0,
+      "max": 1,
+      "params": [
+        {
+          "name": "a",
+          "type": "item()*"
+        }
+      ],
+      "returns": "item()*",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "XSLT: a deep copy of the items (for streaming)"
+    },
+    {
+      "name": "count",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        }
+      ],
+      "returns": "xs:integer",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Returns number of items in sequence"
+    },
+    {
+      "name": "current",
+      "min": 0,
+      "max": 0,
+      "params": [],
+      "returns": "item()",
+      "since": "3.0",
+      "xsltOnly": true,
+      "description": "XSLT: the item that was the context item outside the current XPath expression"
+    },
+    {
+      "name": "current-date",
+      "min": 0,
+      "max": 0,
+      "params": [],
+      "returns": "xs:date",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns current date"
+    },
+    {
+      "name": "current-dateTime",
+      "min": 0,
+      "max": 0,
+      "params": [],
+      "returns": "xs:dateTimeStamp",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns current date and time"
+    },
+    {
+      "name": "current-group",
+      "min": 0,
+      "max": 0,
+      "params": [],
+      "returns": "item()*",
+      "since": "3.0",
+      "xsltOnly": true,
+      "description": "XSLT: the items of the current group (xsl:for-each-group)"
+    },
+    {
+      "name": "current-grouping-key",
+      "min": 0,
+      "max": 0,
+      "params": [],
+      "returns": "xs:anyAtomicType*",
+      "since": "3.0",
+      "xsltOnly": true,
+      "description": "XSLT: the key of the current group (xsl:for-each-group)"
+    },
+    {
+      "name": "current-merge-group",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "a",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "item()*",
+      "since": "3.0",
+      "xsltOnly": true,
+      "description": "XSLT: the items of the current merge group (xsl:merge)"
+    },
+    {
+      "name": "current-merge-key",
+      "min": 0,
+      "max": 0,
+      "params": [],
+      "returns": "xs:anyAtomicType*",
+      "since": "3.0",
+      "xsltOnly": true,
+      "description": "XSLT: the key of the current merge group (xsl:merge)"
+    },
+    {
+      "name": "current-output-uri",
+      "min": 0,
+      "max": 0,
+      "params": [],
+      "returns": "xs:anyURI?",
+      "since": "3.0",
+      "xsltOnly": true,
+      "description": "XSLT: the URI of the result document being written"
+    },
+    {
+      "name": "current-time",
+      "min": 0,
+      "max": 0,
+      "params": [],
+      "returns": "xs:time",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns current time"
+    },
+    {
+      "name": "data",
+      "min": 0,
+      "max": 1,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        }
+      ],
+      "returns": "xs:anyAtomicType*",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns atomized value"
+    },
+    {
+      "name": "dateTime",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "date",
+          "type": "xs:date?"
+        },
+        {
+          "name": "time",
+          "type": "xs:time?"
+        }
+      ],
+      "returns": "xs:dateTime?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Combines a date and a time into a dateTime"
+    },
+    {
+      "name": "day-from-date",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:date?"
+        }
+      ],
+      "returns": "xs:integer?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Extracts day from date"
+    },
+    {
+      "name": "day-from-dateTime",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:dateTime?"
+        }
+      ],
+      "returns": "xs:integer?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the day of a dateTime"
+    },
+    {
+      "name": "days-from-duration",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:duration?"
+        }
+      ],
+      "returns": "xs:integer?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the days of a duration"
+    },
+    {
+      "name": "deep-equal",
+      "min": 2,
+      "max": 4,
+      "params": [
+        {
+          "name": "input1",
+          "type": "item()*"
+        },
+        {
+          "name": "input2",
+          "type": "item()*"
+        },
+        {
+          "name": "collation",
+          "type": "xs:string?"
+        },
+        {
+          "name": "options",
+          "type": "map(*)?"
+        }
+      ],
+      "returns": "xs:boolean",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Deep comparison of sequences"
+    },
+    {
+      "name": "default-collation",
+      "min": 0,
+      "max": 0,
+      "params": [],
+      "returns": "xs:string",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the default collation URI"
+    },
+    {
+      "name": "default-language",
+      "min": 0,
+      "max": 0,
+      "params": [],
+      "returns": "xs:language",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Returns the default language"
+    },
+    {
+      "name": "distinct-values",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "values",
+          "type": "xs:anyAtomicType*"
+        },
+        {
+          "name": "collation",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:anyAtomicType*",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns unique values from sequence"
+    },
+    {
+      "name": "doc",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "href",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "document-node()?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Reads an XML document by URI"
+    },
+    {
+      "name": "doc-available",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "href",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "xs:boolean",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns true if an XML document can be read"
+    },
+    {
+      "name": "document",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "a",
+          "type": "item()*"
+        }
+      ],
+      "returns": "node()*",
+      "since": "3.0",
+      "xsltOnly": true,
+      "description": "XSLT: reads documents by URI, relative to the stylesheet"
+    },
+    {
+      "name": "document-uri",
+      "min": 0,
+      "max": 1,
+      "params": [
+        {
+          "name": "node",
+          "type": "node()?"
+        }
+      ],
+      "returns": "xs:anyURI?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns document URI"
+    },
+    {
+      "name": "element-available",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "a",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:boolean",
+      "since": "3.0",
+      "xsltOnly": true,
+      "description": "XSLT: true if an instruction is available"
+    },
+    {
+      "name": "element-with-id",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "values",
+          "type": "xs:string*"
+        },
+        {
+          "name": "node",
+          "type": "node()"
+        }
+      ],
+      "returns": "element()*",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the elements with given ID values (parent of the ID)"
+    },
+    {
+      "name": "empty",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        }
+      ],
+      "returns": "xs:boolean",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns true if sequence is empty"
+    },
+    {
+      "name": "encode-for-uri",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Encodes string for URI"
+    },
+    {
+      "name": "ends-with",
+      "min": 2,
+      "max": 3,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        },
+        {
+          "name": "substring",
+          "type": "xs:string?"
+        },
+        {
+          "name": "collation",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:boolean",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns true if string ends with suffix"
+    },
+    {
+      "name": "environment-variable",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "name",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:string?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns the value of an environment variable"
+    },
+    {
+      "name": "error",
+      "min": 0,
+      "max": 3,
+      "params": [
+        {
+          "name": "code",
+          "type": "xs:QName?"
+        },
+        {
+          "name": "description",
+          "type": "xs:string"
+        },
+        {
+          "name": "error-object",
+          "type": "item()*"
+        }
+      ],
+      "returns": "item()?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Raises an error"
+    },
+    {
+      "name": "escape-html-uri",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Escapes URI for HTML"
+    },
+    {
+      "name": "exactly-one",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        }
+      ],
+      "returns": "item()",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the argument if it is exactly one item, else raises an error"
+    },
+    {
+      "name": "exists",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        }
+      ],
+      "returns": "xs:boolean",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns true if sequence is not empty"
+    },
+    {
+      "name": "false",
+      "min": 0,
+      "max": 0,
+      "params": [],
+      "returns": "xs:boolean",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Returns boolean false"
+    },
+    {
+      "name": "filter",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        },
+        {
+          "name": "predicate",
+          "type": "(function(item()) as xs:boolean)"
+        }
+      ],
+      "returns": "item()*",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Filters sequence by predicate"
+    },
+    {
+      "name": "floor",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:numeric?"
+        }
+      ],
+      "returns": "xs:numeric?",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Returns largest integer <= argument"
+    },
+    {
+      "name": "fold-left",
+      "min": 3,
+      "max": 3,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        },
+        {
+          "name": "zero",
+          "type": "item()*"
+        },
+        {
+          "name": "action",
+          "type": "(function(item()*, item()) as item()*)"
+        }
+      ],
+      "returns": "item()*",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Left fold over sequence"
+    },
+    {
+      "name": "fold-right",
+      "min": 3,
+      "max": 3,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        },
+        {
+          "name": "zero",
+          "type": "item()*"
+        },
+        {
+          "name": "action",
+          "type": "(function(item(), item()*) as item()*)"
+        }
+      ],
+      "returns": "item()*",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Right fold over sequence"
+    },
+    {
+      "name": "for-each",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        },
+        {
+          "name": "action",
+          "type": "(function(item()) as item()*)"
+        }
+      ],
+      "returns": "item()*",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Applies function to each item"
+    },
+    {
+      "name": "for-each-pair",
+      "min": 3,
+      "max": 3,
+      "params": [
+        {
+          "name": "input1",
+          "type": "item()*"
+        },
+        {
+          "name": "input2",
+          "type": "item()*"
+        },
+        {
+          "name": "action",
+          "type": "(function(item(), item()) as item()*)"
+        }
+      ],
+      "returns": "item()*",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Applies function to pairs"
+    },
+    {
+      "name": "format-date",
+      "min": 2,
+      "max": 5,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:date?"
+        },
+        {
+          "name": "picture",
+          "type": "xs:string"
+        },
+        {
+          "name": "language",
+          "type": "xs:string?"
+        },
+        {
+          "name": "calendar",
+          "type": "xs:string?"
+        },
+        {
+          "name": "place",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "xs:string?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Formats date according to picture"
+    },
+    {
+      "name": "format-dateTime",
+      "min": 2,
+      "max": 5,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:dateTime?"
+        },
+        {
+          "name": "picture",
+          "type": "xs:string"
+        },
+        {
+          "name": "language",
+          "type": "xs:string?"
+        },
+        {
+          "name": "calendar",
+          "type": "xs:string?"
+        },
+        {
+          "name": "place",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "xs:string?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Formats dateTime"
+    },
+    {
+      "name": "format-integer",
+      "min": 2,
+      "max": 3,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:integer?"
+        },
+        {
+          "name": "picture",
+          "type": "xs:string"
+        },
+        {
+          "name": "language",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Formats an integer by a picture string (e.g. 'Ww', 'i', '001')"
+    },
+    {
+      "name": "format-number",
+      "min": 2,
+      "max": 3,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:numeric?"
+        },
+        {
+          "name": "picture",
+          "type": "xs:string"
+        },
+        {
+          "name": "decimal-format-name",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Formats number according to picture"
+    },
+    {
+      "name": "format-time",
+      "min": 2,
+      "max": 5,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:time?"
+        },
+        {
+          "name": "picture",
+          "type": "xs:string"
+        },
+        {
+          "name": "language",
+          "type": "xs:string?"
+        },
+        {
+          "name": "calendar",
+          "type": "xs:string?"
+        },
+        {
+          "name": "place",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "xs:string?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Formats time according to picture"
+    },
+    {
+      "name": "function-arity",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "function",
+          "type": "function(*)"
+        }
+      ],
+      "returns": "xs:integer",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns the number of arguments of a function item"
+    },
+    {
+      "name": "function-available",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "a",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:boolean",
+      "since": "3.0",
+      "xsltOnly": true,
+      "description": "XSLT: true if a function is available"
+    },
+    {
+      "name": "function-lookup",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "name",
+          "type": "xs:QName"
+        },
+        {
+          "name": "arity",
+          "type": "xs:integer"
+        }
+      ],
+      "returns": "function(*)?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns the function with a given name and arity"
+    },
+    {
+      "name": "function-name",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "function",
+          "type": "function(*)"
+        }
+      ],
+      "returns": "xs:QName?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns the name of a function item"
+    },
+    {
+      "name": "generate-id",
+      "min": 0,
+      "max": 1,
+      "params": [
+        {
+          "name": "node",
+          "type": "node()?"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Generates unique ID for node"
+    },
+    {
+      "name": "has-children",
+      "min": 0,
+      "max": 1,
+      "params": [
+        {
+          "name": "node",
+          "type": "node()?"
+        }
+      ],
+      "returns": "xs:boolean",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns true if node has children"
+    },
+    {
+      "name": "head",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        }
+      ],
+      "returns": "item()?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns first item of sequence"
+    },
+    {
+      "name": "hours-from-dateTime",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:dateTime?"
+        }
+      ],
+      "returns": "xs:integer?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the hours of a dateTime"
+    },
+    {
+      "name": "hours-from-duration",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:duration?"
+        }
+      ],
+      "returns": "xs:integer?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the hours of a duration"
+    },
+    {
+      "name": "hours-from-time",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:time?"
+        }
+      ],
+      "returns": "xs:integer?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Extracts hours from time"
+    },
+    {
+      "name": "id",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "values",
+          "type": "xs:string*"
+        },
+        {
+          "name": "node",
+          "type": "node()"
+        }
+      ],
+      "returns": "element()*",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Returns elements with matching IDs"
+    },
+    {
+      "name": "idref",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "values",
+          "type": "xs:string*"
+        },
+        {
+          "name": "node",
+          "type": "node()"
+        }
+      ],
+      "returns": "node()*",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the nodes that refer to given ID values"
+    },
+    {
+      "name": "implicit-timezone",
+      "min": 0,
+      "max": 0,
+      "params": [],
+      "returns": "xs:dayTimeDuration",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the implicit timezone"
+    },
+    {
+      "name": "in-scope-prefixes",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "element",
+          "type": "element()"
+        }
+      ],
+      "returns": "xs:string*",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the namespace prefixes in scope of an element"
+    },
+    {
+      "name": "index-of",
+      "min": 2,
+      "max": 3,
+      "params": [
+        {
+          "name": "input",
+          "type": "xs:anyAtomicType*"
+        },
+        {
+          "name": "search",
+          "type": "xs:anyAtomicType"
+        },
+        {
+          "name": "collation",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:integer*",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns positions of matching items"
+    },
+    {
+      "name": "innermost",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "nodes",
+          "type": "node()*"
+        }
+      ],
+      "returns": "node()*",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns innermost nodes"
+    },
+    {
+      "name": "insert-before",
+      "min": 3,
+      "max": 3,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        },
+        {
+          "name": "position",
+          "type": "xs:integer"
+        },
+        {
+          "name": "insert",
+          "type": "item()*"
+        }
+      ],
+      "returns": "item()*",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Inserts items into sequence"
+    },
+    {
+      "name": "iri-to-uri",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Converts IRI to URI"
+    },
+    {
+      "name": "json-doc",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "href",
+          "type": "xs:string?"
+        },
+        {
+          "name": "options",
+          "type": "map(*)"
+        }
+      ],
+      "returns": "item()?",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Reads and parses a JSON file"
+    },
+    {
+      "name": "json-to-xml",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        },
+        {
+          "name": "options",
+          "type": "map(*)"
+        }
+      ],
+      "returns": "item()?",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Converts a JSON string to its XML representation (fn: vocabulary)"
+    },
+    {
+      "name": "key",
+      "min": 3,
+      "max": 3,
+      "params": [
+        {
+          "name": "a",
+          "type": "xs:string"
+        },
+        {
+          "name": "b",
+          "type": "xs:anyAtomicType*"
+        },
+        {
+          "name": "c",
+          "type": "node()"
+        }
+      ],
+      "returns": "node()*",
+      "since": "3.0",
+      "xsltOnly": true,
+      "description": "XSLT: the nodes with a given value of an xsl:key"
+    },
+    {
+      "name": "lang",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "language",
+          "type": "xs:string?"
+        },
+        {
+          "name": "node",
+          "type": "node()"
+        }
+      ],
+      "returns": "xs:boolean",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Returns true if context lang matches"
+    },
+    {
+      "name": "last",
+      "min": 0,
+      "max": 0,
+      "params": [],
+      "returns": "xs:integer",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Returns size of context sequence"
+    },
+    {
+      "name": "load-xquery-module",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "module-uri",
+          "type": "xs:string"
+        },
+        {
+          "name": "options",
+          "type": "map(*)"
+        }
+      ],
+      "returns": "map(*)",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Loads an XQuery library module and returns its functions and variables"
+    },
+    {
+      "name": "local-name",
+      "min": 0,
+      "max": 1,
+      "params": [
+        {
+          "name": "node",
+          "type": "node()?"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Returns local name of node"
+    },
+    {
+      "name": "local-name-from-QName",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:QName?"
+        }
+      ],
+      "returns": "xs:NCName?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the local part of a QName"
+    },
+    {
+      "name": "lower-case",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Converts string to lowercase"
+    },
+    {
+      "name": "map:contains",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "map",
+          "type": "map(*)"
+        },
+        {
+          "name": "key",
+          "type": "xs:anyAtomicType"
+        }
+      ],
+      "returns": "xs:boolean",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Tests if map contains key"
+    },
+    {
+      "name": "map:entry",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "key",
+          "type": "xs:anyAtomicType"
+        },
+        {
+          "name": "value",
+          "type": "item()*"
+        }
+      ],
+      "returns": "map(*)",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Creates a map with one entry"
+    },
+    {
+      "name": "map:find",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        },
+        {
+          "name": "key",
+          "type": "xs:anyAtomicType"
+        }
+      ],
+      "returns": "array(*)",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Finds the values of a key in nested maps and arrays"
+    },
+    {
+      "name": "map:for-each",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "map",
+          "type": "map(*)"
+        },
+        {
+          "name": "action",
+          "type": "(function(xs:anyAtomicType, item()*) as item()*)"
+        }
+      ],
+      "returns": "item()*",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Applies a function to every key and value of a map"
+    },
+    {
+      "name": "map:get",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "map",
+          "type": "map(*)"
+        },
+        {
+          "name": "key",
+          "type": "xs:anyAtomicType"
+        }
+      ],
+      "returns": "item()*",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Gets value from map"
+    },
+    {
+      "name": "map:keys",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "map",
+          "type": "map(*)"
+        }
+      ],
+      "returns": "xs:anyAtomicType*",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Returns keys of map"
+    },
+    {
+      "name": "map:merge",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "maps",
+          "type": "map(*)*"
+        },
+        {
+          "name": "options",
+          "type": "map(*)"
+        }
+      ],
+      "returns": "map(*)",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Merges maps"
+    },
+    {
+      "name": "map:put",
+      "min": 3,
+      "max": 3,
+      "params": [
+        {
+          "name": "map",
+          "type": "map(*)"
+        },
+        {
+          "name": "key",
+          "type": "xs:anyAtomicType"
+        },
+        {
+          "name": "value",
+          "type": "item()*"
+        }
+      ],
+      "returns": "map(*)",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Puts entry in map"
+    },
+    {
+      "name": "map:remove",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "map",
+          "type": "map(*)"
+        },
+        {
+          "name": "keys",
+          "type": "xs:anyAtomicType*"
+        }
+      ],
+      "returns": "map(*)",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Removes entry from map"
+    },
+    {
+      "name": "map:size",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "map",
+          "type": "map(*)"
+        }
+      ],
+      "returns": "xs:integer",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Returns the number of entries of a map"
+    },
+    {
+      "name": "matches",
+      "min": 2,
+      "max": 3,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        },
+        {
+          "name": "pattern",
+          "type": "xs:string"
+        },
+        {
+          "name": "flags",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:boolean",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns true if string matches regex pattern"
+    },
+    {
+      "name": "math:acos",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:double?"
+        }
+      ],
+      "returns": "xs:double?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns the arc cosine"
+    },
+    {
+      "name": "math:asin",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:double?"
+        }
+      ],
+      "returns": "xs:double?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns the arc sine"
+    },
+    {
+      "name": "math:atan",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:double?"
+        }
+      ],
+      "returns": "xs:double?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns the arc tangent"
+    },
+    {
+      "name": "math:atan2",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "y",
+          "type": "xs:double"
+        },
+        {
+          "name": "x",
+          "type": "xs:double"
+        }
+      ],
+      "returns": "xs:double",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns the angle of a point from the x axis"
+    },
+    {
+      "name": "math:cos",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "radians",
+          "type": "xs:double?"
+        }
+      ],
+      "returns": "xs:double?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns the cosine"
+    },
+    {
+      "name": "math:exp",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:double?"
+        }
+      ],
+      "returns": "xs:double?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns e raised to a power"
+    },
+    {
+      "name": "math:exp10",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:double?"
+        }
+      ],
+      "returns": "xs:double?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns 10 raised to a power"
+    },
+    {
+      "name": "math:log",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:double?"
+        }
+      ],
+      "returns": "xs:double?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns the natural logarithm"
+    },
+    {
+      "name": "math:log10",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:double?"
+        }
+      ],
+      "returns": "xs:double?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns the base-10 logarithm"
+    },
+    {
+      "name": "math:pi",
+      "min": 0,
+      "max": 0,
+      "params": [],
+      "returns": "xs:double",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns the value of pi"
+    },
+    {
+      "name": "math:pow",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "x",
+          "type": "xs:double?"
+        },
+        {
+          "name": "y",
+          "type": "xs:double"
+        }
+      ],
+      "returns": "xs:double?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Raises a number to a power"
+    },
+    {
+      "name": "math:sin",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "radians",
+          "type": "xs:double?"
+        }
+      ],
+      "returns": "xs:double?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns the sine"
+    },
+    {
+      "name": "math:sqrt",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:double?"
+        }
+      ],
+      "returns": "xs:double?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns the square root"
+    },
+    {
+      "name": "math:tan",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "radians",
+          "type": "xs:double?"
+        }
+      ],
+      "returns": "xs:double?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns the tangent"
+    },
+    {
+      "name": "max",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "values",
+          "type": "xs:anyAtomicType*"
+        },
+        {
+          "name": "collation",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:anyAtomicType?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns maximum value"
+    },
+    {
+      "name": "min",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "values",
+          "type": "xs:anyAtomicType*"
+        },
+        {
+          "name": "collation",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:anyAtomicType?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns minimum value"
+    },
+    {
+      "name": "minutes-from-dateTime",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:dateTime?"
+        }
+      ],
+      "returns": "xs:integer?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the minutes of a dateTime"
+    },
+    {
+      "name": "minutes-from-duration",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:duration?"
+        }
+      ],
+      "returns": "xs:integer?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the minutes of a duration"
+    },
+    {
+      "name": "minutes-from-time",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:time?"
+        }
+      ],
+      "returns": "xs:integer?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the minutes of a time"
+    },
+    {
+      "name": "month-from-date",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:date?"
+        }
+      ],
+      "returns": "xs:integer?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Extracts month from date"
+    },
+    {
+      "name": "month-from-dateTime",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:dateTime?"
+        }
+      ],
+      "returns": "xs:integer?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the month of a dateTime"
+    },
+    {
+      "name": "months-from-duration",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:duration?"
+        }
+      ],
+      "returns": "xs:integer?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the months of a duration"
+    },
+    {
+      "name": "name",
+      "min": 0,
+      "max": 1,
+      "params": [
+        {
+          "name": "node",
+          "type": "node()?"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Returns qualified name of node"
+    },
+    {
+      "name": "namespace-uri",
+      "min": 0,
+      "max": 1,
+      "params": [
+        {
+          "name": "node",
+          "type": "node()?"
+        }
+      ],
+      "returns": "xs:anyURI",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Returns namespace URI of node"
+    },
+    {
+      "name": "namespace-uri-for-prefix",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        },
+        {
+          "name": "element",
+          "type": "element()"
+        }
+      ],
+      "returns": "xs:anyURI?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the namespace URI bound to a prefix on an element"
+    },
+    {
+      "name": "namespace-uri-from-QName",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:QName?"
+        }
+      ],
+      "returns": "xs:anyURI?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the namespace URI of a QName"
+    },
+    {
+      "name": "nilled",
+      "min": 0,
+      "max": 1,
+      "params": [
+        {
+          "name": "node",
+          "type": "node()?"
+        }
+      ],
+      "returns": "xs:boolean?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns true if element is nilled"
+    },
+    {
+      "name": "node-name",
+      "min": 0,
+      "max": 1,
+      "params": [
+        {
+          "name": "node",
+          "type": "node()?"
+        }
+      ],
+      "returns": "xs:QName?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the name of a node as a QName"
+    },
+    {
+      "name": "normalize-space",
+      "min": 0,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Normalizes whitespace in a string"
+    },
+    {
+      "name": "normalize-unicode",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        },
+        {
+          "name": "form",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Applies Unicode normalization (NFC by default)"
+    },
+    {
+      "name": "not",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        }
+      ],
+      "returns": "xs:boolean",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Returns negation of argument"
+    },
+    {
+      "name": "number",
+      "min": 0,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:anyAtomicType?"
+        }
+      ],
+      "returns": "xs:double",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Converts argument to number"
+    },
+    {
+      "name": "one-or-more",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        }
+      ],
+      "returns": "item()+",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the argument if it has at least one item, else raises an error"
+    },
+    {
+      "name": "outermost",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "nodes",
+          "type": "node()*"
+        }
+      ],
+      "returns": "node()*",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns outermost nodes"
+    },
+    {
+      "name": "parse-ietf-date",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "xs:dateTime?",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Parses a date in the format of HTTP / e-mail headers"
+    },
+    {
+      "name": "parse-json",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        },
+        {
+          "name": "options",
+          "type": "map(*)"
+        }
+      ],
+      "returns": "item()?",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Parses a JSON string into maps, arrays and atomic values"
+    },
+    {
+      "name": "parse-xml",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "document-node(element())?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Parses XML string to document"
+    },
+    {
+      "name": "parse-xml-fragment",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "document-node()?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Parses a string as an XML fragment"
+    },
+    {
+      "name": "path",
+      "min": 0,
+      "max": 1,
+      "params": [
+        {
+          "name": "node",
+          "type": "node()?"
+        }
+      ],
+      "returns": "xs:string?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns path expression for node"
+    },
+    {
+      "name": "position",
+      "min": 0,
+      "max": 0,
+      "params": [],
+      "returns": "xs:integer",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Returns position of context item"
+    },
+    {
+      "name": "prefix-from-QName",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:QName?"
+        }
+      ],
+      "returns": "xs:NCName?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the prefix of a QName"
+    },
+    {
+      "name": "random-number-generator",
+      "min": 0,
+      "max": 1,
+      "params": [
+        {
+          "name": "seed",
+          "type": "xs:anyAtomicType?"
+        }
+      ],
+      "returns": "map(xs:string, item())",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Returns a map with a random number and a next() function"
+    },
+    {
+      "name": "regex-group",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "a",
+          "type": "xs:integer"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "3.0",
+      "xsltOnly": true,
+      "description": "XSLT: a captured group of the current match (xsl:analyze-string)"
+    },
+    {
+      "name": "remove",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        },
+        {
+          "name": "positions",
+          "type": "xs:integer"
+        }
+      ],
+      "returns": "item()*",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Removes item at position"
+    },
+    {
+      "name": "replace",
+      "min": 3,
+      "max": 4,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        },
+        {
+          "name": "pattern",
+          "type": "xs:string"
+        },
+        {
+          "name": "replacement",
+          "type": "xs:string"
+        },
+        {
+          "name": "flags",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Replaces pattern occurrences"
+    },
+    {
+      "name": "resolve-QName",
+      "min": 2,
+      "max": 2,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        },
+        {
+          "name": "element",
+          "type": "element()"
+        }
+      ],
+      "returns": "xs:QName?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Resolves a lexical QName against the namespaces of an element"
+    },
+    {
+      "name": "resolve-uri",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "href",
+          "type": "xs:string?"
+        },
+        {
+          "name": "base",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:anyURI?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Resolves a relative URI against a base URI"
+    },
+    {
+      "name": "reverse",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        }
+      ],
+      "returns": "item()*",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Reverses sequence order"
+    },
+    {
+      "name": "root",
+      "min": 0,
+      "max": 1,
+      "params": [
+        {
+          "name": "node",
+          "type": "node()?"
+        }
+      ],
+      "returns": "node()?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns root of tree containing node"
+    },
+    {
+      "name": "round",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:numeric?"
+        },
+        {
+          "name": "precision",
+          "type": "xs:integer"
+        }
+      ],
+      "returns": "xs:numeric?",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Rounds to nearest integer"
+    },
+    {
+      "name": "round-half-to-even",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:numeric?"
+        },
+        {
+          "name": "precision",
+          "type": "xs:integer"
+        }
+      ],
+      "returns": "xs:numeric?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Banker's rounding"
+    },
+    {
+      "name": "seconds-from-dateTime",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:dateTime?"
+        }
+      ],
+      "returns": "xs:decimal?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the seconds of a dateTime"
+    },
+    {
+      "name": "seconds-from-duration",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:duration?"
+        }
+      ],
+      "returns": "xs:decimal?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the seconds of a duration"
+    },
+    {
+      "name": "seconds-from-time",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:time?"
+        }
+      ],
+      "returns": "xs:decimal?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the seconds of a time"
+    },
+    {
+      "name": "serialize",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        },
+        {
+          "name": "options",
+          "type": "item()?"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Serializes to XML string"
+    },
+    {
+      "name": "snapshot",
+      "min": 0,
+      "max": 1,
+      "params": [
+        {
+          "name": "a",
+          "type": "item()*"
+        }
+      ],
+      "returns": "node()*",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "XSLT: a copy of the items with their ancestors (for streaming)"
+    },
+    {
+      "name": "sort",
+      "min": 1,
+      "max": 3,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        },
+        {
+          "name": "collation",
+          "type": "xs:string?"
+        },
+        {
+          "name": "key",
+          "type": "(function(item()) as xs:anyAtomicType*)"
+        }
+      ],
+      "returns": "item()*",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Sorts sequence"
+    },
+    {
+      "name": "starts-with",
+      "min": 2,
+      "max": 3,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        },
+        {
+          "name": "substring",
+          "type": "xs:string?"
+        },
+        {
+          "name": "collation",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:boolean",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Returns true if string starts with prefix"
+    },
+    {
+      "name": "static-base-uri",
+      "min": 0,
+      "max": 0,
+      "params": [],
+      "returns": "xs:anyURI?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the static base URI"
+    },
+    {
+      "name": "stream-available",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "a",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "xs:boolean",
+      "since": "3.0",
+      "xsltOnly": true,
+      "description": "XSLT: true if a document can be read with streaming"
+    },
+    {
+      "name": "string",
+      "min": 0,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "item()?"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Converts argument to string"
+    },
+    {
+      "name": "string-join",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "values",
+          "type": "xs:anyAtomicType*"
+        },
+        {
+          "name": "separator",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Joins sequence with separator"
+    },
+    {
+      "name": "string-length",
+      "min": 0,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "xs:integer",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Returns the length of a string"
+    },
+    {
+      "name": "string-to-codepoints",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "xs:integer*",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the Unicode code points of a string"
+    },
+    {
+      "name": "subsequence",
+      "min": 2,
+      "max": 3,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        },
+        {
+          "name": "start",
+          "type": "xs:numeric"
+        },
+        {
+          "name": "length",
+          "type": "xs:numeric"
+        }
+      ],
+      "returns": "item()*",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns subsequence"
+    },
+    {
+      "name": "substring",
+      "min": 2,
+      "max": 3,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        },
+        {
+          "name": "start",
+          "type": "xs:numeric"
+        },
+        {
+          "name": "length",
+          "type": "xs:numeric?"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Returns a substring"
+    },
+    {
+      "name": "substring-after",
+      "min": 2,
+      "max": 3,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        },
+        {
+          "name": "substring",
+          "type": "xs:string?"
+        },
+        {
+          "name": "collation",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Returns substring after occurrence"
+    },
+    {
+      "name": "substring-before",
+      "min": 2,
+      "max": 3,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        },
+        {
+          "name": "substring",
+          "type": "xs:string?"
+        },
+        {
+          "name": "collation",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Returns substring before occurrence"
+    },
+    {
+      "name": "sum",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "values",
+          "type": "xs:anyAtomicType*"
+        },
+        {
+          "name": "zero",
+          "type": "xs:anyAtomicType?"
+        }
+      ],
+      "returns": "xs:anyAtomicType?",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Returns sum of numeric values in sequence"
+    },
+    {
+      "name": "system-property",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "a",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "3.0",
+      "xsltOnly": true,
+      "description": "XSLT: the value of a system property such as xsl:version"
+    },
+    {
+      "name": "tail",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        }
+      ],
+      "returns": "item()*",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns all but first item"
+    },
+    {
+      "name": "timezone-from-date",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:date?"
+        }
+      ],
+      "returns": "xs:dayTimeDuration?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the timezone of a date"
+    },
+    {
+      "name": "timezone-from-dateTime",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:dateTime?"
+        }
+      ],
+      "returns": "xs:dayTimeDuration?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the timezone of a dateTime"
+    },
+    {
+      "name": "timezone-from-time",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:time?"
+        }
+      ],
+      "returns": "xs:dayTimeDuration?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the timezone of a time"
+    },
+    {
+      "name": "tokenize",
+      "min": 1,
+      "max": 3,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        },
+        {
+          "name": "pattern",
+          "type": "xs:string"
+        },
+        {
+          "name": "flags",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:string*",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Splits string by pattern"
+    },
+    {
+      "name": "trace",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        },
+        {
+          "name": "label",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "item()*",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Traces value for debugging"
+    },
+    {
+      "name": "transform",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "options",
+          "type": "map(*)"
+        }
+      ],
+      "returns": "map(*)",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Runs an XSLT transformation from within an expression"
+    },
+    {
+      "name": "translate",
+      "min": 3,
+      "max": 3,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        },
+        {
+          "name": "replace",
+          "type": "xs:string"
+        },
+        {
+          "name": "with",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Translates characters in a string"
+    },
+    {
+      "name": "true",
+      "min": 0,
+      "max": 0,
+      "params": [],
+      "returns": "xs:boolean",
+      "since": "1.0",
+      "xsltOnly": false,
+      "description": "Returns boolean true"
+    },
+    {
+      "name": "type-available",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "a",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:boolean",
+      "since": "3.0",
+      "xsltOnly": true,
+      "description": "XSLT: true if a type is available"
+    },
+    {
+      "name": "unordered",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        }
+      ],
+      "returns": "item()*",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns sequence in implementation-dependent order"
+    },
+    {
+      "name": "unparsed-entity-public-id",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "a",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "3.0",
+      "xsltOnly": true,
+      "description": "XSLT: the public identifier of an unparsed entity"
+    },
+    {
+      "name": "unparsed-entity-uri",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "a",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:anyURI",
+      "since": "3.0",
+      "xsltOnly": true,
+      "description": "XSLT: the URI of an unparsed entity"
+    },
+    {
+      "name": "unparsed-text",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "href",
+          "type": "xs:string?"
+        },
+        {
+          "name": "encoding",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:string?",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Reads text file"
+    },
+    {
+      "name": "unparsed-text-available",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "href",
+          "type": "xs:string?"
+        },
+        {
+          "name": "encoding",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:boolean",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns true if a text file can be read"
+    },
+    {
+      "name": "unparsed-text-lines",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "href",
+          "type": "xs:string?"
+        },
+        {
+          "name": "encoding",
+          "type": "xs:string"
+        }
+      ],
+      "returns": "xs:string*",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Reads a text file as a sequence of lines"
+    },
+    {
+      "name": "upper-case",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "xs:string",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Converts string to uppercase"
+    },
+    {
+      "name": "uri-collection",
+      "min": 0,
+      "max": 1,
+      "params": [
+        {
+          "name": "uri",
+          "type": "xs:string?"
+        }
+      ],
+      "returns": "xs:anyURI*",
+      "since": "3.0",
+      "xsltOnly": false,
+      "description": "Returns the URIs of a collection"
+    },
+    {
+      "name": "xml-to-json",
+      "min": 1,
+      "max": 2,
+      "params": [
+        {
+          "name": "node",
+          "type": "node()?"
+        },
+        {
+          "name": "options",
+          "type": "map(*)"
+        }
+      ],
+      "returns": "xs:string?",
+      "since": "3.1",
+      "xsltOnly": false,
+      "description": "Converts the XML representation of JSON back to a JSON string"
+    },
+    {
+      "name": "year-from-date",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:date?"
+        }
+      ],
+      "returns": "xs:integer?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Extracts year from date"
+    },
+    {
+      "name": "year-from-dateTime",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:dateTime?"
+        }
+      ],
+      "returns": "xs:integer?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the year of a dateTime"
+    },
+    {
+      "name": "years-from-duration",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "value",
+          "type": "xs:duration?"
+        }
+      ],
+      "returns": "xs:integer?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the years of a duration"
+    },
+    {
+      "name": "zero-or-one",
+      "min": 1,
+      "max": 1,
+      "params": [
+        {
+          "name": "input",
+          "type": "item()*"
+        }
+      ],
+      "returns": "item()?",
+      "since": "2.0",
+      "xsltOnly": false,
+      "description": "Returns the argument if it has at most one item, else raises an error"
+    }
+  ],
+  "extra": [
+    {
+      "name": "xs:string",
+      "signature": "xs:string($arg)",
+      "returns": "xs:string",
+      "description": "Constructs xs:string value"
+    },
+    {
+      "name": "xs:integer",
+      "signature": "xs:integer($arg)",
+      "returns": "xs:integer",
+      "description": "Constructs xs:integer value"
+    },
+    {
+      "name": "xs:decimal",
+      "signature": "xs:decimal($arg)",
+      "returns": "xs:decimal",
+      "description": "Constructs xs:decimal value"
+    },
+    {
+      "name": "xs:double",
+      "signature": "xs:double($arg)",
+      "returns": "xs:double",
+      "description": "Constructs xs:double value"
+    },
+    {
+      "name": "xs:boolean",
+      "signature": "xs:boolean($arg)",
+      "returns": "xs:boolean",
+      "description": "Constructs xs:boolean value"
+    },
+    {
+      "name": "xs:date",
+      "signature": "xs:date($arg)",
+      "returns": "xs:date",
+      "description": "Constructs xs:date value"
+    },
+    {
+      "name": "xs:dateTime",
+      "signature": "xs:dateTime($arg)",
+      "returns": "xs:dateTime",
+      "description": "Constructs xs:dateTime value"
+    },
+    {
+      "name": "xs:time",
+      "signature": "xs:time($arg)",
+      "returns": "xs:time",
+      "description": "Constructs xs:time value"
+    }
+  ]
+}

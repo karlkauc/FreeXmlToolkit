@@ -256,6 +256,65 @@ public class XsltTransformationEngine {
     public XsltTransformationResult transform(String xmlContent, String xsltContent,
                                               String xsltSystemId, String xmlBaseUri,
                                               Map<String, Object> parameters, OutputFormat outputFormat) {
+        return transform(xmlContent, xsltContent, xsltSystemId, xmlBaseUri, parameters, outputFormat,
+                StartPoint.DEFAULT);
+    }
+
+    /**
+     * Where an XSLT 3.0 run starts: the input's document node in the default mode (as before), in a chosen mode,
+     * a named template (the stylesheet's {@code xsl:initial-template} when no name is given), or a function with
+     * arguments. A template or function start needs no input; with one, it is the global context item.
+     *
+     * @param kind      what starts the run
+     * @param name      the mode, template or function name ({@code local}, {@code prefix:local} declared in the
+     *                  stylesheet, or {@code Q{uri}local}); for {@link Kind#TEMPLATE} {@code null} means
+     *                  {@code xsl:initial-template}
+     * @param arguments the function's arguments as text (converted to the declared types), else empty
+     */
+    public record StartPoint(Kind kind, String name, List<String> arguments) {
+        /** Templates matching the input's document node in the default mode. */
+        public static final StartPoint DEFAULT = new StartPoint(Kind.APPLY, null, List.of());
+
+        public StartPoint {
+            kind = kind == null ? Kind.APPLY : kind;
+            name = name == null || name.isBlank() ? null : name.strip();
+            arguments = arguments == null ? List.of() : List.copyOf(arguments);
+        }
+
+        /** @return whether this is {@link #DEFAULT} (apply templates, default mode) */
+        public boolean isDefault() {
+            return kind == Kind.APPLY && name == null;
+        }
+
+        /** @return whether the run needs an input document */
+        public boolean needsInput() {
+            return kind == Kind.APPLY;
+        }
+
+        /** What starts the run. */
+        public enum Kind {
+            /** Apply templates to the input (in the mode {@link #name}, or the default mode). */
+            APPLY,
+            /** Call a named template. */
+            TEMPLATE,
+            /** Call a stylesheet function. */
+            FUNCTION;
+
+            /** @return the fixed value for telemetry: apply, mode, template or function */
+            public String telemetryValue(String name) {
+                return this == APPLY ? (name == null ? "apply" : "mode") : name().toLowerCase(java.util.Locale.ROOT);
+            }
+        }
+    }
+
+    /** As {@link #transform(String, String, String, String, Map, OutputFormat)}, from {@code start}. */
+    public XsltTransformationResult transform(String xmlContent, String xsltContent,
+                                              String xsltSystemId, String xmlBaseUri,
+                                              Map<String, Object> parameters, OutputFormat outputFormat,
+                                              StartPoint start) {
+        if (start != null && !start.isDefault()) {
+            return transformFrom(start, xmlContent, xsltContent, xsltSystemId, xmlBaseUri, parameters, outputFormat);
+        }
         long startTime = System.currentTimeMillis();
 
         // Debug listeners (created only when debugging is enabled)
@@ -278,12 +337,18 @@ public class XsltTransformationEngine {
             // Compile XSLT if needed
             profile.startCompilation();
             XsltExecutable executable;
+            List<org.fxt.freexmltoolkit.service.xslt.XsltDiagnostic> compileWarnings = new ArrayList<>();
             try {
-                executable = compileStylesheet(xsltContent, context);
+                executable = compileStylesheet(xsltContent, context, compileWarnings);
             } catch (StylesheetCompileException e) {
                 return e.toResult();
             }
             profile.endCompilation();
+
+            XsltTransformationResult mismatch = parameterMismatch(executable, parameters);
+            if (mismatch != null) {
+                return mismatch;
+            }
 
             // Create transformer
             XsltTransformer transformer = executable.load();
@@ -293,6 +358,7 @@ public class XsltTransformationEngine {
             // PDF/FOP panel show it); the trace listener only when debugging is enabled.
             messageListener = new XsltDebugMessageListener();
             transformer.setMessageHandler(messageListener);
+            transformer.setTraceFunctionDestination(messageListener.traceLogger());
             if (enableDebugging) {
                 traceListener = new XsltDebugTraceListener();
                 transformer.setTraceListener(traceListener);
@@ -312,8 +378,8 @@ public class XsltTransformationEngine {
             StringWriter outputWriter = new StringWriter();
             transformer.setDestination(saxonProcessor.newSerializer(outputWriter));
 
-            // Configure output serialization
-            configureSerializer(transformer.getDestination(), outputFormat);
+            // Configure output serialization (the stylesheet's xsl:output wins for its own method)
+            configureSerializer(transformer.getDestination(), outputFormat, declaredOutput(executable));
 
             // Transform with profiling. Saxon serializes while transforming (the
             // destination is a serializer), so the transformation phase includes
@@ -330,6 +396,7 @@ public class XsltTransformationEngine {
                     outputWriter.toString(), outputFormat, profile);
 
             result.setExecutionTime(System.currentTimeMillis() - startTime);
+            result.setDiagnostics(compileWarnings);
             result.setTransformationContext(context);
             result.setCompilationTime(profile.getCompilationTime());
             result.setTransformationTime(profile.getTransformationTime());
@@ -383,6 +450,101 @@ public class XsltTransformationEngine {
             logger.error("Unexpected error during XSLT transformation", e);
             return XsltTransformationResult.error("Unexpected error: " + e.getMessage(), e);
         }
+    }
+
+    /** A run from a chosen mode, named template or function ({@link StartPoint}) on the XSLT 3.0 API. */
+    private XsltTransformationResult transformFrom(StartPoint start, String xmlContent, String xsltContent,
+                                                   String xsltSystemId, String xmlBaseUri,
+                                                   Map<String, Object> parameters, OutputFormat outputFormat) {
+        long startTime = System.currentTimeMillis();
+        boolean hasInput = xmlContent != null && !xmlContent.isBlank();
+        if (start.needsInput() && !hasInput) {
+            return XsltTransformationResult.error("Applying templates in a mode needs an input document",
+                    null, XsltTransformationResult.PHASE_INPUT);
+        }
+        XsltDebugMessageListener messages = new XsltDebugMessageListener();
+        try {
+            TransformationContext context = new TransformationContext(hasInput ? xmlContent : "", xsltContent,
+                    parameters, outputFormat, xsltSystemId, xmlBaseUri);
+            List<org.fxt.freexmltoolkit.service.xslt.XsltDiagnostic> compileWarnings = new ArrayList<>();
+            XsltExecutable executable;
+            try {
+                executable = compileStylesheet(xsltContent, context, compileWarnings);
+            } catch (StylesheetCompileException e) {
+                return e.toResult();
+            }
+            XsltTransformationResult mismatch = parameterMismatch(executable, parameters);
+            if (mismatch != null) {
+                return mismatch;
+            }
+            net.sf.saxon.s9api.Xslt30Transformer transformer = executable.load30();
+            Map<QName, XdmValue> values = new java.util.HashMap<>();
+            if (parameters != null) {
+                parameters.forEach((k, v) -> values.put(new QName(k), convertToXdmValue(v)));
+            }
+            values.put(new QName("method"), new XdmAtomicValue(outputFormat.getSaxonMethod()));
+            transformer.setStylesheetParameters(values);
+            transformer.setMessageHandler(messages);
+            transformer.setTraceFunctionDestination(messages.traceLogger());
+            XdmNode sourceDoc = null;
+            if (hasInput) {
+                try {
+                    sourceDoc = parseXmlDocument(saxonProcessor, xmlContent, xmlBaseUri);
+                } catch (SaxonApiException e) {
+                    return inputFailure(e);
+                }
+                transformer.setGlobalContextItem(sourceDoc);
+            }
+            StringWriter writer = new StringWriter();
+            Serializer serializer = transformer.newSerializer(writer);
+            configureSerializer(serializer, outputFormat, declaredOutput(executable));
+            switch (start.kind()) {
+                case APPLY -> {
+                    transformer.setInitialMode(qname(start.name(), xsltContent));
+                    transformer.applyTemplates(sourceDoc, serializer);
+                }
+                case TEMPLATE -> transformer.callTemplate(start.name() == null ? null
+                        : qname(start.name(), xsltContent), serializer);
+                case FUNCTION -> {
+                    XdmValue[] arguments = start.arguments().stream().map(this::convertToXdmValue)
+                            .toArray(XdmValue[]::new);
+                    transformer.callFunction(qname(start.name(), xsltContent), arguments, serializer);
+                }
+            }
+            XsltTransformationResult result = XsltTransformationResult.success(writer.toString(), outputFormat,
+                    new TransformationProfile());
+            result.setExecutionTime(System.currentTimeMillis() - startTime);
+            result.setDiagnostics(compileWarnings);
+            result.setInputSize(hasInput ? xmlContent.length() : 0);
+            result.setMessages(messages.getMessages());
+            return result;
+        } catch (SaxonApiException e) {
+            XsltTransformationResult failed = runtimeFailure(e);
+            failed.setMessages(messages.getMessages());
+            return failed;
+        } catch (RuntimeException e) {
+            logger.error("Unexpected error during XSLT transformation", e);
+            return XsltTransformationResult.error("Unexpected error: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * A name as the user writes it: {@code Q{uri}local}, {@code prefix:local} with the prefix declared in the
+     * stylesheet, or a local name in no namespace.
+     */
+    static QName qname(String name, String xslt) {
+        if (name.startsWith("Q{")) {
+            return QName.fromEQName(name);
+        }
+        int colon = name.indexOf(':');
+        if (colon > 0 && xslt != null) {
+            String prefix = name.substring(0, colon);
+            Matcher m = Pattern.compile("xmlns:" + Pattern.quote(prefix) + "\\s*=\\s*([\"'])(.*?)\\1").matcher(xslt);
+            if (m.find()) {
+                return new QName(prefix, m.group(2), name.substring(colon + 1));
+            }
+        }
+        return new QName(name);
     }
 
     /**
@@ -636,14 +798,20 @@ public class XsltTransformationEngine {
             try {
                 executable = compiler.compile(source);
             } catch (SaxonApiException e) {
-                return new SandboxedTransformation(compileFailure(staticErrors, e).toResult(), Map.of(), false);
+                // only the stylesheet's own text places the errors: the sandbox reads no other file for them
+                String main = xsltSystemId;
+                return new SandboxedTransformation(compileFailure(staticErrors, e)
+                        .withDiagnostics(org.fxt.freexmltoolkit.service.xslt.XsltErrors.diagnose(staticErrors, main,
+                                uri -> uri == null || uri.equals(main) ? xsltContent : null))
+                        .toResult(), Map.of(), false);
             }
             XsltSandbox.lockDown(processor);
 
             XsltTransformer transformer = executable.load();
             configureTransformer(transformer, parameters, outputFormat, false);
-            transformer.setTraceListener(new XsltSandbox.DeadlineListener(deadline));
+            transformer.setTraceListener(new XsltSandbox.DeadlineListener(deadline, null, messageListener.traceSink()));
             transformer.setMessageHandler(messageListener);
+            transformer.setTraceFunctionDestination(messageListener.traceLogger());
             transformer.setErrorReporter(messageListener::reportError);
             long[] budget = {XsltSandbox.MAX_OUTPUT_CHARS};
             transformer.setBaseOutputURI(xmlBaseUri != null && !xmlBaseUri.isBlank() ? xmlBaseUri
@@ -661,7 +829,7 @@ public class XsltTransformationEngine {
             transformer.setInitialContextNode(sourceDoc);
             XsltSandbox.LimitedWriter output = new XsltSandbox.LimitedWriter(budget); // NOPMD - in-memory writer, nothing to close
             transformer.setDestination(processor.newSerializer(output));
-            configureSerializer(transformer.getDestination(), outputFormat);
+            configureSerializer(transformer.getDestination(), outputFormat, declaredOutput(executable));
             try {
                 transformer.transform();
                 result = XsltTransformationResult.success(output.toString(), outputFormat, new TransformationProfile());
@@ -1079,17 +1247,95 @@ public class XsltTransformationEngine {
      */
     private static net.sf.saxon.lib.ErrorReporter collectStaticErrors(List<XmlProcessingError> staticErrors,
                                                                       XsltDebugMessageListener warnings) {
+        return collectStaticErrors(staticErrors, warnings == null ? null
+                : (java.util.function.Consumer<XmlProcessingError>) warnings::reportError);
+    }
+
+    private static net.sf.saxon.lib.ErrorReporter collectStaticErrors(List<XmlProcessingError> staticErrors,
+            java.util.function.Consumer<XmlProcessingError> warnings) {
         java.util.Set<String> seenErrors = new java.util.HashSet<>();
         return error -> {
             if (error.isWarning()) {
                 if (warnings != null) {
-                    warnings.reportError(error);
+                    warnings.accept(error);
                 }
             } else if (seenErrors.add(at(error) + bracket(localCode(error.getErrorCode()))
                     + error.getMessage())) {
                 staticErrors.add(error);
             }
         };
+    }
+
+    /**
+     * Compiles a stylesheet without running it (the live check of an XSLT editor): its static errors and warnings,
+     * placed in its modules. Includes and imports resolve against {@code systemId}; a module whose text
+     * {@code moduleTexts} knows (an open editor tab, by normalized path) is compiled with that text.
+     *
+     * @param systemId    the stylesheet's URI; nullable
+     * @param moduleTexts text of an included / imported module by its normalized path, or {@code null}; nullable
+     * @return the diagnostics, empty for a stylesheet without errors and warnings
+     */
+    public List<org.fxt.freexmltoolkit.service.xslt.XsltDiagnostic> checkStylesheet(String xslt, String systemId,
+            java.util.function.Function<String, String> moduleTexts) {
+        XsltCompiler compiler = saxonProcessor.newXsltCompiler();
+        compiler.setXsltLanguageVersion("3.0");
+        if (moduleTexts != null) {
+            net.sf.saxon.lib.ResourceResolver fallback = compiler.getResourceResolver();
+            compiler.setResourceResolver(request -> {
+                String text = request.uri == null ? null
+                        : moduleTexts.apply(org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(request.uri));
+                if (text != null) {
+                    StreamSource module = new StreamSource(new StringReader(text));
+                    module.setSystemId(request.uri);
+                    return module;
+                }
+                return fallback == null ? null : fallback.resolve(request);
+            });
+        }
+        List<XmlProcessingError> reported = new ArrayList<>();
+        compiler.setErrorReporter(reported::add);
+        StreamSource source = new StreamSource(new StringReader(xslt));
+        if (systemId != null && !systemId.isBlank()) {
+            source.setSystemId(systemId);
+        }
+        try {
+            compiler.compile(source);
+        } catch (SaxonApiException e) {
+            if (reported.stream().noneMatch(r -> !r.isWarning())) {
+                // nothing was reported (should not happen): the exception is the error
+                return List.of(new org.fxt.freexmltoolkit.service.xslt.XsltDiagnostic(localCode(e.getErrorCode()),
+                        false, e.getMessage(), systemId, null, e.getLineNumber(), -1, -1, 0, null, List.of()));
+            }
+        } catch (RuntimeException e) {
+            logger.debug("Stylesheet check failed: {}", e.getMessage());
+            return List.of();
+        }
+        return diagnose(reported, systemId, xslt, moduleTexts);
+    }
+
+    /** Places reported errors in the module texts: the main stylesheet's, open ones, else read from file. */
+    private static List<org.fxt.freexmltoolkit.service.xslt.XsltDiagnostic> diagnose(List<XmlProcessingError> errors,
+            String systemId, String xslt, java.util.function.Function<String, String> moduleTexts) {
+        Map<String, String> read = new HashMap<>();
+        return org.fxt.freexmltoolkit.service.xslt.XsltErrors.diagnose(errors, systemId, uri -> {
+            if (uri == null || systemId != null && uri.equals(systemId)) {
+                return xslt;
+            }
+            if (moduleTexts != null) {
+                String open = moduleTexts.apply(org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(uri));
+                if (open != null) {
+                    return open;
+                }
+            }
+            return read.computeIfAbsent(uri, u -> {
+                try {
+                    return u.startsWith("file:")
+                            ? java.nio.file.Files.readString(java.nio.file.Path.of(java.net.URI.create(u))) : null;
+                } catch (java.io.IOException | RuntimeException e) {
+                    return null;
+                }
+            });
+        });
     }
 
     /**
@@ -1194,6 +1440,8 @@ public class XsltTransformationEngine {
         boolean located = querySystemId != null && !querySystemId.isBlank();
         XQueryOptions opts = options == null ? XQueryOptions.DEFAULT : options;
         XdmNode sourceDoc = null;
+        // fn:trace() lines, returned with the result (success or failure)
+        XsltDebugMessageListener traces = new XsltDebugMessageListener();
 
         try {
             logger.debug("Starting XQuery transformation with {} output format", outputFormat);
@@ -1236,8 +1484,10 @@ public class XsltTransformationEngine {
             // Create evaluator
             XQueryEvaluator evaluator = executable.load();
             if (opts.stoppable()) {
-                evaluator.setTraceListener(new XsltSandbox.DeadlineListener(opts.deadlineNanos(), opts.stop()));
+                evaluator.setTraceListener(new XsltSandbox.DeadlineListener(opts.deadlineNanos(), opts.stop(),
+                        traces.traceSink()));
             }
+            evaluator.setTraceFunctionDestination(traces.traceLogger());
 
             // Set external variables
             if (externalVariables != null && !externalVariables.isEmpty()) {
@@ -1270,7 +1520,8 @@ public class XsltTransformationEngine {
             // Execute XQuery and serialize result
             StringWriter outputWriter = new StringWriter();
             Serializer serializer = saxonProcessor.newSerializer(outputWriter);
-            configureSerializer(serializer, effectiveFormat);
+            java.util.Properties declared = declaredOutput(executable);
+            configureSerializer(serializer, effectiveFormat, declared);
 
             // Transform with profiling
             TransformationProfile profile = new TransformationProfile();
@@ -1298,7 +1549,7 @@ public class XsltTransformationEngine {
                 // serialization (SENR0001); show it the way the adaptive method writes it.
                 outputWriter = new StringWriter();
                 serializer = saxonProcessor.newSerializer(outputWriter);
-                configureSerializer(serializer, effectiveFormat);
+                configureSerializer(serializer, effectiveFormat, declared);
                 serializer.setOutputProperty(Serializer.Property.METHOD, "adaptive");
                 serializer.setOutputProperty(Serializer.Property.ITEM_SEPARATOR, "\n");
                 if (value == null) {
@@ -1315,6 +1566,7 @@ public class XsltTransformationEngine {
                     outputWriter.toString(), effectiveFormat, profile);
 
             result.setExecutionTime(System.currentTimeMillis() - startTime);
+            result.setMessages(traces.getMessages());
 
             logger.debug("XQuery transformation completed in {}ms, output size: {} characters",
                     result.getExecutionTime(), result.getOutputContent().length());
@@ -1337,6 +1589,7 @@ public class XsltTransformationEngine {
                 XsltTransformationResult failed = XsltTransformationResult.error(
                         "XQuery execution failed: " + sae.getMessage(), localCode(sae.getErrorCode()), null);
                 failed.setCause(sae); // its locator gives the query line and column for display
+                failed.setMessages(traces.getMessages()); // trace() lines up to the failure help find it
                 return new XQueryOutcome(failed, sourceDoc, null, false, false);
             }
             logger.error("Unexpected error during XQuery transformation", e);
@@ -1347,6 +1600,166 @@ public class XsltTransformationEngine {
             return new XQueryOutcome(XsltTransformationResult.error("Unexpected error: " + e.getMessage(), e),
                     sourceDoc, null, false, false);
         }
+    }
+
+    /**
+     * A parameter a stylesheet declares ({@code xsl:param} at the top level) or an external variable of a query.
+     *
+     * @param name     the name; {@code {uri}local} when it is in a namespace
+     * @param type     the declared type, e.g. {@code xs:integer} or {@code xs:string*}; {@code item()*} without one
+     * @param required whether a value must be supplied (no default)
+     */
+    public record DeclaredParameter(String name, String type, boolean required) {
+    }
+
+    /**
+     * The parameters a stylesheet declares, from its compiled form (the compile cache is used).
+     *
+     * @return the parameters in name order; empty when the stylesheet does not compile
+     */
+    public List<DeclaredParameter> stylesheetParameters(String xslt, String systemId) {
+        try {
+            TransformationContext context = new TransformationContext("", xslt, Map.of(), OutputFormat.XML,
+                    systemId, null);
+            XsltExecutable executable = compileStylesheet(xslt, context);
+            List<DeclaredParameter> out = new ArrayList<>();
+            executable.getGlobalParameters().forEach((name, details) -> {
+                var type = details.getUnderlyingDeclaredType();
+                out.add(new DeclaredParameter(name.getClarkName(), type == null ? "item()*" : type.toString(),
+                        details.isRequired()));
+            });
+            out.sort(java.util.Comparator.comparing(DeclaredParameter::name));
+            return out;
+        } catch (StylesheetCompileException | RuntimeException e) {
+            return List.of();
+        }
+    }
+
+    /**
+     * The external variables a query declares ({@code declare variable $x external}), with their types and whether
+     * they have a default.
+     *
+     * @return the variables in declaration order; empty when the query does not compile
+     */
+    public List<DeclaredParameter> queryVariables(String query, String querySystemId) {
+        try {
+            XQueryCompiler compiler = saxonProcessor.newXQueryCompiler();
+            if (querySystemId != null && !querySystemId.isBlank()) {
+                compiler.setBaseURI(java.net.URI.create(querySystemId));
+            }
+            XQueryExecutable executable = compiler.compile(query);
+            List<DeclaredParameter> out = new ArrayList<>();
+            var variables = executable.getUnderlyingCompiledQuery().getMainModule().getModuleVariables();
+            while (variables.hasNext()) {
+                var variable = variables.next();
+                if (variable instanceof net.sf.saxon.expr.instruct.GlobalParam param) {
+                    var type = param.getRequiredType();
+                    out.add(new DeclaredParameter(param.getVariableQName().getClarkName(),
+                            type == null ? "item()*" : type.toString(), param.isRequiredParam()));
+                }
+            }
+            out.sort(java.util.Comparator.comparing(DeclaredParameter::name));
+            return out;
+        } catch (SaxonApiException | RuntimeException e) {
+            return List.of();
+        }
+    }
+
+    /**
+     * A text value that does not fit the atomic type its parameter declares, named: "Parameter $count: "many" is not
+     * a valid xs:integer" (Saxon's own message names only the type).
+     *
+     * @return the failure, or {@code null} when every value fits
+     */
+    static XsltTransformationResult parameterMismatch(XsltExecutable executable, Map<String, Object> parameters) {
+        if (parameters == null || parameters.isEmpty()) {
+            return null;
+        }
+        Map<QName, XsltExecutable.ParameterDetails> declared;
+        try {
+            declared = executable.getGlobalParameters();
+        } catch (RuntimeException e) {
+            return null;
+        }
+        for (var entry : parameters.entrySet()) {
+            if (!(entry.getValue() instanceof String text)) {
+                continue;
+            }
+            XsltExecutable.ParameterDetails details;
+            try {
+                details = declared.get(new QName(entry.getKey()));
+            } catch (RuntimeException e) {
+                continue;
+            }
+            net.sf.saxon.s9api.ItemType type = details == null ? null : details.getDeclaredItemType();
+            if (type == null || !(type.getUnderlyingItemType() instanceof net.sf.saxon.type.AtomicType)
+                    || type.equals(net.sf.saxon.s9api.ItemType.ANY_ATOMIC_VALUE)
+                    || type.equals(net.sf.saxon.s9api.ItemType.STRING)
+                    || type.equals(net.sf.saxon.s9api.ItemType.UNTYPED_ATOMIC)) {
+                continue;
+            }
+            try {
+                new XdmAtomicValue(text, type);
+            } catch (SaxonApiException | RuntimeException e) {
+                return XsltTransformationResult.error("Parameter $" + entry.getKey() + ": \"" + text
+                        + "\" is not a valid " + type + " [XTTE0590]", "XTTE0590", XsltTransformationResult.PHASE_RUNTIME);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Saxon's execution plan of a query ({@code XQueryExecutable.explain}): the expression tree after
+     * optimization, as indented XML.
+     *
+     * @param querySystemId the query's location (resolves {@code import module}); nullable
+     * @param namespaces    prefixes to declare (the document's, as a run declares them); nullable
+     * @throws SaxonApiException when the query does not compile
+     */
+    public String explainXQuery(String query, String querySystemId, Map<String, String> namespaces,
+                                String defaultElementNamespace) throws SaxonApiException {
+        XQueryCompiler compiler = saxonProcessor.newXQueryCompiler();
+        if (querySystemId != null && !querySystemId.isBlank()) {
+            compiler.setBaseURI(java.net.URI.create(querySystemId));
+        }
+        if (namespaces != null) {
+            namespaces.forEach(compiler::declareNamespace);
+        }
+        if (defaultElementNamespace != null) {
+            compiler.declareNamespace("", defaultElementNamespace);
+        }
+        return plan(compiler.compile(query)::explain);
+    }
+
+    /**
+     * Saxon's execution plan of a stylesheet ({@code XsltExecutable.explain}): every template and function after
+     * optimization, as indented XML.
+     *
+     * @param systemId the stylesheet's location (resolves includes and imports); nullable
+     * @throws SaxonApiException when the stylesheet does not compile
+     */
+    public String explainXslt(String xslt, String systemId) throws SaxonApiException {
+        XsltCompiler compiler = saxonProcessor.newXsltCompiler();
+        compiler.setXsltLanguageVersion("3.0");
+        StreamSource source = new StreamSource(new StringReader(xslt));
+        if (systemId != null && !systemId.isBlank()) {
+            source.setSystemId(systemId);
+        }
+        return plan(compiler.compile(source)::explain);
+    }
+
+    private interface Explainer {
+        void explain(Destination destination) throws SaxonApiException;
+    }
+
+    private String plan(Explainer explainer) throws SaxonApiException {
+        StringWriter writer = new StringWriter();
+        Serializer serializer = saxonProcessor.newSerializer(writer);
+        serializer.setOutputProperty(Serializer.Property.METHOD, "xml");
+        serializer.setOutputProperty(Serializer.Property.INDENT, "yes");
+        serializer.setOutputProperty(Serializer.Property.OMIT_XML_DECLARATION, "yes");
+        explainer.explain(serializer);
+        return writer.toString();
     }
 
     /**
@@ -1615,6 +2028,16 @@ public class XsltTransformationEngine {
 
     private XsltExecutable compileStylesheet(String xsltContent, TransformationContext context)
             throws StylesheetCompileException {
+        return compileStylesheet(xsltContent, context, null);
+    }
+
+    /**
+     * @param warningsOut receives the compiler's warnings as diagnostics (only when the stylesheet is compiled now,
+     *                    not taken from the cache); nullable
+     */
+    private XsltExecutable compileStylesheet(String xsltContent, TransformationContext context,
+                                             List<org.fxt.freexmltoolkit.service.xslt.XsltDiagnostic> warningsOut)
+            throws StylesheetCompileException {
         String cacheKey = context.getStylesheetCacheKey();
 
         // Use separate cache key for debug compilations (tracing enabled)
@@ -1638,7 +2061,8 @@ public class XsltTransformationEngine {
         // "Errors were reported during stylesheet compilation" — the reasons and locations
         // are delivered to the error reporter.
         List<XmlProcessingError> staticErrors = new ArrayList<>();
-        compiler.setErrorReporter(collectStaticErrors(staticErrors, null));
+        List<XmlProcessingError> warnings = new ArrayList<>();
+        compiler.setErrorReporter(collectStaticErrors(staticErrors, warnings::add));
 
         // CRITICAL: Enable tracing when debugging is enabled
         // This is required for TraceListener to receive events
@@ -1655,9 +2079,15 @@ public class XsltTransformationEngine {
         try {
             executable = compiler.compile(source);
         } catch (SaxonApiException e) {
-            StylesheetCompileException failure = compileFailure(staticErrors, e);
+            List<XmlProcessingError> all = new ArrayList<>(staticErrors);
+            all.addAll(warnings);
+            StylesheetCompileException failure = compileFailure(staticErrors, e)
+                    .withDiagnostics(diagnose(all, context.getXsltSystemId(), xsltContent, null));
             logger.warn("Failed to compile XSLT stylesheet: {}", failure.getMessage());
             throw failure;
+        }
+        if (warningsOut != null && !warnings.isEmpty()) {
+            warningsOut.addAll(diagnose(warnings, context.getXsltSystemId(), xsltContent, null));
         }
 
         // Cache compiled stylesheet
@@ -1695,8 +2125,19 @@ public class XsltTransformationEngine {
             this.line = line;
         }
 
+        /** The errors (and warnings) placed in the stylesheet's modules. */
+        private transient List<org.fxt.freexmltoolkit.service.xslt.XsltDiagnostic> diagnostics = List.of();
+
+        StylesheetCompileException withDiagnostics(List<org.fxt.freexmltoolkit.service.xslt.XsltDiagnostic> found) {
+            this.diagnostics = found == null ? List.of() : found;
+            return this;
+        }
+
         XsltTransformationResult toResult() {
-            return XsltTransformationResult.error(getMessage(), code, XsltTransformationResult.PHASE_COMPILE, line);
+            XsltTransformationResult result = XsltTransformationResult.error(getMessage(), code,
+                    XsltTransformationResult.PHASE_COMPILE, line);
+            result.setDiagnostics(diagnostics);
+            return result;
         }
 
         String code() {
@@ -1852,36 +2293,112 @@ public class XsltTransformationEngine {
         return e.getErrorCode() != null && "SENR0001".equals(e.getErrorCode().getLocalName());
     }
 
-    private void configureSerializer(Destination destination, OutputFormat outputFormat) {
-        if (destination instanceof Serializer serializer) {
-            serializer.setOutputProperty(Serializer.Property.METHOD, outputFormat.getSaxonMethod());
-            serializer.setOutputProperty(Serializer.Property.INDENT, "yes");
-            serializer.setOutputProperty(Serializer.Property.ENCODING, "UTF-8");
+    /**
+     * How results are serialized where the stylesheet or query does not say ({@code xsl:output},
+     * {@code declare option output:…}): indented, with or without an XML declaration. The shell sets it from the
+     * Transform panel; the command line keeps {@link OutputOptions#DEFAULT}.
+     */
+    public record OutputOptions(boolean indent, boolean omitXmlDeclaration) {
+        /** Indented, with an XML declaration (the behaviour before the options existed). */
+        public static final OutputOptions DEFAULT = new OutputOptions(true, false);
+    }
 
-            switch (outputFormat) {
-                case HTML, XHTML:
+    private volatile OutputOptions outputOptions = OutputOptions.DEFAULT;
+
+    /** Sets {@link OutputOptions} for later runs ({@code null} = {@link OutputOptions#DEFAULT}). */
+    public void setOutputOptions(OutputOptions options) {
+        this.outputOptions = options == null ? OutputOptions.DEFAULT : options;
+    }
+
+    /** @return the current {@link OutputOptions} */
+    public OutputOptions getOutputOptions() {
+        return outputOptions;
+    }
+
+    private void configureSerializer(Destination destination, OutputFormat outputFormat) {
+        configureSerializer(destination, outputFormat, null);
+    }
+
+    /**
+     * Sets the output properties of a run. The method is always {@code outputFormat}'s. When the stylesheet or query
+     * declares that same method, the properties it declares win (its {@code indent}, {@code doctype-…},
+     * {@code html-version}, {@code encoding}, {@code omit-xml-declaration}), since explicit serializer properties
+     * would override them; otherwise the defaults and {@link #outputOptions} apply.
+     *
+     * @param declared the serialization properties the stylesheet / query declares, or {@code null}
+     */
+    private void configureSerializer(Destination destination, OutputFormat outputFormat, java.util.Properties declared) {
+        if (!(destination instanceof Serializer serializer)) {
+            return;
+        }
+        java.util.Properties own = declaresMethod(declared, outputFormat) ? declared : new java.util.Properties();
+        OutputOptions options = outputOptions;
+        serializer.setOutputProperty(Serializer.Property.METHOD, outputFormat.getSaxonMethod());
+        if (own.getProperty("indent") == null) {
+            serializer.setOutputProperty(Serializer.Property.INDENT, options.indent() ? "yes" : "no");
+        }
+        if (own.getProperty("encoding") == null) {
+            serializer.setOutputProperty(Serializer.Property.ENCODING, "UTF-8");
+        }
+        switch (outputFormat) {
+            case HTML, XHTML -> {
+                if (own.getProperty("doctype-public") == null && own.getProperty("doctype-system") == null
+                        && own.getProperty("html-version") == null) {
                     serializer.setOutputProperty(Serializer.Property.DOCTYPE_PUBLIC,
                             "-//W3C//DTD XHTML 1.0 Transitional//EN");
                     serializer.setOutputProperty(Serializer.Property.DOCTYPE_SYSTEM,
                             "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd");
-                    break;
-                case JSON:
-                    serializer.setOutputProperty(Serializer.Property.MEDIA_TYPE, "application/json");
-                    break;
-                case TEXT:
-                    serializer.setOutputProperty(Serializer.Property.OMIT_XML_DECLARATION, "yes");
-                    break;
-                default:
-                    break;
+                }
             }
+            case JSON -> serializer.setOutputProperty(Serializer.Property.MEDIA_TYPE, "application/json");
+            case TEXT -> serializer.setOutputProperty(Serializer.Property.OMIT_XML_DECLARATION, "yes");
+            default -> {
+                if (options.omitXmlDeclaration() && own.getProperty("omit-xml-declaration") == null) {
+                    serializer.setOutputProperty(Serializer.Property.OMIT_XML_DECLARATION, "yes");
+                }
+            }
+        }
+    }
+
+    /** @return whether {@code declared} (nullable) names {@code format}'s method; no method declared means XML */
+    static boolean declaresMethod(java.util.Properties declared, OutputFormat format) {
+        if (declared == null) {
+            return false;
+        }
+        String method = declared.getProperty("method");
+        return method == null ? format == OutputFormat.XML : method.equals(format.getSaxonMethod());
+    }
+
+    /** The serialization properties a compiled stylesheet declares (its unnamed {@code xsl:output}); nullable. */
+    private static java.util.Properties declaredOutput(XsltExecutable executable) {
+        try {
+            return executable.getUnderlyingCompiledStylesheet().getDeclaredSerializationProperties().getProperties();
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    /** The serialization properties a compiled query declares ({@code declare option output:…}); nullable. */
+    private static java.util.Properties declaredOutput(XQueryExecutable executable) {
+        try {
+            return executable.getUnderlyingCompiledQuery().getExecutable().getPrimarySerializationProperties()
+                    .getProperties();
+        } catch (RuntimeException e) {
+            return null;
         }
     }
 
     private XdmValue convertToXdmValue(Object value) {
         if (value == null) {
             return XdmEmptySequence.getInstance();
-        } else if (value instanceof String) {
-            return new XdmAtomicValue((String) value);
+        } else if (value instanceof String text) {
+            // as the Saxon command line binds name=value: untyped, so a parameter declared as="xs:integer" (or
+            // xs:date, xs:boolean, …) receives the value converted to its type; an undeclared type stays text-like
+            try {
+                return new XdmAtomicValue(text, net.sf.saxon.s9api.ItemType.UNTYPED_ATOMIC);
+            } catch (SaxonApiException e) {
+                return new XdmAtomicValue(text);
+            }
         } else if (value instanceof Number) {
             return new XdmAtomicValue(value.toString());
         } else if (value instanceof Boolean) {

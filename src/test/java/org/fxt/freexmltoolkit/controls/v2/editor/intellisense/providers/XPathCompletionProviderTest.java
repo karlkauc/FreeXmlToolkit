@@ -361,8 +361,8 @@ class XPathCompletionProviderTest {
         }
 
         @Test
-        @DisplayName("Results should be limited to 200 items")
-        void results_limitedTo200() {
+        @DisplayName("Results should be limited to MAX_ITEMS")
+        void results_limitedToMaxItems() {
             XPathEditorContext context = new XPathEditorContext.Builder()
                     .contextType(XPathContextType.PATH_START)
                     .currentToken("")
@@ -370,7 +370,7 @@ class XPathCompletionProviderTest {
 
             List<CompletionItem> items = xpathProvider.getCompletions(context);
 
-            assertTrue(items.size() <= 200, "Should return at most 200 items");
+            assertTrue(items.size() <= XPathCompletionProvider.MAX_ITEMS, "at most MAX_ITEMS: " + items.size());
         }
     }
 
@@ -559,5 +559,23 @@ class XPathCompletionProviderTest {
 
             assertTrue(hasTitle, "Should include 'title' matching prefix 'ti'");
         }
+    }
+
+    @Test
+    @DisplayName("Only the functions of the chosen XPath version are offered")
+    void functionsFollowTheChosenVersion() {
+        XPathEditorContext context = new XPathEditorContext.Builder()
+                .contextType(XPathContextType.PATH_START)
+                .currentToken("parse-")
+                .build();
+        xpathProvider.setVersion(() -> org.fxt.freexmltoolkit.service.standards.XPathVersion.V2_0);
+        assertTrue(xpathProvider.getCompletions(context).stream().noneMatch(i -> i.getLabel().equals("parse-json")),
+                "parse-json is XPath 3.1");
+        xpathProvider.setVersion(() -> org.fxt.freexmltoolkit.service.standards.XPathVersion.V3_1);
+        CompletionItem parseJson = xpathProvider.getCompletions(context).stream()
+                .filter(i -> i.getLabel().equals("parse-json")).findFirst().orElseThrow();
+        assertTrue(parseJson.getDescription().contains("parse-json($value as xs:string?[, $options as map(*)])"),
+                parseJson.getDescription());
+        xpathProvider.setVersion(null);
     }
 }

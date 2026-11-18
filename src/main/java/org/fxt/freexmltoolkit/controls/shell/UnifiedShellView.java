@@ -109,6 +109,7 @@ public class UnifiedShellView extends BorderPane {
     @FXML private javafx.scene.control.MenuItem actionDebugTransform;
     @FXML private javafx.scene.control.MenuItem actionDebugQuery;
     @FXML private javafx.scene.control.MenuItem actionProfileQuery;
+    @FXML private javafx.scene.control.MenuItem actionShowPlan;
     @FXML private javafx.scene.control.MenuItem actionCheckCompatibility;
     @FXML private javafx.scene.control.MenuItem actionDebugSchematron;
     @FXML private javafx.scene.control.MenuItem actionRunPipeline;
@@ -1826,6 +1827,12 @@ public class UnifiedShellView extends BorderPane {
         editorActions.profileActiveQuery();
     }
 
+    /** Run menu → Show Execution Plan: Saxon's plan of the active XQuery or XSLT in a tool tab. */
+    @FXML public void onShowPlan() {
+        toolbar("show_plan");
+        editorActions.explainActive();
+    }
+
     /** Run menu → Debug Schematron: debugs the active Schematron (compiled to XSLT) against the Run target. */
     @FXML public void onDebugSchematron() {
         toolbar("debug_schematron");
@@ -2173,6 +2180,8 @@ public class UnifiedShellView extends BorderPane {
         actionDebugTransform.setDisable(actionRunTransform.isDisable());
         actionDebugQuery.setDisable(type != org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XQUERY);
         actionProfileQuery.setDisable(actionDebugQuery.isDisable());
+        actionShowPlan.setDisable(type != org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XQUERY
+                && type != org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XSLT);
         actionCheckCompatibility.setDisable(
                 org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.compatibilityKind(type) == null);
         actionCheckCompatibility.setVisible(

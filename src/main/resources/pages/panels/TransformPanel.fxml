@@ -92,6 +92,9 @@
                                         <PanelActionButton id="transform-tool-batch" iconLiteral="bi-collection"
                                                            text="%TransformPanel.transform-tool-batch.text" color="TOOL"
                                                            onAction="#openBatch"/>
+                                        <PanelActionButton id="transform-tool-plan" iconLiteral="bi-diagram-3"
+                                                           text="%TransformPanel.transform-tool-plan.text" color="TOOL"
+                                                           onAction="#onShowPlan"/>
                                         <PanelActionButton id="transform-tool-stats" iconLiteral="bi-speedometer2"
                                                            text="%TransformPanel.transform-tool-stats.text" color="NAVIGATE"
                                                            onAction="#onOpenExecutionStats"/>
@@ -216,6 +219,40 @@
                                     <children>
                                         <ComboBox fx:id="formatChoice" id="transform-output-method" accessibleText="%TransformPanel.outputMethod.accessibleText" maxWidth="Infinity"
                                                   styleClass="fxt-neutral-combo"/>
+                                        <!-- apply where the stylesheet's xsl:output does not say -->
+                                        <HBox spacing="12">
+                                            <children>
+                                                <CheckBox fx:id="indentCheck" id="transform-output-indent" text="%TransformPanel.indent.text"
+                                                          onAction="#onOutputOptionChanged">
+                                                    <tooltip>
+                                                        <Tooltip text="%TransformPanel.indent.tooltip"/>
+                                                    </tooltip>
+                                                </CheckBox>
+                                                <CheckBox fx:id="omitDeclarationCheck" id="transform-output-omit-declaration"
+                                                          text="%TransformPanel.omitDeclaration.text" onAction="#onOutputOptionChanged">
+                                                    <tooltip>
+                                                        <Tooltip text="%TransformPanel.omitDeclaration.tooltip"/>
+                                                    </tooltip>
+                                                </CheckBox>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </SidePanelSection>
+
+                        <!-- Where the run starts: templates on the input (default), a mode, a named template, a function -->
+                        <SidePanelSection title="%TransformPanel.start.title">
+                            <children>
+                                <VBox spacing="4" styleClass="fxt-tp-section-body">
+                                    <children>
+                                        <ComboBox fx:id="startChoice" id="transform-start" maxWidth="Infinity"
+                                                  accessibleText="%TransformPanel.start.accessibleText" styleClass="fxt-neutral-combo">
+                                            <tooltip>
+                                                <Tooltip text="%TransformPanel.start.tooltip"/>
+                                            </tooltip>
+                                        </ComboBox>
+                                        <VBox fx:id="startArgs" id="transform-start-args" spacing="4"/>
                                     </children>
                                 </VBox>
                             </children>

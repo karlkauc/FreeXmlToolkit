@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Map;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -21,6 +22,7 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -71,6 +73,17 @@ public class QueryConsole extends Region {
     @FXML private ToggleGroup modeGroup;
     @FXML private ToggleButton xpathToggle;
     @FXML private ToggleButton xqueryToggle;
+    /** Fields for the external variables the XQuery declares. */
+    @FXML private javafx.scene.layout.FlowPane variablesBox;
+    /** The external variables of the current XQuery (from its last compile). */
+    private List<org.fxt.freexmltoolkit.service.XsltTransformationEngine.DeclaredParameter> declaredVariables =
+            List.of();
+    private final javafx.animation.PauseTransition variablesScan =
+            new javafx.animation.PauseTransition(javafx.util.Duration.millis(600));
+    private int variablesGeneration;
+
+    /** Show Execution Plan of the XQuery (XQuery mode only). */
+    @FXML private Button planButton;
     @FXML private Label target;
     /** XPath / XQuery version of the console (expert mode only). */
     private final org.fxt.freexmltoolkit.controls.shell.editor.standards.VersionChoice versionChoice =
@@ -89,6 +102,8 @@ public class QueryConsole extends Region {
 
     /** Per-run statistics ("42 ms · 1234 chars"), shown only when execution statistics are enabled. */
     @FXML private Label statsLabel;
+    /** The fn:trace() lines of the last run (a click copies one). */
+    @FXML private javafx.scene.control.MenuButton traceMenu;
     /** Empty-input hint of the path field; its text follows XPath / JSONPath. */
     private final Label xpathPlaceholder = placeholder("");
     /** Below the input: names the active mode and how to run it. */
@@ -172,6 +187,7 @@ public class QueryConsole extends Region {
 
     private void initInput() {
         QuerySettings.install();
+        TransformOutputSettings.apply(); // results are serialized like the Transform panel's
         // Make explicit which document the query runs against (always the active editor tab).
         target.textProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
                 () -> editorHost.getActiveDocument()
@@ -224,6 +240,10 @@ public class QueryConsole extends Region {
         // '::' and Ctrl+Space; the document text feeds element/attribute suggestions.
         xpathIntelliSense = new XPathIntelliSenseEngine(xpathField, false);
         xqueryIntelliSense = new XPathIntelliSenseEngine(xqueryArea, true);
+        variablesScan.setOnFinished(e -> scanVariables());
+        xqueryArea.textProperty().addListener((obs, oldText, newText) -> variablesScan.playFromStart());
+        xpathIntelliSense.setVersion(this::xpathVersion); // the functions of the chosen version
+        xqueryIntelliSense.setVersion(() -> xqueryVersion().xpathVersion());
         java.util.function.Supplier<String> activeXml = () -> editorHost.getActiveText().orElse("");
         xpathIntelliSense.setXmlContentSupplier(activeXml);
         xqueryIntelliSense.setXmlContentSupplier(activeXml);
@@ -351,6 +371,8 @@ public class QueryConsole extends Region {
     /** Shows the XPath field in XPath mode and the XQuery area in XQuery mode. */
     private void updateMode() {
         boolean xquery = xqueryToggle.isSelected();
+        planButton.setVisible(xquery); // XPath expressions have no plan to show
+        planButton.setManaged(xquery);
         xqueryArea.setVisible(xquery);
         xqueryArea.setManaged(xquery);
         xpathField.setVisible(!xquery);
@@ -421,6 +443,42 @@ public class QueryConsole extends Region {
         } else {
             xpathField.requestFocus();
         }
+    }
+
+    /**
+     * Show Execution Plan: Saxon's plan of the XQuery in a tool tab, compiled with the document's prefixes and default
+     * namespace as a run is.
+     */
+    @FXML
+    public void onShowPlan() {
+        String query = xqueryArea.getText();
+        if (!isXQueryMode() || query == null || query.isBlank()) {
+            return;
+        }
+        String xml = editorHost.getActiveText().orElse("");
+        String baseUri = activeBaseUri();
+        var version = xqueryVersion();
+        startWorker(() -> {
+            String plan;
+            String failure = null;
+            try {
+                var bindings = DocumentNamespaces.forQueries(xml);
+                plan = org.fxt.freexmltoolkit.service.XsltTransformationEngine.getInstance().explainXQuery(query,
+                        baseUri, bindings.prefixes(), QuerySettings.defaultNamespace(bindings, version.xpathVersion()));
+            } catch (net.sf.saxon.s9api.SaxonApiException | RuntimeException e) {
+                plan = null;
+                failure = e.getMessage();
+            }
+            String shown = plan;
+            String error = failure;
+            Platform.runLater(() -> {
+                if (shown == null) {
+                    setResultsText("ERROR: " + I18n.t("EditorActions.plan-failed", error));
+                } else {
+                    editorHost.openToolTab(I18n.t("QueryConsole.plan.title"), "bi-diagram-3", new PlanView(shown));
+                }
+            });
+        });
     }
 
     /**
@@ -574,6 +632,7 @@ public class QueryConsole extends Region {
     private QueryEvaluation.Cancel startRunning(int gen) {
         QueryEvaluation.Cancel cancel = new QueryEvaluation.Cancel();
         running = cancel;
+        showTrace(List.of()); // the previous run's trace lines do not belong to this one
         stopClock();
         long started = System.nanoTime();
         int limit = QuerySettings.timeoutSeconds();
@@ -693,8 +752,12 @@ public class QueryConsole extends Region {
         var xpathVersion = language == QueryLanguage.XQUERY ? xqueryVersion().xpathVersion() : xpathVersion();
         var xqVersion = language == QueryLanguage.XQUERY ? xqueryVersion() : null;
         String baseUri = activeBaseUri();
+        Map<String, String> variables = language == QueryLanguage.XQUERY ? variableValues() : Map.of();
+        if (declaredVariables.stream().anyMatch(v -> v.required() && !variables.containsKey(v.name()))) {
+            return null; // a run needs the variable's value first
+        }
         return () -> previewText(QueryEvaluation.run(previewRequest(language, xpathVersion, xqVersion, xml, query,
-                baseUri).countOnly()), query, xml);
+                baseUri).withVariables(variables).countOnly()), query, xml);
     }
 
     private static QueryEvaluation.Request previewRequest(QueryLanguage language,
@@ -756,6 +819,13 @@ public class QueryConsole extends Region {
         // next to it (without one, Saxon fails with FODC0005 / XTDE1162)
         String baseUri = activeBaseUri();
         var version = xqueryVersion();
+        Map<String, String> variables = variableValues();
+        List<String> missing = declaredVariables.stream().filter(v -> v.required() && !variables.containsKey(v.name()))
+                .map(v -> "$" + v.name()).toList();
+        if (!missing.isEmpty()) {
+            setResultsText("ERROR: " + I18n.t("QueryConsole.variables.missing", String.join(", ", missing)));
+            return;
+        }
         setResultsText("Running…");
         hits.clear();
         String revision = editorHost.activeRevisionKey();
@@ -770,7 +840,7 @@ public class QueryConsole extends Region {
                     org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XQUERY, "Query console");
             QueryEvaluation.Result evaluation = QueryEvaluation.run(new QueryEvaluation.Request(
                     QueryLanguage.XQUERY, version.xpathVersion(), version, xml, xquery, baseUri, baseUri,
-                    bindings.prefixes(), defaultNs, cancel, timeoutMillis));
+                    bindings.prefixes(), defaultNs, cancel, timeoutMillis).withVariables(variables));
             TransformRunner.QueryRun run = evaluation.cancelled() || cancel.isCancelled() ? cancelledRun()
                     : evaluation.run();
             String result = run.text();
@@ -784,6 +854,9 @@ public class QueryConsole extends Region {
             String emptyHint = ok && result.isBlank() && defaultNs == null
                     ? QueryErrors.emptyResultHint(xquery, xml) : null;
             boolean timedOut = evaluation.timedOut();
+            List<String> traceLines = evaluation.messages().stream()
+                    .map(org.fxt.freexmltoolkit.service.XsltTransformationResult.TransformationMessage::getMessage)
+                    .toList();
             Platform.runLater(() -> {
                 if (gen == runGeneration && timedOut) {
                     stopRunning();
@@ -797,10 +870,115 @@ public class QueryConsole extends Region {
                     showRunError(run.error(), xqueryMarks); // after the hits, which show the results text
                     xqueryMarks.showInfo(emptyHint);
                     updateStatsLabel(result, elapsedMs);
+                    showTrace(traceLines);
                     rememberTable(result, table, elapsedMs, false);
                 }
             });
         });
+    }
+
+    /** Reads the external variables of the XQuery off the FX thread and shows a field for each. */
+    private void scanVariables() {
+        String query = xqueryArea.getText();
+        int gen = ++variablesGeneration;
+        if (query == null || !query.contains("external")) {
+            showVariables(List.of(), gen);
+            return;
+        }
+        String baseUri = activeBaseUri();
+        startWorker(() -> {
+            var found = org.fxt.freexmltoolkit.service.XsltTransformationEngine.getInstance()
+                    .queryVariables(query, baseUri);
+            Platform.runLater(() -> showVariables(found, gen));
+        });
+    }
+
+    private void showVariables(List<org.fxt.freexmltoolkit.service.XsltTransformationEngine.DeclaredParameter> found,
+                               int gen) {
+        if (gen != variablesGeneration || found.equals(declaredVariables)) {
+            return;
+        }
+        Map<String, String> values = variableValues();
+        declaredVariables = found;
+        variablesBox.getChildren().clear();
+        for (var v : found) {
+            Label name = new Label("$" + v.name());
+            name.getStyleClass().add("fxt-text-sm");
+            if (v.required()) {
+                name.getStyleClass().add("fxt-param-required");
+            }
+            javafx.scene.control.TextField field = new javafx.scene.control.TextField(values.getOrDefault(v.name(), ""));
+            field.setUserData(v.name());
+            field.setPromptText(v.required() ? I18n.t("TransformPanel.param.required", v.type()) : v.type());
+            field.setAccessibleText("$" + v.name());
+            field.setPrefColumnCount(10);
+            variablesBox.getChildren().add(new HBox(4, name, field));
+        }
+        boolean any = !found.isEmpty();
+        variablesBox.setVisible(any);
+        variablesBox.setManaged(any);
+    }
+
+    /** @return the values typed for the external variables, by name (empty fields left out) */
+    Map<String, String> variableValues() {
+        Map<String, String> values = new java.util.LinkedHashMap<>();
+        for (var node : variablesBox.getChildren()) {
+            if (node instanceof HBox row) {
+                for (var child : row.getChildren()) {
+                    if (child instanceof javafx.scene.control.TextField field && field.getText() != null
+                            && !field.getText().isEmpty()) {
+                        values.put((String) field.getUserData(), field.getText());
+                    }
+                }
+            }
+        }
+        return values;
+    }
+
+    /** Sets the value of the external variable {@code name} (tests). */
+    void setVariable(String name, String value) {
+        for (var node : variablesBox.getChildren()) {
+            if (node instanceof HBox row) {
+                for (var child : row.getChildren()) {
+                    if (child instanceof javafx.scene.control.TextField field && name.equals(field.getUserData())) {
+                        field.setText(value);
+                    }
+                }
+            }
+        }
+    }
+
+    /** @return the names of the variable fields shown (tests) */
+    List<String> variableNames() {
+        return declaredVariables.stream().map(org.fxt.freexmltoolkit.service.XsltTransformationEngine
+                .DeclaredParameter::name).toList();
+    }
+
+    /** Most trace lines listed in the Trace menu. */
+    static final int MAX_TRACE_ITEMS = 200;
+
+    /** Shows the run's fn:trace() lines in the Trace menu, hidden when there are none. */
+    private void showTrace(List<String> lines) {
+        traceMenu.getItems().clear();
+        for (String line : lines.subList(0, Math.min(lines.size(), MAX_TRACE_ITEMS))) {
+            javafx.scene.control.MenuItem item = new javafx.scene.control.MenuItem(
+                    line.length() > 160 ? line.substring(0, 159) + "…" : line);
+            item.setGraphic(new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-clipboard"));
+            item.setOnAction(e -> {
+                ClipboardContent content = new ClipboardContent();
+                content.putString(line);
+                Clipboard.getSystemClipboard().setContent(content);
+            });
+            traceMenu.getItems().add(item);
+        }
+        traceMenu.setText(I18n.t("QueryConsole.trace", lines.size()));
+        traceMenu.setVisible(!lines.isEmpty());
+        traceMenu.setManaged(!lines.isEmpty());
+    }
+
+    /** @return the trace lines of the last run (tests) */
+    public List<String> getTraceLines() {
+        return traceMenu.getItems().stream().map(javafx.scene.control.MenuItem::getText).toList();
     }
 
     /** @return whether the active document is JSON or YAML (queried with JSONPath) */

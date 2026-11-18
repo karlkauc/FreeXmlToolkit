@@ -54,15 +54,35 @@ public class CombinedStyleManager {
         applyStyles();
     }
 
+    /** The two sources of the error overlay: validation (well-formedness, XSD) and a check of the language. */
+    private NavigableMap<Integer, Integer> validationRanges = new TreeMap<>();
+    private NavigableMap<Integer, Integer> checkRanges = new TreeMap<>();
+
     /** Sets the validation-error overlay: map of start offset → length. */
     public void setErrorRanges(Map<Integer, Integer> ranges) {
-        this.errorRanges = toRangeMap(ranges);
-        applyStyles();
+        this.validationRanges = toRangeMap(ranges);
+        mergeErrors();
     }
 
     /** Clears the validation-error overlay. */
     public void clearErrors() {
-        this.errorRanges = new TreeMap<>();
+        this.validationRanges = new TreeMap<>();
+        mergeErrors();
+    }
+
+    /**
+     * Sets the second error source: a check of what the text means (an XSLT stylesheet's static errors), kept apart
+     * so the validation of each keystroke does not wipe it. Map of start offset → length; empty clears it.
+     */
+    public void setCheckRanges(Map<Integer, Integer> ranges) {
+        this.checkRanges = toRangeMap(ranges);
+        mergeErrors();
+    }
+
+    private void mergeErrors() {
+        NavigableMap<Integer, Integer> merged = new TreeMap<>(validationRanges);
+        checkRanges.forEach((start, end) -> merged.merge(start, end, Math::max));
+        this.errorRanges = merged;
         applyStyles();
     }
 

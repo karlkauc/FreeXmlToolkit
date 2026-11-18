@@ -3785,6 +3785,7 @@ public class EditorHost extends BorderPane {
         };
         tabPane.getTabs().add(tab);
         debugSupport.installBreakpointGutter(tab);
+        XsltLiveCheck.install(this, tab, debugSupport::openStylesheetTexts);
         if (select) {
             tabPane.getSelectionModel().select(tab);
         }

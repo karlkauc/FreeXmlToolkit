@@ -288,4 +288,33 @@ class TransformPanelTest {
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("greeting")).orElse(false));
     }
+
+    @Test
+    void declaredParametersAreOfferedAndATemplateStartRunsWithoutInput(@TempDir Path tmp) throws Exception {
+        Path xslt = tmp.resolve("start.xsl");
+        Files.writeString(xslt, """
+                <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                                xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                  <xsl:output method="text"/>
+                  <xsl:param name="count" as="xs:integer" required="yes"/>
+                  <xsl:template name="xsl:initial-template">n=<xsl:value-of select="$count * 2"/></xsl:template>
+                </xsl:stylesheet>
+                """);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.setXsltFile(xslt.toFile()));
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                () -> WaitForAsyncUtils.waitForAsyncFx(1000, () -> panel.collectParameterNames().contains("count")));
+        assertEquals("Initial template (xsl:initial-template)",
+                WaitForAsyncUtils.waitForAsyncFx(1000, () -> panel.chosenStartLabel()));
+
+        TransformOutputPanel out = host.transformOutputPanel();
+        WaitForAsyncUtils.waitForAsyncFx(2000, panel::transform); // no value for the required parameter
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> out.getOutputText().contains("$count"));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setParameterValue("count", "21");
+            panel.transform();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> out.getOutputText().contains("n=42"));
+    }
 }

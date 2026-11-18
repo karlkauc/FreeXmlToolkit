@@ -284,6 +284,42 @@ class QueryConsoleErrorTest {
         }
     }
 
+    @Test
+    void traceLinesOfAnXQueryRunAreOfferedInTheTraceMenu(@TempDir Path tmp) throws Exception {
+        QueryConsole console = open(tmp, "<funds><Fund/><Fund/></funds>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXQuery("count(trace(//Fund, 'funds'))");
+            console.runForTest();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> console.getResultsText().contains("2"));
+        WaitForAsyncUtils.waitFor(2, TimeUnit.SECONDS,
+                () -> WaitForAsyncUtils.waitForAsyncFx(1000, console::getTraceLines).size() >= 1);
+        String line = WaitForAsyncUtils.waitForAsyncFx(1000, console::getTraceLines).getFirst();
+        assertTrue(line.startsWith("funds") && line.contains("/funds/Fund[1]"), line);
+    }
+
+    @Test
+    void theExternalVariablesOfAnXQueryGetFieldsAndTheirValues(@TempDir Path tmp) throws Exception {
+        QueryConsole console = open(tmp, "<funds><Fund/><Fund/></funds>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXQuery("declare variable $n as xs:integer external; count(//Fund) * $n");
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                () -> WaitForAsyncUtils.waitForAsyncFx(1000, console::variableNames).contains("n"));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, console::runForTest);
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> console.getResultsText().contains("$n"));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setVariable("n", "5");
+            console.runForTest();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> console.getResultsText().endsWith("10"));
+    }
+
     private static final class URIHolder {
         String uri;
     }

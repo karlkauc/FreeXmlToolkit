@@ -186,4 +186,8 @@ public interface EditorView {
      */
     default void showQueryError(org.fxt.freexmltoolkit.service.query.QueryError error) {
     }
+
+    /** Marks the ranges a check of the text found (an XSLT stylesheet's static errors); no-op where unsupported. */
+    default void setCheckMarks(java.util.Map<Integer, Integer> ranges) {
+    }
 }

@@ -544,6 +544,17 @@ public final class UsageEvents {
      */
     public static void xsltTransformed(int fileCount, long startNanos, boolean live, String phase,
                                        QueryFailure failure, long inputBytes) {
+        xsltTransformed(fileCount, startNanos, live, phase, failure, inputBytes, null);
+    }
+
+    /**
+     * As {@link #xsltTransformed(int, long, boolean, String, QueryFailure, long)} with where the run started.
+     *
+     * @param start {@code mode}, {@code template} or {@code function} for a run that did not apply templates in the
+     *              default mode (a fixed value, never a name); {@code null} for the default
+     */
+    public static void xsltTransformed(int fileCount, long startNanos, boolean live, String phase,
+                                       QueryFailure failure, long inputBytes, String start) {
         if (live && !liveRunDue("xslt_transform")) {
             return;
         }
@@ -568,6 +579,9 @@ public final class UsageEvents {
             }
             if (live) {
                 b.meta("trigger", "live");
+            }
+            if (start != null && java.util.Set.of("mode", "template", "function").contains(start)) {
+                b.meta("start", start);
             }
             duration(b, startNanos);
         });

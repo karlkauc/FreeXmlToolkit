@@ -290,7 +290,7 @@ final class EditorDebugSupport {
     }
 
     /** The editor text of every open, saved XSLT document, by normalised path (FX thread). */
-    private java.util.Map<String, String> openStylesheetTexts() {
+    java.util.Map<String, String> openStylesheetTexts() {
         java.util.Map<String, String> texts = new java.util.HashMap<>();
         for (Tab tab : host.tabPane.getTabs()) {
             if (tab instanceof EditorTab et && et.document.getPath() != null

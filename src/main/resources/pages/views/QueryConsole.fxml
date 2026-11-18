@@ -8,6 +8,7 @@
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
@@ -118,6 +119,15 @@
                                 <Tooltip fx:id="defaultNsTooltip" text="%QueryConsole.defaultNsToggle.text"/>
                             </tooltip>
                         </ToggleButton>
+                        <Button fx:id="planButton" id="query-show-plan" styleClass="fxt-tool-button"
+                                onAction="#onShowPlan">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-diagram-3" iconSize="16"/>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="%QueryConsole.plan.tooltip"/>
+                            </tooltip>
+                        </Button>
                         <Button fx:id="askButton" id="query-ask-ai" text="%QueryConsole.askButton.text" styleClass="fxt-tool-button"
                                 onAction="#onAskAi">
                             <graphic>
@@ -130,6 +140,8 @@
                     </children>
                 </HBox>
                 <StackPane fx:id="inputStack" maxHeight="Infinity" VBox.vgrow="ALWAYS"/>
+                <!-- values of the XQuery's external variables; shown only when it declares some -->
+                <FlowPane fx:id="variablesBox" id="query-variables" hgap="8" vgap="4" visible="false" managed="false"/>
                 <!-- Enter adds a line (queries can span lines); say how to run (UX plan 7) -->
                 <Label fx:id="runHint" id="query-run-hint" text="%QueryConsole.runHint.text"
                        styleClass="fxt-placeholder-text"/>
@@ -147,6 +159,16 @@
                     <children>
                         <Label text="%QueryConsole.results.text" styleClass="fxt-side-panel-title"/>
                         <Label fx:id="statsLabel" styleClass="fxt-output-status"/>
+                        <!-- fn:trace() lines of the last run; hidden while there are none -->
+                        <MenuButton fx:id="traceMenu" id="query-trace" visible="false" managed="false"
+                                    styleClass="fxt-tool-button">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-chat-left-text" iconSize="14"/>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="%QueryConsole.trace.tooltip"/>
+                            </tooltip>
+                        </MenuButton>
                         <Region HBox.hgrow="ALWAYS"/>
                         <Button fx:id="tableButton" id="query-show-table" text="%QueryConsole.tableButton.text" styleClass="fxt-tool-button"
                                 disable="true" onAction="#onShowTable">

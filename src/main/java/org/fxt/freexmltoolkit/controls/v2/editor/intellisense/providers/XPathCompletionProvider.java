@@ -34,6 +34,9 @@ public class XPathCompletionProvider {
     private static final int SCORE_OPERATORS = 50;
     private static final int SCORE_XQUERY_KEYWORDS = 90;
 
+    /** Most proposals returned at once. */
+    static final int MAX_ITEMS = 600;
+
     private final XmlDocumentElementExtractor elementExtractor;
     private final boolean isXQueryMode;
 
@@ -46,6 +49,22 @@ public class XPathCompletionProvider {
     public XPathCompletionProvider(XmlDocumentElementExtractor elementExtractor, boolean isXQueryMode) {
         this.elementExtractor = elementExtractor;
         this.isXQueryMode = isXQueryMode;
+    }
+
+    /** The language version whose functions are offered ({@code null} = all); asked on every completion. */
+    private java.util.function.Supplier<org.fxt.freexmltoolkit.service.standards.XPathVersion> version = () -> null;
+
+    /** Offers only the functions of the version {@code version} returns (an XQuery's XPath level). */
+    public void setVersion(java.util.function.Supplier<org.fxt.freexmltoolkit.service.standards.XPathVersion> version) {
+        this.version = version == null ? () -> null : version;
+    }
+
+    private org.fxt.freexmltoolkit.service.standards.XPathVersion version() {
+        try {
+            return version.get();
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 
     /**
@@ -70,7 +89,7 @@ public class XPathCompletionProvider {
                 // At the start: show elements, axes, functions
                 items.addAll(getElementCompletions(prefix, SCORE_XML_ELEMENTS));
                 items.addAll(XPathFunctionLibrary.getAxisCompletions(prefix, SCORE_AXES));
-                items.addAll(XPathFunctionLibrary.getFunctionCompletions(prefix, SCORE_FUNCTIONS));
+                items.addAll(XPathFunctionLibrary.getFunctionCompletions(prefix, SCORE_FUNCTIONS, version()));
                 if (isXQueryMode) {
                     items.addAll(XPathFunctionLibrary.getXQueryKeywordCompletions(prefix, SCORE_XQUERY_KEYWORDS));
                 }
@@ -103,7 +122,7 @@ public class XPathCompletionProvider {
 
             case IN_PREDICATE -> {
                 // In predicate: show functions, attributes, operators, elements
-                items.addAll(XPathFunctionLibrary.getFunctionCompletions(prefix, SCORE_CONTEXT_SPECIFIC));
+                items.addAll(XPathFunctionLibrary.getFunctionCompletions(prefix, SCORE_CONTEXT_SPECIFIC, version()));
                 items.addAll(getAttributeCompletions(prefix, SCORE_XML_ELEMENTS));
                 items.addAll(XPathFunctionLibrary.getOperatorCompletions(prefix, SCORE_OPERATORS));
                 items.addAll(getElementCompletions(prefix, SCORE_XML_ELEMENTS - 10));
@@ -113,13 +132,13 @@ public class XPathCompletionProvider {
                 // In function arguments: show elements, attributes, functions
                 items.addAll(getElementCompletions(prefix, SCORE_XML_ELEMENTS));
                 items.addAll(getAttributeCompletions(prefix, SCORE_XML_ELEMENTS - 5));
-                items.addAll(XPathFunctionLibrary.getFunctionCompletions(prefix, SCORE_FUNCTIONS));
+                items.addAll(XPathFunctionLibrary.getFunctionCompletions(prefix, SCORE_FUNCTIONS, version()));
             }
 
             case AFTER_OPERATOR -> {
                 // After operator: show elements, functions
                 items.addAll(getElementCompletions(prefix, SCORE_XML_ELEMENTS));
-                items.addAll(XPathFunctionLibrary.getFunctionCompletions(prefix, SCORE_FUNCTIONS));
+                items.addAll(XPathFunctionLibrary.getFunctionCompletions(prefix, SCORE_FUNCTIONS, version()));
             }
 
             case AFTER_DOLLAR -> {
@@ -137,12 +156,12 @@ public class XPathCompletionProvider {
             case AFTER_BINDING -> {
                 // After in/: = : show elements, paths
                 items.addAll(getElementCompletions(prefix, SCORE_XML_ELEMENTS));
-                items.addAll(XPathFunctionLibrary.getFunctionCompletions(prefix, SCORE_FUNCTIONS));
+                items.addAll(XPathFunctionLibrary.getFunctionCompletions(prefix, SCORE_FUNCTIONS, version()));
             }
 
             case AFTER_WHERE -> {
                 // After where: show comparison functions, attributes
-                items.addAll(XPathFunctionLibrary.getFunctionCompletions(prefix, SCORE_CONTEXT_SPECIFIC));
+                items.addAll(XPathFunctionLibrary.getFunctionCompletions(prefix, SCORE_CONTEXT_SPECIFIC, version()));
                 items.addAll(getAttributeCompletions(prefix, SCORE_XML_ELEMENTS));
                 items.addAll(getElementCompletions(prefix, SCORE_XML_ELEMENTS - 10));
             }
@@ -150,14 +169,14 @@ public class XPathCompletionProvider {
             case AFTER_RETURN -> {
                 // After return: show elements, functions
                 items.addAll(getElementCompletions(prefix, SCORE_XML_ELEMENTS));
-                items.addAll(XPathFunctionLibrary.getFunctionCompletions(prefix, SCORE_FUNCTIONS));
+                items.addAll(XPathFunctionLibrary.getFunctionCompletions(prefix, SCORE_FUNCTIONS, version()));
             }
 
             case XQUERY_BODY -> {
                 // XQuery body: show FLWOR keywords, elements, functions
                 items.addAll(XPathFunctionLibrary.getXQueryKeywordCompletions(prefix, SCORE_XQUERY_KEYWORDS));
                 items.addAll(getElementCompletions(prefix, SCORE_XML_ELEMENTS));
-                items.addAll(XPathFunctionLibrary.getFunctionCompletions(prefix, SCORE_FUNCTIONS));
+                items.addAll(XPathFunctionLibrary.getFunctionCompletions(prefix, SCORE_FUNCTIONS, version()));
             }
 
             case IN_STRING_LITERAL, IN_COMMENT -> {
@@ -177,10 +196,9 @@ public class XPathCompletionProvider {
                 .comparingInt(CompletionItem::getRelevanceScore).reversed()
                 .thenComparing(CompletionItem::getLabel));
 
-        // Limit results - increased to 200 to ensure diverse types are included
-        // (elements, functions, axes, operators should all be represented)
-        if (items.size() > 200) {
-            items = new ArrayList<>(items.subList(0, 200));
+        // Limit results: high enough that Saxon's ~230 functions do not push elements, axes and operators out
+        if (items.size() > MAX_ITEMS) {
+            items = new ArrayList<>(items.subList(0, MAX_ITEMS));
         }
 
         logger.debug("Returning {} completions", items.size());
@@ -300,9 +318,9 @@ public class XPathCompletionProvider {
         items.addAll(getAttributeCompletions(prefix, SCORE_XML_ELEMENTS - 10));
 
         if (isXQueryMode) {
-            items.addAll(XPathFunctionLibrary.getAllXQueryCompletions(prefix, SCORE_FUNCTIONS));
+            items.addAll(XPathFunctionLibrary.getAllXQueryCompletions(prefix, SCORE_FUNCTIONS, version()));
         } else {
-            items.addAll(XPathFunctionLibrary.getAllXPathCompletions(prefix, SCORE_FUNCTIONS));
+            items.addAll(XPathFunctionLibrary.getAllXPathCompletions(prefix, SCORE_FUNCTIONS, version()));
         }
 
         return items;

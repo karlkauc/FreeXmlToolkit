@@ -182,6 +182,29 @@ public final class TransformRunner {
         }
     }
 
+    /**
+     * An XSLT 3.0 run on Saxon HE from {@code start} (a mode, a named template, a function); the default start runs
+     * as {@link #xsltTransformResult(String, String, String, String, java.util.Map,
+     * XsltTransformationEngine.OutputFormat, org.fxt.freexmltoolkit.service.standards.XsltVersion)}. Template and
+     * function starts need no input ({@code xml} may be {@code null}).
+     */
+    public static XsltTransformationResult xsltTransformFrom(String xml, String xmlBaseUri,
+            String xsltContent, String xsltSystemId,
+            java.util.Map<String, Object> parameters,
+            XsltTransformationEngine.OutputFormat outputFormat,
+            org.fxt.freexmltoolkit.service.standards.XsltVersion version,
+            XsltTransformationEngine.StartPoint start) {
+        if (start == null || start.isDefault()) {
+            return xsltTransformResult(xml, xmlBaseUri, xsltContent, xsltSystemId, parameters, outputFormat, version);
+        }
+        try {
+            return XsltTransformationEngine.getInstance().transform(xml, xsltContent, xsltSystemId, xmlBaseUri,
+                    parameters, outputFormat, start);
+        } catch (Exception e) {
+            return XsltTransformationResult.error(e.getMessage(), e);
+        }
+    }
+
     /** @return the file a {@code file:} URI (or plain path) names, or {@code null} */
     static java.nio.file.Path pathOf(String uri) {
         if (uri == null || uri.isBlank()) {
@@ -212,6 +235,41 @@ public final class TransformRunner {
         return XsltTransformationResult.error(
                 org.fxt.freexmltoolkit.service.standards.XsltCompatibilityCheck.format(issues), "FXT-COMPAT",
                 XsltTransformationResult.PHASE_COMPILE, first.module() == null ? first.line() : -1);
+    }
+
+    /**
+     * The text a failed XSLT run shows: with diagnostics (a compile failure) each error with its position, the source
+     * line with a caret and the hint; else the engine's message. Prefixed with {@code ERROR: }.
+     */
+    public static String failureText(XsltTransformationResult result) {
+        var errors = result.getDiagnostics().stream().filter(d -> !d.warning()).toList();
+        if (errors.isEmpty()) {
+            String hint = org.fxt.freexmltoolkit.service.QueryErrorHints.hintFor(result.getErrorCode(),
+                    result.getErrorMessage());
+            return "ERROR: " + result.getErrorMessage() + (hint == null ? "" : "\n\n" + hint);
+        }
+        String head = errors.size() == 1 ? "XSLT compile error"
+                : "XSLT stylesheet has " + errors.size() + " compile errors";
+        return "ERROR: " + head + ":\n\n"
+                + org.fxt.freexmltoolkit.service.xslt.XsltDiagnostic.report(result.getDiagnostics());
+    }
+
+    /**
+     * The lines a run lists under its result: the stylesheet's diagnostics (errors of a failed compile, warnings),
+     * then its {@code xsl:message} and {@code fn:trace} output.
+     */
+    public static java.util.List<XsltTransformationResult.TransformationMessage> runMessages(
+            XsltTransformationResult result) {
+        if (result == null) {
+            return java.util.List.of();
+        }
+        java.util.List<XsltTransformationResult.TransformationMessage> lines = new java.util.ArrayList<>();
+        for (var d : result.getDiagnostics()) {
+            lines.add(new XsltTransformationResult.TransformationMessage(d.level(), d.message(), d.line(),
+                    d.location()));
+        }
+        lines.addAll(result.getMessages());
+        return lines;
     }
 
     /**

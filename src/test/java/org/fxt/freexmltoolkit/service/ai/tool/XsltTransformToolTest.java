@@ -90,6 +90,8 @@ class XsltTransformToolTest {
         assertTrue(error.get("code").getAsString().startsWith("X"), error.toString());
         assertEquals(3, error.get("line").getAsInt(), error.toString());
         assertTrue(result.text().contains("line 3"), result.text());
+        assertTrue(error.get("column").getAsInt() > 20, "the column inside the select: " + error);
+        assertTrue(error.get("module").isJsonNull(), "the error is in the stylesheet itself");
     }
 
     @Test

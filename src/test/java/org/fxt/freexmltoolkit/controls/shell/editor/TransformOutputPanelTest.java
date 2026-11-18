@@ -290,6 +290,70 @@ class TransformOutputPanelTest {
                 .count();
     }
 
+    @Test
+    void messagesAndTraceLinesOfATransformAreListedUnderTheResult(@TempDir Path tmp) throws Exception {
+        openGreeting(tmp);
+        Path sheet = tmp.resolve("m.xslt");
+        Files.writeString(sheet, """
+                <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                  <xsl:template match="/greeting">
+                    <xsl:message>starting</xsl:message>
+                    <out><xsl:value-of select="trace(string(.), 'value')"/></out>
+                  </xsl:template>
+                </xsl:stylesheet>
+                """);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setXsltFile(sheet.toFile());
+            panel.transform();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> out.getOutputText().contains("<out>Hello</out>"));
+        WaitForAsyncUtils.waitFor(2, TimeUnit.SECONDS,
+                () -> WaitForAsyncUtils.waitForAsyncFx(1000, out::getRunMessages).size() == 2);
+        var lines = WaitForAsyncUtils.waitForAsyncFx(1000, out::getRunMessages);
+        assertTrue(lines.get(0).contains("starting") && lines.get(0).contains("m.xslt:3"), lines.toString());
+        assertTrue(lines.get(1).startsWith("[TRACE]") && lines.get(1).contains("Hello"), lines.toString());
+        javafx.scene.control.ToggleButton toggle = (javafx.scene.control.ToggleButton) out.lookup("#transform-output-messages");
+        assertTrue(toggle.isVisible() && toggle.getText().contains("2"), toggle.getText());
+
+        transformGreeting(tmp); // a run without messages hides the strip
+        WaitForAsyncUtils.waitFor(2, TimeUnit.SECONDS, () -> !toggle.getParent().isVisible());
+    }
+
+    @Test
+    void theOutputOptionsApplyWhereTheStylesheetSaysNothing(@TempDir Path tmp) throws Exception {
+        openGreeting(tmp);
+        Path sheet = tmp.resolve("plain.xslt");
+        Files.writeString(sheet, """
+                <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                  <xsl:template match="/greeting"><out><in/></out></xsl:template>
+                </xsl:stylesheet>
+                """);
+        try {
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                ((javafx.scene.control.CheckBox) panel.lookup("#transform-output-indent")).fire();
+                ((javafx.scene.control.CheckBox) panel.lookup("#transform-output-omit-declaration")).fire();
+                panel.setXsltFile(sheet.toFile());
+                panel.transform();
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> out.getOutputText().contains("<out>"));
+            assertEquals("<out><in/></out>", out.getOutputText().strip());
+        } finally {
+            TransformOutputSettings.set(true, false);
+        }
+    }
+
+    @Test
+    void theStylesheetsPlanOpensInATab(@TempDir Path tmp) throws Exception {
+        transformGreeting(tmp);
+        WaitForAsyncUtils.waitForAsyncFx(2000, panel::onShowPlan);
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.lookup(".fxt-plan-view") != null);
+        PlanView plan = (PlanView) host.lookup(".fxt-plan-view");
+        assertTrue(plan.getText().contains("templateRule") || plan.getText().contains("template"),
+                plan.getText().substring(0, Math.min(300, plan.getText().length())));
+    }
+
     private void openGreeting(Path tmp) throws Exception {
         Path xml = tmp.resolve("doc.xml");
         Files.writeString(xml, XML);

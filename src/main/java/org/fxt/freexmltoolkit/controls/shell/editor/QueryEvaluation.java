@@ -55,10 +55,31 @@ public final class QueryEvaluation {
      * @param timeoutMillis           time limit of an XQuery (0 = none); an XPath is bounded by its caller
      * @param locate                  locate the result's nodes in the document ({@link Result#items()}); without,
      *                                only {@link Result#count()} / {@link Result#nodeCount()} are filled
+     * @param variables               values of the query's external variables as text (XQuery; converted to the
+     *                                declared types), empty for none
      */
     public record Request(QueryLanguage language, XPathVersion xpathVersion, XQueryVersion xqueryVersion, String xml,
                           String query, String inputBaseUri, String queryBaseUri, Map<String, String> namespaces,
-                          String defaultElementNamespace, Cancel cancel, long timeoutMillis, boolean locate) {
+                          String defaultElementNamespace, Cancel cancel, long timeoutMillis, boolean locate,
+                          Map<String, String> variables) {
+
+        public Request {
+            variables = variables == null ? Map.of() : Map.copyOf(variables);
+        }
+
+        /** A request without external variables. */
+        public Request(QueryLanguage language, XPathVersion xpathVersion, XQueryVersion xqueryVersion, String xml,
+                       String query, String inputBaseUri, String queryBaseUri, Map<String, String> namespaces,
+                       String defaultElementNamespace, Cancel cancel, long timeoutMillis, boolean locate) {
+            this(language, xpathVersion, xqueryVersion, xml, query, inputBaseUri, queryBaseUri, namespaces,
+                    defaultElementNamespace, cancel, timeoutMillis, locate, Map.of());
+        }
+
+        /** This request with values for the query's external variables. */
+        public Request withVariables(Map<String, String> values) {
+            return new Request(language, xpathVersion, xqueryVersion, xml, query, inputBaseUri, queryBaseUri,
+                    namespaces, defaultElementNamespace, cancel, timeoutMillis, locate, values);
+        }
 
         /** A request that locates its hits. */
         public Request(QueryLanguage language, XPathVersion xpathVersion, XQueryVersion xqueryVersion, String xml,
@@ -71,7 +92,7 @@ public final class QueryEvaluation {
         /** This request without locating the hits (a count is enough). */
         public Request countOnly() {
             return new Request(language, xpathVersion, xqueryVersion, xml, query, inputBaseUri, queryBaseUri,
-                    namespaces, defaultElementNamespace, cancel, timeoutMillis, false);
+                    namespaces, defaultElementNamespace, cancel, timeoutMillis, false, variables);
         }
 
         /** A run without namespaces, cancel or time limit. */
@@ -97,11 +118,17 @@ public final class QueryEvaluation {
      */
     public record Result(String text, QueryFailure failure, QueryError error, XQueryTableRunner.XQueryTable table,
                          List<XPathMatchLocator.ResultItem> items, boolean cancelled, boolean timedOut, int count,
-                         int nodeCount) {
+                         int nodeCount, List<XsltTransformationResult.TransformationMessage> messages) {
 
         Result(String text, QueryFailure failure, QueryError error, XQueryTableRunner.XQueryTable table,
                List<XPathMatchLocator.ResultItem> items, boolean cancelled, boolean timedOut) {
-            this(text, failure, error, table, items, cancelled, timedOut, 0, 0);
+            this(text, failure, error, table, items, cancelled, timedOut, 0, 0, List.of());
+        }
+
+        /** The same result with the {@code fn:trace()} lines of the run. */
+        Result withMessages(List<XsltTransformationResult.TransformationMessage> lines) {
+            return new Result(text, failure, error, table, items, cancelled, timedOut, count, nodeCount,
+                    lines == null ? List.of() : List.copyOf(lines));
         }
 
         /** @return whether the run produced a result */
@@ -155,7 +182,8 @@ public final class QueryEvaluation {
                 cancel == null ? null : cancel::isCancelled,
                 r.timeoutMillis() > 0 ? System.nanoTime() + r.timeoutMillis() * 1_000_000L : 0);
         XsltTransformationEngine.XQueryOutcome outcome = XsltTransformationEngine.getInstance().evaluateXQuery(
-                r.xml(), r.inputBaseUri(), r.query(), r.queryBaseUri(), Map.of(),
+                r.xml(), r.inputBaseUri(), r.query(), r.queryBaseUri(),
+                new java.util.HashMap<String, Object>(r.variables()),
                 XsltTransformationEngine.OutputFormat.XML, options);
         if (outcome.cancelled()) {
             return cancelled();
@@ -169,9 +197,11 @@ public final class QueryEvaluation {
             TransformRunner.QueryRun failed = TransformRunner.failed(result.getCause(), result.getErrorMessage(),
                     QueryFailure.ofCode(result.getErrorCode()), r.query(), QueryLanguage.XQUERY,
                     TransformRunner.xpathLevel(r.xqueryVersion()), r.xml());
-            return new Result(failed.text(), failed.failure(), failed.error(), null, List.of(), false, false);
+            return new Result(failed.text(), failed.failure(), failed.error(), null, List.of(), false, false)
+                    .withMessages(result.getMessages());
         }
-        return success(result.getOutputContent(), r, outcome.document(), outcome.value());
+        return success(result.getOutputContent(), r, outcome.document(), outcome.value())
+                .withMessages(result.getMessages());
     }
 
     private static Result cancelled() {
@@ -209,6 +239,6 @@ public final class QueryEvaluation {
                 }
             }
         }
-        return new Result(text, null, null, table, items, false, false, count, nodes);
+        return new Result(text, null, null, table, items, false, false, count, nodes, List.of());
     }
 }

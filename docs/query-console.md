@@ -110,6 +110,17 @@ the hits together.
     activity. For XSLT transformations, parameters, recent-stylesheet history, watch-and-rerun, and
     the OUTPUT panel's result table and HTML preview, use the [Transform Panel](transform-panel.md#transform-panel).
 
+### Variables, trace and the execution plan
+
+- **External variables.** An XQuery that declares `declare variable $n as xs:integer external;` gets a field for
+  each such variable under the input (required ones in bold, the type as placeholder). The values are text,
+  converted to the declared type. A query file (`.xq`) asks for a required value on its first run and remembers it
+  for that file.
+- **Trace.** `trace()` output of the last XQuery run is listed in the **Trace (n)** menu next to the results; a
+  click copies a line.
+- **Show Execution Plan** (the diagram button in XQuery mode, and Run ▾ → Show Execution Plan for a `.xq` tab)
+  opens Saxon's plan of the query after optimization in a tab.
+
 ### When a query fails
 
 The console checks the expression **while you type** (it is compiled, not run, shortly after you stop typing):
@@ -228,7 +239,10 @@ The XPath/XQuery inputs of the Query Console offer context-aware
 autocomplete in both the XPath and
 XQuery input fields. Suggestions appear automatically after trigger characters (`/`, `[`, `@`, `(`,
 `$`, `::`) or on demand with **Ctrl+Space**. Depending on context it suggests element names, attribute
-names, XPath axes, functions, and (in XQuery) variables. Navigate with the arrow keys and press
+names, XPath axes, functions, and (in XQuery) variables. The functions are Saxon's own library (over 200, with
+`map:`, `array:` and `math:`), each with its signature (`substring($value as xs:string?, $start as xs:numeric[,
+$length as xs:numeric?])`) - and only those of the chosen language version: XPath 2.0 does not offer
+`parse-json`. Navigate with the arrow keys and press
 **Enter** or **Tab** to insert; **Escape** dismisses the popup. Functions and axes are inserted with
 their parentheses / `::` automatically.
 

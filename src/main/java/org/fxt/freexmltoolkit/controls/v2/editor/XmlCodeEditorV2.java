@@ -669,6 +669,14 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
     }
 
     /**
+     * Marks ranges found by a check of the text's meaning (an XSLT stylesheet's static errors) with the error style,
+     * apart from the live validation's marks. Map of start offset → length; empty clears them.
+     */
+    public void setCheckErrorRanges(java.util.Map<Integer, Integer> ranges) {
+        combinedStyles.setCheckRanges(ranges);
+    }
+
+    /**
      * Highlights the given search-match ranges (start offset → length) on top of
      * the syntax highlighting. Pass an empty map or use
      * {@link #clearSearchMatches()} to remove the overlay.

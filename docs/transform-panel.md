@@ -134,18 +134,48 @@ active editor** all keep working exactly as before.
 
 A single dropdown with **Auto, XML, HTML, XHTML, Text, JSON**. **Auto** (the
 default) detects the output format from the stylesheet's `xsl:output` declaration; pick a
-concrete format to override the detection.
+concrete format to override the detection. For the method the stylesheet declares, its own
+`xsl:output` settings win (`indent`, `doctype-…`, `html-version`, `encoding`): an
+`html-version="5"` stylesheet gets an HTML5 doctype, `indent="no"` stays unindented.
+
+Below it, two options apply where the stylesheet says nothing:
+
+- **Indent** (on by default) - indent the result.
+- **Omit XML declaration** (off by default) - leave out `<?xml …?>`.
+
+Both are remembered (settings `transform.output.indent`, `transform.output.omitDeclaration`) and also apply to
+XSLT runs from the Run menu and to query results.
 
 Once an [external XSLT processor](#external-xslt-processors) is configured, a **Processor** dropdown appears below it:
 the bundled **Saxon HE** or one of your processors. The choice is remembered.
+
+## START
+
+Where the transformation starts. Saxon HE's XSLT 3.0 entry points, read from the stylesheet:
+
+| Choice | What runs |
+|--------|-----------|
+| **Apply templates to the input** (default) | The template rules matching the input's document node, in the default mode - the classic transformation. |
+| **Initial template (xsl:initial-template)** | The stylesheet's `xsl:initial-template`. Preselected when the stylesheet has one. |
+| **Mode: …** | The template rules of that mode on the input. |
+| **Template: …** | A named template. |
+| **Function: f:name#n** | A function declared `visibility="public"`; one field per argument appears below (typed as text, converted to the parameter's type). |
+
+A template or function start needs **no input document**; with one, it is the global context item (`.` at the
+top level). These starts run on the bundled Saxon HE - with an external processor the choice is disabled - and
+without profile or trace. The command line has the same with
+[`--initial-template` / `--initial-mode`](command-line.md).
 
 ## PARAMETERS
 
 Define XSLT parameters as **name = value** rows:
 
-- **Add parameter** adds a new row.
-- Each row has its own **remove** button.
-- The values are passed to the stylesheet on every run.
+- The parameters the stylesheet **declares** (`xsl:param` at the top level) appear as rows by themselves, with the
+  declared type as placeholder (e.g. `xs:integer`); a **required** one (`required="yes"`) is shown bold and the run
+  stops with a message until it has a value. An offered row left empty keeps the stylesheet's default.
+- **Add parameter** adds a row of your own; each row has its own **remove** button.
+- The values are text and are **converted to the declared type**: `21` reaches `as="xs:integer"` as a number, a
+  date as `xs:date`. A value that does not fit is reported with the parameter's name.
 
 ## Running a Transformation
 
@@ -305,6 +335,7 @@ Below the options, the advanced **tools** are labelled rows (icon + name):
 | **Debug XSLT…** | Same as the **Debug** button next to **Run Transform**: opens the stylesheet (with the breakpoints set in its gutter) and the **DEBUG** dock below the editor - see [Debugging a Stylesheet](#xslt-debugger). |
 | **Batch Transform…** | Runs the chosen stylesheet - or, when no stylesheet is set, the active XQuery document - over many XML files, with per-file results and "Save All". |
 | **Generate stylesheet…** | Shown while the [AI assistant](ai-assistant.md) is on: writes an XSLT stylesheet from the panel's input document and a **target sample** you choose (optionally its schema and notes). The stylesheet is compiled and run in a sandbox and its output checked before it opens as a new, unsaved tab - choose it there with **Use current tab** in the STYLESHEET row. See [A stylesheet from a target sample](ai-assistant.md#a-stylesheet-from-a-target-sample). |
+| **Show Execution Plan** | Opens a **Plan** tab with Saxon's execution plan of the stylesheet: every template and function after optimization (which steps were rewritten, inlined or pre-evaluated) - useful to understand why a stylesheet is slow. Also on the Run menu for an XSLT or XQuery tab. |
 | **Execution Statistics** | Opens the **Execution Statistics** tool tab (duration, CPU and memory per XSLT/XQuery/validation run). Runs are only recorded while **Record execution statistics** is enabled in the Settings page's **DEVELOPER** card. |
 
 > By default the stylesheet runs on Saxon's XSLT 3.0 processor, whatever its `version`
@@ -365,3 +396,29 @@ The OUTPUT panel header shows:
     panel: an editor tab now opens only via the panel's **Open result as editor tab** action
     or the **Auto-open result tab** option in OPTIONS & TOOLS, and HTML is rendered inline via
     the panel's **Preview** view.
+
+### Messages, trace and compile errors
+
+Under the result, a **Messages (n)** strip lists what the run said besides its output - click it to open the list:
+
+- `xsl:message` output (`[INFO]`, `[TERMINATE]`),
+- `trace()` output (`[TRACE]`) - it used to go to the console no one sees,
+- the stylesheet's **compile warnings** (`[WARNING …]`, e.g. a variable nothing uses) and, after a failed compile,
+  its errors.
+
+Double-click a line (or press Enter) to open the stylesheet - or the included / imported module - at that line.
+
+When a stylesheet does not compile, the result area lists every error with its code, the position, the source line
+with a `^` under the failing part (the token inside a `select`, a wrong attribute, an unknown instruction) and a hint
+for the usual cause, for example:
+
+```
+[XPST0017] Cannot find a 1-argument function named ocunt() (line 3, column 22)
+    <xsl:value-of select="ocunt(//item)"/>
+                          ^^^^^
+```
+
+XSLT documents are also **checked while you type**: a pause compiles the stylesheet (with the open tabs' texts of
+its includes and imports), wavy-underlines the errors in the text and lists them - and the warnings - in the
+**PROBLEMS** panel (source *XSLT*; an error in a module names the module). Stylesheets over 2 MB are not checked;
+the setting `xslt.liveCheck=false` turns it off.

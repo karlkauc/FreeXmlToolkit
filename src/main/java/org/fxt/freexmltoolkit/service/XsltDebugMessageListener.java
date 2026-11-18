@@ -77,6 +77,30 @@ public class XsltDebugMessageListener implements Consumer<Message> {
         }
     }
 
+    /** Level of an {@code fn:trace} line among the messages. */
+    public static final String TRACE_LEVEL = "TRACE";
+
+    /**
+     * Receives {@code fn:trace} lines that a trace listener caught (see {@code XsltSandbox.DeadlineListener}): each
+     * becomes a {@link #TRACE_LEVEL} message next to the {@code xsl:message} output.
+     */
+    public java.util.function.Consumer<String> traceSink() {
+        return line -> publish(new XsltTransformationResult.TransformationMessage(TRACE_LEVEL, line, -1, "trace()"));
+    }
+
+    /**
+     * A destination for {@code fn:trace} output ({@code setTraceFunctionDestination}), as {@link #traceSink()},
+     * instead of Saxon's default (standard error, which no user sees).
+     */
+    public net.sf.saxon.lib.Logger traceLogger() {
+        return new net.sf.saxon.lib.Logger() {
+            @Override
+            public void println(String message, int severity) {
+                publish(new XsltTransformationResult.TransformationMessage(TRACE_LEVEL, message, -1, "trace()"));
+            }
+        };
+    }
+
     private void publish(XsltTransformationResult.TransformationMessage msg) {
         if (messages.size() < MAX_MESSAGES) {
             messages.add(msg);

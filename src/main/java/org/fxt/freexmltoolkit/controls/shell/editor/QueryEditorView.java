@@ -59,6 +59,10 @@ final class QueryEditorView implements EditorView {
         CodeAreaFontZoom.install(codeArea);
 
         intelliSense = new XPathIntelliSenseEngine(codeArea, xquery);
+        intelliSense.setVersion(() -> { // the functions of the chosen version
+            var tool = StandardsSettings.current().forTool(StandardsSettings.TOOL_QUERY_CONSOLE, null);
+            return xquery ? tool.xquery().xpathVersion() : tool.xpath();
+        });
 
         // Ctrl+Enter runs the query. While the completion popup is open the engine
         // consumes Enter first, so this filter — added after the engine's — only

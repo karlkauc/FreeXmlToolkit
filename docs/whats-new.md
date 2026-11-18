@@ -6,6 +6,26 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+- **Stylesheet errors you can act on.** A stylesheet that does not compile lists every error with its position, the
+  source line with a `^` under the failing part (the function inside a `select`, a wrong attribute) and a hint;
+  "Did you mean" works inside XPath expressions too. XSLT documents are checked while you type: errors are
+  underlined and listed in PROBLEMS, an error in an included module names the module. Compile warnings are no
+  longer lost.
+- **Parameters from the stylesheet.** The Transform panel offers a row for each `xsl:param` the stylesheet
+  declares, with its type; required ones must be filled in. Values are converted to the declared type, so `21`
+  reaches an `xs:integer` parameter. The Query Console gets fields for an XQuery's external variables, and a `.xq`
+  file asks for them once.
+- **Start where you want.** A transformation can start at `xsl:initial-template`, a named template, a mode or a
+  public function - templates and functions need no input document. On the command line: `fxt-cli transform
+  --initial-template` / `--initial-mode`.
+- **`trace()` output is shown.** It is listed under the result (Transform panel) or in the Query Console's Trace
+  menu, together with `xsl:message` output, instead of going to a console nobody sees.
+- **The stylesheet's `xsl:output` is respected.** For its own method, the stylesheet's indent, doctype and HTML
+  version win; new **Indent** and **Omit XML declaration** options apply where it says nothing.
+- **Show Execution Plan.** Saxon's plan of a query or stylesheet after optimization, in a tab.
+- **Complete function suggestions.** Completion now offers all of Saxon's 200+ functions with their signatures,
+  only those of the chosen XPath / XQuery version.
+
 - **The document's namespaces need no declaration in the Query Console.** Its prefixes are declared for every query
   (`//fx:Fund` just works), and on a document with a default namespace a **Default namespace** chip makes `//Fund`
   find the elements - the most frequent reason for an empty result. Completion proposes names that match.

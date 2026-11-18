@@ -128,9 +128,21 @@ public final class XsltSandbox {
          * @param stop          asked on every check; {@code true} stops the run ({@link Stopped}); nullable
          */
         DeadlineListener(long deadlineNanos, java.util.function.BooleanSupplier stop) {
+            this(deadlineNanos, stop, null);
+        }
+
+        /**
+         * @param traceSink receives the {@code fn:trace()} lines ("label: value"): with a trace listener in place
+         *                  Saxon hands them to the listener instead of the trace destination; nullable
+         */
+        DeadlineListener(long deadlineNanos, java.util.function.BooleanSupplier stop,
+                         java.util.function.Consumer<String> traceSink) {
             this.deadlineNanos = deadlineNanos;
             this.stop = stop;
+            this.traceSink = traceSink;
         }
+
+        private final java.util.function.Consumer<String> traceSink;
 
         private void check() {
             if (stop != null && stop.getAsBoolean()) {
@@ -156,6 +168,10 @@ public final class XsltSandbox {
         @Override
         public void enter(Traceable traceable, Map<String, Object> properties, XPathContext context) {
             check();
+            if (traceSink != null && properties != null && properties.containsKey("label")
+                    && properties.containsKey("value") && "Trace".equals(traceable.getClass().getSimpleName())) {
+                traceSink.accept(traceLine(properties.get("label"), properties.get("value")));
+            }
         }
 
         @Override
@@ -178,6 +194,40 @@ public final class XsltSandbox {
         @Override
         public void endRuleSearch(Object rule, Mode mode, Item item) {
         }
+    }
+
+    /** Items of a traced value written out, at most. */
+    static final int TRACE_ITEMS = 20;
+
+    /**
+     * An {@code fn:trace()} line as a trace listener receives it ("label" and "value" properties): the label and
+     * the items, a node as its path ({@code /funds/Fund[1]}), any other item as its string value.
+     */
+    public static String traceLine(Object label, Object value) {
+        StringBuilder sb = new StringBuilder(String.valueOf(label)).append(": ");
+        if (value instanceof net.sf.saxon.om.Sequence sequence) {
+            try (net.sf.saxon.om.SequenceIterator items = sequence.iterate()) {
+                int n = 0;
+                for (Item item; (item = items.next()) != null; n++) {
+                    if (n == TRACE_ITEMS) {
+                        sb.append(", …");
+                        break;
+                    }
+                    if (n > 0) {
+                        sb.append(", ");
+                    }
+                    sb.append(item instanceof net.sf.saxon.om.NodeInfo node
+                            ? net.sf.saxon.tree.util.Navigator.getPath(node) : item.getStringValue());
+                }
+                if (n == 0) {
+                    sb.append("()");
+                }
+                return sb.toString();
+            } catch (RuntimeException e) {
+                // fall back to the plain text below
+            }
+        }
+        return sb.append(value).toString();
     }
 
     /** A writer that fails once the shared character budget is used up. */

@@ -145,6 +145,18 @@ public final class QueryErrors {
                 plain.message(), plain.hint(), List.of(), query, QueryLanguage.XQUERY);
     }
 
+    /**
+     * An error in {@code query} at a known position: the message cleaned, the position refined to the failing token,
+     * with hint and corrections (an XPath expression inside a stylesheet, for example).
+     *
+     * @param line   1-based line in {@code query}, or -1
+     * @param column 1-based column, or -1
+     */
+    public static QueryError located(String code, int line, int column, String message, String query,
+                                     QueryLanguage language) {
+        return build(code, line, column, message, null, query == null ? "" : query, language, null, null);
+    }
+
     /** As {@link #from} for an error known only by code and message (no position). */
     public static QueryError of(String code, String message, String query, QueryLanguage language) {
         return build(code, -1, -1, message, null, query == null ? "" : query, language, null, null);

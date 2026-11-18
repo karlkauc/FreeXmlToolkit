@@ -147,7 +147,9 @@ fxt-cli transform -s STYLESHEET [options] [INPUT...]
 |---|---|
 | `-s`, `--stylesheet FILE` | `.xsl`/`.xslt` (XSLT), `.xq`/`.xquery`/`.xqy`/`.xql`/`.xqm` (XQuery), `.xpl` (XProc) |
 | `-l`, `--language LANG` | `xslt`, `xquery`, `xproc`, for other file extensions |
-| `-p`, `--param NAME=VALUE` | Stylesheet parameter or external XQuery variable (string); repeatable |
+| `-p`, `--param NAME=VALUE` | Stylesheet parameter or external XQuery variable; the text is converted to the declared type (`as="xs:integer"`, `xs:date`, …); repeatable |
+| `--initial-template [NAME]` | XSLT 3.0: start at a named template - without NAME the stylesheet's `xsl:initial-template`. No input needed (with one, it is the global context item) |
+| `--initial-mode NAME` | XSLT 3.0: apply templates to the input in this mode |
 | `-m`, `--method METHOD` | Output method `xml`, `html`, `xhtml`, `text`, `json`; default: the stylesheet's `xsl:output`, else `xml` |
 | `-o`, `--output FILE` | Output file (one input) |
 | `-d`, `--output-dir DIR` | Output folder for several inputs; each result is named after its input with the extension of the output method |

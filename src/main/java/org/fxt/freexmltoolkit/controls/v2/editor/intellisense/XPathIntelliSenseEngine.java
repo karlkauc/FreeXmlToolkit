@@ -75,6 +75,14 @@ public class XPathIntelliSenseEngine {
     }
 
     /**
+     * Offers only the functions of the language version {@code version} returns (asked on every completion; an
+     * XQuery passes its XPath level).
+     */
+    public void setVersion(java.util.function.Supplier<org.fxt.freexmltoolkit.service.standards.XPathVersion> version) {
+        provider.setVersion(version);
+    }
+
+    /**
      * Sets up the character and key triggers.
      */
     private void setupTriggers() {

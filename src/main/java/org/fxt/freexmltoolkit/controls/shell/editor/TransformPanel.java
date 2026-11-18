@@ -61,7 +61,18 @@ public class TransformPanel extends VBox {
     @FXML private ContextMenu inputMenu;
     @FXML private ContextMenu xsltMenu;
     @FXML private javafx.scene.control.ComboBox<FormatChoice> formatChoice;
+    /** Serialization where the stylesheet's xsl:output does not say (TransformOutputSettings). */
+    @FXML private javafx.scene.control.CheckBox indentCheck;
+    @FXML private javafx.scene.control.CheckBox omitDeclarationCheck;
     @FXML private VBox paramsBox;
+    /** Where the run starts (StartPoints) and a function's argument fields. */
+    @FXML private javafx.scene.control.ComboBox<StartPoints.Choice> startChoice;
+    @FXML private VBox startArgs;
+    /** The parameters the chosen stylesheet declares (from its last compile). */
+    private List<org.fxt.freexmltoolkit.service.XsltTransformationEngine.DeclaredParameter> declaredParameters =
+            List.of();
+    /** Bumped on every stylesheet change: an older scan's result is dropped. */
+    private int stylesheetScan;
     @FXML private VBox paramRows;
     @FXML private VBox runBox;
     @FXML private Button debugButton;
@@ -240,6 +251,12 @@ public class TransformPanel extends VBox {
 
         // --- OUTPUT METHOD -----------------------------------------------------
         fillFormatChoice();
+        initOutputOptions();
+
+        // --- START -------------------------------------------------------------
+        startChoice.getItems().setAll(StartPoints.applyTemplates());
+        startChoice.getSelectionModel().selectFirst();
+        startChoice.valueProperty().addListener((obs, oldV, newV) -> showStartArguments(newV));
 
         // --- PARAMETERS ----------------------------------------------------------
         Button addParam = PanelActionList.inlineRow(org.fxt.freexmltoolkit.i18n.I18n.t("TransformPanel.addParameter"), "bi-plus-circle", () -> addParameter("", ""));
@@ -934,6 +951,54 @@ public class TransformPanel extends VBox {
         });
     }
 
+    /** Tools → Show Execution Plan: Saxon's plan of the chosen stylesheet in a tool tab. */
+    @FXML
+    public void onShowPlan() {
+        if (!hasXslt()) {
+            out.showError(I18n.t("TransformPanel.select-an-xslt-stylesheet-first"));
+            return;
+        }
+        String editorText = stylesheetEditorText();
+        File file = xsltFile;
+        String systemId = stylesheetSystemId(null);
+        String title = I18n.t("EditorActions.plan", stylesheetName());
+        FxtGui.executorService.submit(() -> {
+            String plan;
+            String failure = null;
+            try {
+                String xslt = editorText != null ? editorText : Files.readString(file.toPath(), StandardCharsets.UTF_8);
+                plan = org.fxt.freexmltoolkit.service.XsltTransformationEngine.getInstance().explainXslt(xslt, systemId);
+            } catch (Exception e) {
+                plan = null;
+                failure = e.getMessage();
+            }
+            String shown = plan;
+            String error = failure;
+            Platform.runLater(() -> {
+                if (shown == null) {
+                    out.showFailure(I18n.t("EditorActions.plan-failed", error));
+                } else {
+                    editorHost.openToolTab(title, "bi-diagram-3", new PlanView(shown));
+                }
+            });
+        });
+    }
+
+    /** Indent / Omit XML declaration: stored at once, locked ones disabled. */
+    private void initOutputOptions() {
+        indentCheck.setSelected(TransformOutputSettings.indent());
+        omitDeclarationCheck.setSelected(TransformOutputSettings.omitDeclaration());
+        indentCheck.setDisable(TransformOutputSettings.locked(TransformOutputSettings.INDENT_KEY));
+        omitDeclarationCheck.setDisable(TransformOutputSettings.locked(TransformOutputSettings.OMIT_DECLARATION_KEY));
+        TransformOutputSettings.apply();
+    }
+
+    /** One of the output options changed. */
+    @FXML
+    public void onOutputOptionChanged() {
+        TransformOutputSettings.set(indentCheck.isSelected(), omitDeclarationCheck.isSelected());
+    }
+
     // ----- INPUT (active editor vs explicit file) ---------------------------
 
     @FXML
@@ -1031,7 +1096,8 @@ public class TransformPanel extends VBox {
     Map<String, Object> collectParameters() {
         Map<String, Object> params = new LinkedHashMap<>();
         for (var node : paramRows.getChildren()) {
-            if (node instanceof ParamRow row && !row.name().isBlank()) {
+            // an offered row left empty keeps the stylesheet's default
+            if (node instanceof ParamRow row && !row.name().isBlank() && !(row.declared && row.value().isEmpty())) {
                 params.put(row.name(), row.value());
             }
         }
@@ -1185,6 +1251,7 @@ public class TransformPanel extends VBox {
         if (file != null) {
             addRecentXslt(file);
         }
+        refreshStylesheetInfo();
     }
 
     /**
@@ -1204,9 +1271,151 @@ public class TransformPanel extends VBox {
         }
         refreshXsltName();
         refreshInputName(); // the stylesheet is never the input
+        refreshStylesheetInfo();
         if (readyToAutoRun()) {
             transform();
         }
+    }
+
+    /**
+     * Reads the chosen stylesheet off the FX thread: where it can start ({@link StartPoints}) and the parameters it
+     * declares (from its compile), which become parameter rows.
+     */
+    public void refreshStylesheetInfo() {
+        int scan = ++stylesheetScan;
+        String editorText = stylesheetEditorText();
+        File file = xsltFile;
+        if (editorText == null && file == null) {
+            applyStylesheetInfo(scan, List.of(StartPoints.applyTemplates()), List.of());
+            return;
+        }
+        String systemId = stylesheetSystemId(null);
+        FxtGui.executorService.submit(() -> {
+            String xslt;
+            try {
+                xslt = editorText != null ? editorText : Files.readString(file.toPath(), StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                return;
+            }
+            List<StartPoints.Choice> starts = StartPoints.of(xslt);
+            var params = org.fxt.freexmltoolkit.service.XsltTransformationEngine.getInstance()
+                    .stylesheetParameters(xslt, systemId);
+            Platform.runLater(() -> applyStylesheetInfo(scan, starts, params));
+        });
+    }
+
+    private void applyStylesheetInfo(int scan, List<StartPoints.Choice> starts,
+                                     List<org.fxt.freexmltoolkit.service.XsltTransformationEngine.DeclaredParameter> params) {
+        if (scan != stylesheetScan) {
+            return;
+        }
+        String chosen = startChoice.getValue() == null ? null : startChoice.getValue().label();
+        startChoice.getItems().setAll(starts);
+        StartPoints.Choice keep = starts.stream().filter(c -> c.label().equals(chosen)).findFirst().orElse(null);
+        // a stylesheet made to start at xsl:initial-template starts there
+        StartPoints.Choice initial = starts.stream()
+                .filter(c -> c.start().kind() == org.fxt.freexmltoolkit.service.XsltTransformationEngine.StartPoint.Kind.TEMPLATE
+                        && c.start().name() == null)
+                .findFirst().orElse(null);
+        startChoice.setValue(keep != null && chosen != null && !keep.start().isDefault() ? keep
+                : initial != null ? initial : starts.getFirst());
+        offerDeclaredParameters(params);
+    }
+
+    /** One field per argument of a function start; nothing for the other starts. */
+    private void showStartArguments(StartPoints.Choice choice) {
+        startArgs.getChildren().clear();
+        if (choice == null) {
+            return;
+        }
+        for (String parameter : choice.parameters()) {
+            javafx.scene.control.TextField field = new javafx.scene.control.TextField();
+            field.setPromptText(parameter);
+            field.setAccessibleText(parameter);
+            startArgs.getChildren().add(field);
+        }
+    }
+
+    /** @return where the run starts, with the function's arguments as typed */
+    org.fxt.freexmltoolkit.service.XsltTransformationEngine.StartPoint chosenStart() {
+        StartPoints.Choice choice = startChoice.getValue();
+        if (choice == null) {
+            return org.fxt.freexmltoolkit.service.XsltTransformationEngine.StartPoint.DEFAULT;
+        }
+        List<String> arguments = startArgs.getChildren().stream()
+                .filter(n -> n instanceof javafx.scene.control.TextField)
+                .map(n -> ((javafx.scene.control.TextField) n).getText() == null ? ""
+                        : ((javafx.scene.control.TextField) n).getText())
+                .toList();
+        var start = choice.start();
+        return new org.fxt.freexmltoolkit.service.XsltTransformationEngine.StartPoint(start.kind(), start.name(),
+                arguments);
+    }
+
+    /** Chooses the start whose label is {@code label} (tests, scenarios); unknown labels keep the choice. */
+    public void chooseStart(String label) {
+        startChoice.getItems().stream().filter(c -> c.label().equals(label)).findFirst()
+                .ifPresent(startChoice::setValue);
+    }
+
+    /** @return the label of the chosen start (tests) */
+    String chosenStartLabel() {
+        return startChoice.getValue() == null ? null : startChoice.getValue().label();
+    }
+
+    /** @return the names of the parameter rows, offered or typed (tests) */
+    List<String> collectParameterNames() {
+        return paramRows.getChildren().stream().filter(n -> n instanceof ParamRow)
+                .map(n -> ((ParamRow) n).name()).toList();
+    }
+
+    /** Sets the value of the parameter row {@code name} (tests). */
+    void setParameterValue(String name, String value) {
+        paramRows.getChildren().stream().filter(n -> n instanceof ParamRow r && r.name().equals(name))
+                .findFirst().ifPresent(n -> ((ParamRow) n).valueField.setText(value));
+    }
+
+    /** @return the labels of the start choices (tests) */
+    public List<String> startLabels() {
+        return startChoice.getItems().stream().map(StartPoints.Choice::label).toList();
+    }
+
+    /** Sets the {@code index}-th argument field of a function start (tests). */
+    void setStartArgument(int index, String value) {
+        ((javafx.scene.control.TextField) startArgs.getChildren().get(index)).setText(value);
+    }
+
+    /**
+     * Rows for the declared parameters: one per parameter the user has no row for, its type and whether it is
+     * required as prompt; empty rows offered for an earlier stylesheet go.
+     */
+    private void offerDeclaredParameters(
+            List<org.fxt.freexmltoolkit.service.XsltTransformationEngine.DeclaredParameter> params) {
+        declaredParameters = params;
+        java.util.Set<String> names = new java.util.HashSet<>();
+        params.forEach(p -> names.add(p.name()));
+        paramRows.getChildren().removeIf(n -> n instanceof ParamRow row && row.declared
+                && row.value().isEmpty() && !names.contains(row.name()));
+        for (var p : params) {
+            ParamRow row = paramRows.getChildren().stream()
+                    .filter(n -> n instanceof ParamRow r && r.name().equals(p.name()))
+                    .map(n -> (ParamRow) n).findFirst().orElse(null);
+            if (row == null) {
+                row = new ParamRow(p.name(), "");
+                row.declared = true;
+                paramRows.getChildren().add(row);
+            }
+            row.describe(p);
+        }
+    }
+
+    /** @return the declared parameters that are required and have no value, comma-separated, or {@code null} */
+    String missingRequiredParameters() {
+        Map<String, Object> values = collectParameters();
+        List<String> missing = declaredParameters.stream()
+                .filter(p -> p.required() && (values.get(p.name()) == null || values.get(p.name()).toString().isEmpty()))
+                .map(p -> "$" + p.name()).toList();
+        return missing.isEmpty() ? null : String.join(", ", missing);
     }
 
     /** @return the open tab chosen as the stylesheet, or {@code null} (none chosen, or closed). */
@@ -1238,6 +1447,32 @@ public class TransformPanel extends VBox {
             dir = java.nio.file.Path.of(System.getProperty("user.dir")).toAbsolutePath();
         }
         return dir.resolve("untitled.xsl").toUri().toString();
+    }
+
+    /**
+     * Opens the stylesheet line of a message: {@code location} is {@code file.xsl:line[:column]}; a file other
+     * than the stylesheet itself is looked up next to it (an included or imported module).
+     */
+    void revealStylesheetLine(String location, int line) {
+        String file = location == null ? "" : location.replaceFirst("(:\\d+)+$", "");
+        OpenDocument document = stylesheetDocument();
+        boolean main = file.isEmpty() || "stylesheet".equals(file)
+                || xsltFile != null && xsltFile.getName().equals(file)
+                || xsltFile == null && document != null;
+        if (main && document != null) {
+            editorHost.selectDocument(document);
+            editorHost.goToLine(line);
+            return;
+        }
+        java.nio.file.Path base = xsltFile != null ? xsltFile.toPath().toAbsolutePath()
+                : document != null ? document.getPath() : null;
+        if (base == null) {
+            return;
+        }
+        java.nio.file.Path target = main ? base : base.resolveSibling(file);
+        if (Files.isRegularFile(target)) {
+            editorHost.openFileAndSelect(target, -1, -1, null, line);
+        }
     }
 
     /** @return the stylesheet's name for statistics and tab titles. */
@@ -1696,16 +1931,28 @@ public class TransformPanel extends VBox {
     private void updateForProcessor() {
         boolean external = processorChoice.selected() != null;
         String tip = external ? I18n.t("XsltProcessorChoice.saxonOnly") : null;
-        for (javafx.scene.control.Control c : new javafx.scene.control.Control[] {profileCheck, traceCheck, xsltVersionChoice}) {
+        for (javafx.scene.control.Control c : new javafx.scene.control.Control[] {profileCheck, traceCheck, xsltVersionChoice,
+                startChoice}) {
             c.setDisable(external);
         }
         profileCheck.setTooltip(tip == null ? null : new javafx.scene.control.Tooltip(tip));
         traceCheck.setTooltip(tip == null ? null : new javafx.scene.control.Tooltip(tip));
+        if (external) {
+            startChoice.getSelectionModel().selectFirst(); // another processor starts with the input's templates
+        }
     }
 
     private void transformNow(boolean live) {
         if (!hasXslt()) {
             out.showError(I18n.t("TransformPanel.select-an-xslt-stylesheet-first"));
+            return;
+        }
+        // another processor always applies templates to the input
+        var start = processorChoice.selected() != null && !live
+                ? org.fxt.freexmltoolkit.service.XsltTransformationEngine.StartPoint.DEFAULT : chosenStart();
+        String missing = missingRequiredParameters();
+        if (missing != null && !live) {
+            out.showError(I18n.t("TransformPanel.param.missing", missing));
             return;
         }
         String xml;
@@ -1726,12 +1973,17 @@ public class TransformPanel extends VBox {
                 xml = sourceText.get();
             } else {
                 OpenDocument input = inputDocument().orElse(null);
-                if (input == null) {
+                if (input == null && start.needsInput()) {
                     out.showError(I18n.t("TransformPanel.no-xml-input-open-the"));
                     return;
                 }
-                sourceDocument = input;
-                xml = editorHost.getDocumentText(input).orElse("");
+                if (input != null) {
+                    sourceDocument = input;
+                    xml = editorHost.getDocumentText(input).orElse("");
+                } else {
+                    sourceDocument = null; // a template or function start runs without input
+                    xml = "";
+                }
             }
         }
         File xslt = xsltFile;
@@ -1819,6 +2071,10 @@ public class TransformPanel extends VBox {
                     // the JDK's XSLT 1.0 processor: no profile or trace (those need Saxon)
                     fullResult = TransformRunner.xsltTransformResult(xmlInput, xmlBaseUri, xsltContent,
                             xsltSystemId, params, format, xsltVersion);
+                } else if (!start.isDefault()) {
+                    // a mode, named template or function: the XSLT 3.0 API (no profile or trace)
+                    fullResult = TransformRunner.xsltTransformFrom(xmlInput, xmlBaseUri, xsltContent,
+                            xsltSystemId, params, format, xsltVersion, start);
                 } else if (wantProfile) {
                     // the profiler's run delivers the output too; a trace needs its own run
                     var profiled = TransformRunner.profile(xmlInput, xmlBaseUri, xsltContent, xsltSystemId, params,
@@ -1838,7 +2094,7 @@ public class TransformPanel extends VBox {
                 }
                 result = fullResult.isSuccess()
                         ? fullResult.getOutputContent()
-                        : "ERROR: " + fullResult.getErrorMessage();
+                        : TransformRunner.failureText(fullResult);
             } catch (Exception e) {
                 result = "ERROR: " + e.getMessage();
                 fullResult = org.fxt.freexmltoolkit.service.XsltTransformationResult.error(e.getMessage(), e);
@@ -1849,7 +2105,8 @@ public class TransformPanel extends VBox {
             }
             boolean ok = !result.startsWith("ERROR");
             UsageEvents.xsltTransformed(1, t0, live, fullResult != null ? fullResult.getErrorPhase() : null,
-                    TransformRunner.failureOf(fullResult), xmlInput.length());
+                    TransformRunner.failureOf(fullResult), xmlInput.length(),
+                    start.isDefault() ? null : start.kind().telemetryValue(start.name()));
             long elapsedMs = probe.finish(xmlInput.length(), ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             String finalResult = result;
@@ -1860,6 +2117,8 @@ public class TransformPanel extends VBox {
             org.fxt.freexmltoolkit.service.XsltTransformationResult report =
                     (wantProfile || wantTrace) ? fullResult : null;
             org.fxt.freexmltoolkit.service.XsltTransformationResult trace = traceResult;
+            java.util.List<org.fxt.freexmltoolkit.service.XsltTransformationResult.TransformationMessage> runMessages =
+                    TransformRunner.runMessages(fullResult);
             org.fxt.freexmltoolkit.service.XsltProfile finalProfile = profile;
             String xsltForProfile = profiledXslt;
             String xmlForProfile = xmlInput;
@@ -1882,6 +2141,7 @@ public class TransformPanel extends VBox {
                 } else {
                     out.showTransformResult(finalResult, finalFormat, elapsedMs, resultSource);
                 }
+                out.setRunMessages(runMessages, this::revealStylesheetLine);
                 if (!finalResult.startsWith("ERROR") && autoOpenResultTab.isSelected()) {
                     out.openResultInEditor();
                 }
@@ -2024,6 +2284,20 @@ public class TransformPanel extends VBox {
             remove.getStyleClass().add("fxt-sp-action");
             remove.setOnAction(e -> paramRows.getChildren().remove(this));
             getChildren().addAll(nameField, eq, valueField, remove);
+        }
+
+        /** Offered for a parameter the stylesheet declares (left out of a run while empty). */
+        boolean declared;
+
+        /** Shows a declared parameter's type (and that it is required) in the value field. */
+        void describe(org.fxt.freexmltoolkit.service.XsltTransformationEngine.DeclaredParameter p) {
+            String prompt = p.required() ? I18n.t("TransformPanel.param.required", p.type()) : p.type();
+            valueField.setPromptText(prompt);
+            valueField.setAccessibleText(p.name() + " (" + prompt + ")");
+            nameField.getStyleClass().remove("fxt-param-required");
+            if (p.required()) {
+                nameField.getStyleClass().add("fxt-param-required");
+            }
         }
 
         String name() {

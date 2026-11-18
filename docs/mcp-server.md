@@ -185,6 +185,10 @@ Run an XQuery query (3.1 unless xquery_version says otherwise), with an XML docu
 
 Run an XSLT stylesheet (1.0, 2.0 or 3.0, Saxon) on an XML document and return the output. Pass the stylesheet you just wrote as xslt_content to check it without saving it. Nothing is written to disk: xsl:result-document output comes back in 'result_documents'. xsl:message output is in 'messages'. A stylesheet that does not compile or fails at run time returns 'error' with code, phase (compile, input, runtime) and line — fix the stylesheet and call again. No Java extensions, no network, reads only inside the allowed folders, stops at the time limit. xslt_version 1.0 runs the stylesheet on a real XSLT 1.0 processor (the JDK's XSLTC); 2.0 first rejects XSLT 3.0 instructions and XPath 3.x syntax and functions (code FXT-COMPAT) - use it to write stylesheets for older processors.
 
+A compile error's `error` also has `column` (inside the failing `select` / attribute, where Saxon knows it), `module`
+(the included or imported file the error is in, `null` for the stylesheet itself) and `hint` (the usual cause, or
+`null`). `messages` now include `trace()` output (level `TRACE`) and compile warnings.
+
 | Argument | Type | Meaning |
 |---|---|---|
 | `xml_path` | string | Path of the XML source document (inside the allowed folders). Give this or xml_content, not both. |

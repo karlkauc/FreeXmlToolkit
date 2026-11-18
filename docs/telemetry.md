@@ -47,7 +47,8 @@ names. A stylesheet that does not compile or an input that is not well-formed is
 user's files, not with the app: those runs have status `invalid_input`. So do runtime failures with a
 serialization error code (`SESU*`, `SEPM*`, `SERE*`, e.g. an `xsl:output` version the serializer does not
 support); only other `runtime` failures have status `error`. The error dialog of a failed run is not reported a second time as an app error.
-`input_bytes` is the size of the source document in characters.
+`input_bytes` is the size of the source document in characters. A run that did not apply templates in the default
+mode has `meta.start` = `mode`, `template` or `function` (never the name).
 
 A failed **XSD generation** (`xsd_generate`) carries the exception class in `error_code`, or
 `not_well_formed` with status `invalid_input` when the sample XML is not well-formed. A failed

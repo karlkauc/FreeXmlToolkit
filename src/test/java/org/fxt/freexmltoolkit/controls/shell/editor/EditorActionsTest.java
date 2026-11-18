@@ -519,6 +519,38 @@ class EditorActionsTest {
                 "with only the stylesheet open, a guard message must be shown: " + out.getOutputText());
     }
 
+    @Test
+    void aQueryTabAsksOnceForARequiredExternalVariable(@TempDir Path tmp) throws Exception {
+        EditorHost host = shell.getEditorHost();
+        Path xml = tmp.resolve("order.xml");
+        Files.writeString(xml, "<order><item>A</item><item>B</item></order>");
+        Path xq = tmp.resolve("times.xq");
+        Files.writeString(xq, "declare variable $n as xs:integer external; count(//item) * $n");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("order")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xq));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("external")).orElse(false));
+        int[] asked = {0};
+        var before = EditorActions.variablePrompt;
+        EditorActions.variablePrompt = (name, type) -> {
+            asked[0]++;
+            return java.util.Optional.of("21");
+        };
+        try {
+            EditorActions actions = new EditorActions(host);
+            var out = WaitForAsyncUtils.waitForAsyncFx(2000, host::transformOutputPanel);
+            WaitForAsyncUtils.waitForAsyncFx(2000, actions::runActiveQuery);
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> out.getOutputText().contains("42"));
+            WaitForAsyncUtils.waitForAsyncFx(2000, actions::runActiveQuery);
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> out.getOutputText().contains("42"));
+            assertEquals(1, asked[0], "the value is remembered for the file");
+        } finally {
+            EditorActions.variablePrompt = before;
+        }
+    }
+
     private void openAndAwait(EditorHost host, Path file, String marker) throws Exception {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(file));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,

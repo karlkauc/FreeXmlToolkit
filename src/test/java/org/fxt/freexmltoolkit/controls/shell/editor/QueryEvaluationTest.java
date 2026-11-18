@@ -113,4 +113,16 @@ class QueryEvaluationTest {
             assertTrue(r.text().strip().endsWith("A"), lang + ": " + r.text());
         }
     }
+
+    @Test
+    void traceLinesComeWithTheResultAlsoWhenTheRunCanBeCancelled() {
+        var request = new QueryEvaluation.Request(QueryLanguage.XQUERY, null, null,
+                "<funds><Fund/><Fund/></funds>", "count(trace(//Fund, 'funds'))", null, null, java.util.Map.of(),
+                null, new QueryEvaluation.Cancel(), 60_000);
+        QueryEvaluation.Result result = QueryEvaluation.run(request);
+
+        assertTrue(result.ok(), result.text());
+        assertFalse(result.messages().isEmpty(), "trace lines: " + result.messages());
+        assertTrue(result.messages().getFirst().getMessage().startsWith("funds"));
+    }
 }
