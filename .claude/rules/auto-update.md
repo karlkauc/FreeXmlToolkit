@@ -29,6 +29,12 @@ updater dispatch:
   installed one and swapped in by two renames (old bundle restored if the second fails),
   then started with `open -n`. Never copy files into the bundle — it breaks the code
   signature. Before 2.5.2 the macOS self-update never worked (manual install needed once).
+  **No process from the JVM after the swap:** macOS starts processes through
+  `$JAVA_HOME/lib/jspawnhelper`, which refuses another Java build ("Incorrect Java version"),
+  and after the swap that path is the new runtime. So a `/bin/sh` relaunch helper
+  (`RELAUNCH_SCRIPT`, injectable `Launcher`) is started before the swap and waits for
+  `<extracted>/.relaunch.go` (then extras `ditto` + `open -n`) or `.abort`; only when it
+  cannot start does the old in-process `open` run, and its failure says "installed".
 - **Linux:** No separate helper — `AutoUpdateServiceImpl` performs
   in-process recursive copy then exec's the new launcher (POSIX inode
   semantics allow overwriting files of running processes).

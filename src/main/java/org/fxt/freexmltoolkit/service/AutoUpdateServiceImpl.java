@@ -561,7 +561,8 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
     }
 
     private MacBundleUpdater macBundleUpdater(Path debugLog) {
-        return new MacBundleUpdater(MacBundleUpdater.systemRunner(), msg -> writeDebugLog(debugLog, msg));
+        return new MacBundleUpdater(MacBundleUpdater.systemRunner(), MacBundleUpdater.systemLauncher(),
+                msg -> writeDebugLog(debugLog, msg));
     }
 
     /**

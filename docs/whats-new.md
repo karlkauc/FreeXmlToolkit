@@ -57,6 +57,9 @@ running is shown under **Help → About FreeXmlToolkit**.
   editor font needs no list now, and the list is read in the background at start.
 - **An update is offered only once its package can be downloaded.** Right after a release is published its packages
   are still being uploaded; an update check in those minutes offered the new version and the download failed.
+- **macOS: the updated application starts again on its own.** When the new version came with a newer Java runtime,
+  the update was installed but the application could not start it and reported the update as failed. Takes effect
+  for updates made from this version on.
 
 ## 3.4.0 (2026-11-18)
 
