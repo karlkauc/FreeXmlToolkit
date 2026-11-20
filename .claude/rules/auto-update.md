@@ -23,6 +23,12 @@ updater dispatch:
   `docs/superpowers/specs/2026-05-07-windows-auto-update-redesign.md`.
   **Updater fixes are never retroactive** — the N→N+1 update runs version
   N's Java code, so users with a broken updater need one manual install.
+  Locked files: each is retried with a doubling delay capped at 8 s, 24 retries (≈ 3 min,
+  `copy::MAX_RETRY_DELAY_MS`, `default_copy_retry_max`) — a virus scanner holds fresh files that
+  long, and giving up leaves a half-copied install running the old version. Every run writes one
+  `RESULT <code> [folder=<top folder>]` line to `~/fxt-update-helper.log` (`src/result.rs`; before
+  the restart, so the new process can read it); on `version_mismatch` the next start reports it as
+  `meta.helper_result` / `helper_folder` (`service/update/HelperResult`, `UpdateFunnel.reportInstalled`).
 - **macOS:** `service/update/MacBundleUpdater` — the update ZIP holds the signed
   `FreeXmlToolkit.app` plus an extras folder `FreeXmlToolkit/`. Extracted with `ditto`
   (ZipInputStream loses the runtime's symlinks), the new bundle is staged next to the

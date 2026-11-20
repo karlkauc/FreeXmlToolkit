@@ -603,7 +603,7 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
 
             // 3. Write TOML config
             Path configFile = extractedDir.resolve("helper-config.toml");
-            Path helperLog = Path.of(System.getProperty("user.home"), "fxt-update-helper.log");
+            Path helperLog = org.fxt.freexmltoolkit.service.update.HelperResult.defaultLog();
             writeRustHelperConfig(configFile, extractedDir, appDir, launcher, helperLog);
             writeDebugLog(debugLog, "Helper config written: " + configFile);
 

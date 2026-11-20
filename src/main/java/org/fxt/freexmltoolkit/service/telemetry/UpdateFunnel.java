@@ -177,6 +177,21 @@ public final class UpdateFunnel {
      */
     public static boolean reportInstalled(PropertiesService props, String runningVersion,
                                           TelemetryService telemetry, Clock clock) {
+        boolean windows = "windows".equals(platform(System.getProperty("os.name")));
+        return reportInstalled(props, runningVersion, telemetry, clock,
+                windows ? org.fxt.freexmltoolkit.service.update.HelperResult.defaultLog() : null);
+    }
+
+    /**
+     * As {@link #reportInstalled(PropertiesService, String, TelemetryService, Clock)}; when the old
+     * version still runs, the helper's {@code RESULT} line in {@code helperLog} (Windows) tells why:
+     * {@code meta.helper_result} (a fixed code, {@code none} when the helper wrote none for this
+     * update) and {@code meta.helper_folder} (top-level install folder of a failed copy).
+     *
+     * @param helperLog the Windows update helper's log, or {@code null} on other platforms
+     */
+    static boolean reportInstalled(PropertiesService props, String runningVersion,
+                                   TelemetryService telemetry, Clock clock, java.nio.file.Path helperLog) {
         if (props == null || telemetry == null) {
             return false;
         }
@@ -190,11 +205,17 @@ public final class UpdateFunnel {
             clearPending(props);
             boolean ok = to != null && normalize(to).equals(normalize(runningVersion));
             Long ms = millisSince(at, clock);
+            var helper = ok || helperLog == null ? null
+                    : org.fxt.freexmltoolkit.service.update.HelperResult.lastSince(helperLog, parseInstant(at));
             telemetry.track("update_installed", TelemetryEvent.Category.LIFECYCLE, b -> {
                 versions(b, from, to);
                 b.meta("actual", normalize(runningVersion));
                 if (!ok) {
                     b.status(TelemetryEvent.Status.ERROR).errorCode(CODE_VERSION_MISMATCH);
+                }
+                if (helper != null) {
+                    b.meta("helper_result", helper.map(r -> r.code()).orElse("none"));
+                    helper.map(r -> r.folder()).ifPresent(folder -> b.meta("helper_folder", folder));
                 }
                 if (ms != null) {
                     b.durationMs(ms);
@@ -236,6 +257,14 @@ public final class UpdateFunnel {
         try {
             long ms = (clock != null ? clock : Clock.systemUTC()).millis() - Instant.parse(isoInstant).toEpochMilli();
             return ms >= 0 ? ms : null;
+        } catch (DateTimeParseException e) {
+            return null;
+        }
+    }
+
+    private static Instant parseInstant(String isoInstant) {
+        try {
+            return isoInstant == null ? null : Instant.parse(isoInstant);
         } catch (DateTimeParseException e) {
             return null;
         }

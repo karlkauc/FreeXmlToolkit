@@ -63,6 +63,9 @@ running is shown under **Help → About FreeXmlToolkit**.
 - **No second window after a double launch.** Starting FreeXmlToolkit twice in quick succession after it had not
   been closed properly (for example a shutdown with the application open) could open two windows. The second launch
   now always hands over to the first.
+- **Windows updates are more patient with virus scanners.** The update helper now waits up to about three minutes for
+  a program file a scanner still holds, instead of about one minute; before, it could give up and start the old
+  version again.
 
 ## 3.4.0 (2026-11-18)
 

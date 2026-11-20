@@ -55,6 +55,9 @@ fn copy_recursive(
     Ok(())
 }
 
+/// Upper bound of the wait between two attempts on a locked file (the delay doubles up to here).
+pub const MAX_RETRY_DELAY_MS: u64 = 8_000;
+
 pub fn copy_with_retry(
     src: &Path,
     dst: &Path,
@@ -88,7 +91,7 @@ pub fn copy_with_retry(
                     e
                 ));
                 thread::sleep(Duration::from_millis(delay));
-                delay = delay.saturating_mul(2);
+                delay = next_delay(delay);
             }
             Err(e) => {
                 return Err(HelperError::CopyFailed {
@@ -102,6 +105,11 @@ pub fn copy_with_retry(
     // The CopyExhausted return inside the loop fires on the last iteration.
     // This is unreachable but rustc cannot prove that.
     unreachable!("loop above always returns")
+}
+
+/// The wait after `delay`: doubled, but never above [`MAX_RETRY_DELAY_MS`].
+pub fn next_delay(delay: u64) -> u64 {
+    delay.saturating_mul(2).min(MAX_RETRY_DELAY_MS)
 }
 
 /// Return `true` when `src` and `dst` exist with identical size and byte
@@ -341,5 +349,21 @@ mod tests {
         fs::write(&dst, b"old-version").unwrap();
         copy_with_retry(&src, &dst, 1, 0, &null_logger()).expect("should copy");
         assert_eq!(fs::read(&dst).unwrap(), b"new-version");
+    }
+
+    #[test]
+    fn retry_delay_doubles_up_to_the_cap() {
+        assert_eq!(next_delay(1_000), 2_000);
+        assert_eq!(next_delay(4_000), 8_000);
+        assert_eq!(next_delay(8_000), MAX_RETRY_DELAY_MS);
+        assert_eq!(next_delay(u64::MAX), MAX_RETRY_DELAY_MS);
+        // 1 + 2 + 4 + 8 × 21 s with the default 24 retries
+        let mut delay = 1_000u64;
+        let mut total = 0u64;
+        for _ in 0..24 {
+            total += delay;
+            delay = next_delay(delay);
+        }
+        assert_eq!(total, 175_000);
     }
 }
