@@ -182,14 +182,15 @@ dependencies {
     implementation("jakarta.activation:jakarta.activation-api:2.1.4")
 
     // Security: transitive versions with known vulnerabilities lifted (OSV scan, November 2026).
-    // ognl 3.3.4 (via Thymeleaf) stays: 3.4 breaks Thymeleaf 3.1, and its CVE-2026-113730 needs
-    // attacker-written OGNL expressions; the documentation templates are bundled, no preprocessing.
+    // ognl comes with Thymeleaf (3.1.7 declares 3.4.x itself, which fixes CVE-2026-113730).
     implementation(platform("com.fasterxml.jackson:jackson-bom:2.23.0")) // via XML Calabash
     constraints {
         implementation("tools.jackson.core:jackson-core:3.3.0") { because("CVE fix; via json-schema-validator") }
         implementation("tools.jackson.core:jackson-databind:3.3.0") { because("CVE fix; via json-schema-validator") }
         implementation("org.jsoup:jsoup:1.24.1") { because("CVE fix; via flexmark") }
         testImplementation("org.assertj:assertj-core:3.27.7") { because("CVE fix; via TestFX") }
+        implementation("io.projectreactor:reactor-core:3.9.0") { because("MCP SDK 2.2.0 declares the release candidate 3.9.0-RC1") }
+        implementation("com.fasterxml.woodstox:woodstox-core:7.2.0") { because("jackson-bom 2.23 no longer lifts it; xmlsec alone pulls 7.1.0") }
     }
 
     implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.4.4")

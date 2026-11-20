@@ -38,7 +38,7 @@ and `bom.xml`.
 | Library | Version | License |
 |---------|---------|---------|
 | **Saxon-HE** (net.sf.saxon:Saxon-HE) | 12.10 | [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/) |
-| **XML Calabash** (com.xmlcalabash:xmlcalabash) | 3.0.54 | [MIT License](https://opensource.org/licenses/MIT) |
+| **XML Calabash** (com.xmlcalabash:xmlcalabash) | 3.1.0 | [MIT License](https://opensource.org/licenses/MIT) |
 | **Jakarta XML Bind API** (jakarta.xml.bind:jakarta.xml.bind-api) | 4.0.5 | [Eclipse Distribution License 1.0](https://www.eclipse.org/org/documents/edl-v10.php) |
 | **Gson** (com.google.code.gson:gson) | 2.15.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
@@ -57,7 +57,7 @@ and `bom.xml`.
 
 | Library | Version | License |
 |---------|---------|---------|
-| **ph-schematron** (com.helger.schematron:ph-schematron-pure / -xslt / -schxslt / -api) | 10.3.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **ph-schematron** (com.helger.schematron:ph-schematron-pure / -xslt / -schxslt / -api) | 10.3.2 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **JAXB Runtime** (org.glassfish.jaxb:jaxb-runtime, SVRL marshalling) | 4.0.9 | [Eclipse Distribution License 1.0](https://www.eclipse.org/org/documents/edl-v10.php) |
 | **ph-commons** (com.helger.commons:ph-commons / ph-xml / ph-io) | 12.x | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
@@ -174,13 +174,13 @@ are not bundled but downloaded from their publishers when first used.
 | Library | Version | License |
 |---------|---------|---------|
 | **Apache Santuario** (org.apache.santuario:xmlsec) | 4.0.4 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **Bouncy Castle** (org.bouncycastle:bcpkix-jdk18on) | 1.86 | [MIT License](https://www.bouncycastle.org/licence.html) |
+| **Bouncy Castle** (org.bouncycastle:bcpkix-jdk18on) | 1.87 | [MIT License](https://www.bouncycastle.org/licence.html) |
 
 ## Utilities and Commons
 
 | Library | Version | License |
 |---------|---------|---------|
-| **Apache Commons Lang3** (org.apache.commons:commons-lang3) | 3.21.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Apache Commons Lang3** (org.apache.commons:commons-lang3) | 3.22.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Apache Commons IO** (commons-io:commons-io) | 2.22.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Apache HttpClient 5** (org.apache.httpcomponents.client5:httpclient5) | 5.6.5 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Apache HttpCore 5 H2** (org.apache.httpcomponents.core5:httpcore5-h2) | 5.4.4 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
@@ -188,8 +188,8 @@ are not bundled but downloaded from their publishers when first used.
 | **Apache Commons Text** (org.apache.commons:commons-text) | 1.15.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Apache Commons Validator** (commons-validator:commons-validator) | 1.11.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **picocli** (info.picocli:picocli), for `fxt-cli` | 4.7.7 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **MCP Java SDK** (io.modelcontextprotocol.sdk:mcp-core, mcp-json-jackson3), for `fxt-cli mcp` | 2.1.0 | [MIT License](https://github.com/modelcontextprotocol/java-sdk/blob/main/LICENSE) |
-| **Reactor Core** (io.projectreactor:reactor-core), via the MCP Java SDK | 3.7.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **MCP Java SDK** (io.modelcontextprotocol.sdk:mcp-core, mcp-json-jackson3), for `fxt-cli mcp` | 2.2.0 | [MIT License](https://github.com/modelcontextprotocol/java-sdk/blob/main/LICENSE) |
+| **Reactor Core** (io.projectreactor:reactor-core), via the MCP Java SDK | 3.9.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Reactive Streams** (org.reactivestreams:reactive-streams), via Reactor Core | 1.0.4 | [MIT No Attribution](https://github.com/reactive-streams/reactive-streams-jvm/blob/main/LICENSE) |
 | **Anthropic Java SDK** (com.anthropic:anthropic-java-core), for the AI assistant's Anthropic provider | 3.8.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Kotlin standard library and reflection** (org.jetbrains.kotlin:kotlin-stdlib, kotlin-reflect), via the Anthropic SDK | 1.9.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
@@ -203,7 +203,7 @@ are not bundled but downloaded from their publishers when first used.
 
 | Library | Version | License |
 |---------|---------|---------|
-| **Thymeleaf** (org.thymeleaf:thymeleaf) | 3.1.5.RELEASE | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Thymeleaf** (org.thymeleaf:thymeleaf) | 3.1.7.RELEASE | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **FlexMark** (com.vladsch.flexmark:flexmark-all) | 0.64.8 | [BSD 2-Clause License](https://opensource.org/licenses/BSD-2-Clause) |
 
 ## Regular Expressions and Generation
