@@ -18,6 +18,8 @@
 package org.fxt.freexmltoolkit.util;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.Test;
 
@@ -48,5 +50,15 @@ class RenderingStatusTest {
         assertDoesNotThrow(RenderingPipelineDetector::detectAdapterNames);
         // Never null, even when the OS query fails.
         org.junit.jupiter.api.Assertions.assertNotNull(RenderingPipelineDetector.detectAdapterNames());
+    }
+
+    @Test
+    void pipelineIdsAreFixedShortValues() {
+        assertEquals("d3d", RenderingStatus.pipelineId("com.sun.prism.d3d.D3DPipeline"));
+        assertEquals("es2", RenderingStatus.pipelineId("com.sun.prism.es2.ES2Pipeline"));
+        assertEquals("mtl", RenderingStatus.pipelineId("com.sun.prism.mtl.MTLPipeline"));
+        assertEquals("sw", RenderingStatus.pipelineId("com.sun.prism.sw.SWPipeline"));
+        assertEquals("other", RenderingStatus.pipelineId("com.example.FancyPipeline"));
+        assertNull(RenderingStatus.pipelineId(null));
     }
 }

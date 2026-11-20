@@ -165,4 +165,36 @@ class ErrorSignatureTest {
         ErrorSignature sig = ErrorSignature.of(a);
         assertEquals("java.lang.RuntimeException", sig.errorCode());
     }
+
+    /** A stand-in for an exception only seen as printed text (render thread). */
+    static final class StandIn extends RuntimeException implements ReportedClassName {
+        private final String original;
+
+        StandIn(String original) {
+            super("Cannot invoke \"x\" because C:\\Users\\secret is null", null, false, true);
+            this.original = original;
+            setStackTrace(new StackTraceElement[]{
+                    new StackTraceElement("com.sun.javafx.sg.prism.NGCanvas", "renderStream", "NGCanvas.java", 1000)});
+        }
+
+        @Override
+        public String reportedClassName() {
+            return original;
+        }
+    }
+
+    @Test
+    void aStandInIsReportedUnderTheOriginalClassWithoutItsMessage() {
+        ErrorSignature sig = ErrorSignature.of(new StandIn("java.lang.NullPointerException"));
+        assertEquals("java.lang.NullPointerException", sig.errorCode());
+        assertTrue(sig.detail().startsWith("java.lang.NullPointerException"), sig.detail());
+        assertTrue(sig.detail().contains("NGCanvas#renderStream"), sig.detail());
+        assertFalse(sig.detail().contains("secret"));
+    }
+
+    @Test
+    void aStandInWithoutAUsableClassKeepsItsOwn() {
+        ErrorSignature sig = ErrorSignature.of(new StandIn("not a class: C:\\Users\\x"));
+        assertTrue(sig.errorCode().endsWith("StandIn"), sig.errorCode());
+    }
 }

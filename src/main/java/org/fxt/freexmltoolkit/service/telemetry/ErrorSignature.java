@@ -161,7 +161,15 @@ public record ErrorSignature(String errorCode, String detail, String hash) {
     }
 
     private static String className(Throwable t) {
+        if (t instanceof ReportedClassName stand && isClassName(stand.reportedClassName())) {
+            return normalizeClass(stand.reportedClassName());
+        }
         return normalizeClass(t.getClass().getName());
+    }
+
+    /** A dotted Java class name only (it reaches the telemetry; anything else is ignored). */
+    private static boolean isClassName(String name) {
+        return name != null && name.length() <= 200 && name.matches("[A-Za-z_$][\\w$]*(?:\\.[A-Za-z_$][\\w$]*)+");
     }
 
     private static String frameText(StackTraceElement f, boolean withLine) {

@@ -8,6 +8,8 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.fxt.freexmltoolkit.service.telemetry.ReportedClassName;
+
 /**
  * Notices errors of JavaFX's render thread. JavaFX catches them itself ({@code PresentingPainter.run}:
  * {@code catch (Throwable) → printStackTrace(System.err)}), so they reach neither the uncaught-exception handler nor
@@ -18,13 +20,26 @@ import java.util.regex.Pattern;
  */
 public final class RenderErrorMonitor extends PrintStream {
 
-    /** An error of the render pipeline, rebuilt from the printed trace (class names and lines only). */
-    public static final class RenderPipelineError extends RuntimeException {
+    /**
+     * An error of the render pipeline, rebuilt from the printed trace (class names and lines only).
+     * The telemetry reports it under the original exception's class ({@link ReportedClassName}).
+     */
+    public static final class RenderPipelineError extends RuntimeException implements ReportedClassName {
         private static final long serialVersionUID = 1L;
+
+        private final String originalClass;
 
         RenderPipelineError(String header, List<StackTraceElement> frames) {
             super(header, null, false, true);
             setStackTrace(frames.toArray(new StackTraceElement[0]));
+            Matcher m = header == null ? null : HEADER.matcher(header);
+            this.originalClass = m != null && m.matches() ? m.group(1) : null;
+        }
+
+        /** @return the class of the printed exception (e.g. {@code java.lang.NullPointerException}), or null */
+        @Override
+        public String reportedClassName() {
+            return originalClass;
         }
     }
 
