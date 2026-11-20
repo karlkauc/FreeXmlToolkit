@@ -1828,6 +1828,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="External XSLT Processors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#saxon-he-13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Saxon HE 13
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3461,6 +3478,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="External XSLT Processors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#saxon-he-13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Saxon HE 13
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3750,10 +3784,24 @@ or browse with ◀ / ▶. Uncheck it to only set the file and run with <strong>R
 <a href="#the-output-panel-results">The OUTPUT Panel</a> below.</p>
 <h2 id="external-xslt-processors">External XSLT Processors<a class="headerlink" href="#external-xslt-processors" title="Permanent link">¶</a></h2>
 <p>Instead of the bundled Saxon HE a transformation can run on any XSLT processor with a command line:
-<strong>Saxon PE/EE</strong> (the licensed editions - schema-aware processing, extension functions, higher-order functions in
+a <strong>newer Saxon HE</strong> (13.1, see below), <strong>Saxon PE/EE</strong> (the licensed editions - schema-aware processing, extension functions, higher-order functions in
 older versions), <strong>xsltproc</strong> (libxslt, XSLT 1.0), <strong>Altova RaptorXML</strong>, or a script of your own - for example to
 check that a stylesheet gives the same result on the processor your production system uses.</p>
 <p><strong>Set one up:</strong> <em>Settings → Extensions → XSLT Processors</em> (or the gear button next to <strong>Processor</strong>) → <strong>Add…</strong></p>
+<h3 id="saxon-he-13">Saxon HE 13<a class="headerlink" href="#saxon-he-13" title="Permanent link">¶</a></h3>
+<p>The bundled Saxon HE is version 12.10: XML Calabash, the XProc engine, is built against it, and two Saxon versions
+cannot run inside one application. <strong>Add Saxon HE 13.1</strong> on the same settings card gives you the newest Saxon HE
+(XSLT 4.0 / XPath 4.0 preview features, current fixes) next to it:</p>
+<ol>
+<li>After a confirmation about 6.4 MB are downloaded from Maven Central (<code>repo1.maven.org</code>; the proxy settings
+   apply), checked against fixed SHA-256 checksums and stored in <code>~/.freeXmlToolkit/saxon/13.1/</code>.</li>
+<li>A processor <strong>Saxon HE 13.1</strong> is added. It runs in a process of its own with FreeXmlToolkit's Java runtime -
+   nothing else needs to be installed.</li>
+<li>Choose it in the Transform panel's <strong>Processor</strong> box, in a scenario, or make it the default.</li>
+</ol>
+<p>The rest of the application - debugger, profiler, live preview, XSpec, XProc, Schematron and the AI tools - keeps
+using the bundled Saxon HE 12.10. The list shows which version is bundled. Nothing is downloaded until you click
+the button; when the administrator turns external processors off, the button is disabled too.</p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../img/xslt-processors-settings.png" data-desc-position="bottom"><img alt="Settings → XSLT Processors with Saxon EE as default and xsltproc" src="../img/xslt-processors-settings.png"></a></p>
 <table>
 <thead>
@@ -3773,7 +3821,7 @@ check that a stylesheet gives the same result on the processor your production s
 </tr>
 <tr>
 <td><strong>Program</strong></td>
-<td>The executable or script. Empty: the preset's program is looked up on the <code>PATH</code> (<strong>Find on PATH</strong>)</td>
+<td>The executable or script. Empty: the preset's program is looked up on the <code>PATH</code> (<strong>Find on PATH</strong>); the Saxon presets use FreeXmlToolkit's own <code>java</code> first</td>
 </tr>
 <tr>
 <td><strong>Arguments</strong></td>
@@ -3842,6 +3890,12 @@ program is started directly (never through a shell), <code>[ … ]</code> is an 
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>Saxon HE 13.1 (Java)</td>
+<td><code>java</code></td>
+<td><code>-cp "&lt;the downloaded jars&gt;" net.sf.saxon.Transform -s:${xml} -xsl:${xsl} -o:${out} ${params}</code></td>
+<td><code>{name}={value}</code></td>
+</tr>
 <tr>
 <td>Saxon PE/EE (Java)</td>
 <td><code>java</code></td>
