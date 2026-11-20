@@ -7,18 +7,18 @@
 
 ## XML & Data Processing
 *   **Transformations & Queries:** Saxon-HE 12.10 (XSLT 3.0, XPath 3.1 and XQuery 3.1; version pinned by XML Calabash 3)
-*   **XProc:** XML Calabash 3.0.54 (XProc 3.0 pipelines)
+*   **XProc:** XML Calabash 3.1.0 (XProc 3.0 pipelines)
 *   **Schema Validation:** Xerces-J 2.12.2 (specially patched for XSD 1.1 and assertions support)
 *   **Schematron:** ph-schematron 10.2.0 (ISO Schematron via SchXslt on Saxon, plus XSLT and Pure modes)
 *   **PDF Generation:** Apache FOP 2.11 (XML to PDF via XSL-FO)
-*   **Digital Signatures:** Apache Santuario (XML Security) 4.0.4 and BouncyCastle 1.86
+*   **Digital Signatures:** Apache Santuario (XML Security) 4.0.4 and BouncyCastle 1.87
 *   **Office Integration:** Apache POI 5.5.1 (Excel/Spreadsheet conversion)
 
 ## User Interface & Experience
 *   **Theming:** Project-owned `-fxt-*` design-token CSS theme (`css/design-tokens.css`, `css/unified-shell.css`; Light + Dark)
 *   **Advanced Controls:** ControlsFX 11.2.5 and RichTextFX 0.11.7 (for high-performance code editing)
 *   **Icons:** Project-owned `IconifyIcon` control backed by bundled Iconify Bootstrap Icons SVG data (`bi-*` names)
-*   **Documentation Templates:** Thymeleaf 3.1.5 and Flexmark (Markdown to HTML)
+*   **Documentation Templates:** Thymeleaf 3.1.7 and Flexmark (Markdown to HTML)
 
 ## Infrastructure & Testing
 *   **Testing Framework:** JUnit 6 (JUnit Jupiter, BOM 6.1.3)

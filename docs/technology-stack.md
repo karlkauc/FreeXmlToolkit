@@ -19,8 +19,8 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 
 ### XML Processing
 - **Saxon HE:** 12.10 - XSLT 3.0, XPath 3.1 and XQuery processing engine
-- **XML Calabash:** 3.0.54 - XProc 3.0 pipeline engine (Run Pipeline for `.xpl`/`.xproc` files)
-- **ph-schematron:** 10.3.1 - Schematron validation (pure, XSLT and SchXslt engines)
+- **XML Calabash:** 3.1.0 - XProc 3.0 pipeline engine (Run Pipeline for `.xpl`/`.xproc` files)
+- **ph-schematron:** 10.3.2 - Schematron validation (pure, XSLT and SchXslt engines)
 - **Jakarta XML Bind API:** 4.0.5 - XML binding and marshalling
 - **Apache Xerces:** 2.12.2 (exist-db fork) - XSD 1.1 validation with assertions support
 
@@ -36,18 +36,18 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 
 ### Digital Signatures
 - **Apache Santuario:** 4.0.4 - XML Security (XML-DSig)
-- **BouncyCastle:** 1.86 - Cryptographic operations for XML digital signatures
+- **BouncyCastle:** 1.87 - Cryptographic operations for XML digital signatures
 - **Java Cryptography Architecture (JCA):** Native Java crypto support
 
 ### AI
-- **MCP Java SDK:** 2.1.0 - Model Context Protocol server for `fxt-cli mcp` (stdio)
+- **MCP Java SDK:** 2.2.0 - Model Context Protocol server for `fxt-cli mcp` (stdio)
 - **Anthropic Java SDK:** 3.8.0 (`anthropic-java-core`) - Anthropic provider of the optional AI assistant, on the application's own HTTP connection service (OpenAI-compatible providers use plain HTTP)
 
 ### Office Integration
 - **Apache POI:** 6.0.0 - Excel export for validation results
 
 ### Utilities
-- **Apache Commons Lang3:** 3.21.0 - String manipulation and utilities
+- **Apache Commons Lang3:** 3.22.0 - String manipulation and utilities
 - **Apache Commons IO:** 2.22.0 - File and IO utilities
 - **Apache Commons Text:** 1.15.0 - Text algorithms
 
@@ -63,7 +63,7 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 ### UI Enhancements
 - **IconifyIcon:** In-house icon control rendering bundled [Iconify](https://iconify.design/) Bootstrap Icons SVG data (no external icon library)
 - **CSSFX:** 11.5.1 - CSS hot-reloading for development
-- **Thymeleaf:** 3.1.5 - Template engine for documentation generation
+- **Thymeleaf:** 3.1.7 - Template engine for documentation generation
 
 ## Architecture Components
 
@@ -161,7 +161,7 @@ repositories {
 dependencies {
     // XML Processing
     implementation("net.sf.saxon:Saxon-HE:12.10")
-    implementation("com.xmlcalabash:xmlcalabash:3.0.54")
+    implementation("com.xmlcalabash:xmlcalabash:3.1.0")
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.5")
     implementation("org.exist-db.thirdparty.xerces:xercesImpl:2.12.2")
 
@@ -169,7 +169,7 @@ dependencies {
     implementation("org.apache.xmlgraphics:fop:2.12")
 
     // AI (MCP server, Anthropic provider)
-    implementation("io.modelcontextprotocol.sdk:mcp-core:2.1.0")
+    implementation("io.modelcontextprotocol.sdk:mcp-core:2.2.0")
     implementation("com.anthropic:anthropic-java-core:3.8.0")
 
     // UI Components
@@ -178,7 +178,7 @@ dependencies {
 
     // Security
     implementation("org.apache.santuario:xmlsec:4.0.4")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.86")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.87")
 
     // Testing
     testImplementation(platform("org.junit:junit-bom:6.1.3"))

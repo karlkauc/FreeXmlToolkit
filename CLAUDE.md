@@ -391,7 +391,7 @@ via a trace listener (stylesheets compiled with tracing), 16 M output cap. Users
 (`TransformRunner.xsltTransformSandboxed`), `SandboxedQuery` (XPath / XQuery), `XSpecRunner.sandboxed`.
 `service/ai/context/`: `SchemaSlice` (what an XSD declares at an instance path; JSON + compact text; outline, bounded
 tree), `XmlOutline` (StAX, paths/counts/samples, no values with `samples=false`). `service/ai/mcp/`: `McpToolServer`
-(the only place with MCP SDK / Reactor types — `AiLayeringGuardTest`; SDK 2.1.0, revisions ≤ 2025-11-25, structured
+(the only place with MCP SDK / Reactor types — `AiLayeringGuardTest`; SDK 2.2.0, revisions ≤ 2025-11-25, structured
 results also as JSON text), `StdoutGuard`. CLI `cli/McpCommand` (`fxt-cli mcp --root --tools --list-tools`; sets
 `fxt.schema.localCopies=false`; exits after 3 runaways). Policy `ai.allowed`, `ai.mcp.allowed` (`service/ai/AiPolicy`,
 `AdminPolicy`). Public surface pinned by `ToolSurfaceSnapshotTest` (`src/test/resources/ai/mcp-tools.snapshot.json`,
@@ -563,7 +563,7 @@ controls; controls outside the tab order need an entry in `KEYBOARD_ALTERNATIVES
 ## Project-Specific Patterns
 
 - **XSLT/XQuery:** Saxon HE 12.10 for XSLT 3.0, XPath 3.1, XQuery 3.1 (pinned by XML Calabash 3)
-- **XProc:** XML Calabash 3.0.54 for XProc 3.0 pipelines (Run Pipeline on .xpl documents)
+- **XProc:** XML Calabash 3.1.0 for XProc 3.0 pipelines (Run Pipeline on .xpl documents)
 - **XML Validation:** Xerces 2.12.2 (exist-db fork) for XSD 1.1
 - **UI Framework:** JavaFX 25 with the project's own `-fxt-*` design-token CSS theme
 - **Icons:** `IconifyIcon` control (bundled Iconify Bootstrap Icons SVG); graceful fallback on unknown names
