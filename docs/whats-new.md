@@ -60,6 +60,9 @@ running is shown under **Help → About FreeXmlToolkit**.
 - **macOS: the updated application starts again on its own.** When the new version came with a newer Java runtime,
   the update was installed but the application could not start it and reported the update as failed. Takes effect
   for updates made from this version on.
+- **No second window after a double launch.** Starting FreeXmlToolkit twice in quick succession after it had not
+  been closed properly (for example a shutdown with the application open) could open two windows. The second launch
+  now always hands over to the first.
 
 ## 3.4.0 (2026-11-18)
 
