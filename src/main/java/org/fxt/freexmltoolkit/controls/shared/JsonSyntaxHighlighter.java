@@ -39,15 +39,17 @@ import org.fxmisc.richtext.model.StyleSpansBuilder;
  */
 public final class JsonSyntaxHighlighter {
 
-    // JSON Syntax Highlighting Pattern
+    // JSON Syntax Highlighting Pattern. String bodies use possessive quantifiers: a plain
+    // (?:[^"\\]|\\.)* recurses once per character and overflows the stack on a string of a few
+    // thousand characters (StackOverflowError while highlighting).
     // Order matters: comments before strings to avoid false matches in commented strings
     private static final Pattern JSON_PATTERN = Pattern.compile(
             "(?<LINECOMMENT>//[^\\n]*)" +                                          // Line comments (JSONC/JSON5)
             "|(?<BLOCKCOMMENT>/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/)" +                // Block comments (JSONC/JSON5)
-            "|(?<KEY>\"(?:[^\"\\\\]|\\\\.)*\"\\s*:)" +                             // Object keys (quoted)
+            "|(?<KEY>\"(?:[^\"\\\\]++|\\\\.)*+\"\\s*:)" +                             // Object keys (quoted)
             "|(?<UNQUOTEDKEY>[a-zA-Z_$][a-zA-Z0-9_$]*\\s*:)" +                     // Unquoted keys (JSON5)
-            "|(?<STRING>\"(?:[^\"\\\\]|\\\\.)*\")" +                               // String values
-            "|(?<SINGLESTRING>'(?:[^'\\\\]|\\\\.)*')" +                            // Single-quoted strings (JSON5)
+            "|(?<STRING>\"(?:[^\"\\\\]++|\\\\.)*+\")" +                               // String values
+            "|(?<SINGLESTRING>'(?:[^'\\\\]++|\\\\.)*+')" +                            // Single-quoted strings (JSON5)
             "|(?<NUMBER>-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)" +       // Numbers
             "|(?<HEXNUMBER>0[xX][0-9a-fA-F]+)" +                                   // Hex numbers (JSON5)
             "|(?<INFINITY>[+-]?Infinity)" +                                        // Infinity (JSON5)

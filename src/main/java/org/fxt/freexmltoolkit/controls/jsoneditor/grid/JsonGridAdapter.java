@@ -165,7 +165,7 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
     }
 
     private static final java.util.regex.Pattern PATH_STEP =
-            java.util.regex.Pattern.compile("\\['((?:[^'\\\\]|\\\\.)*)'\\]|\\[(\\d+)\\]");
+            java.util.regex.Pattern.compile("\\['((?:[^'\\\\]++|\\\\.)*+)'\\]|\\[(\\d+)\\]");
 
     /** @return the node a normalized Jayway path ({@code $['a'][0]}) addresses below the container */
     static JsonNode nodeAtPath(JsonNode container, String path) {
