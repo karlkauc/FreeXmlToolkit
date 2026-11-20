@@ -86,7 +86,8 @@ public record XsltProcessorConfig(String id, String name, XsltProcessorPreset pr
 
     /**
      * @return the program to start: the configured path, a configured bare name on the PATH, or the
-     *         preset's program names on the PATH
+     *         preset's program ({@link XsltProcessorPreset#findProgram()}: the application's {@code java} for the
+     *         Saxon presets, else the program names on the PATH)
      */
     public Optional<Path> resolveExecutable() {
         if (!executable.isEmpty()) {
@@ -101,7 +102,7 @@ public record XsltProcessorConfig(String id, String name, XsltProcessorPreset pr
             }
             return ExternalCommands.findOnPath(executable);
         }
-        return ExternalCommands.findOnPath(preset.programNames().toArray(String[]::new));
+        return preset.findProgram();
     }
 
     /** @return whether this processor answers to the given id or name (names ignore case) */

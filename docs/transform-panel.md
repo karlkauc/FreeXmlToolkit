@@ -194,11 +194,27 @@ The result appears in the **OUTPUT panel** below the editor - see
 ## External XSLT Processors {#external-xslt-processors}
 
 Instead of the bundled Saxon HE a transformation can run on any XSLT processor with a command line:
-**Saxon PE/EE** (the licensed editions - schema-aware processing, extension functions, higher-order functions in
+a **newer Saxon HE** (13.1, see below), **Saxon PE/EE** (the licensed editions - schema-aware processing, extension functions, higher-order functions in
 older versions), **xsltproc** (libxslt, XSLT 1.0), **Altova RaptorXML**, or a script of your own - for example to
 check that a stylesheet gives the same result on the processor your production system uses.
 
 **Set one up:** *Settings → Extensions → XSLT Processors* (or the gear button next to **Processor**) → **Add…**
+
+### Saxon HE 13 {#saxon-he-13}
+
+The bundled Saxon HE is version 12.10: XML Calabash, the XProc engine, is built against it, and two Saxon versions
+cannot run inside one application. **Add Saxon HE 13.1** on the same settings card gives you the newest Saxon HE
+(XSLT 4.0 / XPath 4.0 preview features, current fixes) next to it:
+
+1. After a confirmation about 6.4 MB are downloaded from Maven Central (`repo1.maven.org`; the proxy settings
+   apply), checked against fixed SHA-256 checksums and stored in `~/.freeXmlToolkit/saxon/13.1/`.
+2. A processor **Saxon HE 13.1** is added. It runs in a process of its own with FreeXmlToolkit's Java runtime -
+   nothing else needs to be installed.
+3. Choose it in the Transform panel's **Processor** box, in a scenario, or make it the default.
+
+The rest of the application - debugger, profiler, live preview, XSpec, XProc, Schematron and the AI tools - keeps
+using the bundled Saxon HE 12.10. The list shows which version is bundled. Nothing is downloaded until you click
+the button; when the administrator turns external processors off, the button is disabled too.
 
 ![Settings → XSLT Processors with Saxon EE as default and xsltproc](img/xslt-processors-settings.png)
 
@@ -206,7 +222,7 @@ check that a stylesheet gives the same result on the processor your production s
 |---|---|
 | **Preset** | Fills arguments and parameter syntax for Saxon PE/EE, xsltproc, RaptorXML or *Custom* |
 | **Name** | Shown in the panels; also used by scenarios and `fxt-cli transform --processor` |
-| **Program** | The executable or script. Empty: the preset's program is looked up on the `PATH` (**Find on PATH**) |
+| **Program** | The executable or script. Empty: the preset's program is looked up on the `PATH` (**Find on PATH**); the Saxon presets use FreeXmlToolkit's own `java` first |
 | **Arguments** | The argument template (below) |
 | **Parameters** | How one stylesheet parameter is passed (below) |
 | **Working folder** | Where the program runs. Empty: the stylesheet's folder |
@@ -235,6 +251,7 @@ program is started directly (never through a shell), `[ … ]` is an optional gr
 
 | Preset | Program | Arguments | Parameters |
 |---|---|---|---|
+| Saxon HE 13.1 (Java) | `java` | `-cp "<the downloaded jars>" net.sf.saxon.Transform -s:${xml} -xsl:${xsl} -o:${out} ${params}` | `{name}={value}` |
 | Saxon PE/EE (Java) | `java` | `-cp "saxon-pe-12.jar" net.sf.saxon.Transform -s:${xml} -xsl:${xsl} -o:${out} ${params}` | `{name}={value}` |
 | xsltproc (libxslt) | `xsltproc` | `${params} --output ${out} ${xsl} ${xml}` | `--stringparam {name} {value}` |
 | Altova RaptorXML | `raptorxml` | `xslt --input=${xml} --output=${out} ${params} ${xsl}` | `--param={name}:'{value}'` |

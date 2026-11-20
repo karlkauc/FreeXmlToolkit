@@ -78,9 +78,21 @@ sourceSets {
     }
 }
 
+// Saxon HE 13 for the external-processor tests (RealXsltProcessorsTest): on no class path, handed to the
+// tests as a path list (fxt.test.saxon13.classpath), run with java in a process of its own.
+val saxon13: Configuration by configurations.creating {
+    isTransitive = false
+    isCanBeConsumed = false
+}
+
 dependencies {
-    // Pinned to 12.10: XML Calabash 3 is compiled against Saxon 12.10 internals.
-    // Move back to 13.x once Calabash supports it.
+    saxon13("net.sf.saxon:Saxon-HE:13.1")
+    saxon13("org.xmlresolver:xmlresolver:6.1.0")
+
+    // Pinned to 12.10: XML Calabash 3 (also 3.1.0) is compiled against Saxon 12.10 internals
+    // (Saxon 13 support: codeberg.org/xmlcalabash/xmlcalabash3/issues/717). Move to 13.x once Calabash
+    // supports it. Until then Saxon HE 13 runs as an external XSLT processor in its own process
+    // (service/xsltproc/SaxonInstaller downloads it; the tests get it from the saxon13 configuration).
     implementation("net.sf.saxon:Saxon-HE:12.10")
 
     // XProc 3.0/3.1 pipeline engine (MIT)
@@ -293,6 +305,12 @@ tasks {
         // telemetry (TelemetryServiceImpl.isKillSwitchActive). Applies to every Test task
         // (test, docScreenshots, perfBenchmark, sampleXmlAudit).
         systemProperty("fxt.telemetry.disabled", "true")
+        // Saxon HE 13 jars for RealXsltProcessorsTest (never on the test class path: one Saxon per JVM)
+        val saxon13Files = saxon13
+        inputs.files(saxon13Files)
+        jvmArgumentProviders.add(CommandLineArgumentProvider {
+            listOf("-Dfxt.test.saxon13.classpath=" + saxon13Files.asPath)
+        })
         doFirst {
             val propsFile = isolatedProps.get().asFile
             propsFile.parentFile.mkdirs()
@@ -1820,12 +1838,22 @@ fun createJlinkRuntimeTask(taskName: String, platform: String, arch: String) {
             "--compress=zip-9",
             "--no-header-files",
             "--no-man-pages",
-            "--strip-debug",
-            "--strip-native-commands"
+            "--strip-debug"
         )
 
         doLast {
             println("✅ Native runtime image created for $platform-$arch in ${runtimeDir.absolutePath}")
+
+            // Keep only the java launcher of the JDK's programs: external Java tools (Saxon HE 13 as an
+            // external XSLT processor, JavaRuntime.executable()) run with it. Libraries (Windows keeps its
+            // DLLs in bin/) stay; programs are *.exe on Windows and files without an extension elsewhere.
+            File(runtimeDir, "bin").listFiles()?.forEach { f ->
+                val name = f.name
+                val program = if (currentOs == "windows") name.endsWith(".exe") else (f.isFile && !name.contains('.'))
+                if (program && name != "java" && name != "java.exe") {
+                    f.delete()
+                }
+            }
 
             // Verify the runtime contains JavaFX native libraries
             val runtimeBinDir = File(runtimeDir, "bin")

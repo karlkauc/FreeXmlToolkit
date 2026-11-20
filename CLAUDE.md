@@ -117,7 +117,14 @@ error line, code, phase; other lines = messages). Shared with the FO processors:
 `FOPService.transformToFo`, `BatchTransformRunner`, CLI `transform --processor / --list-processors`,
 `fop --xslt-processor`. Live preview, profiler, trace, debugger, XSpec, XProc and AI tools stay on Saxon HE. Tests
 start `FakeXsltProcessor` with the running JVM (`ExternalXsltRunnerTest.fake`); `RealXsltProcessorsTest` runs the
-Saxon preset with Saxon HE and xsltproc when installed. Docs: `docs/transform-panel.md#external-xslt-processors`.
+Saxon preset with Saxon HE, Saxon HE 13 and xsltproc when installed. Docs: `docs/transform-panel.md#external-xslt-processors`.
+Saxon HE 13: the bundled Saxon stays 12.10 (XML Calabash is built against it; one Saxon per JVM), so the newer one
+is an external processor — `SaxonInstaller` (Saxon-HE 13.1 + xmlresolver 6.1.0 from Maven Central via
+`ConnectionService`, SHA-256 pinned in the class, `~/.freeXmlToolkit/saxon/<version>/`, temp file + move) →
+preset `SAXON_HE`; the Java presets run `JavaRuntime.executable()` (`${java.home}/bin/java`) before the PATH
+(`XsltProcessorPreset.findProgram`). The jlink runtime keeps `bin/java` (no `--strip-native-commands`, other
+programs deleted). Settings card button "Add Saxon HE 13.1" (`onAddSaxon`, hooks `setDownloadHooks`). Tests get
+the jars from the Gradle configuration `saxon13` (never on a class path) as `fxt.test.saxon13.classpath`.
 
 ## XML Signatures and Encryption
 
@@ -562,7 +569,7 @@ controls; controls outside the tab order need an entry in `KEYBOARD_ALTERNATIVES
 
 ## Project-Specific Patterns
 
-- **XSLT/XQuery:** Saxon HE 12.10 for XSLT 3.0, XPath 3.1, XQuery 3.1 (pinned by XML Calabash 3)
+- **XSLT/XQuery:** Saxon HE 12.10 for XSLT 3.0, XPath 3.1, XQuery 3.1 (pinned by XML Calabash 3); Saxon HE 13.1 only as a downloadable external XSLT processor
 - **XProc:** XML Calabash 3.0.54 for XProc 3.0 pipelines (Run Pipeline on .xpl documents)
 - **XML Validation:** Xerces 2.12.2 (exist-db fork) for XSD 1.1
 - **UI Framework:** JavaFX 25 with the project's own `-fxt-*` design-token CSS theme

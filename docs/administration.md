@@ -83,7 +83,7 @@ Any key of the user's settings file works. These are the ones most often managed
 | `fop.external.allowed` | `false` | **Policy only.** Only the bundled Apache FOP renders PDFs; [external XSL-FO processors](pdf-generator.md#external-xsl-fo-processors) are hidden and refused (panel, scenarios, `fxt-cli fop`) |
 | `fop.processors` | JSON list | The external XSL-FO processors (as written by *Settings → XSL-FO Processors*); in `defaults.properties` a starting list, in `policy.properties` a fixed one |
 | `fop.processor.default` | `builtin` or an id | The default XSL-FO processor |
-| `xslt.external.allowed` | `false` | **Policy only.** Only the bundled Saxon HE transforms; [external XSLT processors](transform-panel.md#external-xslt-processors) are hidden and refused (panels, scenarios, `fxt-cli transform` / `fop`) |
+| `xslt.external.allowed` | `false` | **Policy only.** Only the bundled Saxon HE transforms; [external XSLT processors](transform-panel.md#external-xslt-processors) are hidden and refused (panels, scenarios, `fxt-cli transform` / `fop`); this also disables the download of [Saxon HE 13](transform-panel.md#saxon-he-13) |
 | `xslt.processors` | JSON list | The external XSLT processors (as written by *Settings → XSLT Processors*); in `defaults.properties` a starting list, in `policy.properties` a fixed one |
 | `xslt.processor.default` | `builtin` or an id | The default XSLT processor (scenarios, PDF/FOP panel, command line) |
 | `gleif.allowed` | `false` | No [LEI lookups at GLEIF](identifier-lookup.md): no LEI lookup buttons, hover or validation stage; `fxt-cli lei` and `validate --gleif` refuse |

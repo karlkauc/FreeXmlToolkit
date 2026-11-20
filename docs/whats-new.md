@@ -6,6 +6,11 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+- **Saxon HE 13.1 next to the bundled Saxon.** *Settings → XSLT Processors → Add Saxon HE 13.1* downloads the
+  newest Saxon HE (XSLT 4.0 preview features) and adds it as a processor for the Transform panel, scenarios, batch
+  runs, the PDF/FOP panel and `fxt-cli transform --processor`. It runs in its own process with the application's
+  Java; everything else stays on the bundled Saxon HE 12.10, which XProc needs.
+  [More](transform-panel.md#saxon-he-13)
 - **Bookmarks.** Mark lines in any text editor (Ctrl+F2 or a click left of the line number), give them a name,
   number up to nine of them for Ctrl+1 … Ctrl+9, and move between them with F2 / Shift+F2 - across files. They
   follow your edits, survive a restart, find their line again when the file was changed outside the editor, and
