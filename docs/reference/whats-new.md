@@ -4,7 +4,7 @@ The highlights of each release. The complete notes and all downloads are on the
 [GitHub Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases); the version you are
 running is shown under **Help → About FreeXmlToolkit**.
 
-## Unreleased
+## 3.5.0 (2026-11-22)
 
 - **A new logo.** Two tag brackets, blue and orange, form the X of XML. The application, its window and taskbar
   icons, the splash screen, the welcome page, the About dialog and the installers show it. Windows gets its icon in
@@ -18,6 +18,9 @@ running is shown under **Help → About FreeXmlToolkit**.
 - **One colour scheme throughout.** The last controls of the old look - the blue buttons in the schema overview, the
   folder comparison and the large-file window, and the hover frame of the status bar fields - now follow the accent
   colour and the dark theme. The splash screen is navy like the rest of the window chrome.
+- **Schema documentation in the new colours.** The generated HTML, PDF and Word documentation and its diagrams use
+  the colours of the application. On the diagram page the background covers the whole diagram, and zooming with the
+  mouse wheel, dragging and *Fit to screen* work again.
 - **New documentation.** The documentation is ordered by task and reader: Get started (with a 15-minute
   [first steps](../get-started/first-steps.md) tutorial and a page for people
   [coming from another editor](../get-started/coming-from-another-editor.md)), Guides, Industry standards, Automate
