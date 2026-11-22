@@ -2411,16 +2411,6 @@
 }
 
 /* Hero */
-.fxt-welcome-hero-icon {
-    -fx-background-color: -fxt-primary-fill;
-    -fx-background-radius: 16;
-    -fx-min-width: 64; -fx-min-height: 64;
-    -fx-max-width: 64; -fx-max-height: 64;
-    -fx-icon-color: white;
-}
-.fxt-welcome-hero-icon .ikon-font-icon, .fxt-welcome-hero-icon .iconify-icon {
-    -fx-fill: white;
-}
 .fxt-welcome-hero-title {
     -fx-font-family: "Inter", sans-serif;
     -fx-font-size: 28px;

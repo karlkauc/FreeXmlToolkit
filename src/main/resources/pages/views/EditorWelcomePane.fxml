@@ -2,13 +2,14 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Polyline?>
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
@@ -39,11 +40,13 @@
                         <!-- Hero -->
                         <HBox spacing="18" alignment="CENTER_LEFT">
                             <children>
-                                <StackPane styleClass="fxt-welcome-hero-icon">
-                                    <children>
-                                        <IconifyIcon iconLiteral="bi-code-slash" iconSize="28"/>
-                                    </children>
-                                </StackPane>
+                                <!-- The app icon (logo suite S1); 128 px drawn at 64 for sharp HiDPI -->
+                                <ImageView fitWidth="64" fitHeight="64" preserveRatio="true" smooth="true"
+                                           accessibleText="FreeXmlToolkit logo">
+                                    <image>
+                                        <Image url="@../../img/logo-128.png"/>
+                                    </image>
+                                </ImageView>
                                 <VBox spacing="6" alignment="CENTER_LEFT">
                                     <children>
                                         <Label text="%EditorWelcomePane.welcome-to-freexmltoolkit.text" styleClass="fxt-welcome-hero-title"/>
