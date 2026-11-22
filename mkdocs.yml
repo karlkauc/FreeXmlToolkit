@@ -197,6 +197,8 @@ nav:
       - Search and replace in files: guides/edit-xml/search-in-files.md
       - Grid view: guides/edit-xml/grid.md
       - Auto-completion: guides/edit-xml/auto-completion.md
+      - Properties of a node: guides/edit-xml/properties.md
+      - Find and replace: guides/edit-xml/find-replace.md
       - Templates: guides/edit-xml/templates.md
       - Favorites: guides/edit-xml/favorites.md
       - Bookmarks: guides/edit-xml/bookmarks.md
@@ -236,6 +238,7 @@ nav:
       - Examples: guides/transform-query/examples.md
     - PDF with XSL-FO: guides/publish-pdf.md
     - Compare and merge: guides/compare-merge.md
+    - Convert formats: guides/convert.md
     - Sign & encrypt:
       - guides/sign-encrypt/index.md
       - Signatures: guides/sign-encrypt/signatures.md

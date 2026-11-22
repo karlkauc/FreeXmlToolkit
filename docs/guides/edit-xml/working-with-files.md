@@ -4,6 +4,26 @@ How files get into the editor and what happens to them there: creating a file fr
 schema, the file types the editor understands, and what the application does when a file changes
 on disk.
 
+## Opening and saving
+
+### Opening and Saving Files
+
+![File Operations](../../img/xml-editor-file-operations.png)
+*The shell header and the editor toolbar with the New, Open, Save ▾, and Format ▾ buttons*
+
+- **Open Files**: Click "Open" or use `Ctrl+O` to browse for XML files
+- **Save Files**: Click "Save" or use `Ctrl+S` to save changes to the current file
+- **Save As**: Use `Ctrl+Shift+S` (or the **Save ▾** arrow menu) to save the current file with a new name
+- **Save All**: Pick **Save All** from the **Save ▾** arrow menu to save every open document tab at once (untitled tabs prompt you for a file name)
+- **"Edited with" comment**: Saving an XML, XSD, XSLT, Schematron or XProc file adds a short comment after the XML declaration, such as `<!-- Edited with FreeXmlToolkit 3.2.0 (https://github.com/karlkauc/FreeXmlToolkit) by Name (Company) -->`. The editor shows the comment as soon as you save, so the text you see matches the file. An existing comment of this kind is updated, never repeated. Turn it off with **Mark saved XML files** in [Settings → Editor](../../reference/settings.md)
+- **Create New**: Click "New" (Ctrl+N) to open the guided [New File dialog](working-with-files.md#new-file-dialog) - pick a file type, an optional template or schema, and start editing
+- **Drag & Drop**: Drag files from your file explorer into the editor
+- **Recent Files**: Reopen recently used files from the Explorer panel's **RECENT** section or the Welcome page
+
+### Multiple Files
+
+Open multiple XML files in separate tabs. Each tab shows the file name and indicates unsaved changes with an asterisk (*).
+
 ## New File Dialog
 
 > Creating a new file opens a guided dialog instead of silently
@@ -52,6 +72,20 @@ Stylesheet* / *Validate with Other Schematron*) and the favorites star menus.
 Not loaded: keystores and trust stores (binary files), and spreadsheets for import (the
 converted XML opens instead).
 
+## Supported File Types
+
+| Type | Extensions | Features |
+|------|-----------|----------|
+| **XML** | .xml, .wsdl | Text + graphic view, XSD/Schematron linking, IntelliSense, continuous validation |
+| **XSD** | .xsd | Text + graphic view, Type Library, Type Editor, Schema Analysis, Documentation, Sample Data, Flatten |
+| **XSLT** | .xsl, .xslt | XSLT editor + XML input + output preview, live transform, parameters, performance metrics |
+| **XProc** | .xpl, .xproc | Pipeline editor (Text + Tree view), Run Pipeline via the embedded XML Calabash engine - see [XProc Pipelines](../transform-query/xproc.md#xproc-pipelines) |
+| **XQuery** | .xq, .xquery, .xqm, .xqy | Query editor with highlighting + IntelliSense, Run Query against a selectable target - see [Query Documents](../transform-query/query-console.md#query-documents-the-target-selector) |
+| **XPath** | .xpath | Single-expression query editor, Run Query against a selectable target - see [Query Documents](../transform-query/query-console.md#query-documents-the-target-selector) |
+| **Schematron** | .sch, .schematron | Code editor + Visual Builder + Tester + Documentation Generator |
+| **JSON** | .json, .jsonc, .json5 | Text + tree + editable **grid** view (see [The Grid for JSON](../json-grid.md)), JSONPath queries, JSON Schema validation. The JSON/JSONC/JSON5 flavor is detected from the content, so comments and trailing commas are accepted in any of the three. |
+| **HTML** | .html, .htm, .xhtml | Rendered read-only **Preview** (the default view) + Text editing; also the format of HTML/XHTML transform results opened as editor tabs - see [HTML Preview](../../get-started/workspace-tour.md#html-preview) |
+
 ## Files Changed Outside the Editor {#external-changes}
 
 The shell watches the files of all open tabs. When another program changes or deletes one
@@ -75,20 +109,6 @@ the dialogs appear one after the other, each with its tab brought to the front.
       side of a diff, or exporting a result over a file that is open - is reported like any
       other outside change.
     - Untitled documents are not watched.
-
-## Supported File Types
-
-| Type | Extensions | Features |
-|------|-----------|----------|
-| **XML** | .xml, .wsdl | Text + graphic view, XSD/Schematron linking, IntelliSense, continuous validation |
-| **XSD** | .xsd | Text + graphic view, Type Library, Type Editor, Schema Analysis, Documentation, Sample Data, Flatten |
-| **XSLT** | .xsl, .xslt | XSLT editor + XML input + output preview, live transform, parameters, performance metrics |
-| **XProc** | .xpl, .xproc | Pipeline editor (Text + Tree view), Run Pipeline via the embedded XML Calabash engine - see [XProc Pipelines](../transform-query/xproc.md#xproc-pipelines) |
-| **XQuery** | .xq, .xquery, .xqm, .xqy | Query editor with highlighting + IntelliSense, Run Query against a selectable target - see [Query Documents](../transform-query/query-console.md#query-documents-the-target-selector) |
-| **XPath** | .xpath | Single-expression query editor, Run Query against a selectable target - see [Query Documents](../transform-query/query-console.md#query-documents-the-target-selector) |
-| **Schematron** | .sch, .schematron | Code editor + Visual Builder + Tester + Documentation Generator |
-| **JSON** | .json, .jsonc, .json5 | Text + tree + editable **grid** view (see [The Grid for JSON](../json-grid.md)), JSONPath queries, JSON Schema validation. The JSON/JSONC/JSON5 flavor is detected from the content, so comments and trailing commas are accepted in any of the three. |
-| **HTML** | .html, .htm, .xhtml | Rendered read-only **Preview** (the default view) + Text editing; also the format of HTML/XHTML transform results opened as editor tabs - see [HTML Preview](../../get-started/workspace-tour.md#html-preview) |
 
 ## Tools that read the saved file {#tools-that-read-the-saved-file}
 

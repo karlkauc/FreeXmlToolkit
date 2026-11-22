@@ -33,6 +33,10 @@ publishing. Pick the task you have in front of you.
 
     Compare two files as text or as XML, compare folders, merge three versions.
 
+-   **[Convert formats](convert.md)**
+
+    XML, JSON and YAML into one another; XML to Excel or CSV and back.
+
 -   **[Sign & encrypt](sign-encrypt/index.md)**
 
     XML signatures and XML Encryption for documents and single elements.

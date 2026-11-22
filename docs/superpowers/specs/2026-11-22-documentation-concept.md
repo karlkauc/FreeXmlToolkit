@@ -406,11 +406,13 @@ Umgesetzt (Branch `docs/redesign`):
   XSpec, External XSLT processors, Examples; Feldreferenz unter `reference/transform-panel.md`;
   die Seiten XSLT Viewer und XSLT Developer sind aufgelöst) und Validate (Startseite mit
   Validation-Panel, XSD validation, Folders and export, Working with problems).
+- Stufe 3, dritter Teil: Edit XML als Startseite mit Aufgabenliste (6.000 → 1.400 Wörter); neue
+  Seiten Edit the properties of a node, Find and replace in a document, Convert formats (XML ↔
+  JSON ↔ YAML und Excel/CSV). Der Anker `#xmlexcelcsv-converter`, den die App aufruft, bleibt auf
+  der Startseite als Verweis bestehen; die Adresse im Java-Code ist unverändert (ein Test prüft sie).
 
 Offen in Stufe 3:
 
-- `guides/edit-xml/index.md` (XML Editor): Dopplungen kürzen, Excel/CSV-Konverter herauslösen
-  (die App verlinkt auf `#xmlexcelcsv-converter`), neue Seite Convert formats.
 - `guides/edit-xml/grid.md`: 3.400 Wörter unter einer Überschrift gliedern.
 - Neue Seiten: Coming from another editor, CI recipes.
 - Seitenvorlage (Before you start / Next steps) auf die Anleitungen anwenden; unbeschriftete

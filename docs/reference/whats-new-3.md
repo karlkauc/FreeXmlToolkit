@@ -129,7 +129,7 @@ Release highlights of versions 3.0 to 3.3. The current release is on [What's new
   sheet becomes XML too, one element per row. The dialog explains each choice, has tooltips and a **?** to the
   documentation, and previews the table or the XML before anything is written. With a CSV document open it
   starts with Spreadsheet → XML; a malformed document's message has **Go to Error**. See
-  [XML Editor](../guides/edit-xml/index.md#xmlexcelcsv-converter).
+  [XML Editor](../guides/convert.md#xmlexcelcsv-converter).
 - **Validation results stay with their document:** after Validate / F8 or a run of the Validation panel,
   switching to another tab and back shows the result and the problems again (until the text changes). A run that
   finishes after you switched tabs goes to the document it checked.

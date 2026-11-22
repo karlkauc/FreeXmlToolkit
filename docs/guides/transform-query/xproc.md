@@ -21,7 +21,7 @@ target and streams the result into the OUTPUT panel.*
 - **File → New** offers an XProc skeleton (`p:declare-step` with `source`/`result`
   ports and `p:identity`).
 - Ready-to-run examples ship in `examples/xproc/` — see
-  [Bundled Example Collections](../edit-xml/index.md#bundled-example-collections).
+  [Bundled Example Collections](examples.md#bundled-example-collections).
 
 !!! note "Saxon-HE limitations"
     `p:validate-with-xml-schema` and `p:xsl-formatter` require Saxon-EE and are not

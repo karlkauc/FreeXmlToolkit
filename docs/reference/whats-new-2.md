@@ -42,7 +42,7 @@ Release highlights of the 2.x versions. The current release is on [What's new](w
   (from the new **Schema (XSD)** field, or the one the file declares). Dates, booleans and
   numbers that were entered by hand or reformatted by a spreadsheet application (`31.01.2024`,
   `1.234,50`, `TRUE`) come out valid. Values that contain the delimiter, quotes or line breaks now
-  import back correctly. See [XML Editor](../guides/edit-xml/index.md#xmlexcelcsv-converter).
+  import back correctly. See [XML Editor](../guides/convert.md#xmlexcelcsv-converter).
 - **Favorites from everywhere:** a **star in the header bar** lists every favorite on every
   activity and page (also Settings, Schema Library and Signature); the Explorer has a star and
   **FAVORITES | RECENT** tabs at the bottom; and the menu bar has **File → Open Favorite**. See

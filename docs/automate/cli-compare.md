@@ -81,7 +81,7 @@ and in `.gitattributes`: `*.xml merge=fxt`.
 
 Converts between XML, JSON and YAML, like **Tools → Convert to JSON… / XML… / YAML…** in the
 application. The mappings are described in the
-[JSON Editor](../guides/json-yaml.md#converting-between-xml-json-and-yaml) chapter.
+[JSON Editor](../guides/convert.md#converting-between-xml-json-and-yaml) chapter.
 
 ```bash
 fxt-cli convert [options] INPUT...

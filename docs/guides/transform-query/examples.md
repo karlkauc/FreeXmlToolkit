@@ -410,7 +410,7 @@ The Query Console's **Examples** menu inserts sample queries:
 !!! tip
     The installation ships **17 ready-to-run XQuery scripts** in `examples/xquery/` and
     **32 XPath expressions** in `examples/xpath/` — open any of them and press
-    `Ctrl+Enter`. See [Bundled Example Collections](../edit-xml/index.md#bundled-example-collections).
+    `Ctrl+Enter`. See [Bundled Example Collections](#bundled-example-collections).
 
 ## XQuery Examples
 
@@ -466,3 +466,78 @@ return <categorized>
   }</category>
 </categorized>
 ```
+
+## Queries on the open document
+
+![XPath Query](../../img/xml-editor-xpath.png)
+*The Query Console docked below the editor - XPath query on the left, the result on the right*
+
+Use XPath and XQuery to find and extract data from your XML documents. The fastest way is
+the **Query Console**, a panel that docks along the bottom of the editor and always runs
+against the **active** document.
+
+### Using the Query Console
+
+1. Toggle the console with **Ctrl+Shift+X** or the toolbar's terminal icon
+2. Choose **XPath** or **XQuery** with the mode toggle
+3. Enter your expression - it is syntax-highlighted, and IntelliSense suggests element
+   names, functions, and axes as you type (or on **Ctrl+Space**)
+4. Click **Run** or press **Ctrl+Enter** (Enter inserts a new line; the hint below the query says so)
+5. The result appears in the read-only results pane on the right, with syntax highlighting;
+   **Copy** puts it on the clipboard
+
+**Save** stores the current expression as a named snippet, and the **Snippets** menu loads
+any saved XPath or XQuery snippet back into the console. See
+[Query Console](query-console.md#query-console) for the full reference.
+
+### XPath Examples
+
+| Expression | Description |
+|------------|-------------|
+| `//element` | Find all elements named "element" |
+| `//element/@attr` | Find all "attr" attributes on "element" |
+| `/root/child[1]` | Find the first child of root |
+| `count(//item)` | Count all item elements |
+| `//text()` | Find all text nodes |
+
+### XQuery Examples
+
+| Expression | Description |
+|------------|-------------|
+| `for $x in //item return $x` | Return all items |
+| `for $x in //item where $x/@id='1' return $x/name` | Filter and return |
+
+Use the **Examples** menu for quick insertion of common expressions.
+
+### Bundled Example Collections
+
+Your FreeXmlToolkit installation ships ready-to-run query
+collections in the `examples` folder next to the application:
+
+- **`examples/xpath/`** - 32 XPath 3.1 expressions (one per file, each with a comment
+  header). Files 01-20 cover the basics; files 21-32 are a **reporting series** that
+  joins positions, asset master data and transactions and outputs CSV, ASCII
+  tables/charts, Markdown tables or JSON.
+- **`examples/xquery/`** - 17 XQuery 3.1 scripts. Files 01-11 are data-quality checks
+  with HTML reports; files 12-17 are **reporting/export examples** (CSV export, ASCII
+  dashboard, Markdown fund report, JSON export, pivot table, two-fund comparison).
+- **`examples/xproc/`** - 8 XProc 3.0 pipelines, from a minimal identity pipeline to
+  multi-step chains: slimming with `p:delete`, CSV/JSON export by orchestrating the
+  bundled stylesheets, metadata stamping, `p:for-each` iteration, `p:choose`
+  branching and a Schematron SVRL report. See the folder's `README.md`.
+- **`examples/xspec/`** - 5 [XSpec](xspec.md) test files for an
+  XSLT stylesheet, an XQuery module and a Schematron (with the code under test next to them);
+  `05-failing-demo.xspec` fails on purpose to show what a failure looks like. Open one and
+  choose **Tools → Run XSpec Tests**.
+
+All examples target the FundsXML4 sample documents in `examples/xml/`. The simplest way
+to run one: **open the file directly** and press the toolbar's **Run** button
+(`Ctrl+Enter`) - query, XSLT and XProc files are first-class editor documents that run
+against the [Input dropdown](query-console.md#query-documents-the-target-selector)'s
+selection (by default the most recently active XML document). Alternatively paste a query
+into the query panel or the [Query Console](query-console.md#query-console) - the
+`map:`, `array:` and `math:` function namespaces are pre-declared, so expressions using
+`map:merge()`, `array:size()` etc. run without any prolog. Each folder contains a
+`README.md` describing every example.
+
+---

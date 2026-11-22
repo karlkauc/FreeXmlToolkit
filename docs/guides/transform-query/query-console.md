@@ -306,4 +306,4 @@ Run Query/Run Transform show a short guard message instead of failing.
 !!! tip
     Ready-made queries ship in `examples/xpath/` (32 expressions) and `examples/xquery/`
     (17 scripts) - open any of them and press `Ctrl+Enter` against a FundsXML sample from
-    `examples/xml/`. See [Bundled Example Collections](../edit-xml/index.md#bundled-example-collections).
+    `examples/xml/`. See [Bundled Example Collections](examples.md#bundled-example-collections).
