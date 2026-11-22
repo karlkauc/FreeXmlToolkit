@@ -56,7 +56,7 @@ More: [Edit XML](../guides/edit-xml/index.md), [Grid view](../guides/edit-xml/gr
 
 The result, an HTML summary of the order, appears in the **OUTPUT** panel.
 
-More: [Transform & query](../guides/transform-query/index.md),
+More: [Transform & query](../reference/transform-panel.md),
 [Debugger](../guides/transform-query/debug.md).
 
 ## 5. Ask the document a question

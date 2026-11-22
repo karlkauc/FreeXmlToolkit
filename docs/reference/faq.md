@@ -170,5 +170,5 @@ functionality now lives in the shell:
 | Schema Generator | Editor toolbar **Schema ▾** → Generate XSD from XML |
 | Digital Signatures | **Signature** activity (sign, validate, trust validation, certificate creation) |
 | FOP / PDF | **FOP** activity (XSL-FO → PDF + preview) |
-| XSLT Developer | **Transform** panel + editor: run/live transform, parameters, and the OPTIONS & TOOLS section (batch, profile, trace, debugger) — see [XSLT Developer](../guides/transform-query/xslt-development.md) |
+| XSLT Developer | **Transform** panel + editor: run/live transform, parameters, and the OPTIONS & TOOLS section (batch, profile, trace, debugger) — see [XSLT Developer](../guides/transform-query/run-xslt.md) |
 | XML Editor | The shell's editor itself: every XML document opens with IntelliSense, Text/Tree/Graphic views and the Properties inspector |

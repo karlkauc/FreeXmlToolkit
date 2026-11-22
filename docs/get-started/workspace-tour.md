@@ -220,7 +220,7 @@ would show it:
 - **Transform results render here too.** The OUTPUT panel's **Open result as editor tab**
   opens an HTML/XHTML transform result as an HTML document showing its Preview, and
   re-running the transform updates the open result tab live - see
-  [The OUTPUT Panel](../guides/transform-query/index.md#the-output-panel-results).
+  [The OUTPUT Panel](../reference/transform-panel.md#the-output-panel-results).
 
 !!! note "Preview limitations"
     - The page is rendered **without a base URL**, so **relative references** - external
@@ -274,9 +274,9 @@ Drag files from your file manager directly into the editor to open them. Multipl
 The file **pickers and source rows** across the shell are **drop
 targets too**:
 
-- Drop an `.xsl` / `.xslt` file onto the Transform panel's **[STYLESHEET](../guides/transform-query/index.md#stylesheet)** row
+- Drop an `.xsl` / `.xslt` file onto the Transform panel's **[STYLESHEET](../reference/transform-panel.md#stylesheet)** row
   to make it the current stylesheet.
-- Drop an `.xml` file onto the Transform panel's **[INPUT](../guides/transform-query/index.md#input)** row to make it the
+- Drop an `.xml` file onto the Transform panel's **[INPUT](../reference/transform-panel.md#input)** row to make it the
   transform's input file. On both Transform panel rows a drop behaves like picking a
   favorite: the file is loaded into the editor and the transform **runs automatically** once
   both a stylesheet and an input are ready (while **Run automatically** is checked).
@@ -335,7 +335,7 @@ When no document is open, the editor shows a welcome dashboard with:
     | Task | What happens |
     |------|--------------|
     | **Validate an XML file** | Asks for a file, opens it, shows the [Validation panel](../guides/validate/index.md#validation-panel) and validates it as soon as it is loaded |
-    | **Run an XSLT transformation** | Asks for an XML file, opens it and shows the [Transform panel](../guides/transform-query/index.md#transform-panel), where you choose the stylesheet |
+    | **Run an XSLT transformation** | Asks for an XML file, opens it and shows the [Transform panel](../reference/transform-panel.md#transform-panel), where you choose the stylesheet |
     | **Query a document** | Asks for an XML file, opens it and opens the [Query Console](../guides/transform-query/query-console.md#query-console) for XPath / XQuery |
     | **Edit a schema** | Asks for an XSD file, opens it and shows the Schema panel |
     | **Create a PDF** | Asks for an XML file, opens it and shows the **PDF / FOP** panel, where you pick the XSL-FO stylesheet |

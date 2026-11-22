@@ -402,11 +402,13 @@ Umgesetzt (Branch `docs/redesign`):
   beschriftete Zitat-Notizen in Hinweiskästen umgewandelt; Doku-Adressen in README,
   `CONTRIBUTING.md` und `.github/` nachgezogen.
 
+- Stufe 3, zweiter Teil: Transform & query (Startseite, Run a transformation, Profile, Test with
+  XSpec, External XSLT processors, Examples; Feldreferenz unter `reference/transform-panel.md`;
+  die Seiten XSLT Viewer und XSLT Developer sind aufgelöst) und Validate (Startseite mit
+  Validation-Panel, XSD validation, Folders and export, Working with problems).
+
 Offen in Stufe 3:
 
-- Zusammenführen: `guides/validate/index.md` (Validation Panel) mit `xsd.md`; die drei XSLT-Seiten
-  (`transform-query/index.md`, `xslt-quick-start.md`, `xslt-development.md`) zu Run XSLT, Profile,
-  XSpec und einer Feldreferenz.
 - `guides/edit-xml/index.md` (XML Editor): Dopplungen kürzen, Excel/CSV-Konverter herauslösen
   (die App verlinkt auf `#xmlexcelcsv-converter`), neue Seite Convert formats.
 - `guides/edit-xml/grid.md`: 3.400 Wörter unter einer Überschrift gliedern.

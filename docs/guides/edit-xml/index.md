@@ -520,7 +520,7 @@ collections in the `examples` folder next to the application:
   multi-step chains: slimming with `p:delete`, CSV/JSON export by orchestrating the
   bundled stylesheets, metadata stamping, `p:for-each` iteration, `p:choose`
   branching and a Schematron SVRL report. See the folder's `README.md`.
-- **`examples/xspec/`** - 5 [XSpec](../transform-query/xslt-development.md#testing-with-xspec) test files for an
+- **`examples/xspec/`** - 5 [XSpec](../transform-query/xspec.md) test files for an
   XSLT stylesheet, an XQuery module and a Schematron (with the code under test next to them);
   `05-failing-demo.xspec` fails on purpose to show what a failure looks like. Open one and
   choose **Tools → Run XSpec Tests**.

@@ -447,4 +447,4 @@ the right end of the toolbar.
 ## Related
 
 - [XML Editor](edit-xml/index.md) - Edit XML files with similar features
-- [XSLT Developer](transform-query/xslt-development.md) - Transform JSON to other formats
+- [XSLT Developer](transform-query/run-xslt.md) - Transform JSON to other formats

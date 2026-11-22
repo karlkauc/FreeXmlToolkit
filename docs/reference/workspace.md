@@ -13,7 +13,7 @@ Each activity in the activity bar has its own page in this documentation:
 | Explorer, Favorites, Bookmarks | this page |
 | Search | [Search and replace in files](../guides/edit-xml/search-in-files.md) |
 | Validation | [Validate](../guides/validate/index.md), [Working with problems](../guides/validate/problems.md) |
-| Transform | [Transform & query](../guides/transform-query/index.md), [Query console](../guides/transform-query/query-console.md), [XProc pipelines](../guides/transform-query/xproc.md) |
+| Transform | [Transform & query](transform-panel.md), [Query console](../guides/transform-query/query-console.md), [XProc pipelines](../guides/transform-query/xproc.md) |
 | Schema | [The Schema panel](../guides/design-schemas/schema-panel.md), [Design schemas](../guides/design-schemas/index.md) |
 | Schema Library | [Schema Library](../guides/design-schemas/schema-library.md) |
 | PDF / FOP | [PDF with XSL-FO](../guides/publish-pdf.md) |
@@ -81,8 +81,8 @@ with the closely related actions:
 |--------------|---------------|----------------|
 | **Save** | Save the current tab (Ctrl+S) | **Save As…** (Ctrl+Shift+S) - save under a new name (the file chooser is pre-set to the tab's file type) · **Save All** - save every open tab at once |
 | **Format** | Pretty-print the active document (Shift+Alt+F; note: **Ctrl+Shift+F** opens the [Search panel](../guides/edit-xml/search-in-files.md), not document search). XML is indented by two spaces per level and every start tag stays on one line, however many attributes it carries | **Minify** - remove all insignificant whitespace |
-| **Run** | Run the active document against the selected **Input** (Ctrl+Enter) - the primary click automatically runs whichever action the active file type supports | **Run Query** (XPath/XQuery) · **Run Transform** (XSLT) · **Debug Transform** (XSLT, Shift+F5 - the active stylesheet in the [debugger](../guides/transform-query/index.md#xslt-debugger)) · **Debug Query** (XQuery, Shift+F5 - the same debugger on a query) · **Profile Query** (XQuery - the [profiler](../guides/transform-query/xslt-development.md#profiling-an-xquery) on a query) · **Debug Schematron** (Schematron, Shift+F5 - the debugger on the Schematron's checks, against the selected Input; the primary click on a Schematron tab) · **Run Pipeline** (XProc) · **Check Compatibility** (XSLT, XQuery, XPath, Schematron; only in expert mode - checks the document against the chosen [language version](standards-versions.md) without running it) |
-| **Transform** | **Transform with XSLT…** - opens the [Transform panel](../guides/transform-query/index.md#transform-panel) on the active XML document, asks for a stylesheet if none is set, and runs it there (result in the OUTPUT panel) | **Transform with XSLT…** · **Debug with XSLT…** (Shift+F5) - the same, but in the [debugger](../guides/transform-query/index.md#xslt-debugger) |
+| **Run** | Run the active document against the selected **Input** (Ctrl+Enter) - the primary click automatically runs whichever action the active file type supports | **Run Query** (XPath/XQuery) · **Run Transform** (XSLT) · **Debug Transform** (XSLT, Shift+F5 - the active stylesheet in the [debugger](../guides/transform-query/debug.md)) · **Debug Query** (XQuery, Shift+F5 - the same debugger on a query) · **Profile Query** (XQuery - the [profiler](../guides/transform-query/profile.md#profiling-an-xquery) on a query) · **Debug Schematron** (Schematron, Shift+F5 - the debugger on the Schematron's checks, against the selected Input; the primary click on a Schematron tab) · **Run Pipeline** (XProc) · **Check Compatibility** (XSLT, XQuery, XPath, Schematron; only in expert mode - checks the document against the chosen [language version](standards-versions.md) without running it) |
+| **Transform** | **Transform with XSLT…** - opens the [Transform panel](transform-panel.md#transform-panel) on the active XML document, asks for a stylesheet if none is set, and runs it there (result in the OUTPUT panel) | **Transform with XSLT…** · **Debug with XSLT…** (Shift+F5) - the same, but in the [debugger](../guides/transform-query/debug.md) |
 | **Schema** | **Set XSD Schema…** - bind an XSD to the active document for IntelliSense and validation | **Set XSD Schema…** · **Generate Documentation…** (HTML/PDF/Word for the active XSD) · **Type Editor…** (edit a named type of the active XSD) · **Generate XSD from XML** (infer a schema from the active XML document) · **Generate XSD from XML Files…** (infer one schema from several XML files) |
 
 - **Transform** is a split button, see above: the primary click transforms, the ▾ arrow offers **Debug with XSLT…**
@@ -124,11 +124,11 @@ use **F8**, **Tools → Validate**, the toolbar's **Validate** button or the Val
 | Action | Applies to | What it does |
 |--------|-----------|--------------|
 | **Validate** | XML, XSD, XSLT, Schematron, JSON | Validates the active document and lists any problems (or reports it is valid / well-formed). For an XML document this uses the bound XSD/Schematron if one is set; a JSON document uses its bound JSON Schema if one is set, otherwise it is checked for syntax only. |
-| **Transform with XSLT…** | XML | Opens the [Transform panel](../guides/transform-query/index.md#transform-panel) on the active XML document, asks you to pick a stylesheet if none is set, and runs it there - with the panel's parameters and output method; the result appears in the [OUTPUT panel](../guides/transform-query/index.md#the-output-panel-results) (including **Save**). Also available as **Tools → Transform with XSLT…**. |
+| **Transform with XSLT…** | XML | Opens the [Transform panel](transform-panel.md#transform-panel) on the active XML document, asks you to pick a stylesheet if none is set, and runs it there - with the panel's parameters and output method; the result appears in the [OUTPUT panel](transform-panel.md#the-output-panel-results) (including **Save**). Also available as **Tools → Transform with XSLT…**. |
 | **Generate Documentation…** (Schema ▾ menu) | XSD | Lets you choose a format - **HTML**, **PDF**, or **Word** - and an output location, then generates the schema documentation there. |
 | **Type Editor…** (Schema ▾ menu) | XSD | Lets you pick one of the schema's named types and opens it in a focused Type Editor tab. |
 | **Input** (dropdown) | XQuery, XPath, XSLT, XProc | Selects the XML document the next run works on: Automatic (last active XML document), any open XML-family tab, or a file chosen from disk. Remembered per document. |
-| **Run Query** (Run ▾) | XQuery, XPath | Runs the active query against the selected target and shows the result in the [OUTPUT panel](../guides/transform-query/index.md#the-output-panel-results) (`Ctrl+Enter`). |
+| **Run Query** (Run ▾) | XQuery, XPath | Runs the active query against the selected target and shows the result in the [OUTPUT panel](transform-panel.md#the-output-panel-results) (`Ctrl+Enter`). |
 | **Run Transform** (Run ▾) | XSLT | Runs the active stylesheet against the selected target, output format auto-detected from `xsl:output` (`Ctrl+Enter`). |
 | **Run Pipeline** (Run ▾) | XProc | Runs the active pipeline with XML Calabash, the selected target feeding the `source` port (`Ctrl+Enter`). |
 | **Check Compatibility** (Run ▾, expert mode) | XSLT, XQuery, XPath, Schematron | Checks the active document against the chosen [language version](standards-versions.md) without running it and lists the issues in Problems. |
@@ -215,13 +215,13 @@ When nothing is selected in the tree, Transform and Validate use the **active ed
 document** (if it is XML).
 
 The last-used stylesheet and Schematron are **sticky** and **shared with the
-[Transform panel](../guides/transform-query/index.md#transform-panel)** and the [Validation panel](../guides/validate/index.md#validation-panel): both
+[Transform panel](transform-panel.md#transform-panel)** and the [Validation panel](../guides/validate/index.md#validation-panel): both
 places draw from the same recent lists.
 
 **What Transform does** depends on how many XML files are selected:
 
 - **One XML file** (or the active document): the stylesheet runs and the result appears in
-  the docked **[Transform OUTPUT panel](../guides/transform-query/index.md#the-output-panel-results)** below the editor. HTML
+  the docked **[Transform OUTPUT panel](transform-panel.md#the-output-panel-results)** below the editor. HTML
   dashboards render in the **Preview** (WebView). The output format is auto-detected from the
   stylesheet's `xsl:output` declaration.
 - **Several XML files**: the **Batch Transform** tool tab opens, pre-loaded with those files,
@@ -238,7 +238,7 @@ any) - bind or clear the XSD in the Validation panel's SOURCES section to contro
     Primary workflow: choose your stylesheet once, then just select another XML file in the
     tree and right-click **Transform with *&lt;stylesheet&gt;*** again - the stylesheet stays
     put. For output-format overrides, parameters, watch-and-rerun, and the result table, use
-    the full [Transform panel](../guides/transform-query/index.md#transform-panel).
+    the full [Transform panel](transform-panel.md#transform-panel).
 
 ## Favorites Panel
 

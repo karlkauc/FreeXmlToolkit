@@ -48,7 +48,7 @@
 
     Guides by task: edit XML and JSON, design schemas, validate, compare, sign.
 
--   **[Transform and debug](guides/transform-query/index.md)**
+-   **[Transform and debug](reference/transform-panel.md)**
 
     XSLT, XQuery, XPath and XProc, with a debugger and a profiler.
 

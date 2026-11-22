@@ -55,7 +55,7 @@ pane shows the previous run's XML result with syntax highlighting.*
     JSONPath queries) get JSON highlighting; scalar results and messages stay plain.
   - **Copy** - Copy the full result to the clipboard.
   - **Table** - Shows the last XPath or XQuery result as a table in the
-    [OUTPUT panel](index.md#the-output-panel-results): each result item is a row, its child elements
+    [OUTPUT panel](../../reference/transform-panel.md#the-output-panel-results): each result item is a row, its child elements
     (or, without any, its attributes) are the columns; plain values fill a single **value** column. Enabled after
     a run on an XML document whose result has at least one item (not for JSONPath). An XPath result is projected
     at the console's [XPath version](../../reference/standards-versions.md).
@@ -108,7 +108,7 @@ the hits together.
 !!! note
     The Query Console is an additional, faster access point - it does not replace the **Transform**
     activity. For XSLT transformations, parameters, recent-stylesheet history, watch-and-rerun, and
-    the OUTPUT panel's result table and HTML preview, use the [Transform Panel](index.md#transform-panel).
+    the OUTPUT panel's result table and HTML preview, use the [Transform Panel](../../reference/transform-panel.md#transform-panel).
 
 ### Variables, trace and the execution plan
 
@@ -279,7 +279,7 @@ type.
   auto-detected from its `xsl:output` declaration.
 - **Run Pipeline** covers **XProc** documents (see [XProc Pipelines](xproc.md#xproc-pipelines)).
 
-Results appear in the **[OUTPUT panel](index.md#the-output-panel-results)** docked below the
+Results appear in the **[OUTPUT panel](../../reference/transform-panel.md#the-output-panel-results)** docked below the
 editor, with execution time and result size in the status line. A tabular XQuery result
 (a sequence of similar elements) additionally offers a **Table** view; HTML results get
 a preview, and everything can be opened as an editor tab, opened in the browser, or

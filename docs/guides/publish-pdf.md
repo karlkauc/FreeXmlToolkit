@@ -68,7 +68,7 @@ bar. The panel is organized into these sections plus the primary action:
   warnings. A failed generation puts the stylesheet error with its location, or FOP's
   reason, into OUTPUT as well.
 - **TOOLS → Debug stylesheet…** runs the XSL-FO stylesheet in the
-  [XSLT debugger](transform-query/index.md#xslt-debugger) (breakpoints, stepping, variables, live messages); the
+  [XSLT debugger](transform-query/debug.md) (breakpoints, stepping, variables, live messages); the
   page-size parameters are passed on. The FO a finished debug run produced lands in OUTPUT
   and in the panel's result, so **Show intermediate FO** and **Render PDF from FO…** (renders
   that FO to a PDF of your choice) work right after debugging.
@@ -110,7 +110,7 @@ Add metadata to your PDF document in the **METADATA** section:
   [external XSL-FO processor](#external-xsl-fo-processors) you configured. **Manage processors…**
   opens the list. With an external processor, the metadata fields and PDF/A are only available
   when its arguments pass them on (`${title}`, `${pdfa}` …).
-- **XSLT processor** - shown once an [external XSLT processor](transform-query/index.md#external-xslt-processors) is
+- **XSLT processor** - shown once an [external XSLT processor](transform-query/external-processors.md) is
   configured: which program turns the XML into XSL-FO, the bundled Saxon HE or one of yours. Starts at the
   default XSLT processor of the settings.
 
@@ -243,7 +243,7 @@ line: **Antenna House Formatter** (`AHFCmd`), **RenderX XEP** (`xep`), a separat
 XSLT stage (XML → XSL-FO) still runs inside FreeXmlToolkit, so **Show intermediate
 FO**, the stylesheet's messages and the debugger work the same; only the rendering is handed to
 the external program. The XSLT stage itself runs on Saxon HE or on an
-[external XSLT processor](transform-query/index.md#external-xslt-processors) (**XSLT processor** in the panel).
+[external XSLT processor](transform-query/external-processors.md) (**XSLT processor** in the panel).
 
 **Set one up:** *Settings → Extensions → XSL-FO Processors* (or **Manage processors…** in the
 PDF/FOP panel) → **Add…**

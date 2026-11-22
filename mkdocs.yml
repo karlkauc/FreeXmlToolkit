@@ -73,9 +73,9 @@ plugins:
         xsd-validation.md: guides/validate/xsd.md
         schematron-support.md: guides/validate/schematron.md
         schematron-quick-fixes.md: guides/validate/schematron-quick-fixes.md
-        transform-panel.md: guides/transform-query/index.md
-        xslt-viewer.md: guides/transform-query/xslt-quick-start.md
-        xslt-developer.md: guides/transform-query/xslt-development.md
+        transform-panel.md: reference/transform-panel.md
+        xslt-viewer.md: guides/transform-query/run-xslt.md
+        xslt-developer.md: guides/transform-query/run-xslt.md
         query-console.md: guides/transform-query/query-console.md
         debugger.md: guides/transform-query/debug.md
         xproc.md: guides/transform-query/xproc.md
@@ -219,17 +219,21 @@ nav:
       - Schema Library: guides/design-schemas/schema-library.md
     - Validate:
       - guides/validate/index.md
-      - Working with problems: guides/validate/problems.md
       - XSD validation: guides/validate/xsd.md
+      - Folders and export: guides/validate/folders.md
+      - Working with problems: guides/validate/problems.md
       - Schematron: guides/validate/schematron.md
       - Schematron Quick Fixes: guides/validate/schematron-quick-fixes.md
     - Transform & query:
       - guides/transform-query/index.md
-      - XSLT quick start: guides/transform-query/xslt-quick-start.md
-      - XSLT development: guides/transform-query/xslt-development.md
+      - Run a transformation: guides/transform-query/run-xslt.md
       - Query console: guides/transform-query/query-console.md
       - Debugger: guides/transform-query/debug.md
+      - Profile: guides/transform-query/profile.md
+      - Test with XSpec: guides/transform-query/xspec.md
       - XProc pipelines: guides/transform-query/xproc.md
+      - External XSLT processors: guides/transform-query/external-processors.md
+      - Examples: guides/transform-query/examples.md
     - PDF with XSL-FO: guides/publish-pdf.md
     - Compare and merge: guides/compare-merge.md
     - Sign & encrypt:
@@ -270,6 +274,7 @@ nav:
   - Reference:
     - reference/index.md
     - Workspace: reference/workspace.md
+    - Transform panel: reference/transform-panel.md
     - Keyboard shortcuts: reference/keyboard-shortcuts.md
     - Settings: reference/settings.md
     - Properties Inspector: reference/inspector.md

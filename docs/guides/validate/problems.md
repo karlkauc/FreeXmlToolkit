@@ -1,5 +1,58 @@
 # Working with problems
 
+Validation findings are listed in the **PROBLEMS** panel below the editor. This page describes the
+list, how to jump from a finding to its place in the document, and how to handle long lists.
+
+## The problems list
+
+Problems appear in two places:
+
+- The **PROBLEMS** list in the side panel (**Batch mode only**): the problems of the file
+  selected in RESULTS. **Export Problems to Excel** in the **REPORTS & CHECKS** section
+  saves the current list as an `.xlsx` workbook.
+- The **PROBLEMS panel below the editor**: it appears automatically when
+  validation finds problems, shows error/warning counts in its header, and can be collapsed
+  to just the header. Drag its top edge to change its height (the height is remembered). Each row shows the message and the file/line in a monospaced label.
+
+Every row in the PROBLEMS panel below the editor carries a
+**source badge** - **XSD**, **Schematron**, **Well-formed**, or **JSON Schema** - so when a
+run combines several checks you can tell at a glance where each problem comes from.
+Hovering a **Schematron** row shows a **tooltip** with the full message, the failed
+rule/test expression, and the XPath of the failing node.
+
+Long messages are cut off in the row. **Right-click** a row in the PROBLEMS panel below the
+editor to copy it: **Copy Message** (just the message text), **Copy Problem** (severity,
+source, message, file and line/column, plus rule and context for Schematron) or **Copy All
+Problems** (one problem per line). **Ctrl+C** (**Cmd+C** on macOS) copies the selected row
+like Copy Problem.
+
+While the [AI assistant](../ai-assistant.md) is on, the same menu - in the PROBLEMS panel and in the side panel's
+list - also offers **Fix with AI** and **Explain with AI** (below any quick fixes). A fix is applied to a copy
+and validated against the same schema and Schematron first; the **AI** panel below the editor shows it side by
+side with the result of the checks, and **Apply** makes it one edit (Ctrl+Z undoes it). See
+[Fix or explain a validation problem](../ai-assistant.md#fix-or-explain-a-validation-problem).
+
+Selecting a problem in either list shows it **in the view you are in**:
+
+- **Text** - the caret jumps to its line and, for XML and XSD errors, to the reported column.
+- **Tree** - the element of that line is selected and scrolled into view.
+- **Graphic** - the grid selects the element's row; inside a repeating group it opens the table,
+  selects the cell (the attribute's cell when the message names an attribute) and opens table
+  cells on the way to errors nested deeper. The row or cell flashes briefly, the red problem
+  marker stays. For an XSD the diagram selects the schema node.
+
+The view does not change. This works for
+**Schematron problems too**: the failing rule's context node is resolved back to its
+line in the XML, so a click navigates straight to the offending element.
+
+Schematron problems whose rules define **quick fixes** (SQF)
+can be corrected in place: right-click the problem row in either list and pick a fix
+from the **Quick Fix** submenu, or use the **yellow lightbulb** that appears in the
+editor gutter on lines with fixable problems (click it, or press **Alt+Enter** /
+**Ctrl+.** on the line). See [Schematron Quick Fixes](schematron-quick-fixes.md).
+
+## Jump to a problem
+
 Validation errors appear in the **PROBLEMS** panel below the editor and in the **Validation**
 side panel - validating (F8, the toolbar, a panel's *Validate*) does not switch to the Validation page. The result stays with its document: switch to another tab (or to the Validation result that
 **Validate** / F8 opens) and back, and the status and problems are shown again, as long as you have not

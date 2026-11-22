@@ -21,7 +21,7 @@ Release highlights of versions 3.0 to 3.3. The current release is on [What's new
   scenario (`xsltProcessor`), for the XSLT stage of the PDF/FOP panel, in batch runs and on the command line
   (`fxt-cli transform --processor`, `fxt-cli fop --xslt-processor`). Unsaved editor text is handed over next to the
   file, so includes resolve; errors show their line as with Saxon HE. Debugging, profiling, XSpec and the live
-  preview stay on Saxon HE. See [External XSLT Processors](../guides/transform-query/index.md#external-xslt-processors).
+  preview stay on Saxon HE. See [External XSLT Processors](../guides/transform-query/external-processors.md).
 
 **YAML**
 
@@ -282,7 +282,7 @@ Release highlights of versions 3.0 to 3.3. The current release is on [What's new
 - **Transform from open tabs:** STYLESHEET → Change and INPUT → Change list every open XSLT / XML tab, saved
   or not, and a **Use current tab** button takes the tab you are editing — a generated stylesheet opened in a new
   tab runs straight away, with its editor text. See
-  [Transform Panel](../guides/transform-query/index.md#stylesheet).
+  [Transform Panel](transform-panel.md#stylesheet).
 - **External XSL-FO processors:** render PDFs with Antenna House Formatter, RenderX XEP, another Apache FOP or a
   script of your own; the XSLT stage, the intermediate FO and the debugger stay the same. Set them up under
   Settings → Extensions → XSL-FO Processors, choose one in the PDF/FOP panel, in a PDF scenario or with

@@ -1,10 +1,23 @@
-# Validation Panel
+# Validate
 
-Open the **Validation** panel from the activity bar to validate the active document.
+**F8** validates the active document against everything bound to it: XSD, DTD or RELAX NG,
+Schematron, JSON Schema for JSON files, and the checks of enabled extensions. The **Validation**
+panel shows what is bound and lets you change it.
 
-> The panel offers a SOURCES section, a Single file / Batch mode toggle, a primary
-> **Run Validation** button, a status line, and - in Batch mode - a color-coded RESULTS
-> list.
+| Task | Page |
+|------|------|
+| Validate one document against an XSD, step by step | [XSD validation](xsd.md) |
+| Validate every file of a folder, export the findings | [Folders and export](folders.md) |
+| Write and run business rules | [Schematron](schematron.md), [Schematron Quick Fixes](schematron-quick-fixes.md) |
+| Read, filter and fix findings | [Working with problems](problems.md) |
+| Bind schemas to files by pattern, validate a whole project | [Projects & scenarios](../projects.md) |
+| Which schema languages are supported | [Schema support](../../reference/schema-support.md) |
+
+## The Validation panel
+
+Open the **Validation** panel from the activity bar. It has a SOURCES section, a
+Single file / Batch mode toggle, a primary **Run Validation** button, a status line and, in Batch
+mode, a colour-coded RESULTS list.
 
 ## Sources
 
@@ -97,54 +110,6 @@ editor, and the side panel shows a single row such as *"3 problems — show belo
 editor"* - click it to expand that PROBLEMS panel and show the first problem (or the one selected there) in the
 editor; every click shows it again.
 
-## Problems
-
-Problems appear in two places:
-
-- The **PROBLEMS** list in the side panel (**Batch mode only**): the problems of the file
-  selected in RESULTS. **Export Problems to Excel** in the **REPORTS & CHECKS** section
-  saves the current list as an `.xlsx` workbook.
-- The **PROBLEMS panel below the editor**: it appears automatically when
-  validation finds problems, shows error/warning counts in its header, and can be collapsed
-  to just the header. Drag its top edge to change its height (the height is remembered). Each row shows the message and the file/line in a monospaced label.
-
-Every row in the PROBLEMS panel below the editor carries a
-**source badge** - **XSD**, **Schematron**, **Well-formed**, or **JSON Schema** - so when a
-run combines several checks you can tell at a glance where each problem comes from.
-Hovering a **Schematron** row shows a **tooltip** with the full message, the failed
-rule/test expression, and the XPath of the failing node.
-
-Long messages are cut off in the row. **Right-click** a row in the PROBLEMS panel below the
-editor to copy it: **Copy Message** (just the message text), **Copy Problem** (severity,
-source, message, file and line/column, plus rule and context for Schematron) or **Copy All
-Problems** (one problem per line). **Ctrl+C** (**Cmd+C** on macOS) copies the selected row
-like Copy Problem.
-
-While the [AI assistant](../ai-assistant.md) is on, the same menu - in the PROBLEMS panel and in the side panel's
-list - also offers **Fix with AI** and **Explain with AI** (below any quick fixes). A fix is applied to a copy
-and validated against the same schema and Schematron first; the **AI** panel below the editor shows it side by
-side with the result of the checks, and **Apply** makes it one edit (Ctrl+Z undoes it). See
-[Fix or explain a validation problem](../ai-assistant.md#fix-or-explain-a-validation-problem).
-
-Selecting a problem in either list shows it **in the view you are in**:
-
-- **Text** - the caret jumps to its line and, for XML and XSD errors, to the reported column.
-- **Tree** - the element of that line is selected and scrolled into view.
-- **Graphic** - the grid selects the element's row; inside a repeating group it opens the table,
-  selects the cell (the attribute's cell when the message names an attribute) and opens table
-  cells on the way to errors nested deeper. The row or cell flashes briefly, the red problem
-  marker stays. For an XSD the diagram selects the schema node.
-
-The view does not change. This works for
-**Schematron problems too**: the failing rule's context node is resolved back to its
-line in the XML, so a click navigates straight to the offending element.
-
-Schematron problems whose rules define **quick fixes** (SQF)
-can be corrected in place: right-click the problem row in either list and pick a fix
-from the **Quick Fix** submenu, or use the **yellow lightbulb** that appears in the
-editor gutter on lines with fixable problems (click it, or press **Alt+Enter** /
-**Ctrl+.** on the line). See [Schematron Quick Fixes](schematron-quick-fixes.md).
-
 ## Detailed Schematron Report
 
 > A full report of the last Schematron run, opened as a tool tab
@@ -209,3 +174,33 @@ continuous (debounced) validation.
 > by category - XML syntax, structural, XPath, semantic, and best-practice issues - so you can
 > fix mistakes in the rules before you rely on them. See
 > [Schematron Validation](schematron.md) for details.
+
+## Controls Reference
+
+### Validation panel
+
+| Control | Description |
+|---------|-------------|
+| **REPORTS & CHECKS** | Section at the top of the panel: **Validation Report** (enabled after a run with a bound Schematron), **Export Problems to Excel**, **Open Last Batch Report**. (FundsXML validation lives in the FundsXML panel.) |
+| **SCHEMATRON AUTHORING** | Section at the top of the panel: **Rule Templates**, **Schematron Tester**, **Rule Builder**, **Check Rules**, **Schematron Documentation**. |
+| **SOURCES · XSD row** | Two lines: icon, caption **XSD**, **★** and **Change** on the first; the bound file's name on the second (shortened in the middle, full path as tooltip). While nothing is bound it reads *"No XSD bound — choose or drop a file"* and a click acts like **Change**. Click the name to open the schema in the editor, **★** to pick a favorite, **Change** to browse; drop an `.xsd` onto the row to bind it. |
+| **SOURCES · Schematron row** | The bound Schematron (`.sch`), with the same layout and name / ★ / Change / drop behavior (*"No Schematron — choose or drop a file"* while empty). |
+| **SOURCES · JSON Schema row** | Shown instead of the two rows above while a JSON document is active. |
+| **Single file / Batch** | Segmented toggle that decides what **Run Validation** does. |
+| **Run Validation** | Single file: validates the active document. Batch: opens the **Select XML files…** / **Select folder…** menu. |
+| **Status line** | *Valid*, *Well-formed · no schema bound*, *1 problem* / *N problems*, batch summaries, or a precondition hint (e.g. *No document open*). |
+| **"N problems — show below the editor"** | *(Single file mode.)* Expands and focuses the PROBLEMS panel below the editor. |
+| **RESULTS** | *(Batch mode only.)* Per-file rows of the last batch run (collapsible section). |
+| **PROBLEMS** | *(Batch mode only.)* The problems of the file selected in RESULTS (collapsible). |
+| **⋮ menu** | **Validate while typing**. |
+
+### Editor toolbar and status bar
+
+| Control | Shortcut | Description |
+|---------|----------|-------------|
+| **Validate** | F8 | Validates the active document - well-formedness, or against the bound XSD / Schematron |
+| **Schema** (primary click) | - | **Set XSD Schema…** - bind an XSD (or a JSON Schema for JSON documents) to the active document |
+| **Schema ▾** menu | - | **Set XSD Schema…**, **Generate Documentation…**, **Type Editor…**, **Generate XSD from XML**, **Generate XSD from XML Files…** |
+| **XSD indicator** (status bar) | - | Shows *No XSD* (a clickable chip), *Detecting XSD…*, *XSD: name* (with *(catalog)* / *(library)* / *(manual)*), or *XSD error*; click it to bind a schema, or drop an `.xsd` onto it. While an XSD schema itself is the active document it shows *XSD 1.1 schema* / *XSD 1.0 schema* instead (from `vc:minVersion`). |
+
+---

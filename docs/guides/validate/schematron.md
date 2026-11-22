@@ -332,4 +332,4 @@ Common XPath expressions for Schematron rules:
 ## Testing Schematron with XSpec
 
 Schematron rules can be unit-tested with XSpec (`x:expect-assert`, `x:expect-report`, `x:expect-valid`): see
-[Testing with XSpec](../transform-query/xslt-development.md#testing-with-xspec).
+[Testing with XSpec](../transform-query/xspec.md).

@@ -73,7 +73,7 @@ Here `data/special.xml` gets `special.xsd`, `common.sch` and the `Report` scenar
   shows it as `… (project)`.
 - **Schematron:** Validate (F8), the Validation panel and Quick Fixes use it, unless you chose
   another Schematron for the document.
-- **Scenario:** the [Transform panel](transform-query/index.md) chooses it when the file becomes the
+- **Scenario:** the [Transform panel](../reference/transform-panel.md) chooses it when the file becomes the
   active document, and the Explorer offers it first under **Run Scenario**.
 
 **Where to bind:**
@@ -119,7 +119,7 @@ A scenario names a stylesheet (XSLT), an XQuery (`.xq`, `.xquery`, …) or an XP
 
 ### In the Transform panel
 
-While a project is open, the [Transform Panel](transform-query/index.md) shows a **SCENARIO** section
+While a project is open, the [Transform Panel](../reference/transform-panel.md) shows a **SCENARIO** section
 below OPTIONS & TOOLS.
 
 **Choosing and running a scenario:**

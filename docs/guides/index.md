@@ -21,7 +21,7 @@ publishing. Pick the task you have in front of you.
 
     XSD, DTD, RELAX NG and Schematron, single files or whole folders, with Quick Fixes.
 
--   **[Transform & query](transform-query/index.md)**
+-   **[Transform & query](../reference/transform-panel.md)**
 
     XSLT, XQuery, XPath and XProc: run, preview, debug and profile.
 

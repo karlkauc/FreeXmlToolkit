@@ -117,7 +117,7 @@ error line, code, phase; other lines = messages). Shared with the FO processors:
 `FOPService.transformToFo`, `BatchTransformRunner`, CLI `transform --processor / --list-processors`,
 `fop --xslt-processor`. Live preview, profiler, trace, debugger, XSpec, XProc and AI tools stay on Saxon HE. Tests
 start `FakeXsltProcessor` with the running JVM (`ExternalXsltRunnerTest.fake`); `RealXsltProcessorsTest` runs the
-Saxon preset with Saxon HE, Saxon HE 13 and xsltproc when installed. Docs: `docs/guides/transform-query/index.md#external-xslt-processors`.
+Saxon preset with Saxon HE, Saxon HE 13 and xsltproc when installed. Docs: `docs/guides/transform-query/external-processors.md`.
 Saxon HE 13: the bundled Saxon stays 12.10 (XML Calabash is built against it; one Saxon per JVM), so the newer one
 is an external processor — `SaxonInstaller` (Saxon-HE 13.1 + xmlresolver 6.1.0 from Maven Central via
 `ConnectionService`, SHA-256 pinned in the class, `~/.freeXmlToolkit/saxon/<version>/`, temp file + move) →

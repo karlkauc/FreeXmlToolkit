@@ -114,7 +114,7 @@ Convert XML into other formats:
 | **XProc 3.0 Pipelines** | Run multi-step processing pipelines (`.xpl`) with the built-in XML Calabash engine |
 | **Generate a Stylesheet with AI** | Describe the output with a target sample; the AI assistant writes the XSLT, which is run and compared before you see it |
 
-Learn more: [Transform Panel](../guides/transform-query/index.md) | [XSLT Developer](../guides/transform-query/xslt-development.md) | [Debugger](../guides/transform-query/debug.md) | [XProc Pipelines](../guides/transform-query/xproc.md)
+Learn more: [Transform Panel](../reference/transform-panel.md) | [XSLT Developer](../guides/transform-query/run-xslt.md) | [Debugger](../guides/transform-query/debug.md) | [XProc Pipelines](../guides/transform-query/xproc.md)
 
 ### PDF Generation
 
