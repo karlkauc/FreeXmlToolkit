@@ -391,12 +391,29 @@ oder die Weiterleitung auf seine neue Seite zeigen.
 
 ### Stand
 
-- Stufe 1 (Erscheinungsbild) und Stufe 2 (Navigation, Ordner, Weiterleitungen) sind umgesetzt.
-- Geteilt oder zusammengeführt ist noch nichts: Die 14 betroffenen Seiten liegen unverändert an
-  ihrem Hauptziel (z. B. `unified-shell.md` als `get-started/workspace-tour.md`, `xsd-tools.md` als
-  `guides/design-schemas/index.md`). Titel und Inhalt folgen in Stufe 3.
-- README, `CONTRIBUTING.md` und die drei Adressen im Java-Code zeigen noch auf die alten Adressen
-  und laufen über die Weiterleitungen; sie werden nach Stufe 3 nachgezogen.
+Umgesetzt (Branch `docs/redesign`):
+
+- Stufe 1 Erscheinungsbild, Stufe 2 Navigation mit Ordnern und Weiterleitungen.
+- Stufe 3, erster Teil: `unified-shell` (Tour, Workspace-Referenz, Working with files, Search and
+  replace in files, Compare and merge, Sign and encrypt, Working with problems, The Schema panel),
+  `xsd-tools` (acht Seiten), `command-line` (Übersicht und vier Befehlsgruppen), `whats-new`
+  (aktuell, 3.0 bis 3.3, 2.x), JSON-Grid und Projektdatei als eigene Seiten; neue Seiten Docs home,
+  First steps, Get help, Glossary, What FreeXmlToolkit can do; Hinweise auf alte Tabs entfernt,
+  beschriftete Zitat-Notizen in Hinweiskästen umgewandelt; Doku-Adressen in README,
+  `CONTRIBUTING.md` und `.github/` nachgezogen.
+
+Offen in Stufe 3:
+
+- Zusammenführen: `guides/validate/index.md` (Validation Panel) mit `xsd.md`; die drei XSLT-Seiten
+  (`transform-query/index.md`, `xslt-quick-start.md`, `xslt-development.md`) zu Run XSLT, Profile,
+  XSpec und einer Feldreferenz.
+- `guides/edit-xml/index.md` (XML Editor): Dopplungen kürzen, Excel/CSV-Konverter herauslösen
+  (die App verlinkt auf `#xmlexcelcsv-converter`), neue Seite Convert formats.
+- `guides/edit-xml/grid.md`: 3.400 Wörter unter einer Überschrift gliedern.
+- Neue Seiten: Coming from another editor, CI recipes.
+- Seitenvorlage (Before you start / Next steps) auf die Anleitungen anwenden; unbeschriftete
+  Zitatblöcke (Ankündigungen aus Release-Zeiten) prüfen; Audit-Stand in `accessibility.md`.
+- Die drei Adressen im Java-Code laufen weiter über die Weiterleitungen.
 
 ---
 

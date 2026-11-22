@@ -87,7 +87,7 @@ the dialogs appear one after the other, each with its tab brought to the front.
 | **XQuery** | .xq, .xquery, .xqm, .xqy | Query editor with highlighting + IntelliSense, Run Query against a selectable target - see [Query Documents](../transform-query/query-console.md#query-documents-the-target-selector) |
 | **XPath** | .xpath | Single-expression query editor, Run Query against a selectable target - see [Query Documents](../transform-query/query-console.md#query-documents-the-target-selector) |
 | **Schematron** | .sch, .schematron | Code editor + Visual Builder + Tester + Documentation Generator |
-| **JSON** | .json, .jsonc, .json5 | Text + tree + editable **grid** view (see [The Grid for JSON](grid.md#json-grid)), JSONPath queries, JSON Schema validation. The JSON/JSONC/JSON5 flavor is detected from the content, so comments and trailing commas are accepted in any of the three. |
+| **JSON** | .json, .jsonc, .json5 | Text + tree + editable **grid** view (see [The Grid for JSON](../json-grid.md)), JSONPath queries, JSON Schema validation. The JSON/JSONC/JSON5 flavor is detected from the content, so comments and trailing commas are accepted in any of the three. |
 | **HTML** | .html, .htm, .xhtml | Rendered read-only **Preview** (the default view) + Text editing; also the format of HTML/XHTML transform results opened as editor tabs - see [HTML Preview](../../get-started/workspace-tour.md#html-preview) |
 
 ## Tools that read the saved file {#tools-that-read-the-saved-file}

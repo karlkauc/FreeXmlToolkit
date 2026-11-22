@@ -246,10 +246,11 @@ Switching views also keeps your place. The node at the caret is selected and ope
 Coming back to the Text view, the caret goes to the node you last selected, and the node's lines are tinted
 (see [View Modes](../../get-started/workspace-tour.md#view-modes)) - in very large documents (hundreds of MB) too.
 
-> **Note:** Adding, deleting, or moving whole nodes (structural editing) is done in the
-> **Graphic** view (the grid) via its right-click context menu. The Tree view can delete the
-> selected node with **Delete**; otherwise the Text and Tree views provide property editing
-> through the inspector.
+!!! note
+    Adding, deleting, or moving whole nodes (structural editing) is done in the
+    **Graphic** view (the grid) via its right-click context menu. The Tree view can delete the
+    selected node with **Delete**; otherwise the Text and Tree views provide property editing
+    through the inspector.
 
 ---
 
@@ -282,9 +283,11 @@ Pressing **Ctrl+F** opens an **inline search bar** at the top of the editor, wit
 chevron arrows for Find Previous / Find Next and a replace toggle (Text view only). The same
 bar works in every view mode, for every XML-family document type and for JSON documents.
 
-> **Note:** In the **Tree** and **Graphic** views, search is for finding and navigating only - **Replace** is not available there (the replace toggle is disabled). To replace text, use the **Text** view.
+!!! note
+    In the **Tree** and **Graphic** views, search is for finding and navigating only - **Replace** is not available there (the replace toggle is disabled). To replace text, use the **Text** view.
 
-> **Note:** HTML documents have a rendered, read-only **Preview** view instead of Tree/Graphic (see [HTML Preview](../../get-started/workspace-tour.md#html-preview)). Pressing **Ctrl+F** there searches the document's underlying markup text, not the rendered page.
+!!! note
+    HTML documents have a rendered, read-only **Preview** view instead of Tree/Graphic (see [HTML Preview](../../get-started/workspace-tour.md#html-preview)). Pressing **Ctrl+F** there searches the document's underlying markup text, not the rendered page.
 
 ### Searching Across Many Files
 

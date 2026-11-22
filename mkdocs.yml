@@ -185,7 +185,10 @@ nav:
   - Get started:
     - index.md
     - Install: get-started/install.md
+    - First steps: get-started/first-steps.md
     - Tour of the workspace: get-started/workspace-tour.md
+    - What FreeXmlToolkit can do: get-started/features.md
+    - Get help: get-started/get-help.md
   - Guides:
     - guides/index.md
     - Edit XML:
@@ -198,7 +201,9 @@ nav:
       - Favorites: guides/edit-xml/favorites.md
       - Bookmarks: guides/edit-xml/bookmarks.md
       - Large files: guides/edit-xml/large-files.md
-    - JSON & YAML: guides/json-yaml.md
+    - JSON & YAML:
+      - guides/json-yaml.md
+      - JSON grid: guides/json-grid.md
     - Design schemas:
       - guides/design-schemas/index.md
       - The Schema panel: guides/design-schemas/schema-panel.md
@@ -248,6 +253,10 @@ nav:
   - Automate:
     - automate/index.md
     - Command line (fxt-cli): automate/command-line.md
+    - Validate and query: automate/cli-validate.md
+    - Transform and publish: automate/cli-transform.md
+    - Compare, merge, convert: automate/cli-compare.md
+    - Sign and encrypt: automate/cli-sign.md
     - MCP server: automate/mcp-server.md
   - Administer:
     - administer/index.md
@@ -267,9 +276,14 @@ nav:
     - Standards and language versions: reference/standards-versions.md
     - Schema support: reference/schema-support.md
     - XsdDoc tags: reference/xsddoc-tags.md
+    - Project file: reference/project-file.md
     - Execution statistics: reference/execution-statistics.md
+    - Glossary: reference/glossary.md
     - FAQ & troubleshooting: reference/faq.md
-    - What's new: reference/whats-new.md
+    - What's new:
+      - reference/whats-new.md
+      - 3.0 to 3.3: reference/whats-new-3.md
+      - 2.x: reference/whats-new-2.md
     - Comparison with other editors: reference/comparison.md
     - Accessibility: reference/accessibility.md
     - Licenses: reference/licenses.md

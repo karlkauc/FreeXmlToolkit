@@ -17,9 +17,10 @@ platform.
 To undo, select the types and click **Unregister** — FreeXmlToolkit restores the
 previously configured default application where it recorded one.
 
-> **Note:** The card is only active when you run the *installed* application. When the
-> app is started from an IDE or a build directory there is no native launcher to
-> register, and the card is disabled.
+!!! note
+    The card is only active when you run the *installed* application. When the
+    app is started from an IDE or a build directory there is no native launcher to
+    register, and the card is disabled.
 
 ## What happens per platform
 

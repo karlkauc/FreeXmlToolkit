@@ -307,7 +307,8 @@ When FreeXmlToolkit downloads an application update, it verifies that the downlo
 
 This means that even if an attacker could intercept or replace the download, the mismatch would be detected and the update refused.
 
-> **Note:** The certificate-validation bypass setting (`ssl.trustAllCerts`, used only for connection testing) never applies to update downloads. Update traffic always validates TLS certificates.
+!!! note
+    The certificate-validation bypass setting (`ssl.trustAllCerts`, used only for connection testing) never applies to update downloads. Update traffic always validates TLS certificates.
 
 ### When No Published Checksum Is Available
 

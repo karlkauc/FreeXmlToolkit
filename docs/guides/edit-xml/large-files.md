@@ -165,7 +165,7 @@ the document not well-formed. A progress bar shows how far it is; **Cancel** sto
 is not available for large files.
 
 `fxt-cli validate` validates XML files of 64 MB or more the same way (without Schematron), see
-[Command Line](../../automate/command-line.md#validate).
+[Command Line](../../automate/cli-validate.md#validate).
 
 ## Changes on disk
 

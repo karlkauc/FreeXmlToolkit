@@ -77,12 +77,14 @@ full layout.
 In the Tree/Graphic view, the **Copy XPath** and **Copy Node** buttons in NODE & XPATH copy the
 schema XPath and the XSD source of the selected node.
 
-> **Tip:** You can also edit a declaration from an XML document that uses this schema: select
-> the element there and change type, cardinality, facets or documentation in its inspector - see
-> [Properties Inspector - Editing the bound schema](../../reference/inspector.md#editing-the-bound-schema).
+!!! tip
+    You can also edit a declaration from an XML document that uses this schema: select
+    the element there and change type, cardinality, facets or documentation in its inspector - see
+    [Properties Inspector - Editing the bound schema](../../reference/inspector.md#editing-the-bound-schema).
 
-> **Note:** Structural editing (adding, deleting, and moving nodes) remains a **Tree** and
-> **Graphic** capability via the right-click context menu. The **Text** view provides
-> *property* editing through the Properties pane.
+!!! note
+    Structural editing (adding, deleting, and moving nodes) remains a **Tree** and
+    **Graphic** capability via the right-click context menu. The **Text** view provides
+    *property* editing through the Properties pane.
 
 ---

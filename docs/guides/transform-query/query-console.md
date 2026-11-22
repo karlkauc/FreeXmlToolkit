@@ -14,7 +14,7 @@ header search pill) opens it and focuses the query input. Close it with the **âœ
 top right. It runs against whichever
 document is currently active, so it is the fastest way to probe an XML or JSON file while you work.
 
-The same queries run on the command line with [`fxt-cli query`](../../automate/command-line.md#query), e.g.
+The same queries run on the command line with [`fxt-cli query`](../../automate/cli-validate.md#query), e.g.
 `fxt-cli query -e 'count(//Position)' data/` for every XML file of a folder.
 
 ![Query Console docked at the bottom of the editor](../../img/unified-shell-query-console.png)
@@ -171,7 +171,7 @@ a place in the query.
 
 In an XPath or XQuery **file** (`.xpath`, `.xq`), the same check runs while you type, and a failed **Run Query** is
 underlined in the editor and listed in the **Problems** panel with line and column. The next successful run removes
-it. `fxt-cli query` prints the same text (see [Command Line](../../automate/command-line.md#query)). A query file imports its modules
+it. `fxt-cli query` prints the same text (see [Command Line](../../automate/cli-validate.md#query)). A query file imports its modules
 (`import module â€¦ at "lib.xq"`) and resolves its own relative paths next to the query file; the run target is the
 document's base URI, so `doc(resolve-uri('rates.xml', base-uri(.)))` reads a file next to the target.
 

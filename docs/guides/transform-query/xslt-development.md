@@ -1,16 +1,4 @@
-# XSLT Developer
-
-> **Note:** The standalone *XSLT Developer* tab has been retired. Its
-> capabilities now live in the **[Unified Shell](../../get-started/workspace-tour.md)'s Transform panel**
-> (stylesheet, input, output method, parameters) together with the
-> **Debug** button next to **Run Transform** (the interactive debugger with breakpoints,
-> stepping, variables, call stack, watches and live messages in a dock below the editor;
-> also **Tools → Debug with XSLT…** / **Shift+F5**), and the run options and advanced tools
-> in the panel's **OPTIONS & TOOLS** section — **Batch Transform…**,
-> **Profile run**, and **Trace run**. This page describes how to do XSLT and XQuery
-> development in the shell, plus a collection of ready-to-use XSLT and XQuery patterns.
-> XPath / XQuery queries against the open document run in the
-> [Query Console](query-console.md#query-console).
+# XSLT development
 
 FreeXmlToolkit is a full-featured environment for creating and testing XSLT stylesheets and
 XQuery scripts. It includes live transformation, parameter support, batch processing, and
@@ -341,7 +329,7 @@ root of the call tree, **(query body)**. Saxon may move an expression that does 
 out of it, so a function called in a loop can show fewer calls than iterations.
 
 On the command line, `fxt-cli transform --profile report.json …` profiles a stylesheet or a query run
-(see [Command Line](../../automate/command-line.md#transform)).
+(see [Command Line](../../automate/cli-transform.md#transform)).
 
 ---
 
@@ -379,7 +367,7 @@ report as a preview, **Export JUnit…** writes a JUnit XML report for CI server
 `pending="…"` are listed but not run.
 
 On the command line: `fxt-cli xspec tests/price.xspec -r junit.xml` (see
-[Command Line](../../automate/command-line.md#xspec)).
+[Command Line](../../automate/cli-transform.md#xspec)).
 
 Ready-to-run examples are in the `examples/xspec/` folder of the installation: tests for an
 XSLT stylesheet (functions and template rules), an XQuery library module and a Schematron, plus

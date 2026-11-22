@@ -23,7 +23,8 @@ On some Windows computers, the application may fail to start or crash immediatel
 2. **Try the portable version** -- If you used the installer (.exe or .msi), try the portable (.zip) version instead.
 3. **Report the issue** -- If the problem persists, please report it on the project's GitHub Issues page with your Windows version and graphics card model.
 
-> **Note:** FreeXmlToolkit picks a safe renderer automatically (software rendering on graphics adapters it does not recognise). You can force hardware or software rendering under **Settings → Appearance → RENDERING**; the change takes effect after a restart.
+!!! note
+    FreeXmlToolkit picks a safe renderer automatically (software rendering on graphics adapters it does not recognise). You can force hardware or software rendering under **Settings → Appearance → RENDERING**; the change takes effect after a restart.
 
 ### Application Looks Blurry or Slow
 
@@ -145,9 +146,29 @@ the highlights of every release.
 ### Where did the XSD Editor / XSLT Viewer / … tabs go?
 
 The former per-tool tabs were replaced by the Unified Shell - see
-[Where the former tabs went](whats-new.md#where-the-former-tabs-went).
+[Where the former tabs went](#where-the-former-tabs-went).
 
 ### Ctrl+Shift+F no longer formats my document
 
 Following the VS Code convention, **Ctrl+Shift+F** opens **Find in Files**; **Format Document**
 is now **Shift+Alt+F**. See [Keyboard Shortcuts](keyboard-shortcuts.md).
+
+## Where the former tabs went
+
+The Unified Shell consolidates what used to be separate sidebar tabs. The earlier
+standalone editors - XSD Editor, XSD Validation, JSON Editor, XSLT Viewer, Schematron,
+Schema Generator, Digital Signatures and FOP/PDF - have been **retired** and their
+functionality now lives in the shell:
+
+| Former tab | Now in the shell |
+|------------|------------------|
+| XSD Editor / Tools | Open an `.xsd`: Text/Tree/Graphic views + inspector; **Schema** activity (Type Library panel) for type editing, documentation, flatten and schema analysis |
+| XSD Validation | **Validation** activity (single + batch, XSD & Schematron) |
+| JSON Editor | Open a `.json` / `.jsonc` / `.json5`: Text / Tree / Graphic (grid) views + inspector; JSONPath via the Query Console; JSON Schema validation in the **Validation** activity |
+| XSLT Viewer | **Transform** panel (set stylesheet, transform, preview, browser) |
+| Schematron | **Validation** activity: check rules, templates, tester, builder, documentation, CSV/JSON export |
+| Schema Generator | Editor toolbar **Schema ▾** → Generate XSD from XML |
+| Digital Signatures | **Signature** activity (sign, validate, trust validation, certificate creation) |
+| FOP / PDF | **FOP** activity (XSL-FO → PDF + preview) |
+| XSLT Developer | **Transform** panel + editor: run/live transform, parameters, and the OPTIONS & TOOLS section (batch, profile, trace, debugger) — see [XSLT Developer](../guides/transform-query/xslt-development.md) |
+| XML Editor | The shell's editor itself: every XML document opens with IntelliSense, Text/Tree/Graphic views and the Properties inspector |

@@ -266,7 +266,7 @@ Properties sidebar shows it:
 The inspector shares the document model with the grid, the tree and the text, so an edit here
 is one undo step (Ctrl+Z) and is written back into the text immediately. Structural editing
 (adding, deleting, moving or duplicating nodes, changing a value's type) is done in the grid's
-right-click context menu - see [The Grid for JSON](../guides/edit-xml/grid.md#json-grid). In the Text view the inspector
+right-click context menu - see [The Grid for JSON](../guides/json-grid.md). In the Text view the inspector
 shows only the document type for JSON files.
 
 ## More XSD editing in the inspector {#inspector-xsd-properties}

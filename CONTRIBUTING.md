@@ -15,7 +15,7 @@ By participating you agree to follow our [Code of Conduct](https://github.com/ka
 
 Questions are welcome on the [Issues page](https://github.com/karlkauc/FreeXmlToolkit/issues) too —
 but please check the [user guide](https://karlkauc.github.io/FreeXmlToolkit/) and the
-[FAQ & Troubleshooting](https://karlkauc.github.io/FreeXmlToolkit/faq/) page first.
+[FAQ & Troubleshooting](https://karlkauc.github.io/FreeXmlToolkit/reference/faq/) page first.
 
 ## Reporting Bugs
 

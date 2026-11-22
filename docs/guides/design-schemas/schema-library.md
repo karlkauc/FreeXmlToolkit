@@ -187,7 +187,7 @@ add a mapping with the same file names. Administrators can switch the catalog of
 
 On the command line, `fxt-cli validate` uses your file-name mappings by itself and the catalog with
 `--schemastore`, for example in a CI job: `fxt-cli validate --schemastore .github/workflows`
-(see [Command Line](../../automate/command-line.md#validate)).
+(see [Command Line](../../automate/cli-validate.md#validate)).
 
 ## 5. Schema cache
 

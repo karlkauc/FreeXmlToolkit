@@ -21,7 +21,8 @@ FundsXML is an open XML standard used to exchange fund data between asset manage
 
 The FundsXML Extensions feature downloads all of this from the official GitHub repositories and integrates the content into FreeXmlToolkit so you can use it directly from the FundsXML side panel, the Welcome page, the Query Console, and Favorites.
 
-> **Note:** No FundsXML content is bundled with FreeXmlToolkit. Everything is fetched at runtime from the official GitHub repositories ([fundsxml/schema](https://github.com/fundsxml/schema), MIT License, and [fundsxml/examples](https://github.com/fundsxml/examples), Apache-2.0 License).
+!!! note
+    No FundsXML content is bundled with FreeXmlToolkit. Everything is fetched at runtime from the official GitHub repositories ([fundsxml/schema](https://github.com/fundsxml/schema), MIT License, and [fundsxml/examples](https://github.com/fundsxml/examples), Apache-2.0 License).
 
 ---
 
@@ -140,7 +141,8 @@ The fastest way to check an XML file against the FundsXML schema:
 
 The validation uses whichever FundsXML schema version is currently marked as active.
 
-> **Tip:** Use the Schematron Favorites under **FundsXML Schematron** to run additional business-rule checks. Open a Schematron file from Favorites, then validate your XML against it as you would with any other Schematron file.
+!!! tip
+    Use the Schematron Favorites under **FundsXML Schematron** to run additional business-rule checks. Open a Schematron file from Favorites, then validate your XML against it as you would with any other Schematron file.
 
 ---
 

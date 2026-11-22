@@ -2,12 +2,6 @@
 
 The JSON Editor provides a powerful environment for editing, validating, and querying JSON files with support for multiple JSON formats.
 
-> **Note:** The standalone *JSON Editor* tab has been retired. JSON
-> editing — text editing, the tree and grid views, and validation — now lives in the
-> **Unified Shell**: open a `.json` file and the **Text**, **Tree** and **Graphic** (grid)
-> views are available there. The capabilities below are unchanged; they are now part of the
-> shell rather than a dedicated sidebar tab.
-
 ## Overview
 
 FreeXmlToolkit includes a full-featured JSON Editor that supports:
@@ -77,7 +71,7 @@ very same grid the shell uses for XML files, so it is instantly familiar:
 | **Search** | Ctrl+F finds keys and values, revealing matches inside collapsed nodes |
 | **Zoom & layout** | Zoom the whole grid with Ctrl+mouse wheel, Ctrl + / Ctrl − or the header's zoom pill (Ctrl 0 resets; the factor is shared with the XML grid). Nothing is cut off - long strings wrap onto further lines - and the columns of an array table can be dragged to a new width (double-click the separator to auto-fit). **Expand all** / **Collapse all** buttons sit in the header |
 
-See [Grid View - JSON](edit-xml/grid.md#json-grid) for details.
+See [Grid View - JSON](json-grid.md) for details.
 
 ### Properties Inspector
 
@@ -405,7 +399,7 @@ Use it when the XML is processed further with XSLT or XQuery, or when the JSON m
 unchanged. Converting XML to JSON with this mapping needs a document in that vocabulary;
 other XML is refused with a message.
 
-On the command line: [`fxt-cli convert`](../automate/command-line.md#convert).
+On the command line: [`fxt-cli convert`](../automate/cli-compare.md#convert).
 
 ## Toolbar
 

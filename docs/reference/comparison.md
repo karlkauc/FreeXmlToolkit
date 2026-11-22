@@ -8,7 +8,7 @@ offer more.
 
 | Product | Version | Publisher |
 |---------|---------|-----------|
-| FreeXmlToolkit | 3.1 | Karl Kauc (open source) |
+| FreeXmlToolkit | 3.4 | Karl Kauc (open source) |
 | Oxygen XML Editor | 28.1 (March 2026) | Syncro Soft SRL |
 | Altova XMLSpy | 2027 (October 2026) | Altova GmbH |
 | Liquid Studio | 21 | Liquid Technologies Ltd |

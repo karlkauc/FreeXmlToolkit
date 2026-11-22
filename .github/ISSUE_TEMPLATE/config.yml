@@ -4,7 +4,7 @@ contact_links:
     url: https://karlkauc.github.io/FreeXmlToolkit/
     about: The documentation for all features of FreeXmlToolkit.
   - name: FAQ & Troubleshooting
-    url: https://karlkauc.github.io/FreeXmlToolkit/faq/
+    url: https://karlkauc.github.io/FreeXmlToolkit/reference/faq/
     about: Answers to common questions and solutions for common problems.
   - name: Report a security vulnerability
     url: https://github.com/karlkauc/FreeXmlToolkit/security/advisories/new

@@ -130,7 +130,7 @@ fxt-cli decrypt report.enc.xml --password            # prompts
 fxt-cli decrypt --inspect -f json order.encrypted.xml
 ```
 
-All options: [Command Line → encrypt / decrypt](../../automate/command-line.md#encrypt).
+All options: [Command Line → encrypt / decrypt](../../automate/cli-sign.md#encrypt).
 
 ## Security
 

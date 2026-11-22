@@ -1,11 +1,12 @@
 # XML Digital Signatures
 
-> **Note:** Signing, signature validation (including detailed and PKIX
-> trust/chain/revocation/timestamp validation) and self-signed certificate creation
-> live on the **Sign & Encrypt** page of the Unified Shell. Click **Sign & Encrypt** in the
-> activity bar to open it as a tab in the main editor area. The same page encrypts and decrypts
-> XML - see [XML Encryption](encryption.md). On the command line: `fxt-cli sign` and
-> `fxt-cli verify` ([Command Line](../../automate/command-line.md#sign)).
+!!! note
+    Signing, signature validation (including detailed and PKIX
+    trust/chain/revocation/timestamp validation) and self-signed certificate creation
+    live on the **Sign & Encrypt** page of the Unified Shell. Click **Sign & Encrypt** in the
+    activity bar to open it as a tab in the main editor area. The same page encrypts and decrypts
+    XML - see [XML Encryption](encryption.md). On the command line: `fxt-cli sign` and
+    `fxt-cli verify` ([Command Line](../../automate/cli-sign.md#sign)).
 
 This tool lets you digitally sign XML documents and verify signatures. A digital signature proves that a document is authentic and hasn't been changed.
 
@@ -124,8 +125,9 @@ The files are written to `certs/<alias>/` in the application's working directory
 
 **Important:** Remember your passwords! They cannot be recovered.
 
-> **Tip:** If you leave the alias or a password blank, the field is highlighted
-> in red when you click **Create Certificate**. The highlight clears as soon as you start typing.
+!!! tip
+    If you leave the alias or a password blank, the field is highlighted
+    in red when you click **Create Certificate**. The highlight clears as soon as you start typing.
 
 ---
 
@@ -182,9 +184,10 @@ untouched, and opened in the editor automatically.
 > you are asked *"Save changes to <file> first?"* - **Save and Continue** signs your current
 > text, **Use Saved Version** signs the file as last saved, **Cancel** stops.
 
-> **Tip:** Missing inputs are highlighted in red when you click **Sign Document**: signing
-> without a keystore marks the keystore entry, and a blank alias or password marks that field.
-> The highlight disappears as soon as you start typing.
+!!! tip
+    Missing inputs are highlighted in red when you click **Sign Document**: signing
+    without a keystore marks the keystore entry, and a blank alias or password marks that field.
+    The highlight disappears as soon as you start typing.
 
 ---
 
@@ -277,10 +280,11 @@ Expert Mode shows the **DOCUMENT** row, the **TRUST STORE** section and one acti
 | **Revocation** | Whether the certificate has been revoked (only when revocation checking is on) |
 | **Timestamp** | Timestamp information found with the signature, if any |
 
-> **Note:** A signature can be mathematically **valid** but **not trusted** if its certificate
-> is self-signed or issued by an authority that is not in your trust store. Trust validation is
-> the step that tells the two situations apart. Certificates created with **Create Certificate**
-> are self-signed, so they are only trusted if you add them to the trust store you validate against.
+!!! note
+    A signature can be mathematically **valid** but **not trusted** if its certificate
+    is self-signed or issued by an authority that is not in your trust store. Trust validation is
+    the step that tells the two situations apart. Certificates created with **Create Certificate**
+    are self-signed, so they are only trusted if you add them to the trust store you validate against.
 
 ---
 

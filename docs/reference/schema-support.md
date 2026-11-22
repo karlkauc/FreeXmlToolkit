@@ -114,7 +114,7 @@ Validate documents against their DTD** switches DTD validation off; administrato
 
 On the command line, `fxt-cli validate -x book.rng …` binds a grammar for all files, and declared
 DOCTYPEs and `xml-model` instructions are used like `xsi:schemaLocation` (see
-[Command Line](../automate/command-line.md#validate)).
+[Command Line](../automate/cli-validate.md#validate)).
 
 ---
 

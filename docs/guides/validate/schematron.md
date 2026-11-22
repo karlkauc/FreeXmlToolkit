@@ -1,14 +1,5 @@
 # Schematron Validation
 
-> **Note:** The standalone *Schematron* editor tab has been retired.
-> `.sch` files open as ordinary editor tabs in the [Unified Shell](../../get-started/workspace-tour.md),
-> and validation runs in the **Validation activity panel**. The Schematron tools —
-> rule check, templates, tester, visual builder, documentation, and the validation
-> report — are labelled rows in the Validation panel's **SCHEMATRON AUTHORING** and
-> **REPORTS & CHECKS** sections. The
-> capabilities below are unchanged; they are reached through the shell rather than a
-> dedicated sidebar tab.
-
 Schematron lets you create custom validation rules that go beyond what XSD schemas can check. It's perfect for validating business rules and data relationships.
 
 ---

@@ -167,4 +167,4 @@ the setting. Example identifiers (`XMPL`) found in a file are not looked up: `le
 "synthetic example identifier" (`examples` in JSON), `validate` adds one *info* with their number; an `XMPL` value
 given on the command line itself is looked up. The command line ignores the GUI settings "on every validation" - only `--gleif` / `--isin` turn the
 checks on. In a terminal, `lei`, `isin` and `validate --gleif/--isin` show the progress in one line on stderr
-(nothing when the output is redirected). See [Command Line](../automate/command-line.md#lei).
+(nothing when the output is redirected). See [Command Line](../automate/cli-validate.md#lei).

@@ -89,7 +89,7 @@ above 32 MB and files that cannot be read as such (not well-formed XML, a YAML s
 compared by their bytes (the **Note** column says so). A JSON or YAML pair opens in the Compare
 view's **Data** mode.
 
-On the command line: [`fxt-cli compare`](../automate/command-line.md#compare).
+On the command line: [`fxt-cli compare`](../automate/cli-compare.md#compare).
 
 ## Merging three files
 
@@ -125,4 +125,4 @@ there are none, it says whether the XML is well-formed. For XML files, two chang
 in whitespace (indentation) are not a conflict. Changes on adjacent lines count as one conflict,
 as in Git.
 
-On the command line, also as a Git merge driver: [`fxt-cli merge`](../automate/command-line.md#merge).
+On the command line, also as a Git merge driver: [`fxt-cli merge`](../automate/cli-compare.md#merge).

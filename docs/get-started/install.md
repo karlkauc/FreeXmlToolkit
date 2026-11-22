@@ -14,7 +14,7 @@ FreeXmlToolkit is free and needs no registration. All files are published on the
 3. **Launch** FreeXmlToolkit from your applications menu (portable: run `FreeXmlToolkit` / `FreeXmlToolkit.exe` in the extracted folder)
 
 On first start the app opens on the **Welcome** page - continue with
-[Your First Steps](../index.md#your-first-steps) or the [Unified Shell](workspace-tour.md) guide.
+[Your First Steps](first-steps.md) or the [Unified Shell](workspace-tour.md) guide.
 
 ## Download Formats
 
@@ -47,7 +47,8 @@ The macOS packages are signed with an Apple Developer ID and notarized by Apple,
 | `.rpm` | x64 | **RPM Package** - For Fedora, Red Hat, openSUSE. Install with `sudo rpm -i` or `dnf install`. |
 | `.zip` | x64 | **Portable** - No installation needed. Extract and run. Works on any Linux distribution. |
 
-> **Note:** On macOS, pick the build that matches your Mac: **Apple Silicon (ARM64)** for M-series Macs, **Intel (x64)** for older Macs (Apple menu → *About This Mac* shows the chip). Windows and Linux builds are provided for **x64** (Intel/AMD) only.
+!!! note
+    On macOS, pick the build that matches your Mac: **Apple Silicon (ARM64)** for M-series Macs, **Intel (x64)** for older Macs (Apple menu → *About This Mac* shows the chip). Windows and Linux builds are provided for **x64** (Intel/AMD) only.
 
 ## Install with a Package Manager
 
