@@ -65,10 +65,9 @@ class AppearanceDocScreenshotGenerator {
         try {
             onFx(() -> ThemeManager.apply(root.getScene(), false));
 
-            // The Settings page scrolled to its Appearance cards
+            // The Settings page, where the accent colour is chosen
             onFx(() -> shell.getSelectionModel().select(Activity.SETTINGS));
             settle(800);
-            shot("unified-shell-settings-appearance");
 
             // The same page in the violet accent, light and dark, set through the page itself
             SettingsPanel panel = findSettings(root);
