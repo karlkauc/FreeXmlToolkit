@@ -207,11 +207,11 @@ public class XsdDocumentationSvgService {
         // Calculate layout
         LayoutInfo layoutInfo = calculateLayout();
 
-        // Add SVG container with zoom and pan support
-        svgBuilder.append(String.format(
-                "<svg width=\"%d\" height=\"%d\" viewBox=\"0 0 %d %d\" xmlns=\"http://www.w3.org/2000/svg\">",
-                layoutInfo.totalWidth, layoutInfo.totalHeight, layoutInfo.totalWidth, layoutInfo.totalHeight
-        ));
+        // Add SVG container with zoom and pan support. Its size and view box are filled in once the
+        // nodes are drawn: children are centred on their parent, so they reach above and left of the
+        // start point, and an estimate drawn at 0,0 left them outside the background.
+        svgBuilder.append("<svg width=\"" + VB_W + "\" height=\"" + VB_H + "\" viewBox=\""
+                + VB_X + " " + VB_Y + " " + VB_W + " " + VB_H + "\" xmlns=\"http://www.w3.org/2000/svg\">");
 
         // Add zoom and pan functionality with enhanced styles
         svgBuilder.append("<defs>");
@@ -257,17 +257,12 @@ public class XsdDocumentationSvgService {
         svgBuilder.append("</style>");
         svgBuilder.append("</defs>");
 
-        // Add background
-        svgBuilder.append(String.format(
-                "<rect width=\"%d\" height=\"%d\" fill=\"%s\" stroke=\"%s\" stroke-width=\"1\"/>",
-                layoutInfo.totalWidth, layoutInfo.totalHeight, COLOR_BACKGROUND, COLOR_BORDER
-        ));
-
-        // Add title
-        svgBuilder.append(String.format(
-                "<text x=\"%d\" y=\"%d\" class=\"title\" fill=\"%s\">XSD Schema Diagram</text>",
-                START_X, 30, COLOR_TEXT
-        ));
+        // Background and title, placed around the drawn nodes below
+        svgBuilder.append("<rect x=\"" + VB_X + "\" y=\"" + VB_Y + "\" width=\"" + VB_W + "\" height=\"" + VB_H
+                + "\" fill=\"" + COLOR_BACKGROUND + "\" stroke=\"" + COLOR_BORDER + "\" stroke-width=\"1\"/>");
+        svgBuilder.append("<text x=\"" + TITLE_X + "\" y=\"" + TITLE_Y + "\" class=\"title\" fill=\"" + COLOR_TEXT
+                + "\">XSD Schema Diagram</text>");
+        int contentStart = svgBuilder.length();
 
         // Draw all elements
         Set<String> drawnElements = new HashSet<>();
@@ -289,10 +284,12 @@ public class XsdDocumentationSvgService {
             }
         }
 
+        int[] box = viewBoxAround(svgBuilder.substring(contentStart));
+
         // Add zoom and pan JavaScript
         svgBuilder.append("<script type=\"text/javascript\">");
         svgBuilder.append("var svg = document.querySelector('svg');");
-        svgBuilder.append("var viewBox = { x: 0, y: 0, width: ").append(layoutInfo.totalWidth).append(", height: ").append(layoutInfo.totalHeight).append(" };");
+        svgBuilder.append("var viewBox = { x: " + VB_X + ", y: " + VB_Y + ", width: " + VB_W + ", height: " + VB_H + " };");
         svgBuilder.append("var isPanning = false;");
         svgBuilder.append("var startPoint = { x: 0, y: 0 };");
         svgBuilder.append("var endPoint = { x: 0, y: 0 };");
@@ -337,7 +334,71 @@ public class XsdDocumentationSvgService {
 
         svgBuilder.append("</svg>");
 
-        return svgBuilder.toString();
+        return svgBuilder.toString()
+                .replace(VB_X, Integer.toString(box[0])).replace(VB_Y, Integer.toString(box[1]))
+                .replace(VB_W, Integer.toString(box[2])).replace(VB_H, Integer.toString(box[3]))
+                .replace(TITLE_X, Integer.toString(box[0] + DIAGRAM_PADDING))
+                .replace(TITLE_Y, Integer.toString(box[1] + DIAGRAM_PADDING + TITLE_FONT_SIZE));
+    }
+
+    // Placeholders for the view box, replaced once the nodes are drawn
+    private static final String VB_X = "@@vbX@@";
+    private static final String VB_Y = "@@vbY@@";
+    private static final String VB_W = "@@vbW@@";
+    private static final String VB_H = "@@vbH@@";
+    private static final String TITLE_X = "@@titleX@@";
+    private static final String TITLE_Y = "@@titleY@@";
+    /** Space around the drawn nodes inside the background. */
+    static final int DIAGRAM_PADDING = 30;
+    /** Room above the nodes for the title line. */
+    private static final int TITLE_SPACE = 30;
+    private static final java.util.regex.Pattern NUMBER_ATTRIBUTE =
+            java.util.regex.Pattern.compile("\\s(x|y|x1|y1|x2|y2|cx|cy|width|height|r)=[\"'](-?[0-9.]+)[\"']");
+    private static final java.util.regex.Pattern SHAPE =
+            java.util.regex.Pattern.compile("<(rect|text|line|circle)\\b[^>]*>");
+
+    /**
+     * The view box that holds every drawn shape with {@link #DIAGRAM_PADDING} around it and room for
+     * the title above: x, y, width, height.
+     */
+    static int[] viewBoxAround(String content) {
+        double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE, maxX = -Double.MAX_VALUE, maxY = -Double.MAX_VALUE;
+        var shapes = SHAPE.matcher(content);
+        while (shapes.find()) {
+            java.util.Map<String, Double> a = new java.util.HashMap<>();
+            var attrs = NUMBER_ATTRIBUTE.matcher(shapes.group());
+            while (attrs.find()) {
+                a.putIfAbsent(attrs.group(1), Double.parseDouble(attrs.group(2)));
+            }
+            double[][] points = switch (shapes.group(1)) {
+                case "rect" -> new double[][]{{a.getOrDefault("x", 0.0), a.getOrDefault("y", 0.0)},
+                        {a.getOrDefault("x", 0.0) + a.getOrDefault("width", 0.0),
+                                a.getOrDefault("y", 0.0) + a.getOrDefault("height", 0.0)}};
+                case "line" -> new double[][]{{a.getOrDefault("x1", 0.0), a.getOrDefault("y1", 0.0)},
+                        {a.getOrDefault("x2", 0.0), a.getOrDefault("y2", 0.0)}};
+                case "circle" -> new double[][]{{a.getOrDefault("cx", 0.0) - a.getOrDefault("r", 0.0),
+                        a.getOrDefault("cy", 0.0) - a.getOrDefault("r", 0.0)},
+                        {a.getOrDefault("cx", 0.0) + a.getOrDefault("r", 0.0),
+                                a.getOrDefault("cy", 0.0) + a.getOrDefault("r", 0.0)}};
+                default -> a.containsKey("x") && a.containsKey("y")
+                        ? new double[][]{{a.get("x"), a.get("y") - FONT_SIZE}, {a.get("x"), a.get("y") + 4}}
+                        : new double[0][];
+            };
+            for (double[] p : points) {
+                minX = Math.min(minX, p[0]);
+                minY = Math.min(minY, p[1]);
+                maxX = Math.max(maxX, p[0]);
+                maxY = Math.max(maxY, p[1]);
+            }
+        }
+        if (minX == Double.MAX_VALUE) {
+            return new int[]{0, 0, 400, 200};
+        }
+        int x = (int) Math.floor(minX) - DIAGRAM_PADDING;
+        int y = (int) Math.floor(minY) - DIAGRAM_PADDING - TITLE_SPACE;
+        int w = (int) Math.ceil(maxX - minX) + 2 * DIAGRAM_PADDING;
+        int h = (int) Math.ceil(maxY - minY) + 2 * DIAGRAM_PADDING + TITLE_SPACE;
+        return new int[]{x, y, w, h};
     }
 
     private static class LayoutInfo {
