@@ -384,9 +384,19 @@ auf die Subdomain abgeschlossen sein, damit Weiterleitungen nur einmal eingerich
 | 18 README-Links (`/debugger/`, `/grid/`, `/xsd-tools/`, `/faq/`, …) | `README.md`, `CONTRIBUTING.md`, Issue-Vorlage | Weiterleitung, README nachziehen |
 
 Ältere installierte Versionen der App rufen die alten Adressen auf; deshalb sind Weiterleitungen
-nötig, auch wenn die Konstanten geändert werden. Anker werden von `mkdocs-redirects` nicht
-weitergeleitet: `xml-editor/` bleibt daher als Seite mit dem Abschnitt bestehen, bis die App-Version
-mit der neuen Adresse verbreitet ist.
+nötig, auch wenn die Konstanten geändert werden. `mkdocs-redirects` reicht den Anker an die neue
+Seite weiter (`/xml-editor/#xmlexcelcsv-converter` → `/guides/edit-xml/#xmlexcelcsv-converter`).
+Ein Abschnitt, auf den die App verlinkt, muss deshalb auf der Zielseite der Weiterleitung bleiben
+oder die Weiterleitung auf seine neue Seite zeigen.
+
+### Stand
+
+- Stufe 1 (Erscheinungsbild) und Stufe 2 (Navigation, Ordner, Weiterleitungen) sind umgesetzt.
+- Geteilt oder zusammengeführt ist noch nichts: Die 14 betroffenen Seiten liegen unverändert an
+  ihrem Hauptziel (z. B. `unified-shell.md` als `get-started/workspace-tour.md`, `xsd-tools.md` als
+  `guides/design-schemas/index.md`). Titel und Inhalt folgen in Stufe 3.
+- README, `CONTRIBUTING.md` und die drei Adressen im Java-Code zeigen noch auf die alten Adressen
+  und laufen über die Weiterleitungen; sie werden nach Stufe 3 nachgezogen.
 
 ---
 

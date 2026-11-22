@@ -33,7 +33,7 @@ import org.apache.logging.log4j.Logger;
  * {@code /Library/Application Support/FreeXmlToolkit} on macOS and {@code /etc/freexmltoolkit}
  * elsewhere. {@code -D}{@value #PROP_FILE} or the environment variable {@value #ENV_FILE} name a
  * policy file elsewhere (the defaults file is then looked for next to it). Documented in
- * {@code docs/administration.md}.
+ * {@code docs/administer/policies.md}.
  */
 public final class AdminPolicy {
 

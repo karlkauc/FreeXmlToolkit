@@ -19,7 +19,7 @@ import org.fxt.freexmltoolkit.service.PropertiesService;
  * network (a Content-Security-Policy is put into the page: images, styles and fonts only as
  * {@code data:} or local files), opens no popups and does not navigate to remote pages when a link
  * is clicked. The setting {@value #ALLOW_ACTIVE_CONTENT} switches this off (also lockable by the
- * administrator policy). See docs/threat-model.md.
+ * administrator policy). See docs/administer/threat-model.md.
  */
 public final class SafeWebView {
 

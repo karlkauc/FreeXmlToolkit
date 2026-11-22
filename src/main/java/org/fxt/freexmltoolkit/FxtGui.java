@@ -194,7 +194,7 @@ public class FxtGui extends Application {
             logger.warn("Could not apply the proxy settings: {}", e.toString());
         }
 
-        // Anonymous opt-out telemetry (no-op in tests / dev builds, see docs/telemetry.md)
+        // Anonymous opt-out telemetry (no-op in tests / dev builds, see docs/administer/privacy-telemetry.md)
         try {
             Telemetry.install(ServiceRegistry.get(TelemetryService.class));
         } catch (Throwable t) {

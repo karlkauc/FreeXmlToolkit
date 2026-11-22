@@ -809,7 +809,7 @@
                                                 </Button>
                                                 <Label fx:id="usageStatus" styleClass="fxt-placeholder-text"/>
                                                 <Separator/>
-                                                <!-- Anonymous telemetry (opt-out, see docs/telemetry.md) -->
+                                                <!-- Anonymous telemetry (opt-out, see docs/administer/privacy-telemetry.md) -->
                                                 <CheckBox fx:id="telemetryUsage" id="settings-telemetry-usage"
                                                           text="%SettingsPanel.telemetryUsage.text" wrapText="true"/>
                                                 <CheckBox fx:id="telemetryErrors" id="settings-telemetry-errors"

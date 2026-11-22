@@ -87,7 +87,7 @@ class AccessibilityAuditTest {
         List<String> unnamed = findings.stream().filter(f -> f.kind() == AccessibilityAudit.Kind.UNNAMED_BUTTON
                 || f.kind() == AccessibilityAudit.Kind.UNLABELED_INPUT).map(f -> f.kind() + " " + f.what()).toList();
         org.junit.jupiter.api.Assertions.assertEquals(List.of(), unnamed, "see build/a11y-audit.md");
-        // Controls outside the tab order need a keyboard alternative (docs/accessibility.md lists them)
+        // Controls outside the tab order need a keyboard alternative (docs/reference/accessibility.md lists them)
         List<String> unreachable = findings.stream().filter(f -> f.kind() == AccessibilityAudit.Kind.NOT_KEYBOARD_REACHABLE)
                 .map(AccessibilityAudit.Finding::what).filter(w -> KEYBOARD_ALTERNATIVES.stream().noneMatch(w::contains))
                 .toList();
@@ -95,7 +95,7 @@ class AccessibilityAuditTest {
                 "new controls outside the tab order: make them focusable or document their keyboard alternative");
     }
 
-    /** Controls outside the tab order whose action has a keyboard alternative (see docs/accessibility.md). */
+    /** Controls outside the tab order whose action has a keyboard alternative (see docs/reference/accessibility.md). */
     private static final List<String> KEYBOARD_ALTERNATIVES = List.of(
             "MenuBarButton#menu-",            // F10 / Alt
             "ToggleButton#activity-",         // View → Activities

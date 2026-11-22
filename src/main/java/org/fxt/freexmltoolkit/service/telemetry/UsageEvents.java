@@ -1168,7 +1168,7 @@ public final class UsageEvents {
 
     /**
      * An AI action ended. Only fixed values are sent — never a prompt, an answer, a model or host name, or anything of
-     * the document (see docs/telemetry.md).
+     * the document (see docs/administer/privacy-telemetry.md).
      *
      * @param actionId     {@code explain | fix_problem | ask_xpath | ask_xquery | generate_xslt}
      * @param providerKind {@code local | openai_compatible | anthropic}

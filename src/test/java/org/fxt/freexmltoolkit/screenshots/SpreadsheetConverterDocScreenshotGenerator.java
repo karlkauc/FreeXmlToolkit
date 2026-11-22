@@ -23,7 +23,7 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
 /**
- * Captures the Spreadsheet Converter images for {@code docs/xml-editor.md}: the export as a table with its
+ * Captures the Spreadsheet Converter images for {@code docs/guides/edit-xml/index.md}: the export as a table with its
  * preview, and the import of a plain CSV file. Synthetic sample data.
  *
  * <pre>{@code

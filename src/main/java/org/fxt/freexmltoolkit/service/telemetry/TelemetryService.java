@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 
 /**
  * Anonymous, opt-out telemetry: usage events, automatic error events and user-initiated
- * error reports, sent to the self-hosted ingest service (see {@code docs/telemetry.md}).
+ * error reports, sent to the self-hosted ingest service (see {@code docs/administer/privacy-telemetry.md}).
  *
  * <p>All methods are safe to call from any thread, never block on the network (except
  * {@link #shutdown(Duration)}) and never throw. Obtain the instance via

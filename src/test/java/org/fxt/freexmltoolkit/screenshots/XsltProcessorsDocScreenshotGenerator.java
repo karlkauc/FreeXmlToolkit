@@ -29,7 +29,7 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
 /**
- * Captures the external XSLT processor images for {@code docs/transform-panel.md}: the list in Settings → XSLT
+ * Captures the external XSLT processor images for {@code docs/guides/transform-query/index.md}: the list in Settings → XSLT
  * Processors and the dialog with the xsltproc preset after its Test run (needs {@code xsltproc} on the PATH for the
  * "Works" line; otherwise the image shows the "not found" outcome).
  *

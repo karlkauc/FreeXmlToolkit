@@ -119,7 +119,7 @@ public final class ServiceRegistry {
         // 13. SchemaLibraryService - namespace → schema mappings, catalogs, bundled standards
         registerFactory(SchemaLibraryService.class, SchemaLibraryServiceImpl::getInstance);
 
-        // 14. TelemetryService - anonymous opt-out usage/error telemetry (see docs/telemetry.md).
+        // 14. TelemetryService - anonymous opt-out usage/error telemetry (see docs/administer/privacy-telemetry.md).
         //     Callers should prefer Telemetry.get(), which is a no-op until FxtGui installs it.
         registerFactory(TelemetryService.class, TelemetryServiceImpl::createDefault);
 

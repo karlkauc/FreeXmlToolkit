@@ -15,7 +15,7 @@ import com.google.gson.JsonObject;
 /**
  * The tool names, descriptions and argument schemas are public API: external agents (through {@code fxt-cli mcp})
  * depend on them. This test fails on any change; a change is deliberate only together with a line in
- * {@code docs/whats-new.md} and the tool reference in {@code docs/mcp-server.md}.
+ * {@code docs/reference/whats-new.md} and the tool reference in {@code docs/automate/mcp-server.md}.
  */
 class ToolSurfaceSnapshotTest {
 
@@ -44,7 +44,7 @@ class ToolSurfaceSnapshotTest {
         assertEquals(expected, actual, """
                 The MCP tool surface changed. Tool names, descriptions and argument schemas are public API.
                 If the change is intended: run the test with -Dfxt.ai.updateSnapshot=true to rewrite
-                src/test/resources/ai/mcp-tools.snapshot.json, update the tool reference in docs/mcp-server.md
-                and add a line to docs/whats-new.md.""");
+                src/test/resources/ai/mcp-tools.snapshot.json, update the tool reference in docs/automate/mcp-server.md
+                and add a line to docs/reference/whats-new.md.""");
     }
 }

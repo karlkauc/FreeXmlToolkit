@@ -58,5 +58,5 @@ The code under test:
 A good way to start: break something in `fund-utils.xsl` (for example change the 10 % bound
 of `f:weight-class`), run `01-xslt-functions.xspec` again and watch the failures.
 
-See also: *Testing with XSpec* in the user documentation (`docs/xslt-developer.md`), and the
+See also: *Testing with XSpec* in the user documentation (`docs/guides/transform-query/xslt-development.md`), and the
 other collections in `../xslt/`, `../xquery/` and `../schematron/`.

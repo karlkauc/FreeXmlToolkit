@@ -53,11 +53,11 @@ FreeXmlToolkit is a free desktop application for working with XML files. It help
 - **Create business rules** with Schematron validation
 - **Generate documentation** from your XSD schemas
 - **Compare and merge** XML files by structure, compare folders, convert XML ↔ JSON ↔ YAML
-- **Open huge files** (gigabytes) in the [Large File Viewer](large-files.md)
-- **Automate** with the [command line](command-line.md) (`fxt-cli`) and [projects](projects.md)
-- **Work with AI** - an optional [AI assistant](ai-assistant.md) that checks every answer, and an [MCP server](mcp-server.md) for AI agents
-- **Extend** it with [plugins](plugins.md) — industry plugins for ISO 20022, ebInterface, FinDatEx and XBRL included
-- **Work in English or German**, [accessible](accessibility.md), centrally [administrable](administration.md)
+- **Open huge files** (gigabytes) in the [Large File Viewer](guides/edit-xml/large-files.md)
+- **Automate** with the [command line](automate/command-line.md) (`fxt-cli`) and [projects](guides/projects.md)
+- **Work with AI** - an optional [AI assistant](guides/ai-assistant.md) that checks every answer, and an [MCP server](automate/mcp-server.md) for AI agents
+- **Extend** it with [plugins](industry/manage-extensions.md) — industry plugins for ISO 20022, ebInterface, FinDatEx and XBRL included
+- **Work in English or German**, [accessible](reference/accessibility.md), centrally [administrable](administer/policies.md)
 
 ### Supported Standards
 
@@ -78,7 +78,7 @@ These are the XML-related standards and versions FreeXmlToolkit reads, validates
 
 ### Works On All Platforms
 
-FreeXmlToolkit runs on **Windows** (x64), **macOS** (Apple Silicon and Intel) and **Linux** (x64) - as an installer, a native package or a portable ZIP, and via **Scoop** and **Homebrew**. The [Installation](installation.md) page explains every format and the package managers.
+FreeXmlToolkit runs on **Windows** (x64), **macOS** (Apple Silicon and Intel) and **Linux** (x64) - as an installer, a native package or a portable ZIP, and via **Scoop** and **Homebrew**. The [Installation](get-started/install.md) page explains every format and the package managers.
 
 ---
 
@@ -100,7 +100,7 @@ Edit your XML files with professional tools:
 | **Properties Inspector** | View and edit the selected node - and its schema declaration - in every view |
 | **Query Console** | Run XPath 3.1, XQuery 3.1 and JSONPath against the open document (Ctrl+K); **Ask AI** writes the query from a question |
 
-Learn more: [XML Editor Guide](xml-editor.md) | [Grid View](grid.md)
+Learn more: [XML Editor Guide](guides/edit-xml/index.md) | [Grid View](guides/edit-xml/grid.md)
 
 ### JSON Editor
 
@@ -115,7 +115,7 @@ Edit and validate JSON files with multiple format support:
 | **Schema Validation** | Validate against JSON Schema (Draft-07, 2019-09, 2020-12) - the schema is auto-detected from the document's `$schema` member, or bound manually; problems appear with line numbers |
 | **Hover Information** | See JSONPath and type info on hover |
 
-Learn more: [JSON Editor Guide](json-editor.md)
+Learn more: [JSON Editor Guide](guides/json-yaml.md)
 
 ### XSD Schema Tools
 
@@ -131,7 +131,7 @@ Work with XML Schema files:
 | **Schema Analysis** | Statistics, a type library with one-click removal of unused components, quality checks, identity-constraint and XPath validation - exportable as CSV, JSON, HTML, PDF or Excel |
 | **Schema Library & XML Catalogs** | Map namespaces to schema files, register OASIS `catalog.xml` files, and manage the cache of downloaded schemas - documents without a schema reference bind automatically |
 
-Learn more: [XSD Tools Guide](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [Schema Library](schema-library.md)
+Learn more: [XSD Tools Guide](guides/design-schemas/index.md) | [Profiled XML Generation](guides/design-schemas/sample-xml.md) | [XSD Validation](guides/validate/xsd.md) | [Schema Library](guides/design-schemas/schema-library.md)
 
 ### XSLT Transformation
 
@@ -148,7 +148,7 @@ Convert XML into other formats:
 | **XProc 3.0 Pipelines** | Run multi-step processing pipelines (`.xpl`) with the built-in XML Calabash engine |
 | **Generate a Stylesheet with AI** | Describe the output with a target sample; the AI assistant writes the XSLT, which is run and compared before you see it |
 
-Learn more: [Transform Panel](transform-panel.md) | [XSLT Developer](xslt-developer.md) | [Debugger](debugger.md) | [XProc Pipelines](xproc.md)
+Learn more: [Transform Panel](guides/transform-query/index.md) | [XSLT Developer](guides/transform-query/xslt-development.md) | [Debugger](guides/transform-query/debug.md) | [XProc Pipelines](guides/transform-query/xproc.md)
 
 ### PDF Generation
 
@@ -160,7 +160,7 @@ Create professional PDF documents:
 | **High-Quality Output** | Professional PDF generation |
 | **External Processors** | Render with Antenna House, RenderX XEP or another XSL-FO processor installed on your computer |
 
-Learn more: [PDF Generation Guide](pdf-generator.md)
+Learn more: [PDF Generation Guide](guides/publish-pdf.md)
 
 ### Digital Signatures
 
@@ -172,7 +172,7 @@ Sign and verify XML documents:
 | **Sign Documents** | Add digital signatures to XML files |
 | **Verify Signatures** | Check if signed documents are valid |
 
-Learn more: [Digital Signatures Guide](digital-signatures.md)
+Learn more: [Digital Signatures Guide](guides/sign-encrypt/signatures.md)
 
 ### Appearance
 
@@ -185,7 +185,7 @@ Learn more: [Digital Signatures Guide](digital-signatures.md)
 | **High Contrast** | Stronger texts and borders on top of the light or the dark theme |
 | **Export Views** | Save the XSD diagram, the grid or a flame graph as PNG, SVG or PDF, or copy it as an image |
 
-Learn more: [Settings](settings.md) | [Exporting a Graphical View](unified-shell.md#export-view)
+Learn more: [Settings](reference/settings.md) | [Exporting a Graphical View](get-started/workspace-tour.md#export-view)
 
 ### Schematron Validation
 
@@ -199,7 +199,7 @@ Define custom business rules:
 | **Quick Fixes (SQF)** | Correct rule violations automatically with one click |
 | **Explain / Fix with AI** | Let the AI assistant explain a validation problem or propose a fix that is checked against the schema and the rules |
 
-Learn more: [Schematron Guide](schematron-support.md) | [Quick Fixes](schematron-quick-fixes.md)
+Learn more: [Schematron Guide](guides/validate/schematron.md) | [Quick Fixes](guides/validate/schematron-quick-fixes.md)
 
 ### FundsXML Extension (Optional)
 
@@ -217,7 +217,7 @@ Opt-in integration with the [FundsXML](https://fundsxml.org/) industry standard 
 
 This feature is **off by default**. Enable it from Settings only if you work with FundsXML files - when you open a FundsXML document, the app offers to enable it once.
 
-Learn more: [FundsXML Extension Guide](fundsxml-extensions.md)
+Learn more: [FundsXML Extension Guide](industry/fundsxml.md)
 
 ### AI Assistant and MCP Server (Optional)
 
@@ -237,13 +237,13 @@ The assistant is **off by default**; turn it on under Settings → AI. Administr
 
 ![AI assistant: a validation problem fixed and verified against the schema](img/ai-assistant-proposal.png)
 
-Learn more: [AI Assistant](ai-assistant.md) | [MCP Server](mcp-server.md)
+Learn more: [AI Assistant](guides/ai-assistant.md) | [MCP Server](automate/mcp-server.md)
 
 ---
 
 ## Getting Started
 
-Download FreeXmlToolkit with the [buttons above](#download); the [Installation](installation.md) guide covers every package format, Scoop and Homebrew.
+Download FreeXmlToolkit with the [buttons above](#download); the [Installation](get-started/install.md) guide covers every package format, Scoop and Homebrew.
 
 ### Your First Steps
 
@@ -253,7 +253,7 @@ Download FreeXmlToolkit with the [buttons above](#download); the [Installation](
 4. **Validate**: Use the Validation activity (or the toolbar's **Validate** button, F8) to check your document for errors
 5. **Reach every tool**: Pick a tool from the activity bar on the left (Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library, PDF/FOP, Signature, FundsXML, Settings). Help, the documentation and **About** are in the **Help** menu (also **F1** or the **?** button in the header)
 
-Learn more: [Unified Shell Guide](unified-shell.md)
+Learn more: [Unified Shell Guide](get-started/workspace-tour.md)
 
 ### Sample Files
 
@@ -277,7 +277,7 @@ The application includes example files in the `examples/` folder to help you get
 
 ## Troubleshooting
 
-Problems starting the application, blurry rendering, proxies, memory or schemas that do not resolve: see the **[FAQ & Troubleshooting](faq.md)** page.
+Problems starting the application, blurry rendering, proxies, memory or schemas that do not resolve: see the **[FAQ & Troubleshooting](reference/faq.md)** page.
 
 ---
 
@@ -296,7 +296,7 @@ The most important ones (on macOS use **Cmd** instead of Ctrl):
 | `Ctrl+K` | Open the Query Console |
 | `F1` | Show the Help menu |
 
-The complete list is on the **[Keyboard Shortcuts](keyboard-shortcuts.md)** page (and in the app under **Help → Keyboard Shortcuts**).
+The complete list is on the **[Keyboard Shortcuts](reference/keyboard-shortcuts.md)** page (and in the app under **Help → Keyboard Shortcuts**).
 
 ---
 
@@ -312,8 +312,8 @@ Inside the application the sponsor link is available in the **Help** menu (**Spo
 
 ## Need Help?
 
-- Browse the documentation in the navigation, starting with the [Unified Shell](unified-shell.md) guide
-- Read the [FAQ & Troubleshooting](faq.md) page
+- Browse the documentation in the navigation, starting with the [Unified Shell](get-started/workspace-tour.md) guide
+- Read the [FAQ & Troubleshooting](reference/faq.md) page
 - Check the example files included with the application
 - Report issues on the project's GitHub page, or send an anonymous report from inside the app with **Help → Report a Problem…**
-- Want to contribute? Read the [Contributing Guide](contributing.md) and our [Code of Conduct](code-of-conduct.md); report security issues privately as described in the [Security Policy](security-policy.md)
+- Want to contribute? Read the [Contributing Guide](extend/contributing.md) and our [Code of Conduct](extend/code-of-conduct.md); report security issues privately as described in the [Security Policy](extend/security-policy.md)

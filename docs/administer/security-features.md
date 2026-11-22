@@ -1,0 +1,447 @@
+# Security Features
+
+This page describes the security measures built into FreeXmlToolkit to protect you from XML-based attacks.
+
+---
+
+## Overview
+
+When working with XML files, there are several potential security risks - especially when processing untrusted documents or stylesheets. FreeXmlToolkit includes built-in protections against these common attack vectors:
+
+| Protection | What It Prevents |
+|------------|------------------|
+| [XXE Protection](#xxe-xml-external-entity-protection) | Malicious files reading data from your computer |
+| [XSLT/XQuery Extension Security](#xsltxquery-extension-security) | Untrusted stylesheets running code on your system |
+| [SSRF Protection](#ssrf-server-side-request-forgery-protection) | Documents accessing your internal network |
+| [Path Traversal Protection](#path-traversal-protection) | Files accessing restricted system directories |
+| [XPath Injection Protection](#xpath-injection-protection) | Malicious input breaking XPath queries |
+| [Update Integrity Verification](#automatic-update-integrity) | Tampered or man-in-the-middle update downloads |
+
+These protections work automatically in the background - you do not need to configure them for normal use.
+
+The optional AI features have their own protections - code written by an AI agent runs in a sandbox in the
+[MCP Server](../automate/mcp-server.md#safety), and the [AI assistant](../guides/ai-assistant.md) sends only what its data level allows
+to the provider you configured. The [Threat Model](threat-model.md#threats-and-mitigations) lists them.
+
+---
+
+## XXE (XML External Entity) Protection
+
+### What Is XXE?
+
+XXE is a type of attack where a malicious XML document tries to read files from your computer or access network resources. This happens through special "entity" declarations in the XML that reference external files.
+
+### Example of a Malicious XML
+
+This is what a dangerous XML file might look like (FreeXmlToolkit blocks this):
+
+```xml
+<?xml version="1.0"?>
+<!DOCTYPE data [
+  <!ENTITY steal SYSTEM "file:///etc/passwd">
+]>
+<data>&steal;</data>
+```
+
+If processed without protection, this could expose sensitive files from your computer.
+
+### What FreeXmlToolkit Blocks
+
+| Attack Type | Description | Status |
+|-------------|-------------|--------|
+| External file access | Reading local files via `file://` URIs | Blocked |
+| External DTD loading | Loading DTD definitions from remote servers | Blocked, except for DTD validation (see below) |
+| Parameter entities | Using `%entity;` to include external content | Blocked, except DTD modules during DTD validation |
+| Entity expansion bombs | "Billion laughs" denial-of-service attacks | Limited (see below) |
+
+### How It Works
+
+The parsers that read your documents (the editor's model, validation, transformations) are
+created with secure settings that:
+- Disable external general entities
+- Disable external parameter entities
+- Disable external DTD loading
+- Turn on the JAXP secure-processing mode, whose built-in limits cap entity expansion
+
+Secure processing stops a document after 100,000 entity expansions. The same settings apply when
+XPath, XQuery, XSLT, grid formulas and filters read a document. In the editor, internal entities
+are kept as references and not expanded. See the [threat model](threat-model.md) for the details
+and the known limits.
+
+### What This Means for You
+
+**Normal XML files work without issues.** You can:
+- Open and edit any XML file
+- Validate against XSD schemas
+- Transform with XSLT stylesheets
+- Work with XML that contains internal (non-external) entities
+
+**External entities are never read.** If an XML file relies on external entities (`<!ENTITY x SYSTEM "…">`) for content, those entities stay unresolved. This is intentional for security.
+
+**DTD validation** is the one place where DTDs are loaded: a document with a `<!DOCTYPE>` is validated against its DTD, which — with its parameter-entity modules — is read only from XML catalogs, the Schema Library, local files, or `http(s)` through the schema cache (proxy settings, internal addresses refused). External general entities stay off and entity expansion stays limited. **Settings → Network & Security → Validate documents against their DTD** turns it off; administrators can lock it with `security.dtd.allowed=false`. See [Schema Support](../reference/schema-support.md#dtd-and-relax-ng).
+
+---
+
+## XSLT/XQuery Extension Security
+
+### What Are XSLT Extensions?
+
+XSLT 3.0 and XQuery can include "extension functions" that call Java code directly from your stylesheet. While this is powerful for advanced users, it can be dangerous if you process untrusted stylesheets.
+
+### Example of a Dangerous Stylesheet
+
+This XSLT tries to execute system commands (FreeXmlToolkit blocks this by default):
+
+```xml
+<xsl:stylesheet version="2.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:rt="java:java.lang.Runtime">
+    <xsl:template match="/">
+        <xsl:variable name="runtime" select="rt:getRuntime()"/>
+        <xsl:variable name="proc" select="rt:exec($runtime, 'whoami')"/>
+    </xsl:template>
+</xsl:stylesheet>
+```
+
+### What Is Blocked by Default
+
+| Extension Type | Description | Default Status |
+|----------------|-------------|----------------|
+| Java namespace (`java:`) | Direct calls to Java classes | Blocked |
+| Reflexive extensions | Runtime method invocation | Blocked |
+| External functions | Custom extension functions | Blocked |
+
+### How It Works
+
+FreeXmlToolkit uses Saxon for XSLT/XQuery processing. By default, the `ALLOW_EXTERNAL_FUNCTIONS` feature is disabled, preventing stylesheets from executing arbitrary Java code.
+
+### Enabling Extensions (Advanced Users)
+
+If you need to use Java extensions in your XSLT transformations:
+
+1. Open **Settings** (gear icon at the bottom of the activity bar)
+2. Find the **PARSER** card (group **Schemas & Validation**)
+3. Enable **Allow XSLT extension functions** and click **Save Settings**
+
+**Warning:** Only enable this if you trust all XSLT stylesheets you will process. Malicious stylesheets could:
+- Read files from your computer
+- Execute system commands
+- Access network resources
+- Modify or delete files
+
+The setting is stored as:
+```
+security.xslt.allow.extensions=true
+```
+
+When extensions are enabled, you will see a warning message in the application log.
+
+---
+
+## SSRF (Server-Side Request Forgery) Protection
+
+### What Is SSRF?
+
+SSRF attacks trick an application into making requests to internal network resources. In XML processing, this can happen when schemas or stylesheets reference URLs.
+
+### What FreeXmlToolkit Blocks
+
+When loading remote schemas (via `xs:import` or `xs:include` with HTTP URLs), FreeXmlToolkit blocks access to:
+
+| Address Type | Examples | Why Blocked |
+|--------------|----------|-------------|
+| Localhost | `127.0.0.1`, `localhost`, `::1` | Prevents access to local services |
+| Private networks (Class A) | `10.0.0.0` - `10.255.255.255` | Blocks internal network access |
+| Private networks (Class B) | `172.16.0.0` - `172.31.255.255` | Blocks internal network access |
+| Private networks (Class C) | `192.168.0.0` - `192.168.255.255` | Blocks internal network access |
+| Link-local addresses | `169.254.0.0` - `169.254.255.255` | Blocks auto-configured addresses |
+| Cloud metadata endpoints | `169.254.169.254` | Blocks AWS/Azure/GCP metadata |
+| Multicast addresses | Various | Blocks broadcast addresses |
+
+### What Is Allowed
+
+| Address Type | Examples | Status |
+|--------------|----------|--------|
+| Public internet URLs | `https://www.w3.org/2001/XMLSchema.xsd` | Allowed |
+| Local file URLs | `file:///path/to/schema.xsd` | Allowed |
+| Only HTTP/HTTPS | `http://`, `https://` | Other protocols blocked |
+
+### What This Means for You
+
+**Public schemas work normally.** You can reference standard schemas from W3C and other public sources.
+
+**Internal network schemas are blocked.** If you need to load schemas from:
+- Your company's internal server (e.g., `http://192.168.1.100/schemas/`)
+- Localhost development servers (e.g., `http://localhost:8080/`)
+
+You should:
+1. Download the schema files to your local machine
+2. Reference them using file paths or `file://` URLs
+3. Place them in the same directory as your XML files for relative references
+
+### Automatic Import Resolution Is Covered Too
+
+When an imported schema file cannot be found locally or through the Schema Library and
+XML catalogs, the toolkit can download it from the import's `schemaLocation` URL or its
+namespace URL (see
+[Automatic Resolution of Imported Schemas](../guides/design-schemas/index.md#automatic-resolution-of-imported-schemas)).
+These downloads go through the same SSRF protection: only public `http`/`https` addresses are
+contacted, and the downloaded content is verified to be a real XML Schema before it is used.
+Downloaded schemas are cached in `~/.freeXmlToolkit/cache/schemas/`. In addition, a downloaded
+import or include is copied next to the schema that references it, under its original name, so
+the folder works without the network next time; an existing file is never overwritten and your
+schema file is never rewritten. Start the application with `-Dfxt.schema.localCopies=false` to
+keep downloads in the cache only.
+
+`-Dfxt.schema.namespaceFallback=false` turns off the namespace-URL fallback and the downloads
+of the bundled Schema Library entries. It does **not** stop every download: a `schemaLocation`
+URL in a document or an import is still fetched. See
+[Operation without internet](offline.md) for the full list of network connections.
+
+---
+
+## Path Traversal Protection
+
+### What Is Path Traversal?
+
+Path traversal attacks use special characters like `../` to access files outside the intended directory. This could allow a malicious document to read or write to sensitive system locations.
+
+### What FreeXmlToolkit Blocks
+
+| Protection | Description |
+|------------|-------------|
+| Excessive parent traversals | More than 5 levels of `../` are flagged |
+| System directory access | Writes to `/etc`, `/bin`, `C:\Windows`, etc. |
+| Encoded sequences | URL-encoded traversals like `%2e%2e/` |
+| Double-encoded sequences | `%252e` and similar bypass attempts |
+| Null byte injection | Paths containing `\0` characters |
+| Symbolic link escapes | Following symlinks outside base directories |
+
+### Protected System Directories
+
+**Windows:**
+- `C:\Windows\`
+- `C:\Program Files\`
+- `C:\ProgramData\`
+
+**Linux/macOS:**
+- `/etc/`
+- `/bin/`, `/sbin/`
+- `/usr/bin/`, `/usr/sbin/`
+- `/var/`
+- `/root/`
+- `/boot/`
+
+### Affected Features
+
+Path validation applies to:
+- Schema includes (`xs:include`, `xs:import` with relative paths)
+- Linked file detection (auto-linking in the unified editor)
+- Export paths (saving output files)
+- Any relative file references in XML documents
+
+### What This Means for You
+
+**Normal file operations work fine.** You can:
+- Open files anywhere on your computer
+- Save files to your documents folder
+- Use relative paths within your project directories
+
+**Suspicious paths are blocked.** If you see a path traversal warning, check that your schema or stylesheet references do not contain unusual `../` sequences or try to access system directories.
+
+---
+
+## XPath Injection Protection
+
+### What Is XPath Injection?
+
+XPath injection is similar to SQL injection - it happens when user input is inserted directly into XPath queries without proper escaping. This could allow malicious input to modify the query's behavior.
+
+### How FreeXmlToolkit Protects You
+
+When you use the XPath/XQuery snippet system with parameters, all parameter values are automatically escaped before being inserted into queries.
+
+### How Value Escaping Works
+
+| Input Contains | Escape Method |
+|----------------|---------------|
+| No quotes | Wrapped in single quotes: `'value'` |
+| Single quotes only | Wrapped in double quotes: `"value"` |
+| Double quotes only | Wrapped in single quotes: `'value'` |
+| Both quote types | Uses `concat()` function for safe combination |
+
+### Example
+
+If you have a snippet with parameter `${searchTerm}` and the user enters:
+
+```
+O'Brien "Bob"
+```
+
+The system generates:
+
+```xpath
+concat('O', "'", 'Brien "Bob"')
+```
+
+This prevents the user input from breaking out of the string literal and modifying the query structure.
+
+### What This Means for You
+
+**This protection is automatic and transparent.** You do not need to do anything special - just use the parameter syntax `${paramName}` in your snippets, and values will be properly escaped.
+
+---
+
+## Automatic Update Integrity
+
+### What Is This?
+
+When FreeXmlToolkit downloads an application update, it verifies that the downloaded file is exactly the one published by the official release - and was not tampered with in transit (for example by a man-in-the-middle on an untrusted network) or swapped on the download server.
+
+### How It Works
+
+1. The update package (a ZIP) is downloaded from the official GitHub release over HTTPS.
+2. Before the package is extracted or launched, its **SHA-256 checksum** is computed locally.
+3. That checksum is compared against the SHA-256 **digest that GitHub publishes for the release asset**, fetched over a separate TLS-protected connection to the GitHub API. If the GitHub API does not answer (for example because its hourly limit for anonymous requests is used up behind a shared company address), the digest is taken from the release's `SHA256SUMS.txt` file instead, downloaded from the same release over HTTPS.
+4. **If the checksums do not match, the update is aborted** and the downloaded file is deleted. Nothing is installed.
+
+This means that even if an attacker could intercept or replace the download, the mismatch would be detected and the update refused.
+
+> **Note:** The certificate-validation bypass setting (`ssl.trustAllCerts`, used only for connection testing) never applies to update downloads. Update traffic always validates TLS certificates.
+
+### When No Published Checksum Is Available
+
+GitHub only began publishing per-asset digests in 2025, so some older releases may not have one. By default, when no trustworthy digest is available, the update **proceeds with a warning** written to the application log (preserving compatibility with those releases).
+
+If you prefer a stricter policy, you can require a verified checksum for **every** update - any update without one will be refused:
+
+```
+update.requireChecksum=true
+```
+
+| Behavior | `update.requireChecksum=false` (default) | `update.requireChecksum=true` |
+|----------|------------------------------------------|-------------------------------|
+| Checksum present and matches | Update proceeds | Update proceeds |
+| Checksum present but **mismatches** | **Update aborted** | **Update aborted** |
+| No checksum published | Update proceeds (logged warning) | **Update aborted** |
+
+### What This Means for You
+
+**For normal use you do not need to change anything** - integrity verification runs automatically. Set `update.requireChecksum=true` only if your environment requires that no update is ever installed without a cryptographically verified checksum.
+
+---
+
+## How to Configure Security Settings
+
+### Finding Security Settings
+
+1. Open FreeXmlToolkit
+2. Open **Settings** (gear icon at the bottom of the activity bar)
+3. The relevant options are spread over two cards: **PARSER** (group **Schemas & Validation**) and **SECURITY** (group **Network & Security**). Typing a word such as *XSLT* or *certificates* into the search field of the Settings side panel finds them too.
+
+### Available Settings
+
+| Card | Setting | Description | Default |
+|------|---------|-------------|---------|
+| PARSER | Allow XSLT extension functions | Enable Java extension functions in XSLT | **Off** (secure) |
+| SECURITY | Trust all certificates | Accept any TLS certificate for HTTPS downloads (schemas, catalogs, FundsXML, telemetry). Never for the update check and update downloads. Leave off unless a corporate proxy re-signs traffic | **Off** (secure) |
+
+### Security Property Reference
+
+For advanced users, security settings are stored in the application properties file (`~/.freeXmlToolkit/FreeXmlToolkit.properties`; earlier versions kept it in the working directory; it is copied over automatically on the first start):
+
+| Property | Values | Description |
+|----------|--------|-------------|
+| `security.xslt.allow.extensions` | `true` / `false` | Enable/disable Java extensions in XSLT |
+| `update.requireChecksum` | `true` / `false` | Require a verified SHA-256 checksum for every update; refuse updates that have no published checksum (default `false`) |
+
+### Best Practices
+
+1. **Keep extensions disabled** unless you specifically need them
+2. **Only process trusted stylesheets** if you enable extensions
+3. **Download remote schemas** to local files when working with internal network resources
+4. **Review XML files** before processing if they come from untrusted sources
+5. **Check validation errors** - they may indicate blocked security threats
+
+---
+
+## Troubleshooting
+
+### "External entity not resolved"
+
+**Cause:** Your XML references an external DTD or entity that was blocked for security.
+
+**Solution:** If you need the entity definitions, manually include them in your XML file or convert the external DTD to a local file.
+
+### "URL blocked for security reasons"
+
+**Cause:** You tried to load a schema from a localhost or private network address.
+
+**Solution:** Download the schema file to your local machine and reference it as a local file.
+
+### "XSLT extension function not available"
+
+**Cause:** Your stylesheet uses Java extension functions, which are disabled by default.
+
+**Solution:** If you trust the stylesheet, enable XSLT extensions in settings. Otherwise, modify the stylesheet to not use extensions.
+
+### "Path traversal detected"
+
+**Cause:** A file reference contains suspicious `../` sequences that would access files outside the expected directory.
+
+**Solution:** Check your schema imports and includes for unusual paths. Use absolute paths or properly relative paths that stay within your project directory.
+
+### "Integrity verification failed" during an update
+
+**Cause:** The downloaded update did not match the checksum published for the release. This usually indicates a corrupted download or interference on the network, and the update was refused.
+
+**Solution:** Retry the update on a trusted network connection. If it keeps failing, download the latest release manually from the official GitHub releases page.
+
+### An update was refused with "no published checksum"
+
+**Cause:** You set `update.requireChecksum=true`, and the target release does not have a published checksum.
+
+**Solution:** Either update manually from the official release page, or set `update.requireChecksum=false` to allow updates that have no published checksum (the default behavior).
+
+---
+
+## Technical Reference
+
+For developers and security professionals, here are the specific protections implemented:
+
+### XML Parser Configuration
+
+All XML parsers use these security features:
+- `http://apache.org/xml/features/disallow-doctype-decl` = false (DOCTYPE allowed, but entities disabled)
+- `http://xml.org/sax/features/external-general-entities` = false
+- `http://xml.org/sax/features/external-parameter-entities` = false
+- `http://apache.org/xml/features/nonvalidating/load-external-dtd` = false
+- `javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING` = true
+- Entity reference expansion = disabled
+
+### XSLT/XQuery Configuration (Saxon)
+
+- `Feature.ALLOW_EXTERNAL_FUNCTIONS` = false (by default)
+- Configurable via application settings
+
+### Update Integrity Verification
+
+- Downloaded update artifact is hashed with `SHA-256` and compared against the digest GitHub publishes for the release asset (retrieved over TLS from the Releases API).
+- Mismatch aborts the update and deletes the artifact before any extraction or launch.
+- The `ssl.trustAllCerts` connection-test bypass is never applied to update downloads, which always perform standard certificate validation.
+- `update.requireChecksum=true` additionally refuses any update that has no published digest.
+
+### URL Validation
+
+Uses Java's `InetAddress` class to check:
+- `isLoopbackAddress()` - blocks localhost
+- `isLinkLocalAddress()` - blocks 169.254.x.x
+- `isSiteLocalAddress()` - blocks private networks
+- Special check for 169.254.169.254 (cloud metadata)
+
+### Path Validation
+
+- Canonical path comparison for traversal detection
+- Regex patterns for encoded sequences
+- Blocklist of system directories
+- Symbolic link resolution for escape detection

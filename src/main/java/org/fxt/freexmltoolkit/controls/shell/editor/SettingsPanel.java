@@ -214,7 +214,7 @@ public class SettingsPanel extends VBox {
     // Usage statistics
     @FXML private CheckBox trackingEnabled;
     @FXML private Label usageStatus;
-    // Anonymous telemetry (opt-out, see docs/telemetry.md)
+    // Anonymous telemetry (opt-out, see docs/administer/privacy-telemetry.md)
     @FXML private CheckBox telemetryUsage;
     @FXML private CheckBox telemetryErrors;
 

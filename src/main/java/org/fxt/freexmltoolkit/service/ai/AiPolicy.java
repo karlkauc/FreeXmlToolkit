@@ -3,7 +3,7 @@ package org.fxt.freexmltoolkit.service.ai;
 import org.fxt.freexmltoolkit.service.AdminPolicy;
 
 /**
- * What the administrator policy allows of the AI features ({@code docs/administration.md}). Both keys are policy
+ * What the administrator policy allows of the AI features ({@code docs/administer/policies.md}). Both keys are policy
  * only — a user setting cannot switch them on again.
  */
 public final class AiPolicy {

@@ -29,7 +29,7 @@ import org.fxt.freexmltoolkit.util.DialogHelper;
  */
 public final class TelemetryInfoDialog {
 
-    /** Online documentation of the telemetry (docs/telemetry.md). */
+    /** Online documentation of the telemetry (docs/administer/privacy-telemetry.md). */
     public static final String DOCS_URL = "https://karlkauc.github.io/FreeXmlToolkit/telemetry/";
 
     private final TelemetryService telemetry;

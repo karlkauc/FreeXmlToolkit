@@ -55,4 +55,4 @@ again: the check fails with "Element <core> removed". In the Transform panel, **
 opens the expected and the actual result side by side; **Accept** makes the new result the
 expected one — the placeholders stay. Undo the change to make the check pass again.
 
-See also: *Regression checks* in the user documentation (`docs/projects.md`).
+See also: *Regression checks* in the user documentation (`docs/guides/projects.md`).
