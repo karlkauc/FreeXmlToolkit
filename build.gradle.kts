@@ -122,14 +122,6 @@ dependencies {
     runtimeOnly("org.exist-db.thirdparty.org.eclipse.wst.xml:xpath2:1.2.0")
     // Java CUP runtime required for XPath 2.0 processor
     runtimeOnly("edu.princeton.cup:java-cup:10k")
-    
-    // Alternative: Use local custom Xerces XSD 1.1 JAR files if available
-    // These would be loaded before any other Xerces implementations
-    /*
-    implementation(fileTree("libs/xerces-j-xsd11") {
-        include("*.jar")
-    })
-    */
 
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.5")
     implementation("com.google.code.gson:gson:2.15.0")
