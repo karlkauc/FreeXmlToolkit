@@ -41,10 +41,9 @@ theme:
     - announce.dismiss
   icon:
     repo: fontawesome/brands/github
-  # Brand (logo suite S1): Inter / JetBrains Mono as in the application
-  font:
-    text: Inter
-    code: JetBrains Mono
+  # Brand (logo suite S1): Inter / JetBrains Mono as in the application, served from
+  # docs/overrides/fonts (see extra.css) - nothing is loaded from Google Fonts
+  font: false
   logo: img/logo-symbol.svg
   favicon: img/favicon.svg
   custom_dir: docs/overrides
@@ -132,6 +131,7 @@ plugins:
 # Internal developer-reference documents that are not part of the published site
 # (gitignore-style patterns): planning/spec notes plus a few orphan dev docs.
 exclude_docs: |
+  overrides/fonts/README.md
   superpowers/
   ThreadPoolArchitecture.md
   testing/auto-update-windows.md
@@ -178,6 +178,7 @@ extra_css:
 
 extra_javascript:
   - overrides/javascripts/download.js
+  - overrides/javascripts/moved-anchors.js
 
 copyright: Copyright &copy; 2024-2026 Karl Kauc
 

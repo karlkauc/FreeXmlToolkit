@@ -419,11 +419,18 @@ Umgesetzt (Branch `docs/redesign`):
 - Stufe 3, siebter Teil: Seitenvorlage auf den Anleitungen ("Before you start" auf 29 Seiten,
   "Next steps" auf 40 weiteren Seiten).
 
-Offen in Stufe 3:
+- Nacharbeiten: Wortmarke im Kopf, Schriften selbst ausgeliefert (kein Google Fonts mehr),
+  Plattform-Symbole statt Emoji auf den Download-Karten, `moved-anchors.js` leitet alte
+  Abschnitts-Links (z. B. `/unified-shell/#signature-panel`) auf die neue Seite weiter, die
+  Punkte der Grid-Seite sind Unterabschnitte, vier weitere Light/Dark-Bildpaare, Stand der
+  Accessibility-Prüfungen datiert. Die Adressen im Java-Code zeigen auf die neuen Seiten.
 
-- Seitenvorlage (Before you start / Next steps) auf die Anleitungen anwenden; unbeschriftete
-  Zitatblöcke (Ankündigungen aus Release-Zeiten) prüfen; Audit-Stand in `accessibility.md`.
-- Die drei Adressen im Java-Code laufen weiter über die Weiterleitungen.
+Offen:
+
+- Stufe 4: Screenshots mit neuem Logo (setzt das neue Logo in der App voraus), Bildunterschriften.
+- Stufe 5: Download, Vergleich und Feature-Übersicht an die Website, Umzug auf die Subdomain.
+- Deutsche Fassung.
+- Material for MkDocs wird laut Hersteller bis 5. Mai 2027 gepflegt; Nachfolger prüfen.
 
 ---
 
