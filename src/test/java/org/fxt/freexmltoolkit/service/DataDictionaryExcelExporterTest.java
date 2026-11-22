@@ -201,4 +201,25 @@ public class DataDictionaryExcelExporterTest {
             assertEquals("Consolas", sheet.getRow(1).getCell(1).getCellStyle().getFont().getFontName());
         }
     }
+
+    @Test
+    @DisplayName("Documentation longer than an Excel cell is cut, not fatal")
+    void documentationLongerThanACellIsCut() throws IOException {
+        File outputFile = tempDir.resolve("long_doc.xlsx").toFile();
+        XsdExtendedElement element = new XsdExtendedElement();
+        element.setElementName("LongDoc");
+        element.setElementType("xs:string");
+        element.setLevel(1);
+        element.setCurrentNode(Mockito.mock(org.w3c.dom.Node.class));
+        element.setDocumentations(List.of(new DocumentationInfo("default", "x".repeat(40_000))));
+
+        exporter.exportToExcel(outputFile, List.of(element));
+
+        try (FileInputStream fis = new FileInputStream(outputFile);
+             Workbook workbook = new XSSFWorkbook(fis)) {
+            String doc = workbook.getSheet("DEFAULT").getRow(1).getCell(8).getStringCellValue();
+            assertEquals(FxtExcelTheme.MAX_CELL_LENGTH, doc.length());
+            assertTrue(doc.endsWith("…"));
+        }
+    }
 }

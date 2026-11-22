@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -342,9 +341,9 @@ public class DataDictionaryExcelExporter {
     }
 
     private void createCell(Row row, int colIndex, String value, CellStyle style) {
-        Cell cell = row.createCell(colIndex);
-        cell.setCellValue(value != null ? value : "");
-        cell.setCellStyle(style);
+        // cut to Excel's cell limit: long documentation or enumeration lists failed the whole
+        // export (telemetry 1fc3ed550e503a96)
+        FxtExcelTheme.cell(row, colIndex, value, style);
     }
 
     /**
