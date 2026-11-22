@@ -1,0 +1,5074 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
+      
+      
+        <meta name="author" content="Karl Kauc">
+      
+      
+        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/reference/whats-new-3/">
+      
+      
+        <link rel="prev" href="../whats-new/">
+      
+      
+        <link rel="next" href="../whats-new-2/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../img/favicon.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+    
+    
+      
+        <title>3.0 to 3.3 - FreeXmlToolkit Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../overrides/stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#whats-new-30-to-33" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+              </button>
+            
+            
+<span class="fxt-announce">
+  <span class="fxt-announce__icon" aria-hidden="true">⬇</span>
+  FreeXmlToolkit <strong class="fxt-release-version">latest release</strong> is available –
+  <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download now</a>
+  <span class="fxt-announce__sep">·</span>
+  <a href="https://karlkauc.github.io/FreeXmlToolkit/#download">All platforms</a>
+</span>
+
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="FreeXmlToolkit Docs" class="md-header__button md-logo" aria-label="FreeXmlToolkit Docs" data-md-component="logo">
+      
+  <img src="../../img/logo-symbol.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            FreeXmlToolkit Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              3.0 to 3.3
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required="">
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix="">
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/karlkauc/FreeXmlToolkit" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    karlkauc/FreeXmlToolkit
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../.." class="md-tabs__link">
+          
+  
+  
+    
+  
+  Get started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../guides/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../industry/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Industry standards
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../automate/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Automate
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../administer/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Administer
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../extend/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Extend &amp; contribute
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="FreeXmlToolkit Docs" class="md-nav__button md-logo" aria-label="FreeXmlToolkit Docs" data-md-component="logo">
+      
+  <img src="../../img/logo-symbol.svg" alt="logo">
+
+    </a>
+    FreeXmlToolkit Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/karlkauc/FreeXmlToolkit" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    karlkauc/FreeXmlToolkit
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix="">
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../.." class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Get started
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Get started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../get-started/install/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Install
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../get-started/first-steps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First steps
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../get-started/workspace-tour/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tour of the workspace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../get-started/coming-from-another-editor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coming from another editor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../get-started/features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What FreeXmlToolkit can do
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../get-started/get-help/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Get help
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../guides/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../guides/edit-xml/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit XML
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Edit XML
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/edit-xml/working-with-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Working with files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/edit-xml/search-in-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Search and replace in files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/edit-xml/grid/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Grid view
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/edit-xml/auto-completion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Auto-completion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/edit-xml/properties/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Properties of a node
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/edit-xml/find-replace/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Find and replace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/edit-xml/templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Templates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/edit-xml/favorites/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Favorites
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/edit-xml/bookmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bookmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/edit-xml/large-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Large files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3">
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JSON &amp; YAML
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    JSON &amp; YAML
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/json-yaml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JSON &amp; YAML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/json-grid/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JSON grid
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../guides/design-schemas/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design schemas
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Design schemas
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/design-schemas/schema-panel/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Schema panel
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/design-schemas/graphic-view/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Graphic view
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/design-schemas/overview-view/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview view
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/design-schemas/types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/design-schemas/text-view/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Text view
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/design-schemas/analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schema analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/design-schemas/documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schema documentation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/design-schemas/sample-xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sample XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/design-schemas/sample-xml-profiles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sample XML with profiles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/design-schemas/flatten/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Flatten a schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/design-schemas/schema-library/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schema Library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../guides/validate/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validate
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Validate
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/validate/xsd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XSD validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/validate/folders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Folders and export
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/validate/problems/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Working with problems
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/validate/schematron/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schematron
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/validate/schematron-quick-fixes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schematron Quick Fixes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_6">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../guides/transform-query/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transform &amp; query
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_6" id="__nav_2_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Transform &amp; query
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/transform-query/run-xslt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run a transformation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/transform-query/query-console/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Query console
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/transform-query/debug/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Debugger
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/transform-query/profile/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Profile
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/transform-query/xspec/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test with XSpec
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/transform-query/xproc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XProc pipelines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/transform-query/external-processors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    External XSLT processors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/transform-query/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/publish-pdf/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PDF with XSL-FO
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/compare-merge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compare and merge
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/convert/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Convert formats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_10">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../guides/sign-encrypt/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sign &amp; encrypt
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_10" id="__nav_2_10_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Sign &amp; encrypt
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/sign-encrypt/signatures/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Signatures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/sign-encrypt/encryption/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Encryption
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/projects/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Projects &amp; scenarios
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/ai-assistant/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI assistant
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../industry/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Industry standards
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Industry standards
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../industry/fundsxml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FundsXML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../industry/iso20022/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ISO 20022 Payments (SEPA)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../industry/ebinterface/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ebInterface
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../industry/findatex/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FinDatEx Templates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../industry/xbrl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XBRL (with Arelle)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../industry/pk-meldewesen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PK-Meldewesen (FMA)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../industry/kag-meldewesen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KAG-Meldewesen (FMA)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../industry/esma-reporting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ESMA Reporting (EMIR, SFTR, MiFIR)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../industry/identifier-lookup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Online identifier lookup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../industry/manage-extensions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Manage extensions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../automate/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Automate
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Automate
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../automate/command-line/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command line (fxt-cli)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../automate/cli-validate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validate and query
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../automate/cli-transform/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transform and publish
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../automate/cli-compare/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compare, merge, convert
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../automate/cli-sign/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sign and encrypt
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../automate/ci-recipes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI recipes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../automate/mcp-server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP server
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../administer/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Administer
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Administer
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administer/policies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Policies and silent installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administer/offline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operation without internet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administer/security-features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administer/threat-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Threat model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administer/privacy-telemetry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Privacy &amp; telemetry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administer/code-signing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code signing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administer/file-associations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File associations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked="">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../workspace/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workspace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transform-panel/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transform panel
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../keyboard-shortcuts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Keyboard shortcuts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../inspector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Properties Inspector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../standards-versions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Standards and language versions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../schema-support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schema support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../xsddoc-tags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XsdDoc tags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project-file/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project file
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../execution-statistics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution statistics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ &amp; troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_14" checked="">
+        
+          
+          <label class="md-nav__link" for="__nav_6_14" id="__nav_6_14_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_14_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6_14">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    What's new
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../whats-new/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's New
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3.0 to 3.3
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3.0 to 3.3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#330-2026-11-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3.0 (2026-11-16)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#320-2026-11-13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2.0 (2026-11-13)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#310-2026-11-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1.0 (2026-11-11)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#300-2026-11-09" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.0.0 (2026-11-09)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../whats-new-2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.x
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../comparison/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comparison with other editors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../accessibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Accessibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../licenses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Licenses
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../extend/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Extend &amp; contribute
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Extend &amp; contribute
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extend/writing-plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Writing plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extend/technology-stack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technology stack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extend/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extend/code-of-conduct/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code of conduct
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../extend/security-policy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reporting a vulnerability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#330-2026-11-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3.0 (2026-11-16)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#320-2026-11-13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2.0 (2026-11-13)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#310-2026-11-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1.0 (2026-11-11)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#300-2026-11-09" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.0.0 (2026-11-09)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="whats-new-30-to-33">What's new: 3.0 to 3.3<a class="headerlink" href="#whats-new-30-to-33" title="Permanent link">¶</a></h1>
+<p>Release highlights of versions 3.0 to 3.3. The current release is on <a href="../whats-new/">What's new</a>.</p>
+<h2 id="330-2026-11-16">3.3.0 (2026-11-16)<a class="headerlink" href="#330-2026-11-16" title="Permanent link">¶</a></h2>
+<p><strong>Online identifier lookup (GLEIF, ESMA FIRDS, OpenFIGI)</strong></p>
+<ul>
+<li><strong>Is the LEI registered, does the ISIN exist?</strong> The identifier checker of the industry, FundsXML and PK-Meldewesen
+  panels looks an LEI up at GLEIF (name, address, registration and entity status, next renewal) and an ISIN at ESMA
+  FIRDS (name, CFI code, issuer LEI, EU trading) or, when FIRDS does not know it, at OpenFIGI. <strong>Check Identifiers
+  Online</strong> (panels, Tools menu) checks every LEI and ISIN of a document and reports unknown, lapsed, retired or annulled
+  LEIs, unknown or no longer traded ISINs and reported CFI codes and issuer LEIs that differ from ESMA FIRDS in the Problems panel. Optionally with every validation and as a hover in
+  the editor (Settings → Network &amp; Security, off by default); on the command line <code>fxt-cli lei</code>, <code>fxt-cli isin</code> and
+  <code>fxt-cli validate --gleif --isin</code>. See <a href="../../industry/identifier-lookup/">Online Identifier Lookup</a>.</li>
+</ul>
+<p><strong>External XSLT processors</strong></p>
+<ul>
+<li><strong>Run stylesheets on another XSLT processor</strong> - Saxon PE/EE, xsltproc, Altova RaptorXML or a script: set them up in
+  <em>Settings → XSLT Processors</em> (presets, parameter syntax, a Test run) and choose one in the Transform panel, in a
+  scenario (<code>xsltProcessor</code>), for the XSLT stage of the PDF/FOP panel, in batch runs and on the command line
+  (<code>fxt-cli transform --processor</code>, <code>fxt-cli fop --xslt-processor</code>). Unsaved editor text is handed over next to the
+  file, so includes resolve; errors show their line as with Saxon HE. Debugging, profiling, XSpec and the live
+  preview stay on Saxon HE. See <a href="../../guides/transform-query/external-processors/">External XSLT Processors</a>.</li>
+</ul>
+<p><strong>YAML</strong></p>
+<ul>
+<li><strong>YAML editor:</strong> <code>.yaml</code> / <code>.yml</code> files get syntax colours, folding by indentation and a syntax check while you
+  type, with the error at its line and column.</li>
+<li><strong>JSON Schema for YAML:</strong> validation and completion from the schema a YAML file declares
+  (<code># yaml-language-server: $schema=…</code> or <code>$schema:</code>), a project binding or <strong>Set Schema…</strong>; problems are underlined
+  on their key. <code>fxt-cli validate</code> checks YAML files too.</li>
+<li><strong>Format</strong> re-indents YAML (and leaves documents with comments or anchors alone), <strong>JSONPath</strong> queries run on
+  YAML, <strong>Generate Sample</strong> writes YAML. Application tags such as CloudFormation's <code>!Ref</code> no longer stop a
+  conversion. See <a href="../../guides/json-yaml/#yaml">YAML</a>.</li>
+<li><strong>Tree and Grid for YAML:</strong> YAML documents get the JSON Tree and Grid views. Edits are written into the YAML text
+  at their place, so comments, anchors, tags and formatting stay; a change that cannot be placed asks before the
+  document is written again. See <a href="../../guides/json-yaml/#tree-and-grid-for-yaml">Tree and Grid for YAML</a>.</li>
+<li><strong>Schemas by file name:</strong> a Schema Library mapping can name the JSON and YAML files it is for (<code>docker-compose*.yml</code>,
+  <code>.github/workflows/*.yml</code>), and the optional <a href="../../guides/design-schemas/schema-library/#4-schemastore">SchemaStore catalog</a> finds the schema of
+  hundreds of known file types by their name - for files that declare no schema themselves.</li>
+<li><strong>Command line and MCP:</strong> <code>fxt-cli validate</code> also uses the <code>$schema</code> of JSON files and the file-name patterns,
+  <code>--schemastore</code> adds the SchemaStore catalog (<code>fxt-cli validate --schemastore .github/workflows</code>), and folders
+  include YAML by default. <code>fxt-cli query</code> runs JSONPath on YAML files. The MCP tool <code>validate</code> checks JSON and YAML
+  (new arguments <code>format</code>, <code>json_schema_path</code>). See <a href="../../automate/cli-validate/#validate">Command Line</a>.</li>
+<li><strong>Compare JSON and YAML by their data:</strong> the Compare view's new <strong>Data</strong> mode and <code>fxt-cli compare</code> ignore member
+  order, formatting, comments and anchors, compare a JSON file against a YAML file, match array items by key members
+  and report JSONPath locations. <strong>Compare Folders</strong> and <code>fxt-cli compare</code> on two folders also compare JSON and YAML
+  files by their data. See <a href="../../guides/json-yaml/#yaml">YAML</a>.</li>
+<li><strong>New YAML files</strong> start with <code>---</code>; templates for a schema-bound YAML document, a Docker Compose file and a GitHub
+  Actions workflow.</li>
+</ul>
+<p><strong>Large files</strong></p>
+<ul>
+<li><strong>Edit large files:</strong> the Large File Viewer's new <strong>Graphic</strong> tab shows a part of the file — an element, or a page
+  of up to 1,000 children of a huge element — in the grid, where it can be edited with undo/redo. <strong>Apply to File</strong>
+  writes only that part back into the file in one streaming pass (the rest stays byte for byte as it was, the
+  original is untouched if writing fails; Settings can keep the previous version as <code>.bak</code>). See <a href="../../guides/edit-xml/large-files/#graphic-view-and-edit-a-part-of-the-file-xml">Large File Viewer</a>.</li>
+<li><strong>Jump anywhere:</strong> <strong>Go to</strong> an XPath such as <code>/orders/order[1500000]</code> (Ctrl+L) or a child number, <strong>Previous
+  page…</strong> in the tree, and <strong>Show in Structure</strong> from a text row or a search match.</li>
+<li><strong>Statistics:</strong> one pass over the file lists every element path with counts, occurrences per parent, attributes
+  and a sample value.</li>
+<li><strong>Export all records:</strong> all children of an element — not only the loaded 1,000 — to CSV or Excel.</li>
+<li>The viewer notices when the file changes on disk and offers to reload it; character references such as <code>&amp;#233;</code>
+  are decoded in the tree and table.</li>
+</ul>
+<p><strong>ESMA Reporting</strong></p>
+<ul>
+<li><strong>EMIR Refit trade reports</strong> (auth.030): a new extension binds them to ESMA's schema (also in the BizData
+  envelope) and checks ESMA's table of mandatory and not applicable fields per action type and level, the record
+  count, UTI, LEI and ISIN; every element shows its EMIR field number. See <a href="../../industry/esma-reporting/">ESMA Reporting</a>.</li>
+<li><strong>SFTR reports</strong> (auth.052) are checked the same way, per action type, level and type of SFT.</li>
+<li><strong>Conditional EMIR and SFTR fields:</strong> ESMA's rules for the fields marked <em>C</em> - reported only when other fields
+  say so, or never then - are checked too (174 rules for EMIR, 104 for SFTR; SFTR collateral per component).</li>
+<li><strong>Dates in EMIR and SFTR reports</strong> are checked in the order ESMA requires - execution, valuation, confirmation,
+  clearing, event, expiration, maturity and termination against each other and against the reporting timestamp.</li>
+<li><strong>MiFIR transaction reports</strong> (auth.016) are checked with ESMA's content rules: venue and trading capacity, LEIs,
+  ISINs, CONCAT codes, currencies and the instrument fields the CFI code requires or forbids.</li>
+</ul>
+<p><strong>KAG-Meldewesen (FMA)</strong></p>
+<ul>
+<li><strong>AIFMD reporting:</strong> a new extension for Austrian management companies binds the AIFM and AIF files to ESMA's
+  schema v1.2 and checks them with the FMA's rules (reporting period, content blocks, conditional fields, percentages,
+  rankings, LEI/ISIN) - each finding on its line, each element with its ESMA field number, guidance and FMA rule in the
+  Inspector. See <a href="../../industry/kag-meldewesen/">KAG-Meldewesen</a>.</li>
+<li><strong>Money market fund reports</strong> (ESMA auth.093) are validated in their BizData envelope and checked with ESMA's
+  application rules (periods, share classes, liquidity profile, stress tests, assets, codes).</li>
+<li><strong>Industry extension panels:</strong> <strong>Check Active Document</strong> validates like <strong>F8</strong> - the problems go to the PROBLEMS
+  panel with a click to the line and are underlined in the text; the panel shows the counts. A switched-off
+  extension that recognises an opened document is offered once in a bar above the editor, and the field labels of
+  ESMA and KAG reports appear when the mouse rests on a tag name. See <a href="../../industry/">Industry Extensions</a>.</li>
+<li><strong>KAG-Meldewesen rules:</strong> money market fund reports are checked with the content rules of ESMA's validation
+  rules v07 (periods, LEIs, master/feeder, yields, stress tests, CFI code per asset type, credit assessments,
+  investor shares, arrangements, monthly figures, LVNAV data) - 211 of the table's 254 rules, the rest need ESMA's
+  registers. AIF files get the FMA rules on individual exposures, currency exposures and private equity fields.
+  See <a href="../../industry/kag-meldewesen/#money-market-fund-report">KAG-Meldewesen</a>.</li>
+<li><strong>KAG-Meldewesen:</strong> <strong>Check Report (HTML)</strong> with the findings by rule and, for DeRiMV, a table of every fund's
+  use of its limits; <strong>Import DeRiMV from CSV/Excel</strong> (the risk management's CSV layout) and <strong>Export to
+  Excel/CSV</strong>; grid formulas for DeRiMV reports and AIF files; options for the AIFMD sum tolerance and the DeRiMV
+  limits; templates, analysis queries and schema favorites. See <a href="../../industry/kag-meldewesen/">KAG-Meldewesen</a>.</li>
+<li><strong>Derivative risk report (4. DeRiMV):</strong> the UCITS report <code>Derivatemeldung</code> is bound to the FMA's schema and checked
+  against the limits of the global exposure (commitment 100 %, absolute VaR 20 %, relative VaR 200 %), the fund's own
+  limit, the period maximum and ISIN check digits. <strong>New Derivative Risk Report (Example)</strong> opens a fictitious report.</li>
+</ul>
+<p><strong>PK-Meldewesen (FMA)</strong></p>
+<ul>
+<li><strong>New extension for Austrian pension fund reports:</strong> the quarterly report (PK-QMV), the annual report (PK-FJMV)
+  and the ECB report are recognised by their root element and bound to the shipped FMA taxonomy 2.9.0 Hotfix2 - also
+  when the schema location in the file points to an unreachable network path. A status bar badge
+  (<strong>PK-QMV Q1/2026</strong>) and a side panel show the report, its schema and the FMA documentation. See
+  <a href="../../industry/pk-meldewesen/">PK-Meldewesen</a>.</li>
+<li><strong>FMA rules:</strong> the 180 rules of the FMA validation workbook (plus optional additional plausibility checks) run
+  on quarterly reports with <strong>F8</strong> and in <code>fxt-cli validate</code>; every finding names its FMA code, the VRG and the
+  object and jumps to its line. <strong>Rule Report (HTML)</strong> shows a dashboard per VRG, all results and the rule catalogue;
+  tolerances and look-through limits are set in the side panel.</li>
+<li><strong>FMA labels:</strong> row, column and template codes show their FMA name, explanation and code-list values in the
+  Inspector, as the grid tooltip and when hovering a code in the text. <strong>Grid formulas and filters</strong> for the quarterly
+  report can be added to a copy and removed again before submission.</li>
+<li><strong>Prepare Submission:</strong> cleans the report (no grid formulas, UTF-8), checks it against the schema and the FMA
+  rules, proposes the next running number and writes the ZIP under the FMA's file name
+  (<code>34.pfq.20190331.00001.test.zip</code>).</li>
+<li><strong>Newer taxonomies</strong> are imported from the FMA's ZIP and chosen in the side panel (no restart); an example report,
+  the schema documentation, six Query Console snippets, new-file templates and favorites come with the extension.</li>
+</ul>
+<p><strong>Editing</strong></p>
+<ul>
+<li><strong>Spreadsheet Converter for everyone:</strong> XML becomes a <strong>table</strong> – one row per record (every <code>&lt;Order&gt;</code>), one
+  column per value – instead of only the XPath list. Edit it in Excel and convert it back; any other CSV file or
+  sheet becomes XML too, one element per row. The dialog explains each choice, has tooltips and a <strong>?</strong> to the
+  documentation, and previews the table or the XML before anything is written. With a CSV document open it
+  starts with Spreadsheet → XML; a malformed document's message has <strong>Go to Error</strong>. See
+  <a href="../../guides/convert/#xmlexcelcsv-converter">XML Editor</a>.</li>
+<li><strong>Validation results stay with their document:</strong> after Validate / F8 or a run of the Validation panel,
+  switching to another tab and back shows the result and the problems again (until the text changes). A run that
+  finishes after you switched tabs goes to the document it checked.</li>
+<li><strong>Show problems:</strong> the Validation panel's "N problems — show below the editor" now also shows the first problem in
+  the editor, on every click.</li>
+<li><strong>Save confirmation:</strong> after a save the status bar shows <strong>Saved orders.xml (12:55:18)</strong> for a few seconds, also
+  when the file had no changes. See <a href="../workspace/#status-bar">Status Bar</a>.</li>
+</ul>
+<p><strong>Fixes</strong></p>
+<ul>
+<li><strong>First start after installing on Windows:</strong> the virus scanner checked every program file when the application
+  first opened it, so the first start took 13 seconds or more. The installer now opens every file once as its last
+  step, so this check happens during the installation.</li>
+<li><strong>Very large documents in the text editor:</strong> resting the mouse on a document over 2 MB no longer freezes the
+  application (the hover context is skipped there), and files from 256 KB are prepared off the UI thread when opened.</li>
+</ul>
+<p><strong>Opening files</strong></p>
+<ul>
+<li><strong>XML in files with other extensions:</strong> a file whose extension the app does not know (<code>web.config</code>, <code>.xaml</code>, <code>.gpx</code>,
+  <code>.svg</code>, a file without extension, …) is opened by its content - as XML, HTML or JSON with all their features
+  instead of plain text.</li>
+</ul>
+<p><strong>JSON</strong></p>
+<ul>
+<li><strong>Format detection fixed:</strong> a plain JSON file with a URL or a time such as <code>10:30</code> in a string was taken for
+  JSON5 (and warned about lost comments in the grid); the flavor is now read from the tokens, not guessed by
+  patterns. JSON5 strings with apostrophes, hex numbers and <code>.5</code> / <code>5.</code> numbers are read correctly.</li>
+<li><strong>Format</strong> uses the JSON indentation from Settings; <strong>Minify</strong> keeps <code>null</code> members.</li>
+<li>Parse errors carry the column; JSONC and JSON5 files are validated against their JSON Schema (the
+  violations point at the original lines).</li>
+<li><strong>Schema help while typing:</strong> with a JSON Schema bound, Ctrl+Space (or typing <code>"</code> / <code>:</code>) proposes the missing
+  properties - required ones first - and the allowed values; hovering shows the schema's description, type and
+  limits, and the inspector has a <strong>JSON Schema</strong> section for the selected value. <code>$schema</code> is also found while the
+  document is incomplete.</li>
+<li><strong>Problems in place:</strong> validation problems are underlined in the text (with a gutter badge and the message on
+  hover) and marked in the grid.</li>
+<li><strong>Format keeps comments:</strong> formatting changes only whitespace - comments, quote style, JSON5 numbers and trailing
+  commas stay.</li>
+<li><strong>Sort Keys</strong> (top level or recursive) in the text editor's and the grid's context menu; comments move with their
+  members.</li>
+<li><strong>Folding</strong> of objects, arrays and block comments in the text editor; the context menu's Format / Minify /
+  Validate entries work again.</li>
+<li>Ctrl+Z right after opening a file no longer empties the editor.</li>
+<li><strong>Quick fixes for schema violations:</strong> add a missing required property, replace a value with an allowed one,
+  remove a property the schema does not allow - one undo step, formatting kept.</li>
+<li><strong>Generate a sample JSON</strong> from a JSON Schema (the open schema or the bound one), required properties only or
+  all.</li>
+<li><strong>Grid:</strong> JSONPath <strong>filters</strong>, validation markers, the <strong>entry helpers</strong> panel with the schema's properties and
+  values, and pasting tab-separated cells into a table as one undo step.</li>
+</ul>
+<h2 id="320-2026-11-13">3.2.0 (2026-11-13)<a class="headerlink" href="#320-2026-11-13" title="Permanent link">¶</a></h2>
+<p><strong>Editing</strong></p>
+<ul>
+<li><strong>"Edited with FreeXmlToolkit" comment:</strong> saved XML, XSD, XSLT, Schematron and XProc files carry a comment after
+  the XML declaration with the version and the user from Settings → User Info, as other XML editors do. It is
+  updated on every save, not repeated, and can be switched off (Settings → Editor → Mark saved XML files). See
+  <a href="../settings/">Settings</a>.</li>
+<li><strong>Filter from a value:</strong> in the Graphic view, <strong>Filter…</strong> on a simple cell or leaf row opens with a matching
+  expression already filled in — <code>Country</code> = <code>AT</code> in a <code>Position</code> row gives <code>Position[Country='AT']</code>; Enter applies
+  it. See <a href="../../guides/edit-xml/grid/">Grid</a>.</li>
+</ul>
+<p><strong>Querying</strong></p>
+<ul>
+<li><strong>XPath results as a table:</strong> the Query Console's <strong>Table</strong> button now works for XPath too, not only for XQuery —
+  <code>/order/item</code> shows one row per item with its child elements as columns. See
+  <a href="../../guides/transform-query/query-console/">Query Console</a>.</li>
+</ul>
+<p><strong>Standards</strong></p>
+<ul>
+<li><strong>Older language versions (expert mode):</strong> XPath 1.0 / 2.0 / 3.0, XSLT 1.0 / 2.0, XQuery 1.0 / 3.0, XSD 1.0 and
+  XML 1.0 can be chosen, and the Schematron query binding of schemas without one. XPath 1.0 and XSLT 1.0 run on the
+  JDK's real 1.0 processors; newer syntax, functions and instructions are reported as errors, so code written in
+  FreeXmlToolkit runs on older processors too. Version pickers in the Query Console, XPath search, Transform and
+  Validation panels, per project binding and scenario, <code>--lang-version</code> / <code>--xsd-version</code> / <code>--xml-version</code> /
+  <code>--schematron-binding</code> on the command line and version arguments for the MCP tools. Off by default. See
+  <a href="../standards-versions/">Language Versions</a>.</li>
+</ul>
+<p><strong>AI</strong></p>
+<ul>
+<li><strong>Refine AI results step by step:</strong> Ask AI in the Query Console refines the query already in the console, Generate
+  stylesheet can revise the Transform panel's stylesheet (and apply the result to its tab as one edit), and the AI
+  panel has a follow-up field for every action — explain, fix, query and stylesheet — that continues the
+  conversation and sends your own edits of an inserted result along. See
+  <a href="../../guides/ai-assistant/#follow-ups">AI Assistant → Follow-ups</a>.</li>
+</ul>
+<p><strong>Appearance</strong></p>
+<ul>
+<li><strong>oXygen and XMLSpy-like syntax colours:</strong> two more schemes that recreate the text-view colours of those
+  editors, in a light and a dark variant. See <a href="../settings/#syntax-colours">Settings</a>.</li>
+</ul>
+<p><strong>Fixes</strong></p>
+<ul>
+<li><strong>Undo after repeated edits:</strong> two text edits or renames in a row on the same node are one undo step again —
+  Ctrl+Z did nothing for them before.</li>
+<li><strong>Query Console <code>doc()</code>:</strong> an XQuery on a saved document resolves relative <code>doc()</code> and <code>unparsed-text()</code> next to
+  the document.</li>
+<li><strong>Folding large elements:</strong> folding a large element in the text view — e.g. <code>&lt;Funds&gt;</code> of a FundsXML file with
+  24,000 lines — froze the application. It now takes well under a second, and so do Collapse all and Expand all;
+  the caret jumps over a folded block. The fold toggles in the gutter are chevrons in the theme colours; a folded
+  block shows as a highlighted chip. Elements whose start tag spans several lines (attributes on their own lines,
+  such as the FundsXML root) can be folded too; tags inside comments and CDATA no longer count.</li>
+<li><strong>Update check behind corporate networks:</strong> when GitHub's API refuses (rate limit on a shared address), the check
+  reads the release page instead. The downloaded update is then verified against the release's <code>SHA256SUMS.txt</code>
+  instead of being installed without a checksum check.</li>
+<li><strong>Clearer messages:</strong> Open from URL names the HTTP status; Copy View as Image copies the visible area when the
+  whole view is too large for the clipboard; file associations blocked by an administrator policy say so; an
+  unreachable remote schema is not fetched again on every open for ten minutes; stopping the debugger is no
+  longer treated as a failure.</li>
+<li><strong>Grid tables after sorting:</strong> sorting a table column no longer collapses the table, and the selected row stays
+  selected.</li>
+</ul>
+<h2 id="310-2026-11-11">3.1.0 (2026-11-11)<a class="headerlink" href="#310-2026-11-11" title="Permanent link">¶</a></h2>
+<p><strong>AI</strong></p>
+<ul>
+<li><strong>MCP server for AI agents:</strong> <code>fxt-cli mcp</code> lets Claude Code and other MCP clients validate documents, run and
+  test XSLT/XQuery (with XSpec), explore schemas, outline large documents and compare results — read-only and
+  sandboxed, restricted to the folders you name. Eleven tools; administrators can switch it off with
+  <code>ai.mcp.allowed=false</code>. See <a href="../../automate/mcp-server/">MCP Server</a>.</li>
+<li><strong>AI assistant</strong> (off by default): fix or explain a validation problem, turn a question into XPath / XQuery, and
+  generate a stylesheet from a target sample — with a model on your computer (Ollama, LM Studio) or a provider you
+  choose (OpenAI-compatible, Anthropic). Every answer is checked by the application (compiled, run, validated) and
+  repaired up to three times before you see it; nothing is applied without you. Data levels and a request preview
+  control what leaves your computer. See <a href="../../guides/ai-assistant/">AI Assistant</a>.</li>
+</ul>
+<p><strong>Appearance</strong></p>
+<ul>
+<li><strong>System theme and accent colour:</strong> Settings → Appearance → Theme offers <strong>System</strong>, which follows the light or
+  dark setting of your operating system while the application runs. The <strong>accent colour</strong> (eight presets or your
+  own) colours buttons, selection, focus and links, with readable contrast kept automatically. See
+  <a href="../settings/#accent-colour">Settings</a>.</li>
+<li><strong>Editor font:</strong> font, size and line spacing of every code editor, and a zoom (Ctrl+mouse wheel) that can apply
+  to all editors and be remembered. The grid uses the editor font too. See <a href="../settings/#editor-font">Settings</a>.</li>
+<li><strong>Text size, font and density of the interface:</strong> Small to Extra Large text, your own interface font, and a
+  Compact, Normal or Comfortable density. See <a href="../settings/#text-size-and-font">Settings</a>.</li>
+<li><strong>Syntax colours:</strong> colour schemes for XML, JSON and XPath (Monokai and others, each with a light and a dark
+  variant) and your own colour per role. See <a href="../settings/#syntax-colours">Settings</a>.</li>
+<li><strong>High contrast:</strong> stronger texts, borders and focus rings on top of the light or the dark theme. See
+  <a href="../settings/#high-contrast">Settings</a>.</li>
+</ul>
+<p><strong>Editing and output</strong></p>
+<ul>
+<li><strong>Export views:</strong> the XSD diagram, the XML / JSON grid and the profiler's flame graph can be saved as PNG, SVG or
+  PDF, or copied to the clipboard as an image (File → Export View…, Edit → Copy View as Image, context menu). See
+  <a href="../../get-started/workspace-tour/#export-view">Exporting a Graphical View</a>.</li>
+<li><strong>Switching views keeps your place:</strong> going from Text to Tree, Graphic or Overview selects the node at the caret;
+  going back to Text puts the caret on the node you had selected and tints its lines. See
+  <a href="../../get-started/workspace-tour/#view-modes">View Modes</a>.</li>
+<li><strong>Transform from open tabs:</strong> STYLESHEET → Change and INPUT → Change list every open XSLT / XML tab, saved
+  or not, and a <strong>Use current tab</strong> button takes the tab you are editing — a generated stylesheet opened in a new
+  tab runs straight away, with its editor text. See
+  <a href="../transform-panel/#stylesheet">Transform Panel</a>.</li>
+<li><strong>External XSL-FO processors:</strong> render PDFs with Antenna House Formatter, RenderX XEP, another Apache FOP or a
+  script of your own; the XSLT stage, the intermediate FO and the debugger stay the same. Set them up under
+  Settings → Extensions → XSL-FO Processors, choose one in the PDF/FOP panel, in a PDF scenario or with
+  <code>fxt-cli fop --processor</code>. See <a href="../../guides/publish-pdf/#external-xsl-fo-processors">PDF Generator</a>.</li>
+<li><strong>One look for every Excel export:</strong> validation problems, the Schema Analysis report, the Data Dictionary and the
+  XML → Excel conversion share one house style — dark header, striped rows, no gridlines, an info sheet, frozen
+  header and auto-filter, printed one page wide. See <a href="../../guides/validate/xsd/">XSD Validation</a>.</li>
+</ul>
+<p><strong>Plugins and FundsXML</strong></p>
+<ul>
+<li><strong>A page per industry plugin:</strong> ISO 20022, ebInterface, FinDatEx and XBRL each have their own guide; the
+  <a href="../../industry/">Industry Plugins</a> page compares them.</li>
+<li><strong>Recognised documents are marked:</strong> while the FundsXML extension is on, a FundsXML document shows a
+  <strong>FundsXML</strong> mark in the status bar; a click opens the FundsXML panel. Plugins can add such marks too. See
+  <a href="../../industry/fundsxml/#recognised-documents-the-fundsxml-mark">FundsXML Extensions</a> and
+  <a href="../../extend/writing-plugins/#document-badges">Writing Plugins</a>.</li>
+<li><strong>FundsXML data-quality checks</strong> compare position weights, net asset values and portfolio dates with the fund,
+  subfund, segment or share class the portfolio belongs to, so share-class portfolios no longer add up to 300 %.
+  Positions in country-specific data are no longer taken for portfolio positions, and assets used only by an
+  earning no longer count as unused. See
+  <a href="../../industry/fundsxml/#data-quality-checks">FundsXML Extensions</a>.</li>
+</ul>
+<p><strong>Documentation</strong></p>
+<ul>
+<li><strong>Supported standards:</strong> one table lists the XML-related standards and versions FreeXmlToolkit reads, validates,
+  runs or writes, and the engine behind each. See <a href="../../get-started/features/#supported-standards">Supported Standards</a>.</li>
+</ul>
+<h2 id="300-2026-11-09">3.0.0 (2026-11-09)<a class="headerlink" href="#300-2026-11-09" title="Permanent link">¶</a></h2>
+<p><strong>Platform and enterprise</strong></p>
+<ul>
+<li><strong>German user interface:</strong> Settings → Appearance → Language (System default, English, Deutsch);
+  all layouts and the shell's messages are translated. See <a href="../settings/">Settings</a>.</li>
+<li><strong>Command line <code>fxt-cli</code>:</strong> validate (XSD, DTD, RELAX NG, Schematron, JSON Schema; text, JSON,
+  JUnit and SARIF reports), transform (XSLT, XQuery, XProc, with profiling), xsd-doc, xspec,
+  scenario, compare, merge, convert, fop. See <a href="../../automate/command-line/">Command Line</a>.</li>
+<li><strong>Administrator policies:</strong> machine-wide <code>policy.properties</code> (locked) and <code>defaults.properties</code>,
+  telemetry and updates can be switched off centrally, silent installation. See
+  <a href="../../administer/policies/">Administration</a>.</li>
+<li><strong>Plugins:</strong> an API for activities with side panels, menu items, validators, startup tasks,
+  document listeners, stylesheets and schemas; jars in <code>~/.freeXmlToolkit/plugins</code>, managed in
+  Settings → Extensions → PLUGINS. FundsXML is now a plugin. See <a href="../../industry/manage-extensions/">Plugins</a> and
+  <a href="../../extend/writing-plugins/">Writing Plugins</a>.</li>
+<li><strong>Industry plugins</strong> (off by default): ISO 20022 payments / SEPA, ebInterface, FinDatEx EMT/EET/EPT/TPT (V7 and V8),
+  XBRL with Arelle. See <a href="../../industry/">Industry Plugins</a>.</li>
+<li><strong>Projects and transformation scenarios:</strong> <code>.fxtproj</code> files bind a schema (XSD, DTD, RELAX NG,
+  JSON Schema), a Schematron and a transformation scenario to files by pattern, add catalogs and
+  store named scenarios (XSLT, XQuery, XProc, PDF through FOP).</li>
+<li><strong>Project Settings</strong> edits all of it without touching the JSON.</li>
+<li><strong>Validate Project</strong> checks every bound file.</li>
+<li>Scenarios run for the chosen files (<code>${file}</code>, <code>${name}</code>), from the Explorer and with
+    <code>fxt-cli scenario --input</code>.</li>
+<li>Recent projects are on the menu and the Welcome page.</li>
+<li>The project reloads when its file changes.</li>
+</ul>
+<p>See <a href="../../guides/projects/">Projects</a>.
+- <strong>Accessibility:</strong> screen-reader names for every button and field, WCAG AA contrast in both
+  themes, documented keyboard alternatives. See <a href="../accessibility/">Accessibility</a>.
+- <strong>Security:</strong> no external entities in Schematron validation, HTML previews without JavaScript or
+  remote content, XProc pipelines run no programs and reach no network, schemas are never fetched
+  from internal addresses, Saxon's parser hardened, SBOM with every release. DTDs and RELAX NG
+  schemas cannot send local files to a server (a parse never mixes local files and downloads), the
+  output of project scenarios stays inside the project folder, YAML alias bombs are stopped, and
+  Jackson, jsoup and AssertJ are past their known vulnerabilities. See <a href="../../administer/threat-model/">Threat Model</a>.</p>
+<p><strong>XML work</strong></p>
+<ul>
+<li><strong>DTD and RELAX NG</strong> (XML and compact syntax): validation against the declared or a bound
+  grammar, with IntelliSense. See <a href="../schema-support/#dtd-and-relax-ng">Schema Support</a>.</li>
+<li><strong>Compare and merge:</strong> XML compared by structure (namespaces, attribute order, whitespace,
+  element order), folder comparison, three-way merge. </li>
+<li><strong>Conversion:</strong> XML ↔ JSON ↔ YAML (Tools menu, <code>fxt-cli convert</code>).</li>
+<li><strong>Large File Viewer:</strong> files of any size (1 GB in seconds, a few MB of memory) with search,
+  structure tree, record table and streaming validation. See <a href="../../guides/edit-xml/large-files/">Large Files</a>.</li>
+<li><strong>XSLT profiler:</strong> hot spots, call tree, flame graph and line times (Transform panel → Profile run).</li>
+<li><strong>XSpec:</strong> run XSpec tests for XSLT, XQuery and Schematron, with HTML and JUnit reports.</li>
+<li><strong>FundsXML:</strong> 17 data-quality checks with a report and as Query Console snippets, analysis queries,
+  and grid formulas and filters for funds, positions, master data and transactions. See
+  <a href="../../industry/fundsxml/#data-quality-checks">FundsXML Extensions</a>.</li>
+<li><strong>Grid:</strong> filters inside opened table cells, saved filters (off when opened), formulas first under
+  their element, German number format; much faster with very large tables (680,000 records).</li>
+</ul>
+<p><strong>Signatures and encryption</strong></p>
+<ul>
+<li><strong>XML Encryption 1.1:</strong> the Signature page is now <strong>Sign &amp; Encrypt</strong> with <strong>Encrypt</strong>, <strong>Decrypt</strong>
+  and <strong>Inspect</strong>. Encrypt the whole document, the element at the caret or an XPath selection for
+  any number of recipients (certificate, keystore entry, shared key file, password); decrypt with
+  your private key, a shared key or the password. The XML editor's context menu offers <strong>Encrypt
+  Element… / Decrypt…</strong>. See <a href="../../guides/sign-encrypt/encryption/">XML Encryption</a>.</li>
+<li><strong>Signature algorithms:</strong> RSA, RSA-PSS and ECDSA, a selectable digest and canonicalization;
+  new certificates with RSA or EC keys. See <a href="../../guides/sign-encrypt/signatures/">Digital Signatures</a>.</li>
+<li><strong><code>fxt-cli sign</code>, <code>verify</code>, <code>encrypt</code>, <code>decrypt</code></strong> (also <code>--inspect</code>). See
+  <a href="../../automate/cli-sign/#sign">Command Line</a>.</li>
+</ul>
+<p><strong>More</strong></p>
+<ul>
+<li><strong><code>fxt-cli query</code></strong> runs XPath, XQuery and JSONPath; the <strong>XQuery profiler</strong> shows where a query
+  spends its time (Run ▾ → Profile Query, <code>fxt-cli transform --profile</code>).</li>
+<li><strong>Regression checks for scenarios:</strong> compare a scenario's output with an expected result
+  (Check, Differences, Accept; <code>fxt-cli scenario --check</code>). See <a href="../../guides/projects/">Projects</a>.</li>
+<li><strong>XML compare:</strong> ignore XPaths, XMLUnit placeholders and a numeric tolerance.</li>
+<li><strong>XSpec templates</strong> in File → New.</li>
+<li><strong>Problems, Query Console hits and FundsXML data-quality findings</strong> open in the document's
+  current view (Tree or Graphic) instead of switching to the Text view.</li>
+<li><strong>Grid:</strong> a click elsewhere keeps the value you are editing (like Enter) and closes an open
+  context menu; the XSD diagram's context menu closes the same way.</li>
+<li><strong>One look for every dialog</strong>, light and dark; banner and dialog images in the Windows installers.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden="">
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer">
+        
+          
+          <a href="../whats-new/" class="md-footer__link md-footer__link--prev" aria-label="Previous: What's New">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                What's New
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../whats-new-2/" class="md-footer__link md-footer__link--next" aria-label="Next: 2.x">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                2.x
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright © 2024-2026 Karl Kauc
+    </div>
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="https://github.com/sponsors/karlkauc" target="_blank" rel="noopener" title="Sponsor on GitHub" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="m241 87.1 15 20.7 15-20.7C296 52.5 336.2 32 378.9 32 452.4 32 512 91.6 512 165.1v2.6c0 112.2-139.9 242.5-212.9 298.2-12.4 9.4-27.6 14.1-43.1 14.1s-30.8-4.6-43.1-14.1C139.9 410.2 0 279.9 0 167.7v-2.6C0 91.6 59.6 32 133.1 32 175.8 32 216 52.5 241 87.1"></path></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "search.highlight", "search.suggest", "content.code.copy", "content.tabs.link", "announce.dismiss"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      
+        <script src="../../overrides/javascripts/download.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
