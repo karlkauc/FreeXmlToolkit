@@ -5485,8 +5485,8 @@
 <h3 id="xml-processing">XML Processing<a class="headerlink" href="#xml-processing" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>Saxon HE:</strong> 12.10 - XSLT 3.0, XPath 3.1 and XQuery processing engine</li>
-<li><strong>XML Calabash:</strong> 3.0.54 - XProc 3.0 pipeline engine (Run Pipeline for <code>.xpl</code>/<code>.xproc</code> files)</li>
-<li><strong>ph-schematron:</strong> 10.3.1 - Schematron validation (pure, XSLT and SchXslt engines)</li>
+<li><strong>XML Calabash:</strong> 3.1.0 - XProc 3.0 pipeline engine (Run Pipeline for <code>.xpl</code>/<code>.xproc</code> files)</li>
+<li><strong>ph-schematron:</strong> 10.3.2 - Schematron validation (pure, XSLT and SchXslt engines)</li>
 <li><strong>Jakarta XML Bind API:</strong> 4.0.5 - XML binding and marshalling</li>
 <li><strong>Apache Xerces:</strong> 2.12.2 (exist-db fork) - XSD 1.1 validation with assertions support</li>
 </ul>
@@ -5505,12 +5505,12 @@
 <h3 id="digital-signatures">Digital Signatures<a class="headerlink" href="#digital-signatures" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>Apache Santuario:</strong> 4.0.4 - XML Security (XML-DSig)</li>
-<li><strong>BouncyCastle:</strong> 1.86 - Cryptographic operations for XML digital signatures</li>
+<li><strong>BouncyCastle:</strong> 1.87 - Cryptographic operations for XML digital signatures</li>
 <li><strong>Java Cryptography Architecture (JCA):</strong> Native Java crypto support</li>
 </ul>
 <h3 id="ai">AI<a class="headerlink" href="#ai" title="Permanent link">¶</a></h3>
 <ul>
-<li><strong>MCP Java SDK:</strong> 2.1.0 - Model Context Protocol server for <code>fxt-cli mcp</code> (stdio)</li>
+<li><strong>MCP Java SDK:</strong> 2.2.0 - Model Context Protocol server for <code>fxt-cli mcp</code> (stdio)</li>
 <li><strong>Anthropic Java SDK:</strong> 3.8.0 (<code>anthropic-java-core</code>) - Anthropic provider of the optional AI assistant, on the application's own HTTP connection service (OpenAI-compatible providers use plain HTTP)</li>
 </ul>
 <h3 id="office-integration">Office Integration<a class="headerlink" href="#office-integration" title="Permanent link">¶</a></h3>
@@ -5519,7 +5519,7 @@
 </ul>
 <h3 id="utilities">Utilities<a class="headerlink" href="#utilities" title="Permanent link">¶</a></h3>
 <ul>
-<li><strong>Apache Commons Lang3:</strong> 3.21.0 - String manipulation and utilities</li>
+<li><strong>Apache Commons Lang3:</strong> 3.22.0 - String manipulation and utilities</li>
 <li><strong>Apache Commons IO:</strong> 2.22.0 - File and IO utilities</li>
 <li><strong>Apache Commons Text:</strong> 1.15.0 - Text algorithms</li>
 </ul>
@@ -5538,7 +5538,7 @@
 <ul>
 <li><strong>IconifyIcon:</strong> In-house icon control rendering bundled <a href="https://iconify.design/">Iconify</a> Bootstrap Icons SVG data (no external icon library)</li>
 <li><strong>CSSFX:</strong> 11.5.1 - CSS hot-reloading for development</li>
-<li><strong>Thymeleaf:</strong> 3.1.5 - Template engine for documentation generation</li>
+<li><strong>Thymeleaf:</strong> 3.1.7 - Template engine for documentation generation</li>
 </ul>
 <h2 id="architecture-components">Architecture Components<a class="headerlink" href="#architecture-components" title="Permanent link">¶</a></h2>
 <h3 id="model-view-controller-mvc">Model-View-Controller (MVC)<a class="headerlink" href="#model-view-controller-mvc" title="Permanent link">¶</a></h3>
@@ -5629,7 +5629,7 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">dependencies</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="c1">// XML Processing</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"net.sf.saxon:Saxon-HE:12.10"</span><span class="p">)</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"com.xmlcalabash:xmlcalabash:3.0.54"</span><span class="p">)</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"com.xmlcalabash:xmlcalabash:3.1.0"</span><span class="p">)</span>
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"jakarta.xml.bind:jakarta.xml.bind-api:4.0.5"</span><span class="p">)</span>
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"org.exist-db.thirdparty.xerces:xercesImpl:2.12.2"</span><span class="p">)</span>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
@@ -5637,7 +5637,7 @@
 <a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"org.apache.xmlgraphics:fop:2.12"</span><span class="p">)</span>
 <a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
 <a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">    </span><span class="c1">// AI (MCP server, Anthropic provider)</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"io.modelcontextprotocol.sdk:mcp-core:2.1.0"</span><span class="p">)</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"io.modelcontextprotocol.sdk:mcp-core:2.2.0"</span><span class="p">)</span>
 <a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"com.anthropic:anthropic-java-core:3.8.0"</span><span class="p">)</span>
 <a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>
 <a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">    </span><span class="c1">// UI Components</span>
@@ -5646,7 +5646,7 @@
 <a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>
 <a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">    </span><span class="c1">// Security</span>
 <a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"org.apache.santuario:xmlsec:4.0.4"</span><span class="p">)</span>
-<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"org.bouncycastle:bcpkix-jdk18on:1.86"</span><span class="p">)</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">"org.bouncycastle:bcpkix-jdk18on:1.87"</span><span class="p">)</span>
 <a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>
 <a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="w">    </span><span class="c1">// Testing</span>
 <a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="w">    </span><span class="n">testImplementation</span><span class="p">(</span><span class="n">platform</span><span class="p">(</span><span class="s">"org.junit:junit-bom:6.1.3"</span><span class="p">))</span>
