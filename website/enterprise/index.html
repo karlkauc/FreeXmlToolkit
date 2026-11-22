@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Enterprise and security – FreeXmlToolkit</title>
+<meta name="description" content="Deploy FreeXmlToolkit with MSI and silent installation, lock settings with machine-wide policies, run it offline, and read what it sends: threat model, SBOM, telemetry.">
+<link rel="canonical" href="https://freexmltoolkit.org/enterprise/">
+<meta name="theme-color" content="#2a284c">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Enterprise and security – FreeXmlToolkit">
+<meta property="og:description" content="Deploy FreeXmlToolkit with MSI and silent installation, lock settings with machine-wide policies, run it offline, and read what it sends: threat model, SBOM, telemetry.">
+<meta property="og:url" content="https://freexmltoolkit.org/enterprise/">
+<meta property="og:image" content="https://freexmltoolkit.org/assets/brand/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../assets/brand/app-icon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/brand/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../assets/brand/apple-touch-icon.png">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script src="../assets/js/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="wrap">
+<a class="brand" href="../" aria-label="FreeXmlToolkit home"><img src="../assets/brand/lockup-horizontal-on-dark.svg" alt="" width="181" height="30"></a>
+<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+<nav class="site-nav" id="site-nav" aria-label="Main"><a href="../features/">Features</a><a href="../industries/">Industries</a><a href="../enterprise/" aria-current="page">Enterprise</a><a href="../ai/">AI</a><a href="../compare/">Compare</a><a href="https://karlkauc.github.io/FreeXmlToolkit/">Docs</a><a class="btn" href="../download/">Download</a></nav>
+</div>
+</header>
+<main id="main">
+<section class="page-head"><div class="wrap">
+<div class="eyebrow">Enterprise</div><h1 class="page-title">Ready for managed desktops</h1>
+<p class="lead">For administrators and security reviewers: how FreeXmlToolkit is rolled out, which settings you can lock, what it sends over the network and how it is protected.</p>
+</div></section>
+<section class="section"><div class="wrap cards three">
+<div class="card"><h3>Silent installation</h3><p>MSI and exe for Windows, pkg for macOS, deb and rpm for Linux, all installable without user interaction. Also in Scoop and Homebrew.</p><a class="more" href="https://karlkauc.github.io/FreeXmlToolkit/administer/policies/">Installation and policies</a></div>
+<div class="card"><h3>Machine-wide policies</h3><p>A <code>policy.properties</code> file locks settings for every user: updates, telemetry, AI, network access, external processors and plugins. <code>defaults.properties</code> sets defaults users may change.</p><a class="more" href="https://karlkauc.github.io/FreeXmlToolkit/administer/policies/">Policies</a></div>
+<div class="card"><h3>Works offline</h3><p>Validation, transformation and documentation run without internet. Schemas come from the Schema Library, OASIS catalogs or a shared folder; updates can be switched off.</p><a class="more" href="https://karlkauc.github.io/FreeXmlToolkit/administer/offline/">Operation without internet</a></div>
+<div class="card"><h3>Secure by default</h3><p>Protection against XXE, SSRF and unsafe stylesheets; external entities, remote schemas and extension functions are controlled by settings an administrator can lock.</p><a class="more" href="https://karlkauc.github.io/FreeXmlToolkit/administer/security-features/">Security features</a></div>
+<div class="card"><h3>Threat model and SBOM</h3><p>A documented threat model says what the application defends against and what it does not. Every release ships a CycloneDX SBOM and SHA-256 checksums.</p><a class="more" href="https://karlkauc.github.io/FreeXmlToolkit/administer/threat-model/">Threat model</a></div>
+<div class="card"><h3>Signed packages</h3><p>macOS packages are signed with a Developer ID and notarized by Apple. How releases are built and signed is documented.</p><a class="more" href="https://karlkauc.github.io/FreeXmlToolkit/administer/code-signing/">Code signing</a></div>
+</div></section>
+<section class="section section-alt"><div class="wrap row">
+<div class="row-copy wide"><div class="eyebrow">Telemetry, openly</div><h2>What the application sends, and how to stop it</h2>
+<p class="text">Anonymous usage statistics and error reports are on by default and can be switched off by the user or for everyone with a policy. They contain feature names, counts, timings, the operating-system family and a random installation id - never file names, paths, document content, prompts or AI answers.</p>
+<a class="more" href="https://karlkauc.github.io/FreeXmlToolkit/administer/privacy-telemetry/">Privacy and telemetry in detail</a></div>
+<div class="row-media"><pre class="term" aria-label="Example policy file"><span class="c"># /etc/freexmltoolkit/policy.properties</span>
+fxt.telemetry.disabled=true
+update.allowed=false
+ai.allowed=false
+security.dtd.allowed=false</pre></div>
+</div></section>
+<section class="section"><div class="wrap cards two">
+<div class="card big"><div class="eyebrow">Accessibility</div><h2>Usable with keyboard and screen reader</h2>
+<p>Every control has an accessible name, text meets WCAG AA contrast, a high-contrast mode raises it to 7:1, and the interface scales from small to extra large with a compact or roomy density.</p>
+<a class="more" href="https://karlkauc.github.io/FreeXmlToolkit/reference/accessibility/">Accessibility</a></div>
+<div class="card big"><div class="eyebrow">AI under control</div><h2>Off unless you allow it</h2>
+<p>The AI assistant is off by default and needs a provider you configure. Administrators remove it completely with <code>ai.allowed=false</code>; the MCP server for agents has its own switch.</p>
+<a class="more" href="../ai/">AI and automation</a></div>
+</div></section>
+<section class="section"><div class="wrap cta">
+<img src="../assets/brand/app-icon.svg" alt="" width="88" height="88">
+<h2>Roll it out</h2><p class="lead">One MSI, one policy file, no licence server.</p>
+<div class="btn-row"><a class="btn" href="../download/">Download FreeXmlToolkit</a><a class="btn btn-ghost" href="https://karlkauc.github.io/FreeXmlToolkit/administer/">Administrator documentation</a></div>
+</div></section>
+</main>
+<footer class="site-footer on-navy">
+<div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand"><img src="../assets/brand/lockup-horizontal-on-dark.svg" alt="FreeXmlToolkit" width="181" height="30"><p>Free and open source under Apache 2.0.</p></div>
+<div><h2>Product</h2><ul><li><a href="../features/">Features</a></li><li><a href="../industries/">Industries</a></li><li><a href="../enterprise/">Enterprise</a></li><li><a href="../ai/">AI &amp; automation</a></li><li><a href="../compare/">Compare</a></li></ul></div>
+<div><h2>Project</h2><ul><li><a href="../news/">News</a></li><li><a href="../about/">About</a></li><li><a href="https://github.com/sponsors/karlkauc">Sponsor</a></li><li><a href="https://github.com/karlkauc/FreeXmlToolkit">GitHub</a></li></ul></div>
+<div><h2>Help</h2><ul><li><a href="https://karlkauc.github.io/FreeXmlToolkit/">Documentation</a></li><li><a href="https://karlkauc.github.io/FreeXmlToolkit/reference/faq/">FAQ</a></li><li><a href="https://github.com/karlkauc/FreeXmlToolkit/issues/new/choose">Report a problem</a></li></ul></div>
+<div><h2>Legal</h2><ul><li><a href="../imprint/">Imprint</a></li><li><a href="../privacy/">Privacy</a></li><li><a href="https://karlkauc.github.io/FreeXmlToolkit/reference/licenses/">Licenses</a></li></ul></div>
+</div>
+<div class="foot-bottom"><span>© 2024–2026 Karl Kauc</span><span>Product names are trademarks of their owners.</span></div>
+</div>
+</footer>
+</body>
+</html>

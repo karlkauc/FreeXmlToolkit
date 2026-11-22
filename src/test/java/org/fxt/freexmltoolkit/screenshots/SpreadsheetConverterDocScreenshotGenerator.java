@@ -23,7 +23,7 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
 /**
- * Captures the Spreadsheet Converter images for {@code docs/xml-editor.md}: the export as a table with its
+ * Captures the Spreadsheet Converter images for {@code docs/guides/convert.md}: the export as a table with its
  * preview, and the import of a plain CSV file. Synthetic sample data.
  *
  * <pre>{@code
@@ -74,7 +74,7 @@ class SpreadsheetConverterDocScreenshotGenerator {
         settle(600);
         write(dialog, "spreadsheet-converter-export");
 
-        Path csv = Files.createTempDirectory("fxt-shot").resolve("customers.csv");
+        Path csv = DocFiles.work("spreadsheet").resolve("customers.csv");
         Files.writeString(csv, "Customer no;Name;City;@status\n1001;Berg GmbH;Wien;active\n1002;Ott & Söhne;Graz;active\n"
                 + "1003;Huber KG;Linz;paused\n");
         ScreenshotFx.run("spreadsheet-screenshot", () -> {

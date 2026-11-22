@@ -34,7 +34,6 @@ import org.fxt.freexmltoolkit.service.xsltproc.ExternalXsltRunner;
 import org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorConfig;
 import org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorPreset;
 import org.fxt.freexmltoolkit.util.DialogHelper;
-import org.fxt.freexmltoolkit.util.ExternalCommands;
 import org.fxt.freexmltoolkit.util.FileChooserHelper;
 
 /**
@@ -197,8 +196,7 @@ public class XsltProcessorDialog extends Dialog<XsltProcessorConfig> {
     public void onFindOnPath() {
         XsltProcessorPreset preset = presetChoice.getValue();
         List<String> names = preset == null ? List.of() : preset.programNames();
-        var found = names.isEmpty() ? java.util.Optional.<Path>empty()
-                : ExternalCommands.findOnPath(names.toArray(String[]::new));
+        var found = preset == null ? java.util.Optional.<Path>empty() : preset.findProgram();
         if (found.isPresent()) {
             executableField.setText(found.get().toString());
             testStatus.setText(I18n.t("XsltProcessorDialog.found", found.get()));

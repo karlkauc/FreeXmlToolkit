@@ -37,15 +37,36 @@ public final class FunctionCatalog {
         };
     }
 
-    /** Whether {@code fn:localName#arity} exists in {@code version}. */
+    /** The XPath 1.0 core function library: name → {min, max} arguments (max -1 = any number). */
+    private static final java.util.Map<String, int[]> XPATH10 = java.util.Map.ofEntries(
+            java.util.Map.entry("last", new int[] {0, 0}), java.util.Map.entry("position", new int[] {0, 0}),
+            java.util.Map.entry("count", new int[] {1, 1}), java.util.Map.entry("id", new int[] {1, 1}),
+            java.util.Map.entry("local-name", new int[] {0, 1}), java.util.Map.entry("namespace-uri", new int[] {0, 1}),
+            java.util.Map.entry("name", new int[] {0, 1}), java.util.Map.entry("string", new int[] {0, 1}),
+            java.util.Map.entry("concat", new int[] {2, -1}), java.util.Map.entry("starts-with", new int[] {2, 2}),
+            java.util.Map.entry("contains", new int[] {2, 2}), java.util.Map.entry("substring-before", new int[] {2, 2}),
+            java.util.Map.entry("substring-after", new int[] {2, 2}), java.util.Map.entry("substring", new int[] {2, 3}),
+            java.util.Map.entry("string-length", new int[] {0, 1}),
+            java.util.Map.entry("normalize-space", new int[] {0, 1}), java.util.Map.entry("translate", new int[] {3, 3}),
+            java.util.Map.entry("boolean", new int[] {1, 1}), java.util.Map.entry("not", new int[] {1, 1}),
+            java.util.Map.entry("true", new int[] {0, 0}), java.util.Map.entry("false", new int[] {0, 0}),
+            java.util.Map.entry("lang", new int[] {1, 1}), java.util.Map.entry("number", new int[] {0, 1}),
+            java.util.Map.entry("sum", new int[] {1, 1}), java.util.Map.entry("floor", new int[] {1, 1}),
+            java.util.Map.entry("ceiling", new int[] {1, 1}), java.util.Map.entry("round", new int[] {1, 1}));
+
+    /** Whether {@code fn:localName#arity} exists in {@code version} (1.0: the XPath 1.0 core library). */
     public static boolean exists(XPathVersion version, String localName, int arity) {
+        if (version == XPathVersion.V1_0) {
+            int[] range = XPATH10.get(localName);
+            return range != null && arity >= range[0] && (range[1] < 0 || arity <= range[1]);
+        }
         BuiltInFunctionSet set = CONFIG.getXPathFunctionSet(level(version));
         return set.getFunctionDetails(localName, arity) != null;
     }
 
     /** The oldest version that has {@code fn:localName#arity}, or {@code null} for none. */
     public static XPathVersion since(String localName, int arity) {
-        for (XPathVersion v : new XPathVersion[] {XPathVersion.V2_0, XPathVersion.V3_0, XPathVersion.V3_1}) {
+        for (XPathVersion v : XPathVersion.values()) {
             if (exists(v, localName, arity)) {
                 return v;
             }

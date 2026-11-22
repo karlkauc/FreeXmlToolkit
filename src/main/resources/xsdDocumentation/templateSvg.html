@@ -185,23 +185,23 @@
             <!-- Legend -->
             <div class="flex flex-wrap items-center gap-4 ml-auto text-sm">
                 <div class="flex items-center gap-1.5">
-                    <div class="legend-color" style="background-color: #4A90E2;"></div>
+                    <div class="legend-color" style="background-color: #2a284c;"></div>
                     <span class="text-slate-600">Root</span>
                 </div>
                 <div class="flex items-center gap-1.5">
-                    <div class="legend-color" style="background-color: #4a90e2;"></div>
+                    <div class="legend-color" style="background-color: #1373d9;"></div>
                     <span class="text-slate-600">Elements</span>
                 </div>
                 <div class="flex items-center gap-1.5">
-                    <div class="legend-color" style="background-color: #d4a147;"></div>
+                    <div class="legend-color" style="background-color: #12a594;"></div>
                     <span class="text-slate-600">Attributes</span>
                 </div>
                 <div class="flex items-center gap-1.5">
-                    <div class="legend-color" style="background-color: #6c757d;"></div>
+                    <div class="legend-color" style="background-color: #5a6472;"></div>
                     <span class="text-slate-600">Sequence</span>
                 </div>
                 <div class="flex items-center gap-1.5">
-                    <div class="legend-color" style="background-color: #ff8c00;"></div>
+                    <div class="legend-color" style="background-color: #f08c2e;"></div>
                     <span class="text-slate-600">Choice</span>
                 </div>
                 <div class="flex items-center gap-1.5">
@@ -251,9 +251,17 @@
             `Zoom: ${Math.round(currentZoom * 100)}% | Use mouse wheel to zoom, drag to pan`;
     }
 
+    // The diagram's own view box: it starts where the drawn nodes start, not necessarily at 0,0
+    function homeViewBox() {
+        if (!svgElement.dataset.home) {
+            svgElement.dataset.home = svgElement.getAttribute('viewBox');
+        }
+        return svgElement.dataset.home.split(' ').map(Number);
+    }
+
     function resetZoom() {
         if (svgElement) {
-            svgElement.setAttribute('viewBox', '0 0 ' + svgElement.getAttribute('width') + ' ' + svgElement.getAttribute('height'));
+            svgElement.setAttribute('viewBox', homeViewBox().join(' '));
             currentZoom = 1;
             updateZoomInfo();
         }
@@ -263,8 +271,7 @@
         if (svgElement) {
             const container = document.getElementById('svg-container');
             const containerRect = container.getBoundingClientRect();
-            const svgWidth = parseInt(svgElement.getAttribute('width'));
-            const svgHeight = parseInt(svgElement.getAttribute('height'));
+            const [homeX, homeY, svgWidth, svgHeight] = homeViewBox();
 
             const scaleX = containerRect.width / svgWidth;
             const scaleY = containerRect.height / svgHeight;
@@ -275,7 +282,7 @@
             const offsetX = (newWidth - svgWidth) / 2;
             const offsetY = (newHeight - svgHeight) / 2;
 
-            svgElement.setAttribute('viewBox', `${-offsetX} ${-offsetY} ${newWidth} ${newHeight}`);
+            svgElement.setAttribute('viewBox', `${homeX - offsetX} ${homeY - offsetY} ${newWidth} ${newHeight}`);
             currentZoom = scale;
             updateZoomInfo();
         }

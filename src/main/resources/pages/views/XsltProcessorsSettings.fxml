@@ -3,12 +3,13 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.FlowPane?>
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 
 <!--
   Settings → XSLT Processors: the external XSLT processors (rows built by XsltProcessorsSettings),
-  the default one and the Add / Edit / Remove / Default buttons. Changes are saved at once.
+  the default one and the Add / Add Saxon HE 13 / Edit / Remove / Default buttons. Changes are saved at once.
 -->
 <fx:root type="javafx.scene.layout.VBox" spacing="6"
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
@@ -22,6 +23,14 @@
                     <graphic>
                         <IconifyIcon iconLiteral="bi-plus-lg" iconSize="16"/>
                     </graphic>
+                </Button>
+                <Button fx:id="addSaxonButton" id="settings-xslt-add-saxon" text="%XsltProcessorsSettings.addSaxonButton.text" styleClass="fxt-tool-button" onAction="#onAddSaxon">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-download" iconSize="16"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="%XsltProcessorsSettings.addSaxonButton.tooltip"/>
+                    </tooltip>
                 </Button>
                 <Button fx:id="editButton" id="settings-xslt-edit" text="%XsltProcessorsSettings.editButton.text" styleClass="fxt-tool-button" onAction="#onEdit">
                     <graphic>
@@ -41,6 +50,8 @@
                 </Button>
             </children>
         </FlowPane>
+        <Label fx:id="saxonStatus" id="settings-xslt-saxon-status" wrapText="true" minHeight="-Infinity"
+               visible="false" managed="false" styleClass="fxt-placeholder-text"/>
         <Label fx:id="policyNote" id="settings-xslt-policy" text="%XsltProcessorsSettings.policyNote.text"
                wrapText="true" minHeight="-Infinity" visible="false" managed="false" styleClass="fxt-placeholder-text"/>
     </children>

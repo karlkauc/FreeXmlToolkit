@@ -779,6 +779,29 @@ class FxtCliTest {
         }
 
         @Test
+        @DisplayName("--initial-template starts at a named template without input; -p values get the declared type")
+        void initialTemplate() throws Exception {
+            Path xsl = write("it.xsl", """
+                    <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                                    xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                      <xsl:output method="text"/>
+                      <xsl:param name="n" as="xs:integer" select="1"/>
+                      <xsl:template name="xsl:initial-template">n=<xsl:value-of select="$n * 2"/></xsl:template>
+                      <xsl:template name="other">other</xsl:template>
+                      <xsl:template match="/" mode="m">mode</xsl:template>
+                    </xsl:stylesheet>
+                    """);
+            assertEquals(ExitCodes.OK, run("transform", "-s", xsl, "--initial-template", "-p", "n=21"), err);
+            assertEquals("n=42", out.strip());
+            assertEquals(ExitCodes.OK, run("transform", "-s", xsl, "--initial-template", "other"), err);
+            assertEquals("other", out.strip());
+            assertEquals(ExitCodes.OK, run("transform", "-s", xsl, "--initial-mode", "m", valid), err);
+            assertEquals("mode", out.strip());
+            assertEquals(ExitCodes.USAGE, run("transform", "-s", xsl));
+            assertTrue(err.contains("--initial-template"), err);
+        }
+
+        @Test
         @DisplayName("--processor runs an external XSLT processor from the settings; --list-processors lists them")
         void externalProcessor() throws Exception {
             var store = org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorStore.settings();

@@ -122,7 +122,7 @@ public class SchematronServiceImpl implements SchematronService {
                     .validateSVRL(false)
                     // Untrusted Schematron and documents: no external entities (an entity could read a
                     // local file into a message), and Saxon gets the application's parser settings and
-                    // blocks remote doc()/document()/unparsed-text() (see docs/threat-model.md)
+                    // blocks remote doc()/document()/unparsed-text() (see docs/administer/threat-model.md)
                     .entityResolver(NO_EXTERNAL_ENTITIES)
                     .transformerFactoryCustomizer(SchematronServiceImpl::secure)
                     .build();

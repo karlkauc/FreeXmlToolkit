@@ -29,7 +29,7 @@ import org.testfx.util.WaitForAsyncUtils;
 
 /**
  * Re-captures the <strong>legacy documentation screenshots</strong> (the pre-unified-shell
- * images referenced from {@code docs/*.md}: {@code main-window.png}, {@code xml-editor-*.png},
+ * images referenced from the pages under {@code docs/}: {@code xml-editor-*.png},
  * {@code xsd-*.png}, {@code signature-*.png}, …) showing the current Unified Shell UI. The
  * file names stay identical, so the docs pages need no markdown changes.
  *
@@ -44,7 +44,7 @@ import org.testfx.util.WaitForAsyncUtils;
 @ExtendWith(ApplicationExtension.class)
 class PagesDocScreenshotGenerator {
 
-    private static final File EXAMPLES = new File("release/examples");
+    private static final File EXAMPLES = DocFiles.examples();
     private static final File IMG_DIR = new File("docs/img");
     /** Typed into the demo document to open the completion popup; removed again afterwards. */
     private static final String INTELLISENSE_PROBE = "\n            <";
@@ -93,11 +93,10 @@ class PagesDocScreenshotGenerator {
         File demoKeystore = new File(EXAMPLES, "signature/fundsxml-demo_KeyStore.jks");
 
         // ---------------------------------------------------------------- XML editor basics
-        scene("main-window + xml-editor-text", () -> {
+        scene("xml-editor-text", () -> {
             openAndWait(demoXml, "IntelliSense");
             onFx(() -> shell.getSelectionModel().select(Activity.EXPLORER));
             settle();
-            shot("main-window");
             shot("xml-editor-text");
         });
 
@@ -109,7 +108,6 @@ class PagesDocScreenshotGenerator {
             onFx(() -> host.setActiveViewMode(ViewMode.TREE));
             settle(1500);
             shot("xml-editor-tree-view");
-            copyShot("xml-editor-tree-view", "xml-editor-tree");
             onFx(() -> host.setActiveViewMode(ViewMode.GRAPHIC));
             settle(1500);
             shot("xml-editor-graphic");
@@ -198,7 +196,6 @@ class PagesDocScreenshotGenerator {
             settle(500);
             shotScreen("intellisense-overview");
             copyShot("intellisense-overview", "xml-editor-intellisense");
-            copyShot("intellisense-overview", "xml-editor-intellisense-popup");
             robot.push(javafx.scene.input.KeyCode.ESCAPE);
             onFx(() -> area.deleteText(offset.get(), offset.get() + INTELLISENSE_PROBE.length()));
             settle();
@@ -206,7 +203,7 @@ class PagesDocScreenshotGenerator {
 
         // ---------------------------------------------------------------- Pretty print
         scene("pretty print before/after", () -> {
-            Path ugly = Path.of(System.getProperty("java.io.tmpdir"), "fxt-doc-pretty-print.xml");
+            Path ugly = DocFiles.work("formatting").resolve("catalog.xml");
             Files.writeString(ugly, "<?xml version=\"1.0\" encoding=\"UTF-8\"?><catalog>"
                     + "<book id=\"bk101\"><author>Gambardella, Matthew</author>"
                     + "<title>XML Developer's Guide</title><genre>Computer</genre>"
@@ -234,34 +231,6 @@ class PagesDocScreenshotGenerator {
             onFx(() -> validationPanel().revalidate());
             settle(2500);
             shot("schema-xsd-support");
-        });
-
-        scene("xml-editor-validation (errors)", () -> {
-            Path invalid = Path.of(System.getProperty("java.io.tmpdir"), "fxt-doc-invalid.xml");
-            Files.writeString(invalid, """
-                    <?xml version="1.0" encoding="UTF-8"?>
-                    <document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                              xsi:noNamespaceSchemaLocation="%s">
-                        <header>
-                            <title>Broken document</title>
-                            <subtitle>Not allowed by the schema</subtitle>
-                        </header>
-                        <unknownElement>also invalid</unknownElement>
-                    </document>
-                    """.formatted(demoXsd.getAbsolutePath()));
-            invalid.toFile().deleteOnExit();
-            openAndWait(invalid.toFile(), "Broken document");
-            onFx(() -> {
-                // Bind the schema explicitly — the auto-resolver may not pick up the
-                // absolute-path xsi:noNamespaceSchemaLocation hint in time.
-                host.setSchemaForActiveDocument(demoXsd);
-                shell.getSelectionModel().select(Activity.VALIDATION);
-            });
-            settle(800);
-            onFx(() -> validationPanel().revalidate());
-            waitUntilFx(20, () -> validationPanel().getProblemCount() > 0);
-            settle(600);
-            shot("xml-editor-validation");
         });
 
         scene("xml-editor-schematron", () -> {
@@ -412,7 +381,7 @@ class PagesDocScreenshotGenerator {
             // Generate with the inputs of the previous scene; a successful run opens the preview tab.
             if (shell.lookup(".fxt-fop-panel")
                     instanceof org.fxt.freexmltoolkit.controls.shell.editor.FopPanel panel) {
-                File pdf = new File(Files.createTempDirectory("fxt-fop").toFile(), "FundsXML_Factsheet.pdf");
+                File pdf = new File(DocFiles.work("pdf").toFile(), "FundsXML_Factsheet.pdf");
                 pdf.deleteOnExit();
                 onFx(() -> panel.generateTo(pdf));
                 waitUntilFx(60, () -> root.lookup(".fxt-pdf-page")

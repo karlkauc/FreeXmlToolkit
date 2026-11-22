@@ -250,6 +250,7 @@ public final class EditorActions {
     }
 
     private void runActiveQueryNow() {
+        TransformOutputSettings.apply(); // the Transform panel's output options, even before it was shown
         EditorFileType type = activeFileType();
         if (type != EditorFileType.XQUERY && type != EditorFileType.XPATH) {
             return;
@@ -268,8 +269,18 @@ public final class EditorActions {
         }
         var target = resolved.get();
         boolean xquery = type == EditorFileType.XQUERY;
+        String queryLocation = !doc.isUntitled() && doc.getPath() != null ? doc.getPath().toUri().toString() : null;
+        java.util.Map<String, String> variables = xquery ? variableValues(doc, query, queryLocation) : java.util.Map.of();
+        if (variables == null) {
+            out.showError(I18n.t("EditorActions.variables-cancelled"));
+            return;
+        }
         out.showPending(I18n.t("EditorActions.running-query-against", target.displayName()));
         String queryTarget = doc.getDisplayName();
+        // the query's own location resolves `import module at` and doc() calls written in it; the target file is the
+        // document's base URI (an open target has none: then the query's folder)
+        String queryBaseUri = !doc.isUntitled() && doc.getPath() != null ? doc.getPath().toUri().toString() : null;
+        String baseUri = target.file() != null ? target.file().toURI().toString() : queryBaseUri;
         final int gen = ++queryRunGeneration;
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
@@ -288,12 +299,23 @@ public final class EditorActions {
                 });
                 return;
             }
+            // like the console: the target's prefixes are declared, unprefixed names match its default namespace
+            var bindings = org.fxt.freexmltoolkit.service.query.DocumentNamespaces.forQueries(xml);
             if (xquery) {
-                TransformRunner.QueryRun run = TransformRunner.xquery(xml, query, Map.of(),
-                        XsltTransformationEngine.OutputFormat.XML, standards(
-                                org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_QUERY_CONSOLE).xquery());
+                var version = standards(
+                        org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_QUERY_CONSOLE).xquery();
+                // one evaluation gives the text and the table; the time limit of the console applies
+                QueryEvaluation.Result evaluation = QueryEvaluation.run(new QueryEvaluation.Request(
+                        org.fxt.freexmltoolkit.service.query.QueryLanguage.XQUERY, version.xpathVersion(), version,
+                        xml, query, baseUri, queryBaseUri, bindings.prefixes(),
+                        QuerySettings.defaultNamespace(bindings, version.xpathVersion()), null,
+                        QuerySettings.timeoutSeconds() * 1000L).withVariables(variables));
+                TransformRunner.QueryRun run = evaluation.timedOut()
+                        ? new TransformRunner.QueryRun("ERROR: " + I18n.t("QueryConsole.timed-out",
+                                QuerySettings.timeoutSeconds()), evaluation.failure())
+                        : evaluation.run();
                 String result = run.text();
-                XQueryTableRunner.XQueryTable table = XQueryTableRunner.run(xml, query);
+                XQueryTableRunner.XQueryTable table = evaluation.table();
                 boolean ok = !result.startsWith("ERROR");
                 UsageEvents.xqueryExecuted(t0, run.failure());
                 long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
@@ -302,12 +324,17 @@ public final class EditorActions {
                     if (gen == queryRunGeneration) {
                         out.showXQueryResult(result, table,
                                 XsltTransformationEngine.OutputFormat.XML, elapsedMs);
+                        out.setRunMessages(evaluation.messages(), (location, line) -> revealLine(doc, line));
                         publishQueryError(doc, run.error());
                     }
                 });
             } else {
-                TransformRunner.QueryRun run = TransformRunner.xpath(xml, query, standards(
-                        org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_QUERY_CONSOLE).xpath());
+                var version = standards(
+                        org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_QUERY_CONSOLE).xpath();
+                TransformRunner.QueryRun run = QueryEvaluation.run(new QueryEvaluation.Request(
+                        org.fxt.freexmltoolkit.service.query.QueryLanguage.XPATH, version, null, xml, query, baseUri,
+                        baseUri, bindings.prefixes(), QuerySettings.defaultNamespace(bindings, version), null, 0))
+                        .run();
                 String result = run.text();
                 boolean ok = !result.startsWith("ERROR");
                 UsageEvents.xpathExecuted(t0, run.failure());
@@ -344,6 +371,9 @@ public final class EditorActions {
             return;
         }
         String message = error.code() == null ? error.message() : error.code() + ": " + error.message();
+        if (error.hasDocumentPosition()) {
+            message = message + " (" + error.positionLabel() + ")";
+        }
         if (error.hint() != null) {
             message = message + " - " + error.hint().replace('\n', ' ');
         }
@@ -371,6 +401,7 @@ public final class EditorActions {
     }
 
     private void runActiveTransformNow() {
+        TransformOutputSettings.apply(); // the Transform panel's output options, even before it was shown
         if (activeFileType() != EditorFileType.XSLT) {
             return;
         }
@@ -417,7 +448,7 @@ public final class EditorActions {
                     standards(org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_TRANSFORM).xslt(), processor);
             String result = fullResult.isSuccess()
                     ? fullResult.getOutputContent()
-                    : "ERROR: " + fullResult.getErrorMessage();
+                    : TransformRunner.failureText(fullResult);
             if (fullResult.isSuccess()) {
                 probe.phase("Compile", fullResult.getCompilationTime());
                 probe.phase("Transform", fullResult.getTransformationTime());
@@ -434,9 +465,94 @@ public final class EditorActions {
             Platform.runLater(() -> {
                 if (gen == queryRunGeneration) {
                     out.showTransformResult(result, format, elapsedMs, source);
+                    out.setRunMessages(TransformRunner.runMessages(fullResult),
+                            (location, line) -> revealModuleLine(doc, location, line));
                 }
             });
         });
+    }
+
+    /**
+     * Opens the line of a message of {@code doc}'s run: in {@code doc} itself, or in the module next to it that
+     * {@code location} ({@code file.xsl:line[:column]}) names.
+     */
+    private void revealModuleLine(OpenDocument doc, String location, int line) {
+        String file = location == null ? "" : location.replaceFirst("(:\\d+)+$", "");
+        java.nio.file.Path path = doc.getPath();
+        if (path != null && !file.isEmpty() && !"stylesheet".equals(file)
+                && !file.equals(path.getFileName().toString())) {
+            java.nio.file.Path module = path.resolveSibling(file);
+            if (java.nio.file.Files.isRegularFile(module)) {
+                editorHost.openFileAndSelect(module, -1, -1, null, line);
+                return;
+            }
+        }
+        revealLine(doc, line);
+    }
+
+    /** Asks for the value of an external variable: (name, type) → the value, empty when the user cancels. */
+    static java.util.function.BiFunction<String, String, java.util.Optional<String>> variablePrompt =
+            (name, type) -> org.fxt.freexmltoolkit.util.DialogHelper.promptText(
+                    I18n.t("EditorActions.variable.title"), I18n.t("EditorActions.variable.header", name, type),
+                    "$" + name, "");
+
+    /** Setting holding a query file's variable values ("name=value" lines), per file. */
+    static String variablesKey(OpenDocument doc) {
+        String id = doc.getPath() != null ? doc.getPath().toAbsolutePath().toString() : doc.getDisplayName();
+        return "query.variables." + Integer.toHexString(id.hashCode());
+    }
+
+    /**
+     * The values of the query's external variables: the ones remembered for its file, and for a required variable
+     * without one the user's answer (remembered too).
+     *
+     * @return the values, or {@code null} when the user cancelled a question
+     */
+    private java.util.Map<String, String> variableValues(OpenDocument doc, String query, String queryLocation) {
+        var declared = XsltTransformationEngine.getInstance().queryVariables(query, queryLocation);
+        if (declared.isEmpty()) {
+            return java.util.Map.of();
+        }
+        var props = org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class);
+        java.util.Map<String, String> remembered = new java.util.LinkedHashMap<>();
+        String stored = props.get(variablesKey(doc));
+        if (stored != null) {
+            for (String line : stored.split("\n")) {
+                int eq = line.indexOf('=');
+                if (eq > 0) {
+                    remembered.put(line.substring(0, eq), line.substring(eq + 1));
+                }
+            }
+        }
+        java.util.Map<String, String> values = new java.util.LinkedHashMap<>();
+        boolean asked = false;
+        for (var v : declared) {
+            String value = remembered.get(v.name());
+            if (value == null && v.required()) {
+                var answer = variablePrompt.apply(v.name(), v.type());
+                if (answer.isEmpty()) {
+                    return null;
+                }
+                value = answer.get();
+                remembered.put(v.name(), value);
+                asked = true;
+            }
+            if (value != null) {
+                values.put(v.name(), value);
+            }
+        }
+        if (asked) {
+            StringBuilder sb = new StringBuilder();
+            remembered.forEach((k, v) -> sb.append(k).append('=').append(v.replace('\n', ' ')).append('\n'));
+            props.set(variablesKey(doc), sb.toString());
+        }
+        return values;
+    }
+
+    /** Selects {@code doc}'s tab and moves to {@code line} (a message of its run). */
+    private void revealLine(OpenDocument doc, int line) {
+        editorHost.selectDocument(doc);
+        editorHost.goToLine(line);
     }
 
     /**
@@ -529,6 +645,62 @@ public final class EditorActions {
         }
         editorHost.startXsltDebug(doc.getPath().toFile(), xml, Map.of(),
                 org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.XML);
+    }
+
+    /**
+     * Run ▾ → Show Execution Plan: Saxon's plan of the active XQuery or XSLT ({@code explain()}) in a tool tab. A
+     * query declares the Run target's prefixes as a run does; a stylesheet compiles under its own location.
+     */
+    public void explainActive() {
+        EditorFileType type = activeFileType();
+        if (type != EditorFileType.XQUERY && type != EditorFileType.XSLT) {
+            return;
+        }
+        TransformOutputPanel out = editorHost.transformOutputPanel();
+        String text = editorHost.getActiveText().orElse("");
+        if (text.isBlank()) {
+            out.showError(I18n.t(type == EditorFileType.XSLT ? "EditorActions.the-stylesheet-is-empty"
+                    : "EditorActions.the-query-is-empty"));
+            return;
+        }
+        var doc = editorHost.getActiveDocument().orElseThrow();
+        String systemId = doc.getPath() == null ? null : doc.getPath().toUri().toString();
+        var target = type == EditorFileType.XQUERY ? editorHost.resolveQueryTarget(doc).orElse(null) : null;
+        String title = I18n.t("EditorActions.plan", doc.getDisplayName());
+        FxtGui.executorService.submit(() -> {
+            String plan;
+            String failure = null;
+            try {
+                if (type == EditorFileType.XSLT) {
+                    plan = XsltTransformationEngine.getInstance().explainXslt(text, systemId);
+                } else {
+                    var bindings = org.fxt.freexmltoolkit.service.query.DocumentNamespaces.Bindings.NONE;
+                    if (target != null) {
+                        try {
+                            bindings = org.fxt.freexmltoolkit.service.query.DocumentNamespaces.forQueries(target.loadXml());
+                        } catch (Exception e) {
+                            // without the target's prefixes: a query that uses them fails to compile and says so
+                        }
+                    }
+                    var version = standards(
+                            org.fxt.freexmltoolkit.service.standards.StandardsSettings.TOOL_QUERY_CONSOLE).xquery();
+                    plan = XsltTransformationEngine.getInstance().explainXQuery(text, systemId, bindings.prefixes(),
+                            QuerySettings.defaultNamespace(bindings, version.xpathVersion()));
+                }
+            } catch (net.sf.saxon.s9api.SaxonApiException | RuntimeException e) {
+                plan = null;
+                failure = e.getMessage();
+            }
+            String shown = plan;
+            String error = failure;
+            Platform.runLater(() -> {
+                if (shown == null) {
+                    out.showFailure(I18n.t("EditorActions.plan-failed", error));
+                } else {
+                    editorHost.openToolTab(title, "bi-diagram-3", new PlanView(shown));
+                }
+            });
+        });
     }
 
     /**

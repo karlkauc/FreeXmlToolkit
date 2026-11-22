@@ -70,7 +70,10 @@ final class QuerySuggestions {
             }
         }
         if (arities.isEmpty()) {
-            return null;
+            // not in this version at all: name the version that has it (distinct-values() in XPath 1.0)
+            XPathVersion since = FunctionCatalog.since(name, Integer.parseInt(m.group(1)));
+            return since != null && since.compareTo(version(version)) > 0
+                    ? I18n.t("QueryError.newer-function", name, since.label(), version(version).label()) : null;
         }
         String list = arities.size() == 1 ? arities.get(0)
                 : String.join(", ", arities.subList(0, arities.size() - 1)) + " " + I18n.t("QueryError.or") + " "
@@ -208,7 +211,7 @@ final class QuerySuggestions {
         if (version == null) {
             return XPathVersion.V3_1;
         }
-        return version == XPathVersion.V1_0 ? XPathVersion.V2_0 : version;
+        return version; // FunctionCatalog knows the XPath 1.0 core library
     }
 
     private static List<String> closest(String wrong, Set<String> candidates) {

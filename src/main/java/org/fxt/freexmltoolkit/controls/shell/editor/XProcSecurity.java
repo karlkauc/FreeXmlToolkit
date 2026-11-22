@@ -32,7 +32,7 @@ import com.xmlcalabash.XmlCalabash;
  * could contain anything), send HTTP requests ({@code p:http-request}) or load documents from the
  * network ({@code http:}, {@code https:}, {@code ftp:} hrefs; {@code doc()} in expressions). Local
  * files can be read and written as before. The setting {@value #UNRESTRICTED} (also lockable by the
- * administrator policy) lifts all of it. See docs/threat-model.md.
+ * administrator policy) lifts all of it. See docs/administer/threat-model.md.
  */
 public final class XProcSecurity {
 

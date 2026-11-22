@@ -1,11 +1,11 @@
-# FreeXmlToolkit Documentation
+# Documentation
 
 <a id="download"></a>
 <div class="fxt-download">
   <p class="fxt-download__lead">Free, open-source desktop app for XML, XSD, XSLT, Schematron and JSON – Windows, macOS and Linux. No registration, no admin rights needed.</p>
   <div class="fxt-download__grid">
     <div class="fxt-download-card" data-fxt-platform="windows">
-      <p class="fxt-download-card__title"><span aria-hidden="true">🪟</span> Windows <span class="fxt-download-card__arch">x64 · Windows 10/11</span></p>
+      <p class="fxt-download-card__title"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M6.555 1.375L0 2.237v5.45h6.555zM0 13.795l6.555.933V8.313H0zm7.278-5.4l.026 6.378L16 16V8.395zM16 0L7.33 1.244v6.414H16z"/></svg> Windows <span class="fxt-download-card__arch">x64 · Windows 10/11</span></p>
       <a class="md-button md-button--primary" data-fxt-asset="win-exe" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download .exe installer<span class="fxt-asset-size"></span></a>
       <ul class="fxt-download-card__alts">
         <li><a data-fxt-asset="win-msi" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">MSI package</a> – for silent / Group Policy deployment<span class="fxt-asset-size"></span></li>
@@ -14,7 +14,7 @@
       </ul>
     </div>
     <div class="fxt-download-card" data-fxt-platform="macos">
-      <p class="fxt-download-card__title"><span aria-hidden="true">🍎</span> macOS <span class="fxt-download-card__arch">Apple Silicon &amp; Intel</span></p>
+      <p class="fxt-download-card__title"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" aria-hidden="true"><defs><path id="SVG67go7b2R" d="M11.182.008C11.148-.03 9.923.023 8.857 1.18c-1.066 1.156-.902 2.482-.878 2.516s1.52.087 2.475-1.258s.762-2.391.728-2.43m3.314 11.733c-.048-.096-2.325-1.234-2.113-3.422s1.675-2.789 1.698-2.854s-.597-.79-1.254-1.157a3.7 3.7 0 0 0-1.563-.434c-.108-.003-.483-.095-1.254.116c-.508.139-1.653.589-1.968.607c-.316.018-1.256-.522-2.267-.665c-.647-.125-1.333.131-1.824.328c-.49.196-1.422.754-2.074 2.237c-.652 1.482-.311 3.83-.067 4.56s.625 1.924 1.273 2.796c.576.984 1.34 1.667 1.659 1.899s1.219.386 1.843.067c.502-.308 1.408-.485 1.766-.472c.357.013 1.061.154 1.782.539c.571.197 1.111.115 1.652-.105c.541-.221 1.324-1.059 2.238-2.758q.52-1.185.473-1.282"/></defs><g fill="currentColor"><use href="#SVG67go7b2R"/><use href="#SVG67go7b2R"/></g></svg> macOS <span class="fxt-download-card__arch">Apple Silicon &amp; Intel</span></p>
       <a class="md-button md-button--primary" data-fxt-asset="mac-arm64-dmg" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download .dmg (Apple Silicon)<span class="fxt-asset-size"></span></a>
       <ul class="fxt-download-card__alts">
         <li><a data-fxt-asset="mac-x64-dmg" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Intel .dmg</a> – for Intel-based Macs<span class="fxt-asset-size"></span></li>
@@ -24,7 +24,7 @@
       </ul>
     </div>
     <div class="fxt-download-card" data-fxt-platform="linux">
-      <p class="fxt-download-card__title"><span aria-hidden="true">🐧</span> Linux <span class="fxt-download-card__arch">x64</span></p>
+      <p class="fxt-download-card__title"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" aria-hidden="true"><g fill="currentColor"><path d="M8.996 4.497c.104-.076.1-.168.186-.158s.022.102-.098.207c-.12.104-.308.243-.46.323c-.291.152-.631.336-.993.336s-.647-.167-.853-.33c-.102-.082-.186-.162-.248-.221c-.11-.086-.096-.207-.052-.204c.075.01.087.109.134.153c.064.06.144.137.241.214c.195.154.454.304.778.304s.702-.19.932-.32c.13-.073.297-.204.433-.304M7.34 3.781c.055-.02.123-.031.174-.003c.011.006.024.021.02.034c-.012.038-.074.032-.11.05c-.032.017-.057.052-.093.054c-.034 0-.086-.012-.09-.046c-.007-.044.058-.072.1-.089m.581-.003c.05-.028.119-.018.173.003c.041.017.106.045.1.09c-.004.033-.057.046-.09.045c-.036-.002-.062-.037-.093-.053c-.036-.019-.098-.013-.11-.051c-.004-.013.008-.028.02-.034"/><path fill-rule="evenodd" d="M8.446.019c2.521.003 2.38 2.66 2.364 4.093c-.01.939.509 1.574 1.04 2.244c.474.56 1.095 1.38 1.45 2.32c.29.765.402 1.613.115 2.465a.8.8 0 0 1 .254.152l.001.002c.207.175.271.447.329.698c.058.252.112.488.224.615c.344.382.494.667.48.922c-.015.254-.203.43-.435.57c-.465.28-1.164.491-1.586 1.002c-.443.527-.99.83-1.505.871a1.25 1.25 0 0 1-1.256-.716v-.001a1 1 0 0 1-.078-.21c-.67.038-1.252-.165-1.718-.128c-.687.038-1.116.204-1.506.206c-.151.331-.445.547-.808.63c-.5.114-1.126 0-1.743-.324c-.577-.306-1.31-.278-1.85-.39c-.27-.057-.51-.157-.626-.384c-.116-.226-.095-.538.07-.988c.051-.16.012-.398-.026-.648a2.5 2.5 0 0 1-.037-.369c0-.133.022-.265.087-.386v-.002c.14-.266.368-.377.577-.451s.397-.125.53-.258c.143-.15.27-.374.443-.56q.036-.037.073-.07c-.081-.538.007-1.105.192-1.662c.393-1.18 1.223-2.314 1.811-3.014c.502-.713.65-1.287.701-2.016c.042-.997-.705-3.974 2.112-4.2q.168-.015.321-.013m2.596 10.866l-.03.016c-.223.121-.348.337-.427.656c-.08.32-.107.733-.13 1.206v.001c-.023.37-.192.824-.31 1.267s-.176.862-.036 1.128v.002c.226.452.608.636 1.051.601s.947-.304 1.36-.795c.474-.576 1.218-.796 1.638-1.05c.21-.126.324-.242.333-.4c.009-.157-.097-.403-.425-.767c-.17-.192-.217-.462-.274-.71c-.056-.247-.122-.468-.26-.585l-.001-.001c-.18-.157-.356-.17-.565-.164q-.069.001-.14.005c-.239.275-.805.612-1.197.508c-.359-.09-.562-.508-.587-.918m-7.204.03H3.83c-.189.002-.314.09-.44.225c-.149.158-.276.382-.445.56v.002h-.002c-.183.184-.414.239-.61.31c-.195.069-.353.143-.46.35v.002c-.085.155-.066.378-.029.624c.038.245.096.507.018.746v.002l-.001.002c-.157.427-.155.678-.082.822c.074.143.235.22.48.272c.493.103 1.26.069 1.906.41c.583.305 1.168.404 1.598.305c.431-.098.712-.369.75-.867v-.002c.029-.292-.195-.673-.485-1.052c-.29-.38-.633-.752-.795-1.09v-.002l-.61-1.11c-.21-.286-.43-.462-.68-.5a1 1 0 0 0-.106-.008M9.584 4.85c-.14.2-.386.37-.695.467c-.147.048-.302.17-.495.28a1.3 1.3 0 0 1-.74.19a.97.97 0 0 1-.582-.227c-.14-.113-.25-.237-.394-.322a3 3 0 0 1-.192-.126c-.063 1.179-.85 2.658-1.226 3.511a5.4 5.4 0 0 0-.43 1.917c-.68-.906-.184-2.066.081-2.568c.297-.55.343-.701.27-.649c-.266.436-.685 1.13-.848 1.844c-.085.372-.1.749.01 1.097c.11.349.345.67.766.931c.573.351.963.703 1.193 1.015s.302.584.23.777a.4.4 0 0 1-.212.22a.7.7 0 0 1-.307.056l.184.235c.094.124.186.249.266.375c1.179.805 2.567.496 3.568-.218c.1-.342.197-.664.212-.903c.024-.474.05-.896.136-1.245s.244-.634.53-.791a1 1 0 0 1 .138-.061q.005-.045.013-.087c.082-.546.569-.572 1.18-.303c.588.266.81.499.71.814h.13c.122-.398-.133-.69-.822-1.025l-.137-.06a2.35 2.35 0 0 0-.012-1.113c-.188-.79-.704-1.49-1.098-1.838c-.072-.003-.065.06.081.203c.363.333 1.156 1.532.727 2.644a1.2 1.2 0 0 0-.342-.043c-.164-.907-.543-1.66-.735-2.014c-.359-.668-.918-2.036-1.158-2.983M7.72 3.503a1 1 0 0 0-.312.053c-.268.093-.447.286-.559.391c-.022.021-.05.04-.119.091s-.172.126-.321.238q-.198.151-.13.38c.046.15.192.325.459.476c.166.098.28.23.41.334a1 1 0 0 0 .215.133a.9.9 0 0 0 .298.066c.282.017.49-.068.673-.173s.34-.233.518-.29c.365-.115.627-.345.709-.564a.37.37 0 0 0-.01-.309c-.048-.096-.148-.187-.318-.257h-.001c-.354-.151-.507-.162-.705-.29c-.321-.207-.587-.28-.807-.279m-.89-1.122h-.025a.4.4 0 0 0-.278.135a.76.76 0 0 0-.191.334a1.2 1.2 0 0 0-.051.445v.001c.01.162.041.299.102.436c.05.116.109.204.183.274l.089-.065l.117-.09l-.023-.018a.4.4 0 0 1-.11-.161a.7.7 0 0 1-.054-.22v-.01a.7.7 0 0 1 .014-.234a.4.4 0 0 1 .08-.179q.056-.069.126-.073h.013a.18.18 0 0 1 .123.05c.045.04.08.09.11.162a.7.7 0 0 1 .054.22v.01a.7.7 0 0 1-.002.17a1.1 1.1 0 0 1 .317-.143a1.3 1.3 0 0 0 .002-.194V3.23a1.2 1.2 0 0 0-.102-.437a.8.8 0 0 0-.227-.31a.4.4 0 0 0-.268-.102m1.95-.155a.63.63 0 0 0-.394.14a.9.9 0 0 0-.287.376a1.2 1.2 0 0 0-.1.51v.015q0 .079.01.152c.114.027.278.074.406.138a1 1 0 0 1-.011-.172a.8.8 0 0 1 .058-.278a.5.5 0 0 1 .139-.2a.26.26 0 0 1 .182-.069a.26.26 0 0 1 .178.081c.055.054.094.12.124.21c.029.086.042.17.04.27l-.002.012a.8.8 0 0 1-.057.277c-.024.059-.089.106-.122.145c.046.016.09.03.146.052a5 5 0 0 1 .248.102a1.2 1.2 0 0 0 .244-.763a1.2 1.2 0 0 0-.11-.495a.9.9 0 0 0-.294-.37a.64.64 0 0 0-.39-.133z"/></g></svg> Linux <span class="fxt-download-card__arch">x64</span></p>
       <a class="md-button md-button--primary" data-fxt-asset="linux-deb" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download .deb package<span class="fxt-asset-size"></span></a>
       <ul class="fxt-download-card__alts">
         <li><a data-fxt-asset="linux-rpm" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">.rpm package</a> – Fedora, RHEL, openSUSE<span class="fxt-asset-size"></span></li>
@@ -33,272 +33,43 @@
       </ul>
     </div>
   </div>
-  <p class="fxt-download__meta">Latest release: <strong class="fxt-release-version">see GitHub</strong><span class="fxt-release-date"></span> · <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">All downloads and release notes on GitHub</a> · Licensed under Apache 2.0 · <a href="https://github.com/karlkauc/FreeXmlToolkit">Source code</a> · <a href="https://github.com/sponsors/karlkauc">&#9829; Sponsor</a></p>
+  <p class="fxt-download__meta">Product website: <a href="https://freexmltoolkit.org/">freexmltoolkit.org</a> · Latest release: <strong class="fxt-release-version">see GitHub</strong><span class="fxt-release-date"></span> · <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">All downloads and release notes on GitHub</a> · Licensed under Apache 2.0 · <a href="https://github.com/karlkauc/FreeXmlToolkit">Source code</a> · <a href="https://github.com/sponsors/karlkauc">&#9829; Sponsor</a></p>
 </div>
 
-## Welcome
+## Where to start
 
-FreeXmlToolkit is a free desktop application for working with XML files. It helps you edit, validate, transform, and secure your XML documents - all in one place.
+<div class="grid cards" markdown>
 
-![Feature tour: the main features of FreeXmlToolkit, one after the other](img/feature-tour.webp)
-***A tour of the main features - click to open it full screen***
+-   **[First steps](get-started/first-steps.md)**
 
-### What Can You Do With FreeXmlToolkit?
+    Open the bundled example, validate it, transform it and query it. About 15 minutes.
 
-- **Edit XML files** with smart auto-completion and syntax highlighting
-- **Validate XML** against XSD schemas, DTDs and RELAX NG schemas to check for errors
-- **Validate JSON** against JSON Schemas, auto-detected from the document's `$schema` member
-- **Transform XML** into other formats (HTML, PDF, Text)
-- **Sign XML documents** with digital certificates
-- **Create business rules** with Schematron validation
-- **Generate documentation** from your XSD schemas
-- **Compare and merge** XML files by structure, compare folders, convert XML ↔ JSON ↔ YAML
-- **Open huge files** (gigabytes) in the [Large File Viewer](large-files.md)
-- **Automate** with the [command line](command-line.md) (`fxt-cli`) and [projects](projects.md)
-- **Work with AI** - an optional [AI assistant](ai-assistant.md) that checks every answer, and an [MCP server](mcp-server.md) for AI agents
-- **Extend** it with [plugins](plugins.md) — industry plugins for ISO 20022, ebInterface, FinDatEx and XBRL included
-- **Work in English or German**, [accessible](accessibility.md), centrally [administrable](administration.md)
+-   **[Edit and validate](guides/index.md)**
 
-### Supported Standards
+    Guides by task: edit XML and JSON, design schemas, validate, compare, sign.
 
-These are the XML-related standards and versions FreeXmlToolkit reads, validates, runs or writes:
+-   **[Transform and debug](reference/transform-panel.md)**
 
-| Area | Standard and version | Engine |
-|---|---|---|
-| XML | XML 1.0 (Fifth Edition), XML 1.1, Namespaces in XML, OASIS XML Catalogs 1.1 | Xerces 2.12 |
-| Schemas | **XSD 1.0 and 1.1** (assertions, type alternatives, open content, `xs:override`), DTD, RELAX NG (XML and compact syntax) | Xerces (XSD 1.1 build), Jing, Trang |
-| Business rules | ISO Schematron (query bindings `xslt2` and `xslt3`), Schematron Quick Fixes (SQF) | ph-schematron / SchXslt on Saxon |
-| Transformation | **XSLT 1.0, 2.0 and 3.0** | Saxon HE 12 (not schema-aware, no streaming) |
-| Query | **XPath 1.0 – 3.1**, **XQuery 1.0 – 3.1**, JSONPath | Saxon HE 12, Jayway JsonPath |
-| Pipelines and tests | **XProc 3.0**, XSpec 4 (XSLT, XQuery, Schematron) | XML Calabash 3, XSpec |
-| PDF | **XSL-FO 1.1** (as implemented by Apache FOP), PDF/A-1b; external XSL-FO processors | Apache FOP 2.12 |
-| Security | **XML Signature 1.1**, **XML Encryption 1.1**, Canonical XML 1.0 / 1.1, Exclusive XML Canonicalization 1.0 | Apache Santuario 4 |
-| JSON and YAML | JSON (RFC 8259), **JSON Schema Draft-07, 2019-09 and 2020-12**, YAML 1.2 | networknt json-schema-validator, SnakeYAML Engine |
-| AI agents | Model Context Protocol (MCP, revisions up to 2025-11-25, stdio) | MCP Java SDK |
+    XSLT, XQuery, XPath and XProc, with a debugger and a profiler.
 
-### Works On All Platforms
+-   **[Check a regulatory or industry file](industry/index.md)**
 
-FreeXmlToolkit runs on **Windows** (x64), **macOS** (Apple Silicon and Intel) and **Linux** (x64) - as an installer, a native package or a portable ZIP, and via **Scoop** and **Homebrew**. The [Installation](installation.md) page explains every format and the package managers.
+    FundsXML, ISO 20022, FinDatEx, XBRL, ebInterface and FMA / ESMA reporting.
 
----
+-   **[Automate](automate/index.md)**
 
-## Feature Overview
+    The `fxt-cli` command line for build pipelines and the MCP server for AI agents.
 
-### XML Editor
+-   **[Roll out and review](administer/index.md)**
 
-Edit your XML files with professional tools:
+    Silent installation, policies, offline operation, privacy and the threat model.
 
-| Feature | What It Does |
-|---------|--------------|
-| **Auto-Completion** | Suggests valid elements and attributes as you type |
-| **Syntax Highlighting** | Colors your XML for easier reading |
-| **Instant Validation** | Shows errors immediately as you edit |
-| **Find & Replace** | Search and replace text in your documents |
-| **Find in Files** | Search and replace across all files of a folder - by plain text or by XPath (the Search activity, Ctrl+Shift+F) |
-| **Code Folding** | Collapse sections to focus on what matters |
-| **Grid View** | Edit XML like a spreadsheet in the Graphic view: repeating elements as tables, opened cells, entry helpers, copy/paste with Excel |
-| **Properties Inspector** | View and edit the selected node - and its schema declaration - in every view |
-| **Query Console** | Run XPath 3.1, XQuery 3.1 and JSONPath against the open document (Ctrl+K); **Ask AI** writes the query from a question |
+</div>
 
-Learn more: [XML Editor Guide](xml-editor.md) | [Grid View](grid.md)
-
-### JSON Editor
-
-Edit and validate JSON files with multiple format support:
-
-| Feature | What It Does |
-|---------|--------------|
-| **Multi-Format Support** | Edit `.json`, `.jsonc` and `.json5` files, including JSONC-style comments and JSON5 syntax |
-| **Tree View** | Navigate JSON structure visually |
-| **Grid View** | Edit JSON in the same grid as XML - arrays of objects as tables, type-aware inline editing, undo/redo |
-| **JSONPath Queries** | Extract data using JSONPath expressions |
-| **Schema Validation** | Validate against JSON Schema (Draft-07, 2019-09, 2020-12) - the schema is auto-detected from the document's `$schema` member, or bound manually; problems appear with line numbers |
-| **Hover Information** | See JSONPath and type info on hover |
-
-Learn more: [JSON Editor Guide](json-editor.md)
-
-### XSD Schema Tools
-
-Work with XML Schema files:
-
-| Feature | What It Does |
-|---------|--------------|
-| **Visual Schema Viewer** | See your schema as an interactive diagram |
-| **Documentation Generator** | Create HTML documentation from schemas |
-| **Sample XML Generator** | Generate valid sample XML files with customizable rules |
-| **Profiled Generation** | Control values per element, save profiles, batch generate |
-| **Schema Flattening** | Combine multiple schema files into one standalone schema, optionally reduced for validation servers |
-| **Schema Analysis** | Statistics, a type library with one-click removal of unused components, quality checks, identity-constraint and XPath validation - exportable as CSV, JSON, HTML, PDF or Excel |
-| **Schema Library & XML Catalogs** | Map namespaces to schema files, register OASIS `catalog.xml` files, and manage the cache of downloaded schemas - documents without a schema reference bind automatically |
-
-Learn more: [XSD Tools Guide](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [Schema Library](schema-library.md)
-
-### XSLT Transformation
-
-Convert XML into other formats:
-
-| Feature | What It Does |
-|---------|--------------|
-| **Multi-Format Output** | Generate XML, HTML, Text, or JSON |
-| **Live Preview** | See results as you work |
-| **Rendered HTML Results** | Open an HTML result as an editor tab showing the rendered page (Preview view) |
-| **Modern XSLT Support** | Uses the latest XSLT 3.0 standard |
-| **Interactive Debugger** | Debug XSLT, XQuery and Schematron: conditional breakpoints, logpoints, stepping, variables, watches, call stack and coverage |
-| **Multi-File Batch Processing** | Process multiple XML files with one XQuery using `collection()` |
-| **XProc 3.0 Pipelines** | Run multi-step processing pipelines (`.xpl`) with the built-in XML Calabash engine |
-| **Generate a Stylesheet with AI** | Describe the output with a target sample; the AI assistant writes the XSLT, which is run and compared before you see it |
-
-Learn more: [Transform Panel](transform-panel.md) | [XSLT Developer](xslt-developer.md) | [Debugger](debugger.md) | [XProc Pipelines](xproc.md)
-
-### PDF Generation
-
-Create professional PDF documents:
-
-| Feature | What It Does |
-|---------|--------------|
-| **XSL-FO Support** | Use XSL-FO stylesheets for formatting |
-| **High-Quality Output** | Professional PDF generation |
-| **External Processors** | Render with Antenna House, RenderX XEP or another XSL-FO processor installed on your computer |
-
-Learn more: [PDF Generation Guide](pdf-generator.md)
-
-### Digital Signatures
-
-Sign and verify XML documents:
-
-| Feature | What It Does |
-|---------|--------------|
-| **Create Certificates** | Generate your own signing certificates |
-| **Sign Documents** | Add digital signatures to XML files |
-| **Verify Signatures** | Check if signed documents are valid |
-
-Learn more: [Digital Signatures Guide](digital-signatures.md)
-
-### Appearance
-
-| Feature | What It Does |
-|---------|--------------|
-| **Light, Dark or System** | Pick a theme, or follow the light or dark setting of your operating system |
-| **Accent Colour** | Eight presets or your own colour for buttons, selection, focus and links |
-| **Text Size, Font and Density** | Larger or smaller interface text, your own interface font, compact or roomy spacing |
-| **Editor Font and Syntax Colours** | Font, size and line spacing of every code editor; colour schemes such as Monokai, plus your own colours |
-| **High Contrast** | Stronger texts and borders on top of the light or the dark theme |
-| **Export Views** | Save the XSD diagram, the grid or a flame graph as PNG, SVG or PDF, or copy it as an image |
-
-Learn more: [Settings](settings.md) | [Exporting a Graphical View](unified-shell.md#export-view)
-
-### Schematron Validation
-
-Define custom business rules:
-
-| Feature | What It Does |
-|---------|--------------|
-| **Business Rules** | Validate beyond basic XML structure |
-| **Visual Rule Builder** | Create rules without writing code |
-| **Detailed Reports** | Get clear validation results |
-| **Quick Fixes (SQF)** | Correct rule violations automatically with one click |
-| **Explain / Fix with AI** | Let the AI assistant explain a validation problem or propose a fix that is checked against the schema and the rules |
-
-Learn more: [Schematron Guide](schematron-support.md) | [Quick Fixes](schematron-quick-fixes.md)
-
-### FundsXML Extension (Optional)
-
-Opt-in integration with the [FundsXML](https://fundsxml.org/) industry standard for fund data exchange:
-
-| Feature | What It Does |
-|---------|--------------|
-| **Automatic Downloads** | Schemas, samples, rules and snippets are fetched from GitHub and kept up to date automatically |
-| **Sample Library** | One-click access to FundsXML example documents via Favorites and the Welcome page |
-| **Quick-Validate** | Check any open XML against the active FundsXML schema with one click in the FundsXML panel |
-| **Schematron Rules** | Ready-made business-rule checks for FundsXML documents |
-| **Query Snippets** | Pre-built XPath/XQuery expressions, ready to load in the Query Console |
-| **Data-Quality Checks** | 54 checks with severity — error, warning, hint (ISIN/LEI, weights, positions vs. NAV, prices × units, dates, FX rates, master data …) with a report, also in every validation |
-| **Grid Formulas & Filters** | Counts, sums per currency, weights and filters added to a document for the Grid view |
-
-This feature is **off by default**. Enable it from Settings only if you work with FundsXML files - when you open a FundsXML document, the app offers to enable it once.
-
-Learn more: [FundsXML Extension Guide](fundsxml-extensions.md)
-
-### AI Assistant and MCP Server (Optional)
-
-Use a language model for the routine parts of XML work - with every answer checked by the application:
-
-| Feature | What It Does |
-|---------|--------------|
-| **Fix or Explain a Problem** | Right-click a validation problem → Fix with AI / Explain with AI; the fix is applied only by you, as one undo step |
-| **Ask AI for a Query** | Turn a question into XPath or XQuery in the Query Console; the query is run before you see it |
-| **Generate a Stylesheet** | Write XSLT from a target sample in the Transform panel; the stylesheet is run and its output compared |
-| **Model of Your Choice** | A model on your computer (Ollama, LM Studio) or a provider you have an account with (OpenAI-compatible, Anthropic) - no subscription |
-| **Your Data, Your Choice** | Data levels (schema only, structure, excerpts), a preview of every request, nothing in telemetry or logs |
-| **MCP Server** | `fxt-cli mcp` gives AI agents such as Claude Code the validation, XSLT/XQuery, XSpec and schema tools - read-only, sandboxed, limited to the folders you name |
-
-The assistant is **off by default**; turn it on under Settings → AI. Administrators can remove both features
-(`ai.allowed`, `ai.mcp.allowed`).
-
-![AI assistant: a validation problem fixed and verified against the schema](img/ai-assistant-proposal.png)
-
-Learn more: [AI Assistant](ai-assistant.md) | [MCP Server](mcp-server.md)
-
----
-
-## Getting Started
-
-Download FreeXmlToolkit with the [buttons above](#download); the [Installation](installation.md) guide covers every package format, Scoop and Homebrew.
-
-### Your First Steps
-
-1. **Open a file**: The app opens on the Welcome page - use **Open File** (Ctrl+O), the Explorer activity, or drag files into the window. No file at hand? Click **Open an Example** on the Welcome page to open a small order document that already has a schema and a stylesheet, or pick a task under **What do you want to do?** (for example *Validate an XML file*)
-2. **Edit multiple files**: The shell handles XML, XSD, XSLT, Schematron and JSON files in tabs, each with Text / Tree / Graphic views - HTML files get a rendered read-only Preview view instead
-3. **Start editing**: Type `<` to see auto-completion suggestions
-4. **Validate**: Use the Validation activity (or the toolbar's **Validate** button, F8) to check your document for errors
-5. **Reach every tool**: Pick a tool from the activity bar on the left (Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library, PDF/FOP, Signature, FundsXML, Settings). Help, the documentation and **About** are in the **Help** menu (also **F1** or the **?** button in the header)
-
-Learn more: [Unified Shell Guide](unified-shell.md)
-
-### Sample Files
-
-The application includes example files in the `examples/` folder to help you get started:
-
-- **xml/** - Sample XML documents (FundsXML4 instances, valid and deliberately invalid)
-- **xsd/** - Sample XSD schemas (including FundsXML 4.2.11)
-- **xslt/** - XSLT stylesheets (HTML reports, JSON and CSV export)
-- **xsl/** - XSL-FO stylesheets for PDF reports
-- **xquery/** - XQuery 3.1 data-quality checks
-- **xpath/** - XPath 3.1 snippets for the Query Console
-- **xproc/** - XProc 3.0 pipelines (identity, slimming, CSV/JSON export, reports)
-- **schematron/** - Schematron business rules
-- **catalog/** - OASIS XML catalog example for the Schema Library
-- **json/** - JSON Schema validation demos (`$schema` auto-binding, valid/invalid instances, Draft-07 / 2019-09 / 2020-12 dialects)
-- **signature/** - Signed XML document with demo keystore
-- **templates/** - XML snippet templates
-- **profiles/** - XML generation profiles
-
----
-
-## Troubleshooting
-
-Problems starting the application, blurry rendering, proxies, memory or schemas that do not resolve: see the **[FAQ & Troubleshooting](faq.md)** page.
-
----
-
-## Keyboard Shortcuts
-
-The most important ones (on macOS use **Cmd** instead of Ctrl):
-
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+N` / `Ctrl+O` / `Ctrl+S` | New / Open / Save |
-| `Ctrl+F` / `Ctrl+Shift+F` | Find / Find in Files |
-| `Shift+Alt+F` | Format the document |
-| `F8` | Validate the current document |
-| `F5` / `Ctrl+Enter` | Run the active XQuery / XPath / XSLT / XProc document |
-| `Shift+F5` | Start the debugger |
-| `Ctrl+K` | Open the Query Console |
-| `F1` | Show the Help menu |
-
-The complete list is on the **[Keyboard Shortcuts](keyboard-shortcuts.md)** page (and in the app under **Help → Keyboard Shortcuts**).
-
----
+New to the window? Take the [Tour of the workspace](get-started/workspace-tour.md). Looking for a
+key or a setting? See the [Reference](reference/index.md). The release notes are under
+[What's new](reference/whats-new.md), and [What FreeXmlToolkit can do](get-started/features.md)
+lists every area of the application.
 
 ## Support the Project
 
@@ -307,13 +78,3 @@ FreeXmlToolkit is free and open source. If it saves you time, please consider sp
 [&#9829; Sponsor on GitHub](https://github.com/sponsors/karlkauc){ .md-button .md-button--primary }
 
 Inside the application the sponsor link is available in the **Help** menu (**Sponsor this Project**), in the **About** dialog, on the **Welcome** page and under **Settings → Extensions → SUPPORT THE PROJECT**. Starring the repository and reporting bugs helps too.
-
----
-
-## Need Help?
-
-- Browse the documentation in the navigation, starting with the [Unified Shell](unified-shell.md) guide
-- Read the [FAQ & Troubleshooting](faq.md) page
-- Check the example files included with the application
-- Report issues on the project's GitHub page, or send an anonymous report from inside the app with **Help → Report a Problem…**
-- Want to contribute? Read the [Contributing Guide](contributing.md) and our [Code of Conduct](code-of-conduct.md); report security issues privately as described in the [Security Policy](security-policy.md)

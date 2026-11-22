@@ -759,7 +759,7 @@ public interface PropertiesService {
         set(GRID_SIBLING_GROUP_SIZE, String.valueOf(Math.max(0, size)));
     }
 
-    // Telemetry settings (opt-out; see docs/telemetry.md)
+    // Telemetry settings (opt-out; see docs/administer/privacy-telemetry.md)
 
     /** Property key: random installation UUID used for anonymous telemetry. */
     String TELEMETRY_INSTALL_ID = "telemetry.installId";

@@ -12,7 +12,7 @@
 }
 
 .revolutionary-header {
-    -fx-background-color: linear-gradient(to right, #4a90e2 0%, #357abd 100%);
+    -fx-background-color: -fxt-primary-fill;
     -fx-text-fill: white;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 3, 0.2, 0, 1);
 }
@@ -32,19 +32,19 @@
 
 /* Revolutionary Menu Buttons */
 .revolutionary-menu-button {
-    -fx-background-color: linear-gradient(to bottom, #4a90e2 0%, #357abd 100%);
+    -fx-background-color: -fxt-primary-fill;
     -fx-text-fill: white;
     -fx-border-width: 0;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 1, 0.1, 0, 1);
 }
 
 .revolutionary-menu-button:hover {
-    -fx-background-color: linear-gradient(to bottom, #5ba0f2 0%, #4589cd 100%);
+    -fx-background-color: derive(-fxt-primary-fill, -10%);
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 2, 0.2, 0, 1);
 }
 
 .revolutionary-menu-button:pressed {
-    -fx-background-color: linear-gradient(to bottom, #3980d2 0%, #2570ad 100%);
+    -fx-background-color: derive(-fxt-primary-fill, -20%);
 }
 
 /* Revolutionary Split Panes */
@@ -108,8 +108,8 @@
 }
 
 .revolutionary-combo:focused {
-    -fx-border-color: #4a90e2;
-    -fx-effect: dropshadow(gaussian, rgba(74, 144, 226, 0.3), 3, 0.3, 0, 0);
+    -fx-border-color: -fxt-primary;
+    -fx-effect: dropshadow(gaussian, rgba(19, 115, 217, 0.3), 3, 0.3, 0, 0);
 }
 
 .revolutionary-search, .revolutionary-input {
@@ -123,8 +123,8 @@
 }
 
 .revolutionary-search:focused, .revolutionary-input:focused {
-    -fx-border-color: #4a90e2;
-    -fx-effect: dropshadow(gaussian, rgba(74, 144, 226, 0.3), 3, 0.3, 0, 0);
+    -fx-border-color: -fxt-primary;
+    -fx-effect: dropshadow(gaussian, rgba(19, 115, 217, 0.3), 3, 0.3, 0, 0);
 }
 
 .revolutionary-list-view {
@@ -188,7 +188,7 @@
 
 .revolutionary-tab-pane .tab:selected {
     -fx-background-color: white;
-    -fx-border-color: #4a90e2;
+    -fx-border-color: -fxt-primary;
     -fx-border-width: 2 2 0 2;
 }
 
@@ -201,7 +201,7 @@
 
 /* Revolutionary Buttons */
 .btn-primary {
-    -fx-background-color: linear-gradient(to bottom, #4a90e2 0%, #357abd 100%);
+    -fx-background-color: -fxt-primary-fill;
     -fx-text-fill: white;
     -fx-border-width: 0;
     -fx-border-radius: 4;
@@ -212,12 +212,12 @@
 }
 
 .btn-primary:hover {
-    -fx-background-color: linear-gradient(to bottom, #5ba0f2 0%, #4589cd 100%);
+    -fx-background-color: derive(-fxt-primary-fill, -10%);
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 3, 0.15, 0, 1);
 }
 
 .btn-primary:pressed {
-    -fx-background-color: linear-gradient(to bottom, #3980d2 0%, #2570ad 100%);
+    -fx-background-color: derive(-fxt-primary-fill, -20%);
 }
 
 .btn-secondary {
@@ -276,8 +276,8 @@
 
 .btn-outline {
     -fx-background-color: transparent;
-    -fx-text-fill: #4a90e2;
-    -fx-border-color: #4a90e2;
+    -fx-text-fill: -fxt-primary-text;
+    -fx-border-color: -fxt-primary;
     -fx-border-width: 1;
     -fx-border-radius: 4;
     -fx-background-radius: 4;
@@ -285,7 +285,7 @@
 }
 
 .btn-outline:hover {
-    -fx-background-color: #4a90e2;
+    -fx-background-color: -fxt-primary-fill;
     -fx-text-fill: white;
 }
 
@@ -305,9 +305,9 @@
 }
 
 .btn-toggle:selected {
-    -fx-background-color: #4a90e2;
+    -fx-background-color: -fxt-primary-fill;
     -fx-text-fill: white;
-    -fx-border-color: #357abd;
+    -fx-border-color: -fxt-primary-strong;
 }
 
 /* Revolutionary Code Areas */
@@ -323,8 +323,8 @@
 }
 
 .code-input:focused {
-    -fx-border-color: #4a90e2;
-    -fx-effect: dropshadow(gaussian, rgba(74, 144, 226, 0.3), 3, 0.3, 0, 0);
+    -fx-border-color: -fxt-primary;
+    -fx-effect: dropshadow(gaussian, rgba(19, 115, 217, 0.3), 3, 0.3, 0, 0);
 }
 
 /* Revolutionary Stats and Labels */
@@ -348,7 +348,7 @@
 
 .template-category, .template-tags {
     -fx-font-size: 11px;
-    -fx-text-fill: #4a90e2;
+    -fx-text-fill: -fxt-primary-text;
     -fx-font-weight: bold;
 }
 

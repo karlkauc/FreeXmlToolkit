@@ -80,6 +80,8 @@ public class XsltTransformationResult {
     private List<String> callStack;
     private List<String> warnings;
     private List<TransformationMessage> messages;
+    /** Static errors and warnings of the stylesheet, placed in its modules (see XsltErrors). */
+    private List<org.fxt.freexmltoolkit.service.xslt.XsltDiagnostic> diagnostics = List.of();
 
     // Output analysis
     private boolean isWellFormed;
@@ -657,6 +659,15 @@ public class XsltTransformationResult {
 
     public void setWarnings(List<String> warnings) {
         this.warnings = warnings == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(warnings);
+    }
+
+    /** @return the stylesheet's static errors (of a failed compile) and warnings, placed in its modules */
+    public List<org.fxt.freexmltoolkit.service.xslt.XsltDiagnostic> getDiagnostics() {
+        return diagnostics;
+    }
+
+    public void setDiagnostics(List<org.fxt.freexmltoolkit.service.xslt.XsltDiagnostic> diagnostics) {
+        this.diagnostics = diagnostics == null ? List.of() : List.copyOf(diagnostics);
     }
 
     public List<TransformationMessage> getMessages() {

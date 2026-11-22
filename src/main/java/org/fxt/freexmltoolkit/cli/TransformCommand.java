@@ -85,7 +85,8 @@ final class TransformCommand implements Callable<Integer> {
     Path outputDir;
 
     @Option(names = {"-p", "--param"}, paramLabel = "NAME=VALUE",
-            description = "Stylesheet parameter or external XQuery variable (string value); repeatable.")
+            description = "Stylesheet parameter or external XQuery variable; the text is converted to the declared "
+                    + "type (as=\"xs:integer\" etc.). Repeatable.")
     Map<String, String> parameters = new LinkedHashMap<>();
 
     @Option(names = {"-m", "--method"}, paramLabel = "METHOD",
@@ -112,6 +113,15 @@ final class TransformCommand implements Callable<Integer> {
 
     @Option(names = "--list-processors", description = "List the configured XSLT processors and exit.")
     boolean listProcessors;
+
+    @Option(names = "--initial-template", paramLabel = "NAME", arity = "0..1", fallbackValue = "",
+            description = "XSLT 3.0: start at the named template (without NAME: the stylesheet's "
+                    + "xsl:initial-template). No input needed; with one, it is the global context item.")
+    String initialTemplate;
+
+    @Option(names = "--initial-mode", paramLabel = "NAME",
+            description = "XSLT 3.0: apply templates to the input in this mode.")
+    String initialMode;
 
     @Option(names = "--warmup", paramLabel = "N", defaultValue = "1",
             description = "With --profile: runs before the measured one, so the JIT has warmed up (default: ${DEFAULT-VALUE}).")
@@ -143,8 +153,17 @@ final class TransformCommand implements Callable<Integer> {
             throw new CommandLine.ParameterException(commandLine,
                     "Unknown language of " + stylesheet.getFileName() + "; give --language xslt|xquery|xproc");
         }
-        if (lang == Language.XSLT && inputs.isEmpty()) {
-            throw new CommandLine.ParameterException(commandLine, "An XSLT transformation needs an input document");
+        if (initialTemplate != null && initialMode != null) {
+            throw new CommandLine.ParameterException(commandLine, "Use either --initial-template or --initial-mode");
+        }
+        if ((initialTemplate != null || initialMode != null)
+                && (lang != Language.XSLT || processor != null && !"builtin".equals(processor) || profileReport != null)) {
+            throw new CommandLine.ParameterException(commandLine,
+                    "--initial-template and --initial-mode are for XSLT on the bundled Saxon HE, without --profile");
+        }
+        if (lang == Language.XSLT && inputs.isEmpty() && initialTemplate == null) {
+            throw new CommandLine.ParameterException(commandLine,
+                    "An XSLT transformation needs an input document (or --initial-template)");
         }
         if (profileReport != null && (lang == Language.XPROC || inputs.size() > 1
                 || lang == Language.XSLT && inputs.size() != 1)) {
@@ -282,6 +301,15 @@ final class TransformCommand implements Callable<Integer> {
                     }
                     return outcome(profiled.result(), format);
                 }
+                if (initialTemplate != null || initialMode != null) {
+                    var start = initialTemplate != null
+                            ? new XsltTransformationEngine.StartPoint(XsltTransformationEngine.StartPoint.Kind.TEMPLATE,
+                                    initialTemplate, List.of())
+                            : new XsltTransformationEngine.StartPoint(XsltTransformationEngine.StartPoint.Kind.APPLY,
+                                    initialMode, List.of());
+                    return outcome(TransformRunner.xsltTransformFrom(xml, inputUri, code, codeUri, params, format,
+                            xsltVersion, start), format);
+                }
                 XsltTransformationResult result = TransformRunner.xsltTransformResult(
                         xml, inputUri, code, codeUri, params, format, xsltVersion, xsltProcessor);
                 return outcome(result, format);
@@ -333,6 +361,10 @@ final class TransformCommand implements Callable<Integer> {
         }
         if (!result.isSuccess()) {
             String error = result.getErrorMessage() != null ? result.getErrorMessage() : "The transformation failed";
+            if (!result.getDiagnostics().isEmpty()) {
+                // each compile error with its position, the source line with a caret and the hint
+                error = TransformRunner.failureText(result).substring("ERROR: ".length());
+            }
             return new Outcome(null, format, error, messages);
         }
         String text = result.getOutputContent() != null ? result.getOutputContent() : "";

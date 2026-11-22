@@ -54,7 +54,7 @@ import org.testfx.util.WaitForAsyncUtils;
 @ExtendWith(ApplicationExtension.class)
 class XsltDebuggerDocScreenshotGenerator {
 
-    private static final File EXAMPLES = new File("release/examples");
+    private static final File EXAMPLES = DocFiles.examples();
     private static final File IMG_DIR = new File("docs/img");
     private static final int BREAK_LINE = 56;
 

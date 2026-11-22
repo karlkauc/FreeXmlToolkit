@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 class UpdateFunnelTest {
 
     private static final Instant LAUNCHED = Instant.parse("2026-10-21T10:00:00Z");
+    private static final Instant LAUNCHED_WINDOWS = Instant.parse("2026-11-20T05:57:57Z");
 
     private RecordingTelemetryService telemetry;
     private Map<String, String> stored;
@@ -157,6 +158,36 @@ class UpdateFunnelTest {
         assertEquals(UpdateFunnel.CODE_VERSION_MISMATCH, e.errorCode());
         assertEquals("2.5.0", e.meta().get("actual"));
         assertEquals("2.6.0", e.meta().get("to"));
+    }
+
+    @Test
+    void aMismatchCarriesTheHelpersResult(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) throws Exception {
+        java.nio.file.Path log = java.nio.file.Files.writeString(dir.resolve("fxt-update-helper.log"),
+                "2026-11-20T05:59:00.000000 [WARN] Copy locked (attempt 6): C:\\Users\\x\\app\\a.jar\n"
+                        + "2026-11-20T06:00:54.500000 [INFO] RESULT copy_exhausted folder=app\n");
+        UpdateFunnel.markPending(props, "3.3.0", "3.4.0", Clock.fixed(LAUNCHED_WINDOWS, ZoneOffset.UTC));
+
+        assertTrue(UpdateFunnel.reportInstalled(props, "3.3.0", telemetry, Clock.systemUTC(), log));
+
+        TelemetryEvent e = single("update_installed");
+        assertEquals(UpdateFunnel.CODE_VERSION_MISMATCH, e.errorCode());
+        assertEquals("copy_exhausted", e.meta().get("helper_result"));
+        assertEquals("app", e.meta().get("helper_folder"));
+        assertFalse(e.meta().toString().contains("Users"), "no path from the log");
+    }
+
+    @Test
+    void aMismatchWithoutAResultSaysNoneAndASuccessReadsNoLog(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) {
+        java.nio.file.Path missing = dir.resolve("fxt-update-helper.log");
+        UpdateFunnel.markPending(props, "3.3.0", "3.4.0", Clock.fixed(LAUNCHED_WINDOWS, ZoneOffset.UTC));
+        UpdateFunnel.reportInstalled(props, "3.3.0", telemetry, Clock.systemUTC(), missing);
+        assertEquals("none", single("update_installed").meta().get("helper_result"));
+
+        UpdateFunnel.markPending(props, "3.3.0", "3.4.0", Clock.fixed(LAUNCHED_WINDOWS, ZoneOffset.UTC));
+        UpdateFunnel.reportInstalled(props, "3.4.0", telemetry, Clock.systemUTC(), missing);
+        TelemetryEvent ok = telemetry.events("update_installed").get(1);
+        assertEquals(TelemetryEvent.Status.OK, ok.status());
+        assertFalse(ok.meta().containsKey("helper_result"));
     }
 
     @Test

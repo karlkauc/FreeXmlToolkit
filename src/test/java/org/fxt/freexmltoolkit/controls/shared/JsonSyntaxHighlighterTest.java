@@ -51,6 +51,20 @@ class JsonSyntaxHighlighterTest {
         }
 
         @Test
+        @DisplayName("Long strings and keys do not overflow the stack")
+        void longStringsDoNotOverflowTheStack() {
+            String plain = "x".repeat(200_000);
+            String escaped = "\\n\\\"".repeat(50_000);
+            String json = "{\"" + plain + "\": \"" + escaped + "\", \"k\": '" + plain + "'}";
+            StyleSpans<Collection<String>> spans = assertDoesNotThrow(() -> JsonSyntaxHighlighter.computeHighlighting(json));
+            assertEquals(json.length(), spans.length());
+            var styles = new java.util.ArrayList<Collection<String>>();
+            spans.forEach(span -> styles.add(span.getStyle()));
+            assertTrue(styles.contains(java.util.Set.of("json-key")), styles.toString());
+            assertTrue(styles.contains(java.util.Set.of("json-string")), styles.toString());
+        }
+
+        @Test
         @DisplayName("Highlights simple JSON object")
         void highlightsSimpleJsonObject() {
             String json = "{\"name\": \"value\"}";

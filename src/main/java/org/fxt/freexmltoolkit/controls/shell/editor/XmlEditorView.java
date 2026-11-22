@@ -69,6 +69,11 @@ final class XmlEditorView implements EditorView {
     }
 
     @Override
+    public void setCheckMarks(java.util.Map<Integer, Integer> ranges) {
+        editor.setCheckErrorRanges(ranges);
+    }
+
+    @Override
     public void clearSearchMatches() {
         editor.clearSearchMatches();
     }

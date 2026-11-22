@@ -1,0 +1,247 @@
+# Technology Stack
+
+FreeXmlToolkit is built using modern Java technologies and libraries to provide a robust, cross-platform XML and JSON processing environment.
+
+## Core Technologies
+
+### Java Platform
+- **Java Version:** Java 25 with preview features enabled
+- **Build System:** Gradle 9.x with Kotlin DSL
+- **Application Framework:** JavaFX 25 (included in Liberica Full JDK)
+
+### UI Framework
+- **JavaFX:** 25 for cross-platform desktop GUI (bundled with Liberica Full JDK)
+- **FXML:** Declarative UI layout with MVC architecture
+- **RichTextFX:** 0.11.7 - Advanced text editing component with syntax highlighting
+- **ControlsFX:** 11.2.6 - Extended JavaFX controls
+
+## Key Libraries
+
+### XML Processing
+- **Saxon HE:** 12.10 - XSLT 3.0, XPath 3.1 and XQuery processing engine
+- **XML Calabash:** 3.1.0 - XProc 3.0 pipeline engine (Run Pipeline for `.xpl`/`.xproc` files)
+- **ph-schematron:** 10.3.2 - Schematron validation (pure, XSLT and SchXslt engines)
+- **Jakarta XML Bind API:** 4.0.5 - XML binding and marshalling
+- **Apache Xerces:** 2.12.2 (exist-db fork) - XSD 1.1 validation with assertions support
+
+### JSON Processing
+- **Gson:** 2.15.0 - JSON parsing and serialization
+- **JSONPath:** 3.0.0 (Jayway) - JSONPath query language support
+- **JSON Schema Validator:** 3.0.9 (NetworkNT) - JSON Schema validation (Draft-07, 2019-09, 2020-12)
+
+### PDF Generation
+- **Apache FOP:** 2.12 - XSL-FO to PDF transformation
+- **Apache PDFBox:** 3.0.8 - PDF manipulation
+- **Apache Batik:** 1.20 - SVG processing and rendering
+
+### Digital Signatures
+- **Apache Santuario:** 4.0.4 - XML Security (XML-DSig)
+- **BouncyCastle:** 1.87 - Cryptographic operations for XML digital signatures
+- **Java Cryptography Architecture (JCA):** Native Java crypto support
+
+### AI
+- **MCP Java SDK:** 2.2.0 - Model Context Protocol server for `fxt-cli mcp` (stdio)
+- **Anthropic Java SDK:** 3.8.0 (`anthropic-java-core`) - Anthropic provider of the optional AI assistant, on the application's own HTTP connection service (OpenAI-compatible providers use plain HTTP)
+
+### Office Integration
+- **Apache POI:** 6.0.0 - Excel export for validation results
+
+### Utilities
+- **Apache Commons Lang3:** 3.22.0 - String manipulation and utilities
+- **Apache Commons IO:** 2.22.0 - File and IO utilities
+- **Apache Commons Text:** 1.15.0 - Text algorithms
+
+### Testing Framework
+- **JUnit Jupiter:** 6.1.3 - Unit and integration testing
+- **TestFX:** 4.0.18 - JavaFX application testing framework
+- **Mockito:** 5.24.0 - Mocking framework for unit tests
+
+### Logging
+- **Log4j2:** 2.26.1 - Comprehensive logging framework
+- **SLF4J:** Logging facade for library compatibility (routed into Log4j2)
+
+### UI Enhancements
+- **IconifyIcon:** In-house icon control rendering bundled [Iconify](https://iconify.design/) Bootstrap Icons SVG data (no external icon library)
+- **CSSFX:** 11.5.1 - CSS hot-reloading for development
+- **Thymeleaf:** 3.1.7 - Template engine for documentation generation
+
+## Architecture Components
+
+### Model-View-Controller (MVC)
+- **Controllers:** JavaFX controllers handling UI logic and user interactions
+- **Services:** Business logic layer for XML operations
+- **Domain Models:** Data transfer objects and entity representations
+- **FXML Views:** Declarative UI definitions
+
+### XSD Editor V2 Architecture (MVVM Variant)
+The XSD Editor V2 uses a sophisticated MVVM variant:
+- **Model Layer:** Pure XsdNode tree with PropertyChangeSupport
+- **Command Pattern:** All editing operations for undo/redo (46 XSD commands in `controls/v2/editor/commands`, 16 XML-instance commands in `controls/v2/xmleditor/commands`)
+- **Observable Properties:** Reactive UI updates without tight coupling
+- **Incremental Rendering:** Only changed nodes re-render
+
+### Core Services
+
+#### XmlService
+- XML parsing, validation, and transformation
+- XPath and XQuery execution with context-aware autocomplete
+- Schema validation (XSD 1.0 and 1.1)
+- Document manipulation operations
+
+#### XsdDocumentationService
+- Schema analysis and documentation generation
+- HTML/SVG documentation output
+- Technical annotation processing (XsdDocInfo)
+- Schema flattening and sample data generation
+
+#### SchematronService
+- Schematron rule compilation and validation
+- Business rule processing
+- Integration with Saxon XSLT engine
+
+#### SignatureService
+- XML digital signature creation and validation
+- Certificate management and generation
+- Cryptographic operations using BouncyCastle
+
+### IntelliSense System
+```
+org.fxt.freexmltoolkit.controls.v2.editor.intellisense/
+├── IntelliSenseEngine        # Main orchestrator for XML-family documents
+├── XPathIntelliSenseEngine   # Completion inside XPath/XQuery expressions
+├── providers/                # XsdCompletionProvider, XsltCompletionProvider, XslFoCompletionProvider,
+│                             # SchematronCompletionProvider, XPathCompletionProvider, PatternCompletionProvider
+├── context/                  # ContextAnalyzer, XmlContext, XPathContext, XPathCalculator, …
+├── registry/ProviderRegistry # Picks the providers for the current document type
+├── triggers/TriggerSystem    # Decides when the popup opens (<, /, space, …)
+├── cache/CompletionCache     # Performance caching
+└── ui/                       # Completion popup and hover UI
+```
+
+Key Features:
+- **XPath-aware enumeration lookup:** Correctly identifies enumeration values based on full XPath context
+- **Context-sensitive suggestions:** Different suggestions for elements, attributes, and text content
+- **XSD constraint awareness:** Shows only valid options based on schema
+
+### Template Engine
+```
+org.fxt.freexmltoolkit.service/
+├── TemplateEngine            # Template processing
+├── SchemaGenerationEngine    # Schema-based generation
+├── XPathSnippetRepository    # XPath expression library
+└── TransformationProfile     # XSLT transformation profiles
+```
+
+### Thread Pool Architecture
+Centralized thread management with 5 specialized pools:
+- **CPU Pool:** CPU-intensive operations (XSLT, validation)
+- **IO Pool:** File operations, network requests
+- **UI Pool:** JavaFX Application Thread operations
+- **Scheduled Pool:** Periodic tasks (memory monitoring)
+- **Background Pool:** Low-priority background work (fixed-size pool)
+
+## Build Configuration
+
+### Gradle Features
+- **Java Toolchain:** Configured for Java 25
+- **Native Packaging:** Cross-platform executable generation (jpackage)
+- **Dependency Updates:** Automated dependency update checking
+- **Test Heap:** 3 GB max for the unit-test JVM (8 GB for the documentation-screenshot and stress tasks)
+
+### Repository Configuration
+```kotlin
+repositories {
+    mavenCentral()
+    gradlePluginPortal()
+}
+```
+
+### Key Dependencies
+```kotlin
+dependencies {
+    // XML Processing
+    implementation("net.sf.saxon:Saxon-HE:12.10")
+    implementation("com.xmlcalabash:xmlcalabash:3.1.0")
+    implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.5")
+    implementation("org.exist-db.thirdparty.xerces:xercesImpl:2.12.2")
+
+    // PDF Generation
+    implementation("org.apache.xmlgraphics:fop:2.12")
+
+    // AI (MCP server, Anthropic provider)
+    implementation("io.modelcontextprotocol.sdk:mcp-core:2.2.0")
+    implementation("com.anthropic:anthropic-java-core:3.8.0")
+
+    // UI Components
+    implementation("org.fxmisc.richtext:richtextfx:0.11.7")
+    implementation("org.controlsfx:controlsfx:11.2.6")
+
+    // Security
+    implementation("org.apache.santuario:xmlsec:4.0.4")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.87")
+
+    // Testing
+    testImplementation(platform("org.junit:junit-bom:6.1.3"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("org.testfx:testfx-junit5:4.0.18")
+}
+```
+
+## Performance Optimizations
+
+### Memory Management
+- **ExecutorService:** Centralized thread pool for heavy operations
+- **Memory Monitoring:** Built-in memory usage tracking with configurable thresholds
+- **Caching Systems:** Intelligent caching for schemas, templates, and completion data
+- **Lazy Loading:** On-demand loading of resources and components
+
+### Processing Optimizations
+- **Saxon HE Configuration:** Optimized XSLT 3.0 and XQuery processing
+- **Document Streaming:** Memory-efficient XML processing for large files
+- **Background Processing:** Non-blocking operations to maintain UI responsiveness
+- **Incremental Updates:** Efficient handling of document changes
+
+## Cross-Platform Support
+
+### Native Packaging
+- **jpackage:** Java native packaging tool for platform-specific installers
+- **JLink:** Custom runtime images for reduced distribution size
+- **Platform-Specific Builds:** Windows (`.exe` installer, `.msi`, portable ZIP), macOS (`.dmg`, `.pkg`, portable ZIP; Apple Silicon and Intel), Linux (`.deb`, `.rpm`, portable ZIP). The portable ZIPs contain the jpackage app-image with a bundled runtime.
+
+### JavaFX Runtime
+JavaFX 25 is bundled with Liberica Full JDK, providing:
+- Cross-platform GUI consistency
+- Hardware-accelerated graphics with automatic fallback to software rendering for maximum compatibility
+- Web content rendering (WebView)
+- Swing interoperability
+
+## Security Features
+
+For detailed information about security protections, see the [Security Features](../administer/security-features.md) documentation.
+
+### Digital Signatures
+- **XML-DSig:** W3C XML Digital Signature support
+- **Certificate Validation:** X.509 certificate chain validation
+- **Cryptographic Algorithms:** Support for RSA, DSA, and ECDSA signatures
+- **Key Generation:** RSA 2048/4096-bit key pair generation
+
+### Input Validation & Attack Prevention
+- **XXE Protection:** Secure XML parser configuration prevents external entity attacks
+- **SSRF Protection:** URL validation blocks access to internal networks and metadata endpoints
+- **XSLT Extension Security:** Java extensions disabled by default to prevent code execution
+- **Path Traversal Prevention:** File access restricted to prevent directory escape
+- **XPath Injection Prevention:** Proper parameter escaping in XPath queries
+- **Schema Validation:** Strict validation against XSD 1.0/1.1 schemas
+
+## Development Environment
+
+### Recommended IDE Setup
+- **IntelliJ IDEA:** Primary development environment
+- **JavaFX Scene Builder:** Visual FXML design tool
+- **Git:** Version control system
+
+### Code Quality
+- **Static Analysis:** Built-in code analysis and inspection
+- **Unit Testing:** Comprehensive test coverage with JUnit 5
+- **UI Testing:** TestFX for JavaFX component testing
+- **Documentation:** Javadoc generation for API documentation

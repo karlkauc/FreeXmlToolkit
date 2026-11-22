@@ -169,6 +169,9 @@ public class EditorHost extends BorderPane {
     /** Reading, saving and watching the files behind the tabs. */
     final EditorFileSync fileSync = new EditorFileSync(this);
 
+    /** Line bookmarks of the text tabs (gutter, scroll markers, navigation). */
+    final EditorBookmarks bookmarks = new EditorBookmarks(this);
+
     private final EditorWelcomePane welcomePane = new EditorWelcomePane(
             this::requestNewDocument, this::openFileChooser, this::openFile,
             this::clearRecentFiles, this::fireWelcomeAction);
@@ -3504,6 +3507,95 @@ public class EditorHost extends BorderPane {
         }
     }
 
+    /**
+     * Opens {@code path} (focusing an existing tab) and, once its text has loaded, reveals the
+     * 1-based {@code line} in the view the user is in.
+     */
+    public void openFileAtLine(java.nio.file.Path path, int line) {
+        if (path == null) {
+            return;
+        }
+        openFile(path);
+        revealLineAfterLoad(path, line, 80);
+    }
+
+    private void revealLineAfterLoad(java.nio.file.Path path, int line, int attemptsLeft) {
+        boolean loaded = tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && path.equals(et.document.getPath()) && !et.loading;
+        if (loaded) {
+            revealProblem(line, 0, null);
+            return;
+        }
+        if (attemptsLeft > 0) {
+            javafx.animation.PauseTransition pause =
+                    new javafx.animation.PauseTransition(javafx.util.Duration.millis(50));
+            pause.setOnFinished(e -> revealLineAfterLoad(path, line, attemptsLeft - 1));
+            pause.play();
+        }
+    }
+
+    // ----- bookmarks ----------------------------------------------------------------------------
+
+    /** @return whether the active tab is a text document that takes bookmarks. */
+    public boolean canBookmark() {
+        return bookmarks.canBookmark();
+    }
+
+    /** @return whether the keyboard focus is in the active tab's text editor. */
+    public boolean isActiveTextEditorFocused() {
+        return tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.view.getCodeArea() != null && et.view.getCodeArea().isFocused();
+    }
+
+    /** Sets or removes the bookmark on the caret line (Ctrl+F2). @return whether a tab took it. */
+    public boolean toggleBookmarkAtCaret() {
+        return bookmarks.toggleAtCaret();
+    }
+
+    /** Names the bookmark on the caret line, setting one first (Ctrl+Shift+F2). */
+    public boolean renameBookmarkAtCaret() {
+        return bookmarks.renameAtCaret();
+    }
+
+    /** Jumps to the next bookmark (F2), on to the next file with bookmarks. */
+    public boolean nextBookmark() {
+        return bookmarks.next(true);
+    }
+
+    /** Jumps to the previous bookmark (Shift+F2). */
+    public boolean previousBookmark() {
+        return bookmarks.next(false);
+    }
+
+    /** Sets or takes off quick bookmark {@code n} (1–9) on the caret line (Ctrl+Shift+digit). */
+    public boolean toggleNumberedBookmark(int n) {
+        return bookmarks.toggleNumberAtCaret(n);
+    }
+
+    /** Jumps to quick bookmark {@code n} (1–9) (Ctrl+digit). */
+    public boolean goToNumberedBookmark(int n) {
+        return bookmarks.goToNumber(n);
+    }
+
+    /** Removes the bookmarks of the active document, after asking. @return how many were removed. */
+    public int clearBookmarksInActive() {
+        return bookmarks.clearActive();
+    }
+
+    /** Shows a bookmark of a document (its file key) — the Bookmarks panel's jump. */
+    public void openBookmark(String key, int line) {
+        bookmarks.openAt(key, line);
+    }
+
+    /** Test hooks: the name prompt ((header, current) → name) and the clear confirmation. */
+    void setBookmarkPrompts(java.util.function.BiFunction<String, String, java.util.Optional<String>> namePrompt,
+                            java.util.function.Predicate<String> confirmer) {
+        bookmarks.setNamePrompt(namePrompt);
+        if (confirmer != null) {
+            bookmarks.setConfirmer(confirmer);
+        }
+    }
+
     /** Moves the active editor's caret to the given offset (e.g. jump-to-node). */
     public void moveActiveCaretTo(int position) {
         withActive(et -> {
@@ -3785,6 +3877,8 @@ public class EditorHost extends BorderPane {
         };
         tabPane.getTabs().add(tab);
         debugSupport.installBreakpointGutter(tab);
+        bookmarks.install(tab);
+        XsltLiveCheck.install(this, tab, debugSupport::openStylesheetTexts);
         if (select) {
             tabPane.getSelectionModel().select(tab);
         }

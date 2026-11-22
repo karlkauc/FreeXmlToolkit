@@ -86,7 +86,7 @@ public class XsdDocumentationWordService {
     // Style color definitions for different HeaderStyles
     private static final String[][] STYLE_COLORS = {
             // PROFESSIONAL: Blue/Slate theme (index 0)
-            {"2563EB", "64748B", "F1F5F9", "CBD5E1"},  // primary, secondary, headerBg, tableBorder
+            {"1373D9", "5A6472", "F5F7FA", "DDE1E7"},  // primary, secondary, headerBg, tableBorder
             // MINIMAL: Black/Gray theme (index 1)
             {"374151", "6B7280", "F9FAFB", "E5E7EB"},  // dark gray, medium gray, very light, light border
             // COLORFUL: Purple/Pink theme (index 2)

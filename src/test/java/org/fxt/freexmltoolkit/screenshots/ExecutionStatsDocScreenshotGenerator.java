@@ -43,7 +43,7 @@ import org.testfx.util.WaitForAsyncUtils;
 @ExtendWith(ApplicationExtension.class)
 class ExecutionStatsDocScreenshotGenerator {
 
-    private static final File EXAMPLES = new File("release/examples");
+    private static final File EXAMPLES = DocFiles.examples();
     private static final File IMG_DIR = new File("docs/img");
 
     private Parent root;

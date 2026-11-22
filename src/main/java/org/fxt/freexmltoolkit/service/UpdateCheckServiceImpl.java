@@ -71,7 +71,7 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
      * The build now generates build-info.properties from {@code build.gradle.kts}, so this
      * constant is only used in degenerate test/classpath scenarios.
      */
-    private static final String DEFAULT_VERSION = "3.4.0";
+    private static final String DEFAULT_VERSION = "3.5.0";
 
     // Lazy-initialized services to avoid circular dependency
     private PropertiesService propertiesService;
@@ -239,6 +239,14 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
                 String latestVersion = normalizeVersion(tagName);
                 boolean updateAvailable = isNewerVersion(latestVersion, currentVersion);
 
+                // A release is published before its build has uploaded the packages: offering it then
+                // makes the download fail with HTTP 404 (telemetry: update_download IOException 3.3.0 → 3.4.0)
+                if (updateAvailable && !hasAppImage(release, latestVersion, AutoUpdateServiceImpl.platformIdentifier())) {
+                    logger.info("Update {} published, but its {} package is not uploaded yet", latestVersion,
+                            AutoUpdateServiceImpl.platformIdentifier());
+                    updateAvailable = false;
+                }
+
                 // Check if this version was skipped by the user
                 String skippedVersion = getSkippedVersion();
                 if (updateAvailable && latestVersion.equals(skippedVersion)) {
@@ -269,6 +277,28 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
                 return cachedUpdateInfo;
             }
         }, getExecutorService()).whenComplete(org.fxt.freexmltoolkit.service.telemetry.Telemetry.whenComplete("update.check"));
+    }
+
+    /**
+     * @param release the Releases API answer
+     * @param version the release version without {@code v}
+     * @param platform {@link AutoUpdateServiceImpl#platformIdentifier()}
+     * @return whether the release lists the app-image an update of this platform downloads; {@code true} when the
+     *         answer has no asset list at all (nothing to tell)
+     */
+    static boolean hasAppImage(JsonObject release, String version, String platform) {
+        if (!release.has("assets") || !release.get("assets").isJsonArray()) {
+            return true;
+        }
+        String wanted = AutoUpdateServiceImpl.appImageAssetName(platform, version);
+        for (var element : release.getAsJsonArray("assets")) {
+            if (element.isJsonObject() && element.getAsJsonObject().has("name")
+                    && !element.getAsJsonObject().get("name").isJsonNull()
+                    && wanted.equals(element.getAsJsonObject().get("name").getAsString())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

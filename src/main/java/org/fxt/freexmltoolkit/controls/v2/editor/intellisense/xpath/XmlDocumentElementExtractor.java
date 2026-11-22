@@ -45,6 +45,14 @@ public class XmlDocumentElementExtractor {
     private final Set<String> attributeNames = new LinkedHashSet<>();
     private final Map<String, Set<String>> elementAttributes = new HashMap<>();
     private final Map<String, String> namespaces = new HashMap<>();
+    /** The root element's namespace when it has no prefix, or {@code null}. */
+    private String defaultNamespace;
+
+    /**
+     * Whether a query's unprefixed names match the document's default namespace (the Query Console's setting); when
+     * not, names in it are proposed as {@code *:Name} so that they match. Set by the console.
+     */
+    public static volatile java.util.function.BooleanSupplier unprefixedMatchesDefault = () -> true;
 
     // Tree structure for path-aware completions
     private String rootElement = null;
@@ -149,6 +157,22 @@ public class XmlDocumentElementExtractor {
     /**
      * Gets detected namespace prefixes and URIs.
      */
+    /** @return the root element's namespace when it has no prefix, or {@code null} */
+    public String getDefaultNamespace() {
+        return defaultNamespace;
+    }
+
+    /**
+     * The text a completion inserts for an element name: as written, or {@code *:name} for an unprefixed name in a
+     * document with a default namespace when unprefixed names do not match it (they would find nothing).
+     */
+    String insertName(String element) {
+        if (defaultNamespace != null && element.indexOf(':') < 0 && !unprefixedMatchesDefault.getAsBoolean()) {
+            return "*:" + element;
+        }
+        return element;
+    }
+
     public Map<String, String> getNamespaces() {
         return Collections.unmodifiableMap(namespaces);
     }
@@ -169,7 +193,7 @@ public class XmlDocumentElementExtractor {
 
             items.add(new CompletionItem.Builder(
                     element,
-                    element,
+                    insertName(element),
                     CompletionItemType.ELEMENT
             )
                     .description("XML Element")
@@ -316,7 +340,7 @@ public class XmlDocumentElementExtractor {
                     || rootElement.toLowerCase().startsWith(prefix.toLowerCase()))) {
                 items.add(new CompletionItem.Builder(
                         rootElement,
-                        rootElement,
+                        insertName(rootElement),
                         CompletionItemType.ELEMENT
                 )
                         .description("Root Element")
@@ -336,7 +360,7 @@ public class XmlDocumentElementExtractor {
 
             items.add(new CompletionItem.Builder(
                     child,
-                    child,
+                    insertName(child),
                     CompletionItemType.ELEMENT
             )
                     .description("Child of " + parentElement)
@@ -356,6 +380,7 @@ public class XmlDocumentElementExtractor {
         elementAttributes.clear();
         elementChildren.clear();
         namespaces.clear();
+        defaultNamespace = null;
         rootElement = null;
         lastXmlHash = null;
         cacheValid = false;
@@ -372,6 +397,7 @@ public class XmlDocumentElementExtractor {
         other.elementAttributes.forEach((k, v) -> elementAttributes.put(k, new LinkedHashSet<>(v)));
         other.elementChildren.forEach((k, v) -> elementChildren.put(k, new LinkedHashSet<>(v)));
         namespaces.putAll(other.namespaces);
+        defaultNamespace = other.defaultNamespace;
         rootElement = other.rootElement;
         lastXmlHash = other.lastXmlHash;
         cacheValid = other.cacheValid;
@@ -432,6 +458,11 @@ public class XmlDocumentElementExtractor {
                 if (isFirstElement) {
                     rootElement = elementName;
                     isFirstElement = false;
+                    if (elementName.indexOf(':') < 0) {
+                        String xmlns = attributes.getValue("xmlns");
+                        String ns = uri != null && !uri.isEmpty() ? uri : xmlns;
+                        defaultNamespace = ns == null || ns.isEmpty() ? null : ns;
+                    }
                 }
 
                 // Track parent-child relationship

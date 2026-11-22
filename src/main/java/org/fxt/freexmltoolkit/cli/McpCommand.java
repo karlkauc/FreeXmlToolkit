@@ -47,7 +47,7 @@ import picocli.CommandLine.Spec;
                         + "documents and explore schemas.",
                 "The tools only read: nothing is written to disk (xsl:result-document output is returned), files "
                         + "are read only inside the --root folders, stylesheets and queries run without Java "
-                        + "extensions or network access and stop at a time limit. See docs/mcp-server.md."
+                        + "extensions or network access and stop at a time limit. See docs/automate/mcp-server.md."
         },
         sortOptions = false)
 final class McpCommand implements Callable<Integer> {

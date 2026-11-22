@@ -86,12 +86,7 @@ public class SplashScreen {
         stage.setAlwaysOnTop(true);
         stage.setTitle("FreeXmlToolkit");
 
-        try {
-            stage.getIcons().add(new Image(
-                    getClass().getResourceAsStream("/img/logo.png")));
-        } catch (Exception e) {
-            logger.debug("Could not load splash icon", e);
-        }
+        stage.getIcons().addAll(org.fxt.freexmltoolkit.FxtGui.appIcons());
 
         container = new VBox(12);
         container.setAlignment(Pos.CENTER);
@@ -106,8 +101,15 @@ public class SplashScreen {
         logoContainer.setPadding(new Insets(0, 0, 10, 0));
 
         // Title
-        titleLabel = new Label("FreeXmlToolkit");
-        titleLabel.getStyleClass().add("splash-title");
+        // The name as the wordmark draws it: "Xml" in the brand's light blue
+        titleLabel = new Label();
+        titleLabel.setAccessibleText("FreeXmlToolkit");
+        var titleXml = new Label("Xml");
+        titleXml.getStyleClass().addAll("splash-title", "splash-title-accent");
+        var titleName = new javafx.scene.layout.HBox(
+                new Label("Free"), titleXml, new Label("Toolkit"));
+        titleName.getChildren().forEach(n -> n.getStyleClass().add("splash-title"));
+        titleLabel.setGraphic(titleName);
 
         // Version
         versionLabel = new Label("v" + org.fxt.freexmltoolkit.util.VersionUtil.getVersion());
@@ -246,7 +248,8 @@ public class SplashScreen {
     private ImageView createLogo() {
         ImageView iv = new ImageView();
         try {
-            Image logo = new Image(getClass().getResourceAsStream("/img/logo.png"));
+            // The symbol alone: the splash itself is the navy ground of the app icon
+            Image logo = new Image(getClass().getResourceAsStream("/img/logo-symbol.png"));
             iv.setImage(logo);
             iv.setFitWidth(80);
             iv.setFitHeight(80);

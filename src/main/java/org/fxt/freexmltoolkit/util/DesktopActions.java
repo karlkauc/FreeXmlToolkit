@@ -47,6 +47,16 @@ public final class DesktopActions {
         }, onFailure);
     }
 
+    /** Opens a new message to the {@code mailto:} address {@code uri} in the system mail program. */
+    public static void mail(URI uri, Consumer<Exception> onFailure) {
+        run(() -> {
+            if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.MAIL)) {
+                throw new UnsupportedOperationException("No mail program to write to " + uri);
+            }
+            Desktop.getDesktop().mail(uri);
+        }, onFailure);
+    }
+
     /**
      * Shows {@code file} selected in the system file manager (Explorer, Finder, or a freedesktop
      * file manager over D-Bus). Where that fails, the containing folder is opened instead.

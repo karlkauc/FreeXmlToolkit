@@ -1,6 +1,6 @@
 package org.fxt.freexmltoolkit.cli;
 
-/** Exit codes of {@code fxt-cli}; documented in {@code docs/command-line.md}. */
+/** Exit codes of {@code fxt-cli}; documented in {@code docs/automate/command-line.md}. */
 public final class ExitCodes {
 
     /** Everything succeeded; all documents are valid. */

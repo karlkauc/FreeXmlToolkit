@@ -187,6 +187,127 @@ class QueryErrorsTest {
         assertNull(QueryErrors.emptyResultHint("count(//p:Fund)", NS_XML), "prefixed");
     }
 
+    private static final String BROKEN = "<funds>\n  <Fund>\n    <Name>A</Nam>\n  </Fund>\n</funds>";
+
+    @Test
+    void aDocumentThatIsNotWellFormedIsReportedAsTheDocumentsError() {
+        QueryError x = xpath(BROKEN, "//Fund/Name");
+        assertEquals("SXXP0003", x.code());
+        assertEquals(QueryError.Kind.DOCUMENT, x.kind());
+        assertFalse(x.hasPosition(), "nothing to mark in the query");
+        assertEquals(3, x.documentLine());
+        assertTrue(x.documentColumn() > 0);
+        assertTrue(x.message().startsWith("The element type \"Name\" must be terminated"), x.message());
+        assertNotNull(x.hint());
+        assertTrue(x.format().startsWith("SXXP0003 · error in the document · document line 3, column "), x.format());
+
+        QueryError q = xquery(BROKEN, "for $f in //Fund return $f/Name");
+        assertEquals("SXXP0003", q.code(), "not XPDY0002 'the context item is absent'");
+        assertEquals(3, q.documentLine());
+
+        TransformRunner.QueryRun noContext = TransformRunner.xquery(BROKEN, "1 + 1", Map.of(), OutputFormat.XML);
+        assertNull(noContext.error(), "a query that does not need the document still runs");
+    }
+
+    @Test
+    void relativeDocCallsResolveNextToTheDocument(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir)
+            throws Exception {
+        java.nio.file.Files.writeString(dir.resolve("other.xml"), "<x>found</x>");
+        String base = dir.resolve("main.xml").toUri().toString();
+        TransformRunner.QueryRun run = TransformRunner.xpath("<a/>", "string(doc('other.xml')/x)",
+                org.fxt.freexmltoolkit.service.standards.XPathVersion.V3_1, base);
+        assertNull(run.error(), run.text());
+        assertEquals("found", run.text().strip());
+
+        QueryError missing = xpath("<a/>", "doc('nope.xml')//x");
+        assertEquals("FODC0002", missing.code());
+        assertTrue(missing.hint().contains("file:///"), missing.hint());
+        QueryError unsaved = xquery("<a/>", "doc('other.xml')//x");
+        assertEquals("XTDE1162", unsaved.code());
+        assertNotNull(unsaved.hint());
+        assertNotNull(xquery("<a/>", "doc('C:\\\\data\\\\x.xml')").hint(), "FODC0005: a Windows path");
+    }
+
+    private static QueryError xpath10(String query) {
+        TransformRunner.QueryRun run = TransformRunner.xpath(XML, query,
+                org.fxt.freexmltoolkit.service.standards.XPathVersion.V1_0);
+        assertNotNull(run.error(), run.text());
+        assertEquals(org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.INVALID_INPUT,
+                run.failure().status(), "the user's expression, not an app error");
+        return run.error();
+    }
+
+    @Test
+    void xpath10ErrorsGetSaxonsCodesAndPositions() {
+        QueryError open = xpath10("//Fund[");
+        assertEquals("XPST0003", open.code());
+        assertEquals(7, open.column(), "at the end, where something was missing");
+
+        QueryError extra = xpath10("//Fund]/Name");
+        assertEquals("XPST0003", extra.code());
+        assertEquals("]", marked(extra));
+
+        QueryError newer = xpath10("distinct-values(//Ccy)");
+        assertEquals("XPST0017", newer.code());
+        assertEquals("distinct-values", marked(newer));
+        assertTrue(newer.hint().contains("XPath 2.0") && newer.hint().contains("XPath 1.0"), newer.hint());
+
+        QueryError arity = xpath10("substring(//Name)");
+        assertEquals("XPST0017", arity.code());
+        assertTrue(arity.hint().startsWith("substring() exists, but takes 2 or 3 arguments."), arity.hint());
+
+        QueryError typo = xpath10("count(//Fund) + coutn(//Name)");
+        assertEquals(List.of("count"), typo.suggestions().stream().map(QueryError.Suggestion::label).toList());
+
+        QueryError variable = xpath10("//Fund[Name = $name]");
+        assertEquals("XPST0008", variable.code());
+        assertEquals("$name", marked(variable));
+    }
+
+    @Test
+    void theCheckOfAnXPath10ExpressionUsesTheXPath10Engine() {
+        var v1 = org.fxt.freexmltoolkit.service.standards.XPathVersion.V1_0;
+        assertEquals("XPST0017", QueryErrors.check("distinct-values(//Ccy)", QueryLanguage.XPATH, v1, XML)
+                .error().code(), "Saxon's 2.0 compiler would have accepted it");
+        assertEquals("XPST0003", QueryErrors.check("//Fund[", QueryLanguage.XPATH, v1, XML).error().code());
+        assertTrue(QueryErrors.check("count(//Fund)", QueryLanguage.XPATH, v1, XML).clean());
+    }
+
+    @Test
+    void anXQueryForAnOlderVersionIsCheckedWhileTypingAndMarksTheConstruct() {
+        String query = "for $f in //Fund return $f/Name || '-'";
+        QueryErrors.Check check = QueryErrors.check(query, QueryLanguage.XQUERY, null,
+                org.fxt.freexmltoolkit.service.standards.XQueryVersion.V1_0, XML);
+        assertNotNull(check.error());
+        assertEquals("FXT-COMPAT", check.error().code());
+        int at = query.indexOf("||");
+        assertTrue(check.error().hasPosition());
+        assertTrue(check.error().offset() >= at,
+                "at or after the || (Saxon's parser at level 1.0 stops at the end of the operand after it): "
+                        + check.error().offset());
+        assertTrue(QueryErrors.check(query, QueryLanguage.XQUERY, null, null, XML).clean(), "3.1 has ||");
+
+        TransformRunner.QueryRun run = TransformRunner.xquery(XML, query, Map.of(), OutputFormat.XML,
+                org.fxt.freexmltoolkit.service.standards.XQueryVersion.V1_0);
+        assertEquals(check.error().offset(), run.error().offset(), "the run marks the same place");
+    }
+
+    @Test
+    void anErrorInAnImportedModuleNamesTheModuleInsteadOfMarkingTheQuery(@org.junit.jupiter.api.io.TempDir
+            java.nio.file.Path dir) throws Exception {
+        java.nio.file.Files.writeString(dir.resolve("lib.xq"),
+                "module namespace m = \"urn:m\";\ndeclare function m:amount() { xs:decimal('x') };");
+        String base = dir.resolve("main.xq").toUri().toString();
+        String query = "import module namespace m = \"urn:m\" at \"lib.xq\";\nm:amount()";
+        TransformRunner.QueryRun run = TransformRunner.xquery(XML, query, Map.of(), OutputFormat.XML, null, null,
+                base);
+        QueryError e = run.error();
+        assertNotNull(e, run.text());
+        assertEquals("FORG0001", e.code());
+        assertTrue(e.message().contains("in module lib.xq, line 2"), e.message());
+        assertFalse(e.hasPosition(), "line 2 of lib.xq is not line 2 of the query");
+    }
+
     @Test
     void errorsWithoutSaxonDetailsStillFormat() {
         QueryError e = QueryErrors.of(null, "boom", "x", QueryLanguage.XPATH);

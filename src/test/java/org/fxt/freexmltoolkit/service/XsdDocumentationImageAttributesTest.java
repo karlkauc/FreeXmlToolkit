@@ -215,7 +215,7 @@ class XsdDocumentationImageAttributesTest {
         Matcher root = Pattern.compile("<svg[^>]*>", Pattern.DOTALL).matcher(svg);
         assertTrue(root.find(), "svg root expected");
         assertFalse(root.group().contains("background"), "no background colour on the diagram: " + root.group());
-        assertFalse(svg.contains("#f0f8ff\" width=\"100%"), "no full-size background rectangle");
+        assertFalse(svg.contains("#eaf2fd\" width=\"100%"), "no full-size background rectangle");
     }
 
     @Test

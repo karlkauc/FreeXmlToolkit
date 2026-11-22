@@ -35,8 +35,30 @@ public final class Xpath10Engine {
 
     /** A failed compile or evaluation; the message says what the XPath 1.0 engine reported. */
     public static final class Xpath10Exception extends RuntimeException {
+        private final transient Xpath10Messages.Translated translated;
+
         public Xpath10Exception(String message, Throwable cause) {
+            this(message, cause, null);
+        }
+
+        Xpath10Exception(String message, Throwable cause, Xpath10Messages.Translated translated) {
             super(message, cause);
+            this.translated = translated;
+        }
+
+        /** @return the error code Saxon would report for the same mistake ({@code XPST0003}, …), or {@code null} */
+        public String code() {
+            return translated == null ? null : translated.code();
+        }
+
+        /** @return the message in Saxon's wording, without "XPath 1.0: " */
+        public String detail() {
+            return translated == null ? getMessage() : translated.message();
+        }
+
+        /** @return the 0-based offset of the error in the expression, or -1 */
+        public int offset() {
+            return translated == null ? -1 : translated.offset();
         }
     }
 
@@ -48,7 +70,7 @@ public final class Xpath10Engine {
         try {
             newXPath(namespaces, null).compile(expression);
         } catch (XPathExpressionException e) {
-            throw failure(e);
+            throw failure(e, expression);
         }
     }
 
@@ -63,7 +85,7 @@ public final class Xpath10Engine {
         try {
             compiled = newXPath(namespaces, variables).compile(expression);
         } catch (XPathExpressionException e) {
-            throw failure(e);
+            throw failure(e, expression);
         }
         try {
             NodeList nodes = (NodeList) compiled.evaluate(doc, XPathConstants.NODESET);
@@ -74,7 +96,7 @@ public final class Xpath10Engine {
                 Object value = compiled.evaluate(doc, XPathConstants.STRING);
                 return String.valueOf(value);
             } catch (XPathExpressionException e) {
-                Xpath10Exception failure = failure(e);
+                Xpath10Exception failure = failure(e, expression);
                 failure.addSuppressed(notNodes); // the node-set attempt failed first
                 throw failure;
             }
@@ -93,7 +115,7 @@ public final class Xpath10Engine {
         try {
             compiled = newXPath(namespaces, null).compile(expression);
         } catch (XPathExpressionException e) {
-            throw failure(e);
+            throw failure(e, expression);
         }
         java.util.List<String> items = new java.util.ArrayList<>();
         try {
@@ -110,7 +132,7 @@ public final class Xpath10Engine {
                 items.add(String.valueOf(compiled.evaluate(doc, XPathConstants.STRING)));
                 return items;
             } catch (XPathExpressionException e) {
-                Xpath10Exception failure = failure(e);
+                Xpath10Exception failure = failure(e, expression);
                 failure.addSuppressed(notNodes); // the node-set attempt failed first
                 throw failure;
             }
@@ -190,7 +212,7 @@ public final class Xpath10Engine {
         }
     }
 
-    private static Xpath10Exception failure(XPathExpressionException e) {
+    private static Xpath10Exception failure(XPathExpressionException e, String expression) {
         Throwable cause = e;
         String message = e.getMessage();
         while ((message == null || message.isBlank()) && cause.getCause() != null) {
@@ -200,7 +222,8 @@ public final class Xpath10Engine {
         if (message != null) {
             message = message.replaceFirst("^javax\\.xml\\.transform\\.TransformerException: ", "");
         }
-        return new Xpath10Exception("XPath 1.0: " + (message == null ? "invalid expression" : message), e);
+        Xpath10Messages.Translated translated = Xpath10Messages.translate(message, expression);
+        return new Xpath10Exception("XPath 1.0: " + (message == null ? "invalid expression" : message), e, translated);
     }
 
     /** A namespace context over a prefix → URI map. */

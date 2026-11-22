@@ -36,7 +36,6 @@ import org.fxt.freexmltoolkit.service.ai.provider.ProviderPreset;
 import org.fxt.freexmltoolkit.service.ai.provider.ProviderStore;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
@@ -99,8 +98,7 @@ class AiDocScreenshotGenerator {
             + "quantity is declared as xs:positiveInteger, so the word \\\"three\\\" is not allowed; "
             + "the number 3 keeps the meaning.";
 
-    @TempDir
-    Path temp;
+    private final Path temp = DocFiles.work("ai");
 
     private Parent root;
     private UnifiedShellView shell;

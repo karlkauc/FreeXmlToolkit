@@ -42,7 +42,7 @@ plugins {
     id("org.cyclonedx.bom") version "3.6.1"
 }
 
-version = "3.4.0"
+version = "3.5.0"
 
 // SBOM: only what ships (runtime classpath), not test or code-analysis tools. The release
 // workflow attaches build/reports/cyclonedx-direct/bom.{json,xml} to every GitHub release.
@@ -78,9 +78,21 @@ sourceSets {
     }
 }
 
+// Saxon HE 13 for the external-processor tests (RealXsltProcessorsTest): on no class path, handed to the
+// tests as a path list (fxt.test.saxon13.classpath), run with java in a process of its own.
+val saxon13: Configuration = configurations.create("saxon13") {
+    isTransitive = false
+    isCanBeConsumed = false
+}
+
 dependencies {
-    // Pinned to 12.10: XML Calabash 3 is compiled against Saxon 12.10 internals.
-    // Move back to 13.x once Calabash supports it.
+    saxon13("net.sf.saxon:Saxon-HE:13.1")
+    saxon13("org.xmlresolver:xmlresolver:6.1.0")
+
+    // Pinned to 12.10: XML Calabash 3 (also 3.1.0) is compiled against Saxon 12.10 internals
+    // (Saxon 13 support: codeberg.org/xmlcalabash/xmlcalabash3/issues/717). Move to 13.x once Calabash
+    // supports it. Until then Saxon HE 13 runs as an external XSLT processor in its own process
+    // (service/xsltproc/SaxonInstaller downloads it; the tests get it from the saxon13 configuration).
     implementation("net.sf.saxon:Saxon-HE:12.10")
 
     // XProc 3.0/3.1 pipeline engine (MIT)
@@ -110,14 +122,6 @@ dependencies {
     runtimeOnly("org.exist-db.thirdparty.org.eclipse.wst.xml:xpath2:1.2.0")
     // Java CUP runtime required for XPath 2.0 processor
     runtimeOnly("edu.princeton.cup:java-cup:10k")
-    
-    // Alternative: Use local custom Xerces XSD 1.1 JAR files if available
-    // These would be loaded before any other Xerces implementations
-    /*
-    implementation(fileTree("libs/xerces-j-xsd11") {
-        include("*.jar")
-    })
-    */
 
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.5")
     implementation("com.google.code.gson:gson:2.15.0")
@@ -294,6 +298,12 @@ tasks {
         // telemetry (TelemetryServiceImpl.isKillSwitchActive). Applies to every Test task
         // (test, docScreenshots, perfBenchmark, sampleXmlAudit).
         systemProperty("fxt.telemetry.disabled", "true")
+        // Saxon HE 13 jars for RealXsltProcessorsTest (never on the test class path: one Saxon per JVM)
+        val saxon13Files = saxon13
+        inputs.files(saxon13Files)
+        jvmArgumentProviders.add(CommandLineArgumentProvider {
+            listOf("-Dfxt.test.saxon13.classpath=" + saxon13Files.asPath)
+        })
         doFirst {
             val propsFile = isolatedProps.get().asFile
             propsFile.parentFile.mkdirs()
@@ -557,6 +567,16 @@ tasks.register<Test>("docScreenshots") {
     classpath = sourceSets["test"].runtimeClasspath
     testLogging { events("passed", "skipped", "failed") }
     filter { includeTestsMatching("*DocScreenshotGenerator*") }
+    // Paths in the screenshots (status bar, recent files, Settings) must not name the developer's
+    // home folder: the generators open copies under one neutral root (screenshots/DocFiles), and
+    // the application's own folder (~/.freeXmlToolkit) lives there too.
+    val docsRoot = File(System.getProperty("java.io.tmpdir"), "FreeXmlToolkit-docs")
+    systemProperty("fxt.docs.root", docsRoot.absolutePath)
+    systemProperty("user.home", File(docsRoot, "home").absolutePath)
+    doFirst {
+        docsRoot.deleteRecursively()
+        File(docsRoot, "home").mkdirs()
+    }
     // Same module opens/exports as `test`, but with a real display + software rendering.
     jvmArgs(
         "--add-opens", "java.base/java.lang=ALL-UNNAMED",
@@ -1162,6 +1182,8 @@ fun createJPackageTask(taskName: String, platform: String, arch: String, package
 --win-dir-chooser
 --win-menu
 --win-shortcut
+--about-url
+https://freexmltoolkit.org
 --win-upgrade-uuid
 $WINDOWS_UPGRADE_UUID
 --resource-dir
@@ -1186,6 +1208,10 @@ FreeXmlToolkit""" + if (macSigningEnabled) """
 freexmltoolkit
 --linux-app-category
 Development
+--linux-deb-maintainer
+office@freexmltoolkit.org
+--about-url
+https://freexmltoolkit.org
 --linux-shortcut
 --resource-dir
 """ + project.projectDir.resolve("release/linux")
@@ -1821,12 +1847,22 @@ fun createJlinkRuntimeTask(taskName: String, platform: String, arch: String) {
             "--compress=zip-9",
             "--no-header-files",
             "--no-man-pages",
-            "--strip-debug",
-            "--strip-native-commands"
+            "--strip-debug"
         )
 
         doLast {
             println("✅ Native runtime image created for $platform-$arch in ${runtimeDir.absolutePath}")
+
+            // Keep only the java launcher of the JDK's programs: external Java tools (Saxon HE 13 as an
+            // external XSLT processor, JavaRuntime.executable()) run with it. Libraries (Windows keeps its
+            // DLLs in bin/) stay; programs are *.exe on Windows and files without an extension elsewhere.
+            File(runtimeDir, "bin").listFiles()?.forEach { f ->
+                val name = f.name
+                val program = if (currentOs == "windows") name.endsWith(".exe") else (f.isFile && !name.contains('.'))
+                if (program && name != "java" && name != "java.exe") {
+                    f.delete()
+                }
+            }
 
             // Verify the runtime contains JavaFX native libraries
             val runtimeBinDir = File(runtimeDir, "bin")

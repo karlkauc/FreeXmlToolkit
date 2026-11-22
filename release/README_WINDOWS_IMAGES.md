@@ -25,8 +25,9 @@ tests the insertion on any platform.
 
 ## Designing the images
 
-The current images are drawn by `scripts/make-installer-images.py` (app logo, brand colours,
-Inter; needs Pillow): change the script and run it again, or replace the PNGs with your own.
+The current images are drawn by `scripts/make-installer-images.py` (the symbol of logo suite S1
+on navy, orange as the one accent, Inter; needs Pillow): change the script and run it again, or
+replace the PNGs with your own. Run `scripts/make-app-icons.py` first; it draws the symbol.
 
 WiX writes the page texts **in black on top of the images**:
 

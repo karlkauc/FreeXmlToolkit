@@ -114,7 +114,19 @@ public final class XsltTransformTool implements AiTool {
             return ToolResult.ok(text.toString(), result);
         }
         String phase = run.timedOut() ? "runtime" : r.getErrorPhase();
-        result.add("error", ToolJson.error(r.getErrorCode(), phase, r.getErrorLine(), r.getErrorMessage()));
+        JsonObject error = ToolJson.error(r.getErrorCode(), phase, r.getErrorLine(), r.getErrorMessage());
+        // a compile error placed in the stylesheet: column, the module it is in (null = the stylesheet itself), hint
+        var first = r.getDiagnostics().stream().filter(d -> !d.warning()).findFirst().orElse(null);
+        if (first != null) {
+            if (first.column() > 0) {
+                error.addProperty("column", first.column());
+            } else {
+                error.add("column", com.google.gson.JsonNull.INSTANCE);
+            }
+            error.addProperty("module", first.module());
+            error.addProperty("hint", first.hint());
+        }
+        result.add("error", error);
         return ToolResult.failed(ToolJson.describe(r.getErrorCode(), phase, r.getErrorLine(), r.getErrorMessage()),
                 result);
     }

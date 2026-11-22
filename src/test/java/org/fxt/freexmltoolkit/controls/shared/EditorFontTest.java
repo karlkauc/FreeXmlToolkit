@@ -120,4 +120,27 @@ class EditorFontTest {
         assertEquals(families, WaitForAsyncUtils.waitForAsyncFx(5000, EditorFont::monospaceFamilies),
                 "the same list as the synchronous one");
     }
+
+    @Test
+    void theBundledFontIsResolvedWithoutAskingForTheSystemsFonts() {
+        var original = EditorFont.fontList;
+        java.util.concurrent.atomic.AtomicInteger reads = new java.util.concurrent.atomic.AtomicInteger();
+        EditorFont.fontList = () -> {
+            reads.incrementAndGet();
+            return java.util.List.of("Courier New");
+        };
+        EditorFont.forgetInstalledFamilies();
+        try {
+            assertEquals(EditorFont.DEFAULT_FAMILY, EditorFont.resolveFamily(EditorFont.DEFAULT_FAMILY));
+            assertEquals(0, reads.get(), "the bundled font needs no font list (6 s on a computer with many fonts)");
+
+            EditorFont.warmUp();
+            assertEquals(1, reads.get(), "read once, off the FX thread");
+            assertEquals("Courier New", EditorFont.resolveFamily("Courier New"));
+            assertEquals(1, reads.get(), "kept");
+        } finally {
+            EditorFont.fontList = original;
+            EditorFont.forgetInstalledFamilies();
+        }
+    }
 }

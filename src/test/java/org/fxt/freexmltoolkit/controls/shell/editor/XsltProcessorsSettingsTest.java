@@ -18,6 +18,8 @@ import javafx.stage.Stage;
 
 import org.fxt.freexmltoolkit.service.fo.FakeProcessors;
 import org.fxt.freexmltoolkit.service.xsltproc.ExternalXsltRunnerTest;
+import org.fxt.freexmltoolkit.service.xsltproc.SaxonInstaller;
+import org.fxt.freexmltoolkit.service.xsltproc.SaxonInstallerTest;
 import org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorConfig;
 import org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorPreset;
 import org.fxt.freexmltoolkit.service.xsltproc.XsltProcessorStore;
@@ -36,11 +38,25 @@ class XsltProcessorsSettingsTest {
     private final XsltProcessorConfig libxslt = new XsltProcessorConfig(null, "libxslt", XsltProcessorPreset.XSLTPROC,
             "/no/such/xsltproc", null, null, "", 0);
     private XsltProcessorsSettings view;
+    private SaxonInstaller installer;
+    private final java.nio.file.Path saxonDir = createTempDir();
+
+    private static java.nio.file.Path createTempDir() {
+        try {
+            return java.nio.file.Files.createTempDirectory("fxt-saxon13");
+        } catch (java.io.IOException e) {
+            throw new java.io.UncheckedIOException(e);
+        }
+    }
 
     @Start
     void start(Stage stage) {
         store.save(List.of(libxslt));
-        view = new XsltProcessorsSettings(store);
+        installer = new SaxonInstaller(saxonDir, SaxonInstaller.MAVEN_CENTRAL, uri -> {
+            String path = uri.getPath();
+            return java.nio.file.Files.readAllBytes(SaxonInstallerTest.saxon13Jar(path.substring(path.lastIndexOf('/') + 1)));
+        });
+        view = new XsltProcessorsSettings(store, installer);
         stage.setScene(new Scene(view, 500, 300));
         stage.show();
     }
@@ -65,6 +81,45 @@ class XsltProcessorsSettingsTest {
         });
         assertEquals(libxslt.id(), store.defaultId());
         assertTrue(makeDefault.isDisabled());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void addSaxonDownloadsOnceAndAddsTheProcessorOnce() throws Exception {
+        SaxonInstallerTest.saxon13Jar("Saxon-HE-13.1.jar"); // skips without the Gradle jars
+        ListView<XsltProcessorsSettings.Row> list = (ListView<XsltProcessorsSettings.Row>) view.lookup("#settings-xslt-processors");
+        java.util.concurrent.atomic.AtomicInteger asked = new java.util.concurrent.atomic.AtomicInteger();
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            view.setDownloadHooks(() -> asked.incrementAndGet() > 1, e -> {
+                throw new AssertionError(e);
+            });
+            view.onAddSaxon(); // declined
+            return null;
+        });
+        assertEquals(1, asked.get());
+        assertFalse(installer.isInstalled());
+        assertEquals(1, store.list().size());
+
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            view.onAddSaxon();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(30, java.util.concurrent.TimeUnit.SECONDS, () -> store.list().size() == 2);
+        XsltProcessorConfig added = store.list().get(1);
+        assertEquals("Saxon HE 13.1", added.name());
+        assertEquals(XsltProcessorPreset.SAXON_HE, added.preset());
+        assertTrue(added.arguments().contains(installer.classpath()), added.arguments());
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(added.id(), list.getSelectionModel().getSelectedItem().id());
+
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            view.onAddSaxon(); // installed: no question, no second entry
+            return null;
+        });
+        assertEquals(2, asked.get());
+        assertEquals(2, store.list().size());
+        javafx.scene.control.Label status = (javafx.scene.control.Label) view.lookup("#settings-xslt-saxon-status");
+        assertTrue(status.getText().contains("already"), status.getText());
     }
 
     @Test

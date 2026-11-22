@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -83,8 +86,65 @@ class SingleInstanceTest {
         assertFalse(SingleInstance.forward(dir, List.of()));
 
         // stale port file of a crashed instance: nobody listens there
-        Files.writeString(dir.resolve(SingleInstance.PORT_FILE), "1\ntoken\n");
-        assertFalse(SingleInstance.forward(dir, List.of()));
+        Files.writeString(dir.resolve(SingleInstance.PORT_FILE), deadPort() + "\ntoken\n");
+        assertFalse(SingleInstance.forward(dir, List.of(), 0));
+    }
+
+    /**
+     * Two launches at once after a crash: the loser of the lock first reads the crashed
+     * instance's port file and must keep trying until the new primary has written its own.
+     */
+    @Test
+    void forwardWaitsForTheNewPrimaryBehindAStalePortFile() throws Exception {
+        Files.writeString(dir.resolve(SingleInstance.PORT_FILE), deadPort() + "\nold-token\n");
+        List<Path> received = new CopyOnWriteArrayList<>();
+        // Counted where the files arrive: the forwarding side is already polling when claim()
+        // publishes the port file, so a handler set after claim() can miss this request.
+        CountDownLatch arrived = new CountDownLatch(1);
+        AtomicReference<SingleInstance> primary = new AtomicReference<>();
+        Thread late = new Thread(() -> {
+            try {
+                Thread.sleep(400);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+            primary.set(SingleInstance.claim(dir, files -> {
+                received.addAll(files);
+                arrived.countDown();
+            }));
+        });
+        late.start();
+        try {
+            Path file = Files.writeString(dir.resolve("d.xml"), "<root/>");
+
+            assertTrue(SingleInstance.forward(dir, List.of(file), 5000));
+
+            assertTrue(arrived.await(5, TimeUnit.SECONDS));
+            assertEquals(List.of(file.toAbsolutePath()), received);
+        } finally {
+            late.join();
+            if (primary.get() != null) {
+                primary.get().close();
+            }
+        }
+    }
+
+    @Test
+    void claimRemovesAStalePortFile() throws IOException {
+        Files.writeString(dir.resolve(SingleInstance.PORT_FILE), deadPort() + "\nold-token\n");
+        try (SingleInstance primary = SingleInstance.claim(dir, files -> { })) {
+            assertNotNull(primary);
+            List<String> lines = Files.readAllLines(dir.resolve(SingleInstance.PORT_FILE), StandardCharsets.UTF_8);
+            assertFalse(lines.contains("old-token"));
+        }
+    }
+
+    /** A loopback port nobody listens on (bound once, then released). */
+    private static int deadPort() throws IOException {
+        try (ServerSocket socket = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
+            return socket.getLocalPort();
+        }
     }
 
     @Test

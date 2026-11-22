@@ -474,6 +474,27 @@ class UpdateCheckServiceTest {
         }
 
         @Test
+        @DisplayName("Should not offer a release whose package for this platform is not uploaded yet")
+        void testReleaseWithoutThisPlatformsPackage() throws ExecutionException, InterruptedException, TimeoutException {
+            String platform = AutoUpdateServiceImpl.platformIdentifier();
+            mockConnectionService.setMockResponse(release("""
+                    [{"name": "FreeXmlToolkit-99.0.0-sbom.cdx.json"}]"""));
+            UpdateInfo pending = updateCheckService.checkForUpdates().get(5, TimeUnit.SECONDS);
+            assertFalse(pending.updateAvailable(), "the build is still uploading");
+            assertEquals("99.0.0", pending.latestVersion());
+
+            updateCheckService.resetCache();
+            mockConnectionService.setMockResponse(release(
+                    "[{\"name\": \"FreeXmlToolkit-" + platform + "-app-image-99.0.0.zip\"}]"));
+            assertTrue(updateCheckService.checkForUpdates().get(5, TimeUnit.SECONDS).updateAvailable());
+        }
+
+        private ConnectionResult release(String assets) {
+            return new ConnectionResult(URI.create("https://api.github.com/test"), 200, 100L, new String[]{},
+                    "{\"tag_name\": \"v99.0.0\", \"name\": \"Release 99.0.0\", \"assets\": " + assets + "}");
+        }
+
+        @Test
         @DisplayName("Should cache update check result")
         void testCaching() throws ExecutionException, InterruptedException, TimeoutException {
             mockConnectionService.setMockResponse(new ConnectionResult(

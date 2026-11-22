@@ -50,10 +50,12 @@ class TransformOutputPanelScrollbarTest {
 
     @Test
     void outputScrollbarsHaveThicknessInBothThemes() throws Exception {
+        // Lines of ~400 characters: wider than the 900 px viewport with any font the test
+        // machine falls back to (a 136-character line fit at 11 px without JetBrains Mono).
+        String filler = "a very long attribute value forcing horizontal overflow ".repeat(7);
         StringBuilder big = new StringBuilder();
         for (int i = 0; i < 500; i++) {
-            big.append("<line n=\"").append(i)
-               .append("\" text=\"a very long attribute value forcing horizontal overflow beyond the viewport width of the output panel____________\"/>\n");
+            big.append("<line n=\"").append(i).append("\" text=\"").append(filler).append("\"/>\n");
         }
         WaitForAsyncUtils.waitForAsyncFx(4000, () -> {
             out.showTransformResult(big.toString(), OutputFormat.XML, 5);

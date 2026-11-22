@@ -84,6 +84,31 @@ class WindowsAssociationStrategyTest {
     }
 
     @Test
+    void registerAndUnregisterAskExplorerToRefreshItsIcons() {
+        strategy.register(List.of(XML), List.of(XML));
+        List<String> afterRegister = runner.flatCommands();
+        int refresh = afterRegister.indexOf("ie4uinit.exe -show");
+        assertTrue(refresh > 0, "icons refreshed after the registry entries");
+        assertTrue(afterRegister.subList(0, refresh).stream().anyMatch(c -> c.contains("DefaultIcon")),
+                "after DefaultIcon is written");
+
+        runner.commands.clear();
+        strategy.unregister(List.of(XML), true);
+        assertTrue(runner.flatCommands().contains("ie4uinit.exe -show"), "and after removing them");
+    }
+
+    @Test
+    void aFailingIconRefreshDoesNotFailTheRegistration() {
+        runner.responder = command -> {
+            if (command.getFirst().equals("ie4uinit.exe")) {
+                return new CommandRunner.CommandResult(1, "", "not found");
+            }
+            return new CommandRunner.CommandResult(0, "", "");
+        };
+        assertTrue(strategy.register(List.of(XML), List.of(XML)).success());
+    }
+
+    @Test
     void registerFallsBackToPlainSettingsUriWhenDeepLinkFails() {
         runner.responder = command -> {
             String flat = String.join(" ", command);

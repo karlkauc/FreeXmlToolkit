@@ -109,6 +109,7 @@ public class UnifiedShellView extends BorderPane {
     @FXML private javafx.scene.control.MenuItem actionDebugTransform;
     @FXML private javafx.scene.control.MenuItem actionDebugQuery;
     @FXML private javafx.scene.control.MenuItem actionProfileQuery;
+    @FXML private javafx.scene.control.MenuItem actionShowPlan;
     @FXML private javafx.scene.control.MenuItem actionCheckCompatibility;
     @FXML private javafx.scene.control.MenuItem actionDebugSchematron;
     @FXML private javafx.scene.control.MenuItem actionRunPipeline;
@@ -827,6 +828,21 @@ public class UnifiedShellView extends BorderPane {
             }
             return;
         }
+        // Bookmarks: Ctrl+F2 toggles, Ctrl+Shift+F2 names, F2 / Shift+F2 jump (only from the text
+        // editor - F2 renames in the grid and the trees).
+        if (event.getCode() == javafx.scene.input.KeyCode.F2 && !event.isAltDown()) {
+            boolean done;
+            if (event.isShortcutDown()) {
+                done = event.isShiftDown() ? editorHost.renameBookmarkAtCaret() : editorHost.toggleBookmarkAtCaret();
+            } else {
+                done = editorHost.isActiveTextEditorFocused()
+                        && (event.isShiftDown() ? editorHost.previousBookmark() : editorHost.nextBookmark());
+            }
+            if (done) {
+                event.consume();
+            }
+            return;
+        }
         // Function keys (no modifier) - all listed in the Keyboard Shortcuts dialog.
         switch (event.getCode()) {
             case F1 -> {
@@ -873,6 +889,16 @@ public class UnifiedShellView extends BorderPane {
             return;
         }
         if (!event.isShortcutDown()) {
+            return;
+        }
+        // Quick bookmarks: Ctrl+1…9 jumps, Ctrl+Shift+1…9 sets / takes off (Ctrl+0 stays the zoom reset).
+        int digit = bookmarkDigit(event.getCode());
+        if (digit > 0 && !event.isAltDown()) {
+            boolean done = event.isShiftDown()
+                    ? editorHost.toggleNumberedBookmark(digit) : editorHost.goToNumberedBookmark(digit);
+            if (done) {
+                event.consume();
+            }
             return;
         }
         switch (event.getCode()) {
@@ -1000,6 +1026,28 @@ public class UnifiedShellView extends BorderPane {
             }
             default -> { /* let other editor shortcuts through */ }
         }
+    }
+
+    /** @return 1–9 for the digit keys (main row or keypad), 0 otherwise. */
+    static int bookmarkDigit(javafx.scene.input.KeyCode code) {
+        return switch (code) {
+            case DIGIT1, NUMPAD1 -> 1;
+            case DIGIT2, NUMPAD2 -> 2;
+            case DIGIT3, NUMPAD3 -> 3;
+            case DIGIT4, NUMPAD4 -> 4;
+            case DIGIT5, NUMPAD5 -> 5;
+            case DIGIT6, NUMPAD6 -> 6;
+            case DIGIT7, NUMPAD7 -> 7;
+            case DIGIT8, NUMPAD8 -> 8;
+            case DIGIT9, NUMPAD9 -> 9;
+            default -> 0;
+        };
+    }
+
+    /** Opens the Bookmarks side panel (Edit → Bookmarks → Show All). */
+    public void showBookmarksPanel() {
+        selectionModel.select(Activity.BOOKMARKS);
+        revealSidePanel();
     }
 
     /** The document whose encoding the status bar follows (it is known only once the file is read). */
@@ -1507,6 +1555,7 @@ public class UnifiedShellView extends BorderPane {
             case "validation" -> validationPanel();
             case "transform" -> new org.fxt.freexmltoolkit.controls.shell.editor.TransformPanel(editorHost);
             case "favorites" -> new org.fxt.freexmltoolkit.controls.shell.editor.FavoritesActivityPanel(editorHost);
+            case "bookmarks" -> new org.fxt.freexmltoolkit.controls.shell.editor.BookmarksPanel(editorHost);
             case "pdf" -> new org.fxt.freexmltoolkit.controls.shell.editor.FopPanel(editorHost);
             case "signature" -> {
                 // The panel only picks the action; keystore and form are on the Signature page.
@@ -1824,6 +1873,12 @@ public class UnifiedShellView extends BorderPane {
     @FXML public void onProfileQuery() {
         toolbar("profile_query");
         editorActions.profileActiveQuery();
+    }
+
+    /** Run menu → Show Execution Plan: Saxon's plan of the active XQuery or XSLT in a tool tab. */
+    @FXML public void onShowPlan() {
+        toolbar("show_plan");
+        editorActions.explainActive();
     }
 
     /** Run menu → Debug Schematron: debugs the active Schematron (compiled to XSLT) against the Run target. */
@@ -2173,6 +2228,8 @@ public class UnifiedShellView extends BorderPane {
         actionDebugTransform.setDisable(actionRunTransform.isDisable());
         actionDebugQuery.setDisable(type != org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XQUERY);
         actionProfileQuery.setDisable(actionDebugQuery.isDisable());
+        actionShowPlan.setDisable(type != org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XQUERY
+                && type != org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XSLT);
         actionCheckCompatibility.setDisable(
                 org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.compatibilityKind(type) == null);
         actionCheckCompatibility.setVisible(

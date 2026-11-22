@@ -65,10 +65,9 @@ class AppearanceDocScreenshotGenerator {
         try {
             onFx(() -> ThemeManager.apply(root.getScene(), false));
 
-            // The Settings page scrolled to its Appearance cards
+            // The Settings page, where the accent colour is chosen
             onFx(() -> shell.getSelectionModel().select(Activity.SETTINGS));
             settle(800);
-            shot("unified-shell-settings-appearance");
 
             // The same page in the violet accent, light and dark, set through the page itself
             SettingsPanel panel = findSettings(root);
@@ -93,7 +92,7 @@ class AppearanceDocScreenshotGenerator {
             settle(800);
             shot("unified-shell-settings-editor-font");
             var host = shell.getEditorHost();
-            java.nio.file.Path xml = java.nio.file.Path.of("src/main/resources/examples/getting-started/order.xml");
+            java.nio.file.Path xml = DocFiles.gettingStarted("order.xml");
             onFx(() -> host.openFile(xml.toAbsolutePath()));
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                     () -> host.getActiveText().map(t -> t.contains("<order")).orElse(false));

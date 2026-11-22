@@ -39,6 +39,7 @@ class RenderErrorMonitorTest {
         assertEquals(1, seen.size(), "once per session");
         RenderErrorMonitor.RenderPipelineError error = seen.getFirst();
         assertTrue(error.getMessage().startsWith("java.lang.NullPointerException: Cannot invoke"), error.getMessage());
+        assertEquals("java.lang.NullPointerException", error.reportedClassName(), "class only, for the telemetry");
         StackTraceElement top = error.getStackTrace()[0];
         assertEquals("com.sun.prism.d3d.D3DTexture", top.getClassName());
         assertEquals("getContext", top.getMethodName());

@@ -132,7 +132,7 @@ public class XsltDebugTraceListener implements TraceListener {
             if (sink != null) {
                 int line = sourceLocation(traceable).line();
                 sink.accept(new XsltTransformationResult.TransformationMessage("INFO",
-                        properties.get("label") + ": " + properties.get("value"), line,
+                        XsltSandbox.traceLine(properties.get("label"), properties.get("value")), line,
                         "trace()" + (line > 0 ? " line " + line : "")));
             }
         }

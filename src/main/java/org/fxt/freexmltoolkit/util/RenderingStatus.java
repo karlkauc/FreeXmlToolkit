@@ -55,26 +55,48 @@ public final class RenderingStatus {
      */
     public static String activePipelineDescription() {
         String className = activePipelineClassName();
+        return switch (String.valueOf(pipelineId(className))) {
+            case "d3d" -> "Hardware — Direct3D";
+            case "es2" -> "Hardware — OpenGL ES2";
+            case "mtl" -> "Hardware — Metal";
+            case "sw" -> "Software";
+            case "j2d" -> "Software — Java2D";
+            default -> className;
+        };
+    }
+
+    /**
+     * A fixed short id of the active pipeline for the telemetry: {@code d3d}, {@code es2},
+     * {@code mtl}, {@code sw}, {@code j2d} or {@code other}.
+     *
+     * @return the id, or {@code null} if the pipeline cannot be determined
+     */
+    public static String activePipelineId() {
+        return pipelineId(activePipelineClassName());
+    }
+
+    /** {@link #activePipelineId()} for a pipeline class name. */
+    static String pipelineId(String className) {
         if (className == null) {
             return null;
         }
         String lower = className.toLowerCase(Locale.ROOT);
         if (lower.contains(".d3d.") || lower.contains("d3dpipeline")) {
-            return "Hardware — Direct3D";
+            return "d3d";
         }
         if (lower.contains(".es2.") || lower.contains("es2pipeline")) {
-            return "Hardware — OpenGL ES2";
+            return "es2";
         }
         if (lower.contains(".mtl.") || lower.contains("mtlpipeline") || lower.contains("metal")) {
-            return "Hardware — Metal";
+            return "mtl";
         }
         if (lower.contains(".sw.") || lower.contains("swpipeline")) {
-            return "Software";
+            return "sw";
         }
         if (lower.contains(".j2d.") || lower.contains("j2dpipeline")) {
-            return "Software — Java2D";
+            return "j2d";
         }
-        return className;
+        return "other";
     }
 
     /**

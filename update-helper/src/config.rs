@@ -37,7 +37,9 @@ pub struct Config {
 
 fn default_parent_wait_timeout() -> u64 { 120 }
 fn default_post_exit_cooldown() -> u64 { 3 }
-fn default_copy_retry_max() -> u32 { 6 }
+/// With the delay capped at `copy::MAX_RETRY_DELAY_MS` (8 s): 1+2+4+8×21 ≈ 3 min per locked file.
+/// A virus scanner can hold freshly replaced files that long; giving up leaves a half-copied install.
+fn default_copy_retry_max() -> u32 { 24 }
 fn default_copy_retry_initial_ms() -> u64 { 1000 }
 
 impl Config {
@@ -138,7 +140,7 @@ new_version = "1.10.0"
         assert_eq!(cfg.parent_pid, 1234);
         assert_eq!(cfg.parent_wait_timeout_seconds, 120);
         assert_eq!(cfg.post_exit_cooldown_seconds, 3);
-        assert_eq!(cfg.copy_retry_max, 6);
+        assert_eq!(cfg.copy_retry_max, 24);
     }
 
     #[test]

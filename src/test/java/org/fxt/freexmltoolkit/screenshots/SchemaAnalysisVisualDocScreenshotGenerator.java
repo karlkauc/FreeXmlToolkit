@@ -35,7 +35,9 @@ import org.testfx.util.WaitForAsyncUtils;
 class SchemaAnalysisVisualDocScreenshotGenerator {
 
     private static final File OUT_DIR = new File("build/visual-verify");
-    private static final File XSD = new File(System.getProperty("fxt.analysis.xsd", "release/examples/xsd/FundsXML_428.xsd"));
+    private static final File XSD = System.getProperty("fxt.analysis.xsd") != null
+            ? new File(System.getProperty("fxt.analysis.xsd"))
+            : new File(DocFiles.examples(), "xsd/FundsXML_428.xsd");
 
     private Parent root;
     private UnifiedShellView shell;
@@ -100,7 +102,7 @@ class SchemaAnalysisVisualDocScreenshotGenerator {
         shot("analysis-statistics-dark");
 
         // A small schema with broken constraint XPaths so the XPath tab shows findings.
-        java.nio.file.Path broken = java.nio.file.Files.createTempFile("broken-xpath-", ".xsd");
+        java.nio.file.Path broken = DocFiles.work("schema-analysis").resolve("broken-xpath.xsd");
         java.nio.file.Files.writeString(broken, """
                 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
                            vc:minVersion="1.1">

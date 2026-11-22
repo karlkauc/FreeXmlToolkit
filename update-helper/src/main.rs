@@ -2,9 +2,11 @@ mod cleanup;
 mod config;
 mod copy;
 mod error;
+mod icons;
 mod logger;
 mod process;
 mod restart;
+mod result;
 
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -62,36 +64,13 @@ fn run(config_path: &std::path::Path) -> Result<()> {
     let config = Config::load(config_path)?;
     let log = Logger::open(&config.log_path);
 
-    log.info(&format!("UpdateHelper started (Rust v{})", HELPER_VERSION));
-    log.info(&format!("Schema version: {}", config.schema_version));
-    log.info(&format!(
-        "Parent PID: {} (creation: {})",
-        config.parent_pid, config.parent_creation_time
-    ));
-    log.info(&format!(
-        "Update: {} -> {}",
-        config.old_version, config.new_version
-    ));
-    log.info(&format!("Install dir: {}", config.install_dir.display()));
-    log.info(&format!("Extracted dir: {}", config.extracted_dir.display()));
-
-    log.info("Waiting for parent process to exit...");
-    let parent_timeout = Duration::from_secs(config.parent_wait_timeout_seconds);
-    process::wait_for_parent_exit(
-        config.parent_pid,
-        config.parent_creation_time,
-        parent_timeout,
-        &log,
-    )?;
-
-    log.info(&format!(
-        "Cooldown for {} seconds...",
-        config.post_exit_cooldown_seconds
-    ));
-    std::thread::sleep(Duration::from_secs(config.post_exit_cooldown_seconds));
-
-    let source_dir = locate_source_dir(&config.extracted_dir, &config.launcher_path, &log)?;
-    log.info(&format!("Copying from: {}", source_dir.display()));
+    let source_dir = match prepare(&config, &log) {
+        Ok(dir) => dir,
+        Err(e) => {
+            log_result(&log, Some(&e), &config);
+            return Err(e);
+        }
+    };
 
     // Capture the copy outcome but DO NOT bail out on failure: the launcher
     // .exe and the application JAR sit alphabetically before runtime/bin
@@ -112,11 +91,19 @@ fn run(config_path: &std::path::Path) -> Result<()> {
             e
         )),
     }
+    // Before the restart: the new process may read the log as soon as it runs.
+    log_result(&log, copy_result.as_ref().err(), &config);
+
+    // New icons (launcher, shortcuts, associated files) instead of Explorer's cached ones.
+    icons::refresh_icon_cache(&log);
 
     log.info(&format!("Restarting: {}", config.launcher_path.display()));
     let restart_result = restart::restart_application(&config.launcher_path, &log);
     if let Err(e) = &restart_result {
         log.error(&format!("Restart failed: {}", e));
+        if copy_result.is_ok() {
+            log_result(&log, Some(e), &config);
+        }
     }
 
     cleanup::delete_dir_quietly(&config.extracted_dir, &log);
@@ -134,6 +121,47 @@ fn run(config_path: &std::path::Path) -> Result<()> {
         // Both failed: surface the copy error since it's the root cause.
         (Err(copy_err), Err(_)) => Err(copy_err),
     }
+}
+
+/// One fixed, machine-readable line the next start of the application reads to report why an
+/// update did not arrive (a code and a top-level folder of the install, never a path).
+fn log_result(log: &Logger, error: Option<&HelperError>, config: &Config) {
+    log.info(&result::line(error, &config.install_dir));
+}
+
+/// Everything before the copy: wait for the application to exit, find the new files.
+fn prepare(config: &Config, log: &Logger) -> Result<PathBuf> {
+    log.info(&format!("UpdateHelper started (Rust v{})", HELPER_VERSION));
+    log.info(&format!("Schema version: {}", config.schema_version));
+    log.info(&format!(
+        "Parent PID: {} (creation: {})",
+        config.parent_pid, config.parent_creation_time
+    ));
+    log.info(&format!(
+        "Update: {} -> {}",
+        config.old_version, config.new_version
+    ));
+    log.info(&format!("Install dir: {}", config.install_dir.display()));
+    log.info(&format!("Extracted dir: {}", config.extracted_dir.display()));
+
+    log.info("Waiting for parent process to exit...");
+    let parent_timeout = Duration::from_secs(config.parent_wait_timeout_seconds);
+    process::wait_for_parent_exit(
+        config.parent_pid,
+        config.parent_creation_time,
+        parent_timeout,
+        log,
+    )?;
+
+    log.info(&format!(
+        "Cooldown for {} seconds...",
+        config.post_exit_cooldown_seconds
+    ));
+    std::thread::sleep(Duration::from_secs(config.post_exit_cooldown_seconds));
+
+    let source_dir = locate_source_dir(&config.extracted_dir, &config.launcher_path, log)?;
+    log.info(&format!("Copying from: {}", source_dir.display()));
+    Ok(source_dir)
 }
 
 /// The extracted ZIP has a top-level "FreeXmlToolkit" directory. Locate it by

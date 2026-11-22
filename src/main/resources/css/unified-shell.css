@@ -1186,6 +1186,75 @@
     -fx-text-fill: -fxt-text-secondary;
 }
 
+/* ----- Line bookmarks: gutter badge, scroll-bar markers, Bookmarks panel ----- */
+/* Quick bookmark 1-9 in the gutter and the panel: a small filled badge with the digit. */
+.fxt-bookmark-badge {
+    -fx-background-color: -fxt-indigo;
+    -fx-background-radius: 2;
+    -fx-text-fill: -fxt-on-primary;
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 9px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 2 0 2;
+    -fx-min-width: 10;
+    -fx-alignment: center;
+}
+
+.fxt-bookmark-badge.fxt-bookmark-badge-orphaned {
+    -fx-background-color: -fxt-warning;
+}
+
+/* Markers over the editor's vertical scroll bar (ScrollMarkerStrip). */
+.fxt-scroll-marker {
+    -fx-background-color: -fxt-text-muted;
+    -fx-background-radius: 1;
+    -fx-opacity: 0.9;
+}
+
+.fxt-scroll-marker.fxt-scroll-marker-bookmark {
+    -fx-background-color: -fxt-indigo;
+}
+
+.fxt-scroll-marker.fxt-scroll-marker-bookmark-orphaned {
+    -fx-background-color: -fxt-warning;
+}
+
+.fxt-scroll-marker:hover {
+    -fx-opacity: 1;
+    -fx-scale-x: 1.2;
+    -fx-scale-y: 1.6;
+}
+
+.fxt-open-editors .list-cell.fxt-bookmarks-file {
+    -fx-padding: 6 6 2 6;
+}
+
+.fxt-bookmarks-file-name {
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-bookmarks-missing .fxt-bookmarks-file-name {
+    -fx-text-fill: -fxt-text-muted;
+}
+
+.fxt-bookmarks-missing .fxt-bookmarks-file-name .text {
+    -fx-strikethrough: true;
+}
+
+.fxt-bookmarks-count {
+    -fx-text-fill: -fxt-text-muted;
+    -fx-font-size: 10px;
+}
+
+.fxt-bookmarks-title {
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-bookmarks-detail {
+    -fx-text-fill: -fxt-text-secondary;
+}
+
 /* ----- Settings page (main editor area, color-coded section cards) ----- */
 .fxt-settings-page {
     -fx-padding: 24 28 24 28;
@@ -1553,6 +1622,28 @@
     -fx-text-fill: -fxt-text-secondary;
 }
 .fxt-query-error-view .fxt-query-error-hint-icon { -fx-icon-color: -fxt-warning-text; }
+/* Default-namespace chip of the Query Console: outlined; selected = on (colour only, no size change) */
+.fxt-query-ns-chip {
+    -fx-background-color: transparent;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 1 8 1 6;
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-cursor: hand;
+}
+.fxt-query-ns-chip:selected {
+    -fx-background-color: -fxt-primary-fill;
+    -fx-border-color: -fxt-primary-fill;
+    -fx-text-fill: -fxt-on-primary;
+}
+.fxt-query-ns-chip:hover {
+    -fx-border-color: -fxt-primary;
+}
+.fxt-query-ns-chip:selected .iconify-icon {
+    -fx-icon-color: -fxt-on-primary;
+}
+
 .fxt-query-error-view .fxt-query-error-suggestion {
     -fx-font-family: "JetBrains Mono", monospace;
     -fx-background-color: -fxt-bg-canvas;
@@ -2142,6 +2233,41 @@
     -fx-icon-color: -fxt-danger;
 }
 
+/* A parameter the stylesheet requires (Transform panel). */
+.fxt-param-required {
+    -fx-font-weight: bold;
+}
+
+/* Messages strip under the result (xsl:message, fn:trace). */
+.fxt-output-messages {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 1 0 0 0;
+}
+
+.fxt-output-messages-toggle {
+    -fx-background-color: transparent;
+    -fx-padding: 3 8 3 16;
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-output-messages-toggle:hover {
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-output-messages-list .list-cell {
+    -fx-font-size: 11px;
+}
+
+.fxt-output-messages-list .list-cell.sev-error {
+    -fx-text-fill: -fxt-tool-danger-fg;
+}
+
+.fxt-output-messages-list .list-cell.sev-trace {
+    -fx-text-fill: -fxt-text-secondary;
+}
+
 /* Keep the output panel's view toggles compact (header height is fixed). */
 .fxt-output-header .fxt-seg {
     -fx-padding: 2 10 2 10;
@@ -2285,16 +2411,6 @@
 }
 
 /* Hero */
-.fxt-welcome-hero-icon {
-    -fx-background-color: -fxt-primary-fill;
-    -fx-background-radius: 16;
-    -fx-min-width: 64; -fx-min-height: 64;
-    -fx-max-width: 64; -fx-max-height: 64;
-    -fx-icon-color: white;
-}
-.fxt-welcome-hero-icon .ikon-font-icon, .fxt-welcome-hero-icon .iconify-icon {
-    -fx-fill: white;
-}
 .fxt-welcome-hero-title {
     -fx-font-family: "Inter", sans-serif;
     -fx-font-size: 28px;

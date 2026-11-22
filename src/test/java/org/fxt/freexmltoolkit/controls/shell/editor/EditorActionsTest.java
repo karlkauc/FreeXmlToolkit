@@ -391,6 +391,37 @@ class EditorActionsTest {
     }
 
     @Test
+    void aQueryTabImportsModulesNextToTheQueryAndReadsDocumentsNextToTheTarget(@TempDir Path tmp) throws Exception {
+        EditorHost host = shell.getEditorHost();
+        Path data = Files.createDirectories(tmp.resolve("data"));
+        Path ext = data.resolve("ext.xml");
+        Files.writeString(ext, "<r><item>FROM-EXT</item></r>");
+        Files.writeString(data.resolve("rates.xml"), "<rates>RATE</rates>");
+        Path queries = Files.createDirectories(tmp.resolve("queries"));
+        Files.writeString(queries.resolve("lib.xq"),
+                "module namespace m = \"urn:m\"; declare function m:tag($s) { '[' || $s || ']' };");
+        Path xq = queries.resolve("q.xq");
+        Files.writeString(xq, "import module namespace m = \"urn:m\" at \"lib.xq\";\n"
+                + "m:tag(//item) || m:tag(string(doc(resolve-uri('rates.xml', base-uri(.)))))");
+
+        openAndAwait(host, xq, "item");
+        var queryDoc = host.getActiveDocument().orElseThrow();
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setQueryTarget(queryDoc, new QueryTarget.FsFile(ext.toFile()));
+            return null;
+        });
+        EditorActions actions = new EditorActions(host);
+        var out = WaitForAsyncUtils.waitForAsyncFx(2000, host::transformOutputPanel);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            actions.runActiveQuery();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                () -> out.getOutputText() != null && out.getOutputText().contains("[RATE]"));
+        assertTrue(out.getOutputText().contains("[FROM-EXT][RATE]"), out.getOutputText());
+    }
+
+    @Test
     void targetFallsBackToAutomaticWhenTargetDocumentIsClosed(@TempDir Path tmp) throws Exception {
         EditorHost host = shell.getEditorHost();
         Path a = tmp.resolve("a.xml");
@@ -486,6 +517,38 @@ class EditorActionsTest {
                 () -> out.getOutputText() != null && out.getOutputText().contains("Open an XML document"));
         assertTrue(out.getOutputText().contains("Open an XML document first"),
                 "with only the stylesheet open, a guard message must be shown: " + out.getOutputText());
+    }
+
+    @Test
+    void aQueryTabAsksOnceForARequiredExternalVariable(@TempDir Path tmp) throws Exception {
+        EditorHost host = shell.getEditorHost();
+        Path xml = tmp.resolve("order.xml");
+        Files.writeString(xml, "<order><item>A</item><item>B</item></order>");
+        Path xq = tmp.resolve("times.xq");
+        Files.writeString(xq, "declare variable $n as xs:integer external; count(//item) * $n");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("order")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xq));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("external")).orElse(false));
+        int[] asked = {0};
+        var before = EditorActions.variablePrompt;
+        EditorActions.variablePrompt = (name, type) -> {
+            asked[0]++;
+            return java.util.Optional.of("21");
+        };
+        try {
+            EditorActions actions = new EditorActions(host);
+            var out = WaitForAsyncUtils.waitForAsyncFx(2000, host::transformOutputPanel);
+            WaitForAsyncUtils.waitForAsyncFx(2000, actions::runActiveQuery);
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> out.getOutputText().contains("42"));
+            WaitForAsyncUtils.waitForAsyncFx(2000, actions::runActiveQuery);
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> out.getOutputText().contains("42"));
+            assertEquals(1, asked[0], "the value is remembered for the file");
+        } finally {
+            EditorActions.variablePrompt = before;
+        }
     }
 
     private void openAndAwait(EditorHost host, Path file, String marker) throws Exception {

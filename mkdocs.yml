@@ -1,4 +1,4 @@
-site_name: FreeXmlToolkit Documentation
+site_name: FreeXmlToolkit Docs
 site_description: Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)
 site_author: Karl Kauc
 site_url: https://karlkauc.github.io/FreeXmlToolkit/
@@ -31,7 +31,7 @@ theme:
   features:
     - navigation.tabs
     - navigation.sections
-    - navigation.expand
+    - navigation.indexes
     - navigation.top
     - navigation.footer
     - search.highlight
@@ -41,14 +41,86 @@ theme:
     - announce.dismiss
   icon:
     repo: fontawesome/brands/github
-  logo: img/logo.png
-  favicon: img/logo.png
+  # Brand (logo suite S1): Inter / JetBrains Mono as in the application, served from
+  # docs/overrides/fonts (see extra.css) - nothing is loaded from Google Fonts
+  font: false
+  logo: img/logo-symbol.svg
+  favicon: img/favicon.svg
   custom_dir: docs/overrides
 
 plugins:
   - search:
       lang: en
   # Click on an image opens it full screen (zoom, arrow keys between the images of a page)
+  # Old addresses (application, README, bookmarks) keep working; the fragment is carried over
+  - redirects:
+      redirect_maps:
+        installation.md: get-started/install.md
+        unified-shell.md: get-started/workspace-tour.md
+        xml-editor.md: guides/edit-xml/index.md
+        grid.md: guides/edit-xml/grid.md
+        context-sensitive-intellisense.md: guides/edit-xml/auto-completion.md
+        large-files.md: guides/edit-xml/large-files.md
+        template-management.md: guides/edit-xml/templates.md
+        favorites-system.md: guides/edit-xml/favorites.md
+        bookmarks.md: guides/edit-xml/bookmarks.md
+        json-editor.md: guides/json-yaml.md
+        xsd-tools.md: guides/design-schemas/index.md
+        profiled-xml-generation.md: guides/design-schemas/sample-xml-profiles.md
+        schema-library.md: guides/design-schemas/schema-library.md
+        validation-panel.md: guides/validate/index.md
+        xsd-validation.md: guides/validate/xsd.md
+        schematron-support.md: guides/validate/schematron.md
+        schematron-quick-fixes.md: guides/validate/schematron-quick-fixes.md
+        transform-panel.md: reference/transform-panel.md
+        xslt-viewer.md: guides/transform-query/run-xslt.md
+        xslt-developer.md: guides/transform-query/run-xslt.md
+        query-console.md: guides/transform-query/query-console.md
+        debugger.md: guides/transform-query/debug.md
+        xproc.md: guides/transform-query/xproc.md
+        pdf-generator.md: guides/publish-pdf.md
+        digital-signatures.md: guides/sign-encrypt/signatures.md
+        xml-encryption.md: guides/sign-encrypt/encryption.md
+        projects.md: guides/projects.md
+        ai-assistant.md: guides/ai-assistant.md
+        industry-plugins.md: industry/index.md
+        fundsxml-extensions.md: industry/fundsxml.md
+        plugin-iso20022.md: industry/iso20022.md
+        plugin-ebinterface.md: industry/ebinterface.md
+        plugin-findatex.md: industry/findatex.md
+        plugin-xbrl.md: industry/xbrl.md
+        plugin-pk-meldewesen.md: industry/pk-meldewesen.md
+        plugin-kag-meldewesen.md: industry/kag-meldewesen.md
+        plugin-esma-reporting.md: industry/esma-reporting.md
+        identifier-lookup.md: industry/identifier-lookup.md
+        plugins.md: industry/manage-extensions.md
+        command-line.md: automate/command-line.md
+        mcp-server.md: automate/mcp-server.md
+        administration.md: administer/policies.md
+        offline-operation.md: administer/offline.md
+        SECURITY.md: administer/security-features.md
+        threat-model.md: administer/threat-model.md
+        telemetry.md: administer/privacy-telemetry.md
+        code-signing-policy.md: administer/code-signing.md
+        file-associations.md: administer/file-associations.md
+        inspector.md: reference/inspector.md
+        keyboard-shortcuts.md: reference/keyboard-shortcuts.md
+        settings.md: reference/settings.md
+        language-versions.md: reference/standards-versions.md
+        schema-support.md: reference/schema-support.md
+        xsddoc-tags.md: reference/xsddoc-tags.md
+        execution-statistics.md: reference/execution-statistics.md
+        faq.md: reference/faq.md
+        whats-new.md: reference/whats-new.md
+        comparison.md: reference/comparison.md
+        accessibility.md: reference/accessibility.md
+        licenses.md: reference/licenses.md
+        plugin-development.md: extend/writing-plugins.md
+        technology-stack.md: extend/technology-stack.md
+        contributing.md: extend/contributing.md
+        code-of-conduct.md: extend/code-of-conduct.md
+        security-policy.md: extend/security-policy.md
+        xml-editor-features.md: guides/edit-xml/index.md
   - glightbox:
       zoomable: true
       draggable: true
@@ -58,11 +130,8 @@ plugins:
 
 # Internal developer-reference documents that are not part of the published site
 # (gitignore-style patterns): planning/spec notes plus a few orphan dev docs.
-# Pages kept only so that old links keep working
-not_in_nav: |
-  xml-editor-features.md
-
 exclude_docs: |
+  overrides/fonts/README.md
   superpowers/
   ThreadPoolArchitecture.md
   testing/auto-update-windows.md
@@ -97,6 +166,9 @@ markdown_extensions:
 
 extra:
   social:
+    - icon: fontawesome/solid/globe
+      link: https://freexmltoolkit.org/
+      name: freexmltoolkit.org
     - icon: fontawesome/brands/github
       link: https://github.com/karlkauc/FreeXmlToolkit
     - icon: fontawesome/solid/heart
@@ -109,85 +181,131 @@ extra_css:
 
 extra_javascript:
   - overrides/javascripts/download.js
+  - overrides/javascripts/moved-anchors.js
 
 copyright: Copyright &copy; 2024-2026 Karl Kauc
 
 nav:
-  - Home: index.md
-  - Download: https://github.com/karlkauc/FreeXmlToolkit/releases/latest
-  - Sponsor: https://github.com/sponsors/karlkauc
-  - Getting Started:
-    - Installation: installation.md
-    - Unified Shell: unified-shell.md
-    - Keyboard Shortcuts: keyboard-shortcuts.md
-    - Settings: settings.md
-    - Properties Inspector: inspector.md
-    - File Associations: file-associations.md
-    - Execution Statistics: execution-statistics.md
-    - Command Line (fxt-cli): command-line.md
-    - MCP Server (AI agents): mcp-server.md
-    - AI Assistant: ai-assistant.md
-  - XML Editing:
-    - XML Editor: xml-editor.md
-    - Grid View: grid.md
-    - Large File Viewer: large-files.md
-    - Auto-Completion: context-sensitive-intellisense.md
-    - Query Console: query-console.md
-    - Language Versions: language-versions.md
-    - Templates: template-management.md
-    - Favorites: favorites-system.md
-  - JSON Editing:
-    - JSON Editor: json-editor.md
-  - XSD Tools:
-    - XSD Editor & Tools: xsd-tools.md
-    - XsdDoc Tags: xsddoc-tags.md
-    - Profiled XML Generation: profiled-xml-generation.md
-    - XSD Validation: xsd-validation.md
-    - Schema Support: schema-support.md
-    - Schema Library: schema-library.md
-  - Transformations:
-    - Transform Panel: transform-panel.md
-    - Projects & Scenarios: projects.md
-    - XSLT Quick Start & Examples: xslt-viewer.md
-    - XSLT Developer: xslt-developer.md
-    - Debugger: debugger.md
-    - XProc Pipelines: xproc.md
-    - PDF Generator (FOP): pdf-generator.md
-  - Validation:
-    - Validation Panel: validation-panel.md
-    - Schematron: schematron-support.md
-    - Schematron Quick Fixes: schematron-quick-fixes.md
-  - Industry Standards:
-    - FundsXML Extension: fundsxml-extensions.md
-    - Industry Plugins:
-      - Overview: industry-plugins.md
-      - ISO 20022 Payments (SEPA): plugin-iso20022.md
-      - ebInterface: plugin-ebinterface.md
-      - FinDatEx Templates: plugin-findatex.md
-      - XBRL (with Arelle): plugin-xbrl.md
-      - PK-Meldewesen (FMA): plugin-pk-meldewesen.md
-      - KAG-Meldewesen (FMA): plugin-kag-meldewesen.md
-      - ESMA Reporting (EMIR, SFTR, MiFIR): plugin-esma-reporting.md
-    - Online Identifier Lookup: identifier-lookup.md
-    - Extensions: plugins.md
-    - Writing Extensions (Plugins): plugin-development.md
-  - Security:
-    - Security Features: SECURITY.md
-    - Digital Signatures: digital-signatures.md
-    - XML Encryption: xml-encryption.md
-    - Privacy & Telemetry: telemetry.md
-    - Code Signing Policy: code-signing-policy.md
-    - Threat Model: threat-model.md
-    - Operation without Internet: offline-operation.md
-    - Administration & Policies: administration.md
+  - Get started:
+    - index.md
+    - Install: get-started/install.md
+    - First steps: get-started/first-steps.md
+    - Tour of the workspace: get-started/workspace-tour.md
+    - Coming from another editor: get-started/coming-from-another-editor.md
+    - What FreeXmlToolkit can do: get-started/features.md
+    - Get help: get-started/get-help.md
+  - Guides:
+    - guides/index.md
+    - Edit XML:
+      - guides/edit-xml/index.md
+      - Working with files: guides/edit-xml/working-with-files.md
+      - Search and replace in files: guides/edit-xml/search-in-files.md
+      - Grid view: guides/edit-xml/grid.md
+      - Auto-completion: guides/edit-xml/auto-completion.md
+      - Properties of a node: guides/edit-xml/properties.md
+      - Find and replace: guides/edit-xml/find-replace.md
+      - Templates: guides/edit-xml/templates.md
+      - Favorites: guides/edit-xml/favorites.md
+      - Bookmarks: guides/edit-xml/bookmarks.md
+      - Large files: guides/edit-xml/large-files.md
+    - JSON & YAML:
+      - guides/json-yaml.md
+      - JSON grid: guides/json-grid.md
+    - Design schemas:
+      - guides/design-schemas/index.md
+      - The Schema panel: guides/design-schemas/schema-panel.md
+      - Graphic view: guides/design-schemas/graphic-view.md
+      - Overview view: guides/design-schemas/overview-view.md
+      - Types: guides/design-schemas/types.md
+      - Text view: guides/design-schemas/text-view.md
+      - Schema analysis: guides/design-schemas/analysis.md
+      - Schema documentation: guides/design-schemas/documentation.md
+      - Sample XML: guides/design-schemas/sample-xml.md
+      - Sample XML with profiles: guides/design-schemas/sample-xml-profiles.md
+      - Flatten a schema: guides/design-schemas/flatten.md
+      - Schema Library: guides/design-schemas/schema-library.md
+    - Validate:
+      - guides/validate/index.md
+      - XSD validation: guides/validate/xsd.md
+      - Folders and export: guides/validate/folders.md
+      - Working with problems: guides/validate/problems.md
+      - Schematron: guides/validate/schematron.md
+      - Schematron Quick Fixes: guides/validate/schematron-quick-fixes.md
+    - Transform & query:
+      - guides/transform-query/index.md
+      - Run a transformation: guides/transform-query/run-xslt.md
+      - Query console: guides/transform-query/query-console.md
+      - Debugger: guides/transform-query/debug.md
+      - Profile: guides/transform-query/profile.md
+      - Test with XSpec: guides/transform-query/xspec.md
+      - XProc pipelines: guides/transform-query/xproc.md
+      - External XSLT processors: guides/transform-query/external-processors.md
+      - Examples: guides/transform-query/examples.md
+    - PDF with XSL-FO: guides/publish-pdf.md
+    - Compare and merge: guides/compare-merge.md
+    - Convert formats: guides/convert.md
+    - Sign & encrypt:
+      - guides/sign-encrypt/index.md
+      - Signatures: guides/sign-encrypt/signatures.md
+      - Encryption: guides/sign-encrypt/encryption.md
+    - Projects & scenarios: guides/projects.md
+    - AI assistant: guides/ai-assistant.md
+  - Industry standards:
+    - industry/index.md
+    - FundsXML: industry/fundsxml.md
+    - ISO 20022 Payments (SEPA): industry/iso20022.md
+    - ebInterface: industry/ebinterface.md
+    - FinDatEx Templates: industry/findatex.md
+    - XBRL (with Arelle): industry/xbrl.md
+    - PK-Meldewesen (FMA): industry/pk-meldewesen.md
+    - KAG-Meldewesen (FMA): industry/kag-meldewesen.md
+    - ESMA Reporting (EMIR, SFTR, MiFIR): industry/esma-reporting.md
+    - Online identifier lookup: industry/identifier-lookup.md
+    - Manage extensions: industry/manage-extensions.md
+  - Automate:
+    - automate/index.md
+    - Command line (fxt-cli): automate/command-line.md
+    - Validate and query: automate/cli-validate.md
+    - Transform and publish: automate/cli-transform.md
+    - Compare, merge, convert: automate/cli-compare.md
+    - Sign and encrypt: automate/cli-sign.md
+    - CI recipes: automate/ci-recipes.md
+    - MCP server: automate/mcp-server.md
+  - Administer:
+    - administer/index.md
+    - Policies and silent installation: administer/policies.md
+    - Operation without internet: administer/offline.md
+    - Security features: administer/security-features.md
+    - Threat model: administer/threat-model.md
+    - Privacy & telemetry: administer/privacy-telemetry.md
+    - Code signing: administer/code-signing.md
+    - File associations: administer/file-associations.md
   - Reference:
-    - What's New: whats-new.md
-    - FAQ & Troubleshooting: faq.md
-    - Technology Stack: technology-stack.md
-    - Comparison with Other Editors: comparison.md
-    - Accessibility: accessibility.md
-    - Licenses: licenses.md
-  - Community:
-    - Contributing: contributing.md
-    - Code of Conduct: code-of-conduct.md
-    - Security Policy: security-policy.md
+    - reference/index.md
+    - Workspace: reference/workspace.md
+    - Transform panel: reference/transform-panel.md
+    - Keyboard shortcuts: reference/keyboard-shortcuts.md
+    - Settings: reference/settings.md
+    - Properties Inspector: reference/inspector.md
+    - Standards and language versions: reference/standards-versions.md
+    - Schema support: reference/schema-support.md
+    - XsdDoc tags: reference/xsddoc-tags.md
+    - Project file: reference/project-file.md
+    - Execution statistics: reference/execution-statistics.md
+    - Glossary: reference/glossary.md
+    - FAQ & troubleshooting: reference/faq.md
+    - What's new:
+      - reference/whats-new.md
+      - 3.0 to 3.3: reference/whats-new-3.md
+      - 2.x: reference/whats-new-2.md
+    - Comparison with other editors: reference/comparison.md
+    - Accessibility: reference/accessibility.md
+    - Licenses: reference/licenses.md
+  - Extend & contribute:
+    - extend/index.md
+    - Writing plugins: extend/writing-plugins.md
+    - Technology stack: extend/technology-stack.md
+    - Contributing: extend/contributing.md
+    - Code of conduct: extend/code-of-conduct.md
+    - Reporting a vulnerability: extend/security-policy.md
+

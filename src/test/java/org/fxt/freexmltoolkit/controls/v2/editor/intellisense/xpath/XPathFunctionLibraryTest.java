@@ -362,4 +362,24 @@ class XPathFunctionLibraryTest {
             assertTrue(items.isEmpty(), "Whitespace prefix should return empty list");
         }
     }
+
+    @org.junit.jupiter.api.Test
+    void theCatalogComesFromSaxonWithArityAndVersion() {
+        org.junit.jupiter.api.Assertions.assertTrue(XPathFunctionLibrary.functionCount() > 200,
+                "Saxon's functions plus the xs: constructors: " + XPathFunctionLibrary.functionCount());
+        org.junit.jupiter.api.Assertions.assertEquals(
+                "substring($value as xs:string?, $start as xs:numeric[, $length as xs:numeric?])",
+                XPathFunctionLibrary.signatureOf("substring"));
+        org.junit.jupiter.api.Assertions.assertTrue(XPathFunctionLibrary.signatureOf("concat").endsWith(", ...)"),
+                XPathFunctionLibrary.signatureOf("concat"));
+        var names = XPathFunctionLibrary.functionNames();
+        org.junit.jupiter.api.Assertions.assertTrue(names.containsAll(java.util.List.of("parse-json", "json-to-xml",
+                "xml-to-json", "analyze-string", "random-number-generator", "map:get", "math:pi", "xs:date")));
+        org.junit.jupiter.api.Assertions.assertFalse(names.contains("current-group"), "XSLT only");
+        var xpath1 = XPathFunctionLibrary.getFunctionCompletions("", 0,
+                org.fxt.freexmltoolkit.service.standards.XPathVersion.V1_0).stream()
+                .map(org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem::getLabel).toList();
+        org.junit.jupiter.api.Assertions.assertTrue(xpath1.contains("substring-before") && !xpath1.contains("ends-with"),
+                xpath1.toString());
+    }
 }

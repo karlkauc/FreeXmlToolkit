@@ -197,9 +197,13 @@ public final class XPathMatchLocator {
     }
 
     /** Upper bound of result items turned into hits (a query selecting every node of a large file). */
-    static final int MAX_ITEMS = 10_000;
+    public static final int MAX_ITEMS = 10_000;
 
-    private static List<ResultItem> items(String xml, XdmNode document, XdmValue result) {
+    /**
+     * The result items of a value computed on {@code document} (parsed from {@code xml} with line numbers): nodes of
+     * the document are located, other items keep their value only. At most {@link #MAX_ITEMS}.
+     */
+    public static List<ResultItem> items(String xml, XdmNode document, XdmValue result) {
         List<ResultItem> items = new ArrayList<>();
         Map<List<Step>, Optional<ElementRegion>> regions = new HashMap<>();
         for (XdmItem item : result) {

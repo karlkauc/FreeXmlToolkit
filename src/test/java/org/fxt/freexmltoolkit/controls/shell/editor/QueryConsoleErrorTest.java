@@ -159,16 +159,165 @@ class QueryConsoleErrorTest {
 
     @Test
     void anEmptyResultOnANamespacedDocumentExplainsWhy(@TempDir Path tmp) throws Exception {
-        QueryConsole console = open(tmp, "<funds xmlns=\"urn:funds\"><Fund/></funds>");
+        // with the default namespace off (the XPath standard), //Fund matches nothing in a namespaced document
+        setProperty(QuerySettings.DEFAULT_NAMESPACE_KEY, "false");
+        setProperty(QuerySettings.LIVE_PREVIEW_KEY, "false");
+        try {
+            QueryConsole console = open(tmp, "<funds xmlns=\"urn:funds\"><Fund/></funds>");
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                console.setXPath("//Fund");
+                console.runForTest();
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                    () -> console.checkLabel().getStyleClass().contains("fxt-query-check-info")));
+            String text = console.checkLabel().getText();
+            assertTrue(text.contains("urn:funds") && text.contains("*:Fund"), text);
+        } finally {
+            setProperty(QuerySettings.DEFAULT_NAMESPACE_KEY, "true");
+            setProperty(QuerySettings.LIVE_PREVIEW_KEY, "true");
+        }
+    }
+
+    @Test
+    void aBrokenDocumentIsShownAsTheDocumentsErrorAndItsPositionOpensTheDocumentThere(@TempDir Path tmp)
+            throws Exception {
+        QueryConsole console = open(tmp, "<funds>\n  <Fund>\n    <Name>A</Nam>\n  </Fund>\n</funds>");
+        run(console, "//Fund/Name");
+        QueryErrorView view = console.errorView();
+        assertEquals("SXXP0003", view.error().code());
+        String position = ((Hyperlink) view.lookup("#query-error-position")).getText();
+        assertTrue(position.startsWith("document line 3, column "), position);
+        assertTrue(((Label) view.lookup("#query-error-hint")).getText().contains("not well-formed"));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, view::onGoToPosition);
+        assertEquals(3, WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveCaretLineColumn()[0]),
+                "the caret is at the error in the document");
+    }
+
+    @Test
+    void aRelativeDocCallReadsTheFileNextToTheDocument(@TempDir Path tmp) throws Exception {
+        Files.writeString(tmp.resolve("rates.xml"), "<rates><EUR>1</EUR></rates>");
+        QueryConsole console = open(tmp, "<funds><Fund/></funds>");
+        run(console, "name(doc('rates.xml')/*/*)");
+        assertFalse(console.errorView().isVisible(), console.getResultsText());
+        assertEquals("EUR", console.getResultsText().strip());
+    }
+
+    private static final String FUNDS_NS = "<FundsXML xmlns=\"urn:funds\" xmlns:fx=\"urn:fx\">"
+            + "<Fund><Name>A</Name><fx:Code>X1</fx:Code></Fund><Fund><Name>B</Name></Fund></FundsXML>";
+
+    private static void setProperty(String key, String value) {
+        ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class).set(key, value);
+    }
+
+    @Test
+    void theDocumentsPrefixesAndDefaultNamespaceNeedNoDeclaration(@TempDir Path tmp) throws Exception {
+        setProperty(QuerySettings.DEFAULT_NAMESPACE_KEY, "true");
+        QueryConsole console = open(tmp, FUNDS_NS);
+        run(console, "string(//fx:Code)");
+        assertFalse(console.errorView().isVisible(), console.getResultsText());
+        assertEquals("X1", console.getResultsText().strip(), "fx: is the document's prefix, declared for the run");
+
+        run(console, "count(//Fund)");
+        assertEquals("2", console.getResultsText().strip(), "unprefixed names match the default namespace");
+        var chip = console.defaultNsToggle();
+        assertTrue(chip.isVisible() && chip.isSelected(), "the chip shows the default namespace is used");
+
+        try {
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                chip.setSelected(false);
+                console.onToggleDefaultNamespace();
+                return null;
+            });
+            assertFalse(QuerySettings.useDocumentDefaultNamespace());
+            run(console, "count(//Fund)");
+            assertEquals("0", console.getResultsText().strip(), "off: the XPath standard, no match");
+        } finally {
+            setProperty(QuerySettings.DEFAULT_NAMESPACE_KEY, "true");
+        }
+    }
+
+    @Test
+    void theHitsAreCountedWhileTyping(@TempDir Path tmp) throws Exception {
+        setProperty(QuerySettings.LIVE_PREVIEW_KEY, "true");
+        QueryConsole console = open(tmp, "<funds><Fund/><Fund/><Fund/></funds>");
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             console.setXPath("//Fund");
-            console.runForTest();
             return null;
         });
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
-                () -> console.checkLabel().getStyleClass().contains("fxt-query-check-info")));
-        String text = console.checkLabel().getText();
-        assertTrue(text.contains("urn:funds") && text.contains("*:Fund"), text);
+                () -> console.checkLabel().getText().startsWith("3 hits")));
+        assertTrue(console.checkLabel().getStyleClass().contains("fxt-query-check-info"));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXPath("count(//Fund)");
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> console.checkLabel().getText().startsWith("Result: 3")));
+    }
+
+    @Test
+    void aRunEvaluatesOnceAndCanBeCancelled(@TempDir Path tmp) throws Exception {
+        setProperty(QuerySettings.LIVE_PREVIEW_KEY, "false");
+        try {
+            QueryConsole console = open(tmp, "<funds><Fund/><Fund/></funds>");
+            int before = QueryEvaluation.EVALUATIONS.get();
+            run(console, "//Fund");
+            assertEquals(before + 1, QueryEvaluation.EVALUATIONS.get(), "text, table and hits from one evaluation");
+            assertEquals(2, WaitForAsyncUtils.waitForAsyncFx(2000, () -> console.hits().locatedHits().size()),
+                    "the hits of that evaluation");
+
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                console.setXQuery("count(for $i in 1 to 1000000000 let $x := $i * 2 where $x mod 3 = 0 return $x)");
+                console.runForTest();
+                return null;
+            });
+            WaitForAsyncUtils.sleep(700, TimeUnit.MILLISECONDS);
+            assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, console::isRunning));
+            WaitForAsyncUtils.waitForAsyncFx(2000, console::runForTest); // the Run button reads Cancel now
+            assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, console::isRunning));
+            assertEquals("Cancelled.", console.getResultsText());
+        } finally {
+            setProperty(QuerySettings.LIVE_PREVIEW_KEY, "true");
+        }
+    }
+
+    @Test
+    void traceLinesOfAnXQueryRunAreOfferedInTheTraceMenu(@TempDir Path tmp) throws Exception {
+        QueryConsole console = open(tmp, "<funds><Fund/><Fund/></funds>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXQuery("count(trace(//Fund, 'funds'))");
+            console.runForTest();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> console.getResultsText().contains("2"));
+        WaitForAsyncUtils.waitFor(2, TimeUnit.SECONDS,
+                () -> WaitForAsyncUtils.waitForAsyncFx(1000, console::getTraceLines).size() >= 1);
+        String line = WaitForAsyncUtils.waitForAsyncFx(1000, console::getTraceLines).getFirst();
+        assertTrue(line.startsWith("funds") && line.contains("/funds/Fund[1]"), line);
+    }
+
+    @Test
+    void theExternalVariablesOfAnXQueryGetFieldsAndTheirValues(@TempDir Path tmp) throws Exception {
+        QueryConsole console = open(tmp, "<funds><Fund/><Fund/></funds>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setXQuery("declare variable $n as xs:integer external; count(//Fund) * $n");
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                () -> WaitForAsyncUtils.waitForAsyncFx(1000, console::variableNames).contains("n"));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, console::runForTest);
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> console.getResultsText().contains("$n"));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setVariable("n", "5");
+            console.runForTest();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> console.getResultsText().endsWith("10"));
     }
 
     private static final class URIHolder {

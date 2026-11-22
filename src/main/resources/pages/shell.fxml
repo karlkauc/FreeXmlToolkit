@@ -215,6 +215,10 @@
                                                           text="%shell.actionProfileQuery.text" onAction="#onProfileQuery">
                                                     <graphic><IconifyIcon iconLiteral="bi-speedometer2" iconSize="16"/></graphic>
                                                 </MenuItem>
+                                                <MenuItem fx:id="actionShowPlan" id="doc-action-show-plan"
+                                                          text="%shell.actionShowPlan.text" onAction="#onShowPlan">
+                                                    <graphic><IconifyIcon iconLiteral="bi-diagram-3" iconSize="16"/></graphic>
+                                                </MenuItem>
                                                 <MenuItem fx:id="actionDebugSchematron" id="doc-action-debug-schematron"
                                                           text="%shell.actionDebugSchematron.text" onAction="#onDebugSchematron">
                                                     <graphic><IconifyIcon iconLiteral="bi-bug" iconSize="16"/></graphic>

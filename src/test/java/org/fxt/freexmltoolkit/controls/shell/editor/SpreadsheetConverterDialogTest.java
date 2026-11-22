@@ -171,7 +171,7 @@ class SpreadsheetConverterDialogTest {
             dialog.onHelp();
             return null;
         });
-        assertTrue(opened[0].endsWith("/xml-editor/#xmlexcelcsv-converter"), opened[0]);
+        assertTrue(opened[0].endsWith("/guides/convert/#xmlexcelcsv-converter"), opened[0]);
         String help = fx(() -> ((javafx.scene.control.Label) dialog.getDialogPane().lookup("#spreadsheet-help-text")).getText());
         assertFalse(help.isBlank());
         for (String id : List.of("#spreadsheet-layout-table", "#spreadsheet-layout-list", "#spreadsheet-record",

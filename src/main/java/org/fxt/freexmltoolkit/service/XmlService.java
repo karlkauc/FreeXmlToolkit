@@ -150,6 +150,36 @@ public interface XmlService {
         return getXmlFromXpath(xml, xPath);
     }
 
+    /**
+     * As {@link #getXmlFromXpath(String, String, org.fxt.freexmltoolkit.service.standards.XPathVersion)} for a
+     * document with a location: {@code baseUri} (a {@code file:} URI, or {@code null}) is the expression's static
+     * base URI and the document's base URI, so relative {@code doc()} / {@code unparsed-text()} resolve next to it.
+     */
+    default String getXmlFromXpath(String xml, String xPath,
+                                   org.fxt.freexmltoolkit.service.standards.XPathVersion version, String baseUri) {
+        return getXmlFromXpath(xml, xPath, version);
+    }
+
+    /**
+     * Evaluates {@code xPath} once: the console's text and, with {@code keepResult}, the line-numbered document and
+     * the result value (for hits and a table without evaluating again).
+     *
+     * @param namespaces              prefixes declared for the expression; nullable
+     * @param defaultElementNamespace the namespace unprefixed element names are in, or {@code null}
+     */
+    default XPathOutcome evaluateXPath(String xml, String xPath,
+                                       org.fxt.freexmltoolkit.service.standards.XPathVersion version, String baseUri,
+                                       java.util.Map<String, String> namespaces, String defaultElementNamespace,
+                                       boolean keepResult) {
+        return new XPathOutcome(getXmlFromXpath(xml, xPath, version, baseUri), null, null);
+    }
+
+    /**
+     * An XPath run: the text, and the document and value when they were kept (else {@code null}).
+     */
+    record XPathOutcome(String text, net.sf.saxon.s9api.XdmNode document, net.sf.saxon.s9api.XdmValue value) {
+    }
+
     String getXmlFromXpath(String xPath, Node node);
 
     String getXmlFromXpath(String xPath);

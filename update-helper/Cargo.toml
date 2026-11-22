@@ -1,6 +1,6 @@
 [package]
 name = "fxt-update-helper"
-version = "1.0.0"
+version = "1.1.0"
 edition = "2021"
 description = "Native auto-update helper for FreeXmlToolkit (Windows-only)"
 license = "Apache-2.0"
@@ -16,6 +16,7 @@ windows-sys = { version = "0.61", features = [
     "Win32_System_Threading",
     "Win32_System_ProcessStatus",
     "Win32_Storage_FileSystem",  # Provides SYNCHRONIZE constant
+    "Win32_UI_Shell",            # SHChangeNotify: refresh Explorer's icons after the update
 ] }
 
 [target.'cfg(windows)'.build-dependencies]

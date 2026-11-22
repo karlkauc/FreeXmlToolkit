@@ -84,14 +84,14 @@ class DocumentationRunnerTest {
 
     @Test
     void schemaDiagramStrokesHoldOneColour(@TempDir Path tmp) throws Exception {
-        // Repeatable elements once got stroke="#4a90e2,#87ceeb", which FOP rejects in PDF diagrams
+        // Repeatable elements once got stroke="#1373d9,#c4dcf8", which FOP rejects in PDF diagrams
         File site = tmp.resolve("site").toFile();
         DocumentationRunner.generate(new File("src/test/resources/testSchema.xsd"), site,
                 new DocumentationOptions(), null);
         String svgPage = Files.readString(site.toPath().resolve("schema-svg.html"));
         assertFalse(java.util.regex.Pattern.compile("stroke=\"#[0-9a-fA-F]{6},").matcher(svgPage).find(),
                 "a stroke takes one colour");
-        assertTrue(svgPage.contains("#87ceeb"), "repeatable elements keep their inner border");
+        assertTrue(svgPage.contains("#c4dcf8"), "repeatable elements keep their inner border");
     }
 
     @Test

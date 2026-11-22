@@ -51,12 +51,16 @@ public final class LaunchContext {
         String pkg = currentPackageKind();
         String source = currentInstallSource(props);
         Consumer<TelemetryEvent.Builder> phases = StartupPhases.meta();
+        String pipeline = org.fxt.freexmltoolkit.util.RenderingStatus.activePipelineId();
         return b -> {
             if (startupMs > 0) {
                 b.durationMs(startupMs);
             }
             b.meta("package", pkg);
             b.meta("install_source", source);
+            if (pipeline != null) {
+                b.meta("pipeline", pipeline); // the Prism pipeline really in use (d3d, es2, mtl, sw, …)
+            }
             settingsSnapshot(props).forEach(b::meta);
             // phase_*_ms (see StartupPhases): main from JVM start, the rest from main entry
             phases.accept(b);

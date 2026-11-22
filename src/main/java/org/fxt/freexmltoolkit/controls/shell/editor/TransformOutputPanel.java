@@ -26,6 +26,7 @@ import org.fxt.freexmltoolkit.controls.shared.PlainTextCodeArea;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
+import org.fxt.freexmltoolkit.service.XsltTransformationResult;
 
 /**
  * The OUTPUT panel docked below the editor tabs (Figma mockup "Redesign · Unified —
@@ -60,6 +61,12 @@ public class TransformOutputPanel extends VBox {
     @FXML private ToggleButton previewToggle;
     @FXML private ToggleButton textToggle;
     @FXML private ToggleButton tableToggle;
+    /** xsl:message / fn:trace lines of the last run, below the result. */
+    @FXML private VBox messagesBox;
+    @FXML private ToggleButton messagesToggle;
+    @FXML private javafx.scene.control.ListView<XsltTransformationResult.TransformationMessage> messagesList;
+    /** Opens the stylesheet/query line of a message ({@code location}, line); {@code null} = no navigation. */
+    private java.util.function.BiConsumer<String, Integer> messageJump;
     /** Lazily created WebView updater (or a text fallback in stripped runtimes). */
     private java.util.function.Consumer<String> htmlPreviewUpdater;
     /** The raw "N ms · M chars" stats of the latest run ("error" for a failed one). */
@@ -110,6 +117,96 @@ public class TransformOutputPanel extends VBox {
         CodeAreaFontZoom.install(output);
         content.getChildren().add(0, outputScroll);
         updateContentView();
+        initMessages();
+    }
+
+    // ----- messages of the run (xsl:message, fn:trace) ----------------------
+
+    private void initMessages() {
+        messagesList.setCellFactory(list -> new javafx.scene.control.ListCell<>() {
+            @Override
+            protected void updateItem(XsltTransformationResult.TransformationMessage m, boolean empty) {
+                super.updateItem(m, empty);
+                getStyleClass().removeAll("sev-error", "sev-trace");
+                if (empty || m == null) {
+                    setText(null);
+                    return;
+                }
+                setText(messageLine(m));
+                String level = m.getLevel() == null ? "" : m.getLevel();
+                if (level.startsWith("ERROR") || level.startsWith("TERMINATE")) {
+                    getStyleClass().add("sev-error");
+                } else if (level.startsWith(org.fxt.freexmltoolkit.service.XsltDebugMessageListener.TRACE_LEVEL)) {
+                    getStyleClass().add("sev-trace");
+                }
+            }
+        });
+        messagesList.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2) {
+                jumpToMessage(messagesList.getSelectionModel().getSelectedItem());
+            }
+        });
+        messagesList.setOnKeyPressed(e -> {
+            if (e.getCode() == javafx.scene.input.KeyCode.ENTER) {
+                jumpToMessage(messagesList.getSelectionModel().getSelectedItem());
+            }
+        });
+    }
+
+    /** One message as a list line: {@code [LEVEL] location  text}. */
+    static String messageLine(XsltTransformationResult.TransformationMessage m) {
+        StringBuilder sb = new StringBuilder();
+        if (m.getLevel() != null && !m.getLevel().isBlank()) {
+            sb.append('[').append(m.getLevel()).append("] ");
+        }
+        if (m.getLocation() != null && !m.getLocation().isBlank() && !"unknown location".equals(m.getLocation())) {
+            sb.append(m.getLocation()).append("  ");
+        }
+        sb.append(m.getMessage() == null ? "" : m.getMessage().strip());
+        return sb.toString();
+    }
+
+    private void jumpToMessage(XsltTransformationResult.TransformationMessage m) {
+        if (m != null && m.getLineNumber() > 0 && messageJump != null) {
+            messageJump.accept(m.getLocation(), m.getLineNumber());
+        }
+    }
+
+    /**
+     * Shows the {@code xsl:message} and {@code fn:trace()} lines of the run just shown (call it after the
+     * {@code show…} method of the run, which clears the previous run's lines). Hidden when there are none.
+     *
+     * @param jump opens a message's line: (location as {@code file.xsl:12:5}, line); {@code null} for none
+     */
+    public void setRunMessages(List<XsltTransformationResult.TransformationMessage> messages,
+                               java.util.function.BiConsumer<String, Integer> jump) {
+        List<XsltTransformationResult.TransformationMessage> shown = messages == null ? List.of() : messages;
+        messageJump = jump;
+        messagesList.getItems().setAll(shown);
+        messagesToggle.setText(I18n.t("TransformOutputPanel.messages", shown.size()));
+        boolean any = !shown.isEmpty();
+        messagesBox.setVisible(any);
+        messagesBox.setManaged(any);
+        onToggleMessages();
+    }
+
+    /** Opens or closes the message list under its header. */
+    @FXML
+    public void onToggleMessages() {
+        boolean open = messagesToggle.isSelected() && !messagesList.getItems().isEmpty();
+        messagesList.setVisible(open);
+        messagesList.setManaged(open);
+    }
+
+    private void clearRunMessages() {
+        if (messagesList != null) {
+            setRunMessages(List.of(), null);
+        }
+    }
+
+    /** @return the message lines shown for the last run (tests) */
+    public List<String> getRunMessages() {
+        return messagesList.getItems().stream().map(TransformOutputPanel::messageLine).toList();
     }
 
     // ----- result display (called on the FX thread by TransformPanel) ------
@@ -117,6 +214,7 @@ public class TransformOutputPanel extends VBox {
     /** Shows a progress message ("Transforming…" / "Running…") while a run is in flight. */
     public void showPending(String message) {
         hideRunAnyway();
+        clearRunMessages();
         reveal();
         statusIcon.setVisible(false);
         statusLabel.setText(message);
@@ -187,6 +285,7 @@ public class TransformOutputPanel extends VBox {
      */
     public void showMessages(String title, String text) {
         hideRunAnyway();
+        clearRunMessages();
         reveal();
         statsText = "";
         statusIcon.setIconLiteral("bi-info-circle");
@@ -234,6 +333,7 @@ public class TransformOutputPanel extends VBox {
     /** Shows an error or guard message (e.g. "No document open."). */
     public void showError(String message) {
         hideRunAnyway();
+        clearRunMessages();
         reveal();
         statsText = "error";
         statusIcon.setIconLiteral("bi-x-circle");
@@ -254,6 +354,7 @@ public class TransformOutputPanel extends VBox {
     private void showRun(String verb, String text, OutputFormat format, long elapsedMs,
                          XQueryTableRunner.XQueryTable table) {
         hideRunAnyway();
+        clearRunMessages();
         if (text != null && text.startsWith("ERROR")) {
             showFailure(text, false);
             return;

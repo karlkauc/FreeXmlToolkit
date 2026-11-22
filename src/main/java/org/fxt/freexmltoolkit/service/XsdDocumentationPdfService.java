@@ -521,12 +521,12 @@ public class XsdDocumentationPdfService {
                     <xsl:param name="lineHeight">1.2</xsl:param>
                     <xsl:param name="headingBold">bold</xsl:param>
                     <xsl:param name="headingUnderlined">none</xsl:param>
-                    <xsl:param name="headingColor">#2563EB</xsl:param>
+                    <xsl:param name="headingColor">#1373D9</xsl:param>
 
                     <!-- Color scheme parameters -->
-                    <xsl:param name="primaryColor">#2563EB</xsl:param>
-                    <xsl:param name="lightBackground">#EFF6FF</xsl:param>
-                    <xsl:param name="tableHeaderBg">#DBEAFE</xsl:param>
+                    <xsl:param name="primaryColor">#1373D9</xsl:param>
+                    <xsl:param name="lightBackground">#EAF2FD</xsl:param>
+                    <xsl:param name="tableHeaderBg">#C4DCF8</xsl:param>
 
                     <!-- Content section toggles -->
                     <xsl:param name="includeCoverPage">true</xsl:param>

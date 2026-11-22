@@ -197,6 +197,11 @@ public final class EditorFont {
      *         logical JavaFX font, always exists)
      */
     public static String resolveFamily(String family) {
+        if (DEFAULT_FAMILY.equalsIgnoreCase(family)) {
+            // bundled and loaded at start: asking the system's font list first took 6 s on the FX thread on a
+            // computer with many fonts (telemetry 027c14d43e218ed0, Settings opened right after start)
+            return DEFAULT_FAMILY;
+        }
         java.util.Set<String> installed = installedFamilies();
         if (installed.isEmpty() || installed.contains(family.toLowerCase(Locale.ROOT))) {
             return family;
@@ -211,11 +216,22 @@ public final class EditorFont {
 
     private static java.util.Set<String> installedFamilies;
 
+    /** The system's font families; tests replace it. */
+    static java.util.function.Supplier<List<String>> fontList = Font::getFamilies;
+
+    /**
+     * Reads the installed font families once, on the calling (background) thread, so a user-chosen family is
+     * resolved without the FX thread waiting for the system's font list. Called after the bundled fonts are loaded.
+     */
+    public static void warmUp() {
+        installedFamilies();
+    }
+
     private static synchronized java.util.Set<String> installedFamilies() {
         if (installedFamilies == null) {
             try {
                 java.util.Set<String> names = new java.util.HashSet<>();
-                for (String name : Font.getFamilies()) {
+                for (String name : fontList.get()) {
                     names.add(name.toLowerCase(Locale.ROOT));
                 }
                 installedFamilies = names;
@@ -224,6 +240,11 @@ public final class EditorFont {
             }
         }
         return installedFamilies;
+    }
+
+    /** Forgets the installed families read so far (tests). */
+    static synchronized void forgetInstalledFamilies() {
+        installedFamilies = null;
     }
 
     /** The measuring of the installed fonts, started once ({@link #monospaceFamiliesAsync()}). */

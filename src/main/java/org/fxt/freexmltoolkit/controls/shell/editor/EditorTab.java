@@ -233,7 +233,8 @@ final class EditorTab extends Tab {
         contentStack.getChildren().add(view.getNode());
         // Overlay sits ABOVE contentStack (not inside it) so showOnly() — which toggles
         // visibility of every contentStack child — never touches the spinner.
-        setContent(new javafx.scene.layout.StackPane(contentStack, loadingOverlay));
+        contentRoot = new javafx.scene.layout.StackPane(contentStack, loadingOverlay);
+        setContent(contentRoot);
         loadDelay.setOnFinished(e -> {
             loadingOverlay.setVisible(true);
             loadingOverlay.setManaged(true);
@@ -3145,6 +3146,24 @@ final class EditorTab extends Tab {
         loadDelay.stop();
         loadingOverlay.setVisible(false);
         loadingOverlay.setManaged(false);
+    }
+
+    /** The tab's content: the views' stack, overlays above it (scroll markers, loading spinner). */
+    private final javafx.scene.layout.StackPane contentRoot;
+    /** Markers over the text view's scroll bar (bookmarks), created on first use. */
+    private org.fxt.freexmltoolkit.controls.shared.ScrollMarkerStrip scrollMarkers;
+
+    /**
+     * @param onClick called with the 1-based line of a clicked marker (first call only)
+     * @return the scroll-bar markers of the text view, stacked over it and shown with it
+     */
+    org.fxt.freexmltoolkit.controls.shared.ScrollMarkerStrip scrollMarkers(java.util.function.IntConsumer onClick) {
+        if (scrollMarkers == null) {
+            scrollMarkers = new org.fxt.freexmltoolkit.controls.shared.ScrollMarkerStrip(view.getCodeArea(), onClick);
+            scrollMarkers.visibleProperty().bind(view.getNode().visibleProperty());
+            contentRoot.getChildren().add(1, scrollMarkers); // below the loading overlay
+        }
+        return scrollMarkers;
     }
 
     private void showOnly(javafx.scene.Node node) {

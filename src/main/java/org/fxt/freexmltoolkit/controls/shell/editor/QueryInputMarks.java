@@ -59,6 +59,19 @@ final class QueryInputMarks {
     private final VBox popupBox = new VBox(2, popupTitle, popupText);
     private final List<Mark> marks = new ArrayList<>();
     private boolean enabled = true;
+    /** Runs a query that checked clean and says what it found (off the FX thread), or {@code null} for none. */
+    private java.util.function.Function<String, Supplier<String>> preview;
+    /** One preview at a time: a slow one (an XPath cannot be stopped) is never queued behind. */
+    private final java.util.concurrent.atomic.AtomicBoolean previewRunning = new java.util.concurrent.atomic.AtomicBoolean();
+    private static final java.util.concurrent.ExecutorService PREVIEWS = java.util.concurrent.Executors
+            .newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "query-preview");
+                t.setDaemon(true);
+                t.setPriority(Thread.MIN_PRIORITY);
+                return t;
+            });
+    /** The XQuery version of a run ({@code null} = 3.1): below 3.1 its compatibility check runs first. */
+    private Supplier<org.fxt.freexmltoolkit.service.standards.XQueryVersion> xqueryVersion = () -> null;
     private int checkGeneration;
 
     /**
@@ -95,6 +108,20 @@ final class QueryInputMarks {
         area.setMouseOverTextDelay(Duration.ofMillis(400));
         area.addEventHandler(MouseOverTextEvent.MOUSE_OVER_TEXT_BEGIN, this::onHover);
         area.addEventHandler(MouseOverTextEvent.MOUSE_OVER_TEXT_END, e -> popup.hide());
+    }
+
+    /**
+     * Sets the preview: after a check without findings it is called on the FX thread with the query and returns the
+     * work (or {@code null} for none), which runs off the FX thread; its text (e.g. "12 hits") is shown as
+     * information, a {@code null} text shows nothing.
+     */
+    void setPreview(java.util.function.Function<String, Supplier<String>> preview) {
+        this.preview = preview;
+    }
+
+    /** Sets where the XQuery version of a run comes from (XQuery inputs). */
+    void setXQueryVersion(Supplier<org.fxt.freexmltoolkit.service.standards.XQueryVersion> version) {
+        xqueryVersion = version == null ? () -> null : version;
     }
 
     /** Turns the check while typing on or off (off for JSONPath); off also removes the marks. */
@@ -150,9 +177,10 @@ final class QueryInputMarks {
         }
         QueryLanguage lang = language.get();
         XPathVersion v = version.get();
+        var xq = xqueryVersion.get();
         String document = xml.get();
         FxtGui.executorService.submit(() -> {
-            QueryErrors.Check result = QueryErrors.check(text, lang, v, document);
+            QueryErrors.Check result = QueryErrors.check(text, lang, v, xq, document);
             Platform.runLater(() -> apply(gen, text, result));
         });
     }
@@ -185,7 +213,32 @@ final class QueryInputMarks {
         if (first != Status.NONE) {
             // without findings the line keeps what it shows (cleared on every edit; a run's information stays)
             status.accept(first);
+        } else {
+            startPreview(gen, text);
         }
+    }
+
+    private void startPreview(int gen, String text) {
+        Supplier<String> work = preview == null ? null : preview.apply(text);
+        if (work == null || !previewRunning.compareAndSet(false, true)) {
+            return;
+        }
+        PREVIEWS.submit(() -> {
+            String found;
+            try {
+                found = work.get();
+            } catch (RuntimeException e) {
+                found = null;
+            } finally {
+                previewRunning.set(false);
+            }
+            String shown = found;
+            Platform.runLater(() -> {
+                if (shown != null && gen == checkGeneration && text.equals(area.getText()) && enabled) {
+                    status.accept(new Status(Severity.INFO, shown));
+                }
+            });
+        });
     }
 
     private static String line(QueryError e) {

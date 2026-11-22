@@ -76,7 +76,7 @@ import net.sf.saxon.s9api.XdmValue;
  * <p>JSON input may be JSON, JSON with comments or JSON5 ({@link JsonService#parseAuto}). YAML
  * input is YAML 1.2 (core schema); several documents in one file become a JSON array; YAML output
  * is block style ({@link #writeYaml}). XML is parsed without DTDs and external entities. UI-free; used by the shell's Tools menu and
- * {@code fxt-cli convert}. Documented in {@code docs/json-editor.md}.
+ * {@code fxt-cli convert}. Documented in {@code docs/guides/json-yaml.md}.
  */
 public final class DataFormatConverter {
 

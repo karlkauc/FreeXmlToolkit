@@ -170,7 +170,7 @@ class PdfDocumentationConfigTest {
         PdfDocumentationConfig config = new PdfDocumentationConfig();
         config.setColorScheme(PdfDocumentationConfig.ColorScheme.BLUE);
 
-        assertEquals("#2563EB", config.getPrimaryColor());
+        assertEquals("#1373D9", config.getPrimaryColor());
     }
 
     @Test
@@ -245,7 +245,7 @@ class PdfDocumentationConfigTest {
         PdfDocumentationConfig.HeadingStyle boldBlue = PdfDocumentationConfig.HeadingStyle.BOLD_BLUE;
         assertTrue(boldBlue.isBold());
         assertFalse(boldBlue.isUnderlined());
-        assertEquals("#2563EB", boldBlue.getColor());
+        assertEquals("#1373D9", boldBlue.getColor());
 
         PdfDocumentationConfig.HeadingStyle boldBlack = PdfDocumentationConfig.HeadingStyle.BOLD_BLACK;
         assertTrue(boldBlack.isBold());

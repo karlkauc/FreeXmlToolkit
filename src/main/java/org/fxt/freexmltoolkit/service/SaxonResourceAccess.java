@@ -12,7 +12,7 @@ import net.sf.saxon.Configuration;
  * resolve as usual. Every Saxon processor that evaluates expressions or stylesheets from documents
  * or the user goes through {@link #restrict(Configuration)}: the transformation engine, the Query
  * Console's XPath mode, grid formulas and filters (an expression saved in a document must not make
- * the application fetch a URL, see docs/threat-model.md).
+ * the application fetch a URL, see docs/administer/threat-model.md).
  */
 public final class SaxonResourceAccess {
 

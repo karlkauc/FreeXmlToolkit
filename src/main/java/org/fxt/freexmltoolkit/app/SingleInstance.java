@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -57,6 +58,8 @@ public final class SingleInstance implements AutoCloseable {
     private static final int TIMEOUT_MILLIS = 2000;
     private static final int PORT_FILE_RETRIES = 20;
     private static final long PORT_FILE_RETRY_MILLIS = 100;
+    /** How long a refused connection is retried (see {@link #forward(Path, List, long)}). */
+    private static final long FORWARD_WAIT_MILLIS = 5_000;
 
     private final Path directory;
     private final FileChannel lockChannel;
@@ -109,6 +112,9 @@ public final class SingleInstance implements AutoCloseable {
                 channel.close();
                 return null;
             }
+            // A port file left by a crashed instance names a dead port: remove it at once, so a
+            // later instance waits for ours instead of failing on the old one.
+            Files.deleteIfExists(directory.resolve(PORT_FILE));
             ServerSocket server = new ServerSocket(); // NOPMD - owned by the returned instance
             try {
                 server.bind(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0));
@@ -192,10 +198,42 @@ public final class SingleInstance implements AutoCloseable {
      * @return whether the primary instance acknowledged them
      */
     public static boolean forward(Path directory, List<Path> files) {
-        String[] endpoint = readPortFile(directory.resolve(PORT_FILE));
-        if (endpoint == null) {
-            return false;
+        return forward(directory, files, FORWARD_WAIT_MILLIS);
+    }
+
+    /**
+     * As {@link #forward(Path, List)}; a refused connection is retried with a freshly read port
+     * file for up to {@code waitMillis}: the port file may still be the one of a crashed instance
+     * while the primary that holds the lock now (two launches at once) has not written its own.
+     */
+    static boolean forward(Path directory, List<Path> files, long waitMillis) {
+        long deadline = System.currentTimeMillis() + waitMillis;
+        while (true) {
+            String[] endpoint = readPortFile(directory.resolve(PORT_FILE));
+            if (endpoint == null) {
+                return false;
+            }
+            try {
+                return send(endpoint, files);
+            } catch (ConnectException e) {
+                if (System.currentTimeMillis() >= deadline) {
+                    logger.warn("Could not reach the running instance: {}", e.toString());
+                    return false;
+                }
+                try {
+                    Thread.sleep(PORT_FILE_RETRY_MILLIS);
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                    return false;
+                }
+            } catch (IOException | RuntimeException e) {
+                logger.warn("Could not reach the running instance: {}", e.toString());
+                return false;
+            }
         }
+    }
+
+    private static boolean send(String[] endpoint, List<Path> files) throws IOException {
         try (Socket socket = new Socket()) {
             int port = Integer.parseInt(endpoint[0]);
             socket.connect(new InetSocketAddress(InetAddress.getLoopbackAddress(), port), TIMEOUT_MILLIS);
@@ -212,9 +250,6 @@ public final class SingleInstance implements AutoCloseable {
             boolean acknowledged = ACK.equals(in.readLine());
             logger.info("Forwarded {} file(s) to the running instance: {}", files.size(), acknowledged);
             return acknowledged;
-        } catch (IOException | RuntimeException e) {
-            logger.warn("Could not reach the running instance: {}", e.toString());
-            return false;
         }
     }
 

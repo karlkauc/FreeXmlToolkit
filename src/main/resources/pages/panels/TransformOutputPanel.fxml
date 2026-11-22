@@ -2,6 +2,7 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.ToggleGroup?>
@@ -96,5 +97,22 @@
                 <StackPane fx:id="previewHolder" visible="false" managed="false"/>
             </children>
         </StackPane>
+        <!-- xsl:message and fn:trace() lines of the last run; hidden while there are none -->
+        <VBox fx:id="messagesBox" visible="false" managed="false" styleClass="fxt-output-messages">
+            <children>
+                <ToggleButton fx:id="messagesToggle" id="transform-output-messages" styleClass="fxt-output-messages-toggle"
+                              onAction="#onToggleMessages">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-chat-left-text" iconSize="12"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="%TransformOutputPanel.messages.tooltip"/>
+                    </tooltip>
+                </ToggleButton>
+                <ListView fx:id="messagesList" id="transform-output-messages-list" prefHeight="120"
+                          visible="false" managed="false" styleClass="fxt-output-messages-list"
+                          accessibleText="%TransformOutputPanel.messages.accessible"/>
+            </children>
+        </VBox>
     </children>
 </fx:root>

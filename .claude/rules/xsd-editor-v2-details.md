@@ -182,13 +182,13 @@ src/test/java/.../
 3. Determines valid elements/attributes based on context
 4. Suggests only applicable completions
 
-**Documentation:** `docs/context-sensitive-intellisense.md`
+**Documentation:** `docs/guides/edit-xml/auto-completion.md`
 
 ## Favorites System
 
 Universal file management across all editors: Save XML/XSD/Schematron files as favorites, custom categories, cross-editor access, persistent local storage.
 
-**Documentation:** `docs/favorites-system.md`
+**Documentation:** `docs/guides/edit-xml/favorites.md`
 
 ---
 

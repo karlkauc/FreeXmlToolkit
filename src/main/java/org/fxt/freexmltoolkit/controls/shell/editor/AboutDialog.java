@@ -73,8 +73,7 @@ public final class AboutDialog {
         dialog.setOnShowing(evt -> {
             try {
                 javafx.stage.Stage stage = (javafx.stage.Stage) dialogPane.getScene().getWindow();
-                stage.getIcons().add(new javafx.scene.image.Image(java.util.Objects.requireNonNull(
-                        AboutDialog.class.getResourceAsStream("/img/logo.png"))));
+                stage.getIcons().setAll(org.fxt.freexmltoolkit.FxtGui.appIcons());
             } catch (Exception e) {
                 logger.warn("Could not load logo for about dialog window.", e);
             }
@@ -137,6 +136,11 @@ public final class AboutDialog {
         addInfoRow(info, row++, "JavaFX", System.getProperty("javafx.runtime.version", "?"));
         addInfoRow(info, row++, "OS", System.getProperty("os.name", "?") + " "
                 + System.getProperty("os.version", "") + "  (" + System.getProperty("os.arch", "?") + ")");
+        addLinkRow(info, row++, I18n.t("AboutDialog.website"), "about-website",
+                ProjectLinks.WEBSITE_URL.replaceFirst("^https://", ""),
+                () -> openExternalUrl(ProjectLinks.WEBSITE_URL));
+        addLinkRow(info, row++, I18n.t("AboutDialog.contact"), "about-contact",
+                ProjectLinks.CONTACT_EMAIL, ProjectLinks::writeMail);
 
         copyright.setText(I18n.t("AboutDialog.copyright-2024-2026-all-rights", VersionUtil.getVendor()));
         sponsorButton.setGraphic(ProjectLinks.sponsorIcon(16));
@@ -189,6 +193,19 @@ public final class AboutDialog {
         v.setWrapText(true);
         grid.add(k, 0, row);
         grid.add(v, 1, row);
+    }
+
+    private static void addLinkRow(GridPane grid, int row, String key, String id, String text, Runnable action) {
+        Label k = new Label(key);
+        k.getStyleClass().add("fxt-about-key");
+        javafx.scene.control.Hyperlink link = new javafx.scene.control.Hyperlink(text);
+        link.setId(id);
+        link.getStyleClass().add("fxt-about-value");
+        // a Hyperlink has its own padding and focus border; aligned with the plain values beside it
+        link.setStyle("-fx-padding: 0; -fx-border-width: 0;");
+        link.setOnAction(e -> action.run());
+        grid.add(k, 0, row);
+        grid.add(link, 1, row);
     }
 
     private static void openExternalUrl(String url) {

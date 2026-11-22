@@ -43,7 +43,7 @@ import org.testfx.util.WaitForAsyncUtils;
 @ExtendWith(ApplicationExtension.class)
 class ShellDocScreenshotGenerator {
 
-    private static final File EXAMPLES = new File("release/examples");
+    private static final File EXAMPLES = DocFiles.examples();
     private static final File IMG_DIR = new File("docs/img");
 
     private Parent root;
@@ -63,7 +63,7 @@ class ShellDocScreenshotGenerator {
             javafx.scene.text.Font.loadFont(getClass().getResourceAsStream("/css/fonts/" + font + ".ttf"), 10);
         }
         // A schema cache of its own with one example entry (no local paths of the machine in the Cache tab).
-        Path cacheDir = Files.createTempDirectory("schema-library-cache");
+        Path cacheDir = DocFiles.work("schema-cache");
         var cache = new org.fxt.freexmltoolkit.service.SchemaResourceCache(cacheDir.resolve("cache"));
         Path cached = cache.getCacheDirectory().resolve("abc123.xsd");
         Files.createDirectories(cached.getParent());
@@ -78,7 +78,7 @@ class ShellDocScreenshotGenerator {
         cache.saveIndex();
         org.fxt.freexmltoolkit.di.ServiceRegistry.register(org.fxt.freexmltoolkit.service.SchemaResourceCache.class, cache);
         // A small offline SchemaStore catalog for the Schema Library's SchemaStore tab (nothing is downloaded).
-        Path catalog = Files.createTempDirectory("fxt-doc-schemastore").resolve("catalog.json");
+        Path catalog = DocFiles.work("schemastore").resolve("catalog.json");
         Files.writeString(catalog, """
                 {"schemas": [
                   {"name": "GitHub Workflow", "fileMatch": [".github/workflows/*.yml", ".github/workflows/*.yaml"],
@@ -142,8 +142,8 @@ class ShellDocScreenshotGenerator {
         }
 
         // --- Properties inspector (Figma 33:2): a schema-bound FundsXML leaf element, caret in Text ---
-        File inspectorXml = new File("src/test/resources/FundsXML_306.xml");
-        File inspectorXsd = new File("src/test/resources/FundsXML_306.xsd");
+        File inspectorXml = DocFiles.copyOf("src/test/resources/FundsXML_306.xml");
+        File inspectorXsd = DocFiles.copyOf("src/test/resources/FundsXML_306.xsd");
         if (inspectorXml.exists() && inspectorXsd.exists()) {
             onFx(() -> host.openFile(inspectorXml.toPath()));
             WaitForAsyncUtils.waitFor(8, TimeUnit.SECONDS,
@@ -327,7 +327,7 @@ class ShellDocScreenshotGenerator {
         settle();
 
         // --- JSON document in the Tree view ---
-        Path json = Path.of(System.getProperty("java.io.tmpdir"), "fxt-shell-doc-sample.json");
+        Path json = DocFiles.work("json").resolve("sample.json");
         Files.writeString(json, """
                 {
                   "fund": {
@@ -365,7 +365,7 @@ class ShellDocScreenshotGenerator {
         shot("unified-shell-json-grid");
 
         // --- HTML document rendered in the read-only Preview view (the default for HTML) ---
-        Path html = Path.of(System.getProperty("java.io.tmpdir"), "fxt-shell-doc-report.html");
+        Path html = DocFiles.work("html").resolve("report.html");
         Files.writeString(html, """
                 <!DOCTYPE html>
                 <html>
@@ -483,7 +483,7 @@ class ShellDocScreenshotGenerator {
         }
 
         // --- A schema with a file that cannot be loaded: warning bar, placeholder and group cards ---
-        var missingInclude = java.nio.file.Files.createTempDirectory("fxt-shot").resolve("order.xsd");
+        var missingInclude = DocFiles.work("missing-include").resolve("order.xsd");
         java.nio.file.Files.writeString(missingInclude, """
                 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                   <xs:include schemaLocation="common-types.xsd"/>
@@ -521,7 +521,7 @@ class ShellDocScreenshotGenerator {
         // --- Named types in frames: the content of a named complex type (and the base of an
         // extension) is framed and read-only; a framed node is selected, so the Inspector
         // shows the lock note with "Edit type" ---
-        var typeFrames = java.nio.file.Files.createTempDirectory("fxt-shot").resolve("office.xsd");
+        var typeFrames = DocFiles.work("type-frames").resolve("office.xsd");
         java.nio.file.Files.writeString(typeFrames, """
                 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
                   <xs:element name="Office">

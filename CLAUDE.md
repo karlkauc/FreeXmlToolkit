@@ -41,7 +41,7 @@ subcommands only parse options and call the UI-free runners in `controls/shell/e
 new logic there so the shell and the CLI share it. Logs go to stderr (`log4j2-cli.xml`), stdout is
 for results; no telemetry. Exit codes in `cli/ExitCodes`. Packaged as a second jpackage launcher
 (`--add-launcher fxt-cli=…`, properties written in `createJPackageTask`). User docs:
-`docs/command-line.md`; tests: `FxtCliTest`. Every subcommand has `mixinStandardHelpOptions`, a one-line
+`docs/automate/command-line.md`; tests: `FxtCliTest`. Every subcommand has `mixinStandardHelpOptions`, a one-line
 `header` and examples as `footer`; `cli/CliHelp` sets the shared help layout. `xsd-doc` maps its options onto
 `DocumentationOptions` and runs `DocumentationRunner.generate` — the same path as the Documentation page
 (`DocumentationView.toRunnerOptions`). Options on by default are declared as `--no-NAME`, `negatable`
@@ -86,7 +86,7 @@ Entry points take a version overload (`TransformRunner.xpath/xquery/xsltTransfor
 `StandardsSettingsControls`. Projects: `SchemaBinding.xsdVersion/xmlVersion/schematronBinding`, `Scenario.languageVersion`,
 `FxtProject.standardsFor`. CLI `--lang-version` (query, transform), `--xsd-version/--xml-version/--schematron-binding`
 (validate) — the CLI ignores GUI settings. MCP args `xpath_version`, `xquery_version`, `xslt_version`, `xsd_version`,
-`xml_version`, `schematron_binding`. Docs: `docs/language-versions.md`.
+`xml_version`, `schematron_binding`. Docs: `docs/reference/standards-versions.md`.
 
 ## External XSL-FO Processors
 
@@ -99,7 +99,7 @@ folder, exit 0 + written output = success, timeout kills descendants, output →
 `PdfOptions.processor` (`RenderContext` = xml/xsl/fo paths). UI: Settings card `FoProcessorsSettings` +
 `FoProcessorDialog` (Test renders `resources/fo/processor-test.fo`), FopPanel processor combo; CLI
 `fop --processor / --list-processors`; `Scenario.processor` (a name, never a command line). Tests start
-`FakeFoProcessor` with the running JVM (`FakeProcessors`). Docs: `docs/pdf-generator.md`.
+`FakeFoProcessor` with the running JVM (`FakeProcessors`). Docs: `docs/guides/publish-pdf.md`.
 
 ## External XSLT Processors
 
@@ -117,7 +117,14 @@ error line, code, phase; other lines = messages). Shared with the FO processors:
 `FOPService.transformToFo`, `BatchTransformRunner`, CLI `transform --processor / --list-processors`,
 `fop --xslt-processor`. Live preview, profiler, trace, debugger, XSpec, XProc and AI tools stay on Saxon HE. Tests
 start `FakeXsltProcessor` with the running JVM (`ExternalXsltRunnerTest.fake`); `RealXsltProcessorsTest` runs the
-Saxon preset with Saxon HE and xsltproc when installed. Docs: `docs/transform-panel.md#external-xslt-processors`.
+Saxon preset with Saxon HE, Saxon HE 13 and xsltproc when installed. Docs: `docs/guides/transform-query/external-processors.md`.
+Saxon HE 13: the bundled Saxon stays 12.10 (XML Calabash is built against it; one Saxon per JVM), so the newer one
+is an external processor — `SaxonInstaller` (Saxon-HE 13.1 + xmlresolver 6.1.0 from Maven Central via
+`ConnectionService`, SHA-256 pinned in the class, `~/.freeXmlToolkit/saxon/<version>/`, temp file + move) →
+preset `SAXON_HE`; the Java presets run `JavaRuntime.executable()` (`${java.home}/bin/java`) before the PATH
+(`XsltProcessorPreset.findProgram`). The jlink runtime keeps `bin/java` (no `--strip-native-commands`, other
+programs deleted). Settings card button "Add Saxon HE 13.1" (`onAddSaxon`, hooks `setDownloadHooks`). Tests get
+the jars from the Gradle configuration `saxon13` (never on a class path) as `fxt.test.saxon13.classpath`.
 
 ## XML Signatures and Encryption
 
@@ -133,7 +140,7 @@ UI: `SignatureView` (activity "Sign & Encrypt") actions ENCRYPT/DECRYPT/INSPECT,
 `EncryptionActionRunner` (shared with the CLI); XML editor menu "Encrypt Element… / Decrypt…" via
 `XmlEncryptionMenuHook`. CLI `sign`, `verify`, `encrypt`, `decrypt` (`--inspect`), passwords via prompt or
 `*-env` (`CliSecrets`). Examples `release/examples/encryption/` (`EncryptionExamplesTest`). Docs:
-`docs/xml-encryption.md`. The Decryption Transform for signatures is not supported.
+`docs/guides/sign-encrypt/encryption.md`. The Decryption Transform for signatures is not supported.
 
 ## Appearance (theme mode, accent colour)
 
@@ -191,7 +198,7 @@ tiles (one per FX pulse, off-screen canvas snapshot, pHYs DPI), SVG, PDF = SVG �
 bundled fonts registered for every weight 100–900 (FOP re-maps CSS weights), clipboard. UI: `ExportViewDialog`
 (FXML), `ViewExport` (File → Export View…, Edit → Copy View as Image, options `export.view.*`, test hooks
 `setDialogHandler` / `setFileChooser`); the views' context menus get their items from `DiagramExportMenu`
-(handler registered by the shell). Docs: `docs/unified-shell.md#export-view`.
+(handler registered by the shell). Docs: `docs/get-started/workspace-tour.md#export-view`.
 
 ## Large File Viewer
 
@@ -216,7 +223,7 @@ re-index, show the same `WindowSpec` again (its start cursor stays valid: bytes 
 unchanged). Unapplied edits ask on window switch / reload / tab close (`confirmClose`, `setCloser`) and on exit
 (`EditorFileSync.confirmExit` → `confirmDiscard`); test hook `LargeFileView.pendingAnswer`. Opened by
 `EditorHost.openLargeFileViewer`, offered by `EditorFileSync` for files ≥ 50 MB / too large. `fxt-cli validate`
-streams XML files ≥ 64 MB. Docs: `docs/large-files.md`.
+streams XML files ≥ 64 MB. Docs: `docs/guides/edit-xml/large-files.md`.
 
 ## Projects
 
@@ -242,7 +249,7 @@ validate, bind), `ProjectSettingsDialog` (+ `ScenarioEditDialog`, `BindSchemaDia
 `chooseBoundScenario`), Explorer (project folders as roots, `.fxtproj` opens the project, file tooltips
 `projectNote`, context menu bind / run scenario / validate / settings), Validation panel `runProjectBatch`
 (`ValidationRunner.batchProject`), Welcome "Projects" cards. CLI: `scenario` (`--input`), `validate --project`
-(also Schematron / JSON Schema). Docs: `docs/projects.md`.
+(also Schematron / JSON Schema). Docs: `docs/guides/projects.md`.
 
 ## Online identifier lookup (GLEIF, ESMA FIRDS, OpenFIGI)
 
@@ -272,7 +279,7 @@ checked that source itself; "Check Identifiers Online": Tools `menu-tools-identi
 `fundsxml-identifiers-online`, `pk-identifiers-online`), `IdentifierHover`, links of the findings (`ValidationProblem.link` from `LeiRecord`/`IsinRecord.searchUrl` in `ValidationRunner.toProblems`; FIRDS record page = Solr `id` as `docId`, `IsinRecord.firdsId`; row link + "Open at …" in `ProblemsPanel`, test hook `linkOpener`), Settings cards `GleifSettings` / `IsinSettings`,
 CLI `lei`, `isin` (`--no-openfigi`), `validate --gleif --isin` (the CLI ignores the "on validation" settings). Values leave
 the computer only on a click or with those settings on. Tests: `OnlineFakes` (saved answers `gleif/lei-records.json`,
-`isin/firds-select.json`, `isin/openfigi-mapping.json`). Docs: `docs/identifier-lookup.md`.
+`isin/firds-select.json`, `isin/openfigi-mapping.json`). Docs: `docs/industry/identifier-lookup.md`.
 
 ## Problems: categories, subjects, grouping
 
@@ -292,6 +299,22 @@ By.SUBJECT|RULE|CATEGORY)` → `Group` → `Kind` → occurrences (`ruleKey`: ca
 `IsinPairs` from the FIRDS records in `Isin.cache()`; `EditorHost.replaceActiveTextEdits` = one RichTextFX multi-change
 = one undo; hook `fixConfirmer`). Row menus are built when opened. Excel: `ValidationExcelExporter` (SXSSF; Summary,
 Problems (split beyond the row limit), By Object, By Rule).
+
+## Line bookmarks
+
+`service/bookmarks/`: `Bookmark` (line, name, number 1–9, trimmed `lineText` ≤ 200, `orphaned`), `BookmarkAnchor`
+(re-anchoring by line text ±50 lines, nearest wins, else orphaned), `BookmarkService` (key = absolute normalized path or
+`untitled:<id>` (memory only, `renamePath` on first save, `copyPath` on Save As without numbers); numbers unique app-wide;
+`shiftLines(LineShift)` - a deleted line moves the bookmark to the edit's line, duplicates merge; JSON
+`~/.freeXmlToolkit/bookmarks.json`, debounced 500 ms + shutdown hook; listeners get the key, `null` = several).
+Editor: `controls/shell/editor/EditorBookmarks` (per tab: gutter contributor `"bookmarks"` = `BookmarkGutter`
+(MOUSE_PRESSED toggles, context menu), `LineShiftTracker` (shared with the breakpoints; `offsetToPosition`, whole-text
+replacements ignored), scroll-bar markers `controls/shared/ScrollMarkerStrip` via `EditorTab.scrollMarkers`, editor
+context menu "Bookmark ▸"; `textLoaded` re-anchors on open/reload, `saved` refreshes line texts, `followPath` on Save As;
+test hooks `EditorHost.setBookmarkPrompts`). `QueryEditorView` has an extra gutter now (so breakpoints show on XQuery too).
+Shell: Ctrl+F2 / Ctrl+Shift+F2 / F2 + Shift+F2 (only with the text editor focused) / Ctrl(+Shift)+1…9 in
+`UnifiedShellView.handleShortcut`, Edit → Bookmarks submenu, activity `bookmarks` → `BookmarksPanel` (FXML). Docs:
+`docs/guides/edit-xml/bookmarks.md`.
 
 ## After an export
 
@@ -333,7 +356,7 @@ the jars in `~/.freeXmlToolkit/plugins` (`-Dfxt.plugins.dir`, own `URLClassLoade
 `Activity` is a class, not an enum: built-in constants + plugin activities from `values()` (before SETTINGS),
 `createSidePanel` switches on `activity.id()`. The UI side is `ShellPluginUi`. FundsXML is the reference plugin
 (`controls/shell/editor/FundsXmlPlugin`; its Settings card and Welcome section are still core). Settings →
-Extensions → PLUGINS lists them. Docs: `docs/plugins.md`.
+Extensions → PLUGINS lists them. Docs: `docs/industry/manage-extensions.md`.
 Switched-off plugins are kept (not registered) for `FxtPlugin.recognises(content)` → `PluginManager.offersFor` → one-time
 `PluginHintBar` (`plugin.<id>.hintShown`); `controls/shell/editor/DescriberHover` shows `PluginManager.describe` on tag names
 in the text (≤ 2 MB, not on areas with `DescriberHover.CUSTOM_HOVER`, set by `PkCodeHover`). `IndustryPanel`: Check = F8
@@ -357,7 +380,7 @@ action type and level from `scripts/esma-emir-fields.py`, `EmirRules`; the C fie
 from ESMA's rules text: `when`/`then` notation, choice elements → codes, `scope` = repeating block; date order
 `ge|le|eq <date|field[/field]>` holds wherever the field is reported); ESMA ISO 20022 schemas shared in
 `resources/plugins/regreport/esma/` with one BizData driver `esma-envelope.xsd` (`EsmaSchemas`). Shared: `IndustryPanel` (FXML), `IdentifierKind`,
-`service/finance/FinancialIdentifiers` (IBAN, BIC, LEI, ISIN, AT UID), `plugin/XmlScan`. Docs: `docs/industry-plugins.md` (overview) + one page per plugin `docs/plugin-<id>.md`; screenshots `PluginsDocScreenshotGenerator`.
+`service/finance/FinancialIdentifiers` (IBAN, BIC, LEI, ISIN, AT UID), `plugin/XmlScan`. Docs: `docs/industry/index.md` (overview) + one page per plugin `docs/industry/<id>.md`; screenshots `PluginsDocScreenshotGenerator`.
 
 ## AI and MCP
 
@@ -380,7 +403,7 @@ results also as JSON text), `StdoutGuard`. CLI `cli/McpCommand` (`fxt-cli mcp --
 `fxt.schema.localCopies=false`; exits after 3 runaways). Policy `ai.allowed`, `ai.mcp.allowed` (`service/ai/AiPolicy`,
 `AdminPolicy`). Public surface pinned by `ToolSurfaceSnapshotTest` (`src/test/resources/ai/mcp-tools.snapshot.json`,
 regenerate with `-Dfxt.ai.updateSnapshot=true`); `ToolsWriteNothingTest` calls every tool and checks no file changed.
-Docs: `docs/mcp-server.md`.
+Docs: `docs/automate/mcp-server.md`.
 **AI assistant (Phase 2, off by default):** `service/ai/provider/` — `ChatProvider` (`ChatRequest`/`ChatResponse`/
 `ChatMessage` with opaque `providerState` replayed unchanged, `ToolCall`, `StopReason`, `ProviderException` kinds,
 `CancelToken`), `OpenAiCompatibleProvider` (Chat Completions on `ProviderHttp` over `ConnectionService`, SSE via
@@ -403,7 +426,7 @@ what the console / Transform panel holds, `followUpMessage`; telemetry `meta.tur
 (bottom dock "AI", stale check = document identity + revision + text), `AiActions` (explain/fix from
 `ProblemsPanel`/`ValidationPanel` menus, Ask AI in `QueryConsole`, Generate stylesheet in `TransformPanel`),
 `GenerateStylesheetDialog`. Telemetry `UsageEvents.aiAction` (fixed values only). Eval: `./gradlew aiEval -Pai.baseUrl=…
--Pai.model=…` (`src/test/resources/ai/evals/cases.json`). Docs: `docs/ai-assistant.md`.
+-Pai.model=…` (`src/test/resources/ai/evals/cases.json`). Docs: `docs/guides/ai-assistant.md`.
 
 ## Administrator Policy
 
@@ -415,7 +438,7 @@ overlay (`AdminPolicy.PolicyProperties`), `loadProperties()` returns `AdminPolic
 (a plain copy that survives `putAll`), `saveProperties` stores only `userValues(...)` — locked values
 never reach the user's file. `update.allowed=false` disables update check/menu/install. Settings
 page: new controls must be added to `SettingsPanel.policyKeys()`, and disable bindings go through
-`bindDisable(...)`. Docs: `docs/administration.md`.
+`bindDisable(...)`. Docs: `docs/administer/policies.md`.
 
 ## Architecture Overview
 
@@ -509,7 +532,7 @@ tooltip's first line or inner label, input → `Label` before it). Give icon-onl
 `accessibleText`. Text in the primary colour: `-fxt-primary-text`; fills behind `-fxt-on-primary`:
 `-fxt-primary-fill`; warning text: `-fxt-warning-text`. `AccessibilityAuditTest` (no unnamed
 controls; controls outside the tab order need an entry in `KEYBOARD_ALTERNATIVES`) and `ContrastTest`
-(WCAG AA 4.5:1) guard it. Docs: `docs/accessibility.md`.
+(WCAG AA 4.5:1) guard it. Docs: `docs/reference/accessibility.md`.
 
 ### CSS Style Classes
 
@@ -546,7 +569,7 @@ controls; controls outside the tab order need an entry in `KEYBOARD_ALTERNATIVES
 
 ## Project-Specific Patterns
 
-- **XSLT/XQuery:** Saxon HE 12.10 for XSLT 3.0, XPath 3.1, XQuery 3.1 (pinned by XML Calabash 3)
+- **XSLT/XQuery:** Saxon HE 12.10 for XSLT 3.0, XPath 3.1, XQuery 3.1 (pinned by XML Calabash 3); Saxon HE 13.1 only as a downloadable external XSLT processor
 - **XProc:** XML Calabash 3.1.0 for XProc 3.0 pipelines (Run Pipeline on .xpl documents)
 - **XML Validation:** Xerces 2.12.2 (exist-db fork) for XSD 1.1
 - **UI Framework:** JavaFX 25 with the project's own `-fxt-*` design-token CSS theme
@@ -558,7 +581,7 @@ controls; controls outside the tab order need an entry in `KEYBOARD_ALTERNATIVES
 
 **Schema Support:** XSD 1.0/1.1 (full), Schematron (full, via ph-schematron/SchXslt on Saxon; schematrons without `@queryBinding` compile as xslt2). DTD and RELAX NG (.rng/.rnc): validation (Xerces DTD / Jing) and IntelliSense via a Trang-translated XSD (`service/grammar/`, `GrammarStage` in `ValidationRunner`, `EditorSchemaBinding.detectDeclaredGrammar` / `loadForIntelliSense`; policy `security.dtd.allowed`); no editor for them. OASIS XML catalogs are supported (system/public/uri/rewrite*/nextCatalog) via `SchemaLibraryService`.
 
-**Schematron Quick Fixes (SQF):** `service/sqf/` (parser/correlator/execution engine) + `controls/shell/editor/quickfix/` (UI). Fixes are applied as formatting-preserving text-range edits (one native undo step). Not supported: external `sch:extends href`, abstract patterns for fix discovery, `$sqf:match`, `@use-for-each`. See `docs/schematron-quick-fixes.md`.
+**Schematron Quick Fixes (SQF):** `service/sqf/` (parser/correlator/execution engine) + `controls/shell/editor/quickfix/` (UI). Fixes are applied as formatting-preserving text-range edits (one native undo step). Not supported: external `sch:extends href`, abstract patterns for fix discovery, `$sqf:match`, `@use-for-each`. See `docs/guides/validate/schematron-quick-fixes.md`.
 
 **XSD Editor V2:** Imported schemas are resolved **transitively** (local file, HTTP via `SchemaResourceCache`, or namespace-URL download — `NamespaceSchemaDownloader`): nested imports/includes inside imported schemas and imports declared in included files resolve too (inside a remote schema relative locations resolve against its URL, and only http(s) targets are allowed), cycle-safe with an import depth cap of 10, flattened into the root schema's imported-schema map. `xs:redefine`/`xs:override` load their file as a separate schema (`XsdSchemaReference.getReferencedSchema`, also listed in the imported-schema map, never inlined); `XsdRedefinitions` holds their semantics (which target definitions are replaced, a self-reference inside `xs:redefine` means the original) for the Graphic view, `SchemaReferenceGraph`, statistics, quality checks, `TypeLibrary`, `XsdInstanceLocator` and `SchemaFacets`; flattening and "Remove unused" still refuse such schemas, also when declared inside an included file (the node stays on the root schema, tagged as from the include, so saving leaves it there).
 
@@ -581,7 +604,7 @@ controls; controls outside the tab order need an entry in `KEYBOARD_ALTERNATIVES
 
 **Architecture:** `docs/ThreadPoolArchitecture.md`
 
-**Features:** `docs/unified-shell.md` (shell user guide), `docs/context-sensitive-intellisense.md`, `docs/favorites-system.md`, `docs/xml-editor.md`, `docs/grid.md`, `docs/debugger.md`
+**Features:** `docs/get-started/workspace-tour.md` (shell user guide), `docs/guides/edit-xml/auto-completion.md`, `docs/guides/edit-xml/favorites.md`, `docs/guides/edit-xml/index.md`, `docs/guides/edit-xml/grid.md`, `docs/guides/transform-query/debug.md`
 
 **User Documentation:** `docs/index.md` (MkDocs site), `README.md`
 

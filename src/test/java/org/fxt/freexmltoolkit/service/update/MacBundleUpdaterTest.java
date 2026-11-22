@@ -15,6 +15,8 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
@@ -30,7 +32,9 @@ class MacBundleUpdaterTest {
     private Path installed;
     private Path extracted;
     private final List<List<String>> commands = new ArrayList<>();
+    private final List<List<String>> launched = new ArrayList<>();
     private String failOn;
+    private boolean launcherFails;
 
     @BeforeEach
     void setUp() throws IOException {
@@ -60,17 +64,114 @@ class MacBundleUpdaterTest {
                 copyTree(Path.of(command.get(1)), Path.of(command.get(2)));
             }
             return 0;
+        }, command -> {
+            if (launcherFails) {
+                throw new IOException("cannot start /bin/sh");
+            }
+            launched.add(command);
         }, msg -> { });
     }
 
+    private Path marker(String what) {
+        return extracted.resolve(".relaunch." + what);
+    }
+
     @Test
-    void swapsTheWholeBundleAndStartsIt() throws IOException {
+    void swapsTheWholeBundleAndLetsTheHelperStartIt() throws IOException {
+        updater().install(extracted, installed);
+
+        assertEquals("new", Files.readString(installed.resolve("Contents/app/FreeXmlToolkit.jar")));
+        // no process of this JVM after the swap: jspawnhelper would now be the new runtime's
+        assertFalse(commands.stream().anyMatch(c -> c.getFirst().equals("open")));
+        assertEquals(MacBundleUpdater.relaunchCommand(extracted.resolve(".relaunch"), installed,
+                extracted.resolve("FreeXmlToolkit"), applications.resolve("FreeXmlToolkit"),
+                "/usr/bin/open", "/usr/bin/ditto", MacBundleUpdater.LSREGISTER), launched.getFirst());
+        assertTrue(Files.exists(marker("go")));
+        assertFalse(Files.exists(marker("abort")));
+        // no staged copy or backup left next to the bundle
+        assertEquals(List.of("FreeXmlToolkit.app"), names(applications));
+    }
+
+    @Test
+    void withoutHelperTheBundleIsStartedDirectly() throws IOException {
+        launcherFails = true;
         updater().install(extracted, installed);
 
         assertEquals("new", Files.readString(installed.resolve("Contents/app/FreeXmlToolkit.jar")));
         assertEquals(List.of("open", "-n", installed.toString()), commands.getLast());
-        // no staged copy or backup left next to the bundle
-        assertEquals(List.of("FreeXmlToolkit.app"), names(applications));
+    }
+
+    @Test
+    void aFailedStartAfterTheSwapSaysTheUpdateIsInstalled() throws IOException {
+        launcherFails = true;
+        failOn = "open";
+        IOException e = assertThrows(IOException.class, () -> updater().install(extracted, installed));
+        assertTrue(e.getMessage().contains("installed"), e.getMessage());
+        assertEquals("new", Files.readString(installed.resolve("Contents/app/FreeXmlToolkit.jar")));
+    }
+
+    @Test
+    void aFailedSwapTellsTheHelperToGiveUp() {
+        MacBundleUpdater updater = new MacBundleUpdater(command -> {
+            commands.add(command);
+            if (command.getFirst().equals("ditto") && command.size() == 3) {
+                copyTree(Path.of(command.get(1)), Path.of(command.get(2)));
+                // the installed bundle vanishes after staging: moving it aside fails
+                MacBundleUpdater.deleteQuietly(installed);
+            }
+            return 0;
+        }, launched::add, msg -> { });
+        assertThrows(IOException.class, () -> updater.install(extracted, installed));
+        assertEquals(1, launched.size());
+        assertTrue(Files.exists(marker("abort")));
+        assertFalse(Files.exists(marker("go")));
+    }
+
+    @Test
+    @DisabledOnOs(OS.WINDOWS)
+    void theHelperScriptRefreshesTheExtrasAndOpensTheBundle() throws Exception {
+        Path bin = Files.createDirectories(tmp.resolve("bin"));
+        Path opened = tmp.resolve("opened.txt");
+        Path open = bin.resolve("open");
+        Files.writeString(open, "#!/bin/sh\nprintf '%s ' \"$@\" > '" + opened + "'\n");
+        Path ditto = bin.resolve("ditto");
+        Files.writeString(ditto, "#!/bin/sh\ncp -R \"$1/.\" \"$2\"\n");
+        Path registered = tmp.resolve("registered.txt");
+        Path lsregister = bin.resolve("lsregister");
+        Files.writeString(lsregister, "#!/bin/sh\nprintf '%s ' \"$@\" > '" + registered + "'\n");
+        open.toFile().setExecutable(true);
+        ditto.toFile().setExecutable(true);
+        lsregister.toFile().setExecutable(true);
+        Path extrasTarget = Files.createDirectories(applications.resolve("FreeXmlToolkit"));
+        Path marker = extracted.resolve(".relaunch");
+        Files.setLastModifiedTime(installed, java.nio.file.attribute.FileTime.fromMillis(0));
+
+        Process p = new ProcessBuilder(MacBundleUpdater.relaunchCommand(marker, installed,
+                extracted.resolve("FreeXmlToolkit"), extrasTarget, open.toString(), ditto.toString(),
+                lsregister.toString())).start();
+        Thread.sleep(300);
+        assertTrue(p.isAlive(), "the helper waits for the swap");
+        Files.writeString(marker("go"), "go");
+        assertTrue(p.waitFor(10, java.util.concurrent.TimeUnit.SECONDS));
+        assertEquals("-n " + installed, Files.readString(opened).strip());
+        // the new bundle is registered again and touched, so Finder and Dock drop the old icon
+        assertEquals("-f " + installed, Files.readString(registered).strip());
+        assertTrue(Files.getLastModifiedTime(installed).toMillis() > 0, "the bundle is touched");
+        assertEquals("<new/>", Files.readString(extrasTarget.resolve("examples/sample.xml")));
+    }
+
+    @Test
+    @DisabledOnOs(OS.WINDOWS)
+    void theHelperScriptEndsOnAbortWithoutOpening() throws Exception {
+        Path opened = tmp.resolve("opened.txt");
+        Path marker = extracted.resolve(".relaunch");
+        Files.writeString(marker("abort"), "abort");
+        Process p = new ProcessBuilder(MacBundleUpdater.relaunchCommand(marker, installed,
+                extracted.resolve("FreeXmlToolkit"), applications.resolve("FreeXmlToolkit"),
+                "/bin/false", "/bin/false", "/bin/false")).start();
+        assertTrue(p.waitFor(10, java.util.concurrent.TimeUnit.SECONDS));
+        assertEquals(0, p.exitValue());
+        assertFalse(Files.exists(opened));
     }
 
     @Test
@@ -82,6 +183,7 @@ class MacBundleUpdaterTest {
 
     @Test
     void extrasAreRefreshedOnlyWhenKeptNextToTheBundle() throws IOException {
+        launcherFails = true; // the in-process fallback; with the helper the script copies them
         updater().install(extracted, installed);
         assertFalse(Files.exists(applications.resolve("FreeXmlToolkit")), "no extras folder is created");
 
@@ -114,6 +216,7 @@ class MacBundleUpdaterTest {
         assertEquals("old", Files.readString(installed.resolve("Contents/app/FreeXmlToolkit.jar")));
         assertEquals(List.of("FreeXmlToolkit.app"), names(applications));
         assertFalse(commands.stream().anyMatch(c -> c.getFirst().equals("open")));
+        assertTrue(launched.isEmpty(), "the helper starts only once the new bundle is staged");
     }
 
     @Test

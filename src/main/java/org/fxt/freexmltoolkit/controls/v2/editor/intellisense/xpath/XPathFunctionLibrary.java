@@ -5,9 +5,11 @@ import java.util.List;
 
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItemType;
+import org.fxt.freexmltoolkit.service.standards.XPathVersion;
 
 /**
- * Static library of XPath 1.0/2.0/3.1 functions, axes, operators, and XQuery keywords.
+ * Static library of XPath 1.0/2.0/3.1 functions, axes, operators, and XQuery keywords. The functions come from a
+ * catalog generated from Saxon's own function library ({@value #CATALOG}).
  * Provides CompletionItem instances for autocomplete suggestions.
  */
 public final class XPathFunctionLibrary {
@@ -32,142 +34,64 @@ public final class XPathFunctionLibrary {
 
     // ===================== FUNCTIONS =====================
 
+    /** The catalog generated from Saxon's function library (see {@code XPathFunctionCatalogTest}). */
+    static final String CATALOG = "/intellisense/xpath-functions.json";
+
     private static void initializeFunctions() {
-        // XPath 1.0 String Functions
-        addFunction("concat", "concat($str1, $str2, ...)", "Concatenates two or more strings", "xs:string");
-        addFunction("contains", "contains($str, $search)", "Returns true if first string contains second", "xs:boolean");
-        addFunction("normalize-space", "normalize-space($str?)", "Normalizes whitespace in a string", "xs:string");
-        addFunction("starts-with", "starts-with($str, $prefix)", "Returns true if string starts with prefix", "xs:boolean");
-        addFunction("string", "string($arg?)", "Converts argument to string", "xs:string");
-        addFunction("string-length", "string-length($str?)", "Returns the length of a string", "xs:integer");
-        addFunction("substring", "substring($str, $start, $len?)", "Returns a substring", "xs:string");
-        addFunction("substring-after", "substring-after($str, $search)", "Returns substring after occurrence", "xs:string");
-        addFunction("substring-before", "substring-before($str, $search)", "Returns substring before occurrence", "xs:string");
-        addFunction("translate", "translate($str, $from, $to)", "Translates characters in a string", "xs:string");
-
-        // XPath 1.0 Numeric Functions
-        addFunction("ceiling", "ceiling($num)", "Returns smallest integer >= argument", "xs:integer");
-        addFunction("floor", "floor($num)", "Returns largest integer <= argument", "xs:integer");
-        addFunction("number", "number($arg?)", "Converts argument to number", "xs:double");
-        addFunction("round", "round($num)", "Rounds to nearest integer", "xs:integer");
-        addFunction("sum", "sum($seq)", "Returns sum of numeric values in sequence", "xs:double");
-
-        // XPath 1.0 Boolean Functions
-        addFunction("boolean", "boolean($arg)", "Converts argument to boolean", "xs:boolean");
-        addFunction("false", "false()", "Returns boolean false", "xs:boolean");
-        addFunction("not", "not($arg)", "Returns negation of argument", "xs:boolean");
-        addFunction("true", "true()", "Returns boolean true", "xs:boolean");
-
-        // XPath 1.0 Node Functions
-        addFunction("count", "count($seq)", "Returns number of items in sequence", "xs:integer");
-        addFunction("id", "id($ids)", "Returns elements with matching IDs", "element()*");
-        addFunction("last", "last()", "Returns size of context sequence", "xs:integer");
-        addFunction("local-name", "local-name($node?)", "Returns local name of node", "xs:string");
-        addFunction("name", "name($node?)", "Returns qualified name of node", "xs:string");
-        addFunction("namespace-uri", "namespace-uri($node?)", "Returns namespace URI of node", "xs:string");
-        addFunction("position", "position()", "Returns position of context item", "xs:integer");
-
-        // XPath 2.0 String Functions
-        addFunction("compare", "compare($str1, $str2)", "Compares two strings", "xs:integer");
-        addFunction("ends-with", "ends-with($str, $suffix)", "Returns true if string ends with suffix", "xs:boolean");
-        addFunction("lower-case", "lower-case($str)", "Converts string to lowercase", "xs:string");
-        addFunction("matches", "matches($str, $pattern)", "Returns true if string matches regex pattern", "xs:boolean");
-        addFunction("replace", "replace($str, $pattern, $repl)", "Replaces pattern occurrences", "xs:string");
-        addFunction("tokenize", "tokenize($str, $pattern?)", "Splits string by pattern", "xs:string*");
-        addFunction("upper-case", "upper-case($str)", "Converts string to uppercase", "xs:string");
-        addFunction("string-join", "string-join($seq, $sep?)", "Joins sequence with separator", "xs:string");
-        addFunction("encode-for-uri", "encode-for-uri($str)", "Encodes string for URI", "xs:string");
-        addFunction("escape-html-uri", "escape-html-uri($str)", "Escapes URI for HTML", "xs:string");
-        addFunction("iri-to-uri", "iri-to-uri($iri)", "Converts IRI to URI", "xs:string");
-
-        // XPath 2.0 Numeric Functions
-        addFunction("abs", "abs($num)", "Returns absolute value", "numeric");
-        addFunction("avg", "avg($seq)", "Returns average of numeric values", "xs:double");
-        addFunction("max", "max($seq)", "Returns maximum value", "xs:anyAtomicType");
-        addFunction("min", "min($seq)", "Returns minimum value", "xs:anyAtomicType");
-        addFunction("round-half-to-even", "round-half-to-even($num, $prec?)", "Banker's rounding", "numeric");
-
-        // XPath 2.0 Sequence Functions
-        addFunction("distinct-values", "distinct-values($seq)", "Returns unique values from sequence", "xs:anyAtomicType*");
-        addFunction("empty", "empty($seq)", "Returns true if sequence is empty", "xs:boolean");
-        addFunction("exists", "exists($seq)", "Returns true if sequence is not empty", "xs:boolean");
-        addFunction("index-of", "index-of($seq, $search)", "Returns positions of matching items", "xs:integer*");
-        addFunction("insert-before", "insert-before($seq, $pos, $items)", "Inserts items into sequence", "item()*");
-        addFunction("remove", "remove($seq, $pos)", "Removes item at position", "item()*");
-        addFunction("reverse", "reverse($seq)", "Reverses sequence order", "item()*");
-        addFunction("subsequence", "subsequence($seq, $start, $len?)", "Returns subsequence", "item()*");
-        addFunction("unordered", "unordered($seq)", "Returns sequence in implementation-dependent order", "item()*");
-
-        // XPath 2.0 Date/Time Functions
-        addFunction("current-date", "current-date()", "Returns current date", "xs:date");
-        addFunction("current-dateTime", "current-dateTime()", "Returns current date and time", "xs:dateTime");
-        addFunction("current-time", "current-time()", "Returns current time", "xs:time");
-        addFunction("day-from-date", "day-from-date($date)", "Extracts day from date", "xs:integer");
-        addFunction("hours-from-time", "hours-from-time($time)", "Extracts hours from time", "xs:integer");
-        addFunction("month-from-date", "month-from-date($date)", "Extracts month from date", "xs:integer");
-        addFunction("year-from-date", "year-from-date($date)", "Extracts year from date", "xs:integer");
-        addFunction("format-date", "format-date($date, $picture)", "Formats date according to picture", "xs:string");
-        addFunction("format-dateTime", "format-dateTime($dt, $picture)", "Formats dateTime", "xs:string");
-        addFunction("format-number", "format-number($num, $picture)", "Formats number according to picture", "xs:string");
-        addFunction("format-time", "format-time($time, $picture)", "Formats time according to picture", "xs:string");
-
-        // XPath 2.0 Node/Context Functions
-        addFunction("base-uri", "base-uri($node?)", "Returns base URI of node", "xs:anyURI?");
-        addFunction("document-uri", "document-uri($node?)", "Returns document URI", "xs:anyURI?");
-        addFunction("root", "root($node?)", "Returns root of tree containing node", "node()");
-        addFunction("lang", "lang($lang)", "Returns true if context lang matches", "xs:boolean");
-        addFunction("nilled", "nilled($node?)", "Returns true if element is nilled", "xs:boolean");
-
-        // XPath 2.0 Type Functions
-        addFunction("data", "data($arg)", "Returns atomized value", "xs:anyAtomicType*");
-        addFunction("deep-equal", "deep-equal($seq1, $seq2)", "Deep comparison of sequences", "xs:boolean");
-        addFunction("error", "error($code?, $desc?, $obj?)", "Raises an error", "none");
-        addFunction("trace", "trace($value, $label)", "Traces value for debugging", "item()*");
-
-        // XPath 2.0 Constructor Functions
-        addFunction("xs:string", "xs:string($arg)", "Constructs xs:string value", "xs:string");
-        addFunction("xs:integer", "xs:integer($arg)", "Constructs xs:integer value", "xs:integer");
-        addFunction("xs:decimal", "xs:decimal($arg)", "Constructs xs:decimal value", "xs:decimal");
-        addFunction("xs:double", "xs:double($arg)", "Constructs xs:double value", "xs:double");
-        addFunction("xs:boolean", "xs:boolean($arg)", "Constructs xs:boolean value", "xs:boolean");
-        addFunction("xs:date", "xs:date($arg)", "Constructs xs:date value", "xs:date");
-        addFunction("xs:dateTime", "xs:dateTime($arg)", "Constructs xs:dateTime value", "xs:dateTime");
-        addFunction("xs:time", "xs:time($arg)", "Constructs xs:time value", "xs:time");
-
-        // XPath 3.0/3.1 Functions
-        addFunction("head", "head($seq)", "Returns first item of sequence", "item()?");
-        addFunction("tail", "tail($seq)", "Returns all but first item", "item()*");
-        addFunction("sort", "sort($seq)", "Sorts sequence", "item()*");
-        addFunction("fold-left", "fold-left($seq, $zero, $func)", "Left fold over sequence", "item()*");
-        addFunction("fold-right", "fold-right($seq, $zero, $func)", "Right fold over sequence", "item()*");
-        addFunction("for-each", "for-each($seq, $func)", "Applies function to each item", "item()*");
-        addFunction("filter", "filter($seq, $func)", "Filters sequence by predicate", "item()*");
-        addFunction("for-each-pair", "for-each-pair($seq1, $seq2, $func)", "Applies function to pairs", "item()*");
-        addFunction("generate-id", "generate-id($node?)", "Generates unique ID for node", "xs:string");
-        addFunction("has-children", "has-children($node?)", "Returns true if node has children", "xs:boolean");
-        addFunction("innermost", "innermost($nodes)", "Returns innermost nodes", "node()*");
-        addFunction("outermost", "outermost($nodes)", "Returns outermost nodes", "node()*");
-        addFunction("path", "path($node?)", "Returns path expression for node", "xs:string?");
-        addFunction("parse-xml", "parse-xml($str)", "Parses XML string to document", "document-node()");
-        addFunction("serialize", "serialize($arg)", "Serializes to XML string", "xs:string");
-        addFunction("unparsed-text", "unparsed-text($uri)", "Reads text file", "xs:string");
-
-        // XPath 3.1 Map/Array Functions
-        addFunction("map:merge", "map:merge($maps)", "Merges maps", "map(*)");
-        addFunction("map:keys", "map:keys($map)", "Returns keys of map", "xs:anyAtomicType*");
-        addFunction("map:contains", "map:contains($map, $key)", "Tests if map contains key", "xs:boolean");
-        addFunction("map:get", "map:get($map, $key)", "Gets value from map", "item()*");
-        addFunction("map:put", "map:put($map, $key, $val)", "Puts entry in map", "map(*)");
-        addFunction("map:remove", "map:remove($map, $key)", "Removes entry from map", "map(*)");
-        addFunction("array:size", "array:size($array)", "Returns array size", "xs:integer");
-        addFunction("array:get", "array:get($array, $pos)", "Gets array element", "item()*");
-        addFunction("array:put", "array:put($array, $pos, $val)", "Puts element in array", "array(*)");
-        addFunction("array:append", "array:append($array, $val)", "Appends to array", "array(*)");
-        addFunction("array:join", "array:join($arrays)", "Joins arrays", "array(*)");
+        try (var in = XPathFunctionLibrary.class.getResourceAsStream(CATALOG)) {
+            if (in == null) {
+                return;
+            }
+            var root = com.google.gson.JsonParser.parseReader(
+                    new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
+            for (var e : root.getAsJsonArray("functions")) {
+                var f = e.getAsJsonObject();
+                List<String[]> params = new ArrayList<>();
+                for (var p : f.getAsJsonArray("params")) {
+                    params.add(new String[]{p.getAsJsonObject().get("name").getAsString(),
+                            p.getAsJsonObject().get("type").getAsString()});
+                }
+                String name = f.get("name").getAsString();
+                int min = f.get("min").getAsInt();
+                int max = f.get("max").getAsInt();
+                FUNCTIONS.add(new FunctionInfo(name, signature(name, min, max, params),
+                        f.get("description").getAsString(), f.get("returns").getAsString(),
+                        XPathVersion.parse(f.get("since").getAsString()), f.get("xsltOnly").getAsBoolean()));
+            }
+            for (var e : root.getAsJsonArray("extra")) {
+                var f = e.getAsJsonObject();
+                FUNCTIONS.add(new FunctionInfo(f.get("name").getAsString(), f.get("signature").getAsString(),
+                        f.get("description").getAsString(), f.get("returns").getAsString(), XPathVersion.V2_0,
+                        false));
+            }
+        } catch (java.io.IOException | RuntimeException e) {
+            org.apache.logging.log4j.LogManager.getLogger(XPathFunctionLibrary.class)
+                    .warn("Function catalog not readable: {}", e.getMessage());
+        }
     }
 
-    private static void addFunction(String name, String signature, String description, String returnType) {
-        FUNCTIONS.add(new FunctionInfo(name, signature, description, returnType));
+    /**
+     * {@code substring($value as xs:string?, $start as xs:numeric[, $length as xs:numeric?])}: optional arguments in
+     * brackets; {@code max < 0} = any number of further arguments.
+     */
+    static String signature(String name, int min, int max, List<String[]> params) {
+        StringBuilder sb = new StringBuilder(name).append('(');
+        int shown = max < 0 ? Math.max(min, params.size()) : Math.min(max, params.size());
+        for (int i = 0; i < shown; i++) {
+            String[] p = params.get(Math.min(i, params.size() - 1));
+            String argument = "$" + (max < 0 ? p[0].replaceAll("\\d+$", "") + (i + 1) : p[0]) + " as " + p[1];
+            if (i >= min && max >= 0) {
+                sb.append(i == 0 ? "[" : "[, ").append(argument);
+            } else {
+                sb.append(i == 0 ? "" : ", ").append(argument);
+            }
+        }
+        if (max >= 0) {
+            sb.append("]".repeat(Math.max(0, shown - min)));
+        } else {
+            sb.append(", ...");
+        }
+        return sb.append(')').toString();
     }
 
     // ===================== AXES =====================
@@ -298,19 +222,44 @@ public final class XPathFunctionLibrary {
 
     // ===================== PUBLIC API =====================
 
-    /** @return the names of all known functions (unprefixed for {@code fn:}, e.g. {@code distinct-values}, {@code xs:date}) */
+    /**
+     * @return the names of all functions of XPath / XQuery (unprefixed for {@code fn:}, e.g. {@code distinct-values},
+     *         {@code map:get}, {@code xs:date}); XSLT-only functions are not among them
+     */
     public static List<String> functionNames() {
-        return FUNCTIONS.stream().map(FunctionInfo::name).distinct().toList();
+        return FUNCTIONS.stream().filter(f -> !f.xsltOnly()).map(FunctionInfo::name).distinct().toList();
+    }
+
+    /** @return the number of functions in the catalog, XSLT-only ones included */
+    public static int functionCount() {
+        return FUNCTIONS.size();
+    }
+
+    /** @return the signature of {@code name} (e.g. {@code substring($value as xs:string?, …)}), or {@code null} */
+    public static String signatureOf(String name) {
+        return FUNCTIONS.stream().filter(f -> f.name().equals(name)).map(FunctionInfo::signature).findFirst()
+                .orElse(null);
     }
 
     /**
      * Returns all XPath functions as CompletionItems.
      */
     public static List<CompletionItem> getFunctionCompletions(String prefix, int baseScore) {
+        return getFunctionCompletions(prefix, baseScore, null);
+    }
+
+    /**
+     * The functions of {@code version} whose name starts with {@code prefix} (all versions for {@code null});
+     * XSLT-only functions are left out.
+     */
+    public static List<CompletionItem> getFunctionCompletions(String prefix, int baseScore, XPathVersion version) {
         List<CompletionItem> items = new ArrayList<>();
         String lowerPrefix = prefix != null ? prefix.toLowerCase() : "";
 
         for (FunctionInfo func : FUNCTIONS) {
+            if (func.xsltOnly() || version != null && func.since().compareTo(version) > 0) {
+                continue;
+            }
             if (lowerPrefix.isEmpty() || func.name.toLowerCase().startsWith(lowerPrefix)) {
                 int score = baseScore;
                 // Boost exact prefix matches
@@ -435,8 +384,13 @@ public final class XPathFunctionLibrary {
      * Returns all completions relevant for XPath (functions, axes, operators).
      */
     public static List<CompletionItem> getAllXPathCompletions(String prefix, int baseScore) {
+        return getAllXPathCompletions(prefix, baseScore, null);
+    }
+
+    /** As {@link #getAllXPathCompletions(String, int)}, with the functions of {@code version} only. */
+    public static List<CompletionItem> getAllXPathCompletions(String prefix, int baseScore, XPathVersion version) {
         List<CompletionItem> items = new ArrayList<>();
-        items.addAll(getFunctionCompletions(prefix, baseScore));
+        items.addAll(getFunctionCompletions(prefix, baseScore, version));
         items.addAll(getAxisCompletions(prefix, baseScore - 10));
         items.addAll(getOperatorCompletions(prefix, baseScore - 20));
         items.addAll(getNodeTestCompletions(prefix, baseScore - 15));
@@ -447,7 +401,12 @@ public final class XPathFunctionLibrary {
      * Returns all completions relevant for XQuery (includes XPath + FLWOR keywords).
      */
     public static List<CompletionItem> getAllXQueryCompletions(String prefix, int baseScore) {
-        List<CompletionItem> items = new ArrayList<>(getAllXPathCompletions(prefix, baseScore));
+        return getAllXQueryCompletions(prefix, baseScore, null);
+    }
+
+    /** As {@link #getAllXQueryCompletions(String, int)}, with the functions of {@code version} only. */
+    public static List<CompletionItem> getAllXQueryCompletions(String prefix, int baseScore, XPathVersion version) {
+        List<CompletionItem> items = new ArrayList<>(getAllXPathCompletions(prefix, baseScore, version));
         items.addAll(getXQueryKeywordCompletions(prefix, baseScore + 5));
         return items;
     }
@@ -463,7 +422,8 @@ public final class XPathFunctionLibrary {
 
     // ===================== DATA CLASSES =====================
 
-    private record FunctionInfo(String name, String signature, String description, String returnType) {}
+    private record FunctionInfo(String name, String signature, String description, String returnType,
+                                XPathVersion since, boolean xsltOnly) {}
     private record AxisInfo(String name, String description) {}
     private record OperatorInfo(String name, String description) {}
     private record KeywordInfo(String name, String template, String description) {}

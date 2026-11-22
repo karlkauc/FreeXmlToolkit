@@ -27,12 +27,15 @@
     </ul>
   </description>
 
+  <update_contact>office@freexmltoolkit.org</update_contact>
+
   <launchable type="desktop-id">io.github.karlkauc.FreeXmlToolkit.desktop</launchable>
 
-  <url type="homepage">https://github.com/karlkauc/FreeXmlToolkit</url>
+  <url type="homepage">https://freexmltoolkit.org/</url>
   <url type="bugtracker">https://github.com/karlkauc/FreeXmlToolkit/issues</url>
   <url type="help">https://karlkauc.github.io/FreeXmlToolkit/</url>
   <url type="vcs-browser">https://github.com/karlkauc/FreeXmlToolkit</url>
+  <url type="contact">mailto:office@freexmltoolkit.org</url>
 
   <screenshots>
     <screenshot type="default">
@@ -76,6 +79,9 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="3.5.0" date="2026-11-22">
+      <url type="details">https://github.com/karlkauc/FreeXmlToolkit/releases/tag/v3.5.0</url>
+    </release>
     <release version="3.4.0" date="2026-11-18">
       <url type="details">https://github.com/karlkauc/FreeXmlToolkit/releases/tag/v3.4.0</url>
     </release>

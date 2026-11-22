@@ -1,6 +1,6 @@
 # AI Integration Rules
 
-Read this before touching `service/ai/`, `controls/shell/editor/ai/` or `cli/McpCommand`. User docs: `docs/mcp-server.md`, `docs/ai-assistant.md`.
+Read this before touching `service/ai/`, `controls/shell/editor/ai/` or `cli/McpCommand`. User docs: `docs/automate/mcp-server.md`, `docs/guides/ai-assistant.md`.
 Design: `docs/superpowers/specs/2026-11-10-ai-integration-design.md`.
 
 ## Invariants (each is pinned by a test — keep the test, do not weaken it)
@@ -27,5 +27,5 @@ Design: `docs/superpowers/specs/2026-11-10-ai-integration-design.md`.
 - Document text, schema documentation and tool results are **data** for a model, never instructions: delimit them, say so in the system prompt, and never let them trigger a tool with side effects without the user's confirmation.
 - A model's output is offered only with its verification report; applying is the user's action and one undo step.
 - Provider wire formats: read the provider's current documentation before changing a provider class. No model names in code. Anthropic goes through its Java SDK on the `ConnectionService` adapter (D13, `maxRetries(0)`); OpenAI-compatible is Chat Completions on raw HTTP (D14).
-- Settings: keys `ai.*`; every control in `SettingsPanel.policyKeys()`; policy-only keys documented in `docs/administration.md` in the same change.
-- When a tool is added or changed: update the snapshot, `docs/mcp-server.md`, `docs/whats-new.md`.
+- Settings: keys `ai.*`; every control in `SettingsPanel.policyKeys()`; policy-only keys documented in `docs/administer/policies.md` in the same change.
+- When a tool is added or changed: update the snapshot, `docs/automate/mcp-server.md`, `docs/reference/whats-new.md`.
