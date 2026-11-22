@@ -12,7 +12,7 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
 
 ![Feature tour: visual XSD editor, XML grid, IntelliSense, validation, debugger, transformations, Query Console, AI assistant, PDF, schema analysis, JSON, signatures, dark mode](docs/img/feature-tour.webp)
 
-**[⬇ Download the latest release](https://github.com/karlkauc/FreeXmlToolkit/releases/latest)** – Windows (.exe/.msi/portable), macOS (.dmg/.pkg, Apple Silicon & Intel), Linux (.deb/.rpm/portable) – or via `scoop install freexmltoolkit` / `brew install --cask karlkauc/tap/freexmltoolkit` ([details](#install-with-a-package-manager)). Full guide: [karlkauc.github.io/FreeXmlToolkit](https://karlkauc.github.io/FreeXmlToolkit/).
+**[⬇ Download the latest release](https://github.com/karlkauc/FreeXmlToolkit/releases/latest)** – Windows (.exe/.msi/portable), macOS (.dmg/.pkg, Apple Silicon & Intel), Linux (.deb/.rpm/portable) – or via `scoop install freexmltoolkit` / `brew install --cask karlkauc/tap/freexmltoolkit` ([details](#install-with-a-package-manager)). Website: **[freexmltoolkit.org](https://freexmltoolkit.org/)** · Full guide: [karlkauc.github.io/FreeXmlToolkit](https://karlkauc.github.io/FreeXmlToolkit/).
 
 ## Highlights
 

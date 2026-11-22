@@ -33,7 +33,7 @@
       </ul>
     </div>
   </div>
-  <p class="fxt-download__meta">Latest release: <strong class="fxt-release-version">see GitHub</strong><span class="fxt-release-date"></span> · <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">All downloads and release notes on GitHub</a> · Licensed under Apache 2.0 · <a href="https://github.com/karlkauc/FreeXmlToolkit">Source code</a> · <a href="https://github.com/sponsors/karlkauc">&#9829; Sponsor</a></p>
+  <p class="fxt-download__meta">Product website: <a href="https://freexmltoolkit.org/">freexmltoolkit.org</a> · Latest release: <strong class="fxt-release-version">see GitHub</strong><span class="fxt-release-date"></span> · <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">All downloads and release notes on GitHub</a> · Licensed under Apache 2.0 · <a href="https://github.com/karlkauc/FreeXmlToolkit">Source code</a> · <a href="https://github.com/sponsors/karlkauc">&#9829; Sponsor</a></p>
 </div>
 
 ## Where to start

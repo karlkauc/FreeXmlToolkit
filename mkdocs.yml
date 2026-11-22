@@ -166,6 +166,9 @@ markdown_extensions:
 
 extra:
   social:
+    - icon: fontawesome/solid/globe
+      link: https://freexmltoolkit.org/
+      name: freexmltoolkit.org
     - icon: fontawesome/brands/github
       link: https://github.com/karlkauc/FreeXmlToolkit
     - icon: fontawesome/solid/heart
