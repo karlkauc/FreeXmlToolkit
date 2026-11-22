@@ -98,7 +98,7 @@
 /* Settings TextField with blue border */
 .settings-text-field {
     -fx-background-color: white;
-    -fx-border-color: #4a90e2;
+    -fx-border-color: -fxt-primary;
     -fx-border-radius: 4px;
     -fx-background-radius: 4px;
 }
@@ -180,7 +180,7 @@
 
 /* Button Variant: Info-Action (Blue) */
 .btn-info-action {
-    -fx-background-color: #4a90e2;
+    -fx-background-color: -fxt-primary-fill;
     -fx-text-fill: white;
     -fx-padding: 8 16;
     -fx-background-radius: 4px;
@@ -224,7 +224,7 @@
 
 /* Button Variant: Check Connection */
 .btn-check-connection {
-    -fx-background-color: #4a90e2;
+    -fx-background-color: -fxt-primary-fill;
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-padding: 10 20;

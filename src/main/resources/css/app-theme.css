@@ -52,13 +52,13 @@
     -bg-secondary: #f8f9fa;
     -bg-tertiary: #f1f3f5;
     -bg-hover: rgba(74, 144, 226, 0.1);
-    -bg-active: rgba(74, 144, 226, 0.2);
+    -bg-active: rgba(19, 115, 217, 0.2);
 
     /* Border Colors */
     -border-light: #dee2e6;
     -border-medium: #ced4da;
     -border-dark: #adb5bd;
-    -border-focus: #4a90e2;
+    -border-focus: -fxt-primary;
 
     /* Text Colors */
     -text-primary: #212529;

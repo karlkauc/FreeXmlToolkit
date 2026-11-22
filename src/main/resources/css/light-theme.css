@@ -123,18 +123,7 @@
   -fx-font-size: 1.1em;
 }
 
-.bottom_line {
-  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2A9D8F 0%, #264653 100%);
-  -fx-pref-height: 20;
-  -fx-max-height: 20;
-  -fx-min-height: 20;
-}
 
-.menu_box {
-  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #fdeec5 0%, #fc9040 100%);
-  -fx-pref-width: 150;
-  -fx-font-weight: bold;
-}
 
 /* =================================================================
    Allgemeine Steuerelemente
