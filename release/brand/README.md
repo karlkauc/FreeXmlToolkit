@@ -2,12 +2,17 @@
 
 The brand marks of FreeXmlToolkit: two tag brackets, blue and orange, form the X of XML.
 
-| File | Use |
+Open [`index.html`](index.html) in a browser for the full guidelines: every mark and lockup, clear
+space and minimum sizes, colours, typography, examples and where each file is used.
+
+| Files | Use |
 |---|---|
-| `app-icon.svg` | App icon: the symbol on a navy rounded square |
-| `symbol-color.svg`, `symbol-on-dark.svg` | The symbol alone, on light and on dark grounds |
-| `wordmark-on-dark.svg` | "FreeXmlToolkit" with "Xml" in blue (documentation header) |
-| `lockup-horizontal-color.svg`, `lockup-horizontal-on-dark.svg` | Symbol and wordmark side by side |
+| `app-icon.svg`, `app-icon-light.svg`, `app-icon-circle.svg`, `app-icon-mono-black.svg` | App icon: the symbol on a navy rounded square; light, circle (avatars) and one-colour versions |
+| `symbol-{color,on-dark,black,white}.svg` | The symbol alone |
+| `fxt-{color,on-dark,black,white}.svg` | Short mark for the command line (`fxt-cli`) |
+| `wordmark-{color,on-dark,black,white}.svg` | "FreeXmlToolkit" with "Xml" in blue |
+| `lockup-horizontal-*.svg`, `lockup-stacked-*.svg`, `lockup-claim-*.svg` | Symbol and wordmark together; with the claim "Your Complete XML Workstation" |
+| `examples/` | Screens used by `index.html` (splash, documentation header) |
 
 Colours: navy `#2a284c`, blue `#1373d9`, light blue `#4c9bf5` (on dark), orange `#f08c2e`, white.
 Fonts: Inter Bold (wordmark), JetBrains Mono Bold (short mark `fxt`). Keep a clear space of 25 % of

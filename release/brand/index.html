@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FreeXmlToolkit Brand</title>
+<meta name="description" content="Logo suite S1 of FreeXmlToolkit: marks, lockups, colours, typography, usage rules and where each file is used.">
+<link rel="icon" href="app-icon.svg" type="image/svg+xml">
+<style>
+/* Layout: one 1120px column; a navy masthead in the brand's own colours, then bands that alternate
+   page and surface. Logo tiles keep their fixed grounds in both themes - a mark is judged on the
+   ground it is made for. Fonts are the ones the application ships (docs/overrides/fonts). */
+@font-face { font-family: "Inter"; font-weight: 400; font-style: normal; font-display: swap;
+  src: url("../../docs/overrides/fonts/inter-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 500; font-style: normal; font-display: swap;
+  src: url("../../docs/overrides/fonts/inter-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 600; font-style: normal; font-display: swap;
+  src: url("../../docs/overrides/fonts/inter-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 700; font-style: normal; font-display: swap;
+  src: url("../../docs/overrides/fonts/inter-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 500; font-style: normal; font-display: swap;
+  src: url("../../docs/overrides/fonts/jetbrains-mono-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 700; font-style: normal; font-display: swap;
+  src: url("../../docs/overrides/fonts/jetbrains-mono-latin-700-normal.woff2") format("woff2"); }
+
+:root {
+  --navy: #2a284c; --blue: #1373d9; --light-blue: #4c9bf5; --orange: #f08c2e; --white: #ffffff;
+  --page: #ffffff; --surface: #f5f7fa; --ink: #2a284c; --muted: #5a6472; --line: #dde1e7;
+  --link: #1068c4; --tile-light: #ffffff; --tile-dark: #2a284c; --tile-ink: #1a1d21;
+  --sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", Consolas, "Liberation Mono", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #17162b; --surface: #201f3a; --ink: #eef0f8; --muted: #b4b9d0; --line: #3a3960;
+    --link: #7db8fa; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #17162b; --surface: #201f3a; --ink: #eef0f8; --muted: #b4b9d0; --line: #3a3960;
+  --link: #7db8fa; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { margin: 0; background: var(--page); color: var(--ink); font: 16px/1.6 var(--sans); }
+a { color: var(--link); }
+a:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; border-radius: 2px; }
+code { font: 500 0.88em var(--mono); }
+img { max-width: 100%; height: auto; display: block; }
+
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+
+header.masthead { background: var(--navy); color: #fff; }
+.masthead .wrap { padding-block: 44px 40px; gap: 22px; }
+.masthead img.lockup { width: 300px; max-width: 80%; }
+.masthead h1 { margin: 0; font-size: clamp(30px, 5vw, 46px); line-height: 1.1; letter-spacing: -0.02em; text-wrap: balance; }
+.masthead p { margin: 0; max-width: 64ch; color: #e6e8f4; }
+.masthead nav { display: flex; flex-wrap: wrap; gap: 8px; }
+.masthead nav a { color: #fff; text-decoration: none; font-weight: 600; font-size: 14px; padding: 8px 14px;
+  border: 1px solid rgba(255,255,255,0.32); border-radius: 999px; }
+.masthead nav a:hover { background: rgba(255,255,255,0.08); }
+
+section { padding-block: 56px; }
+section:nth-of-type(even) { background: var(--surface); }
+.label { font: 700 12px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--link); margin: 0; }
+h2 { margin: 0; font-size: clamp(24px, 3.6vw, 32px); line-height: 1.15; letter-spacing: -0.02em; text-wrap: balance; }
+h3 { margin: 8px 0 0; font-size: 18px; letter-spacing: -0.01em; }
+p { margin: 0; max-width: 70ch; }
+.lead { color: var(--muted); font-size: 17px; }
+ul.plain { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; max-width: 72ch; }
+
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); }
+.grid.wide { grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); }
+.grid.pair { grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); }
+.tbl.fit table { min-width: 0; }
+figure { margin: 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+figcaption { font: 500 12px/1.4 var(--mono); color: var(--muted); }
+figcaption b { font-weight: 700; color: var(--ink); }
+.tile { border-radius: 14px; border: 1px solid var(--line); min-height: 140px; display: flex; align-items: center;
+  justify-content: center; padding: 26px; }
+.tile.light { background: var(--tile-light); }
+.tile.dark { background: var(--tile-dark); border-color: var(--tile-dark); }
+.tile.ink { background: var(--tile-ink); border-color: var(--tile-ink); }
+.tile.checker { background-color: #fff; background-image: linear-gradient(45deg, #eceff3 25%, transparent 25%),
+  linear-gradient(-45deg, #eceff3 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eceff3 75%),
+  linear-gradient(-45deg, transparent 75%, #eceff3 75%); background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0; }
+.tile img.h-icon { height: 88px; width: auto; }
+.tile img.h-symbol { height: 72px; width: auto; }
+.tile img.h-fxt { height: 46px; width: auto; }
+.tile img.h-word { width: 100%; max-width: 230px; }
+.tile img.h-lockup { width: 100%; max-width: 300px; }
+.tile img.h-stacked { height: 120px; width: auto; }
+.tile img.h-claim { width: 100%; max-width: 380px; }
+
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--page); }
+table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: 14px; }
+th, td { text-align: left; padding: 10px 14px; border-top: 1px solid var(--line); vertical-align: top; }
+thead th { border-top: 0; font-size: 12px; font-weight: 600; color: var(--muted); }
+td.num, td code { font-variant-numeric: tabular-nums; }
+.dot { display: inline-block; width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.12); vertical-align: -2px; margin-right: 8px; }
+
+.swatches { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(190px, 100%), 1fr)); }
+.swatch { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--page); display: flex; flex-direction: column; }
+.swatch .chip { height: 96px; display: flex; align-items: flex-end; padding: 10px 12px; font: 600 13px var(--sans); }
+.swatch .meta { padding: 12px; display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
+.swatch .meta b { font-size: 15px; }
+.swatch .meta code { color: var(--muted); }
+
+.rule-row { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); }
+.card { border: 1px solid var(--line); border-radius: 14px; padding: 18px; background: var(--page); display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+section:nth-of-type(odd) .card { background: var(--surface); }
+.dont .tile { position: relative; }
+.dont .tile::after { content: ""; position: absolute; top: 10px; right: 10px; width: 22px; height: 22px; border-radius: 50%;
+  background: #e03131 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 4l8 8M12 4l-8 8' stroke='white' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E") center/12px no-repeat; }
+
+.specimen { border: 1px solid var(--line); border-radius: 14px; padding: 24px; background: var(--page); display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.specimen .big { font-size: clamp(32px, 5vw, 56px); line-height: 1.05; letter-spacing: -0.02em; }
+.specimen .alphabet { font-size: 18px; color: var(--muted); overflow-wrap: anywhere; }
+.scale { display: flex; flex-direction: column; gap: 6px; }
+.scale div { display: flex; align-items: baseline; gap: 16px; }
+.scale code { width: 64px; flex: none; color: var(--muted); font-size: 12px; }
+
+.shots { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr)); }
+.shot { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fff; }
+.sizes { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 22px; }
+.sizes figure { align-items: center; }
+.sizes img { width: auto; image-rendering: auto; }
+
+footer { padding-block: 32px; border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <path id="bracket-left" d="M92 140.6L188 274.6A32 32 0 0 0 240 237.4L144 103.4A32 32 0 0 0 92 140.6ZM188 237.4L92 371.4A32 32 0 0 0 144 408.6L240 274.6A32 32 0 0 0 188 237.4Z"/>
+    <path id="bracket-right" d="M368 103.4L272 237.4A32 32 0 0 0 324 274.6L420 140.6A32 32 0 0 0 368 103.4ZM272 274.6L368 408.6A32 32 0 0 0 420 371.4L324 237.4A32 32 0 0 0 272 274.6Z"/>
+  </defs>
+</svg>
+
+<header class="masthead">
+  <div class="wrap">
+    <img class="lockup" src="lockup-horizontal-on-dark.svg" alt="FreeXmlToolkit">
+    <h1>Brand guidelines</h1>
+    <p>Logo suite S1: the marks, how to place them, the colours and type that go with them, and where
+      every file in this folder is used in the application, the installers and the documentation.</p>
+    <nav aria-label="Sections">
+      <a href="#mark">The mark</a><a href="#logos">Logos</a><a href="#usage">Usage</a>
+      <a href="#colour">Colour</a><a href="#type">Typography</a><a href="#examples">In use</a>
+      <a href="#voice">Name and voice</a><a href="#files">Files</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section id="mark">
+  <div class="wrap">
+    <p class="label">The mark</p>
+    <h2>Two tag brackets form the X of XML</h2>
+    <p class="lead">A closing <code>&gt;</code> in blue and an opening <code>&lt;</code> in orange meet in the
+      middle. Read together they make an X; read apart they are the brackets every XML document is built from.</p>
+    <div class="grid pair">
+      <figure>
+        <div class="tile light">
+          <svg viewBox="40 40 432 432" width="220" height="220" role="img" aria-label="Construction of the symbol">
+            <rect x="0" y="0" width="512" height="512" fill="none"/>
+            <g stroke="#c4dcf8" stroke-width="2" fill="none">
+              <line x1="118" y1="122" x2="214" y2="256"/><line x1="214" y1="256" x2="118" y2="390"/>
+              <line x1="394" y1="122" x2="298" y2="256"/><line x1="298" y1="256" x2="394" y2="390"/>
+            </g>
+            <use href="#bracket-left" fill="#1373d9" fill-opacity="0.9"/>
+            <use href="#bracket-right" fill="#f08c2e" fill-opacity="0.9"/>
+            <g fill="#2a284c">
+              <circle cx="118" cy="122" r="5"/><circle cx="214" cy="256" r="5"/><circle cx="118" cy="390" r="5"/>
+              <circle cx="394" cy="122" r="5"/><circle cx="298" cy="256" r="5"/><circle cx="394" cy="390" r="5"/>
+            </g>
+          </svg>
+        </div>
+        <figcaption><b>Geometry.</b> Four strokes, 64 units wide with round ends, on a 512-unit grid.
+          Each bracket meets at an angle of about 36° to the vertical.</figcaption>
+      </figure>
+      <div class="card">
+        <h3>What it stands for</h3>
+        <ul class="plain">
+          <li><b>XML</b>: the brackets are the syntax the application edits.</li>
+          <li><b>Two sides</b>: blue for the document, orange for what you do with it (transform, check, publish).</li>
+          <li><b>Open</b>: the strokes never close into a box; the tool is free and open source.</li>
+        </ul>
+        <p class="lead">The angle of the brackets is the one recurring shape of the brand. It may appear as a
+          cut between sections or as the <code>›</code> list marker; nothing else imitates the mark.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="logos">
+  <div class="wrap">
+    <p class="label">Logos</p>
+    <h2>One symbol, four marks, three lockups</h2>
+    <p class="lead">Every mark exists in colour, for dark grounds, in black and in white. Pick the version by the
+      ground it sits on, not by taste.</p>
+
+    <h3>App icon</h3>
+    <div class="grid">
+      <figure><div class="tile checker"><img class="h-icon" src="app-icon.svg" alt="App icon, standard"></div>
+        <figcaption><b>Standard</b> · app-icon.svg</figcaption></figure>
+      <figure><div class="tile dark"><img class="h-icon" src="app-icon-light.svg" alt="App icon, light"></div>
+        <figcaption><b>Light</b> · app-icon-light.svg</figcaption></figure>
+      <figure><div class="tile checker"><img class="h-icon" src="app-icon-circle.svg" alt="App icon, circle"></div>
+        <figcaption><b>Circle</b> (avatars) · app-icon-circle.svg</figcaption></figure>
+      <figure><div class="tile checker"><img class="h-icon" src="../../src/main/resources/img/logo-macos.png" alt="App icon on the macOS icon grid"></div>
+        <figcaption><b>macOS grid</b> · img/logo-macos.png</figcaption></figure>
+      <figure><div class="tile light"><img class="h-icon" src="app-icon-mono-black.svg" alt="App icon, one colour"></div>
+        <figcaption><b>One colour</b> · app-icon-mono-black.svg</figcaption></figure>
+    </div>
+
+    <h3>Symbol</h3>
+    <div class="grid">
+      <figure><div class="tile light"><img class="h-symbol" src="symbol-color.svg" alt="Symbol in colour"></div>
+        <figcaption><b>Colour</b> · symbol-color.svg</figcaption></figure>
+      <figure><div class="tile dark"><img class="h-symbol" src="symbol-on-dark.svg" alt="Symbol for dark grounds"></div>
+        <figcaption><b>On dark</b> · symbol-on-dark.svg</figcaption></figure>
+      <figure><div class="tile light"><img class="h-symbol" src="symbol-black.svg" alt="Symbol in black"></div>
+        <figcaption><b>Black</b> · symbol-black.svg</figcaption></figure>
+      <figure><div class="tile ink"><img class="h-symbol" src="symbol-white.svg" alt="Symbol in white"></div>
+        <figcaption><b>White</b> · symbol-white.svg</figcaption></figure>
+    </div>
+
+    <h3>Short mark <code>fxt</code></h3>
+    <p>For the command line only: the program is called <code>fxt-cli</code>, and the orange stroke of the x
+      repeats the right bracket.</p>
+    <div class="grid">
+      <figure><div class="tile light"><img class="h-fxt" src="fxt-color.svg" alt="Short mark fxt in colour"></div>
+        <figcaption><b>Colour</b> · fxt-color.svg</figcaption></figure>
+      <figure><div class="tile dark"><img class="h-fxt" src="fxt-on-dark.svg" alt="Short mark fxt for dark grounds"></div>
+        <figcaption><b>On dark</b> · fxt-on-dark.svg</figcaption></figure>
+      <figure><div class="tile light"><img class="h-fxt" src="fxt-black.svg" alt="Short mark fxt in black"></div>
+        <figcaption><b>Black</b> · fxt-black.svg</figcaption></figure>
+      <figure><div class="tile ink"><img class="h-fxt" src="fxt-white.svg" alt="Short mark fxt in white"></div>
+        <figcaption><b>White</b> · fxt-white.svg</figcaption></figure>
+    </div>
+
+    <h3>Wordmark</h3>
+    <p>“Xml” carries the blue of the left bracket; the rest is navy, or white on dark grounds.</p>
+    <div class="grid">
+      <figure><div class="tile light"><img class="h-word" src="wordmark-color.svg" alt="Wordmark in colour"></div>
+        <figcaption><b>Colour</b> · wordmark-color.svg</figcaption></figure>
+      <figure><div class="tile dark"><img class="h-word" src="wordmark-on-dark.svg" alt="Wordmark for dark grounds"></div>
+        <figcaption><b>On dark</b> · wordmark-on-dark.svg</figcaption></figure>
+      <figure><div class="tile light"><img class="h-word" src="wordmark-black.svg" alt="Wordmark in black"></div>
+        <figcaption><b>Black</b> · wordmark-black.svg</figcaption></figure>
+      <figure><div class="tile ink"><img class="h-word" src="wordmark-white.svg" alt="Wordmark in white"></div>
+        <figcaption><b>White</b> · wordmark-white.svg</figcaption></figure>
+    </div>
+
+    <h3>Lockups</h3>
+    <div class="grid wide">
+      <figure><div class="tile light"><img class="h-lockup" src="lockup-horizontal-color.svg" alt="Horizontal lockup in colour"></div>
+        <figcaption><b>Horizontal</b> · lockup-horizontal-color.svg</figcaption></figure>
+      <figure><div class="tile dark"><img class="h-lockup" src="lockup-horizontal-on-dark.svg" alt="Horizontal lockup for dark grounds"></div>
+        <figcaption><b>Horizontal, on dark</b> · lockup-horizontal-on-dark.svg</figcaption></figure>
+      <figure><div class="tile light"><img class="h-lockup" src="lockup-horizontal-black.svg" alt="Horizontal lockup in black"></div>
+        <figcaption><b>Horizontal, black</b> · lockup-horizontal-black.svg</figcaption></figure>
+      <figure><div class="tile ink"><img class="h-lockup" src="lockup-horizontal-white.svg" alt="Horizontal lockup in white"></div>
+        <figcaption><b>Horizontal, white</b> · lockup-horizontal-white.svg</figcaption></figure>
+      <figure><div class="tile light"><img class="h-stacked" src="lockup-stacked-color.svg" alt="Stacked lockup in colour"></div>
+        <figcaption><b>Stacked</b> · lockup-stacked-color.svg</figcaption></figure>
+      <figure><div class="tile dark"><img class="h-stacked" src="lockup-stacked-on-dark.svg" alt="Stacked lockup for dark grounds"></div>
+        <figcaption><b>Stacked, on dark</b> · lockup-stacked-on-dark.svg</figcaption></figure>
+      <figure><div class="tile light"><img class="h-claim" src="lockup-claim-color.svg" alt="Lockup with the claim Your Complete XML Workstation"></div>
+        <figcaption><b>With claim</b> · lockup-claim-color.svg</figcaption></figure>
+      <figure><div class="tile dark"><img class="h-claim" src="lockup-claim-on-dark.svg" alt="Lockup with the claim, for dark grounds"></div>
+        <figcaption><b>With claim, on dark</b> · lockup-claim-on-dark.svg</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section id="usage">
+  <div class="wrap">
+    <p class="label">Usage</p>
+    <h2>Give the mark room, keep it legible, leave it as drawn</h2>
+
+    <div class="grid pair">
+      <figure>
+        <div class="tile light">
+          <svg viewBox="0 0 506 498" width="240" height="236" role="img" aria-label="Clear space around the symbol: 25 percent of its height on every side">
+            <rect x="0" y="0" width="506" height="498" fill="#e8f1fc"/>
+            <rect x="83" y="83" width="340" height="332" fill="#ffffff"/>
+            <rect x="1" y="1" width="504" height="496" fill="none" stroke="#1373d9" stroke-width="2" stroke-dasharray="10 8"/>
+            <g transform="translate(-3 -7)"><use href="#bracket-left" fill="#1373d9"/><use href="#bracket-right" fill="#f08c2e"/></g>
+            <g fill="#1068c4" font-family="JetBrains Mono, monospace" font-size="26" font-weight="700">
+              <text x="30" y="260">x</text><text x="460" y="260">x</text><text x="245" y="55">x</text><text x="245" y="475">x</text>
+            </g>
+          </svg>
+        </div>
+        <figcaption><b>Clear space.</b> x = 25 % of the symbol height on every side; the same x around every lockup.
+          No other element enters the blue zone.</figcaption>
+      </figure>
+      <div class="card">
+        <h3>Minimum sizes</h3>
+        <div class="tbl fit">
+          <table>
+            <thead><tr><th>Mark</th><th>Screen</th><th>Print</th></tr></thead>
+            <tbody>
+              <tr><td>App icon</td><td class="num">16 px</td><td class="num">5 mm</td></tr>
+              <tr><td>Symbol</td><td class="num">16 px high</td><td class="num">5 mm</td></tr>
+              <tr><td>Short mark fxt</td><td class="num">14 px high</td><td class="num">5 mm</td></tr>
+              <tr><td>Wordmark</td><td class="num">90 px wide</td><td class="num">25 mm</td></tr>
+              <tr><td>Horizontal lockup</td><td class="num">130 px wide</td><td class="num">35 mm</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="lead">Below these sizes use the next smaller mark: the symbol instead of a lockup, the app icon
+          instead of the symbol.</p>
+      </div>
+    </div>
+
+    <h3>Which version on which ground</h3>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Ground</th><th>Use</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>White or the light surface <code>#f5f7fa</code></td><td>Colour</td><td>Navy text reaches 13.9:1, the blue 4.7:1</td></tr>
+          <tr><td>Navy <code>#2a284c</code> or the dark theme</td><td>On dark</td><td>The left bracket and “Xml” switch to light blue (4.9:1 on navy)</td></tr>
+          <tr><td>Photos, colour fields, busy backgrounds</td><td>App icon</td><td>It brings its own navy ground</td></tr>
+          <tr><td>One-colour print, engraving, fax</td><td>Black or white</td><td>Never a single brand colour on its own</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Do not</h3>
+    <div class="rule-row">
+      <figure class="dont"><div class="tile light">
+        <svg viewBox="86 90 340 332" width="150" height="100" preserveAspectRatio="none" role="img" aria-label="Distorted symbol">
+          <use href="#bracket-left" fill="#1373d9"/><use href="#bracket-right" fill="#f08c2e"/></svg></div>
+        <figcaption><b>Stretch or squeeze</b> it</figcaption></figure>
+      <figure class="dont"><div class="tile light">
+        <svg viewBox="86 90 340 332" width="90" height="88" role="img" aria-label="Recoloured symbol">
+          <use href="#bracket-left" fill="#7b3fc4"/><use href="#bracket-right" fill="#2f9e44"/></svg></div>
+        <figcaption><b>Recolour</b> it, not even in workflow colours</figcaption></figure>
+      <figure class="dont"><div class="tile light">
+        <svg viewBox="50 50 412 412" width="96" height="96" role="img" aria-label="Rotated symbol">
+          <g transform="rotate(20 256 256)"><use href="#bracket-left" fill="#1373d9"/><use href="#bracket-right" fill="#f08c2e"/></g></svg></div>
+        <figcaption><b>Rotate</b> or mirror it</figcaption></figure>
+      <figure class="dont"><div class="tile light">
+        <svg viewBox="86 90 340 332" width="90" height="88" role="img" aria-label="Symbol with the colours swapped">
+          <use href="#bracket-left" fill="#f08c2e"/><use href="#bracket-right" fill="#1373d9"/></svg></div>
+        <figcaption><b>Swap</b> the two colours</figcaption></figure>
+      <figure class="dont"><div class="tile" style="background:#4c9bf5;border-color:#4c9bf5">
+        <svg viewBox="86 90 340 332" width="90" height="88" role="img" aria-label="Symbol on a ground without contrast">
+          <use href="#bracket-left" fill="#1373d9"/><use href="#bracket-right" fill="#f08c2e"/></svg></div>
+        <figcaption><b>Place</b> it on a ground without contrast</figcaption></figure>
+    </div>
+    <p>Also do not add effects (shadows, outlines, gradients), set the name in another typeface, or rebuild the
+      mark from text characters. The macOS app icon carries a shadow because Apple's icon grid asks for one;
+      that file is generated, not drawn by hand.</p>
+  </div>
+</section>
+
+<section id="colour">
+  <div class="wrap">
+    <p class="label">Colour</p>
+    <h2>Navy as the ground, blue for action, orange once</h2>
+    <p class="lead">Five brand colours. The application's design tokens (<code>src/main/resources/css/design-tokens.css</code>)
+      use the same values, so the app, the installers and the documentation look like one product.</p>
+    <div class="swatches">
+      <div class="swatch"><div class="chip" style="background:#2a284c;color:#fff">Aa</div>
+        <div class="meta"><b>Navy</b><code>#2a284c · 42 40 76</code><span>Chrome, dark grounds, text on light</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#1373d9;color:#fff">Aa</div>
+        <div class="meta"><b>Blue</b><code>#1373d9 · 19 115 217</code><span>Left bracket, buttons, links</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#4c9bf5;color:#2a284c">Aa</div>
+        <div class="meta"><b>Light blue</b><code>#4c9bf5 · 76 155 245</code><span>Blue on navy and in the dark theme</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#f08c2e;color:#2a284c">Aa</div>
+        <div class="meta"><b>Orange</b><code>#f08c2e · 240 140 46</code><span>Right bracket, the one accent</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#ffffff;color:#2a284c;border-bottom:1px solid #dde1e7">Aa</div>
+        <div class="meta"><b>White</b><code>#ffffff · 255 255 255</code><span>Light grounds, text on navy</span></div></div>
+    </div>
+
+    <h3>Rules</h3>
+    <ul class="plain">
+      <li><b>Orange is an accent, never text on white.</b> It reaches only 2.5:1 there. Use it for one mark per
+        screen: the active tab line, a focus ring, the installer's divider. On navy it reaches 5.6:1.</li>
+      <li><b>Blue text on white</b> uses <code>#1068c4</code> (5.5:1); buttons fill with <code>#1373d9</code> and white text (4.7:1).</li>
+      <li><b>No gradients.</b> Grounds are flat navy or flat light surfaces.</li>
+      <li><b>Semantic colours win.</b> Errors are red and success green, whatever the area of the app.</li>
+    </ul>
+
+    <h3>Application tokens</h3>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Token</th><th>Light theme</th><th>Dark theme</th><th>Use</th></tr></thead>
+        <tbody>
+          <tr><td><code>-fxt-primary</code></td><td><span class="dot" style="background:#1373d9"></span><code>#1373d9</code></td><td><span class="dot" style="background:#4c9bf5"></span><code>#4c9bf5</code></td><td>Accent, focus, selection</td></tr>
+          <tr><td><code>-fxt-primary-text</code></td><td><span class="dot" style="background:#1068c4"></span><code>#1068c4</code></td><td><span class="dot" style="background:#4c9bf5"></span><code>#4c9bf5</code></td><td>Blue as text</td></tr>
+          <tr><td><code>-fxt-primary-fill</code></td><td><span class="dot" style="background:#1373d9"></span><code>#1373d9</code></td><td><span class="dot" style="background:#1f6fd1"></span><code>#1f6fd1</code></td><td>Filled buttons with white text</td></tr>
+          <tr><td><code>-fxt-accent</code></td><td><span class="dot" style="background:#f08c2e"></span><code>#f08c2e</code></td><td><span class="dot" style="background:#f59f46"></span><code>#f59f46</code></td><td>Orange accent</td></tr>
+          <tr><td>Chrome (header, activity bar)</td><td><span class="dot" style="background:#2a284c"></span><code>#2a284c</code></td><td><span class="dot" style="background:#2a284c"></span><code>#2a284c</code></td><td>Same navy in both themes</td></tr>
+          <tr><td><code>-fxt-bg-canvas</code></td><td><span class="dot" style="background:#f5f7fa"></span><code>#f5f7fa</code></td><td><span class="dot" style="background:#0f1419"></span><code>#0f1419</code></td><td>Window ground</td></tr>
+          <tr><td><code>-fxt-bg-surface</code></td><td><span class="dot" style="background:#ffffff"></span><code>#ffffff</code></td><td><span class="dot" style="background:#161b22"></span><code>#161b22</code></td><td>Panels, cards</td></tr>
+          <tr><td><code>-fxt-border</code></td><td><span class="dot" style="background:#dde1e7"></span><code>#dde1e7</code></td><td><span class="dot" style="background:#2a323d"></span><code>#2a323d</code></td><td>Lines</td></tr>
+          <tr><td><code>-fxt-text-primary</code></td><td><span class="dot" style="background:#1a1d21"></span><code>#1a1d21</code></td><td><span class="dot" style="background:#e6eaf0"></span><code>#e6eaf0</code></td><td>Body text</td></tr>
+          <tr><td><code>-fxt-text-secondary</code></td><td><span class="dot" style="background:#5a6472"></span><code>#5a6472</code></td><td><span class="dot" style="background:#9ba6b3"></span><code>#9ba6b3</code></td><td>Secondary text</td></tr>
+          <tr><td><code>-fxt-success</code> / <code>-fxt-danger</code></td><td><span class="dot" style="background:#2f9e44"></span><span class="dot" style="background:#e03131"></span></td><td><span class="dot" style="background:#51cf66"></span><span class="dot" style="background:#ff6b6b"></span></td><td>Results: valid, error</td></tr>
+          <tr><td><code>-fxt-warning</code> / <code>-fxt-info</code></td><td><span class="dot" style="background:#f08c00"></span><span class="dot" style="background:#1098ad"></span></td><td><span class="dot" style="background:#fab005"></span><span class="dot" style="background:#4dd4e8"></span></td><td>Results: warning, hint</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Workflow colours</h3>
+    <p>Each area of the application has a family of its own for its rail icon, panel title and primary action.
+      They never colour the logo.</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Area</th><th>Accent (light)</th><th>Rail (dark)</th></tr></thead>
+        <tbody>
+          <tr><td>Explorer (workspace)</td><td><span class="dot" style="background:#1373d9"></span><code>#1373d9</code></td><td><span class="dot" style="background:#4c9bf5"></span><code>#4c9bf5</code></td></tr>
+          <tr><td>Search</td><td><span class="dot" style="background:#4c5fd5"></span><code>#4c5fd5</code></td><td><span class="dot" style="background:#748ffc"></span><code>#748ffc</code></td></tr>
+          <tr><td>Favorites</td><td><span class="dot" style="background:#e69500"></span><code>#e69500</code></td><td><span class="dot" style="background:#ffd43b"></span><code>#ffd43b</code></td></tr>
+          <tr><td>Validation</td><td><span class="dot" style="background:#2f9e44"></span><code>#2f9e44</code></td><td><span class="dot" style="background:#51cf66"></span><code>#51cf66</code></td></tr>
+          <tr><td>Transform</td><td><span class="dot" style="background:#f08c2e"></span><code>#f08c2e</code></td><td><span class="dot" style="background:#f59f46"></span><code>#f59f46</code></td></tr>
+          <tr><td>Schema</td><td><span class="dot" style="background:#6f42c1"></span><code>#6f42c1</code></td><td><span class="dot" style="background:#b197fc"></span><code>#b197fc</code></td></tr>
+          <tr><td>Schema Library</td><td><span class="dot" style="background:#be4bdb"></span><code>#be4bdb</code></td><td><span class="dot" style="background:#da77f2"></span><code>#da77f2</code></td></tr>
+          <tr><td>PDF / FOP</td><td><span class="dot" style="background:#d6336c"></span><code>#d6336c</code></td><td><span class="dot" style="background:#f783ac"></span><code>#f783ac</code></td></tr>
+          <tr><td>Sign &amp; Encrypt</td><td><span class="dot" style="background:#1098ad"></span><code>#1098ad</code></td><td><span class="dot" style="background:#4dd4e8"></span><code>#4dd4e8</code></td></tr>
+          <tr><td>FundsXML</td><td><span class="dot" style="background:#12a594"></span><code>#12a594</code></td><td><span class="dot" style="background:#38d9a9"></span><code>#38d9a9</code></td></tr>
+          <tr><td>PK-Meldewesen</td><td><span class="dot" style="background:#a12b4b"></span><code>#a12b4b</code></td><td><span class="dot" style="background:#f08aa6"></span><code>#f08aa6</code></td></tr>
+          <tr><td>Help, Settings</td><td><span class="dot" style="background:#5a6472"></span><code>#5a6472</code></td><td><span class="dot" style="background:#9ba6b3"></span><code>#9ba6b3</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="type">
+  <div class="wrap">
+    <p class="label">Typography</p>
+    <h2>Inter for words, JetBrains Mono for code</h2>
+    <p class="lead">Both are open source (SIL Open Font License 1.1) and ship with the application
+      (<code>src/main/resources/css/fonts/</code>) and the documentation (<code>docs/overrides/fonts/</code>),
+      so nothing is loaded from a third party.</p>
+    <div class="grid pair">
+      <div class="specimen">
+        <p class="label">Inter</p>
+        <div class="big" style="font-family:var(--sans);font-weight:700">FreeXmlToolkit</div>
+        <div class="alphabet" style="font-family:var(--sans)">ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>abcdefghijklmnopqrstuvwxyz 0123456789</div>
+        <ul class="plain">
+          <li><b>Bold 700</b>: the wordmark, page titles</li>
+          <li><b>Semibold 600</b>: headings, buttons, labels</li>
+          <li><b>Medium 500</b>: the claim, emphasis in tables</li>
+          <li><b>Regular 400</b>: running text</li>
+        </ul>
+      </div>
+      <div class="specimen">
+        <p class="label">JetBrains Mono</p>
+        <div class="big" style="font-family:var(--mono);font-weight:700">fxt-cli</div>
+        <div class="alphabet" style="font-family:var(--mono)">&lt;xsl:value-of select="//item/@price"/&gt;<br>{ "id": "PO-1042" } 0O 1lI</div>
+        <ul class="plain">
+          <li><b>Bold 700</b>: the short mark fxt</li>
+          <li><b>Medium 500</b>: code, paths, versions, captions</li>
+          <li>Small uppercase labels with 0.1em tracking, as above each heading on this page</li>
+        </ul>
+      </div>
+    </div>
+    <h3>Scale in the application</h3>
+    <div class="card">
+      <div class="scale">
+        <div><code>32 px</code><span style="font-size:32px;font-weight:700;letter-spacing:-0.02em">Welcome to FreeXmlToolkit</span></div>
+        <div><code>24 px</code><span style="font-size:24px;font-weight:600">Schema analysis</span></div>
+        <div><code>18 px</code><span style="font-size:18px;font-weight:600">Validate with Schematron</span></div>
+        <div><code>14 px</code><span style="font-size:14px">The document is valid against order.xsd.</span></div>
+        <div><code>13 px</code><span style="font-size:13px">Panel text and table rows</span></div>
+        <div><code>12 px</code><span style="font-size:12px">Status bar, captions</span></div>
+        <div><code>11 px</code><span style="font:500 11px var(--mono);letter-spacing:0.1em;text-transform:uppercase">Section label</span></div>
+      </div>
+    </div>
+    <p>The application offers four interface text sizes (Settings → Appearance); the values above are the
+      “Normal” size. Code editors use JetBrains Mono at 8–32 pt.</p>
+  </div>
+</section>
+
+<section id="examples">
+  <div class="wrap">
+    <p class="label">In use</p>
+    <h2>Where the brand appears</h2>
+
+    <h3>App icon at system sizes</h3>
+    <p>Drawn for each size, not scaled down from one large file. Windows takes 16–48 px for the taskbar and
+      title bar, macOS up to 1024 px for the Dock and Finder.</p>
+    <div class="card">
+      <div class="sizes">
+        <figure><img src="../../src/main/resources/img/logo-16.png" width="16" height="16" alt="16 px"><figcaption>16</figcaption></figure>
+        <figure><img src="../../src/main/resources/img/logo-24.png" width="24" height="24" alt="24 px"><figcaption>24</figcaption></figure>
+        <figure><img src="../../src/main/resources/img/logo-32.png" width="32" height="32" alt="32 px"><figcaption>32</figcaption></figure>
+        <figure><img src="../../src/main/resources/img/logo-48.png" width="48" height="48" alt="48 px"><figcaption>48</figcaption></figure>
+        <figure><img src="../../src/main/resources/img/logo-64.png" width="64" height="64" alt="64 px"><figcaption>64</figcaption></figure>
+        <figure><img src="../../src/main/resources/img/logo-128.png" width="128" height="128" alt="128 px"><figcaption>128</figcaption></figure>
+      </div>
+    </div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Platform</th><th>File</th><th>Sizes</th><th>Used by</th></tr></thead>
+        <tbody>
+          <tr><td>Windows</td><td><code>release/logo.ico</code></td><td>16, 20, 24, 32, 40, 48, 64, 128, 256 px</td><td>Installer (MSI, EXE), app launcher</td></tr>
+          <tr><td>Windows</td><td><code>update-helper/icon/logo.ico</code></td><td>same</td><td>Update helper</td></tr>
+          <tr><td>macOS</td><td><code>release/logo.icns</code></td><td>32–1024 px, Apple icon grid</td><td>App bundle, DMG, PKG</td></tr>
+          <tr><td>macOS</td><td><code>img/logo-macos.png</code></td><td>1024 px, Apple icon grid</td><td>Dock icon at run time</td></tr>
+          <tr><td>Linux</td><td><code>packaging/linux/share/icons/hicolor/</code></td><td>16–512 px</td><td>Desktop entry, app menus</td></tr>
+          <tr><td>All</td><td><code>img/logo-16 … logo-256.png</code>, <code>img/logo.png</code></td><td>16–512 px</td><td>Window and taskbar icon of every window</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Application and documentation</h3>
+    <div class="shots">
+      <figure><div class="shot"><img src="examples/splash.png" alt="Splash screen: the symbol on navy, the name with Xml in light blue" loading="lazy"></div>
+        <figcaption><b>Splash screen</b> · symbol on navy, the name as the wordmark draws it</figcaption></figure>
+      <figure><div class="shot"><img src="../../docs/img/unified-shell-welcome.png" alt="Welcome page with the app icon above the title" loading="lazy"></div>
+        <figcaption><b>Welcome page</b> · app icon beside the title</figcaption></figure>
+      <figure><div class="shot"><img src="examples/docs-header.png" alt="Documentation header: navy bar with symbol, wordmark and docs" loading="lazy"></div>
+        <figcaption><b>Documentation</b> · navy header, symbol, wordmark and “docs”, orange line under the current tab</figcaption></figure>
+      <figure><div class="shot"><img src="../win-dialog.png" alt="Windows installer dialog image: navy strip with the symbol" loading="lazy"></div>
+        <figcaption><b>Windows installer</b> · navy strip, symbol, orange divider (release/win-dialog.png)</figcaption></figure>
+      <figure><div class="shot"><img src="../win-banner.png" alt="Windows installer banner: white with a navy band and the symbol" loading="lazy"></div>
+        <figcaption><b>Installer banner</b> · release/win-banner.png</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section id="voice">
+  <div class="wrap">
+    <p class="label">Name and voice</p>
+    <h2>One word, plain sentences</h2>
+    <div class="grid pair">
+      <div class="card">
+        <h3>The name</h3>
+        <ul class="plain">
+          <li><b>FreeXmlToolkit</b>: one word, capital F, X and T, “Xml” in mixed case.</li>
+          <li>Not “Free XML Toolkit”, “FreeXMLToolkit”, “FXT” or “Freexmltoolkit”.</li>
+          <li><b>fxt-cli</b>: the command-line program, always lower case; the short mark <code>fxt</code> stands for it.</li>
+          <li><b>Claim</b>: “Your Complete XML Workstation”, only together with the name.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>How we write</h3>
+        <ul class="plain">
+          <li>Factual and concrete: name the standard and the version (XSD 1.1, XSLT 3.0), not “powerful” or “modern”.</li>
+          <li>No superlatives. Comparisons with other editors are fair, including where they offer more.</li>
+          <li>Say what happens: “Validate”, then “Valid · 0 errors”.</li>
+          <li>Be open about data: what is sent, what never is, how to switch it off.</li>
+          <li>English first; the application is also translated into German.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="files">
+  <div class="wrap">
+    <p class="label">Files</p>
+    <h2>Sources and generated files</h2>
+    <p class="lead">The SVGs in this folder are the sources. Every raster file is generated from the logo
+      geometry; change the geometry or the colours in the scripts, then run them again.</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Where</th><th>What</th><th>Made by</th></tr></thead>
+        <tbody>
+          <tr><td><code>release/brand/*.svg</code></td><td>All marks and lockups in four colour versions</td><td>Logo suite S1 (source)</td></tr>
+          <tr><td><code>src/main/resources/img/logo*.png</code></td><td>Window icons, splash symbol, macOS Dock icon</td><td><code>scripts/make-app-icons.py</code></td></tr>
+          <tr><td><code>release/logo.ico</code>, <code>release/logo.icns</code>, <code>update-helper/icon/logo.ico</code></td><td>Windows and macOS icons</td><td><code>scripts/make-app-icons.py</code></td></tr>
+          <tr><td><code>packaging/linux/share/icons/hicolor/</code></td><td>Linux icons</td><td><code>scripts/make-app-icons.py</code></td></tr>
+          <tr><td><code>src/main/resources/xsdDocumentation/assets/logo.png</code></td><td>Header of generated schema documentation</td><td><code>scripts/make-app-icons.py</code></td></tr>
+          <tr><td><code>release/win-dialog.png</code>, <code>release/win-banner.png</code></td><td>Windows installer images</td><td><code>scripts/make-installer-images.py</code></td></tr>
+          <tr><td><code>docs/img/logo-symbol.svg</code>, <code>logo-wordmark.svg</code>, <code>favicon.svg</code></td><td>Documentation header and favicon</td><td>Copies of the sources</td></tr>
+          <tr><td><code>src/main/resources/css/design-tokens.css</code></td><td>Colour tokens of the application</td><td>Hand-maintained</td></tr>
+          <tr><td><code>docs/overrides/stylesheets/extra.css</code></td><td>Colours and fonts of the documentation</td><td>Hand-maintained</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Regenerate after a change:</p>
+    <div class="card"><code>python3 scripts/make-app-icons.py &amp;&amp; python3 scripts/make-installer-images.py</code></div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">FreeXmlToolkit is free and open source under the Apache License 2.0. The marks identify the project;
+    use them to refer to it, not to suggest an endorsement.</div>
+</footer>
+
+</body>
+</html>
