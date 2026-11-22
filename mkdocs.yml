@@ -1,4 +1,4 @@
-site_name: FreeXmlToolkit Documentation
+site_name: FreeXmlToolkit Docs
 site_description: Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)
 site_author: Karl Kauc
 site_url: https://karlkauc.github.io/FreeXmlToolkit/
@@ -41,8 +41,12 @@ theme:
     - announce.dismiss
   icon:
     repo: fontawesome/brands/github
-  logo: img/logo.png
-  favicon: img/logo.png
+  # Brand (logo suite S1): Inter / JetBrains Mono as in the application
+  font:
+    text: Inter
+    code: JetBrains Mono
+  logo: img/logo-symbol.svg
+  favicon: img/favicon.svg
   custom_dir: docs/overrides
 
 plugins:

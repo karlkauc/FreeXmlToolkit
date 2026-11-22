@@ -1,4 +1,4 @@
-# FreeXmlToolkit Documentation
+# FreeXmlToolkit Docs
 
 <a id="download"></a>
 <div class="fxt-download">
