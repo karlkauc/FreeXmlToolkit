@@ -3,7 +3,8 @@
 Mark lines in any text editor and come back to them later - also after a restart. Bookmarks work in every text
 document: XML, XSD, XSLT, Schematron, XQuery / XPath, JSON, YAML and plain text.
 
-![Bookmarks](../../img/unified-shell-bookmarks.png)
+![Bookmarks](../../img/unified-shell-bookmarks.png#only-light)
+![Bookmarks](../../img/unified-shell-bookmarks-dark.png#only-dark)
 *Bookmarks in the gutter (a numbered one shows its digit), their marks over the scroll bar and the Bookmarks panel*
 
 ---

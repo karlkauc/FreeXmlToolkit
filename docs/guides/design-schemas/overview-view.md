@@ -5,7 +5,8 @@ lists every top-level component of the schema in one table: imports, includes, r
 complex and simple types, groups, attribute groups, global attributes and notations - in the
 order they have in the file. It is offered for XSD documents only.
 
-![The Overview view: the components of a schema, the selected element's attributes below](../../img/unified-shell-schema-overview.png)
+![The Overview view: the components of a schema, the selected element's attributes below](../../img/unified-shell-schema-overview.png#only-light)
+![The Overview view: the components of a schema, the selected element's attributes below](../../img/unified-shell-schema-overview-dark.png#only-dark)
 
 **The component table**
 

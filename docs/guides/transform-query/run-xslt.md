@@ -5,6 +5,8 @@ Pick a stylesheet and an input in the **Transform** panel, run it, and read the 
 batch runs; every field of the panel is described in the
 [Transform panel reference](../../reference/transform-panel.md).
 
+![The Transform panel: OPTIONS & TOOLS, STYLESHEET, INPUT, OUTPUT METHOD, PARAMETERS and Run Transform](../../img/unified-shell-transform.png)
+
 ## Before you start
 
 - An XML input document and an XSLT stylesheet.

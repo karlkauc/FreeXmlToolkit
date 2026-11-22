@@ -126,7 +126,8 @@ frame belongs to the type, not to the element: the same content appears wherever
 - Anonymous types defined inline in an element are not framed: their content belongs to the
   element and is edited in place.
 
-![Named types in frames: Address_EU's content in the EU-Address frame; the selected street is read-only, the Properties pane offers Edit type](../../img/unified-shell-schema-type-frames.png)
+![Named types in frames: Address_EU's content in the EU-Address frame; the selected street is read-only, the Properties pane offers Edit type](../../img/unified-shell-schema-type-frames.png#only-light)
+![Named types in frames: Address_EU's content in the EU-Address frame; the selected street is read-only, the Properties pane offers Edit type](../../img/unified-shell-schema-type-frames-dark.png#only-dark)
 *`Address_EU` uses the type `EU-Address`: its content is drawn in the type's frame. The selected `street` belongs to the type, so the Properties pane shows it read-only with **Edit type**. Expanding `Branch` (which extends `EU-Address`) shows the base type's frame nested inside the `Branch-Address` frame.*
 
 ## Tips

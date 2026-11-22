@@ -1,7 +1,10 @@
 # Accessibility
 
-This page documents the accessibility audit of FreeXmlToolkit (version 2.10, November 2026): what
-was checked, what was fixed, and what is still open. The reference is **WCAG 2.1 level AA**, the
+This page documents the accessibility audit of FreeXmlToolkit: what was checked, what was fixed,
+and what is still open. The audit was made with version 2.10 (November 2026). Its automated checks
+(names for screen readers, tab order, text contrast) are part of the test suite; they were last run
+against the development version after 3.4.0 on 22 November 2026 and pass. The checks made by hand,
+with screen readers and a keyboard walk-through, date from version 2.10. The reference is **WCAG 2.1 level AA**, the
 standard that EN 301 549 applies to the user interface of desktop software.
 
 ## Summary
