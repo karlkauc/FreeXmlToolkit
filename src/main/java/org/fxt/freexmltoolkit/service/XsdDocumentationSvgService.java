@@ -286,50 +286,49 @@ public class XsdDocumentationSvgService {
 
         int[] box = viewBoxAround(svgBuilder.substring(contentStart));
 
-        // Add zoom and pan JavaScript
+        // Add zoom and pan JavaScript. It acts on the SVG it sits in (the documentation page has other
+        // SVGs before it, e.g. the search icon) and reads the current view box at every interaction,
+        // so the page's Reset Zoom / Fit to Screen and this script never work on different boxes.
         svgBuilder.append("<script type=\"text/javascript\">");
-        svgBuilder.append("var svg = document.querySelector('svg');");
-        svgBuilder.append("var viewBox = { x: " + VB_X + ", y: " + VB_Y + ", width: " + VB_W + ", height: " + VB_H + " };");
+        svgBuilder.append("(function () {");
+        svgBuilder.append("var svg = (document.currentScript && document.currentScript.closest('svg')) || document.querySelector('svg');");
         svgBuilder.append("var isPanning = false;");
         svgBuilder.append("var startPoint = { x: 0, y: 0 };");
-        svgBuilder.append("var endPoint = { x: 0, y: 0 };");
-        svgBuilder.append("var scale = 1;");
-        svgBuilder.append("function updateViewBox() {");
-        svgBuilder.append("  svg.setAttribute('viewBox', viewBox.x + ' ' + viewBox.y + ' ' + viewBox.width + ' ' + viewBox.height);");
+        svgBuilder.append("function readViewBox() {");
+        svgBuilder.append("  var v = svg.getAttribute('viewBox').split(/[\\s,]+/).map(Number);");
+        svgBuilder.append("  return { x: v[0], y: v[1], width: v[2], height: v[3] };");
         svgBuilder.append("}");
-        svgBuilder.append("svg.addEventListener('mousedown', function(e) {");
+        svgBuilder.append("function writeViewBox(b) {");
+        svgBuilder.append("  svg.setAttribute('viewBox', b.x + ' ' + b.y + ' ' + b.width + ' ' + b.height);");
+        svgBuilder.append("}");
+        svgBuilder.append("svg.addEventListener('mousedown', function (e) {");
         svgBuilder.append("  isPanning = true;");
         svgBuilder.append("  startPoint = { x: e.clientX, y: e.clientY };");
         svgBuilder.append("});");
-        svgBuilder.append("svg.addEventListener('mousemove', function(e) {");
-        svgBuilder.append("  if (isPanning) {");
-        svgBuilder.append("    endPoint = { x: e.clientX, y: e.clientY };");
-        svgBuilder.append("    var dx = (startPoint.x - endPoint.x) * scale;");
-        svgBuilder.append("    var dy = (startPoint.y - endPoint.y) * scale;");
-        svgBuilder.append("    viewBox.x += dx;");
-        svgBuilder.append("    viewBox.y += dy;");
-        svgBuilder.append("    updateViewBox();");
-        svgBuilder.append("    startPoint = endPoint;");
-        svgBuilder.append("  }");
-        svgBuilder.append("});");
-        svgBuilder.append("svg.addEventListener('mouseup', function(e) {");
-        svgBuilder.append("  isPanning = false;");
-        svgBuilder.append("});");
-        svgBuilder.append("svg.addEventListener('wheel', function(e) {");
-        svgBuilder.append("  e.preventDefault();");
-        svgBuilder.append("  var zoom = e.deltaY > 0 ? 0.9 : 1.1;");
-        svgBuilder.append("  var mouseX = e.clientX;");
-        svgBuilder.append("  var mouseY = e.clientY;");
+        svgBuilder.append("svg.addEventListener('mousemove', function (e) {");
+        svgBuilder.append("  if (!isPanning) { return; }");
+        svgBuilder.append("  var b = readViewBox();");
         svgBuilder.append("  var rect = svg.getBoundingClientRect();");
-        svgBuilder.append("  var x = (mouseX - rect.left) / rect.width * viewBox.width + viewBox.x;");
-        svgBuilder.append("  var y = (mouseY - rect.top) / rect.height * viewBox.height + viewBox.y;");
-        svgBuilder.append("  viewBox.width *= zoom;");
-        svgBuilder.append("  viewBox.height *= zoom;");
-        svgBuilder.append("  viewBox.x = x - (x - viewBox.x) * zoom;");
-        svgBuilder.append("  viewBox.y = y - (y - viewBox.y) * zoom;");
-        svgBuilder.append("  scale *= zoom;");
-        svgBuilder.append("  updateViewBox();");
+        svgBuilder.append("  b.x -= (e.clientX - startPoint.x) * b.width / rect.width;");
+        svgBuilder.append("  b.y -= (e.clientY - startPoint.y) * b.height / rect.height;");
+        svgBuilder.append("  writeViewBox(b);");
+        svgBuilder.append("  startPoint = { x: e.clientX, y: e.clientY };");
         svgBuilder.append("});");
+        svgBuilder.append("window.addEventListener('mouseup', function () { isPanning = false; });");
+        svgBuilder.append("svg.addEventListener('wheel', function (e) {");
+        svgBuilder.append("  e.preventDefault();");
+        svgBuilder.append("  var b = readViewBox();");
+        svgBuilder.append("  var zoom = e.deltaY > 0 ? 1.1 : 1 / 1.1;");
+        svgBuilder.append("  var rect = svg.getBoundingClientRect();");
+        svgBuilder.append("  var x = (e.clientX - rect.left) / rect.width * b.width + b.x;");
+        svgBuilder.append("  var y = (e.clientY - rect.top) / rect.height * b.height + b.y;");
+        svgBuilder.append("  b.x = x - (x - b.x) * zoom;");
+        svgBuilder.append("  b.y = y - (y - b.y) * zoom;");
+        svgBuilder.append("  b.width *= zoom;");
+        svgBuilder.append("  b.height *= zoom;");
+        svgBuilder.append("  writeViewBox(b);");
+        svgBuilder.append("}, { passive: false });");
+        svgBuilder.append("})();");
         svgBuilder.append("</script>");
 
         svgBuilder.append("</svg>");

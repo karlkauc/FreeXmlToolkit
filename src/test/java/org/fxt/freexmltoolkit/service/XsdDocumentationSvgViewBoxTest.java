@@ -64,5 +64,12 @@ class XsdDocumentationSvgViewBoxTest {
                     "node at " + nx + "," + ny + " lies inside the background " + x + "," + y + " " + w + "x" + h);
         }
         assertTrue(nodes > 0, "the diagram has nodes");
+
+        // Pan and zoom act on this SVG, not on the first one of the page (the search icon), and start
+        // from the current view box, so they work together with Reset Zoom / Fit to Screen
+        int script = page.indexOf("<script", svg.start());
+        String zoomScript = page.substring(script, page.indexOf("</script>", script));
+        assertTrue(zoomScript.contains("document.currentScript.closest('svg')"), "binds to its own SVG");
+        assertTrue(zoomScript.contains("getAttribute('viewBox')"), "reads the current view box");
     }
 }
