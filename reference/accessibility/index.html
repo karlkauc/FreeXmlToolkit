@@ -44,12 +44,6 @@
     
     
       
-        
-        
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
-        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
-      
     
     
       <link rel="stylesheet" href="../../overrides/stylesheets/extra.css">
@@ -4697,8 +4691,11 @@
 
 
 <h1 id="accessibility">Accessibility<a class="headerlink" href="#accessibility" title="Permanent link">¶</a></h1>
-<p>This page documents the accessibility audit of FreeXmlToolkit (version 2.10, November 2026): what
-was checked, what was fixed, and what is still open. The reference is <strong>WCAG 2.1 level AA</strong>, the
+<p>This page documents the accessibility audit of FreeXmlToolkit: what was checked, what was fixed,
+and what is still open. The audit was made with version 2.10 (November 2026). Its automated checks
+(names for screen readers, tab order, text contrast) are part of the test suite; they were last run
+against the development version after 3.4.0 on 22 November 2026 and pass. The checks made by hand,
+with screen readers and a keyboard walk-through, date from version 2.10. The reference is <strong>WCAG 2.1 level AA</strong>, the
 standard that EN 301 549 applies to the user interface of desktop software.</p>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
 <table>
@@ -5032,6 +5029,8 @@ on them does not take the focus away from the document. Each one has a keyboard 
       <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
       
         <script src="../../overrides/javascripts/download.js"></script>
+      
+        <script src="../../overrides/javascripts/moved-anchors.js"></script>
       
     
   
