@@ -71,22 +71,22 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
 
 ## How It Compares
 
-| | FreeXmlToolkit | Oxygen XML Editor | XMLSpy | XMLBlueprint |
+| | FreeXmlToolkit | Oxygen XML Editor | XMLSpy | Liquid Studio |
 |---|:-:|:-:|:-:|:-:|
-| License | **Free, open source** | Commercial | Commercial | Commercial |
+| License | **Free, open source** | Commercial | Commercial | Commercial, free Community Edition |
 | Windows · macOS · Linux | ✓ ✓ ✓ | ✓ ✓ ✓ | ✓ ◐ – | ✓ – – |
-| Graphical XSD editor (XSD 1.1) | ✓ | ✓ | ✓ | – |
+| Graphical XSD editor (XSD 1.1) | ✓ | ✓ | ✓ | ✓ |
 | Schematron + Quick Fixes | ✓ | ✓ | – | ◐ |
 | XSLT 3.0 · XQuery | ✓ | ✓ | ✓ | ◐ |
-| XSLT / XQuery debugger | ✓ | ✓ | ✓ | – |
+| XSLT / XQuery debugger | ✓ | ✓ | ✓ | ✓ |
 | XSLT / XQuery profiler | ✓ | ✓ | ✓ | – |
-| XProc 3 · XSpec | ✓ | ✓ | – | ◐ |
+| XProc 3 · XSpec | ✓ | ✓ | – | – |
 | XSL-FO to PDF | ✓ | ✓ | ✓ | – |
-| XML compare · 3-way merge | ✓ | ✓ | ✓ | – |
+| XML compare · 3-way merge | ✓ | ✓ | ✓ | ◐ |
 | XML digital signatures | ✓ | ✓ | ✓ | – |
 | XML encryption | ✓ | – | – | – |
-| JSON · JSON Schema · XML↔JSON | ✓ | ✓ | ✓ | ◐ |
-| Command line included | ✓ | ◐ | ◐ | ✓ |
+| JSON · JSON Schema · XML↔JSON | ✓ | ✓ | ✓ | ✓ |
+| Command line included | ✓ | ◐ | ◐ | ◐ |
 | AI assistant (local models possible) | ✓ | ◐ | ◐ | – |
 | MCP server for AI agents | ✓ | ◐ | – | – |
 

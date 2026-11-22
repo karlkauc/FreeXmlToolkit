@@ -6,7 +6,7 @@ send a report from inside the app with **Help → Report a Problem…** or open 
 
 ## General
 
-### How does FreeXmlToolkit compare to Oxygen XML Editor, XMLSpy or XMLBlueprint?
+### How does FreeXmlToolkit compare to Oxygen XML Editor, XMLSpy or Liquid Studio?
 
 See [Comparison with Other Editors](comparison.md): a feature table with sources, including the
 areas where the other editors offer more.

@@ -11,7 +11,7 @@ offer more.
 | FreeXmlToolkit | 3.1 | Karl Kauc (open source) |
 | Oxygen XML Editor | 28.1 (March 2026) | Syncro Soft SRL |
 | Altova XMLSpy | 2027 (October 2026) | Altova GmbH |
-| XMLBlueprint | 22 (June 2026) | Monkfish XML Software |
+| Liquid Studio | 21 | Liquid Technologies Ltd |
 
 The information about the other products comes from their publishers' websites and manuals
 (see [Sources](#sources)). Products change. If you find an error or an outdated entry,
@@ -27,72 +27,72 @@ please [open an issue](https://github.com/karlkauc/FreeXmlToolkit/issues) and it
 
 ## License and Platforms
 
-| | FreeXmlToolkit | Oxygen XML Editor | XMLSpy | XMLBlueprint |
+| | FreeXmlToolkit | Oxygen XML Editor | XMLSpy | Liquid Studio |
 |---|---|---|---|---|
-| License | Free, open source (Apache 2.0) | Commercial: perpetual or subscription ([prices](https://www.oxygenxml.com/buy.html)) | Commercial ([prices](https://shop.altova.com/XMLSpy)) | Commercial, free academic licence ([prices](https://www.xmlblueprint.com/buy.htm)) |
+| License | Free, open source (Apache 2.0) | Commercial: perpetual or subscription ([prices](https://www.oxygenxml.com/buy.html)) | Commercial ([prices](https://shop.altova.com/XMLSpy)) | Free Community Edition; commercial editions, perpetual or subscription ([prices](https://www.liquid-technologies.com/shop)) |
 | Windows | ✓ | ✓ | ✓ | ✓ |
 | macOS | ✓ | ✓ | ◐ via Parallels, according to the publisher | – |
 | Linux | ✓ | ✓ | – | – |
 
 ## XML Editing
 
-| | FreeXmlToolkit | Oxygen XML Editor | XMLSpy | XMLBlueprint |
+| | FreeXmlToolkit | Oxygen XML Editor | XMLSpy | Liquid Studio |
 |---|---|---|---|---|
 | Schema-aware auto-completion | ✓ | ✓ | ✓ | ✓ |
-| Grid / table view | ✓ | ✓ | ✓ | – (outline view) |
-| Large files | ◐ read-only viewer for files of any size; editing limited by memory | ✓ special loading modes for large and huge files | ✓ optimized for very large files | ✓ "up to 1 GB and larger" |
+| Grid / table view | ✓ | ✓ | ✓ | ✓ |
+| Large files | ◐ read-only viewer for files of any size; editing limited by memory | ✓ special loading modes for large and huge files | ✓ optimized for very large files | ✓ Large File Editor for files larger than memory (also in the free Community Edition) |
 
 ## Schemas and Validation
 
-| | FreeXmlToolkit | Oxygen XML Editor | XMLSpy | XMLBlueprint |
+| | FreeXmlToolkit | Oxygen XML Editor | XMLSpy | Liquid Studio |
 |---|---|---|---|---|
-| Graphical XSD editor | ✓ | ✓ | ✓ | – (schema viewer) |
-| XSD 1.1 | ✓ | ✓ | ✓ | – |
-| DTD validation | ✓ | ✓ | ✓ | ✓ |
-| RELAX NG validation | ✓ | ✓ | – | ✓ |
-| Schematron validation | ✓ | ✓ | – | ✓ |
+| Graphical XSD editor | ✓ | ✓ | ✓ | ✓ |
+| XSD 1.1 | ✓ | ✓ | ✓ | ✓ |
+| DTD validation | ✓ | ✓ | ✓ | ◐ DTD editor that checks the DTD itself |
+| RELAX NG validation | ✓ | ✓ | – | ◐ text editor |
+| Schematron validation | ✓ | ✓ | – | ◐ text editor |
 | Schematron Quick Fixes (SQF) | ✓ | ✓ | – | – |
 | Sample XML from a schema | ✓ | ✓ | ✓ | ✓ |
-| Schema documentation | ✓ HTML, Word, PDF | ✓ | ✓ | – |
+| Schema documentation | ✓ HTML, Word, PDF | ✓ | ✓ | ✓ HTML, PDF |
 
 ## JSON and YAML
 
-| | FreeXmlToolkit | Oxygen XML Editor | XMLSpy | XMLBlueprint |
+| | FreeXmlToolkit | Oxygen XML Editor | XMLSpy | Liquid Studio |
 |---|---|---|---|---|
-| JSON editor | ✓ | ✓ | ✓ | ◐ format and validate |
-| JSON Schema | ✓ | ✓ | ✓ | – |
-| YAML | ✓ editor, JSON Schema validation and completion, tree and grid (comments kept), schemas by file name (SchemaStore), structural compare, conversion | ✓ validation | ✓ editor, validation, grid | – |
-| XML ↔ JSON conversion | ✓ | ✓ | ✓ | – |
+| JSON editor | ✓ | ✓ | ✓ | ✓ |
+| JSON Schema | ✓ | ✓ | ✓ | ✓ graphical editor (drafts 4, 6, 7) |
+| YAML | ✓ editor, JSON Schema validation and completion, tree and grid (comments kept), schemas by file name (SchemaStore), structural compare, conversion | ✓ validation | ✓ editor, validation, grid | ◐ conversion to and from JSON |
+| XML ↔ JSON conversion | ✓ | ✓ | ✓ | ✓ |
 
 ## Transformation and Debugging
 
-| | FreeXmlToolkit | Oxygen XML Editor | XMLSpy | XMLBlueprint |
+| | FreeXmlToolkit | Oxygen XML Editor | XMLSpy | Liquid Studio |
 |---|---|---|---|---|
-| XSLT 3.0 | ✓ Saxon HE | ✓ Saxon HE / PE / EE | ✓ | ✓ Saxon HE |
-| XQuery | ✓ 3.1 | ✓ | ✓ 3.1 | – |
-| XSLT debugger | ✓ | ✓ | ✓ | – |
-| XQuery debugger | ✓ | ✓ | ✓ | – |
+| XSLT 3.0 | ✓ Saxon HE | ✓ Saxon HE / PE / EE | ✓ | ✓ Saxon HE (.NET engine for XSLT 1.0) |
+| XQuery | ✓ 3.1 | ✓ | ✓ 3.1 | ◐ 1.0 |
+| XSLT debugger | ✓ | ✓ | ✓ | ✓ |
+| XQuery debugger | ✓ | ✓ | ✓ | ✓ |
 | Profiler | ✓ XSLT, XQuery | ✓ XSLT, XQuery | ✓ XSLT, XQuery | – |
-| XProc 3 | ✓ run pipelines | ✓ | – | ◐ editing and validation |
+| XProc 3 | ✓ run pipelines | ✓ | – | – |
 | XSpec tests | ✓ | ✓ | – | – |
 | XSL-FO to PDF | ✓ Apache FOP | ✓ | ✓ | – |
 
 ## Other Tools
 
-| | FreeXmlToolkit | Oxygen XML Editor | XMLSpy | XMLBlueprint |
+| | FreeXmlToolkit | Oxygen XML Editor | XMLSpy | Liquid Studio |
 |---|---|---|---|---|
-| Compare files (XML-aware) | ✓ | ✓ | ✓ | – |
+| Compare files (XML-aware) | ✓ | ✓ | ✓ | ✓ |
 | Compare folders | ✓ | ✓ | ✓ | – |
 | Three-way merge | ✓ | ✓ | ✓ | – |
 | XML digital signatures | ✓ sign and verify | ✓ sign | ✓ sign and verify | – |
 | XML encryption (W3C 1.1) | ✓ encrypt, decrypt, inspect | – | – | – |
-| Projects / transformation scenarios | ✓ | ✓ | ✓ | ◐ |
-| Command line | ✓ included (`fxt-cli`, also an MCP server for AI agents) | ◐ separate product (Oxygen Scripting) | ◐ separate product (RaptorXML Server) for automation | ✓ |
+| Projects / transformation scenarios | ✓ | ✓ | ✓ | ◐ projects |
+| Command line | ✓ included (`fxt-cli`, also an MCP server for AI agents) | ◐ separate product (Oxygen Scripting) | ◐ separate product (RaptorXML Server) for automation | ◐ documentation generator; Data Mapper generates command-line programs |
 | Plugin / extension API | ✓ Java plugins | ✓ | ◐ scripting, OLE / ActiveX | – |
 
 ## AI
 
-| | FreeXmlToolkit | Oxygen XML Editor | XMLSpy | XMLBlueprint |
+| | FreeXmlToolkit | Oxygen XML Editor | XMLSpy | Liquid Studio |
 |---|---|---|---|---|
 | AI assistant | ✓ included, off by default | ◐ separate add-on (Oxygen AI Positron, subscription) | ◐ separate subscription (Altova AI) | – |
 | Explain / fix validation problems | ✓ | ✓ AI Positron Fix in the quick fixes | – | – |
@@ -133,11 +133,13 @@ read-only). The other products cover areas that FreeXmlToolkit does not:
     - Visual Studio and Eclipse integration;
     - an AI chat (separate subscription).
 
-- **XMLBlueprint:**
-    - refactoring (rename or split elements, rename namespace prefixes);
-    - editing files on FTPS, SFTP and WebDAV servers;
-    - CSV and Excel to XML conversion;
-    - a user interface in 21 languages.
+- **Liquid Studio:**
+    - a Data Mapper (XML, JSON, databases, EDI, CSV and web services; generates XSLT or C#);
+    - code generation from schemas for C#, VB.NET, C++ and Java;
+    - a WSDL editor and a web service test client (REST, SOAP, OpenAPI);
+    - a graphical JSON Schema editor;
+    - Visual Studio integration;
+    - a Large File Editor that also edits files larger than memory.
 
 ## Sources
 
@@ -160,13 +162,15 @@ Publishers' pages, read in November 2026:
     - [XSLT debugger](https://www.altova.com/xmlspy-xml-editor/xslt-debugger)
     - [Manual](https://www.altova.com/manual/XMLSpy/spyenterprise/)
     - AI: [Altova AI for XML development](https://www.altova.com/xmlspy-xml-editor/ai), [announcement of the Altova AI subscription](https://www.altova.com/blog/2026/05/new-altova-ai-smart-assistance-for-xmlspy-mapforce-and-databasespy)
-- **XMLBlueprint:**
-    - [Home page](https://www.xmlblueprint.com/)
-    - [What's new](https://www.xmlblueprint.com/what-is-new.htm)
-    - [Download and system requirements](https://www.xmlblueprint.com/download-xml-editor.htm)
-    - [User manual](https://www.xmlblueprint.com/user-manual.htm)
-    - [XProc editor](https://www.xmlblueprint.com/xproc-editor.htm)
-    - [Schematron editor](https://www.xmlblueprint.com/schematron-editor.htm)
+- **Liquid Studio:**
+    - [Home page](https://www.liquid-technologies.com/)
+    - [Product overview](https://www.liquid-technologies.com/xml-studio)
+    - [Edition comparison](https://www.liquid-technologies.com/xml-studio-editions)
+    - [Community Edition](https://www.liquid-technologies.com/liquid-community-edition)
+    - [What's new](https://www.liquid-technologies.com/new-features)
+    - [XSLT debugger](https://www.liquid-technologies.com/xslt-debugger)
+    - [Large File Editor](https://www.liquid-technologies.com/large-file-editor)
+    - [Shop](https://www.liquid-technologies.com/shop)
 
 FreeXmlToolkit: this documentation and the
 [source code](https://github.com/karlkauc/FreeXmlToolkit).
@@ -174,7 +178,7 @@ FreeXmlToolkit: this documentation and the
 ## Trademarks
 
 Oxygen and Oxygen XML Editor are trademarks of Syncro Soft SRL. Altova and XMLSpy are trademarks of
-Altova GmbH. XMLBlueprint is a product of Monkfish XML Software. All other product names are
+Altova GmbH. Liquid Studio and Liquid XML are products of Liquid Technologies Limited. All other product names are
 trademarks or registered trademarks of their respective owners. They are used here only to
 identify the products. FreeXmlToolkit is not affiliated with, endorsed by or sponsored by any of
 these companies.
