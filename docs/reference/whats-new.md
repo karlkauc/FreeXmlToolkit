@@ -10,6 +10,11 @@ running is shown under **Help → About FreeXmlToolkit**.
   icons, the splash screen, the welcome page, the About dialog and the installers show it. Windows gets its icon in
   nine sizes from 16 to 256 px (the taskbar used to scale one large image down), macOS an icon on Apple's icon grid,
   Linux icons from 16 to 512 px. [Brand guidelines](https://github.com/karlkauc/FreeXmlToolkit/tree/main/release/brand)
+- **New icons show up right away.** After an update, and after registering or removing file types, Windows is asked
+  to refresh its icon cache, so the taskbar pin, the Start menu and associated files show the new icon; on macOS the
+  updated application is registered again, so Finder, Dock and Launchpad drop the old one. This works from the update
+  *after* this release on: when updating from 3.4.0, restart Explorer (or sign out and in) on Windows, or run
+  `killall Dock` on macOS, if the old icon stays.
 - **One colour scheme throughout.** The last controls of the old look - the blue buttons in the schema overview, the
   folder comparison and the large-file window, and the hover frame of the status bar fields - now follow the accent
   colour and the dark theme. The splash screen is navy like the rest of the window chrome.

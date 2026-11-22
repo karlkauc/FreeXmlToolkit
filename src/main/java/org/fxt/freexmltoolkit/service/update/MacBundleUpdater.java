@@ -58,14 +58,19 @@ public final class MacBundleUpdater {
 
     /**
      * The relaunch helper: {@code $1} marker base path, {@code $2} bundle, {@code $3}/{@code $4} extras
-     * source/target, {@code $5} the {@code open} and {@code $6} the {@code ditto} program. It waits up to
-     * two minutes for {@code $1.go} (swap done) or {@code $1.abort} (swap failed).
+     * source/target, {@code $5} the {@code open}, {@code $6} the {@code ditto} and {@code $7} the
+     * {@code lsregister} program. It waits up to two minutes for {@code $1.go} (swap done) or
+     * {@code $1.abort} (swap failed). Before starting the new bundle it registers it again with
+     * LaunchServices and touches it, so Finder, Dock and Launchpad show its icon instead of the
+     * cached one of the old bundle.
      */
     static final String RELAUNCH_SCRIPT = """
             i=0
             while [ "$i" -lt 1200 ]; do
               if [ -e "$1.go" ]; then
                 if [ -d "$3" ] && [ -d "$4" ]; then "$6" "$3" "$4"; fi
+                touch "$2" 2>/dev/null
+                if [ -x "$7" ]; then "$7" -f "$2" >/dev/null 2>&1; fi
                 exec "$5" -n "$2"
               fi
               if [ -e "$1.abort" ]; then exit 0; fi
@@ -76,6 +81,9 @@ public final class MacBundleUpdater {
 
     private static final String OPEN = "/usr/bin/open";
     private static final String DITTO = "/usr/bin/ditto";
+    /** LaunchServices' registration tool (also used by the file associations). */
+    static final String LSREGISTER = "/System/Library/Frameworks/CoreServices.framework/Frameworks/"
+            + "LaunchServices.framework/Support/lsregister";
 
     private final ProcessRunner runner;
     private final Launcher launcher;
@@ -202,7 +210,7 @@ public final class MacBundleUpdater {
         try {
             Files.deleteIfExists(marker.resolveSibling(marker.getFileName() + ".go"));
             Files.deleteIfExists(marker.resolveSibling(marker.getFileName() + ".abort"));
-            launcher.start(relaunchCommand(marker, bundle, extrasSource, extrasTarget, OPEN, DITTO));
+            launcher.start(relaunchCommand(marker, bundle, extrasSource, extrasTarget, OPEN, DITTO, LSREGISTER));
             log.accept("Relaunch helper waiting for " + marker);
             return true;
         } catch (IOException e) {
@@ -213,9 +221,9 @@ public final class MacBundleUpdater {
 
     /** The {@code /bin/sh} command of the relaunch helper (programs passed in for tests). */
     static List<String> relaunchCommand(Path marker, Path bundle, Path extrasSource, Path extrasTarget,
-                                        String open, String ditto) {
+                                        String open, String ditto, String lsregister) {
         return List.of("/bin/sh", "-c", RELAUNCH_SCRIPT, "fxt-relaunch", marker.toString(), bundle.toString(),
-                extrasSource.toString(), extrasTarget.toString(), open, ditto);
+                extrasSource.toString(), extrasTarget.toString(), open, ditto, lsregister);
     }
 
     /** Writes {@code <marker>.<what>}; {@code false} (logged) when that fails. */

@@ -2,6 +2,7 @@ mod cleanup;
 mod config;
 mod copy;
 mod error;
+mod icons;
 mod logger;
 mod process;
 mod restart;
@@ -92,6 +93,9 @@ fn run(config_path: &std::path::Path) -> Result<()> {
     }
     // Before the restart: the new process may read the log as soon as it runs.
     log_result(&log, copy_result.as_ref().err(), &config);
+
+    // New icons (launcher, shortcuts, associated files) instead of Explorer's cached ones.
+    icons::refresh_icon_cache(&log);
 
     log.info(&format!("Restarting: {}", config.launcher_path.display()));
     let restart_result = restart::restart_application(&config.launcher_path, &log);

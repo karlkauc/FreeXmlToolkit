@@ -29,6 +29,9 @@ updater dispatch:
   `RESULT <code> [folder=<top folder>]` line to `~/fxt-update-helper.log` (`src/result.rs`; before
   the restart, so the new process can read it); on `version_mismatch` the next start reports it as
   `meta.helper_result` / `helper_folder` (`service/update/HelperResult`, `UpdateFunnel.reportInstalled`).
+  After the copy the helper calls `SHChangeNotify(SHCNE_ASSOCCHANGED)` and starts `ie4uinit.exe -show`
+  (`src/icons.rs`, best effort) so pins, Start menu and associated files show a changed icon at once;
+  `WindowsAssociationStrategy` does the same after registering / removing file types.
 - **macOS:** `service/update/MacBundleUpdater` — the update ZIP holds the signed
   `FreeXmlToolkit.app` plus an extras folder `FreeXmlToolkit/`. Extracted with `ditto`
   (ZipInputStream loses the runtime's symlinks), the new bundle is staged next to the
@@ -39,7 +42,8 @@ updater dispatch:
   `$JAVA_HOME/lib/jspawnhelper`, which refuses another Java build ("Incorrect Java version"),
   and after the swap that path is the new runtime. So a `/bin/sh` relaunch helper
   (`RELAUNCH_SCRIPT`, injectable `Launcher`) is started before the swap and waits for
-  `<extracted>/.relaunch.go` (then extras `ditto` + `open -n`) or `.abort`; only when it
+  `<extracted>/.relaunch.go` (then extras `ditto`, `touch` + `lsregister -f` of the bundle so Finder /
+  Dock drop the cached icon, `open -n`) or `.abort`; only when it
   cannot start does the old in-process `open` run, and its failure says "installed".
 - **Linux:** No separate helper — `AutoUpdateServiceImpl` performs
   in-process recursive copy then exec's the new launcher (POSIX inode

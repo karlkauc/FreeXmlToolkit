@@ -147,6 +147,7 @@ public class WindowsAssociationStrategy implements AssociationStrategy {
     public FileAssociationResult register(Collection<FileTypeDescriptor> types,
                                           Collection<FileTypeDescriptor> allTypes) {
         List<String> errors = runAll(buildRegisterCommands(types), false);
+        refreshIconCache();
         boolean settingsOpened = openDefaultAppsSettings();
 
         if (!errors.isEmpty()) {
@@ -173,6 +174,7 @@ public class WindowsAssociationStrategy implements AssociationStrategy {
         if (coversAllTypes || !hasRemainingAssociations()) {
             runAll(buildRemoveCapabilitiesCommands(), true);
         }
+        refreshIconCache();
         if (!errors.isEmpty()) {
             return FileAssociationResult.failure("Unregistration finished with errors — see details.", errors);
         }
@@ -229,6 +231,24 @@ public class WindowsAssociationStrategy implements AssociationStrategy {
     static boolean blockedByPolicy(List<String> errors) {
         return !errors.isEmpty() && errors.stream()
                 .allMatch(e -> e.toLowerCase(java.util.Locale.ROOT).contains("administr"));
+    }
+
+    /**
+     * The command that makes Explorer re-read file type icons and its icon cache. Writing
+     * {@code DefaultIcon} alone does not notify Explorer, so the old icons stayed until the next
+     * sign-in. Pure.
+     */
+    static List<String> buildRefreshIconsCommand() {
+        return List.of("ie4uinit.exe", "-show");
+    }
+
+    /** Asks Explorer to refresh its icons; best effort, a failure changes nothing. */
+    private void refreshIconCache() {
+        try {
+            runner.run(buildRefreshIconsCommand());
+        } catch (IOException e) {
+            // Cosmetic only: the icons follow at the next sign-in.
+        }
     }
 
     private List<String> runAll(List<List<String>> commands, boolean ignoreFailures) {

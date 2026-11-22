@@ -85,7 +85,7 @@ class MacBundleUpdaterTest {
         assertFalse(commands.stream().anyMatch(c -> c.getFirst().equals("open")));
         assertEquals(MacBundleUpdater.relaunchCommand(extracted.resolve(".relaunch"), installed,
                 extracted.resolve("FreeXmlToolkit"), applications.resolve("FreeXmlToolkit"),
-                "/usr/bin/open", "/usr/bin/ditto"), launched.getFirst());
+                "/usr/bin/open", "/usr/bin/ditto", MacBundleUpdater.LSREGISTER), launched.getFirst());
         assertTrue(Files.exists(marker("go")));
         assertFalse(Files.exists(marker("abort")));
         // no staged copy or backup left next to the bundle
@@ -136,18 +136,27 @@ class MacBundleUpdaterTest {
         Files.writeString(open, "#!/bin/sh\nprintf '%s ' \"$@\" > '" + opened + "'\n");
         Path ditto = bin.resolve("ditto");
         Files.writeString(ditto, "#!/bin/sh\ncp -R \"$1/.\" \"$2\"\n");
+        Path registered = tmp.resolve("registered.txt");
+        Path lsregister = bin.resolve("lsregister");
+        Files.writeString(lsregister, "#!/bin/sh\nprintf '%s ' \"$@\" > '" + registered + "'\n");
         open.toFile().setExecutable(true);
         ditto.toFile().setExecutable(true);
+        lsregister.toFile().setExecutable(true);
         Path extrasTarget = Files.createDirectories(applications.resolve("FreeXmlToolkit"));
         Path marker = extracted.resolve(".relaunch");
+        Files.setLastModifiedTime(installed, java.nio.file.attribute.FileTime.fromMillis(0));
 
         Process p = new ProcessBuilder(MacBundleUpdater.relaunchCommand(marker, installed,
-                extracted.resolve("FreeXmlToolkit"), extrasTarget, open.toString(), ditto.toString())).start();
+                extracted.resolve("FreeXmlToolkit"), extrasTarget, open.toString(), ditto.toString(),
+                lsregister.toString())).start();
         Thread.sleep(300);
         assertTrue(p.isAlive(), "the helper waits for the swap");
         Files.writeString(marker("go"), "go");
         assertTrue(p.waitFor(10, java.util.concurrent.TimeUnit.SECONDS));
         assertEquals("-n " + installed, Files.readString(opened).strip());
+        // the new bundle is registered again and touched, so Finder and Dock drop the old icon
+        assertEquals("-f " + installed, Files.readString(registered).strip());
+        assertTrue(Files.getLastModifiedTime(installed).toMillis() > 0, "the bundle is touched");
         assertEquals("<new/>", Files.readString(extrasTarget.resolve("examples/sample.xml")));
     }
 
@@ -159,7 +168,7 @@ class MacBundleUpdaterTest {
         Files.writeString(marker("abort"), "abort");
         Process p = new ProcessBuilder(MacBundleUpdater.relaunchCommand(marker, installed,
                 extracted.resolve("FreeXmlToolkit"), applications.resolve("FreeXmlToolkit"),
-                "/bin/false", "/bin/false")).start();
+                "/bin/false", "/bin/false", "/bin/false")).start();
         assertTrue(p.waitFor(10, java.util.concurrent.TimeUnit.SECONDS));
         assertEquals(0, p.exitValue());
         assertFalse(Files.exists(opened));
