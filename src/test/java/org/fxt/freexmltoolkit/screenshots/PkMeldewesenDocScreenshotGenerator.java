@@ -26,7 +26,6 @@ import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
@@ -41,8 +40,7 @@ class PkMeldewesenDocScreenshotGenerator {
 
     private static final File IMG_DIR = new File("docs/img");
 
-    @TempDir
-    static Path store;
+    static Path store = DocFiles.work("pk-meldewesen");
     private String previousEnabled;
     private Path previousTemplates;
     private Parent root;

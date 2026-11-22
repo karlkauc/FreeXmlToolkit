@@ -566,6 +566,16 @@ tasks.register<Test>("docScreenshots") {
     classpath = sourceSets["test"].runtimeClasspath
     testLogging { events("passed", "skipped", "failed") }
     filter { includeTestsMatching("*DocScreenshotGenerator*") }
+    // Paths in the screenshots (status bar, recent files, Settings) must not name the developer's
+    // home folder: the generators open copies under one neutral root (screenshots/DocFiles), and
+    // the application's own folder (~/.freeXmlToolkit) lives there too.
+    val docsRoot = File(System.getProperty("java.io.tmpdir"), "FreeXmlToolkit-docs")
+    systemProperty("fxt.docs.root", docsRoot.absolutePath)
+    systemProperty("user.home", File(docsRoot, "home").absolutePath)
+    doFirst {
+        docsRoot.deleteRecursively()
+        File(docsRoot, "home").mkdirs()
+    }
     // Same module opens/exports as `test`, but with a real display + software rendering.
     jvmArgs(
         "--add-opens", "java.base/java.lang=ALL-UNNAMED",

@@ -92,7 +92,7 @@ class AppearanceDocScreenshotGenerator {
             settle(800);
             shot("unified-shell-settings-editor-font");
             var host = shell.getEditorHost();
-            java.nio.file.Path xml = java.nio.file.Path.of("src/main/resources/examples/getting-started/order.xml");
+            java.nio.file.Path xml = DocFiles.gettingStarted("order.xml");
             onFx(() -> host.openFile(xml.toAbsolutePath()));
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                     () -> host.getActiveText().map(t -> t.contains("<order")).orElse(false));

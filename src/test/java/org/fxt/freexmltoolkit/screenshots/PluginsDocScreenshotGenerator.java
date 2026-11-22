@@ -65,7 +65,7 @@ class PluginsDocScreenshotGenerator {
         // the KAG extension's templates go to a temporary folder, never into release/examples/templates
         var templateFiles = org.fxt.freexmltoolkit.service.TemplateFileService.getInstance();
         previousTemplates = templateFiles.getTemplatesDirectoryPath();
-        templateFiles.setTemplatesDirectory(java.nio.file.Files.createTempDirectory("fxt-plugin-templates"));
+        templateFiles.setTemplatesDirectory(DocFiles.work("fxt-plugin-templates"));
         PropertiesService props = ServiceRegistry.get(PropertiesService.class);
         props.set(org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlHint.SHOWN_KEY, "true");
         for (String id : PLUGINS) {

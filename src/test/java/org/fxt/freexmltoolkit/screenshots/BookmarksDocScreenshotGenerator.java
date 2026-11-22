@@ -61,7 +61,7 @@ class BookmarksDocScreenshotGenerator {
         EditorHost host = shell.getEditorHost();
         onFx(() -> org.fxt.freexmltoolkit.controls.shell.ThemeManager.apply(root.getScene(), false));
 
-        Path dir = Files.createTempDirectory("fxt-bookmarks-doc");
+        Path dir = DocFiles.work("fxt-bookmarks-doc");
         StringBuilder xml = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<orders>\n");
         for (int i = 1; i <= 60; i++) {
             xml.append("  <order id=\"").append(1000 + i).append("\">\n")

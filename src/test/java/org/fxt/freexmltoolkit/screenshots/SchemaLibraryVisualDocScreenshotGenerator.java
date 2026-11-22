@@ -63,7 +63,7 @@ class SchemaLibraryVisualDocScreenshotGenerator {
 
     @Start
     void start(Stage stage) throws Exception {
-        work = Files.createTempDirectory("schema-library-visual");
+        work = DocFiles.work("schema-library-visual");
         ServiceRegistry.initialize();
         cache = new SchemaResourceCache(work.resolve("cache"));
         ServiceRegistry.register(SchemaResourceCache.class, cache);
@@ -222,7 +222,7 @@ class SchemaLibraryVisualDocScreenshotGenerator {
         System.out.println("[visual] json bound schema = " + host.activeSchemaProperty().get());
 
         // 8b. Shipped catalog example: declared but unreachable xsi:schemaLocation, resolved via catalog
-        Path exampleCatalog = Path.of("release/examples/catalog/catalog.xml").toAbsolutePath();
+        Path exampleCatalog = DocFiles.examples().toPath().resolve("catalog/catalog.xml");
         if (Files.isRegularFile(exampleCatalog)) {
             library.addCatalog(exampleCatalog);
             Path invoice = exampleCatalog.resolveSibling("invoice.xml");

@@ -95,7 +95,7 @@ class ViewExportDocScreenshotGenerator {
         EditorHost host = shell.getEditorHost();
         onFx(() -> org.fxt.freexmltoolkit.controls.shell.ThemeManager.apply(root.getScene(), false));
 
-        Path file = Files.createTempDirectory("fxt-shot").resolve("expense-report.xsd");
+        Path file = DocFiles.work("fxt-shot").resolve("expense-report.xsd");
         Files.writeString(file, SAMPLE);
         onFx(() -> shell.getSelectionModel().select(Activity.SCHEMA));
         onFx(() -> host.openFile(file));

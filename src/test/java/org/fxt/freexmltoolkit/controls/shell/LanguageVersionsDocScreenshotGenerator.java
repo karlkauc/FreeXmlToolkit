@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell;
 
+import org.fxt.freexmltoolkit.screenshots.DocFiles;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,7 +42,7 @@ import org.testfx.util.WaitForAsyncUtils;
 class LanguageVersionsDocScreenshotGenerator {
 
     private static final File IMG_DIR = new File("docs/img");
-    private static final Path ORDER = Path.of("src/main/resources/examples/getting-started/order.xml");
+    private static final Path ORDER = DocFiles.gettingStarted("order.xml");
     private static final String[] KEYS = {StandardsSettings.KEY_EXPERT_MODE, StandardsSettings.KEY_XPATH,
             StandardsSettings.KEY_XSLT, StandardsSettings.KEY_XSD,
             StandardsSettings.toolKey(StandardsSettings.TOOL_QUERY_CONSOLE, "xpath"),
@@ -120,7 +121,7 @@ class LanguageVersionsDocScreenshotGenerator {
             shot("unified-shell-validation-standards");
 
             // Run ▾ → Check Compatibility on an XSLT 3.0 stylesheet, checked as XSLT 2.0
-            Path xslt = Files.createTempDirectory("fxt-shots").resolve("report.xsl");
+            Path xslt = DocFiles.work("fxt-shots").resolve("report.xsl");
             Files.writeString(xslt, """
                     <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                                     expand-text="yes">

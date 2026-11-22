@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell;
 
+import org.fxt.freexmltoolkit.screenshots.DocFiles;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
@@ -35,7 +36,7 @@ import org.testfx.util.WaitForAsyncUtils;
 class QueryErrorDocScreenshotGenerator {
 
     private static final File IMG_DIR = new File("docs/img");
-    private static final Path ORDER = Path.of("src/main/resources/examples/getting-started/order.xml");
+    private static final Path ORDER = DocFiles.gettingStarted("order.xml");
 
     private Parent root;
     private UnifiedShellView shell;
