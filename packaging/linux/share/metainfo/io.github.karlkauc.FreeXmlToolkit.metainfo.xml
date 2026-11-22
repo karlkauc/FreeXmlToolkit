@@ -27,12 +27,15 @@
     </ul>
   </description>
 
+  <update_contact>office@freexmltoolkit.org</update_contact>
+
   <launchable type="desktop-id">io.github.karlkauc.FreeXmlToolkit.desktop</launchable>
 
-  <url type="homepage">https://github.com/karlkauc/FreeXmlToolkit</url>
+  <url type="homepage">https://freexmltoolkit.org/</url>
   <url type="bugtracker">https://github.com/karlkauc/FreeXmlToolkit/issues</url>
   <url type="help">https://karlkauc.github.io/FreeXmlToolkit/</url>
   <url type="vcs-browser">https://github.com/karlkauc/FreeXmlToolkit</url>
+  <url type="contact">mailto:office@freexmltoolkit.org</url>
 
   <screenshots>
     <screenshot type="default">

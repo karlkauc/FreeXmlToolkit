@@ -13,13 +13,17 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 
 /**
- * Central list of the project's public web links (repository, documentation, issue
- * tracker, GitHub Sponsors) plus a helper to open them in the system browser.
+ * Central list of the project's public web links (website, repository, documentation, issue
+ * tracker, GitHub Sponsors) and contact address, plus helpers to open them.
  */
 public final class ProjectLinks {
 
     private static final Logger logger = LogManager.getLogger(ProjectLinks.class);
 
+    /** The product website. */
+    public static final String WEBSITE_URL = "https://freexmltoolkit.org";
+    /** The project's public contact address (also in the website's imprint). */
+    public static final String CONTACT_EMAIL = "office@freexmltoolkit.org";
     /** The GitHub repository. */
     public static final String GITHUB_URL = "https://github.com/karlkauc/FreeXmlToolkit";
     /** The user documentation (MkDocs site). */
@@ -51,6 +55,15 @@ public final class ProjectLinks {
         icon.setIconSize(size);
         icon.iconColorProperty().bind(new SimpleObjectProperty<Paint>(Color.web(SemanticColors.SPONSOR)));
         return icon;
+    }
+
+    /**
+     * Opens a new message to {@link #CONTACT_EMAIL} in the system mail program, off the calling
+     * thread. Failures are logged, never thrown.
+     */
+    public static void writeMail() {
+        URI uri = URI.create("mailto:" + CONTACT_EMAIL);
+        DesktopActions.mail(uri, ex -> logger.warn("Could not open the mail program for {}: {}", uri, ex.getMessage()));
     }
 
     /**

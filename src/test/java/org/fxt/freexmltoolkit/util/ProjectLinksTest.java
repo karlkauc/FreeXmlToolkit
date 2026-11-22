@@ -12,12 +12,18 @@ class ProjectLinksTest {
 
     @Test
     void allLinksAreAbsoluteHttpsUrls() {
-        for (String url : List.of(ProjectLinks.GITHUB_URL, ProjectLinks.DOCS_URL,
+        for (String url : List.of(ProjectLinks.WEBSITE_URL, ProjectLinks.GITHUB_URL, ProjectLinks.DOCS_URL,
                 ProjectLinks.ISSUES_URL, ProjectLinks.SPONSORS_URL)) {
             URI uri = URI.create(url);
             assertEquals("https", uri.getScheme(), url);
             assertNotNull(uri.getHost(), url);
         }
+    }
+
+    @Test
+    void contactAddressIsTheProjectMailbox() {
+        assertEquals("office@freexmltoolkit.org", ProjectLinks.CONTACT_EMAIL);
+        assertEquals("mailto", URI.create("mailto:" + ProjectLinks.CONTACT_EMAIL).getScheme());
     }
 
     @Test

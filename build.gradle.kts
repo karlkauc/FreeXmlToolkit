@@ -1181,6 +1181,8 @@ fun createJPackageTask(taskName: String, platform: String, arch: String, package
 --win-dir-chooser
 --win-menu
 --win-shortcut
+--about-url
+https://freexmltoolkit.org
 --win-upgrade-uuid
 $WINDOWS_UPGRADE_UUID
 --resource-dir
@@ -1205,6 +1207,10 @@ FreeXmlToolkit""" + if (macSigningEnabled) """
 freexmltoolkit
 --linux-app-category
 Development
+--linux-deb-maintainer
+office@freexmltoolkit.org
+--about-url
+https://freexmltoolkit.org
 --linux-shortcut
 --resource-dir
 """ + project.projectDir.resolve("release/linux")
