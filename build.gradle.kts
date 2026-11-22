@@ -80,7 +80,7 @@ sourceSets {
 
 // Saxon HE 13 for the external-processor tests (RealXsltProcessorsTest): on no class path, handed to the
 // tests as a path list (fxt.test.saxon13.classpath), run with java in a process of its own.
-val saxon13: Configuration by configurations.creating {
+val saxon13: Configuration = configurations.create("saxon13") {
     isTransitive = false
     isCanBeConsumed = false
 }
