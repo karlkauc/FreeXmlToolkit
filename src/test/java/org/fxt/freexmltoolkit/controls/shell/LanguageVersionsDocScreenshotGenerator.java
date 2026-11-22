@@ -121,7 +121,7 @@ class LanguageVersionsDocScreenshotGenerator {
             shot("unified-shell-validation-standards");
 
             // Run ▾ → Check Compatibility on an XSLT 3.0 stylesheet, checked as XSLT 2.0
-            Path xslt = DocFiles.work("fxt-shots").resolve("report.xsl");
+            Path xslt = DocFiles.work("stylesheets").resolve("report.xsl");
             Files.writeString(xslt, """
                     <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                                     expand-text="yes">

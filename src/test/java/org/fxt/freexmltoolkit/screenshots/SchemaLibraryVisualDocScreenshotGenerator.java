@@ -63,7 +63,7 @@ class SchemaLibraryVisualDocScreenshotGenerator {
 
     @Start
     void start(Stage stage) throws Exception {
-        work = DocFiles.work("schema-library-visual");
+        work = DocFiles.work("schema-library");
         ServiceRegistry.initialize();
         cache = new SchemaResourceCache(work.resolve("cache"));
         ServiceRegistry.register(SchemaResourceCache.class, cache);

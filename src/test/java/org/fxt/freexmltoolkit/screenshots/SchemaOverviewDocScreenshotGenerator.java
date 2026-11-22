@@ -117,7 +117,7 @@ class SchemaOverviewDocScreenshotGenerator {
         EditorHost host = shell.getEditorHost();
         onFx(() -> org.fxt.freexmltoolkit.controls.shell.ThemeManager.apply(root.getScene(), false));
 
-        Path file = DocFiles.work("fxt-shot").resolve("expenses.xsd");
+        Path file = DocFiles.work("schemas").resolve("expenses.xsd");
         Files.writeString(file, SAMPLE);
         Files.writeString(file.resolveSibling("common.xsd"), """
                 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="urn:example:common">

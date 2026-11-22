@@ -203,7 +203,7 @@ class PagesDocScreenshotGenerator {
 
         // ---------------------------------------------------------------- Pretty print
         scene("pretty print before/after", () -> {
-            Path ugly = DocFiles.work("files").resolve("fxt-doc-pretty-print.xml");
+            Path ugly = DocFiles.work("formatting").resolve("catalog.xml");
             Files.writeString(ugly, "<?xml version=\"1.0\" encoding=\"UTF-8\"?><catalog>"
                     + "<book id=\"bk101\"><author>Gambardella, Matthew</author>"
                     + "<title>XML Developer's Guide</title><genre>Computer</genre>"
@@ -381,7 +381,7 @@ class PagesDocScreenshotGenerator {
             // Generate with the inputs of the previous scene; a successful run opens the preview tab.
             if (shell.lookup(".fxt-fop-panel")
                     instanceof org.fxt.freexmltoolkit.controls.shell.editor.FopPanel panel) {
-                File pdf = new File(DocFiles.work("fxt-fop").toFile(), "FundsXML_Factsheet.pdf");
+                File pdf = new File(DocFiles.work("pdf").toFile(), "FundsXML_Factsheet.pdf");
                 pdf.deleteOnExit();
                 onFx(() -> panel.generateTo(pdf));
                 waitUntilFx(60, () -> root.lookup(".fxt-pdf-page")
