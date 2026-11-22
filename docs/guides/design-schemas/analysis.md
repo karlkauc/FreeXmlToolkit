@@ -22,6 +22,10 @@ tables as arrays of objects, HTML with a table of contents, PDF with one chapter
 and Excel with one sheet per section (in the same look as every other Excel export: dark header
 row, striped rows, highlighted findings in their status colour).
 
+## Before you start
+
+- An XSD open in the editor.
+
 ## Statistics
 
 The **Statistics** tab opens with a row of tiles for the declaration counts (elements,
@@ -135,4 +139,8 @@ schema; they are not evaluated against a sample XML document.
     inspected and deleted per node in the Properties inspector's **CONSTRAINTS** section -
     see [What You Can Edit in the Properties Pane](text-view.md#what-you-can-edit-in-the-properties-pane).
 
----
+## Next steps
+
+- [Types](types.md) - see where a type is used
+- [Flatten a schema](flatten.md)
+- [Generate schema documentation](documentation.md)

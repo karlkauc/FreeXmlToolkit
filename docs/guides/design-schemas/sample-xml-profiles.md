@@ -2,6 +2,10 @@
 
 Generate customized sample XML from an XSD schema. The **Generate Sample XML (Advanced)…** dialog lists every element and attribute path of your schema, lets you pick a generation strategy per path, saves those settings as reusable profiles, and can write a whole batch of files in one go.
 
+## Before you start
+
+- An XSD open in the editor.
+
 ---
 
 ## Overview
@@ -229,3 +233,8 @@ No -- the files are written into one folder, so a later file with the same name 
 
 **Where is the Validate button?**
 Not in the dialog: open the generated tab and use the **Validate** action of the shell (see [XSD Validation](../validate/xsd.md)).
+
+## Next steps
+
+- [Generate sample XML](sample-xml.md) - the simple generator
+- [Validate](../validate/index.md)

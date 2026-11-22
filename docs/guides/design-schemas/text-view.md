@@ -5,6 +5,10 @@ The Text View provides raw XSD source code editing.
 ![XSD Text view in the Unified Shell](../../img/unified-shell-schema-text.png)
 *The XSD in the Unified Shell's Text view (Schema activity panel on the left, inspector on the right)*
 
+## Before you start
+
+- An XSD open in the editor.
+
 ## Features
 
 - **Full Code Editor**: View and edit the raw XSD source code
@@ -87,4 +91,7 @@ schema XPath and the XSD source of the selected node.
     **Graphic** capability via the right-click context menu. The **Text** view provides
     *property* editing through the Properties pane.
 
----
+## Next steps
+
+- [Graphic view](graphic-view.md)
+- [Properties Inspector](../../reference/inspector.md)

@@ -2,6 +2,10 @@
 
 Named types are the building blocks of a schema. The **Type Library** lists them and shows where each is used; the **Type Editor** opens one type on its own to edit it.
 
+## Before you start
+
+- An XSD open in the editor; open the **Schema** activity.
+
 ## Type Library
 
 The Schema activity's side panel is your type library: it lists the active schema's
@@ -122,4 +126,7 @@ One **Undo** removes the type again.
 4. Make your changes
 5. Click Save or use Ctrl+S
 
----
+## Next steps
+
+- [Graphic view](graphic-view.md) - named types appear as frames
+- [Schema analysis](analysis.md) - unused types

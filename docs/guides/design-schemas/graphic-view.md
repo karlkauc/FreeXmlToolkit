@@ -5,6 +5,10 @@ The Graphic View lets you explore and edit your schemas visually.
 ![XSD Graphic view in the Unified Shell](../../img/unified-shell-schema-graphic.png)
 *An XSD open in the Unified Shell's Graphic view, with the Schema activity panel on the left*
 
+## Before you start
+
+- An XSD open in the editor; switch to the **Graphic** view.
+
 ## Features
 
 - **Visual Tree**: See your XSD as an interactive, hierarchical tree
@@ -329,4 +333,8 @@ A few things to know:
   `-Dfxt.schema.namespaceFallback=false` - local files, catalog hits and already-cached
   copies still resolve.
 
----
+## Next steps
+
+- [Overview view](overview-view.md) - all top-level components in one table
+- [Types](types.md)
+- [Properties Inspector](../../reference/inspector.md)

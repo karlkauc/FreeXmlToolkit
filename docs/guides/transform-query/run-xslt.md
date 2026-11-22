@@ -5,6 +5,10 @@ Pick a stylesheet and an input in the **Transform** panel, run it, and read the 
 batch runs; every field of the panel is described in the
 [Transform panel reference](../../reference/transform-panel.md).
 
+## Before you start
+
+- An XML input document and an XSLT stylesheet.
+
 ## Run a stylesheet
 
 ### 1. Select your files

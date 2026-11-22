@@ -10,6 +10,10 @@ Create sample XML files based on your XSD schema. This is useful for testing, da
     the basic generation described below, and **Sample XML with Options…** for the
     rule-based, batch-capable generation shown above.
 
+## Before you start
+
+- An XSD open in the editor.
+
 ## Quick Start (Basic Generation)
 
 For simple use cases, you can generate sample XML in seconds:
@@ -58,4 +62,7 @@ namespaced schema) rather than by an absolute `file:` path, so it can be moved a
 Saving it for the first time into another folder rewrites the reference to a relative path
 (for example `../xsd/FundsXML4.xsd`), so it keeps resolving there - also in other tools.
 
----
+## Next steps
+
+- [Sample XML with profiles](sample-xml-profiles.md) - rules per XPath, batches, reusable profiles
+- [Validate](../validate/index.md)

@@ -87,3 +87,8 @@ looks and feels exactly like an XML file in the grid:
     single quotes, trailing commas) are not part of it, so the **first grid edit rewrites the
     file as standard JSON**. The grid shows a warning the first time it opens such a file;
     if you need to keep the comments, edit in the Text view instead.
+
+## Next steps
+
+- [Grid view](edit-xml/grid.md) - everything the XML grid offers
+- [JSON & YAML](json-yaml.md)

@@ -45,4 +45,7 @@ bar. See the [Search Panel](search-in-files.md) guide.
 !!! note "Shortcut"
     **Ctrl+Shift+F** opens Find in Files; **Format Document** is **Shift+Alt+F**.
 
----
+## Next steps
+
+- [Search and replace in files](search-in-files.md)
+- [Query console](../transform-query/query-console.md) - find by XPath in the open document

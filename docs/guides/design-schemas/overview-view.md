@@ -53,6 +53,10 @@ The selected row also drives the **Properties** pane on the right, so all other 
 is a normal edit of the document: it shows up in the Text view, and Undo/Redo is shared with
 the Tree and Graphic views.
 
+## Before you start
+
+- An XSD open in the editor; switch to the **Overview** view.
+
 ## Order of the Components When Saving
 
 The schema is saved in the order you see in the Overview (and in the Text view). Earlier
@@ -60,4 +64,7 @@ versions sorted the top-level components on every save; now the order only chang
 **Sort** explicitly. Schema-level annotations, `xs:notation` and `xs:defaultOpenContent` are
 kept at their positions.
 
----
+## Next steps
+
+- [Graphic view](graphic-view.md)
+- [Types](types.md)

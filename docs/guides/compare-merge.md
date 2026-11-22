@@ -20,6 +20,10 @@ Merge controls let you reconcile the two files:
 
 The diff recomputes automatically about 300 ms after you stop typing.
 
+## Before you start
+
+- Two files to compare; for a three-way merge also the version both were derived from.
+
 ## Comparing as XML
 
 When both sides are XML, the **XML** button in the toolbar compares the documents by structure
@@ -126,3 +130,9 @@ in whitespace (indentation) are not a conflict. Changes on adjacent lines count 
 as in Git.
 
 On the command line, also as a Git merge driver: [`fxt-cli merge`](../automate/cli-compare.md#merge).
+
+## Next steps
+
+- [fxt-cli: compare, merge, convert](../automate/cli-compare.md) - the same comparison on the command line
+- [Projects & scenarios](projects.md) - compare transformation results with expected files
+- [Convert formats](convert.md)

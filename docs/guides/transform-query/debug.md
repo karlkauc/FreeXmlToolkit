@@ -2,6 +2,10 @@
 
 FreeXmlToolkit has an interactive debugger for **XSLT stylesheets**, **XQuery** files and **Schematron** schemas: breakpoints (conditional, hit counts, logpoints, template/function/input-node breakpoints), stepping, variables and watches, call stack, coverage and an output-to-source mapping.
 
+## Before you start
+
+- A stylesheet, query or Schematron that is saved as a file, and an input document.
+
 ## Starting a Debug Session {#interactive-live-debugger}
 
 **Debug** (Transform panel, next to **Run Transform**), **Tools → Debug with XSLT…**, the
@@ -465,3 +469,9 @@ per assert and report, matched by their text). Rules of abstract patterns (`is-a
 context and tests are rewritten by the compiler, have no `.sch` lines to stop at; abstract
 rules used through `sch:extends` work, they stop at the abstract rule's asserts. Quick-fix
 code (SQF) is not part of the run.
+
+## Next steps
+
+- [Profile a transformation](profile.md)
+- [Test with XSpec](xspec.md)
+- [Keyboard shortcuts](../../reference/keyboard-shortcuts.md) - the debugger keys

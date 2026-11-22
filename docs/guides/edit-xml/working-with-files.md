@@ -120,3 +120,9 @@ XML…** and **Sample XML with Options…** (Schema panel), **Generate Documenta
 - **Use Saved Version** - runs the tool on the file as it is on disk; your unsaved editor
   changes are not included.
 - **Cancel** - does nothing.
+
+## Next steps
+
+- [Edit XML](index.md)
+- [Large files](large-files.md)
+- [Projects & scenarios](../projects.md)

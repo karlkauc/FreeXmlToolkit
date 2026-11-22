@@ -25,6 +25,10 @@ transformation; compare the parts with each other. The first run of a stylesheet
 warm-up of Java's JIT compiler: **Profile Again** measures once more after a warm-up run, which gives
 steadier numbers. **Export** writes the profile as JSON (with the call tree) or as a text report.
 
+## Before you start
+
+- A stylesheet and an input set in the **Transform** panel, or a query document.
+
 ## Profiling an XQuery
 
 An XQuery is profiled the same way: open the `.xq` file and choose **Run ▾ → Profile Query**. The
@@ -50,4 +54,7 @@ form `Transformed · N ms · M chars`:
 For detailed per-template timings, enable **Profile run** in the Transform panel's **OPTIONS & TOOLS** section -
 the next run also opens a read-only Profile tool tab.
 
----
+## Next steps
+
+- [Debugger](debug.md)
+- [Execution statistics](../../reference/execution-statistics.md)

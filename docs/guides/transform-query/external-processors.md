@@ -7,6 +7,11 @@ check that a stylesheet gives the same result on the processor your production s
 
 **Set one up:** *Settings → Extensions → XSLT Processors* (or the gear button next to **Processor**) → **Add…**
 
+## Before you start
+
+- The external program installed on this computer; Saxon HE 13 can be downloaded from the settings (see below).
+- Administrators can switch external processors off.
+
 ## Saxon HE 13 {#saxon-he-13}
 
 The bundled Saxon HE is version 12.10: XML Calabash, the XProc engine, is built against it, and two Saxon versions
@@ -80,3 +85,9 @@ does not apply (the program has its own).
 `xsltProcessor`), the batch transform, the XSLT stage of the [PDF/FOP panel](../publish-pdf.md) and the command
 line (`fxt-cli transform --processor`, `fxt-cli fop --xslt-processor`). An administrator can turn external
 processors off with `xslt.external.allowed=false` - see [Administration](../../administer/policies.md).
+
+## Next steps
+
+- [Run a transformation](run-xslt.md)
+- [Standards and language versions](../../reference/standards-versions.md)
+- [Policies](../../administer/policies.md)

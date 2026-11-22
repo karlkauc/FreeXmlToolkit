@@ -11,6 +11,11 @@ on the **Sign & Encrypt** page, from the XML editor's context menu and on the co
     (`name.encrypted.xml`) and opened; a **decrypted** document opens as a new, unsaved tab - it is
     written to disk only when you save it.
 
+## Before you start
+
+- A saved document; encryption works on the saved file.
+- The recipient's certificate or public key, a shared key, or a password.
+
 ## The Page
 
 Open **Sign & Encrypt** in the activity bar. Its side panel lists the actions; three of them are
@@ -148,3 +153,8 @@ All options: [Command Line → encrypt / decrypt](../../automate/cli-sign.md#enc
 
 `release/examples/encryption/` (in the installation's `examples` folder) holds an order encrypted
 in every variant, demo keys and their passwords - see its `README.md`.
+
+## Next steps
+
+- [XML digital signatures](signatures.md)
+- [fxt-cli: sign and encrypt](../../automate/cli-sign.md)

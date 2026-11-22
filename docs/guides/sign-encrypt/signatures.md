@@ -10,6 +10,11 @@
 
 This tool lets you digitally sign XML documents and verify signatures. A digital signature proves that a document is authentic and hasn't been changed.
 
+## Before you start
+
+- A saved document; signing reads the file from disk.
+- A keystore with your certificate. The first step on this page creates one.
+
 ---
 
 ## Overview
@@ -380,3 +385,8 @@ or **detached** (a separate `.sig.xml` file referencing the original).
 ### Can I sign PDFs?
 
 No, this tool is specifically for XML documents. Use the PDF Generator for PDF-related tasks.
+
+## Next steps
+
+- [XML Encryption](encryption.md)
+- [fxt-cli: sign and encrypt](../../automate/cli-sign.md)

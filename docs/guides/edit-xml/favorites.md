@@ -171,3 +171,8 @@ These categories are created **automatically**: right after you enable
 the FundsXML feature (the content downloads in the background - no manual download step
 needed) and again on every application start, when they are re-registered from the on-disk
 cache.
+
+## Next steps
+
+- [Bookmarks](bookmarks.md)
+- [Working with files](working-with-files.md)

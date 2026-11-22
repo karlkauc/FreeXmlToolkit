@@ -5,6 +5,10 @@ Create professional documentation from your XSD file automatically.
 ![Documentation Generator](../../img/xsd-documentation.png)
 *The Documentation generator open as a tab in the editor area, with source, format, and options*
 
+## Before you start
+
+- An XSD open in the editor.
+
 ## Output Formats
 
 | Format   | Description                                   |
@@ -258,4 +262,8 @@ detail pages and also feed the sample-XML generator and IntelliSense.
     schema from the toolkit; the generated documentation is the same either way. An
     `altova:exampleValues` block is only converted once you actually change the example values.
 
----
+## Next steps
+
+- [XsdDoc tags](../../reference/xsddoc-tags.md) - tags for technical notes
+- [fxt-cli: transform and publish](../../automate/cli-transform.md) - `xsd-doc` on the command line
+- [Schema analysis](analysis.md)

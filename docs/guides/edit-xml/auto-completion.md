@@ -2,6 +2,10 @@
 
 The XML Editor includes smart auto-completion that helps you write XML faster and with fewer errors.
 
+## Before you start
+
+- For suggestions from a schema the document needs a bound XSD (see [Binding an XSD Schema](index.md#binding-an-xsd-schema)). XSLT stylesheets get suggestions without one.
+
 ---
 
 ## Overview
@@ -237,3 +241,9 @@ close the current one and type `<` after it.
 Prefixes are taken from the `xmlns` declarations of your document. If the namespace of the
 suggested element is not declared at all, the prefix used inside the schema is inserted -
 add the matching `xmlns:` declaration to the root element.
+
+## Next steps
+
+- [Grid view](grid.md) - entry helpers in the grid
+- [Schema Library](../design-schemas/schema-library.md) - schemas found by namespace
+- [Templates](templates.md)

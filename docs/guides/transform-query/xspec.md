@@ -39,3 +39,12 @@ XSLT stylesheet (functions and template rules), an XQuery library module and a S
 `05-failing-demo.xspec`, which fails on purpose so you can see Expected and Actual.
 
 ---
+
+## Before you start
+
+- An `.xspec` file for the stylesheet or Schematron under test.
+
+## Next steps
+
+- [Debugger](debug.md)
+- [CI recipes](../../automate/ci-recipes.md) - run the tests on every push

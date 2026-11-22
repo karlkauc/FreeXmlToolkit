@@ -2,6 +2,10 @@
 
 Schematron lets you create custom validation rules that go beyond what XSD schemas can check. It's perfect for validating business rules and data relationships.
 
+## Before you start
+
+- An XML document and a Schematron file (`.sch`).
+
 ---
 
 ## Overview
@@ -334,3 +338,9 @@ Common XPath expressions for Schematron rules:
 
 Schematron rules can be unit-tested with XSpec (`x:expect-assert`, `x:expect-report`, `x:expect-valid`): see
 [Testing with XSpec](../transform-query/xspec.md).
+
+## Next steps
+
+- [Schematron Quick Fixes](schematron-quick-fixes.md)
+- [Debugger](../transform-query/debug.md) - step through a Schematron
+- [Test with XSpec](../transform-query/xspec.md)

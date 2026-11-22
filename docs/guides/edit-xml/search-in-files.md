@@ -93,3 +93,8 @@ ranges the document stays byte-for-byte identical. In the active document the wh
 replacement is **one undo step** (Ctrl+Z reverts it). In folder mode, open files are
 edited via the editor and all other files are written to disk atomically, with the same
 changed-on-disk staleness check as Find text mode.
+
+## Next steps
+
+- [Find and replace in a document](find-replace.md)
+- [Compare and merge](../compare-merge.md)

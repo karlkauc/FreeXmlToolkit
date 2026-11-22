@@ -9,6 +9,11 @@ get the same grid; what differs is on the [JSON grid](../json-grid.md) page.
 
 ![An XML document in the Graphic (grid) view, everything expanded](../../img/unified-shell-xml-grid.png)
 
+## Before you start
+
+- An XML, XSLT or Schematron document open in the editor; switch to the **Graphic** view.
+- Typed editors and the entry helpers need a bound XSD.
+
 ## How the grid is laid out
 
 - A **header strip** at the top reads *"Grid view · nested · repeating elements as embedded
@@ -292,3 +297,9 @@ after the next validation (**F8**).
 - **Large files** (from 8 MB of text). Grid edits are not written into the text after every
   change: the text follows when you switch to the Text view, save, validate or transform. While
   it is written back, a loading indicator shows and the text is read-only for a moment.
+
+## Next steps
+
+- [JSON grid](../json-grid.md)
+- [Edit the properties of a node](properties.md)
+- [Convert formats](../convert.md) - whole documents to Excel or CSV

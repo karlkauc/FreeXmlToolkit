@@ -13,6 +13,10 @@ of its own and sends nothing to anyone you did not configure.
 For AI agents that work on your files themselves (for example Claude Code), the application offers its tools through
 the [MCP Server](../automate/mcp-server.md) instead — that needs no setting here.
 
+## Before you start
+
+- The assistant is off by default. Switch it on and choose a provider under **Settings → AI**.
+
 ## Setting it up
 
 1. **Settings → AI → Use the AI assistant.**
@@ -156,3 +160,9 @@ An AI request goes only to the provider you configured, never to FreeXmlToolkit.
 action ran: which action, the kind of provider (`local`, `openai_compatible`, `anthropic`), the outcome, the number of
 repair rounds and the duration — never a prompt, an answer, a model or host name, or anything of your documents (see
 [Privacy & Telemetry](../administer/privacy-telemetry.md)).
+
+## Next steps
+
+- [Working with problems](validate/problems.md) - where Fix with AI and Explain with AI appear
+- [Query console](transform-query/query-console.md) - Ask AI writes a query
+- [Privacy & telemetry](../administer/privacy-telemetry.md)

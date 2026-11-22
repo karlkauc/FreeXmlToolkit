@@ -540,4 +540,7 @@ into the query panel or the [Query Console](query-console.md#query-console) - th
 `map:merge()`, `array:size()` etc. run without any prolog. Each folder contains a
 `README.md` describing every example.
 
----
+## Next steps
+
+- [Run a transformation](run-xslt.md)
+- [Query console](query-console.md)

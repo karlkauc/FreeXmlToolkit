@@ -144,3 +144,8 @@ dialog validates the input accordingly and offers default values where defined.
 | **Clear names** | Use descriptive parameter names such as `${customerId}` instead of `${x}` |
 | **Use categories** | The Insert Template dialog shows *name — category*, so consistent categories make long lists scannable |
 | **One file type per template** | Pick the File type carefully - it controls where the template is offered in the New File dialog |
+
+## Next steps
+
+- [Auto-completion](auto-completion.md)
+- [Working with files](working-with-files.md) - templates in the New File dialog

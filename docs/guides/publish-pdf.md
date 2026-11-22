@@ -2,6 +2,10 @@
 
 Create professional PDF documents from your XML files using Apache FOP (Formatting Objects Processor).
 
+## Before you start
+
+- An XML document and a stylesheet that turns it into XSL-FO.
+
 ---
 
 ## Overview
@@ -331,3 +335,8 @@ policy, or hand out a processor list with `fop.processors` - see [Administration
 | External processor: "program not found" | Set **Program** to the full path, or use **Find on PATH**; on Windows choose the `.exe` or `.bat` |
 | External processor: images missing | Relative paths resolve against the stylesheet's folder - set **Working folder** or pass the base folder to the program (`${baseDir}`) |
 | A template does not fire / wrong values | **TOOLS → Debug stylesheet…** and step through it - see [Debugging the stylesheet](#debugging-the-stylesheet) |
+
+## Next steps
+
+- [Debugger](transform-query/debug.md) - step through the XSL-FO stylesheet
+- [fxt-cli: transform and publish](../automate/cli-transform.md) - `fop` on the command line

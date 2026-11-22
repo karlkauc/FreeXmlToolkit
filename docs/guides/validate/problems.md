@@ -96,3 +96,8 @@ work them off:
 The chosen grouping is remembered.
 
 See [Validation Panel](index.md) for details.
+
+## Next steps
+
+- [Schematron Quick Fixes](schematron-quick-fixes.md)
+- [Online identifier lookup](../../industry/identifier-lookup.md)

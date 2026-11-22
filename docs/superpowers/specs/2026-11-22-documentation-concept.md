@@ -416,6 +416,8 @@ Umgesetzt (Branch `docs/redesign`):
 - Stufe 3, sechster Teil: 47 Zitatblöcke aufgelöst (33 Fließtext, 12 Hinweiskästen, 1 entfernt;
   eine zitierte Meldung der App bleibt Zitat); Working with problems und Run a transformation
   redaktionell zusammengeführt.
+- Stufe 3, siebter Teil: Seitenvorlage auf den Anleitungen ("Before you start" auf 29 Seiten,
+  "Next steps" auf 40 weiteren Seiten).
 
 Offen in Stufe 3:
 

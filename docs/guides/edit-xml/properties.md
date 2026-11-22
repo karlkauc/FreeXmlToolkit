@@ -5,6 +5,10 @@ them. Toggle the panel with the toggle at the right end of the editor toolbar; i
 the right side of the editor. The [Properties Inspector](../../reference/inspector.md) page describes it for every
 document type.
 
+## Before you start
+
+- Schema facts are shown when the document has a bound XSD.
+
 ## Selecting a Node
 
 How you select a node depends on the active view:
@@ -97,4 +101,7 @@ Coming back to the Text view, the caret goes to the node you last selected, and 
     selected node with **Delete**; otherwise the Text and Tree views provide property editing
     through the inspector.
 
----
+## Next steps
+
+- [Properties Inspector](../../reference/inspector.md) - the panel for every document type
+- [Grid view](grid.md)

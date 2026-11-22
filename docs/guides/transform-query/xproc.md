@@ -43,3 +43,8 @@ Pipelines are programs, so by default they run with restrictions:
 **Settings → Network & Security → Run XProc pipelines without restrictions** lifts all of it (an
 administrator can lock it, see [Administration & Policies](../../administer/policies.md)). The same rules apply
 to `fxt-cli transform`. See also the [Threat Model](../../administer/threat-model.md).
+
+## Next steps
+
+- [Run a transformation](run-xslt.md)
+- [Projects & scenarios](../projects.md) - pipelines as scenarios

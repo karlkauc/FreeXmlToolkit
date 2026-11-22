@@ -180,3 +180,8 @@ written). The viewer's own **Apply to File** is no change from outside.
 - UTF-8, ASCII and single-byte encodings such as ISO-8859-1 are supported; UTF-16 and UTF-32 files
   are not.
 - Writing needs free space for a second copy of the file in its folder (a third one with the `.bak` backup).
+
+## Next steps
+
+- [Validate folders and export results](../validate/folders.md)
+- [fxt-cli: validate and query](../../automate/cli-validate.md) - streaming validation of very large files

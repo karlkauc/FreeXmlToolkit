@@ -2,6 +2,10 @@
 
 Validate every file of a folder in one run and export the findings.
 
+## Before you start
+
+- A folder of files, and the schema for them unless each file declares its own.
+
 ## Validate a folder
 
 Validate multiple XML files at once. Useful for testing entire folders of XML documents.
@@ -91,4 +95,8 @@ report, the XML → Excel conversion and this export: a dark header row, striped
 rule, no gridlines, coloured sheet tabs, and an info sheet with a title and sections. Every sheet
 prints one page wide.
 
----
+## Next steps
+
+- [Working with problems](problems.md)
+- [Projects & scenarios](../projects.md) - validate a whole project
+- [CI recipes](../../automate/ci-recipes.md)

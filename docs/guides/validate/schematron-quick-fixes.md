@@ -17,6 +17,10 @@ document's formatting**.
     bind the matching `.sch` file in the Validation panel, and validate: every
     finding offers a quick fix.
 
+## Before you start
+
+- A Schematron whose rules define fixes (`sqf:fix`), bound to the document.
+
 ## Using quick fixes
 
 Bind a Schematron to your XML document as usual (Validation panel → SCHEMATRON
@@ -105,3 +109,8 @@ The Schematron editor's IntelliSense completes the SQF vocabulary
 - Text nodes in heavily mixed content (text interleaved with comments/CDATA)
   may not be addressable for `sqf:stringReplace`; the fix then reports a clear
   error instead of guessing.
+
+## Next steps
+
+- [Schematron](schematron.md)
+- [Working with problems](problems.md)

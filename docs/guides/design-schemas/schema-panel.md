@@ -4,6 +4,10 @@ What the **Schema** activity and the editor offer while an XSD is open: the view
 the tools of the side panel and the sample-data generators. Each tool is described in detail under
 [Design schemas](index.md).
 
+## Before you start
+
+- An XSD open in the editor; open the **Schema** activity.
+
 ## XSD Views & Tools
 
 When editing an XSD file, the editor host and the **Schema** activity provide:
@@ -117,3 +121,9 @@ The dialog can either generate a **single document** (which opens in a new tab) 
 of files written to a folder you choose. For a full walkthrough, see
 [Profiled XML Generation](sample-xml-profiles.md) and the
 [Sample XML Generator](sample-xml.md) section of the XSD Tools guide.
+
+## Next steps
+
+- [Graphic view](graphic-view.md)
+- [Schema analysis](analysis.md)
+- [Generate schema documentation](documentation.md)

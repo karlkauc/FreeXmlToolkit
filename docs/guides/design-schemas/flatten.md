@@ -5,6 +5,10 @@ Combine multiple XSD files into a single, standalone file. Useful when your sche
 ![Flatten Schema options dialog](../../img/unified-shell-flatten-options.png)
 *The Flatten Schema options dialog over an open schema — all reductions enabled by default*
 
+## Before you start
+
+- An XSD open in the editor, with the files it includes reachable.
+
 ## How to Use
 
 1. Open your main XSD file in the editor
@@ -75,4 +79,7 @@ When saving schemas from the graphical editor, `xs:include` and `xs:import` decl
 - Simplifying complex schema sets
 - Creating self-contained schemas
 
----
+## Next steps
+
+- [Schema analysis](analysis.md) - find unused types first
+- [Schema Library](schema-library.md) - how imports are resolved

@@ -292,3 +292,9 @@ entries resolve. Use **Download / verify** to fetch one explicitly.
 **"URL is not allowed" when adding a mapping:** the location resolves to a private or
 internal network address (loopback, link-local, RFC 1918 ranges, etc.) and is rejected as
 unsafe - remote schema locations must be reachable public URLs.
+
+## Next steps
+
+- [Validate](../validate/index.md)
+- [Operation without internet](../../administer/offline.md) - schemas in a closed network
+- [Projects & scenarios](../projects.md) - bind schemas per file pattern

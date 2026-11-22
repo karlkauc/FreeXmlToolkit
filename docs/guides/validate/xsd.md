@@ -2,6 +2,10 @@
 
 Validate your XML files against XSD schemas to check if documents follow the rules defined in the schema. Supports both single file and batch validation.
 
+## Before you start
+
+- An XML document and its XSD.
+
 ---
 
 ## Overview

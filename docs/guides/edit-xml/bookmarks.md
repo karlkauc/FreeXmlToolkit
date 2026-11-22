@@ -87,3 +87,8 @@ bookmark again. A short note tells you how many bookmarks moved or lost their li
 
 Bookmarks are saved in `~/.freeXmlToolkit/bookmarks.json` (file path → bookmarks) a moment after each change and
 when the application closes. They never leave your computer.
+
+## Next steps
+
+- [Favorites](favorites.md)
+- [Keyboard shortcuts](../../reference/keyboard-shortcuts.md)

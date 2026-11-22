@@ -2,6 +2,10 @@
 
 XPath, XQuery and JSONPath queries run either in the **Query Console** at the bottom of the editor (Ctrl+K) or as query documents (`.xq`, `.xpath`) with an input selector.
 
+## Before you start
+
+- A document open in the editor to run the query against.
+
 ## Query Console
 
 Run XPath, XQuery and JSONPath against the open document right from the editor. This is
@@ -307,3 +311,9 @@ Run Query/Run Transform show a short guard message instead of failing.
     Ready-made queries ship in `examples/xpath/` (32 expressions) and `examples/xquery/`
     (17 scripts) - open any of them and press `Ctrl+Enter` against a FundsXML sample from
     `examples/xml/`. See [Bundled Example Collections](examples.md#bundled-example-collections).
+
+## Next steps
+
+- [XSLT and XQuery examples](examples.md)
+- [Debugger](debug.md) - step through an XQuery
+- [fxt-cli: validate and query](../../automate/cli-validate.md) - `query` on the command line

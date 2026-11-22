@@ -2,6 +2,10 @@
 
 Turn a document into another format: XML, JSON and YAML into one another, and XML into Excel or CSV and back.
 
+## Before you start
+
+- An XML, JSON or YAML document open in the editor.
+
 ## Converting between XML, JSON and YAML
 
 The **Tools** menu converts the active document:
@@ -219,3 +223,9 @@ A value that contains the delimiter, a quote or a line break is always quoted, w
 quotes doubled. **CSV to XML** reads such values back correctly, including line breaks
 inside a value, and ignores the Data Type column. Without a schema, the CSV keeps the plain
 format: no Data Type column, and quotes only where needed.
+
+## Next steps
+
+- [JSON & YAML](json-yaml.md)
+- [Grid view](edit-xml/grid.md) - copy and paste table cells to and from a spreadsheet
+- [fxt-cli: compare, merge, convert](../automate/cli-compare.md) - `convert` on the command line

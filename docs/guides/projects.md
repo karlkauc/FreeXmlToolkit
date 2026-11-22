@@ -228,3 +228,9 @@ fxt-cli validate --project orders.fxtproj data/      # bound schema, Schematron,
 See [`scenario`](../automate/cli-transform.md#scenario) and [`validate --project`](../automate/cli-validate.md#validate).
 
 The format of the `.fxtproj` file is described under [Project file](../reference/project-file.md).
+
+## Next steps
+
+- [fxt-cli: transform and publish](../automate/cli-transform.md) - `scenario` on the command line
+- [CI recipes](../automate/ci-recipes.md)
+- [Project file](../reference/project-file.md)
