@@ -131,7 +131,7 @@ Work with XML Schema files:
 | **Schema Analysis** | Statistics, a type library with one-click removal of unused components, quality checks, identity-constraint and XPath validation - exportable as CSV, JSON, HTML, PDF or Excel |
 | **Schema Library & XML Catalogs** | Map namespaces to schema files, register OASIS `catalog.xml` files, and manage the cache of downloaded schemas - documents without a schema reference bind automatically |
 
-Learn more: [XSD Tools Guide](guides/design-schemas/index.md) | [Profiled XML Generation](guides/design-schemas/sample-xml.md) | [XSD Validation](guides/validate/xsd.md) | [Schema Library](guides/design-schemas/schema-library.md)
+Learn more: [XSD Tools Guide](guides/design-schemas/index.md) | [Profiled XML Generation](guides/design-schemas/sample-xml-profiles.md) | [XSD Validation](guides/validate/xsd.md) | [Schema Library](guides/design-schemas/schema-library.md)
 
 ### XSLT Transformation
 

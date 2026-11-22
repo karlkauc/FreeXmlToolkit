@@ -198,7 +198,7 @@ On the command line, `fxt-cli validate` uses your file-name mappings by itself a
 Every remote schema resolved through the library (or downloaded because a document
 referenced it directly) is cached under `~/.freeXmlToolkit/cache/schemas`. When a schema
 imports or includes it, a copy is also saved next to that schema under its original name and
-used from then on (see [Automatic Resolution of Imported Schemas](index.md#automatic-resolution-of-imported-schemas)). The Cache tab
+used from then on (see [Automatic Resolution of Imported Schemas](graphic-view.md#automatic-resolution-of-imported-schemas)). The Cache tab
 lists **URL**, **Target namespace** and file **Size** by default, with a **filter** over
 URL/namespace, plus the **Downloaded** timestamp and **Hits** (access count) - all columns
 are visible. The labelled buttons: **Open cached file** opens the cached file as an editor

@@ -85,7 +85,7 @@ lists that you edit directly:
 - **Inherited facets** (from a base type) are shown in *italics* and cannot be edited here.
 - **Nodes of a named type** selected inside a type frame of the Graphic view are read-only: a
   note above the sections names the type, and **Edit type** opens it in the type editor (see
-  [Named Types in Frames](../guides/design-schemas/index.md#named-types-in-frames)).
+  [Named Types in Frames](../guides/design-schemas/graphic-view.md#named-types-in-frames)).
 - **Long values wrap** onto several lines instead of being cut off. The row's tooltip shows the
   full value, plus where it comes from (*inherited from the referenced named type* or
   *defined by the schema*).
@@ -191,7 +191,7 @@ The **Type** row of an element or attribute is a text field with a chevron butto
 list of every type you can reference - in the Text, Tree and Graphic view alike. The same field
 sits in the small dialog behind **Change Type…** in the right-click menu of the Graphic view (the
 schema diagram) and of the Tree view, pre-filled with the current type, and in the
-[SimpleType Editor](../guides/design-schemas/index.md#simpletype-editor) for the base type, the list item type and new
+[SimpleType Editor](../guides/design-schemas/types.md#simpletype-editor) for the base type, the list item type and new
 union member types - there it offers simple types only.
 
 The list is grouped under section headers:
@@ -233,7 +233,7 @@ A picked type is applied like every other inspector edit: one undo step (Ctrl+Z)
 the schema text right away. If the element defines its own content (for example a sequence of
 child elements), a dialog asks before the type replaces it, and **Cancel** shows the previous type
 again. For an element or attribute reference the field is locked. See
-[Only Valid Changes](../guides/design-schemas/index.md#only-valid-changes).
+[Only Valid Changes](../guides/design-schemas/graphic-view.md#only-valid-changes).
 
 > The type picker arrived in version 2.6.0; earlier versions took the type as plain text.
 
@@ -282,7 +282,7 @@ node. In addition to name, type, cardinality, facets, and constraints, you can n
   (*Not set* / *Markdown* / *Plain text*, written as `@markdown`) and the node's **example
   values**. Everything the fields do not cover - other tags and custom XML inside the appinfo -
   is preserved untouched. See [Adding Technical Notes to Your
-  Schema](../guides/design-schemas/index.md#adding-technical-notes-to-your-schema).
+  Schema](../guides/design-schemas/documentation.md#adding-technical-notes-to-your-schema).
 - **Edit multi-language `xs:documentation`** - One row per language. Use **Add language** to add
   a translation and the **✕** button to remove one.
 - **Edit comments** - Select an XSD comment in the tree to edit its text. To add a new comment,

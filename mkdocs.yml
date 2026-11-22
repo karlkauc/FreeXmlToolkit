@@ -67,7 +67,7 @@ plugins:
         bookmarks.md: guides/edit-xml/bookmarks.md
         json-editor.md: guides/json-yaml.md
         xsd-tools.md: guides/design-schemas/index.md
-        profiled-xml-generation.md: guides/design-schemas/sample-xml.md
+        profiled-xml-generation.md: guides/design-schemas/sample-xml-profiles.md
         schema-library.md: guides/design-schemas/schema-library.md
         validation-panel.md: guides/validate/index.md
         xsd-validation.md: guides/validate/xsd.md
@@ -202,7 +202,15 @@ nav:
     - Design schemas:
       - guides/design-schemas/index.md
       - The Schema panel: guides/design-schemas/schema-panel.md
-      - Sample XML with profiles: guides/design-schemas/sample-xml.md
+      - Graphic view: guides/design-schemas/graphic-view.md
+      - Overview view: guides/design-schemas/overview-view.md
+      - Types: guides/design-schemas/types.md
+      - Text view: guides/design-schemas/text-view.md
+      - Schema analysis: guides/design-schemas/analysis.md
+      - Schema documentation: guides/design-schemas/documentation.md
+      - Sample XML: guides/design-schemas/sample-xml.md
+      - Sample XML with profiles: guides/design-schemas/sample-xml-profiles.md
+      - Flatten a schema: guides/design-schemas/flatten.md
       - Schema Library: guides/design-schemas/schema-library.md
     - Validate:
       - guides/validate/index.md

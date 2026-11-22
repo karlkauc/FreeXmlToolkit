@@ -162,3 +162,17 @@ For the best validation coverage:
 | **Add Schematron later** | For business rules XSD can't express |
 | **Use auto-detection** | Let the app find your schema automatically |
 | **Check error messages** | They tell you exactly what's wrong |
+
+## Supported XSD Features
+
+| Category        | Features                                                                 |
+|-----------------|--------------------------------------------------------------------------|
+| **Elements**    | Elements, attributes, groups, attribute groups, `xs:any` / `xs:anyAttribute` |
+| **Types**       | ComplexTypes, SimpleTypes (restriction, list, union), simple/complex content with extension and restriction |
+| **Compositors** | Sequence, Choice, All                                                    |
+| **Constraints** | Facets: patterns, enumerations, length limits, value ranges, digits, whiteSpace, assertion / explicitTimezone (XSD 1.1) |
+| **References**  | Import, Include, Redefine and Override (resolved, also transitively). Redefined and overridden definitions replace the originals in the Graphic view, the Type Library, statistics, quality checks and the Inspector of an XML document. |
+| **XSD 1.1**     | Assertions (`xs:assert`, `xs:assertion`) are loaded, shown and analysed; `xs:alternative` and `xs:openContent` are honored by the XSD 1.1 validator but not shown in the graphical views |
+| **Identity**    | Key, KeyRef, Unique                                                      |
+
+---

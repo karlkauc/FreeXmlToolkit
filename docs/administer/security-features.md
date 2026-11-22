@@ -184,7 +184,7 @@ You should:
 When an imported schema file cannot be found locally or through the Schema Library and
 XML catalogs, the toolkit can download it from the import's `schemaLocation` URL or its
 namespace URL (see
-[Automatic Resolution of Imported Schemas](../guides/design-schemas/index.md#automatic-resolution-of-imported-schemas)).
+[Automatic Resolution of Imported Schemas](../guides/design-schemas/graphic-view.md#automatic-resolution-of-imported-schemas)).
 These downloads go through the same SSRF protection: only public `http`/`https` addresses are
 contacted, and the downloaded content is verified to be a real XML Schema before it is used.
 Downloaded schemas are cached in `~/.freeXmlToolkit/cache/schemas/`. In addition, a downloaded

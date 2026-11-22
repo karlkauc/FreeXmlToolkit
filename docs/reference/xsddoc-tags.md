@@ -1,7 +1,7 @@
 # XsdDoc Tags
 
 JavaDoc-style annotations in `xs:appinfo` - how FreeXmlToolkit reads, renders and edits them, in
-the [HTML documentation generator](../guides/design-schemas/index.md#how-to-generate-documentation) and in the XSD
+the [HTML documentation generator](../guides/design-schemas/documentation.md#how-to-generate-documentation) and in the XSD
 editor's [Properties Inspector](inspector.md).
 
 ## Where the Metadata Lives

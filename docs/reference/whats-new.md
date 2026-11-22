@@ -582,7 +582,7 @@ running is shown under **Help → About FreeXmlToolkit**.
   type or name, rename with the references, edit annotations in place, add imports and includes.
   Tabs below edit the selected component's attributes (Default/Fixed offer the enumeration
   values), identity constraints, XSD 1.1 assertions and the schema's namespace prefixes. See
-  [XSD Tools](../guides/design-schemas/index.md#overview-view).
+  [XSD Tools](../guides/design-schemas/overview-view.md).
 - **XSD saving keeps your order:** the top-level components are no longer re-sorted on every
   save; schema-level `xs:annotation`, `xs:notation` and `xs:defaultOpenContent` are no longer
   lost when the schema is edited.
@@ -591,22 +591,22 @@ running is shown under **Help → About FreeXmlToolkit**.
   base of an `xs:extension` gets a nested frame. The content is read-only there - double-click
   the frame title or choose **Edit Type '…'** to open the type in its Type Editor. A type used
   inside a Type Editor now opens in a further Type Editor tab, so nested types can be followed
-  level by level. See [XSD Tools](../guides/design-schemas/index.md#named-types-in-frames).
+  level by level. See [XSD Tools](../guides/design-schemas/graphic-view.md#named-types-in-frames).
 - **Constraints on their target nodes (optional, off by default):** a key, unique or keyref can
   also show on the node its field points to (e.g. `BenchmarkID` lists the key `Fund` declares).
   In the Graphic view, switch it in the new **DISPLAY** section at the top of the Properties pane
   or under **View → Show Constraints on Target Nodes**. In the XSD documentation, use **Show
   constraints on their target elements**: it adds a row to the diagram box and a **Referenced by
   Identity Constraints** section to the element's page. See
-  [XSD Tools](../guides/design-schemas/index.md#reading-a-card).
+  [XSD Tools](../guides/design-schemas/graphic-view.md#reading-a-card).
 - **Flatten Schema:** the dialog asks for the output file, preset to `<name>_flattened.xsd` next to
   the original schema; the result is written there and opened. See
-  [XSD Tools](../guides/design-schemas/index.md#8-xsd-flattener).
+  [XSD Tools](../guides/design-schemas/flatten.md).
 - **Downloaded imports are saved next to your schema:** a missing `xs:import` / `xs:include`
   (e.g. `xmldsig-core-schema.xsd` of FundsXML4) is saved under its original name in the folder
   of the schema that references it and loaded from there - also in validation, Schema Analysis,
   flattening and documentation - instead of an md5-named cache file. Existing files are never
-  overwritten. See [XSD Tools](../guides/design-schemas/index.md#automatic-resolution-of-imported-schemas).
+  overwritten. See [XSD Tools](../guides/design-schemas/graphic-view.md#automatic-resolution-of-imported-schemas).
 - **XML → Excel:** the workbook now has the same look as the Data Dictionary export. With a
   bound XSD, numbers, booleans and dates go into number, boolean and date cells instead of text.
   Importing the workbook gives back the original values. The CSV export adds a **Data Type**
@@ -641,14 +641,14 @@ running is shown under **Help → About FreeXmlToolkit**.
   a second outline. A **title chip** (top left) names the selected card, a **zoom control** sits
   at the bottom right, and the light theme has more contrast. Element and attribute cards list
   their **constraints and assertions** (**View → Show Constraints in Diagram**). The ComplexType
-  editor tab shows the same cards. See [XSD Tools](../guides/design-schemas/index.md#reading-a-card).
+  editor tab shows the same cards. See [XSD Tools](../guides/design-schemas/graphic-view.md#reading-a-card).
 - **XSD Graphic view:** cards open in large schemas too; inherited `xs:extension` content, group
   and attribute group references, wildcards, inherited attributes and placeholder cards are shown;
   a bar names includes and imports that could not be loaded; relative references inside schemas
   loaded over HTTP now resolve; `xs:redefine` and `xs:override` are resolved, and every file of a
   namespace split over several `xs:import`s is loaded; changes to included and imported files on
   disk are noticed, and open cards stay open when the schema is rebuilt. See
-  [XSD Tools](../guides/design-schemas/index.md#what-the-diagram-shows).
+  [XSD Tools](../guides/design-schemas/graphic-view.md#what-the-diagram-shows).
 - **Schema files on disk:** a changed date alone no longer asks to reload, and an XML document
   follows the schema bound to it even without a tab for that schema. The check pauses on a slow
   drive.
@@ -664,7 +664,7 @@ running is shown under **Help → About FreeXmlToolkit**.
   an overview diagram of the whole schema; in Word real headings, so the table of contents and
   the navigation pane work. Large schemas no longer run out of memory.
   Fixed: wrong root in the schema diagram, HTML in restrictions, cut-off text, usage counts.
-  See [XSD Tools](../guides/design-schemas/index.md#generation-options).
+  See [XSD Tools](../guides/design-schemas/documentation.md#generation-options).
 - **XSD documentation diagrams:** element boxes list constraints and assertions (option **Show
   constraints in diagrams**, with **Also in the page's own element box**); constraint rows link
   their selector, fields and key; the choice symbol is drawn as a switch. **Show documentation in
