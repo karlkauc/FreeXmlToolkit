@@ -98,7 +98,9 @@ class SingleInstanceTest {
     void forwardWaitsForTheNewPrimaryBehindAStalePortFile() throws Exception {
         Files.writeString(dir.resolve(SingleInstance.PORT_FILE), deadPort() + "\nold-token\n");
         List<Path> received = new CopyOnWriteArrayList<>();
-        CountDownLatch activated = new CountDownLatch(1);
+        // Counted where the files arrive: the forwarding side is already polling when claim()
+        // publishes the port file, so a handler set after claim() can miss this request.
+        CountDownLatch arrived = new CountDownLatch(1);
         AtomicReference<SingleInstance> primary = new AtomicReference<>();
         Thread late = new Thread(() -> {
             try {
@@ -107,9 +109,10 @@ class SingleInstanceTest {
                 Thread.currentThread().interrupt();
                 return;
             }
-            SingleInstance instance = SingleInstance.claim(dir, received::addAll);
-            instance.setActivationHandler(activated::countDown);
-            primary.set(instance);
+            primary.set(SingleInstance.claim(dir, files -> {
+                received.addAll(files);
+                arrived.countDown();
+            }));
         });
         late.start();
         try {
@@ -117,7 +120,7 @@ class SingleInstanceTest {
 
             assertTrue(SingleInstance.forward(dir, List.of(file), 5000));
 
-            assertTrue(activated.await(5, TimeUnit.SECONDS));
+            assertTrue(arrived.await(5, TimeUnit.SECONDS));
             assertEquals(List.of(file.toAbsolutePath()), received);
         } finally {
             late.join();
