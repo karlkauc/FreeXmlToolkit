@@ -118,6 +118,34 @@ public class FxtGui extends Application {
     );
 
     static final String APP_ICON_PATH = "img/logo.png";
+    /** The app icon on the macOS icon grid (rounded square with margin and shadow), for the Dock. */
+    static final String MAC_DOCK_ICON_PATH = "img/logo-macos.png";
+    /** Sizes of the window icons drawn by {@code scripts/make-app-icons.py} ({@code img/logo-N.png}). */
+    static final int[] APP_ICON_SIZES = {16, 24, 32, 48, 64, 128, 256};
+
+    /**
+     * The window icon in every drawn size plus the large one, for stages of this application.
+     * Missing files are skipped; never throws.
+     */
+    public static java.util.List<javafx.scene.image.Image> appIcons() {
+        java.util.List<javafx.scene.image.Image> icons = new java.util.ArrayList<>();
+        java.util.List<String> paths = new java.util.ArrayList<>();
+        for (int size : APP_ICON_SIZES) {
+            paths.add("/img/logo-" + size + ".png");
+        }
+        paths.add("/" + APP_ICON_PATH);
+        for (String path : paths) {
+            try (var in = FxtGui.class.getResourceAsStream(path)) {
+                if (in != null) {
+                    icons.add(new javafx.scene.image.Image(in));
+                }
+            } catch (Exception e) {
+                // An icon that cannot be read is cosmetic only.
+                logger.debug("Could not load icon {}", path, e);
+            }
+        }
+        return icons;
+    }
 
     // Lazy initialization - loaded on first access to improve startup time
     private PropertiesService propertiesService;
@@ -455,15 +483,13 @@ public class FxtGui extends Application {
      * @param primaryStage the stage to set icons on
      */
     private void setupTaskbarIcons(Stage primaryStage) {
-        // macOS Dock icon (AWT); guarded, a failing AWT toolkit must not abort the start
-        org.fxt.freexmltoolkit.app.TaskbarIcon.apply(FxtGui.class.getClassLoader().getResource(APP_ICON_PATH));
+        // macOS Dock icon (AWT): drawn on Apple's icon grid so it matches the other Dock icons;
+        // guarded, a failing AWT toolkit must not abort the start
+        org.fxt.freexmltoolkit.app.TaskbarIcon.apply(FxtGui.class.getClassLoader().getResource(MAC_DOCK_ICON_PATH));
 
-        // Icon in Taskbar WINDOWS
-        try {
-            primaryStage.getIcons().add(new javafx.scene.image.Image(Objects.requireNonNull(FxtGui.class.getResourceAsStream("/" + APP_ICON_PATH))));
-        } catch (Exception ignored) {
-            // Stage icon could not be set; non-fatal.
-        }
+        // Window and taskbar icon on Windows and Linux: one image per size, so the system takes
+        // a drawn one instead of scaling the large icon down (title bar 16, taskbar 24-48 px)
+        primaryStage.getIcons().addAll(appIcons());
     }
 
     /**

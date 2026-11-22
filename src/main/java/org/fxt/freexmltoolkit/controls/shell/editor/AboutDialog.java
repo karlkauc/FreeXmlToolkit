@@ -73,8 +73,7 @@ public final class AboutDialog {
         dialog.setOnShowing(evt -> {
             try {
                 javafx.stage.Stage stage = (javafx.stage.Stage) dialogPane.getScene().getWindow();
-                stage.getIcons().add(new javafx.scene.image.Image(java.util.Objects.requireNonNull(
-                        AboutDialog.class.getResourceAsStream("/img/logo.png"))));
+                stage.getIcons().setAll(org.fxt.freexmltoolkit.FxtGui.appIcons());
             } catch (Exception e) {
                 logger.warn("Could not load logo for about dialog window.", e);
             }

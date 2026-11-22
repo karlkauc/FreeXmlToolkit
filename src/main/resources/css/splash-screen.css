@@ -1,6 +1,6 @@
 /*
  * FreeXmlToolkit - Splash Screen Theme
- * Modern gradient splash screen with animated loading indicators.
+ * Brand navy (logo suite S1) with animated loading indicators.
  */
 
 /* ============================================
@@ -8,7 +8,7 @@
    ============================================ */
 
 .splash-container {
-    -fx-background-color: linear-gradient(to bottom right, #1a1a2e, #16213e, #0f3460);
+    -fx-background-color: #2a284c;
     -fx-background-radius: 16;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 40, 0.4, 0, 10);
     -fx-border-color: rgba(255, 255, 255, 0.1);
@@ -26,6 +26,10 @@
     -fx-font-weight: bold;
     -fx-text-fill: white;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0, 0, 2);
+}
+
+.splash-title-accent {
+    -fx-text-fill: #4c9bf5;
 }
 
 .splash-version {
@@ -65,8 +69,8 @@
 }
 
 .splash-progress-bar > .bar {
-    -fx-background-color: linear-gradient(to right, #00d2ff, #3a7bd5);
+    -fx-background-color: linear-gradient(to right, #1373d9, #4c9bf5);
     -fx-background-radius: 4;
     -fx-background-insets: 0;
-    -fx-effect: dropshadow(gaussian, rgba(0, 210, 255, 0.5), 8, 0.2, 0, 0);
+    -fx-effect: dropshadow(gaussian, rgba(76, 155, 245, 0.5), 8, 0.2, 0, 0);
 }
