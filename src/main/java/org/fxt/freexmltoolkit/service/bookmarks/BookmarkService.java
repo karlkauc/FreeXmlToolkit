@@ -191,7 +191,8 @@ public final class BookmarkService {
         boolean set;
         synchronized (this) {
             List<Bookmark> list = byKey.computeIfAbsent(key, k -> new ArrayList<>());
-            set = list.removeIf(b -> b.line() == line) ? false : list.add(Bookmark.at(line, lineText));
+            // removed an existing bookmark -> false; otherwise add one (add() is true)
+            set = !list.removeIf(b -> b.line() == line) && list.add(Bookmark.at(line, lineText));
             sort(list);
             dropIfEmpty(key);
         }

@@ -1,6 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell;
 
-import org.fxt.freexmltoolkit.screenshots.DocFiles;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
@@ -16,6 +15,7 @@ import javafx.stage.Stage;
 
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.screenshots.DocFiles;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,6 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell;
 
-import org.fxt.freexmltoolkit.screenshots.DocFiles;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,6 +20,7 @@ import org.fxt.freexmltoolkit.controls.shell.editor.SettingsPanel;
 import org.fxt.freexmltoolkit.controls.shell.editor.standards.StandardsUi;
 import org.fxt.freexmltoolkit.controls.shell.editor.standards.VersionChoice;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.screenshots.DocFiles;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.standards.StandardsSettings;
 import org.fxt.freexmltoolkit.service.standards.XPathVersion;
