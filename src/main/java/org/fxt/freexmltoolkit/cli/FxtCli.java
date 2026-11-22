@@ -28,7 +28,7 @@ import picocli.CommandLine.Spec;
         footer = {
                 "  fxt-cli <command> --help    options and examples of a command",
                 "  fxt-cli help <command>      the same",
-                "  Documentation: https://karlkauc.github.io/FreeXmlToolkit/command-line/"
+                "  Documentation: https://karlkauc.github.io/FreeXmlToolkit/automate/command-line/"
         },
         subcommands = {
                 ValidateCommand.class,

@@ -102,7 +102,7 @@ public class SpreadsheetConverterDialog extends Dialog<SpreadsheetConverterDialo
     /** Setting that remembers the export layout ({@code table} or {@code xpath}). */
     static final String LAYOUT_KEY = "spreadsheet.layout";
     /** Page of the documentation the "?" button opens. */
-    static final String DOCS_URL = ProjectLinks.DOCS_URL + "/xml-editor/#xmlexcelcsv-converter";
+    static final String DOCS_URL = ProjectLinks.DOCS_URL + "/guides/convert/#xmlexcelcsv-converter";
     /** Rows an export preview shows. */
     static final int PREVIEW_ROWS = 8;
     /** Lines an import preview shows. */
