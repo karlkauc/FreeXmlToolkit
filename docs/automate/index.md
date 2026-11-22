@@ -10,6 +10,10 @@ build pipelines, and the MCP server that gives AI agents the same engines as too
     Validate, transform, query, compare, convert, sign and encrypt from a shell. Every command with
     its options and exit codes, and how to use it in a CI pipeline.
 
+-   **[CI recipes](ci-recipes.md)**
+
+    Workflows for GitHub Actions and GitLab CI with SARIF and JUnit reports.
+
 -   **[MCP server](mcp-server.md)**
 
     `fxt-cli mcp` exposes validation, XPath, XQuery, XSLT and schema tools to AI agents, read-only

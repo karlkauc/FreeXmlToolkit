@@ -264,6 +264,7 @@ nav:
     - Transform and publish: automate/cli-transform.md
     - Compare, merge, convert: automate/cli-compare.md
     - Sign and encrypt: automate/cli-sign.md
+    - CI recipes: automate/ci-recipes.md
     - MCP server: automate/mcp-server.md
   - Administer:
     - administer/index.md

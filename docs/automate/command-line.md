@@ -103,25 +103,5 @@ administrator policy disables it (`ai.mcp.allowed=false` or `ai.allowed=false`).
 
 ## In a CI pipeline
 
-GitHub Actions, uploading the SARIF report to code scanning:
-
-```yaml
-- name: Validate XML
-  run: /opt/freexmltoolkit/bin/fxt-cli validate --xsd schema/order.xsd -f sarif -r fxt.sarif data/
-- uses: github/codeql-action/upload-sarif@v3
-  if: always()
-  with:
-    sarif_file: fxt.sarif
-```
-
-GitLab CI with a JUnit report:
-
-```yaml
-validate:
-  script:
-    - fxt-cli validate --xsd schema/order.xsd -f junit -r fxt-junit.xml data/
-  artifacts:
-    when: always
-    reports:
-      junit: fxt-junit.xml
-```
+Complete workflows for GitHub Actions and GitLab CI, with SARIF and JUnit reports, are on the
+[CI recipes](ci-recipes.md) page.
