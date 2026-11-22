@@ -76,6 +76,11 @@ public class JsonCodeEditor extends VBox {
     private Label hoverLabel;
     private long lastHoverUpdate = 0;
     private static final long HOVER_DELAY_MS = 300;
+    /**
+     * Path, type and schema hover only up to this document length: they copy and scan the whole text on every
+     * mouse pause, which took 2.8 s on the FX thread for a 290 MB file (telemetry b3f7a4a635b1311d).
+     */
+    static final int HOVER_PATH_MAX_CHARS = 1024 * 1024;
 
     // Drag & Drop callback
     private Consumer<File> onFileDropped;
@@ -346,8 +351,7 @@ public class JsonCodeEditor extends VBox {
      */
     public List<String> schemaInfoAt(int offset) {
         var resolver = schema;
-        // the hover reads the whole text on every mouse pause: only for documents up to 1 MB
-        if (resolver == null || codeArea.getLength() > 1024 * 1024) {
+        if (resolver == null || codeArea.getLength() > HOVER_PATH_MAX_CHARS) {
             return List.of();
         }
         List<Object> path = syntax.pathAt().apply(codeArea.getText(), offset);
@@ -392,6 +396,48 @@ public class JsonCodeEditor extends VBox {
             lines.add(String.join(", ", parts));
         }
         return lines;
+    }
+
+    /**
+     * The hover text at an offset: the problems there, then path, type, value and what the schema says. Path and
+     * schema lines are left out above {@link #HOVER_PATH_MAX_CHARS} (they read the whole text).
+     *
+     * @param offset an offset in the text
+     * @return the text, or null when there is nothing to show
+     */
+    public String hoverTextAt(int offset) {
+        if (offset < 0 || offset >= codeArea.getLength()) {
+            return null;
+        }
+        boolean withPath = codeArea.getLength() <= HOVER_PATH_MAX_CHARS;
+        JsonPathCalculator.JsonHoverInfo info = withPath ? syntax.hoverInfo().apply(codeArea.getText(), offset) : null;
+        boolean validInfo = info != null && info.isValid();
+        List<String> problems = problemsAt(offset);
+        if (problems.isEmpty() && !validInfo) {
+            return null;
+        }
+        StringBuilder text = new StringBuilder();
+        for (String problem : problems) {
+            text.append("⚠ ").append(problem).append('\n');
+        }
+        List<String> schemaLines = schemaInfoAt(offset);
+        if (!validInfo) {
+            schemaLines.forEach(line -> text.append(line).append('\n'));
+            return text.toString().strip();
+        }
+        text.append("Path: ").append(info.jsonPath());
+        text.append("\nType: ").append(info.valueType());
+        if (info.key() != null) {
+            text.append("\nKey: \"").append(info.key()).append('"');
+        }
+        if (info.value() != null && !info.value().isEmpty()) {
+            String value = info.value();
+            text.append("\nValue: ").append(value.length() > 50 ? value.substring(0, 47) + "..." : value);
+        }
+        for (String line : schemaLines) {
+            text.append('\n').append(line);
+        }
+        return text.toString();
     }
 
     /** @return the folding support (fold all / unfold all, foldable regions) */
@@ -552,52 +598,11 @@ public class JsonCodeEditor extends VBox {
                 var hitInfo = codeArea.hit(event.getX(), event.getY());
                 int charIndex = hitInfo.getCharacterIndex().orElse(-1);
 
-                if (charIndex >= 0 && charIndex < codeArea.getLength()) {
-                    String text = codeArea.getText();
-                    JsonPathCalculator.JsonHoverInfo hoverInfo = syntax.hoverInfo().apply(text, charIndex);
-                    List<String> problems = problemsAt(charIndex);
-
-                    if (!problems.isEmpty() || (hoverInfo != null && hoverInfo.isValid())) {
-                        // Build tooltip text: the problems first, then where the caret is
-                        StringBuilder tooltipText = new StringBuilder();
-                        for (String problem : problems) {
-                            tooltipText.append("\u26A0 ").append(problem).append('\n');
-                        }
-                        List<String> schemaLines = schemaInfoAt(charIndex);
-                        if (hoverInfo == null || !hoverInfo.isValid()) {
-                            schemaLines.forEach(line -> tooltipText.append(line).append('\n'));
-                            hoverLabel.setText(tooltipText.toString().strip());
-                            hoverPopup.show(codeArea, event.getScreenX() + 15, event.getScreenY() + 15);
-                            return;
-                        }
-                        tooltipText.append("Path: ").append(hoverInfo.jsonPath());
-                        tooltipText.append("\nType: ").append(hoverInfo.valueType());
-                        if (hoverInfo.key() != null) {
-                            tooltipText.append("\nKey: \"").append(hoverInfo.key()).append("\"");
-                        }
-                        if (hoverInfo.value() != null && !hoverInfo.value().isEmpty()) {
-                            String displayValue = hoverInfo.value();
-                            if (displayValue.length() > 50) {
-                                displayValue = displayValue.substring(0, 47) + "...";
-                            }
-                            tooltipText.append("\nValue: ").append(displayValue);
-                        }
-                        for (String line : schemaLines) {
-                            tooltipText.append('\n').append(line);
-                        }
-
-                        hoverLabel.setText(tooltipText.toString());
-
-                        // Position and show popup
-                        Bounds screenBounds = codeArea.localToScreen(codeArea.getBoundsInLocal());
-                        if (screenBounds != null) {
-                            double x = event.getScreenX() + 15;
-                            double y = event.getScreenY() + 15;
-                            hoverPopup.show(codeArea, x, y);
-                        }
-                    } else {
-                        hoverPopup.hide();
-                    }
+                String tooltip = hoverTextAt(charIndex);
+                Bounds screenBounds = codeArea.localToScreen(codeArea.getBoundsInLocal());
+                if (tooltip != null && screenBounds != null) {
+                    hoverLabel.setText(tooltip);
+                    hoverPopup.show(codeArea, event.getScreenX() + 15, event.getScreenY() + 15);
                 } else {
                     hoverPopup.hide();
                 }
