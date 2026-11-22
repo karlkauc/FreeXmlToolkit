@@ -39,7 +39,7 @@ plugins {
     id("com.diffplug.spotless") version "8.11.0"
     id("io.github.ben-manes.versions") version "0.67.0"
     // Software bill of materials (CycloneDX) for every release: ./gradlew cyclonedxBom
-    id("org.cyclonedx.bom") version "3.5.1"
+    id("org.cyclonedx.bom") version "3.6.1"
 }
 
 version = "3.5.0"
@@ -96,7 +96,7 @@ dependencies {
     implementation("net.sf.saxon:Saxon-HE:12.10")
 
     // XProc 3.0/3.1 pipeline engine (MIT)
-    implementation("com.xmlcalabash:xmlcalabash:3.0.54") {
+    implementation("com.xmlcalabash:xmlcalabash:3.1.0") {
         // project routes SLF4J -> Log4j2 (log4j-slf4j2-impl); Calabash's log4j-to-slf4j would recurse
         exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
         // CLI-only dead weight (interactive debugger terminal)
@@ -157,7 +157,7 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.26.1")
 
     implementation("org.apache.santuario:xmlsec:4.0.4")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.86")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.87")
 
     implementation("org.controlsfx:controlsfx:11.2.6")
     // Native macOS application/window menu (only touched on macOS, see app/MacMenuIntegration)
@@ -175,25 +175,26 @@ dependencies {
     implementation("org.apache.poi:poi:6.0.0")
     implementation("org.apache.poi:poi-ooxml:6.0.0")
 
-    implementation("org.apache.commons:commons-lang3:3.21.0")
+    implementation("org.apache.commons:commons-lang3:3.22.0")
     implementation("commons-io:commons-io:2.22.0")
     implementation("org.apache.commons:commons-text:1.15.0")
     implementation("commons-validator:commons-validator:1.11.0")
 
     implementation("fr.brouillard.oss:cssfx:11.5.1")
-    implementation("org.thymeleaf:thymeleaf:3.1.5.RELEASE")
+    implementation("org.thymeleaf:thymeleaf:3.1.7.RELEASE")
     implementation("com.vladsch.flexmark:flexmark-all:0.64.8")
     implementation("jakarta.activation:jakarta.activation-api:2.1.4")
 
     // Security: transitive versions with known vulnerabilities lifted (OSV scan, November 2026).
-    // ognl 3.3.4 (via Thymeleaf) stays: 3.4 breaks Thymeleaf 3.1, and its CVE-2026-113730 needs
-    // attacker-written OGNL expressions; the documentation templates are bundled, no preprocessing.
-    implementation(platform("com.fasterxml.jackson:jackson-bom:2.22.4")) // via XML Calabash
+    // ognl comes with Thymeleaf (3.1.7 declares 3.4.x itself, which fixes CVE-2026-113730).
+    implementation(platform("com.fasterxml.jackson:jackson-bom:2.23.0")) // via XML Calabash
     constraints {
-        implementation("tools.jackson.core:jackson-core:3.2.4") { because("CVE fix; via json-schema-validator") }
-        implementation("tools.jackson.core:jackson-databind:3.2.4") { because("CVE fix; via json-schema-validator") }
+        implementation("tools.jackson.core:jackson-core:3.3.0") { because("CVE fix; via json-schema-validator") }
+        implementation("tools.jackson.core:jackson-databind:3.3.0") { because("CVE fix; via json-schema-validator") }
         implementation("org.jsoup:jsoup:1.24.1") { because("CVE fix; via flexmark") }
         testImplementation("org.assertj:assertj-core:3.27.7") { because("CVE fix; via TestFX") }
+        implementation("io.projectreactor:reactor-core:3.9.0") { because("MCP SDK 2.2.0 declares the release candidate 3.9.0-RC1") }
+        implementation("com.fasterxml.woodstox:woodstox-core:7.2.0") { because("jackson-bom 2.23 no longer lifts it; xmlsec alone pulls 7.1.0") }
     }
 
     implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.4.4")
@@ -208,8 +209,8 @@ dependencies {
     // MCP server (fxt-cli mcp, org.fxt.freexmltoolkit.service.ai.mcp only - AiLayeringGuardTest); decision D4 in
     // docs/superpowers/reports/2026-11-10-mcp-implementation-decision.md. Adds reactor-core + reactive-streams;
     // slf4j, Jackson 3 and json-schema-validator resolve to the versions already pinned here.
-    implementation("io.modelcontextprotocol.sdk:mcp-core:2.1.0")
-    implementation("io.modelcontextprotocol.sdk:mcp-json-jackson3:2.1.0")
+    implementation("io.modelcontextprotocol.sdk:mcp-core:2.2.0")
+    implementation("io.modelcontextprotocol.sdk:mcp-json-jackson3:2.2.0")
 
     // Anthropic provider of the AI assistant (decision D13): the official SDK, used only in
     // org.fxt.freexmltoolkit.service.ai.provider.anthropic (AiLayeringGuardTest), on a transport over
@@ -229,12 +230,12 @@ dependencies {
     testImplementation("org.testfx:openjfx-monocle:21.0.2")
     testImplementation("org.hamcrest:hamcrest:3.0")
 
-    implementation(platform("com.helger.schematron:ph-schematron-parent-pom:10.3.1"))
-    implementation("com.helger.schematron:ph-schematron-api:10.3.1")
+    implementation(platform("com.helger.schematron:ph-schematron-parent-pom:10.3.2"))
+    implementation("com.helger.schematron:ph-schematron-api:10.3.2")
     runtimeOnly("org.glassfish.jaxb:jaxb-runtime:4.0.9") // JAXB impl for ph-schematron's SVRL marshalling
-    implementation("com.helger.schematron:ph-schematron-xslt:10.3.1")
-    implementation("com.helger.schematron:ph-schematron-pure:10.3.1")
-    implementation("com.helger.schematron:ph-schematron-schxslt:10.3.1")
+    implementation("com.helger.schematron:ph-schematron-xslt:10.3.2")
+    implementation("com.helger.schematron:ph-schematron-pure:10.3.2")
+    implementation("com.helger.schematron:ph-schematron-schxslt:10.3.2")
 }
 
 // Java Toolchain Configuration - Use JDK with JavaFX included
