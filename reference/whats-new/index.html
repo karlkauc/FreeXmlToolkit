@@ -4532,11 +4532,28 @@
 running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
 <h2 id="unreleased">Unreleased<a class="headerlink" href="#unreleased" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong>Saxon HE 13.1 next to the bundled Saxon.</strong> <em>Settings → XSLT Processors → Add Saxon HE 13.1</em> downloads the
+<li><strong>A new logo.</strong> Two tag brackets, blue and orange, form the X of XML. The application, its window and taskbar
+  icons, the splash screen, the welcome page, the About dialog and the installers show it. Windows gets its icon in
+  nine sizes from 16 to 256 px (the taskbar used to scale one large image down), macOS an icon on Apple's icon grid,
+  Linux icons from 16 to 512 px. <a href="https://github.com/karlkauc/FreeXmlToolkit/tree/main/release/brand">Brand guidelines</a></li>
+<li><strong>One colour scheme throughout.</strong> The last controls of the old look - the blue buttons in the schema overview, the
+  folder comparison and the large-file window, and the hover frame of the status bar fields - now follow the accent
+  colour and the dark theme. The splash screen is navy like the rest of the window chrome.</li>
+<li>
+<p><strong>New documentation.</strong> The documentation is ordered by task and reader: Get started (with a 15-minute
+  <a href="../../get-started/first-steps/">first steps</a> tutorial and a page for people
+  <a href="../../get-started/coming-from-another-editor/">coming from another editor</a>), Guides, Industry standards, Automate
+  (with <a href="../../automate/ci-recipes/">CI recipes</a>), Administer, Reference (with a <a href="../glossary/">glossary</a>) and Extend.
+  Large pages are split into one page per task. Old links keep working, and the help links in the application open
+  the new pages.</p>
+</li>
+<li>
+<p><strong>Saxon HE 13.1 next to the bundled Saxon.</strong> <em>Settings → XSLT Processors → Add Saxon HE 13.1</em> downloads the
   newest Saxon HE (XSLT 4.0 preview features) and adds it as a processor for the Transform panel, scenarios, batch
   runs, the PDF/FOP panel and <code>fxt-cli transform --processor</code>. It runs in its own process with the application's
   Java; everything else stays on the bundled Saxon HE 12.10, which XProc needs.
-  <a href="../../guides/transform-query/external-processors/#saxon-he-13">More</a></li>
+  <a href="../../guides/transform-query/external-processors/#saxon-he-13">More</a></p>
+</li>
 <li><strong>Bookmarks.</strong> Mark lines in any text editor (Ctrl+F2 or a click left of the line number), give them a name,
   number up to nine of them for Ctrl+1 … Ctrl+9, and move between them with F2 / Shift+F2 - across files. They
   follow your edits, survive a restart, find their line again when the file was changed outside the editor, and
@@ -4591,10 +4608,13 @@ running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
   <code>file:</code> paths.</p>
 </li>
 <li>
-<p><strong>No pause when Settings is the first thing you open.</strong> Settings asked the system for its list of fonts before
-  showing the syntax colour preview, which froze the window for seconds on computers with many fonts. The bundled
-  editor font needs no list now, and the list is read in the background at start.</p>
+<p><strong>JSON with long strings.</strong> A string of a few thousand characters in a <code>.json</code> or <code>.jsonl</code> file no longer stops the
+  syntax colouring with an error. In documents over 1 MB the hover no longer reads the whole text at every pause of
+  the mouse (it held the window for seconds on very large files); there it shows the problems at the position only.</p>
 </li>
+<li><strong>No pause when Settings is the first thing you open.</strong> Settings asked the system for its list of fonts before
+  showing the syntax colour preview, which froze the window for seconds on computers with many fonts. The bundled
+  editor font needs no list now, and the list is read in the background at start.</li>
 <li><strong>An update is offered only once its package can be downloaded.</strong> Right after a release is published its packages
   are still being uploaded; an update check in those minutes offered the new version and the download failed.</li>
 <li><strong>macOS: the updated application starts again on its own.</strong> When the new version came with a newer Java runtime,
