@@ -106,31 +106,31 @@ public class XsdDocumentationSvgService {
     private static final int TITLE_FONT_SIZE = 14;
 
     // Colors matching XsdDiagramView styles
-    private static final String COLOR_ROOT = "#4A90E2";
-    private static final String COLOR_ELEMENT = "#4a90e2"; // NODE_LABEL_STYLE
+    private static final String COLOR_ROOT = "#2a284c";
+    private static final String COLOR_ELEMENT = "#1373d9"; // NODE_LABEL_STYLE
     /** Inner border of repeatable elements (maxOccurs &gt; 1). */
-    private static final String COLOR_REPEATABLE_INNER = "#87ceeb";
-    private static final String COLOR_ATTRIBUTE = "#d4a147"; // ATTRIBUTE_LABEL_STYLE
-    private static final String COLOR_SEQUENCE = "#6c757d"; // SEQUENCE_NODE_STYLE
-    private static final String COLOR_CHOICE = "#ff8c00"; // CHOICE_NODE_STYLE
-    private static final String COLOR_ANY = "#adb5bd"; // ANY_NODE_STYLE
-    private static final String COLOR_OPTIONAL = "#FF6B6B";
-    private static final String COLOR_MANDATORY = "#4CAF50";
-    private static final String COLOR_BORDER = "#333333";
-    private static final String COLOR_TEXT = "#2C3E50";
-    private static final String COLOR_BACKGROUND = "#f0f8ff";
+    private static final String COLOR_REPEATABLE_INNER = "#c4dcf8";
+    private static final String COLOR_ATTRIBUTE = "#12a594"; // ATTRIBUTE_LABEL_STYLE
+    private static final String COLOR_SEQUENCE = "#5a6472"; // SEQUENCE_NODE_STYLE
+    private static final String COLOR_CHOICE = "#f08c2e"; // CHOICE_NODE_STYLE
+    private static final String COLOR_ANY = "#9ba6b3"; // ANY_NODE_STYLE
+    private static final String COLOR_OPTIONAL = "#e03131";
+    private static final String COLOR_MANDATORY = "#2f9e44";
+    private static final String COLOR_BORDER = "#5a6472";
+    private static final String COLOR_TEXT = "#1a1d21";
+    private static final String COLOR_BACKGROUND = "#f5f7fa";
 
     // Type-specific colors from XsdDiagramView
-    private static final String COLOR_STRING_TYPE = "#28a745";
-    private static final String COLOR_NUMERIC_TYPE = "#007bff";
-    private static final String COLOR_DATE_TYPE = "#fd7e14";
+    private static final String COLOR_STRING_TYPE = "#2f9e44";
+    private static final String COLOR_NUMERIC_TYPE = "#1373d9";
+    private static final String COLOR_DATE_TYPE = "#f08c2e";
     private static final String COLOR_BOOLEAN_TYPE = "#6f42c1";
-    private static final String COLOR_BINARY_TYPE = "#6c757d";
-    private static final String COLOR_URI_TYPE = "#17a2b8";
-    private static final String COLOR_QNAME_TYPE = "#e83e8c";
-    private static final String COLOR_LANGUAGE_TYPE = "#20c997";
-    private static final String COLOR_COMPLEX_TYPE = "#dc3545";
-    private static final String COLOR_DEFAULT_TYPE = "#4a90e2";
+    private static final String COLOR_BINARY_TYPE = "#5a6472";
+    private static final String COLOR_URI_TYPE = "#1098ad";
+    private static final String COLOR_QNAME_TYPE = "#d6336c";
+    private static final String COLOR_LANGUAGE_TYPE = "#12a594";
+    private static final String COLOR_COMPLEX_TYPE = "#4c5fd5";
+    private static final String COLOR_DEFAULT_TYPE = "#1373d9";
 
     public XsdDocumentationSvgService() {
         resolver = new ClassLoaderTemplateResolver();
@@ -219,27 +219,27 @@ public class XsdDocumentationSvgService {
         // Define gradients for different element types
         svgBuilder.append("<linearGradient id='elementGrad' x1='0%' y1='0%' x2='0%' y2='100%'>");
         svgBuilder.append("<stop offset='0%' style='stop-color:#ffffff;stop-opacity:1' />");
-        svgBuilder.append("<stop offset='100%' style='stop-color:#f0f8ff;stop-opacity:1' />");
+        svgBuilder.append("<stop offset='100%' style='stop-color:#eaf2fd;stop-opacity:1' />");
         svgBuilder.append("</linearGradient>");
 
         svgBuilder.append("<linearGradient id='attributeGrad' x1='0%' y1='0%' x2='0%' y2='100%'>");
-        svgBuilder.append("<stop offset='0%' style='stop-color:#fffef7;stop-opacity:1' />");
-        svgBuilder.append("<stop offset='100%' style='stop-color:#f9f5e7;stop-opacity:1' />");
+        svgBuilder.append("<stop offset='0%' style='stop-color:#f4fdf9;stop-opacity:1' />");
+        svgBuilder.append("<stop offset='100%' style='stop-color:#e6fcf5;stop-opacity:1' />");
         svgBuilder.append("</linearGradient>");
 
         svgBuilder.append("<linearGradient id='sequenceGrad' x1='0%' y1='0%' x2='0%' y2='100%'>");
-        svgBuilder.append("<stop offset='0%' style='stop-color:#f8f9fa;stop-opacity:1' />");
-        svgBuilder.append("<stop offset='100%' style='stop-color:#e9ecef;stop-opacity:1' />");
+        svgBuilder.append("<stop offset='0%' style='stop-color:#f5f7fa;stop-opacity:1' />");
+        svgBuilder.append("<stop offset='100%' style='stop-color:#f2f4f8;stop-opacity:1' />");
         svgBuilder.append("</linearGradient>");
 
         svgBuilder.append("<linearGradient id='choiceGrad' x1='0%' y1='0%' x2='0%' y2='100%'>");
-        svgBuilder.append("<stop offset='0%' style='stop-color:#fffbf0;stop-opacity:1' />");
-        svgBuilder.append("<stop offset='100%' style='stop-color:#fff3cd;stop-opacity:1' />");
+        svgBuilder.append("<stop offset='0%' style='stop-color:#fef8f1;stop-opacity:1' />");
+        svgBuilder.append("<stop offset='100%' style='stop-color:#fdf0e6;stop-opacity:1' />");
         svgBuilder.append("</linearGradient>");
 
         svgBuilder.append("<linearGradient id='anyGrad' x1='0%' y1='0%' x2='0%' y2='100%'>");
-        svgBuilder.append("<stop offset='0%' style='stop-color:#f8f9fa;stop-opacity:1' />");
-        svgBuilder.append("<stop offset='100%' style='stop-color:#dee2e6;stop-opacity:1' />");
+        svgBuilder.append("<stop offset='0%' style='stop-color:#f5f7fa;stop-opacity:1' />");
+        svgBuilder.append("<stop offset='100%' style='stop-color:#dde1e7;stop-opacity:1' />");
         svgBuilder.append("</linearGradient>");
 
         // Define drop shadow filter
@@ -466,7 +466,7 @@ public class XsdDocumentationSvgService {
 
                     svgBuilder.append(String.format(
                             "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"%s\" text-anchor=\"middle\" font-size=\"9\">%s</text>",
-                            x, y + 5, "#6c757d", escapeXml(shortNamespace)
+                            x, y + 5, "#5a6472", escapeXml(shortNamespace)
                     ));
                 }
             }
@@ -492,12 +492,12 @@ public class XsdDocumentationSvgService {
                 // List type: show "List of [itemType]"
                 displayType = "List of " + element.getListItemType();
                 typeIconPath = "M3,4H7V8H3V4M9,5V7H21V5H9M3,10H7V14H3V10M9,11V13H21V11H9M3,16H7V20H3V16M9,17V19H21V17H9"; // list icon
-                typeIconColor = "#6366f1"; // Indigo
+                typeIconColor = "#4c5fd5"; // Indigo
             } else if (element.isUnionType()) {
                 // Union type: show "type1 | type2 | ..."
                 displayType = String.join(" | ", element.getUnionMemberTypes());
                 typeIconPath = "M5,3V19H11V21H3V1H11V3H5M13,3H21V5H13V3M13,19H21V21H13V19M13,11H21V13H13V11Z"; // union icon
-                typeIconColor = "#ec4899"; // Pink
+                typeIconColor = "#d6336c"; // Pink
             }
 
             if (displayType != null && !displayType.isEmpty() && !"(container)".equals(displayType)) {
@@ -524,12 +524,12 @@ public class XsdDocumentationSvgService {
 
                 // List badge background
                 svgBuilder.append(String.format(
-                        "<rect x=\"%d\" y=\"%d\" width=\"20\" height=\"14\" rx=\"3\" ry=\"3\" fill=\"#eef2ff\" stroke=\"#6366f1\" stroke-width=\"1\"/>",
+                        "<rect x=\"%d\" y=\"%d\" width=\"20\" height=\"14\" rx=\"3\" ry=\"3\" fill=\"#eceefc\" stroke=\"#4c5fd5\" stroke-width=\"1\"/>",
                         badgeX, badgeY
                 ));
                 // List badge text "[]"
                 svgBuilder.append(String.format(
-                        "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"#6366f1\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"bold\">[]</text>",
+                        "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"#4c5fd5\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"bold\">[]</text>",
                         badgeX + 10, badgeY + 10
                 ));
             } else if (element.isUnionType()) {
@@ -538,12 +538,12 @@ public class XsdDocumentationSvgService {
 
                 // Union badge background
                 svgBuilder.append(String.format(
-                        "<rect x=\"%d\" y=\"%d\" width=\"20\" height=\"14\" rx=\"3\" ry=\"3\" fill=\"#fdf2f8\" stroke=\"#ec4899\" stroke-width=\"1\"/>",
+                        "<rect x=\"%d\" y=\"%d\" width=\"20\" height=\"14\" rx=\"3\" ry=\"3\" fill=\"#fff0f6\" stroke=\"#d6336c\" stroke-width=\"1\"/>",
                         badgeX, badgeY
                 ));
                 // Union badge text "|"
                 svgBuilder.append(String.format(
-                        "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"#ec4899\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"bold\">∪</text>",
+                        "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"#d6336c\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"bold\">∪</text>",
                         badgeX + 10, badgeY + 10
                 ));
             }
@@ -557,12 +557,12 @@ public class XsdDocumentationSvgService {
             int cardY = isContainer ? y + 20 : y + 12; // Position lower for container elements
 
             svgBuilder.append(String.format(
-                    "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"16\" rx=\"3\" ry=\"3\" fill=\"#f8f9fa\" stroke=\"#dee2e6\" stroke-width=\"1\"/>",
+                    "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"16\" rx=\"3\" ry=\"3\" fill=\"#f5f7fa\" stroke=\"#dde1e7\" stroke-width=\"1\"/>",
                     x - cardWidth / 2, cardY, cardWidth
             ));
             svgBuilder.append(String.format(
                     "<text x=\"%d\" y=\"%d\" class=\"cardinality\" fill=\"%s\" text-anchor=\"middle\">%s</text>",
-                    x, cardY + 11, "#6c757d", cardinality
+                    x, cardY + 11, "#5a6472", cardinality
             ));
 
             // Draw explicitTimezone badge next to cardinality (if applicable)
@@ -580,23 +580,23 @@ public class XsdDocumentationSvgService {
                     switch (tzValue.toLowerCase()) {
                         case "required" -> {
                             badgeText = "TZ✓";
-                            badgeColor = "#10b981"; // Green
-                            backgroundColor = "#d1fae5";
+                            badgeColor = "#2f9e44"; // Green
+                            backgroundColor = "#eaf6ee";
                         }
                         case "prohibited" -> {
                             badgeText = "TZ✗";
-                            badgeColor = "#dc2626"; // Red
-                            backgroundColor = "#fee2e2";
+                            badgeColor = "#e03131"; // Red
+                            backgroundColor = "#fdecec";
                         }
                         case "optional" -> {
                             badgeText = "TZ?";
-                            badgeColor = "#6c757d"; // Gray
-                            backgroundColor = "#e9ecef";
+                            badgeColor = "#5a6472"; // Gray
+                            backgroundColor = "#f2f4f8";
                         }
                         default -> {
                             badgeText = "TZ";
-                            badgeColor = "#6c757d";
-                            backgroundColor = "#e9ecef";
+                            badgeColor = "#5a6472";
+                            backgroundColor = "#f2f4f8";
                         }
                     }
 
@@ -637,12 +637,12 @@ public class XsdDocumentationSvgService {
 
             // Assertion badge background (amber/orange)
             svgBuilder.append(String.format(
-                    "<rect x=\"%d\" y=\"%d\" width=\"18\" height=\"14\" rx=\"3\" ry=\"3\" fill=\"#fef3c7\" stroke=\"#f59e0b\" stroke-width=\"1.5\"/>",
+                    "<rect x=\"%d\" y=\"%d\" width=\"18\" height=\"14\" rx=\"3\" ry=\"3\" fill=\"#fff4d6\" stroke=\"#f08c00\" stroke-width=\"1.5\"/>",
                     badgeX, badgeY
             ));
             // Assertion badge text "!"
             svgBuilder.append(String.format(
-                    "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"#f59e0b\" text-anchor=\"middle\" font-size=\"12\" font-weight=\"bold\">!</text>",
+                    "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"#f08c00\" text-anchor=\"middle\" font-size=\"12\" font-weight=\"bold\">!</text>",
                     badgeX + 9, badgeY + 11
             ));
         }
@@ -663,23 +663,23 @@ public class XsdDocumentationSvgService {
                 switch (wildcard.getProcessContents()) {
                     case STRICT -> {
                         badgeText = "S";
-                        badgeColor = "#10b981"; // Green
-                        backgroundColor = "#d1fae5";
+                        badgeColor = "#2f9e44"; // Green
+                        backgroundColor = "#eaf6ee";
                     }
                     case LAX -> {
                         badgeText = "L";
-                        badgeColor = "#f59e0b"; // Orange
-                        backgroundColor = "#fef3c7";
+                        badgeColor = "#f08c00"; // Orange
+                        backgroundColor = "#fff4d6";
                     }
                     case SKIP -> {
                         badgeText = "×";
-                        badgeColor = "#dc2626"; // Red
-                        backgroundColor = "#fee2e2";
+                        badgeColor = "#e03131"; // Red
+                        backgroundColor = "#fdecec";
                     }
                     default -> {
                         badgeText = "?";
-                        badgeColor = "#6c757d"; // Gray
-                        backgroundColor = "#e9ecef";
+                        badgeColor = "#5a6472"; // Gray
+                        backgroundColor = "#f2f4f8";
                     }
                 }
 
@@ -712,18 +712,18 @@ public class XsdDocumentationSvgService {
                 switch (constraint.getType()) {
                     case KEY -> {
                         badgeText = "K";
-                        badgeColor = "#3b82f6"; // Blue
-                        backgroundColor = "#dbeafe";
+                        badgeColor = "#1373d9"; // Blue
+                        backgroundColor = "#e8f1fc";
                     }
                     case KEYREF -> {
                         badgeText = "R";
-                        badgeColor = "#8b5cf6"; // Purple
-                        backgroundColor = "#ede9fe";
+                        badgeColor = "#6f42c1"; // Purple
+                        backgroundColor = "#f3f0ff";
                     }
                     case UNIQUE -> {
                         badgeText = "U";
-                        badgeColor = "#10b981"; // Green
-                        backgroundColor = "#d1fae5";
+                        badgeColor = "#2f9e44"; // Green
+                        backgroundColor = "#eaf6ee";
                     }
                     default -> throw new IllegalStateException("Unexpected value: " + constraint.getType());
                 }
@@ -752,12 +752,12 @@ public class XsdDocumentationSvgService {
 
             // Type alternative badge background (violet)
             svgBuilder.append(String.format(
-                    "<rect x=\"%d\" y=\"%d\" width=\"26\" height=\"14\" rx=\"3\" ry=\"3\" fill=\"#f3e8ff\" stroke=\"#a855f7\" stroke-width=\"1.5\"/>",
+                    "<rect x=\"%d\" y=\"%d\" width=\"26\" height=\"14\" rx=\"3\" ry=\"3\" fill=\"#f3f0ff\" stroke=\"#6f42c1\" stroke-width=\"1.5\"/>",
                     badgeX, badgeY
             ));
             // Type alternative badge text "ALT"
             svgBuilder.append(String.format(
-                    "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"#a855f7\" text-anchor=\"middle\" font-size=\"9\" font-weight=\"bold\">ALT</text>",
+                    "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"#6f42c1\" text-anchor=\"middle\" font-size=\"9\" font-weight=\"bold\">ALT</text>",
                     badgeX + 13, badgeY + 10
             ));
         }
@@ -771,12 +771,12 @@ public class XsdDocumentationSvgService {
 
             // Open content badge background (violet)
             svgBuilder.append(String.format(
-                    "<rect x=\"%d\" y=\"%d\" width=\"24\" height=\"14\" rx=\"3\" ry=\"3\" fill=\"#ede9fe\" stroke=\"#8b5cf6\" stroke-width=\"1.5\"/>",
+                    "<rect x=\"%d\" y=\"%d\" width=\"24\" height=\"14\" rx=\"3\" ry=\"3\" fill=\"#f3f0ff\" stroke=\"#6f42c1\" stroke-width=\"1.5\"/>",
                     badgeX, badgeY
             ));
             // Open content badge text "OC"
             svgBuilder.append(String.format(
-                    "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"#8b5cf6\" text-anchor=\"middle\" font-size=\"9\" font-weight=\"bold\">OC</text>",
+                    "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"#6f42c1\" text-anchor=\"middle\" font-size=\"9\" font-weight=\"bold\">OC</text>",
                     badgeX + 12, badgeY + 10
             ));
         }
@@ -839,7 +839,7 @@ public class XsdDocumentationSvgService {
         boolean isRepeatable = isElementRepeatable(element);
         if (!isAttribute && isRepeatable) {
             int inset = 2;
-            String secondaryColor = "#87ceeb"; // light blue like in JavaFX style
+            String secondaryColor = "#c4dcf8"; // light blue (brand)
             svgBuilder.append(String.format(
                     "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"4\" ry=\"4\" fill=\"none\" stroke=\"%s\" stroke-width=\"1\"/>",
                     x - NODE_WIDTH / 2 + inset, y - NODE_HEIGHT / 2 + inset, NODE_WIDTH - inset * 2, NODE_HEIGHT - inset * 2, secondaryColor
@@ -910,13 +910,13 @@ public class XsdDocumentationSvgService {
             fillColor = "url(#elementGrad)";
             borderColor = COLOR_ROOT;
             borderWidth = "2";
-            textColor = "#2c5aa0";
+            textColor = "#1068c4";
         } else if (isAttribute) {
             // Attribute styling
             fillColor = "url(#attributeGrad)";
             borderColor = COLOR_ATTRIBUTE;
             borderWidth = isOptional ? "1" : "1.5";
-            textColor = "#8b6914";
+            textColor = "#0b7a6e";
             dashArray = isOptional ? "5,2" : "none";
             iconPath = "M8,12H16V14H8V12M10,20H6V4H13V9H18V12.1L20,10.1V8L14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H10V20Z"; // @ symbol path
             iconColor = COLOR_ATTRIBUTE;
@@ -925,7 +925,7 @@ public class XsdDocumentationSvgService {
             fillColor = "url(#sequenceGrad)";
             borderColor = COLOR_SEQUENCE;
             borderWidth = "2";
-            textColor = "#495057";
+            textColor = "#5a6472";
             iconPath = "M2,17H4V19H2V17M2,13H4V15H2V13M2,9H4V11H2V9M2,5H4V7H2V5M7,5H22V7H7V5M7,9H22V11H7V9M7,13H22V15H7V13M7,17H22V19H7V17Z"; // bi-list-ol path
             iconColor = COLOR_SEQUENCE;
         } else if (element.getElementName().equals("CHOICE") || element.getElementName().startsWith("CHOICE_")) {
@@ -933,7 +933,7 @@ public class XsdDocumentationSvgService {
             fillColor = "url(#choiceGrad)";
             borderColor = COLOR_CHOICE;
             borderWidth = "2";
-            textColor = "#b45309";
+            textColor = "#ac560d";
             dashArray = "5,5";
             iconPath = "M8,10V12H16V10H8M8,14V16H16V14H8M18,8C19.11,8 20,8.9 20,10V14C20,15.11 19.11,16 18,16H16V14H18V10H16V8H18M6,8V10H4V14H6V16H4C2.89,16 2,15.11 2,14V10C2,8.9 2.89,8 4,8H6Z"; // bi-option path
             iconColor = COLOR_CHOICE;
@@ -942,7 +942,7 @@ public class XsdDocumentationSvgService {
             fillColor = "url(#sequenceGrad)";
             borderColor = COLOR_SEQUENCE;
             borderWidth = "2";
-            textColor = "#495057";
+            textColor = "#5a6472";
             iconPath = "M3,5H9V11H3V5M5,7V9H7V7H5M11,7H21V9H11V7M11,15H21V17H11V15M5,20L1.5,16.5L2.91,15.09L5,17.17L9.59,12.59L11,14L5,20Z"; // checklist icon
             iconColor = COLOR_SEQUENCE;
         } else if (element.getElementName().equals("ANY") || element.getElementName().contains("any")) {
@@ -950,7 +950,7 @@ public class XsdDocumentationSvgService {
             fillColor = "url(#anyGrad)";
             borderColor = COLOR_ANY;
             borderWidth = "1.5";
-            textColor = "#6c757d";
+            textColor = "#5a6472";
             dashArray = "3,3"; // dotted style
             iconPath = "M12,2L13.09,8.26L22,9L13.09,9.74L12,16L10.91,9.74L2,9L10.91,8.26L12,2M12,6.5L11.3,9.5H12.7L12,6.5M8.5,11.5L11.5,12.5L8.5,13.5L11.5,12.5L8.5,11.5M15.5,11.5L12.5,12.5L15.5,13.5L12.5,12.5L15.5,11.5Z"; // bi-asterisk path
             iconColor = COLOR_ANY;
@@ -959,7 +959,7 @@ public class XsdDocumentationSvgService {
             fillColor = "url(#elementGrad)";
             borderColor = COLOR_ELEMENT;
             borderWidth = "2";
-            textColor = "#2c5aa0";
+            textColor = "#1068c4";
 
             // Apply cardinality-based styling
             if (isOptional && isRepeatable) {
@@ -977,7 +977,7 @@ public class XsdDocumentationSvgService {
         // Check for Open Content - override dashArray to show extensibility
         if (element.getOpenContent() != null) {
             dashArray = "5,5";
-            borderColor = "#8b5cf6"; // Violet for open content
+            borderColor = "#6f42c1"; // Violet for open content
             borderWidth = "2";
         }
 

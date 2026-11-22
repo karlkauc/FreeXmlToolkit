@@ -101,19 +101,19 @@ class XsdDocumentationNestedChoiceSvgTest {
         DocumentBuilder db = dbf.newDocumentBuilder();
         Document doc = db.parse(new ByteArrayInputStream(svg.getBytes(StandardCharsets.UTF_8)));
 
-        // Find the choice rectangle: stroke="#ff8c00" and width="50.0", the size of a sequence
+        // Find the choice rectangle: stroke="#f08c2e" and width="50.0", the size of a sequence
         NodeList rects = doc.getElementsByTagName("rect");
         Element choiceRect = null;
         for (int i = 0; i < rects.getLength(); i++) {
             Element r = (Element) rects.item(i);
             String stroke = r.getAttribute("stroke");
             String width = r.getAttribute("width");
-            if ("#ff8c00".equalsIgnoreCase(stroke) && (width.startsWith("50"))) {
+            if ("#f08c2e".equalsIgnoreCase(stroke) && (width.startsWith("50"))) {
                 choiceRect = r;
                 break;
             }
         }
-        assertNotNull(choiceRect, "Choice rectangle with orange stroke (#ff8c00) and width 50 should exist");
+        assertNotNull(choiceRect, "Choice rectangle with orange stroke (#f08c2e) and width 50 should exist");
 
         double choiceX = Double.parseDouble(choiceRect.getAttribute("x"));
         double choiceWidth = Double.parseDouble(choiceRect.getAttribute("width"));
@@ -122,14 +122,14 @@ class XsdDocumentationNestedChoiceSvgTest {
         double choiceHeight = Double.parseDouble(choiceRect.getAttribute("height"));
         double choiceCenterY = choiceY + choiceHeight / 2.0;
 
-        // Find outgoing connection paths with stroke="#ff8c00" (connecting choice to SingleFund and Subfunds)
+        // Find outgoing connection paths with stroke="#f08c2e" (connecting choice to SingleFund and Subfunds)
         NodeList paths = doc.getElementsByTagName("path");
         int outgoingChoicePathCount = 0;
         for (int i = 0; i < paths.getLength(); i++) {
             Element p = (Element) paths.item(i);
             String stroke = p.getAttribute("stroke");
             String d = p.getAttribute("d");
-            if ("#ff8c00".equalsIgnoreCase(stroke) && d != null && !d.isEmpty()) {
+            if ("#f08c2e".equalsIgnoreCase(stroke) && d != null && !d.isEmpty()) {
                 // Check if this path starts from the choice element (M <startX> <startY>)
                 Matcher matcher = Pattern.compile("^M\\s+([0-9.]+)\\s+([0-9.]+)").matcher(d);
                 if (matcher.find()) {
@@ -196,7 +196,7 @@ class XsdDocumentationNestedChoiceSvgTest {
         for (int i = 0; i < rects.getLength(); i++) {
             Element r = (Element) rects.item(i);
             String id = r.getAttribute("id");
-            if ("#ff8c00".equalsIgnoreCase(r.getAttribute("stroke")) && r.getAttribute("width").startsWith("50")) {
+            if ("#f08c2e".equalsIgnoreCase(r.getAttribute("stroke")) && r.getAttribute("width").startsWith("50")) {
                 choiceRect = r;
             } else if (id.endsWith("/SingleFund")) {
                 first = r;

@@ -158,34 +158,34 @@ public class XsdDocumentationImageService {
     }
 
     // Colors matching XsdDiagramView styles
-    private static final String COLOR_BOX_FILL_ELEMENT = "#f0f8ff";      // Element background
-    private static final String COLOR_BOX_FILL_ATTRIBUTE = "#f9f5e7";    // Attribute background
-    private static final String COLOR_BOX_FILL_SEQUENCE = "#e9ecef";     // Sequence background
-    private static final String COLOR_BOX_FILL_CHOICE = "#fff3cd";       // Choice background
-    private static final String COLOR_BOX_FILL_ANY = "#dee2e6";          // Any background
-    private static final String COLOR_STROKE_ELEMENT = "#4a90e2";        // Element border
-    private static final String COLOR_STROKE_ATTRIBUTE = "#d4a147";      // Attribute border
-    private static final String COLOR_STROKE_SEQUENCE = "#6c757d";       // Sequence border
-    private static final String COLOR_STROKE_CHOICE = "#ff8c00";         // Choice border
-    private static final String COLOR_STROKE_ANY = "#adb5bd";            // Any border
-    private static final String COLOR_STROKE_OPTIONAL = "#94a3b8";       // Optional elements
-    private static final String COLOR_STROKE_SEPARATOR = "#dee2e6";      // Separator lines
-    private static final String COLOR_TEXT_PRIMARY = "#2c5aa0";          // Element text
-    private static final String COLOR_TEXT_SECONDARY = "#6c757d";        // Secondary text
-    private static final String COLOR_TEXT_ATTRIBUTE = "#8a6116";        // Attribute names inside element boxes
+    private static final String COLOR_BOX_FILL_ELEMENT = "#eaf2fd";      // Element background
+    private static final String COLOR_BOX_FILL_ATTRIBUTE = "#e6fcf5";    // Attribute background
+    private static final String COLOR_BOX_FILL_SEQUENCE = "#f2f4f8";     // Sequence background
+    private static final String COLOR_BOX_FILL_CHOICE = "#fdf0e6";       // Choice background
+    private static final String COLOR_BOX_FILL_ANY = "#eceff3";          // Any background
+    private static final String COLOR_STROKE_ELEMENT = "#1373d9";        // Element border
+    private static final String COLOR_STROKE_ATTRIBUTE = "#12a594";      // Attribute border
+    private static final String COLOR_STROKE_SEQUENCE = "#5a6472";       // Sequence border
+    private static final String COLOR_STROKE_CHOICE = "#f08c2e";         // Choice border
+    private static final String COLOR_STROKE_ANY = "#9ba6b3";            // Any border
+    private static final String COLOR_STROKE_OPTIONAL = "#9ba6b3";       // Optional elements
+    private static final String COLOR_STROKE_SEPARATOR = "#dde1e7";      // Separator lines
+    private static final String COLOR_TEXT_PRIMARY = "#1068c4";          // Element text
+    private static final String COLOR_TEXT_SECONDARY = "#5a6472";        // Secondary text
+    private static final String COLOR_TEXT_ATTRIBUTE = "#0b7a6e";        // Attribute names inside element boxes
     private static final String COLOR_SHADOW = "rgba(0, 0, 0, 0.2)";     // Drop shadow
 
     // Type-specific colors from XsdDiagramView
-    private static final String COLOR_STRING_TYPE = "#28a745";
-    private static final String COLOR_NUMERIC_TYPE = "#007bff";
-    private static final String COLOR_DATE_TYPE = "#fd7e14";
+    private static final String COLOR_STRING_TYPE = "#2f9e44";
+    private static final String COLOR_NUMERIC_TYPE = "#1373d9";
+    private static final String COLOR_DATE_TYPE = "#f08c2e";
     private static final String COLOR_BOOLEAN_TYPE = "#6f42c1";
-    private static final String COLOR_BINARY_TYPE = "#6c757d";
-    private static final String COLOR_URI_TYPE = "#17a2b8";
-    private static final String COLOR_QNAME_TYPE = "#e83e8c";
-    private static final String COLOR_LANGUAGE_TYPE = "#20c997";
-    private static final String COLOR_COMPLEX_TYPE = "#dc3545";
-    private static final String COLOR_DEFAULT_TYPE = "#4a90e2";
+    private static final String COLOR_BINARY_TYPE = "#5a6472";
+    private static final String COLOR_URI_TYPE = "#1098ad";
+    private static final String COLOR_QNAME_TYPE = "#d6336c";
+    private static final String COLOR_LANGUAGE_TYPE = "#12a594";
+    private static final String COLOR_COMPLEX_TYPE = "#4c5fd5";
+    private static final String COLOR_DEFAULT_TYPE = "#1373d9";
 
     // Legacy compatibility
     private static final String COLOR_ICON = COLOR_STROKE_ELEMENT;
@@ -2082,7 +2082,7 @@ public class XsdDocumentationImageService {
                     innerBorder.setAttribute("rx", String.valueOf(borderRadius));
                     innerBorder.setAttribute("ry", String.valueOf(borderRadius));
                     innerBorder.setAttribute("fill", "none");
-                    innerBorder.setAttribute("stroke", "#87ceeb");
+                    innerBorder.setAttribute("stroke", "#c4dcf8");
                     innerBorder.setAttribute("stroke-width", "1");
                     svgRoot.appendChild(innerBorder);
                 }
@@ -2123,7 +2123,7 @@ public class XsdDocumentationImageService {
                     separatorLine.setAttribute("y1", String.valueOf(nameRowBottom + 4));
                     separatorLine.setAttribute("x2", String.valueOf(startX + boxPadding + maxWidth));
                     separatorLine.setAttribute("y2", String.valueOf(nameRowBottom + 4));
-                    separatorLine.setAttribute("stroke", "#e0e0e0");
+                    separatorLine.setAttribute("stroke", "#dde1e7");
                     separatorLine.setAttribute("stroke-width", "1");
                     textGroup.appendChild(separatorLine);
 
@@ -2328,7 +2328,7 @@ public class XsdDocumentationImageService {
         separator.setAttribute("y1", String.valueOf(y + ATTRIBUTE_SECTION_TOP / 2.0));
         separator.setAttribute("x2", String.valueOf(x + width));
         separator.setAttribute("y2", String.valueOf(y + ATTRIBUTE_SECTION_TOP / 2.0));
-        separator.setAttribute("stroke", "#e0e0e0");
+        separator.setAttribute("stroke", "#dde1e7");
         separator.setAttribute("stroke-width", "1");
         parent.appendChild(separator);
 
@@ -2444,7 +2444,7 @@ public class XsdDocumentationImageService {
         separator.setAttribute("y1", String.valueOf(y + ATTRIBUTE_SECTION_TOP / 2.0));
         separator.setAttribute("x2", String.valueOf(x + width));
         separator.setAttribute("y2", String.valueOf(y + ATTRIBUTE_SECTION_TOP / 2.0));
-        separator.setAttribute("stroke", "#e0e0e0");
+        separator.setAttribute("stroke", "#dde1e7");
         separator.setAttribute("stroke-width", "1");
         parent.appendChild(separator);
 
@@ -2515,7 +2515,7 @@ public class XsdDocumentationImageService {
     }
 
     /** Link colour of the HTML documentation pages. */
-    private static final String COLOR_LINK = "#0284c7";
+    private static final String COLOR_LINK = "#1068c4";
 
     /**
      * Writes a constraint line into its text element: plain parts as text, the selector, the fields
@@ -2773,8 +2773,8 @@ public class XsdDocumentationImageService {
         rect.setAttribute("height", "16");
         rect.setAttribute("rx", "2");
         rect.setAttribute("ry", "2");
-        rect.setAttribute("fill", "#e9ecef");
-        rect.setAttribute("stroke", "#adb5bd");
+        rect.setAttribute("fill", "#f2f4f8");
+        rect.setAttribute("stroke", "#9ba6b3");
         rect.setAttribute("stroke-width", "1");
         group.appendChild(rect);
 
@@ -2782,7 +2782,7 @@ public class XsdDocumentationImageService {
         Element text = createSvgTextElement(document, cardinality,
                 String.valueOf(Double.parseDouble(x) + 4),
                 String.valueOf(Double.parseDouble(y) + 11),
-                "#495057", 10);
+                "#5a6472", 10);
         text.setAttribute("font-family", "monospace");
         text.setAttribute("font-weight", "500");
         group.appendChild(text);

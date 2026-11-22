@@ -324,7 +324,7 @@ public class PdfDocumentationConfig {
      */
     public enum HeadingStyle {
         /** Bold blue headings for a modern, professional look. */
-        BOLD_BLUE("Bold Blue", true, false, "#2563EB"),
+        BOLD_BLUE("Bold Blue", true, false, "#1373D9"),
         /** Bold black headings for a classic, formal appearance. */
         BOLD_BLACK("Bold Black", true, false, "#000000"),
         /** Underlined headings without bold for a subtle, traditional style. */
@@ -380,7 +380,7 @@ public class PdfDocumentationConfig {
         /**
          * Returns the heading text color.
          *
-         * @return the color as a hex string (e.g., "#2563EB")
+         * @return the color as a hex string (e.g., "#1373D9")
          */
         public String getColor() {
             return color;
@@ -560,7 +560,7 @@ public class PdfDocumentationConfig {
      */
     public enum ColorScheme {
         /** Blue color scheme with professional blue tones. */
-        BLUE("Blue", "#2563EB", "#EFF6FF", "#DBEAFE"),
+        BLUE("Blue", "#1373D9", "#EAF2FD", "#C4DCF8"),
         /** Green color scheme with natural green tones. */
         GREEN("Green", "#059669", "#ECFDF5", "#D1FAE5"),
         /** Purple color scheme with elegant purple tones. */
@@ -568,7 +568,7 @@ public class PdfDocumentationConfig {
         /** Grayscale color scheme for a neutral, minimalist look. */
         GRAYSCALE("Grayscale", "#374151", "#F9FAFB", "#F3F4F6"),
         /** Professional color scheme with dark blue corporate tones. */
-        PROFESSIONAL("Professional", "#1E3A5F", "#F0F4F8", "#E2E8F0");
+        PROFESSIONAL("Professional", "#2A284C", "#F5F7FA", "#DDE1E7");
 
         private final String displayName;
         private final String primaryColor;
@@ -602,7 +602,7 @@ public class PdfDocumentationConfig {
         /**
          * Returns the primary accent color for headings and highlights.
          *
-         * @return the primary color as a hex string (e.g., "#2563EB")
+         * @return the primary color as a hex string (e.g., "#1373D9")
          */
         public String getPrimaryColor() {
             return primaryColor;
@@ -611,7 +611,7 @@ public class PdfDocumentationConfig {
         /**
          * Returns the light background color for content areas.
          *
-         * @return the light background color as a hex string (e.g., "#EFF6FF")
+         * @return the light background color as a hex string (e.g., "#EAF2FD")
          */
         public String getLightBackground() {
             return lightBackground;
@@ -899,7 +899,7 @@ public class PdfDocumentationConfig {
     /**
      * Gets the primary color from the color scheme.
      *
-     * @return the primary color as a hex string (e.g., "#2563EB")
+     * @return the primary color as a hex string (e.g., "#1373D9")
      */
     public String getPrimaryColor() {
         return colorScheme.getPrimaryColor();
