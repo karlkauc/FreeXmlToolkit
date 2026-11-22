@@ -5,12 +5,10 @@ Writes
   src/main/resources/img/logo.png, logo-{16..256}.png   window / taskbar icons (JavaFX stage)
   src/main/resources/img/logo-macos.png                  Dock icon at runtime (Apple icon grid)
   src/main/resources/img/logo-symbol.png                 symbol without background (splash)
-  src/main/resources/img/logo.ico, release/logo.ico,
-  update-helper/icon/logo.ico                            Windows (16-256 px)
+  release/logo.ico, update-helper/icon/logo.ico          Windows (16-256 px)
   release/logo.icns                                      macOS bundle (16-1024 px, Apple icon grid)
   packaging/linux/share/icons/hicolor/<n>x<n>/apps/...   Linux (16-512 px)
   src/main/resources/xsdDocumentation/assets/logo.png    header of generated schema documentation
-  docs/img/logo.png                                      plain PNG of the app icon
 
 Usage: python3 scripts/make-app-icons.py      Needs Pillow (ICNS writing needs Pillow >= 9)."""
 from pathlib import Path
@@ -79,14 +77,13 @@ def main():
         save_png(render(s), f"{img_dir}logo-{s}.png")
     save_png(render(1024, grid=True), img_dir + "logo-macos.png")
     save_png(render(512, background=False), img_dir + "logo-symbol.png")
-    save_png(render(512), "docs/img/logo.png")
 
     # schema documentation header: shown at 32 px, kept sharp on 2x screens
     save_png(render(64), "src/main/resources/xsdDocumentation/assets/logo.png")
 
     ico_sizes = [16, 20, 24, 32, 40, 48, 64, 128, 256]
     ico_images = [render(s) for s in ico_sizes]
-    for target in ("src/main/resources/img/logo.ico", "release/logo.ico", "update-helper/icon/logo.ico"):
+    for target in ("release/logo.ico", "update-helper/icon/logo.ico"):
         ico_images[-1].save(ROOT / target, format="ICO", sizes=[(s, s) for s in ico_sizes],
                             append_images=ico_images[:-1])
 
