@@ -251,10 +251,11 @@ detail pages and also feed the sample-XML generator and IntelliSense.
 </xs:element>
 ```
 
-> **Older schemas keep working.** The form that packs tag and value into the attribute alone -
-> `<xs:appinfo source="@since 4.0.0"/>`, used throughout FundsXML - is still read, and so is
-> `altova:exampleValues`. Both are rewritten into the form above the next time you save the
-> schema from the toolkit; the generated documentation is the same either way. An
-> `altova:exampleValues` block is only converted once you actually change the example values.
+!!! note "Older schemas keep working"
+    The form that packs tag and value into the attribute alone -
+    `<xs:appinfo source="@since 4.0.0"/>`, used throughout FundsXML - is still read, and so is
+    `altova:exampleValues`. Both are rewritten into the form above the next time you save the
+    schema from the toolkit; the generated documentation is the same either way. An
+    `altova:exampleValues` block is only converted once you actually change the example values.
 
 ---

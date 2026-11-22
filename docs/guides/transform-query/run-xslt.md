@@ -5,9 +5,9 @@ Pick a stylesheet and an input in the **Transform** panel, run it, and read the 
 batch runs; every field of the panel is described in the
 [Transform panel reference](../../reference/transform-panel.md).
 
-## How to Use
+## Run a stylesheet
 
-### Step 1: Select Your Files
+### 1. Select your files
 
 1. Open your XML source file in the editor host so it is the active document - the panel's
    **INPUT** section follows the active tab by default (use **Change → Select XML file…** to
@@ -17,7 +17,7 @@ batch runs; every field of the panel is described in the
    icon offers your recently used stylesheets) - or simply **drop** an `.xsl` / `.xslt`
    file from your file manager onto the STYLESHEET row
 
-### Step 2: Run and View the Results
+### 2. Run and view the result
 
 Click **Run Transform**. The result appears in the **OUTPUT panel** that docks **below the
 editor** - the source stays on top, the result shows underneath. The panel header shows a
@@ -34,21 +34,13 @@ The **OUTPUT METHOD** defaults to **Auto**: the format (XML, HTML, XHTML, Text, 
 detected from the stylesheet's `xsl:output` declaration. Pick a concrete format in the
 dropdown to override the detection.
 
-## Running from the Transform panel
-
-1. Choose a stylesheet (**STYLESHEET → Change** - a file or an open XSLT tab - or pick one
-   from the recent menu).
-2. Check the **INPUT** section shows the document you want to transform.
-3. Click **Run Transform**.
+### Running automatically
 
 The **Run automatically** checkbox next to **Run Transform** (on by default) controls the
 automatic run that starts when you drop a stylesheet or input, pick one from your favorites,
 or browse with ◀ / ▶. Uncheck it to only set the file and run with **Run Transform** yourself.
 
-The result appears in the **OUTPUT panel** below the editor - see
-[The OUTPUT Panel](../../reference/transform-panel.md#the-output-panel-results) below.
-
-## Transform Panel Actions
+## Controls at a glance
 
 | Control                       | Description                                                                  |
 |-------------------------------|------------------------------------------------------------------------------|
@@ -124,8 +116,9 @@ The Transform panel's **OUTPUT METHOD** section is a single dropdown with
 **Auto, XML, HTML, XHTML, Text, JSON**. **Auto** (the default) detects the format from
 the stylesheet's `xsl:output` declaration; pick a concrete format to override the detection.
 
-> XSLT version selection (1.0/2.0/3.0) is intentionally not offered: Saxon HE auto-detects
-> the version from the stylesheet's `version` attribute.
+!!! note
+    XSLT version selection (1.0/2.0/3.0) is intentionally not offered: Saxon HE auto-detects
+    the version from the stylesheet's `version` attribute.
 
 ## Multi-File Batch Processing
 
@@ -153,51 +146,20 @@ shows the sequence of **template matches** and all `xsl:message` output:
 <xsl:message>Processing book: <xsl:value-of select="title"/></xsl:message>
 ```
 
-### Tips for Debugging
-
-1. Use `<xsl:message>` to output debug information and read it in the Trace tab
-2. Enable **Trace run** to see which templates actually fire, and in what order
-3. For stepping through the stylesheet interactively, use the debugger (below)
-
-## Included Example Files
-
-FreeXmlToolkit includes example XSLT stylesheets in the `examples/xslt/` folder, for example:
-
-| Stylesheet                                  | Description                                   |
-|---------------------------------------------|-----------------------------------------------|
-| `FundsXML_Factsheet.xslt`                   | Fund factsheet as an HTML page                |
-| `FundsXML_DataQualityReport_HTML.xsl`       | Data quality report (HTML)                    |
-| `FundsXML_CompleteDQReport_HTML.xsl`        | Complete data-quality report (HTML)           |
-| `FundsXML_AssetAnalysis_HTML.xsl`           | Asset analysis with tables (HTML)             |
-| `FundsXML_to_JSON.xslt`                     | Export a FundsXML document as JSON            |
-| `FundsXML_Positions_to_CSV.xslt`            | Export positions as CSV                       |
-| `Check_FundsXML_File.xslt`                  | Consistency checks with a text report         |
-
-Use these with the example XML file `examples/xml/FundsXML_422_Bond_Fund.xml`.
-
-The stylesheets in `examples/xsl/` (`FundsXML_Factsheet.xsl`, `FundsXML_RiskReport.xsl`, …) are
-**XSL-FO** stylesheets for PDF output - use them with the [PDF Generator (FOP)](../publish-pdf.md),
-not with the XSLT transform.
-
-## Tips
+### Tips
 
 - **Validate first** - Make sure your XML and XSLT files are valid before transformation
 - **Check the OUTPUT panel status** - If a transformation fails, the red error status in the OUTPUT panel header shows the error message
 - **Use the Preview view** - For HTML output, the OUTPUT panel's **Preview** toggle shows you exactly how it will look
-- **Try the example files** - Learn from the included examples in the `examples/` folder
-- **Need more features?** - See the [XSLT Developer](run-xslt.md) guide for parameters,
-  the interactive debugger, profiling/tracing, and batch processing (all in the Transform
-  panel and its OPTIONS & TOOLS section)
-
-## More tips
-
 - **Start with Live preview off** for large files to avoid slow updates
-- **Use the Examples menu** to insert working XQuery templates
-- **Enable Profile run** if transformations are slow — the per-template timings show where
 - **Star your stylesheets** as favorites, then page through them with the STYLESHEET row's
   **◀ / ▶** buttons
 - **Use Batch Transform** for processing multiple files efficiently
+- **Enable Profile run** if transformations are slow - the per-template timings show where
+  (see [Profile a transformation](profile.md))
 - **Enable Trace run** when troubleshooting complex stylesheets
+- **Use the Examples menu** to insert working XQuery templates, and try the files in the
+  `examples/` folder
 - **Only process trusted stylesheets** - see [Security Features](../../administer/security-features.md) for details on XSLT extension security
 
 ## Troubleshooting

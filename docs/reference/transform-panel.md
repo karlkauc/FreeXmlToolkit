@@ -90,10 +90,10 @@ there is none):
 
 ## Browsing favorites with ◀ / ▶ {#browsing-favorites}
 
-> Pick stylesheets and input files straight from your
-> [Favorites](../guides/edit-xml/favorites.md) and page through them, so you can run the same
-> stylesheet over many files, or many stylesheets over one file, without ever opening a
-> file chooser.
+Pick stylesheets and input files straight from your
+[Favorites](../guides/edit-xml/favorites.md) and page through them, so you can run the same
+stylesheet over many files, or many stylesheets over one file, without ever opening a
+file chooser.
 
 ![Transform panel browsing XSLT and XML favorites: the STYLESHEET and INPUT rows show the star menu and ◀ / ▶ navigation, and the auto-run result appears in the output dock below.](../img/unified-shell-transform-favorites.png)
 
@@ -218,18 +218,18 @@ Below the options, the advanced **tools** are labelled rows (icon + name):
 | **Show Execution Plan** | Opens a **Plan** tab with Saxon's execution plan of the stylesheet: every template and function after optimization (which steps were rewritten, inlined or pre-evaluated) - useful to understand why a stylesheet is slow. Also on the Run menu for an XSLT or XQuery tab. |
 | **Execution Statistics** | Opens the **Execution Statistics** tool tab (duration, CPU and memory per XSLT/XQuery/validation run). Runs are only recorded while **Record execution statistics** is enabled in the Settings page's **DEVELOPER** card. |
 
-> By default the stylesheet runs on Saxon's XSLT 3.0 processor, whatever its `version`
-> attribute says. With **expert mode** on (Settings → Schemas & Validation → Standards), an **XSLT version** picker
-> appears under the output method: XSLT 1.0 runs on the JDK's own XSLT 1.0 processor, and
-> XSLT 2.0 is checked for newer constructs first. When that check refuses a stylesheet,
-> the OUTPUT panel lists the issues and offers **Run anyway**. See
-> [Language Versions](standards-versions.md).
+!!! note
+    By default the stylesheet runs on Saxon's XSLT 3.0 processor, whatever its `version`
+    attribute says. With **expert mode** on (Settings → Schemas & Validation → Standards), an **XSLT version** picker
+    appears under the output method: XSLT 1.0 runs on the JDK's own XSLT 1.0 processor, and
+    XSLT 2.0 is checked for newer constructs first. When that check refuses a stylesheet,
+    the OUTPUT panel lists the issues and offers **Run anyway**. See
+    [Language Versions](standards-versions.md).
 
 ## The OUTPUT Panel (Results)
 
-> Transform and query results appear in an **OUTPUT panel
-> docked below the editor** instead of opening editor tabs and a separate
-> HTML-preview tool tab.
+Transform and query results appear in an **OUTPUT panel
+docked below the editor**.
 
 All Transform-panel results - XSLT transforms, XPath/JSONPath queries, and XQuery runs -
 appear in an **OUTPUT panel** that docks **below the editor**: the source document stays

@@ -60,7 +60,7 @@ The text editor provides:
 
 ### Graphic View (Grid)
 
-> For XML documents (and XSLT / Schematron), the **Graphic** view shows the editable grid.
+For XML documents (and XSLT / Schematron), the **Graphic** view shows the editable grid.
 
 ![XML Grid view in the Unified Shell](../../img/unified-shell-xml-grid.png)
 *An XML document in the Graphic view (grid editing)*
@@ -106,7 +106,7 @@ under a second.
 
 ## Binding an XSD Schema
 
-> Bind an XSD to the active document directly from the editor.
+Bind an XSD to the active document directly from the editor.
 
 If your XML does not reference its schema (or you want to use a different one), you can bind an
 XSD by hand:

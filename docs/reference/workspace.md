@@ -49,10 +49,10 @@ On macOS the menus appear in the **system menu bar** and follow the platform con
 
 ## Toolbar
 
-> The editor toolbar is a **single slim row**. Related actions sit in **split buttons**
-> with a visible **▾** arrow menu: **Save As / Save All** live under **Save ▾**, **Minify**
-> under **Format ▾**, **Run Query / Run Transform / Run Pipeline** under **Run ▾**, and
-> **Set XSD Schema… / Generate Documentation… / Type Editor…** under **Schema ▾**.
+The editor toolbar is a **single slim row**. Related actions sit in **split buttons**
+with a visible **▾** arrow menu: **Save As / Save All** live under **Save ▾**, **Minify**
+under **Format ▾**, **Run Query / Run Transform / Run Pipeline** under **Run ▾**, and
+**Set XSD Schema… / Generate Documentation… / Type Editor…** under **Schema ▾**.
 
 The toolbar shows only what you can use right now. **Without a document** - on the Welcome
 page, or while a page such as **Settings**, **Sign & Encrypt** or **Schema Library** is in front - it
@@ -106,8 +106,8 @@ XProc document is active and selects the XML document the run works on. See
 
 ## Editor Toolbar Document Actions
 
-> Trigger per-document operations from the editor toolbar without leaving
-> the editor or switching the left activity bar.
+Trigger per-document operations from the editor toolbar without leaving
+the editor or switching the left activity bar.
 
 The editor toolbar includes a group of **document actions** that act on the **active
 document**. They are arranged as follows: **Validate**
@@ -195,8 +195,8 @@ The sections appear from top to bottom in this order:
 
 ### Transform and Validate from the Explorer {#explorer-context-menu}
 
-> Run an XSLT stylesheet or a Schematron against XML files straight from the Explorer,
-> without switching to the Transform or Validation activity first.
+Run an XSLT stylesheet or a Schematron against XML files straight from the Explorer,
+without switching to the Transform or Validation activity first.
 
 Select one or more XML files in the workspace tree (hold **Ctrl** or **Shift** while clicking
 to select several), then **right-click** them. The context menu offers:
@@ -300,8 +300,8 @@ activity lists them for all files, grouped by file. See **[Bookmarks](../guides/
 
 ## Status Bar
 
-> The schema indicator shows the schema *loading lifecycle*, so you can
-> tell exactly when IntelliSense (XML) or schema validation (JSON) becomes available.
+The schema indicator shows the schema *loading lifecycle*, so you can
+tell exactly when IntelliSense (XML) or schema validation (JSON) becomes available.
 
 The status bar at the bottom of the window includes (left to right):
 

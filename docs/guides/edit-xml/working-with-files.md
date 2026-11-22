@@ -26,9 +26,8 @@ Open multiple XML files in separate tabs. Each tab shows the file name and indic
 
 ## New File Dialog
 
-> Creating a new file opens a guided dialog instead of silently
-> opening an empty, untitled document. You can pick a starting template or an XSD schema, so
-> a new file already has a sensible structure.
+Creating a new file opens a guided dialog. You can pick a starting template or an XSD schema, so
+a new file already has a sensible structure.
 
 The **New File** dialog opens whenever you create a new document - from the toolbar **New**
 button (Ctrl+N), the **Explorer** panel's **New file** action, or the **New File** card on the

@@ -1,8 +1,8 @@
 # Settings {#settings-page}
 
-> Settings open as a **full page** (a tab in the main editor
-> area) rather than in the narrow left side panel. The options are presented
-> as **color-coded cards**, sorted into eight groups.
+Settings open as a **full page** (a tab in the main editor
+area). The options are presented
+as **color-coded cards**, sorted into eight groups.
 
 Click the gear icon at the bottom of the activity bar (or press **Ctrl+,**): the **Settings page
 opens as a tab in the main editor area**, where there is room for all options.
@@ -203,8 +203,8 @@ contents are removed.
 
 ## Memory and large files {#memory}
 
-> The **MEMORY** card sets how much memory the application may use, so that large files
-> can be opened on machines with plenty of RAM.
+The **MEMORY** card sets how much memory the application may use, so that large files
+can be opened on machines with plenty of RAM.
 
 The editor keeps a whole document in memory several times over (text, line model,
 highlighting, structured views), roughly **16 times the file size**. The memory limit
@@ -235,8 +235,8 @@ and the new version).
 
 ## Rendering mode (hardware vs. software) {#rendering-mode}
 
-> The **RENDERING** card lets you choose how JavaFX draws the UI,
-> per machine, without relying on a fixed JVM flag.
+The **RENDERING** card lets you choose how JavaFX draws the UI,
+per machine, without relying on a fixed JVM flag.
 
 JavaFX can render either on the **GPU** (hardware-accelerated, faster) or purely in
 **software**. On machines with only an integrated GPU, hardware rendering can become
@@ -273,8 +273,8 @@ Notes:
 
 ## Managing your templates
 
-> The **TEMPLATES** card lets you keep your own starting templates,
-> which then show up (filtered by file type) in the [New File dialog](../guides/edit-xml/working-with-files.md#new-file-dialog).
+The **TEMPLATES** card lets you keep your own starting templates,
+which then show up (filtered by file type) in the [New File dialog](../guides/edit-xml/working-with-files.md#new-file-dialog).
 
 - **Templates directory** - Use **Browse…** to point the application at the folder where your
   templates live. Leave it empty to use the default location. Changing the directory takes

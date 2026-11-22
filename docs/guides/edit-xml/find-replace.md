@@ -42,7 +42,7 @@ across **all files of a folder**, by plain text or by an XPath expression, use t
 **Ctrl+Shift+H** (Replace in Files), or click the magnifying-glass icon in the activity
 bar. See the [Search Panel](search-in-files.md) guide.
 
-> **Changed shortcut:** Ctrl+Shift+F used to format the document - **Format Document is
-> now Shift+Alt+F**.
+!!! note "Shortcut"
+    **Ctrl+Shift+F** opens Find in Files; **Format Document** is **Shift+Alt+F**.
 
 ---

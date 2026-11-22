@@ -413,6 +413,9 @@ Umgesetzt (Branch `docs/redesign`):
 - Stufe 3, vierter Teil: Grid view in sieben Abschnitte gegliedert (Text unverändert).
 - Stufe 3, fünfter Teil: neue Seiten CI recipes und Coming from another editor (Begriffe aus den
   Handbüchern von XMLSpy 2027 und Oxygen 28.1).
+- Stufe 3, sechster Teil: 47 Zitatblöcke aufgelöst (33 Fließtext, 12 Hinweiskästen, 1 entfernt;
+  eine zitierte Meldung der App bleibt Zitat); Working with problems und Run a transformation
+  redaktionell zusammengeführt.
 
 Offen in Stufe 3:
 

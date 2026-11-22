@@ -129,11 +129,11 @@ before you have acknowledged this notice. See [Privacy & Anonymous Telemetry](..
 
 ## View Modes
 
-> The segmented view switch offers the **Text**, **Tree**, and **Graphic** view
-> modes - each with its own icon - plus, for **HTML documents only**, a rendered read-only
-> **Preview** (eye icon) - the Preview segment only appears while an HTML document is
-> active - and, for **XSD documents only**, the **Overview** (table icon). There is no separate **Grid** mode - the grid is part of
-> **Graphic**.
+The segmented view switch offers the **Text**, **Tree**, and **Graphic** view
+modes - each with its own icon - plus, for **HTML documents only**, a rendered read-only
+**Preview** (eye icon) - the Preview segment only appears while an HTML document is
+active - and, for **XSD documents only**, the **Overview** (table icon). There is no separate **Grid** mode - the grid is part of
+**Graphic**.
 
 Every document tab offers the same view modes:
 
@@ -310,9 +310,9 @@ panels. The feedback colors follow the light and dark theme.
 
 ## Welcome / Dashboard
 
-> The welcome screen starts from **tasks**, not tools: a short list titled
-> *"What do you want to do?"* takes you straight to the right panel. On a first start it stays
-> uncluttered and offers a ready-made example to try.
+The welcome screen starts from **tasks**, not tools: a short list titled
+*"What do you want to do?"* takes you straight to the right panel. On a first start it stays
+uncluttered and offers a ready-made example to try.
 
 When no document is open, the editor shows a welcome dashboard with:
 

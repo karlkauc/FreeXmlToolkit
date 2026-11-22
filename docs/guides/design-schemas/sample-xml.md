@@ -5,10 +5,10 @@ Create sample XML files based on your XSD schema. This is useful for testing, da
 ![Sample XML Generator](../../img/xsd-sample-generator.png)
 *The advanced sample generator dialog with its per-XPath rules table*
 
-> **Unified Shell:** In the [Unified Shell](../../get-started/workspace-tour.md), sample-data
-> generation lives in the **Schema** panel. It offers two actions: **Generate Sample XML** for
-> the basic generation described below, and **Sample XML with Options…** for the
-> rule-based, batch-capable generation shown above.
+!!! note "Where it is"
+    Sample-data generation lives in the **Schema** panel. It offers two actions: **Generate Sample XML** for
+    the basic generation described below, and **Sample XML with Options…** for the
+    rule-based, batch-capable generation shown above.
 
 ## Quick Start (Basic Generation)
 

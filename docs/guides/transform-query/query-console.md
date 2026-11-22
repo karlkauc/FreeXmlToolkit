@@ -4,9 +4,9 @@ XPath, XQuery and JSONPath queries run either in the **Query Console** at the bo
 
 ## Query Console
 
-> Run XPath, XQuery and JSONPath against the open document right from the editor. This is
-> the one place for queries - the Transform panel links here with its **Open Query Console**
-> button.
+Run XPath, XQuery and JSONPath against the open document right from the editor. This is
+the one place for queries - the Transform panel links here with its **Open Query Console**
+button.
 
 The **Query Console** is a panel that opens along the **bottom of the editor**. Toggle it with the
 **terminal icon** in the editor toolbar or with **Ctrl+Shift+X**; **Ctrl+K** (or a click on the
@@ -253,10 +253,10 @@ built-in XQuery examples - see [Saving and Loading Snippets](#saving-and-loading
 
 ## Query Documents & the Input Selector {#query-documents-the-target-selector}
 
-> XPath and XQuery files are first-class editor documents: open a
-> `.xq` or `.xpath` file (or any file from `examples/xpath/` and `examples/xquery/`),
-> press **Run Query**, and read the result in the OUTPUT panel - no console or panel
-> switching required.
+XPath and XQuery files are first-class editor documents: open a
+`.xq` or `.xpath` file (or any file from `examples/xpath/` and `examples/xquery/`),
+press **Run Query**, and read the result in the OUTPUT panel - no console or panel
+switching required.
 
 ![A query document with the Input dropdown open and its CSV result in the OUTPUT panel](../../img/unified-shell-query-target.png)
 *An XQuery document from `examples/xquery/` with the **Input** dropdown open: pick an

@@ -161,8 +161,9 @@ untouched, and opened in the editor automatically.
 | **Enveloping** | The signed content is wrapped inside the signature document | `<name>.signed.xml` |
 | **Detached** | A standalone signature document referencing the original file by relative URI | `<name>.sig.xml` |
 
-> **Detached signatures:** keep the `.sig.xml` file together with the original document -
-> the signature references the file by name and cannot be verified without it.
+!!! note "Detached signatures"
+    keep the `.sig.xml` file together with the original document -
+    the signature references the file by name and cannot be verified without it.
 
 ### How to Sign a Document
 
@@ -180,9 +181,10 @@ untouched, and opened in the editor automatically.
 7. The signed file (`<name>.signed.xml` or `<name>.sig.xml`) opens in a new editor tab in the
    background; the Signature page stays in front and offers **Validate this signature**
 
-> **Unsaved changes:** signing reads the document **from disk**. If it has unsaved changes,
-> you are asked *"Save changes to <file> first?"* - **Save and Continue** signs your current
-> text, **Use Saved Version** signs the file as last saved, **Cancel** stops.
+!!! warning "Unsaved changes"
+    signing reads the document **from disk**. If it has unsaved changes,
+    you are asked *"Save changes to <file> first?"* - **Save and Continue** signs your current
+    text, **Use Saved Version** signs the file as last saved, **Cancel** stops.
 
 !!! tip
     Missing inputs are highlighted in red when you click **Sign Document**: signing
@@ -212,7 +214,7 @@ For a detailed report (validity plus signing-certificate details), use the outli
 
 ### Validation Results
 
-> Each validation outcome explains in plain language what happened and what to do about it.
+Each validation outcome explains in plain language what happened and what to do about it.
 
 | Result | Meaning |
 |--------|---------|
@@ -235,8 +237,8 @@ For a detailed report (validity plus signing-certificate details), use the outli
 
 ## 4. Expert Mode - Trust Validation
 
-> In addition to checking that a signature is mathematically valid, you can
-> check whether the signing certificate is actually **trusted**.
+In addition to checking that a signature is mathematically valid, you can
+check whether the signing certificate is actually **trusted**.
 
 ![Expert Mode](../../img/signature-expert.png)
 *Expert Mode: trust store, revocation check and Validate (Trust)*
@@ -297,12 +299,12 @@ Save frequently used files for quick access:
 
 The Favorites panel provides quick access to your saved keystores, XML files, and signed documents.
 
-> Keystore and trust store files (`.jks`, `.p12`, `.pfx`,
-> `.keystore`) are their own **Keystore** favorite type with a lock icon.
-> On the Signature page, the **keystore row** (KEYSTORE
-> section) and the **trust store row** (Expert Mode) each carry a **star menu** listing
-> your keystore favorites - pick one to select it without browsing the file system. See
-> [Favorites System](../edit-xml/favorites.md) for details.
+Keystore and trust store files (`.jks`, `.p12`, `.pfx`,
+`.keystore`) are their own **Keystore** favorite type with a lock icon.
+On the Signature page, the **keystore row** (KEYSTORE
+section) and the **trust store row** (Expert Mode) each carry a **star menu** listing
+your keystore favorites - pick one to select it without browsing the file system. See
+[Favorites System](../edit-xml/favorites.md) for details.
 
 ---
 

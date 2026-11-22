@@ -36,9 +36,9 @@ one-time hint when you open a FundsXML document (see [The FundsXML hint bar](#th
 3. Tick **FundsXML**.
 4. Click **Save Settings** in the save bar at the bottom of the page.
 
-> Enabling the feature is all you need to do: the FundsXML content
-> starts downloading automatically in the background, and a small toast notification tells
-> you when it is ready. There is no separate download step.
+Enabling the feature is all you need to do: the FundsXML content
+starts downloading automatically in the background, and a small toast notification tells
+you when it is ready. There is no separate download step.
 
 Once enabled, the FundsXML integration appears in several places:
 
@@ -83,10 +83,10 @@ feature in Settings as described above.
 
 ## Downloading FundsXML Content
 
-> Downloads are **fully automatic**. Content is fetched in the
-> background right after you enable the feature, and on every application start any missing
-> content is downloaded again. When a background download finishes, a non-blocking toast
-> notification appears - no dialogs interrupt your work.
+Downloads are **fully automatic**. Content is fetched in the
+background right after you enable the feature, and on every application start any missing
+content is downloaded again. When a background download finishes, a non-blocking toast
+notification appears - no dialogs interrupt your work.
 
 You normally never need to trigger a download yourself. To force a manual refresh, open the
 **FundsXML** side panel and click **Download / Update Content**. The panel shows a progress
@@ -691,7 +691,7 @@ On Windows the path is typically `C:\Users\<you>\.freeXmlToolkit\fundsxml\`. On 
 
 ## Automatic Update Checks
 
-> Updates are installed automatically instead of showing a dialog.
+Updates are installed automatically.
 
 By default, FreeXmlToolkit checks once per day whether a newer FundsXML schema release is available on GitHub. If a new release is found, it is **downloaded and installed automatically in the background** - a toast notification confirms when the new content is in place, and the new version becomes the active one. There is no update dialog to answer.
 

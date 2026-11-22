@@ -28,9 +28,10 @@ The Graphic View lets you explore and edit your schemas visually.
 5. **Add children** using the context menu (right-click)
 6. **Reorder** nodes by dragging them to a new place, or with **Move Up** / **Move Down** from the context menu; **Delete** removes the selected node
 
-> **Editing properties from any view:** The same Properties pane is
-> available in the **Text** view as well as the Graphic and Tree views. See
-> [Editing Schema Properties from Any View](text-view.md#editing-schema-properties-from-any-view) below.
+!!! tip "Editing properties from any view"
+    The same Properties pane is
+    available in the **Text** view as well as the Graphic and Tree views. See
+    [Editing Schema Properties from Any View](text-view.md#editing-schema-properties-from-any-view) below.
 
 ## Reading a Card {#reading-a-card}
 

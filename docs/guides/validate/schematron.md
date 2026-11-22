@@ -25,9 +25,9 @@ While XSD schemas check the structure of your XML (which elements can appear whe
 
 ## Toolbar
 
-> Schematron files use the shell's single-row editor toolbar.
-> Related actions sit in **split buttons** with a visible **▾** arrow menu; see
-> [Unified Shell - Toolbar](../../reference/workspace.md#toolbar) for the full reference.
+Schematron files use the shell's single-row editor toolbar.
+Related actions sit in **split buttons** with a visible **▾** arrow menu; see
+[Unified Shell - Toolbar](../../reference/workspace.md#toolbar) for the full reference.
 
 With a `.sch` file active, the relevant actions are:
 
@@ -286,12 +286,13 @@ Common XPath expressions for Schematron rules:
 | ISO Schematron (.sch) | Full support |
 | XSLT-based Schematron | Full support |
 
-> Schematron validation runs on the **SchXslt**
-> compiler (executed by Saxon), which fully resolves `sch:include`,
-> `sch:extends`, and abstract patterns. Schematrons that declare
-> `queryBinding="xslt2"` or `"xslt3"` use XPath 2.0/3.0; files without a
-> `queryBinding` attribute are compiled as `xslt2`, so existing rule files keep
-> working unchanged.
+!!! note
+    Schematron validation runs on the **SchXslt**
+    compiler (executed by Saxon), which fully resolves `sch:include`,
+    `sch:extends`, and abstract patterns. Schematrons that declare
+    `queryBinding="xslt2"` or `"xslt3"` use XPath 2.0/3.0; files without a
+    `queryBinding` attribute are compiled as `xslt2`, so existing rule files keep
+    working unchanged.
 
 ---
 

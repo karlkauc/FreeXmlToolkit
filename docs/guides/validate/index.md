@@ -112,8 +112,8 @@ editor; every click shows it again.
 
 ## Detailed Schematron Report
 
-> A full report of the last Schematron run, opened as a tool tab
-> and saveable as HTML or SVRL.
+A full report of the last Schematron run, opened as a tool tab
+and saveable as HTML or SVRL.
 
 After validating a document that has a Schematron file bound, open the report in
 either of two ways:
@@ -170,10 +170,10 @@ FundsXML extension is enabled).
 The panel header's ⋮ (overflow) menu keeps only the **Validate while typing** toggle for
 continuous (debounced) validation.
 
-> **Check Rules** inspects the Schematron file for problems and lists them
-> by category - XML syntax, structural, XPath, semantic, and best-practice issues - so you can
-> fix mistakes in the rules before you rely on them. See
-> [Schematron Validation](schematron.md) for details.
+**Check Rules** inspects the Schematron file for problems and lists them
+by category - XML syntax, structural, XPath, semantic, and best-practice issues - so you can
+fix mistakes in the rules before you rely on them. See
+[Schematron Validation](schematron.md) for details.
 
 ## Controls Reference
 

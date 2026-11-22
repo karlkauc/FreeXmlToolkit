@@ -6,9 +6,10 @@ elements, whole documents or any file, for certificates, public keys, shared key
 on the **Sign & Encrypt** page, from the XML editor's context menu and on the command line
 (`fxt-cli encrypt` / `fxt-cli decrypt`).
 
-> Encryption works on the saved file. The encrypted result is written next to it
-> (`name.encrypted.xml`) and opened; a **decrypted** document opens as a new, unsaved tab - it is
-> written to disk only when you save it.
+!!! note
+    Encryption works on the saved file. The encrypted result is written next to it
+    (`name.encrypted.xml`) and opened; a **decrypted** document opens as a new, unsaved tab - it is
+    written to disk only when you save it.
 
 ## The Page
 

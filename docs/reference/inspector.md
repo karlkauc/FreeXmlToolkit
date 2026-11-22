@@ -1,14 +1,14 @@
 # Properties Inspector
 
-> Property editing works in **all** views - for XML files in Text, Tree, and
-> Graphic, and for XSD files in the **Text** view as well as the Tree and Graphic views
-> (see [XSD Files](#xsd-files) below). For JSON files the inspector edits keys and values
-> from the Tree and Graphic views (see [JSON Files](#json-files) below).
->
-> The inspector is not fixed-width: drag the divider line
-> between the editor and the inspector to make it wider (handy for long XPaths, attribute
-> values, or documentation). The width is remembered across restarts - see
-> [Resizing and collapsing the side panels](../get-started/workspace-tour.md#collapsing-the-side-panels).
+Property editing works in **all** views - for XML files in Text, Tree, and
+Graphic, and for XSD files in the **Text** view as well as the Tree and Graphic views
+(see [XSD Files](#xsd-files) below). For JSON files the inspector edits keys and values
+from the Tree and Graphic views (see [JSON Files](#json-files) below).
+
+The inspector is not fixed-width: drag the divider line
+between the editor and the inspector to make it wider (handy for long XPaths, attribute
+values, or documentation). The width is remembered across restarts - see
+[Resizing and collapsing the side panels](../get-started/workspace-tour.md#collapsing-the-side-panels).
 
 ![Properties inspector](../img/unified-shell-inspector.png#only-light)
 ![Properties inspector](../img/unified-shell-inspector-dark.png#only-dark)
@@ -234,8 +234,6 @@ the schema text right away. If the element defines its own content (for example 
 child elements), a dialog asks before the type replaces it, and **Cancel** shows the previous type
 again. For an element or attribute reference the field is locked. See
 [Only Valid Changes](../guides/design-schemas/graphic-view.md#only-valid-changes).
-
-> The type picker arrived in version 2.6.0; earlier versions took the type as plain text.
 
 **USED IN** (in **DOCUMENTATION & REFS**) shows where a node is used:
 

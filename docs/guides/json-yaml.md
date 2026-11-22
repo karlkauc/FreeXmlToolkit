@@ -9,11 +9,12 @@ FreeXmlToolkit includes a full-featured JSON Editor that supports:
 - **JSONC syntax** - JSON with Comments (single-line `//` and block `/* */`)
 - **JSON5 syntax** - trailing commas, unquoted keys, single-quoted strings, and comments
 
-> **File extensions:** `.json`, `.jsonc` and `.json5` all open in the JSON editor
-> (tree view, grid view, JSONPath, schema binding). The flavor is detected from the *content*, not
-> from the extension - a `.json` file with comments is treated as JSONC just like a
-> `.jsonc` file. Only `.json` is offered for operating-system file associations
-> (`.jsonc`/`.json5` have no MIME type in the shared databases).
+!!! note "File extensions"
+    `.json`, `.jsonc` and `.json5` all open in the JSON editor
+    (tree view, grid view, JSONPath, schema binding). The flavor is detected from the *content*, not
+    from the extension - a `.json` file with comments is treated as JSONC just like a
+    `.jsonc` file. Only `.json` is offered for operating-system file associations
+    (`.jsonc`/`.json5` have no MIME type in the shared databases).
 
 ![JSON in the Unified Shell](../img/unified-shell-json-tree.png)
 ***The Tree view of a JSON document in the Unified Shell***
@@ -327,9 +328,9 @@ change back. Validation markers of the grid point at the YAML lines.
 
 ## Toolbar
 
-> JSON files use the shell's single-row editor toolbar. Related
-> actions sit in **split buttons** with a visible **▾** arrow menu; see
-> [Unified Shell - Toolbar](../reference/workspace.md#toolbar) for the full reference.
+JSON files use the shell's single-row editor toolbar. Related
+actions sit in **split buttons** with a visible **▾** arrow menu; see
+[Unified Shell - Toolbar](../reference/workspace.md#toolbar) for the full reference.
 
 With a JSON file active, the relevant actions are:
 

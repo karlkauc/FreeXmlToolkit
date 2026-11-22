@@ -1,6 +1,6 @@
 # Execution Statistics
 
-> Optional developer feature | Off by default
+Optional developer feature | Off by default
 
 FreeXmlToolkit can record **resource statistics for every technical operation** it
 runs — XSLT transformations, XQuery and XPath evaluations, XSD and Schematron

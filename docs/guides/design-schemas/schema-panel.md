@@ -91,8 +91,8 @@ browsing, the panel offers actions to generate sample XML from the schema:
 
 ### Advanced Sample-Data Generation
 
-> A rule-based generator with per-XPath strategies, batch output, and
-> reusable profiles.
+A rule-based generator with per-XPath strategies, batch output, and
+reusable profiles.
 
 The advanced dialog turns the schema's XPaths into an editable table. For each XPath you
 choose a generation **Strategy** plus a value or pattern:

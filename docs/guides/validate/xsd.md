@@ -82,9 +82,9 @@ Selecting a problem shows it in the current view (Text: its line; Tree and Graph
 **PROBLEMS** panel below the editor, whose header shows error and warning counters; see
 [Jump to Validation Errors](problems.md) for navigation details.
 
-> **Validate while typing** (on by default, toggle in the panel header's ⋮ menu) re-runs validation
-> shortly after every edit, tab switch, or schema change, so the list stays current without
-> pressing F8.
+**Validate while typing** (on by default, toggle in the panel header's ⋮ menu) re-runs validation
+shortly after every edit, tab switch, or schema change, so the list stays current without
+pressing F8.
 
 ---
 

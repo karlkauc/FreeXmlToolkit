@@ -29,8 +29,8 @@ To validate a folder against a particular schema, open any XML document, bind th
 
 ### Running Batch Validation
 
-> In the Validation panel's **Batch** mode, **Run Validation**
-> opens a small menu so you can pick files or a whole folder in one step.
+In the Validation panel's **Batch** mode, **Run Validation**
+opens a small menu so you can pick files or a whole folder in one step.
 
 1. Open the **Validation** panel and switch the mode toggle to **Batch**.
 2. Click **Run Validation** and choose how to pick the files:

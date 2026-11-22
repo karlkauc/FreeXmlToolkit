@@ -16,8 +16,8 @@ The Text View provides raw XSD source code editing.
 
 ## Editing Schema Properties from Any View
 
-> You can edit a schema node's properties directly from the
-> **Text** view, the same way as in the **Tree** and **Graphic** views.
+You can edit a schema node's properties directly from the
+**Text** view, the same way as in the **Tree** and **Graphic** views.
 
 The XSD editor has three views - **Text**, **Tree**, and **Graphic** - and all three share one
 in-memory schema model. The Properties pane works in every view:
