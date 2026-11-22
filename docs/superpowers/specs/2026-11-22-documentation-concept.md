@@ -410,10 +410,10 @@ Umgesetzt (Branch `docs/redesign`):
   Seiten Edit the properties of a node, Find and replace in a document, Convert formats (XML ↔
   JSON ↔ YAML und Excel/CSV). Der Anker `#xmlexcelcsv-converter`, den die App aufruft, bleibt auf
   der Startseite als Verweis bestehen; die Adresse im Java-Code ist unverändert (ein Test prüft sie).
+- Stufe 3, vierter Teil: Grid view in sieben Abschnitte gegliedert (Text unverändert).
 
 Offen in Stufe 3:
 
-- `guides/edit-xml/grid.md`: 3.400 Wörter unter einer Überschrift gliedern.
 - Neue Seiten: Coming from another editor, CI recipes.
 - Seitenvorlage (Before you start / Next steps) auf die Anleitungen anwenden; unbeschriftete
   Zitatblöcke (Ankündigungen aus Release-Zeiten) prüfen; Audit-Stand in `accessibility.md`.

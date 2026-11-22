@@ -1,15 +1,15 @@
-# Grid View
+# Grid view
 
 The **Graphic** view of an XML or JSON document is an editable grid: nested blocks for containers, repeating elements as tables, inline editing, drag & drop and search. Switch to it with the **Graphic** button of the view switch in the editor toolbar.
 
 The grid can be exported as PNG, SVG or PDF, or copied as an image, with all its rows as currently expanded (**File → Export View…**, **Edit → Copy View as Image**, or the grid's context menu) - see [Exporting a Graphical View](../../get-started/workspace-tour.md#export-view).
 
-## The Grid (Graphic view for XML)
-
-When an XML-instance document (XML, XSLT, or Schematron) is in the **Graphic** view, the editor
-shows the editable grid, laid out as follows:
+This page describes the grid for XML-instance documents (XML, XSLT, Schematron). JSON documents
+get the same grid; what differs is on the [JSON grid](../json-grid.md) page.
 
 ![An XML document in the Graphic (grid) view, everything expanded](../../img/unified-shell-xml-grid.png)
+
+## How the grid is laid out
 
 - A **header strip** at the top reads *"Grid view · nested · repeating elements as embedded
   grids"* and offers the **zoom pill** (`− 100% +`), **Optimal widths**, the **Wrap** toggle,
@@ -34,10 +34,34 @@ shows the editable grid, laid out as follows:
 - **Nothing is cut off.** Values take the width their content needs; long values **wrap** onto
   further lines (the row grows). Very wide content is reached with the horizontal scrollbar
   (Shift+wheel).
+- **Scroll header.** While you scroll through a long element, a bar at the top shows the
+  path of containers you are inside (`root › section › body`); click one to select it and
+  scroll back to its start.
+
+## Zoom, widths and wrapping
+
 - **Zoom** the whole grid - text, rows, icons and embedded tables - with **Ctrl+mouse wheel**,
   **Ctrl +** / **Ctrl −** (10 % steps, 50-300 %) or the `−`/`+` buttons; **Ctrl 0** or a
   click on the percentage resets to 100 %. The zoom factor is remembered across files, XML
   and JSON grids and restarts.
+- **Column widths.** Name columns and table columns size themselves to their content. Drag
+  the hairline between a name column and its values (or a column separator in a table's
+  header row) to resize it - text re-wraps to the new width - and **double-click the line**
+  to return to automatic sizing. Each nested block has its own name-column width. **Optimal
+  widths** in the header resets every column at once. Dragged widths survive edits and undo.
+- **Wrap** (header toggle, remembered across restarts) switches word wrap off: every value
+  stays on one line and the grid grows to the right instead. The **⋯** menu limits the
+  **cell height** to 3, 6 or 12 lines (longer values end with "…"), also remembered.
+- **Cell colours.** **Settings → Editor → GRID TABLE COLOURS** sets your own colours for table
+  headers, missing cells, the selection and the focus frame - separately for the light and the
+  dark theme (switch the theme to set the other one). Open grids repaint at once; switching the
+  option off returns to the theme colours.
+- **Split view.** The header's **⋯** menu splits the grid *top / bottom* or *side by side* into
+  two views of the same document; each scrolls, expands and selects on its own, and an edit in
+  one appears in the other at once. *Single view* closes the second one.
+
+## Tables of repeating elements
+
 - **Repeating elements** (two or more siblings with the same name) are rendered as an
   **embedded table beside the group's name cell**: one row per element (numbered in the
   first column), one column per attribute (`=`) and child element (`<>`). Click the small
@@ -86,10 +110,11 @@ shows the editable grid, laid out as follows:
   entry helpers' Children list place new elements the same way. **Drag a column header** onto another
   header to move that column - a blue line shows where it lands; the child element (or
   attribute) moves in every member, one undo step. Attributes move only among attributes.
-- **Cell colours.** **Settings → Editor → GRID TABLE COLOURS** sets your own colours for table
-  headers, missing cells, the selection and the focus frame - separately for the light and the
-  dark theme (switch the theme to set the other one). Open grids repaint at once; switching the
-  option off returns to the theme colours.
+- **Sticky table headers.** While you scroll through a long table, its header row (the column
+  names, or the record numbers in a flipped table) stays at the top below the scroll header and
+  slides away with the table's last row. A table inside an opened cell keeps its header too,
+  just below the header of the table around it. It works like the real header: click a name to select
+  the column, the arrow to sort, drag to move or resize a column.
 - **Spreadsheet exchange.** Click a table cell to select it, **Shift+click** another cell
   (or a row number) to select a range, **Ctrl+A** selects the whole table. **Ctrl+C** copies
   the selection as tab-separated text (the whole table with a header line); the context menu
@@ -98,14 +123,15 @@ shows the editable grid, laid out as follows:
   quoted text plus an HTML table; values such as `00123` stay text). Copy a range in Excel or LibreOffice, select a
   table cell and press **Ctrl+V**: the values fill the table from that cell to the right and
   down, overwriting existing cells; extra rows become new elements. One undo step.
-- **Column widths.** Name columns and table columns size themselves to their content. Drag
-  the hairline between a name column and its values (or a column separator in a table's
-  header row) to resize it - text re-wraps to the new width - and **double-click the line**
-  to return to automatic sizing. Each nested block has its own name-column width. **Optimal
-  widths** in the header resets every column at once. Dragged widths survive edits and undo.
-- **Wrap** (header toggle, remembered across restarts) switches word wrap off: every value
-  stays on one line and the grid grows to the right instead. The **⋯** menu limits the
-  **cell height** to 3, 6 or 12 lines (longer values end with "…"), also remembered.
+- **Delete in a table** removes exactly what is selected: on one or more **cells** only their
+  nodes go - the element (all children of that name) or the attribute is removed completely,
+  no empty `<TotalPercentage/>` is left behind, and the row stays. Rows selected on their
+  **row numbers** (click, Shift+click for a range) are deleted as whole rows. Empty cells
+  delete nothing; one **Undo** restores everything. **Delete** in a cell's context menu works
+  the same way for the clicked cell.
+
+## Selecting and navigating
+
 - **Keyboard navigation** works as soon as the view opens (no click needed):
   **↑/↓** walk the rows, **→** expands a collapsed element, **←** collapses it (or jumps to
   the parent), **Space** or **Enter** toggles a container (on a leaf row Enter starts renaming it),
@@ -114,12 +140,6 @@ shows the editable grid, laid out as follows:
   Delete (and **Delete** in its context menu) removes only that attribute - the element stays -
   and selects the next attribute, else the element; several selected attribute rows go in one
   undo step.
-- **Delete in a table** removes exactly what is selected: on one or more **cells** only their
-  nodes go - the element (all children of that name) or the attribute is removed completely,
-  no empty `<TotalPercentage/>` is left behind, and the row stays. Rows selected on their
-  **row numbers** (click, Shift+click for a range) are deleted as whole rows. Empty cells
-  delete nothing; one **Undo** restores everything. **Delete** in a cell's context menu works
-  the same way for the clicked cell.
 - **Several rows at once.** **Ctrl+click** adds or removes a row from the selection,
   **Shift+click** selects every sibling between the selected row and the clicked one.
   **Shift+click on the arrow** of a selected row expands or collapses all selected rows.
@@ -127,6 +147,20 @@ shows the editable grid, laid out as follows:
   **Collapse Unselected** (**Ctrl+Shift+−**) folds every container except the path to the
   selection. Both, plus **Expand All / Collapse All**, are in the context menu. The expanded
   state and the selection survive edits, undo and sorting (rows are tracked by their XPath).
+- **Search** (Ctrl+F) finds names and values in the rows and in the cells of embedded tables,
+  including the content of cells that are still closed (nested elements, attributes such as
+  `ccy="EUR"`) at any depth; a hit opens the cells and expands what hides it, then selects it.
+  Enter / Shift+Enter walk through all hits.
+- **Copy XPath / Copy Node**: the grid's context menu offers **Copy XPath** (**Ctrl+Alt+X**),
+  **Copy Cell Content** (**Ctrl+Shift+C**) and **Copy Node (XML)** (**Ctrl+Alt+C**); all three
+  shortcuts also work directly on the selected node. **Ctrl+Shift+X** toggles the Query
+  Console everywhere, including while the grid has focus.
+- **Go to Definition**: right-click an element → **Go to Definition** opens the bound XSD in the
+  Graphic view, expanded along the element's path, with the card of its declaration selected - see
+  [Go to Definition](index.md#go-to-definition). The entry is disabled while no schema is bound.
+
+## Editing
+
 - **Editing every node kind.** Double-click a value to edit it - with a bound schema the editor
   follows the declared type: a **dropdown** for enumerations (elements and attributes, in tree rows,
   table columns and opened cells, also unions of enumerated types), date pickers, number spinners and checked text
@@ -140,21 +174,12 @@ shows the editable grid, laid out as follows:
   puts a new parent element around the selected node. **Edit as Raw Text…** (**Ctrl+Alt+R**)
   opens the selected element's content as markup (entities unresolved) and parses it back;
   not well-formed markup is reported and the editor reopens. All of these are undoable.
-- **Sibling groups** for very large files (**⋯** menu → *Sibling groups: 100 / 1,000 / 10,000
-  nodes*, remembered): an element with more children than that shows them in collapsed groups
-  such as `record <1001..2000>`; opening a group closes the other groups of the same element.
-- **Large files** (from 8 MB of text). Grid edits are not written into the text after every
-  change: the text follows when you switch to the Text view, save, validate or transform. While
-  it is written back, a loading indicator shows and the text is read-only for a moment.
-- **Validation markers.** After a validation (Validation panel), rows whose element has a
-  problem show a red **!** at the end of the name cell and a red value; hover the row for the
-  message. Problems inside a repeating group mark the member's row number. The markers clear
-  on the next grid edit and come back with the next validation. Selecting a problem in the
-  PROBLEMS panel keeps the grid open and reveals it: the row or table cell is selected, opened on
-  the way and briefly highlighted.
-- **Split view.** The header's **⋯** menu splits the grid *top / bottom* or *side by side* into
-  two views of the same document; each scrolls, expands and selects on its own, and an edit in
-  one appears in the other at once. *Single view* closes the second one.
+- **Drag & drop.** Drag a node by its name cell: drop it on the upper or lower third of another
+  name cell to place it before / after that node, on the middle (or anywhere in an expanded
+  element's cell) to append it as a child. A blue line or frame shows the target; hold **Ctrl**
+  to copy instead of move. Text dragged in from other applications replaces a value when dropped
+  on a value cell; dropped on a name cell, an XML fragment becomes new nodes and plain text a
+  text node. A node is never dropped into its own subtree; every drop is one undo step.
 - **Entry helpers.** The header's panel button (right of *Collapse all*) opens the entry
   helpers beside the grid. They need an XSD bound to the document and follow the
   selected row. **Siblings** lists the attributes and elements the schema allows next to the
@@ -168,20 +193,34 @@ shows the editable grid, laid out as follows:
   - Values: sets the value.
 
   Every insertion is one undo step. The panel stays open or closed across sessions.
-- **Scroll header.** While you scroll through a long element, a bar at the top shows the
-  path of containers you are inside (`root › section › body`); click one to select it and
-  scroll back to its start.
-- **Sticky table headers.** While you scroll through a long table, its header row (the column
-  names, or the record numbers in a flipped table) stays at the top below the scroll header and
-  slides away with the table's last row. A table inside an opened cell keeps its header too,
-  just below the header of the table around it. It works like the real header: click a name to select
-  the column, the arrow to sort, drag to move or resize a column.
-- **Drag & drop.** Drag a node by its name cell: drop it on the upper or lower third of another
-  name cell to place it before / after that node, on the middle (or anywhere in an expanded
-  element's cell) to append it as a child. A blue line or frame shows the target; hold **Ctrl**
-  to copy instead of move. Text dragged in from other applications replaces a value when dropped
-  on a value cell; dropped on a name cell, an XML fragment becomes new nodes and plain text a
-  text node. A node is never dropped into its own subtree; every drop is one undo step.
+
+### Typed values {#typed-values}
+
+With a bound XSD the inline editor follows the type behind an element or attribute, however it is declared: a
+named type derived in several steps (FundsXML's `PercentageType` → `xs:decimal`), simple content of a complex type
+(an amount with a currency attribute), a list or a union.
+
+| Type | Editor |
+|------|--------|
+| Enumerations, unions of enumerations | Dropdown (you can still type another value) |
+| `boolean` | Toggle |
+| `date`, `dateTime`, `dateTimeStamp`, `time` | Date picker / hour-minute-second spinners. A timezone (`Z`, `+01:00`, `-05:00`) and fractional seconds are kept and shown next to the spinners; a value you do not change is written back exactly as it was |
+| `integer` and its derivations, `decimal`, `float`, `double` | Number spinner. The value is written as XSD expects it (`3.5`), whatever your language: a comma you type is taken as the decimal separator. Nothing is rounded or replaced by 0; an empty value stays empty. The arrows step by 1 or by the smallest fraction `fractionDigits` allows and stop at the bounds. `float`/`double` also take exponents (`1.5E3`), `INF`, `-INF` and `NaN` |
+| `duration`, `gYear`, `gYearMonth`, `gMonth`, `gMonthDay`, `gDay`, `hexBinary`, `base64Binary`, `QName` | Text field showing an example of the form (`P1Y2M3DT4H5M6S`, `--12-24`, …) while empty |
+| Strings, tokens, names, lists, other types | Text field |
+
+Every editor checks the value against the complete type while you type, with the same engine as the validation:
+the built-in type's form and range (`unsignedByte` 0–255, `positiveInteger` ≥ 1, valid dates), and every facet of
+every derivation step - patterns (XSD regular expressions, all steps must match), length limits after whitespace
+normalisation, inclusive and exclusive bounds, `totalDigits`, `fractionDigits`, `explicitTimezone`. A value that
+does not fit gets a red outline and the reason as tooltip.
+
+Such a value is **not blocked**: it is written, and a notification names the field and the reason - also for a table
+cell and for a pasted block of cells (one notification with the number of values). The Problems panel lists it
+after the next validation (**F8**).
+
+## Filters and formulas
+
 - **Filters.** Right-click an element → **Filter…** and enter an XQuery 3.1 expression evaluated
   with that element as context, e.g. `Month[number(Min) > 10]`: below the element only the
   matching nodes (with their ancestors and subtrees) stay visible, repeating groups shrink to
@@ -214,7 +253,6 @@ shows the editable grid, laid out as follows:
 ![A saved filter after opening the file: the grey "saved ·" funnel line, the table complete](../../img/unified-shell-grid-saved-filter.png)
 
 ![The same filter switched on: only the AT positions remain in that cell, the sums still cover all](../../img/unified-shell-grid-cell-filter.png)
-
 - **Formulas.** Right-click an element → **Add Formula…**: a name and an XQuery 3.1 expression
   evaluated with that element as context (e.g. `avg(Month/Min)`). The formula row (icon `ƒ`)
   shows the expression and, below it, the live result - or the error in red; double-click the
@@ -240,39 +278,17 @@ shows the editable grid, laid out as follows:
 
 ![Named sums of a table record (German number format) at the top of its opened cell](../../img/unified-shell-grid-cell-formulas.png)
 
-- **Search** (Ctrl+F) finds names and values in the rows and in the cells of embedded tables,
-  including the content of cells that are still closed (nested elements, attributes such as
-  `ccy="EUR"`) at any depth; a hit opens the cells and expands what hides it, then selects it.
-  Enter / Shift+Enter walk through all hits.
-- **Copy XPath / Copy Node**: the grid's context menu offers **Copy XPath** (**Ctrl+Alt+X**),
-  **Copy Cell Content** (**Ctrl+Shift+C**) and **Copy Node (XML)** (**Ctrl+Alt+C**); all three
-  shortcuts also work directly on the selected node. **Ctrl+Shift+X** toggles the Query
-  Console everywhere, including while the grid has focus.
-- **Go to Definition**: right-click an element → **Go to Definition** opens the bound XSD in the
-  Graphic view, expanded along the element's path, with the card of its declaration selected - see
-  [Go to Definition](index.md#go-to-definition). The entry is disabled while no schema is bound.
+## Validation markers and large files
 
-### Typed values {#typed-values}
-
-With a bound XSD the inline editor follows the type behind an element or attribute, however it is declared: a
-named type derived in several steps (FundsXML's `PercentageType` → `xs:decimal`), simple content of a complex type
-(an amount with a currency attribute), a list or a union.
-
-| Type | Editor |
-|------|--------|
-| Enumerations, unions of enumerations | Dropdown (you can still type another value) |
-| `boolean` | Toggle |
-| `date`, `dateTime`, `dateTimeStamp`, `time` | Date picker / hour-minute-second spinners. A timezone (`Z`, `+01:00`, `-05:00`) and fractional seconds are kept and shown next to the spinners; a value you do not change is written back exactly as it was |
-| `integer` and its derivations, `decimal`, `float`, `double` | Number spinner. The value is written as XSD expects it (`3.5`), whatever your language: a comma you type is taken as the decimal separator. Nothing is rounded or replaced by 0; an empty value stays empty. The arrows step by 1 or by the smallest fraction `fractionDigits` allows and stop at the bounds. `float`/`double` also take exponents (`1.5E3`), `INF`, `-INF` and `NaN` |
-| `duration`, `gYear`, `gYearMonth`, `gMonth`, `gMonthDay`, `gDay`, `hexBinary`, `base64Binary`, `QName` | Text field showing an example of the form (`P1Y2M3DT4H5M6S`, `--12-24`, …) while empty |
-| Strings, tokens, names, lists, other types | Text field |
-
-Every editor checks the value against the complete type while you type, with the same engine as the validation:
-the built-in type's form and range (`unsignedByte` 0–255, `positiveInteger` ≥ 1, valid dates), and every facet of
-every derivation step - patterns (XSD regular expressions, all steps must match), length limits after whitespace
-normalisation, inclusive and exclusive bounds, `totalDigits`, `fractionDigits`, `explicitTimezone`. A value that
-does not fit gets a red outline and the reason as tooltip.
-
-Such a value is **not blocked**: it is written, and a notification names the field and the reason - also for a table
-cell and for a pasted block of cells (one notification with the number of values). The Problems panel lists it
-after the next validation (**F8**).
+- **Validation markers.** After a validation (Validation panel), rows whose element has a
+  problem show a red **!** at the end of the name cell and a red value; hover the row for the
+  message. Problems inside a repeating group mark the member's row number. The markers clear
+  on the next grid edit and come back with the next validation. Selecting a problem in the
+  PROBLEMS panel keeps the grid open and reveals it: the row or table cell is selected, opened on
+  the way and briefly highlighted.
+- **Sibling groups** for very large files (**⋯** menu → *Sibling groups: 100 / 1,000 / 10,000
+  nodes*, remembered): an element with more children than that shows them in collapsed groups
+  such as `record <1001..2000>`; opening a group closes the other groups of the same element.
+- **Large files** (from 8 MB of text). Grid edits are not written into the text after every
+  change: the text follows when you switch to the Text view, save, validate or transform. While
+  it is written back, a loading indicator shows and the text is read-only for a moment.
