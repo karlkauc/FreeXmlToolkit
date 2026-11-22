@@ -6,6 +6,20 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## Unreleased
 
+- **A new logo.** Two tag brackets, blue and orange, form the X of XML. The application, its window and taskbar
+  icons, the splash screen, the welcome page, the About dialog and the installers show it. Windows gets its icon in
+  nine sizes from 16 to 256 px (the taskbar used to scale one large image down), macOS an icon on Apple's icon grid,
+  Linux icons from 16 to 512 px. [Brand guidelines](https://github.com/karlkauc/FreeXmlToolkit/tree/main/release/brand)
+- **One colour scheme throughout.** The last controls of the old look - the blue buttons in the schema overview, the
+  folder comparison and the large-file window, and the hover frame of the status bar fields - now follow the accent
+  colour and the dark theme. The splash screen is navy like the rest of the window chrome.
+- **New documentation.** The documentation is ordered by task and reader: Get started (with a 15-minute
+  [first steps](../get-started/first-steps.md) tutorial and a page for people
+  [coming from another editor](../get-started/coming-from-another-editor.md)), Guides, Industry standards, Automate
+  (with [CI recipes](../automate/ci-recipes.md)), Administer, Reference (with a [glossary](glossary.md)) and Extend.
+  Large pages are split into one page per task. Old links keep working, and the help links in the application open
+  the new pages.
+
 - **Saxon HE 13.1 next to the bundled Saxon.** *Settings → XSLT Processors → Add Saxon HE 13.1* downloads the
   newest Saxon HE (XSLT 4.0 preview features) and adds it as a processor for the Transform panel, scenarios, batch
   runs, the PDF/FOP panel and `fxt-cli transform --processor`. It runs in its own process with the application's
@@ -57,6 +71,9 @@ running is shown under **Help → About FreeXmlToolkit**.
   look in the program's folder), like XQuery already did. When a file cannot be read, a hint explains relative and
   `file:` paths.
 
+- **JSON with long strings.** A string of a few thousand characters in a `.json` or `.jsonl` file no longer stops the
+  syntax colouring with an error. In documents over 1 MB the hover no longer reads the whole text at every pause of
+  the mouse (it held the window for seconds on very large files); there it shows the problems at the position only.
 - **No pause when Settings is the first thing you open.** Settings asked the system for its list of fonts before
   showing the syntax colour preview, which froze the window for seconds on computers with many fonts. The bundled
   editor font needs no list now, and the list is read in the background at start.
