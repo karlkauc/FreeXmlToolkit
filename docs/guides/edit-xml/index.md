@@ -19,7 +19,7 @@ The XML Editor is the main feature of FreeXmlToolkit. It provides a powerful and
 > The editor toolbar is a single slim row. Related actions sit in
 > **split buttons** with a visible **▾** arrow menu (e.g. **Save As / Save All** under
 > **Save ▾**, **Minify** under **Format ▾**); secondary tools are icon-only buttons with
-> tooltips. See [Unified Shell - Toolbar](../../get-started/workspace-tour.md#toolbar) for the full reference.
+> tooltips. See [Unified Shell - Toolbar](../../reference/workspace.md#toolbar) for the full reference.
 
 With an XML file active, the toolbar offers:
 
@@ -29,7 +29,7 @@ With an XML file active, the toolbar offers:
 | **Open** | Ctrl+O | Open one or more files |
 | **Save ▾** | Ctrl+S | Save the current file; the arrow menu holds **Save As…** (Ctrl+Shift+S) and **Save All** |
 | **Undo** / **Redo** | Ctrl+Z / Ctrl+Y | Undo / redo the last change (icon buttons) |
-| **Format ▾** | Shift+Alt+F | Pretty-print the document; the arrow menu holds **Minify**. (Note: Ctrl+Shift+F opens [Find in Files](../../get-started/workspace-tour.md#search-panel), not document search.) |
+| **Format ▾** | Shift+Alt+F | Pretty-print the document; the arrow menu holds **Minify**. (Note: Ctrl+Shift+F opens [Find in Files](search-in-files.md), not document search.) |
 | **Query Console** | Ctrl+Shift+X | Toggle the bottom XPath/XQuery console (icon button) |
 | **Transform XSLT** | - | Pick a stylesheet and transform the active XML (icon button) |
 | **Schema ▾** | - | **Set XSD Schema…** for IntelliSense and validation; the arrow menu also holds **Generate Documentation…** and **Type Editor…** (enabled for XSD files) and **Generate XSD from XML** / **Generate XSD from XML Files…** |
@@ -57,7 +57,7 @@ is active - see [Query Documents](../transform-query/query-console.md#query-docu
 - **Save As**: Use `Ctrl+Shift+S` (or the **Save ▾** arrow menu) to save the current file with a new name
 - **Save All**: Pick **Save All** from the **Save ▾** arrow menu to save every open document tab at once (untitled tabs prompt you for a file name)
 - **"Edited with" comment**: Saving an XML, XSD, XSLT, Schematron or XProc file adds a short comment after the XML declaration, such as `<!-- Edited with FreeXmlToolkit 3.2.0 (https://github.com/karlkauc/FreeXmlToolkit) by Name (Company) -->`. The editor shows the comment as soon as you save, so the text you see matches the file. An existing comment of this kind is updated, never repeated. Turn it off with **Mark saved XML files** in [Settings → Editor](../../reference/settings.md)
-- **Create New**: Click "New" (Ctrl+N) to open the guided [New File dialog](../../get-started/workspace-tour.md#new-file-dialog) - pick a file type, an optional template or schema, and start editing
+- **Create New**: Click "New" (Ctrl+N) to open the guided [New File dialog](working-with-files.md#new-file-dialog) - pick a file type, an optional template or schema, and start editing
 - **Drag & Drop**: Drag files from your file explorer into the editor
 - **Recent Files**: Reopen recently used files from the Explorer panel's **RECENT** section or the Welcome page
 
@@ -292,7 +292,7 @@ Ctrl+F searches the **active document**. To search - and replace -
 across **all files of a folder**, by plain text or by an XPath expression, use the
 **Search** activity in the Unified Shell: press **Ctrl+Shift+F** (Find in Files) or
 **Ctrl+Shift+H** (Replace in Files), or click the magnifying-glass icon in the activity
-bar. See the [Search Panel](../../get-started/workspace-tour.md#search-panel) guide.
+bar. See the [Search Panel](search-in-files.md) guide.
 
 > **Changed shortcut:** Ctrl+Shift+F used to format the document - **Format Document is
 > now Shift+Alt+F**.

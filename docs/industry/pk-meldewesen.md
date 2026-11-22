@@ -170,7 +170,7 @@ The findings of the FMA rules keep their FMA code, the rule's group (master data
 totals, assets, look-through, allocation, Form 900, whole report, additional checks) and the position they are
 about (asset id and title, or the VRG). In the Problems panel, filter them by these categories and group them by
 **Security / object** - one group per asset with all its findings - or by **Rule**, and export the list to Excel
-([Large lists](../get-started/workspace-tour.md#large-lists-categories-search-grouping-export)).
+([Large lists](../guides/validate/problems.md#large-lists-categories-search-grouping-export)).
 
 Real quarterly reports can be 150 MB and more. The extension reads only the start of a document
 to recognise it. For files above 50 MB the editor offers the [Large File Viewer](../guides/edit-xml/large-files.md),

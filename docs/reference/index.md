@@ -5,6 +5,10 @@ instructions see the [Guides](../guides/index.md).
 
 <div class="grid cards" markdown>
 
+-   **[Workspace](workspace.md)**
+
+    Menus, toolbar, panels and the status bar.
+
 -   **[Keyboard shortcuts](keyboard-shortcuts.md)**
 
     Every shortcut, by area.

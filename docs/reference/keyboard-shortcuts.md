@@ -5,7 +5,7 @@ under **Help → Keyboard Shortcuts**, and every menu item shows its shortcut ne
 
 !!! tip "macOS"
     On macOS use **Cmd** instead of **Ctrl** for the shortcuts below (see
-    [Menu Bar → macOS](../get-started/workspace-tour.md#macos)). Because **Cmd+H** hides the application,
+    [Menu Bar → macOS](workspace.md#macos)). Because **Cmd+H** hides the application,
     Find and Replace is **Alt+Cmd+F**; full screen is **Ctrl+Cmd+F** (F11 works too).
 
 ## Files and Tabs
@@ -28,7 +28,7 @@ under **Help → Keyboard Shortcuts**, and every menu item shows its shortcut ne
 | Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z) | Undo / Redo (works from the Text, Tree and Graphic views) |
 | Ctrl+F | Find (in the active document, in every view mode - see below) |
 | Ctrl+H | Find and Replace (in the active document); **Alt+Cmd+F** on macOS |
-| Ctrl+Shift+F | **Find in Files** - opens the [Search panel](../get-started/workspace-tour.md#search-panel), prefilled with the editor selection |
+| Ctrl+Shift+F | **Find in Files** - opens the [Search panel](../guides/edit-xml/search-in-files.md), prefilled with the editor selection |
 | Ctrl+Shift+H | **Replace in Files** - opens the Search panel with the replace row expanded |
 | Shift+Alt+F | Format (pretty-print) the active document |
 | Ctrl+Space | Auto-completion ([IntelliSense](../guides/edit-xml/auto-completion.md)); also in the Query Console |

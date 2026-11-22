@@ -397,7 +397,7 @@ fxt-cli scenario orders.fxtproj Report --accept                            # new
 
 Compares two XML files by structure, two JSON or YAML files by their data, or two folders file by
 file, like **Compare with File…** in XML or Data mode and **Compare Folders…** in the application (see
-[Compare & Merge](../get-started/workspace-tour.md#comparing-as-xml)). Formatting, attribute order and namespace
+[Compare & Merge](../guides/compare-merge.md#comparing-as-xml)). Formatting, attribute order and namespace
 prefixes do not count.
 
 ```bash
@@ -418,7 +418,7 @@ fxt-cli compare [options] LEFT RIGHT
 | `-f`, `--format FORMAT` | `text` (default) or `json` |
 
 LEFT is the expected document. With placeholders it can describe a result whose values change from
-run to run (an ID, a date): see [Comparing as XML](../get-started/workspace-tour.md#comparing-as-xml).
+run to run (an ID, a date): see [Comparing as XML](../guides/compare-merge.md#comparing-as-xml).
 
 **JSON and YAML.** Two files with the extensions `.json`, `.jsonc`, `.json5`, `.yaml` or `.yml` are
 compared by their data, a JSON file against a YAML file too: member order, formatting, comments,
@@ -441,7 +441,7 @@ different, with a note).
 ## merge
 
 Three-way merge of a base and two changed versions, like **Tools → Merge Files…** (see
-[Merging three files](../get-started/workspace-tour.md#merging-three-files)). Conflicts are written with Git's
+[Merging three files](../guides/compare-merge.md#merging-three-files)). Conflicts are written with Git's
 markers.
 
 ```bash

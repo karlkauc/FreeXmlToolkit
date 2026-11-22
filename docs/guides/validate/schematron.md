@@ -36,7 +36,7 @@ While XSD schemas check the structure of your XML (which elements can appear whe
 
 > Schematron files use the shell's single-row editor toolbar.
 > Related actions sit in **split buttons** with a visible **▾** arrow menu; see
-> [Unified Shell - Toolbar](../../get-started/workspace-tour.md#toolbar) for the full reference.
+> [Unified Shell - Toolbar](../../reference/workspace.md#toolbar) for the full reference.
 
 With a `.sch` file active, the relevant actions are:
 
@@ -46,7 +46,7 @@ With a `.sch` file active, the relevant actions are:
 | **Open** | Ctrl+O | Open an existing file |
 | **Save ▾** | Ctrl+S | Save the current file; the arrow menu holds **Save As…** (Ctrl+Shift+S) and **Save All** |
 | **Undo** / **Redo** | Ctrl+Z / Ctrl+Y | Undo / redo the last change (icon buttons) |
-| **Format ▾** | Shift+Alt+F | Pretty-print the file. (Note: Ctrl+Shift+F opens [Find in Files](../../get-started/workspace-tour.md#search-panel), not document search.) |
+| **Format ▾** | Shift+Alt+F | Pretty-print the file. (Note: Ctrl+Shift+F opens [Find in Files](../edit-xml/search-in-files.md), not document search.) |
 | **Validate** | F8 | Check that the Schematron file is well-formed XML (the result appears in the Validation panel's PROBLEMS list). Use **Check Rules** for a deeper rule-level inspection |
 | **Query Console** | Ctrl+Shift+X | Toggle the bottom XPath/XQuery console — the place to try out rule expressions |
 
@@ -228,7 +228,7 @@ Shell guide.
 
 For a quick check of many files at once, select the XML files in the Explorer's workspace
 tree, right-click and choose
-[Validate with *&lt;Schematron&gt;*](../../get-started/workspace-tour.md#explorer-context-menu) - it validates
+[Validate with *&lt;Schematron&gt;*](../../reference/workspace.md#explorer-context-menu) - it validates
 them against the last-used Schematron.
 
 ### Integration with XML Editor

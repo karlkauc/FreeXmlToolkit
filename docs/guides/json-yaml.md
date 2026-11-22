@@ -411,7 +411,7 @@ On the command line: [`fxt-cli convert`](../automate/command-line.md#convert).
 
 > JSON files use the shell's single-row editor toolbar. Related
 > actions sit in **split buttons** with a visible **▾** arrow menu; see
-> [Unified Shell - Toolbar](../get-started/workspace-tour.md#toolbar) for the full reference.
+> [Unified Shell - Toolbar](../reference/workspace.md#toolbar) for the full reference.
 
 With a JSON file active, the relevant actions are:
 

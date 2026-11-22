@@ -146,7 +146,7 @@ below OPTIONS & TOOLS.
 
 A scenario with an **expected result** can be checked: it runs as usual, and its result is
 compared with the expected file ("golden file"). XML results are compared by structure, like
-[Comparing as XML](../get-started/workspace-tour.md#comparing-as-xml) — formatting and attribute order do not
+[Comparing as XML](compare-merge.md#comparing-as-xml) — formatting and attribute order do not
 count. Other results (text, JSON) are compared line by line.
 
 **Values that change from run to run** — a creation date, an ID — go into the expected file as

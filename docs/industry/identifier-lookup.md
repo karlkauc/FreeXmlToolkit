@@ -90,7 +90,7 @@ Findings that usually need no change - an ISIN not in ESMA FIRDS or not traded o
 registration is pending - are **hints** (blue ⓘ), not warnings. In the Problems panel, group the findings by
 **Security / object** to see each ISIN or LEI once with all its occurrences, and use **Fix ISIN … in Every Place** to
 take the CFI code and issuer LEI from ESMA FIRDS in every place the document reports them (one undo step). See
-[Large lists](../get-started/workspace-tour.md#large-lists-categories-search-grouping-export).
+[Large lists](../guides/validate/problems.md#large-lists-categories-search-grouping-export).
 
 ## Progress, cancelling and continuing
 

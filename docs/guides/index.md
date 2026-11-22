@@ -29,9 +29,13 @@ publishing. Pick the task you have in front of you.
 
     Render XSL-FO to PDF with Apache FOP or an external processor.
 
--   **[Sign & encrypt](sign-encrypt/signatures.md)**
+-   **[Compare and merge](compare-merge.md)**
 
-    XML signatures and [XML Encryption](sign-encrypt/encryption.md) for documents and single elements.
+    Compare two files as text or as XML, compare folders, merge three versions.
+
+-   **[Sign & encrypt](sign-encrypt/index.md)**
+
+    XML signatures and XML Encryption for documents and single elements.
 
 -   **[Projects & scenarios](projects.md)**
 

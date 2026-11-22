@@ -187,7 +187,7 @@ over many XML files at once - or, when no stylesheet is set, the active XQuery d
 
 The Explorer offers an even faster route: select **several XML files** in the workspace tree
 (Ctrl/Shift+click), right-click and choose
-[Transform with *&lt;stylesheet&gt;*](../../get-started/workspace-tour.md#explorer-context-menu) — the Batch tool
+[Transform with *&lt;stylesheet&gt;*](../../reference/workspace.md#explorer-context-menu) — the Batch tool
 tab opens pre-loaded with those files and starts automatically.
 
 ---

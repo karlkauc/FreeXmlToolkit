@@ -52,6 +52,17 @@ The library is consulted whenever a document needs a schema but doesn't say whic
 - **XSLT/XQuery `doc()` / `document()`** - a system ID the engine can't resolve directly
   falls back to the library (and catalogs) the same way.
 
+### The Schema Library page {#schema-library-page}
+The **Schema Library** activity (icon: collection) manages namespace → schema mappings used
+to auto-bind XML, XSD and JSON documents that don't carry an explicit schema reference.
+Like Settings, it opens as a **page** - a tab named **Schema Library** in the main editor
+area, where all table columns fit. The page has three tabs - **Mappings**, **Catalogs** and
+**Cache** - each with clearly labelled action buttons, and a shared status line at the bottom.
+The side panel on the left lists the same three sections: click one to jump to that tab; the
+tab you are on is highlighted. **Settings → Schemas & Validation → SCHEMA LIBRARY → Manage schema cache…** opens the page directly on
+the **Cache** tab. See the [Schema Library guide](schema-library.md) for the full reference,
+including the resolution order, the bundled standards list and troubleshooting.
+
 ## 2. Mappings tab
 
 ![Schema Library - Mappings](../../img/unified-shell-schema-library-mappings.png)

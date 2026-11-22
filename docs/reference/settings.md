@@ -190,7 +190,7 @@ group is not shown at all.
 **Settings → Files → After an Export → Confirm every export (Open / Show in Folder)** (on by default): after every
 export a dialog shows where the file was saved, with **Open**, **Show in Folder** and **OK**. Off, a short note at
 the bottom right with an **Open** link appears instead. The dialog's *Don't show this again* switches it off as well.
-See [After an Export](../get-started/workspace-tour.md#after-an-export).
+See [After an Export](workspace.md#after-an-export).
 
 ## Clearing the Cache Folder
 
@@ -274,7 +274,7 @@ Notes:
 ## Managing your templates
 
 > The **TEMPLATES** card lets you keep your own starting templates,
-> which then show up (filtered by file type) in the [New File dialog](../get-started/workspace-tour.md#new-file-dialog).
+> which then show up (filtered by file type) in the [New File dialog](../guides/edit-xml/working-with-files.md#new-file-dialog).
 
 - **Templates directory** - Use **Browse…** to point the application at the folder where your
   templates live. Leave it empty to use the default location. Changing the directory takes

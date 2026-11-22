@@ -190,6 +190,8 @@ nav:
     - guides/index.md
     - Edit XML:
       - guides/edit-xml/index.md
+      - Working with files: guides/edit-xml/working-with-files.md
+      - Search and replace in files: guides/edit-xml/search-in-files.md
       - Grid view: guides/edit-xml/grid.md
       - Auto-completion: guides/edit-xml/auto-completion.md
       - Templates: guides/edit-xml/templates.md
@@ -199,10 +201,12 @@ nav:
     - JSON & YAML: guides/json-yaml.md
     - Design schemas:
       - guides/design-schemas/index.md
+      - The Schema panel: guides/design-schemas/schema-panel.md
       - Sample XML with profiles: guides/design-schemas/sample-xml.md
       - Schema Library: guides/design-schemas/schema-library.md
     - Validate:
       - guides/validate/index.md
+      - Working with problems: guides/validate/problems.md
       - XSD validation: guides/validate/xsd.md
       - Schematron: guides/validate/schematron.md
       - Schematron Quick Fixes: guides/validate/schematron-quick-fixes.md
@@ -214,7 +218,9 @@ nav:
       - Debugger: guides/transform-query/debug.md
       - XProc pipelines: guides/transform-query/xproc.md
     - PDF with XSL-FO: guides/publish-pdf.md
+    - Compare and merge: guides/compare-merge.md
     - Sign & encrypt:
+      - guides/sign-encrypt/index.md
       - Signatures: guides/sign-encrypt/signatures.md
       - Encryption: guides/sign-encrypt/encryption.md
     - Projects & scenarios: guides/projects.md
@@ -246,6 +252,7 @@ nav:
     - File associations: administer/file-associations.md
   - Reference:
     - reference/index.md
+    - Workspace: reference/workspace.md
     - Keyboard shortcuts: reference/keyboard-shortcuts.md
     - Settings: reference/settings.md
     - Properties Inspector: reference/inspector.md

@@ -142,14 +142,14 @@ running is shown under **Help → About FreeXmlToolkit**.
 - **Open what you exported.** After every export - Excel, CSV, reports, view images, statistics, submission ZIPs,
   folders of generated files - a dialog says where it was saved and offers **Open** (in Excel, the browser …),
   **Show in Folder** and **OK**. *Don't show this again* switches to a short note with an Open link. See
-  [After an Export](../get-started/workspace-tour.md#after-an-export).
+  [After an Export](workspace.md#after-an-export).
 - **Work off large lists of problems.** The Problems panel gets a third counter for **hints** (findings that usually
   need no change: not traded in the EU, registration pending), a **category** filter (document, LEI, ISIN, FMA rule
   groups, extension rules), a **search** field and **grouping** by security / object, rule or category: a security
   that occurs a hundred times is one group. Where ESMA FIRDS knows better, **Fix ISIN … in Every Place** corrects the
   CFI code and issuer LEI in every position at once (one undo step). **Export** writes the shown or all problems to
   Excel with sheets per problem, per object and per rule. See
-  [Large lists](../get-started/workspace-tour.md#large-lists-categories-search-grouping-export).
+  [Large lists](../guides/validate/problems.md#large-lists-categories-search-grouping-export).
 - **Large HTML reports in the preview.** Scrolling through a very large check report (a 150 MB QMV report gives a
   2.7 MB page) could stop the window from painting with hardware rendering on Windows. The application no longer
   caches a graphics texture for every shape, a report of 1 MB and more offers **Open in Browser** above the preview,
@@ -319,7 +319,7 @@ running is shown under **Help → About FreeXmlToolkit**.
 - **Show problems:** the Validation panel's "N problems — show below the editor" now also shows the first problem in
   the editor, on every click.
 - **Save confirmation:** after a save the status bar shows **Saved orders.xml (12:55:18)** for a few seconds, also
-  when the file had no changes. See [Status Bar](../get-started/workspace-tour.md#status-bar).
+  when the file had no changes. See [Status Bar](workspace.md#status-bar).
 
 **Fixes**
 
@@ -623,7 +623,7 @@ running is shown under **Help → About FreeXmlToolkit**.
   URL…**, **Compare files…**, **Spreadsheet Converter…** and **Generate XSD from XML files…**.
   Compare and Generate XSD use the files selected in the workspace tree (two selected files are
   compared with each other); the tree's context menu adds **Compare Selected Files** and
-  **Generate XSD from Selected**. See [Unified Shell](../get-started/workspace-tour.md#explorer-panel).
+  **Generate XSD from Selected**. See [Unified Shell](workspace.md#explorer-panel).
 - **Query Console:** a close button (**✕**) at the top right, and the **XPath | XQuery** mode is
   a clear switch; the active mode is also named on the **Run** button (*Run XPath* / *Run
   XQuery*) and in the hint below the input. See [Query Console](../guides/transform-query/query-console.md#query-console).

@@ -100,7 +100,7 @@ template shows up in the New File dialog: it appears only when that same file ty
 4. Select it; if it has parameters, you are prompted to fill them in.
 5. Optionally choose a **Save to** location, then confirm to create the document.
 
-See [New File dialog](../../get-started/workspace-tour.md#new-file-dialog) for the other options of that dialog.
+See [New File dialog](working-with-files.md#new-file-dialog) for the other options of that dialog.
 
 ---
 

@@ -46,7 +46,7 @@ appearing in the recent list.
   a Schema Library mapping for the document's namespace is used instead. The status bar
   shows how the schema was found - plain **"XSD: name"** for a declared location,
   **"(catalog)"**, **"(library)"** or **"(manual)"** otherwise (see
-  [Status Bar](../../get-started/workspace-tour.md#status-bar)). A schema you picked yourself (via **Change**, a favorite, or
+  [Status Bar](../../reference/workspace.md#status-bar)). A schema you picked yourself (via **Change**, a favorite, or
   the status bar) is never overridden.
 - **JSON documents work the same way**: a top-level `"$schema"` member pointing at a
   schema file or URL auto-binds that **JSON Schema** on open, is re-checked before every
@@ -61,7 +61,7 @@ appearing in the recent list.
     **schema indicator** in the status bar (for XML it reads **"No XSD"**, **"XSD: name"**,
     **"Detecting XSD…"** or **"XSD error"**; for JSON documents the same states read
     **"No JSON Schema"**, **"JSON Schema: name"**, and so on; see
-    [Status Bar](../../get-started/workspace-tour.md#status-bar)) or click the editor toolbar's **Schema** button
+    [Status Bar](../../reference/workspace.md#status-bar)) or click the editor toolbar's **Schema** button
     (**Set XSD Schema…**) and pick a schema file. For XML the binding drives both
     **IntelliSense** and **schema validation**; for JSON it drives **validation**.
 

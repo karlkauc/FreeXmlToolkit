@@ -17,7 +17,7 @@ is clickable to collapse or expand that section.
 
 !!! tip
     For a quick transform without opening this panel, right-click XML files in the Explorer
-    and choose **[Transform with …](../../get-started/workspace-tour.md#explorer-context-menu)**. It shares
+    and choose **[Transform with …](../../reference/workspace.md#explorer-context-menu)**. It shares
     the same recent-stylesheet list and shows its result in the same OUTPUT panel.
 
 ## SCENARIO

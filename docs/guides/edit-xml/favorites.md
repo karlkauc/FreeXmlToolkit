@@ -77,7 +77,7 @@ Picking a favorite from a star menu (or dropping a file on the same row) also **
 PDF/FOP input becomes the active tab; a stylesheet, schema or Schematron opens *behind* the
 active tab, because those panels work on the active document and must not lose it. The
 same holds for every other way of picking a file on a page - file dialogs and recent menus
-included (see [Every Picked File Opens in the Editor](../../get-started/workspace-tour.md#picked-files)).
+included (see [Every Picked File Opens in the Editor](working-with-files.md#picked-files)).
 
 ### Open Favorites From Anywhere
 

@@ -37,6 +37,42 @@ bar. The panel is organized into these sections plus the primary action:
 | **Generate PDF** | Asks for the output file and renders off the UI thread (XSLT → XSL-FO → PDF) |
 | **RESULT** | **Preview PDF**, **Open PDF**, **Show intermediate FO** (the XSL-FO the stylesheet produced, as an editor tab) and **Messages & events (n)** (the stylesheet's `xsl:message` output and every event Apache FOP raised, in the OUTPUT panel) |
 
+### The sections in detail
+- **INPUT** - The **XML** (follows the active editor; *Change* can fix it to a file) and the
+  **XSL-FO stylesheet** (*Change*). Each slot shows its caption, the favorites button and
+  *Change* on the first line and the file name on its own second line (full path as
+  tooltip); an empty slot shows a hint such as *"No stylesheet — choose or drop a file"*,
+  and clicking it works like *Change*. Both rows also carry a **star
+  menu** next to their *Change* link - **XML** favorites for the input, **XSLT** favorites
+  for the stylesheet - so you can pick a favorited file in one click (see
+  [Favorites](edit-xml/favorites.md)). Both rows are also **drop
+  targets**: drop an `.xml` file onto the XML row or an `.xsl` / `.xslt` file onto the
+  stylesheet row - the row glows **green** while a loadable file hovers over it and
+  **red** for a wrong file type (which is rejected), and the drop behaves exactly like a
+  favorite: the file is also loaded into the editor (the XML as the active tab, the
+  stylesheet behind it unless the XML input is fixed).
+- **METADATA** - PDF document **Title**, **Author** (pre-filled from your configured user
+  name) and **Subject**, embedded into the generated PDF.
+- **OPTIONS** - **PDF/A-1b compliant** renders an archival-grade PDF (requires the
+  stylesheet to use embeddable system fonts - the built-in base-14 fonts like Helvetica
+  cannot be embedded, and the error message will say so). **Page size** is a dropdown (A4/Letter,
+  Portrait/Landscape); a hint below it explains that the choice is passed as the
+  `page-size` and `page-orientation` parameters and **only applies if the stylesheet uses
+  them**.
+- **Generate PDF** asks for the output file, renders off the UI thread (XSLT → XSL-FO →
+  PDF), and opens the result in the in-app **PDF preview**; the **RESULT** rows **Preview
+  PDF** and **Open PDF** re-open it any time. **Show intermediate FO** opens the XSL-FO the
+  stylesheet produced as an editor tab, and **Messages & events (n)** lists the stylesheet's
+  `xsl:message` output and every event Apache FOP raised (substituted fonts, overflowing
+  content, unknown properties, …) in the OUTPUT panel - the status line counts the FOP
+  warnings. A failed generation puts the stylesheet error with its location, or FOP's
+  reason, into OUTPUT as well.
+- **TOOLS → Debug stylesheet…** runs the XSL-FO stylesheet in the
+  [XSLT debugger](transform-query/index.md#xslt-debugger) (breakpoints, stepping, variables, live messages); the
+  page-size parameters are passed on. The FO a finished debug run produced lands in OUTPUT
+  and in the panel's result, so **Show intermediate FO** and **Render PDF from FO…** (renders
+  that FO to a PDF of your choice) work right after debugging.
+
 ---
 
 ## Step-by-Step Guide
