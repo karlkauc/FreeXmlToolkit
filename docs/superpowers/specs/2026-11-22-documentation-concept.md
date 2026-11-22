@@ -411,10 +411,11 @@ Umgesetzt (Branch `docs/redesign`):
   JSON ↔ YAML und Excel/CSV). Der Anker `#xmlexcelcsv-converter`, den die App aufruft, bleibt auf
   der Startseite als Verweis bestehen; die Adresse im Java-Code ist unverändert (ein Test prüft sie).
 - Stufe 3, vierter Teil: Grid view in sieben Abschnitte gegliedert (Text unverändert).
+- Stufe 3, fünfter Teil: neue Seiten CI recipes und Coming from another editor (Begriffe aus den
+  Handbüchern von XMLSpy 2027 und Oxygen 28.1).
 
 Offen in Stufe 3:
 
-- Neue Seiten: Coming from another editor, CI recipes.
 - Seitenvorlage (Before you start / Next steps) auf die Anleitungen anwenden; unbeschriftete
   Zitatblöcke (Ankündigungen aus Release-Zeiten) prüfen; Audit-Stand in `accessibility.md`.
 - Die drei Adressen im Java-Code laufen weiter über die Weiterleitungen.

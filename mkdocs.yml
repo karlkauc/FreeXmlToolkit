@@ -187,6 +187,7 @@ nav:
     - Install: get-started/install.md
     - First steps: get-started/first-steps.md
     - Tour of the workspace: get-started/workspace-tour.md
+    - Coming from another editor: get-started/coming-from-another-editor.md
     - What FreeXmlToolkit can do: get-started/features.md
     - Get help: get-started/get-help.md
   - Guides:
