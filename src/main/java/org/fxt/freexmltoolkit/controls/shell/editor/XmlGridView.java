@@ -29,7 +29,7 @@ public class XmlGridView extends GridViewShell {
 
     @Override
     protected String subtitle() {
-        return "· nested · repeating elements as embedded grids";
+        return org.fxt.freexmltoolkit.i18n.I18n.t("XmlGridView.subtitle");
     }
 
     /** @return the current grid's editor context (model + command stack), or {@code null}. */

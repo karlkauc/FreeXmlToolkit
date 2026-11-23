@@ -2089,13 +2089,13 @@ public class InspectorPanel extends VBox {
     private void populateCaret() {
         var docOpt = editorHost.getActiveDocument();
         if (docOpt.isEmpty()) {
-            showEmptyHint("Open a document to see the properties of its nodes here.");
+            showEmptyHint(org.fxt.freexmltoolkit.i18n.I18n.t("InspectorPanel.hint.noDocument"));
             setHeader(PLACEHOLDER, null);
             kindValue.setText(PLACEHOLDER);
             nameField.setText("");
             xpathValue.setText(PLACEHOLDER);
         } else if (docOpt.get().getFileType() == EditorFileType.JSON) {
-            showEmptyHint("Select a node in the Tree or Graphic view to see and edit its properties.");
+            showEmptyHint(org.fxt.freexmltoolkit.i18n.I18n.t("InspectorPanel.hint.selectNode"));
             setHeader(PLACEHOLDER, I18n.t("InspectorPanel.json"), null, "bi-braces");
             kindValue.setText(I18n.t("InspectorPanel.json"));
             nameField.setText("");
@@ -2107,7 +2107,7 @@ public class InspectorPanel extends VBox {
                     : org.fxt.freexmltoolkit.service.yaml.YamlDocument.parse(text)
                             .pathAt(editorHost.activeCaretProperty().get());
             if (path == null) {
-                showEmptyHint("Place the caret on a key or value to see its path here.");
+                showEmptyHint(org.fxt.freexmltoolkit.i18n.I18n.t("InspectorPanel.hint.caretOnKey"));
             }
             String key = path != null && !path.isEmpty() && path.get(path.size() - 1) instanceof String k ? k : null;
             setHeader(key != null ? key : PLACEHOLDER, "YAML", null, "bi-filetype-yml");
@@ -2121,8 +2121,7 @@ public class InspectorPanel extends VBox {
             int caret = editorHost.activeCaretProperty().get();
             NodeXPathInfo info = NodeXPathInfo.fromCaret(xpathCalculator, text, caret);
             if (info.depth() == 0) {
-                showEmptyHint("Place the caret on an element, or select a node in the Tree or Graphic view, "
-                        + "to see and edit its properties.");
+                showEmptyHint(org.fxt.freexmltoolkit.i18n.I18n.t("InspectorPanel.hint.caretOnElement"));
             }
             setHeader(blankToPlaceholder(info.name()), info.kind());
             kindValue.setText(info.kind());

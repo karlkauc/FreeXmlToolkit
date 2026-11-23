@@ -80,7 +80,7 @@ final class GridInlineEditor<N> {
 
         GridModelAdapter.EditSpec spec = view.adapter.cellEditSpec(table, rowIndex, columnName);
         createEditField(spec != null ? spec : GridModelAdapter.EditSpec.plain(currentValue),
-                cellX, cellY, rect.width());
+                cellX, cellY, rect.width(), true);
     }
 
     // ==================== Inline Editing ====================
@@ -165,11 +165,21 @@ final class GridInlineEditor<N> {
      * @param width the field width in unscaled pixels
      */
     private void createEditField(GridModelAdapter.EditSpec spec, double vx, double vy, double width) {
+        createEditField(spec, vx, vy, width, false);
+    }
+
+    /**
+     * @param inCell a table cell: the editor keeps to the cell's width (it covered the next column
+     *               with its minimum width) unless the value itself needs more room
+     */
+    private void createEditField(GridModelAdapter.EditSpec spec, double vx, double vy, double width, boolean inCell) {
         String currentValue = spec.currentValue();
-        // Calculate minimum width based on content
-        double contentBasedWidth = view.metrics.width(currentValue, GridFont.ROW) + 30;
+        // Calculate minimum width based on content (a spinner adds its arrow buttons)
+        double contentBasedWidth = view.metrics.width(currentValue, GridFont.ROW) + 30
+                + (spec.widget() != null && spec.widget().getNode() instanceof javafx.scene.control.Spinner ? 24 : 0);
         double z = view.getZoom();
-        double effectiveWidth = Math.max(width, Math.max(contentBasedWidth, 120)) * z;
+        double effectiveWidth = (inCell ? Math.max(width, contentBasedWidth)
+                : Math.max(width, Math.max(contentBasedWidth, 120))) * z;
         double x = vx * z;
         double y = vy * z;
         double fieldHeight = GridCanvasView.ROW_HEIGHT * z;

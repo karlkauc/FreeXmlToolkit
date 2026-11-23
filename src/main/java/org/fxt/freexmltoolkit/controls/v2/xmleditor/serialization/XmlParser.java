@@ -95,7 +95,9 @@ public class XmlParser {
     public XmlDocument parse(String xmlString) throws XmlParseException {
         try {
             InputSource source = new InputSource(new StringReader(xmlString));
-            return parse(source);
+            XmlDocument document = parse(source);
+            org.fxt.freexmltoolkit.controls.v2.xmleditor.model.StartTagLayout.capture(document, xmlString);
+            return document;
         } catch (Exception e) {
             throw new XmlParseException("Failed to parse XML string", e);
         }

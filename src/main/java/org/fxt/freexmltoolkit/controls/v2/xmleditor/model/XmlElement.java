@@ -78,6 +78,12 @@ public class XmlElement extends XmlNode {
     private int sourceLineNumber = -1;
 
     /**
+     * The source's whitespace inside the start tag (attributes on lines of their own), or
+     * {@code null} for the serializer's form. Set by {@link StartTagLayout#capture}; no content.
+     */
+    private StartTagLayout startTagLayout;
+
+    /**
      * Constructs a new XmlElement with the given name.
      *
      * @param name the element name
@@ -114,6 +120,7 @@ public class XmlElement extends XmlNode {
         if (!original.attributes.isEmpty()) {
             this.attributes = new LinkedHashMap<>(original.attributes);
         }
+        this.startTagLayout = original.startTagLayout;
         // Children copied by deepCopy() method
     }
 
@@ -211,6 +218,16 @@ public class XmlElement extends XmlNode {
         String oldURI = this.namespaceURI;
         this.namespaceURI = namespaceURI;
         firePropertyChange("namespaceURI", oldURI, namespaceURI);
+    }
+
+    /** @return the source layout of the start tag, or {@code null} for the serializer's form */
+    public StartTagLayout getStartTagLayout() {
+        return startTagLayout;
+    }
+
+    /** Sets the source layout of the start tag (no change event: whitespace is no content). */
+    public void setStartTagLayout(StartTagLayout layout) {
+        this.startTagLayout = layout;
     }
 
     // ==================== Attributes ====================
@@ -609,10 +626,7 @@ public class XmlElement extends XmlNode {
 
         // Opening tag
         sb.repeat(' ', indentWidth).append('<').append(getQualifiedName());
-
-        // Attributes (forEach: an entrySet() call leaves a cached view in every map)
-        attributes.forEach((key, value) -> sb.append(' ').append(key).append("=\"")
-                .append(escapeXml(value)).append('"'));
+        appendAttributes(sb, indentWidth);
 
         // Empty element or with children
         if (children.isEmpty()) {
@@ -653,6 +667,22 @@ public class XmlElement extends XmlNode {
                 sb.repeat(' ', indentWidth);
             }
             sb.append("</").append(getQualifiedName()).append('>');
+        }
+    }
+
+    /**
+     * Writes the attributes and the whitespace before the tag's end, in the source's layout when
+     * there is one.
+     *
+     * @param indentWidth the indentation written for the tag's line, -1 inside mixed content
+     */
+    private void appendAttributes(StringBuilder sb, int indentWidth) {
+        StartTagLayout layout = startTagLayout;
+        // forEach: an entrySet() call leaves a cached view in every map
+        attributes.forEach((key, value) -> sb.append(layout == null ? " " : layout.before(key, indentWidth))
+                .append(key).append("=\"").append(escapeXml(value)).append('"'));
+        if (layout != null) {
+            sb.append(layout.beforeClose(indentWidth));
         }
     }
 
@@ -697,8 +727,7 @@ public class XmlElement extends XmlNode {
     /** This element inside mixed content: no indentation and no line breaks at any depth. */
     private void serializeInline(StringBuilder sb, int indentSize, LineRecorder lines) {
         sb.append('<').append(getQualifiedName());
-        attributes.forEach((key, value) -> sb.append(' ').append(key).append("=\"")
-                .append(escapeXml(value)).append('"'));
+        appendAttributes(sb, -1);
         if (children.isEmpty()) {
             sb.append("/>");
             if (lines != null) {

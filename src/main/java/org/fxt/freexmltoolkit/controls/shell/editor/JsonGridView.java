@@ -31,7 +31,7 @@ public class JsonGridView extends GridViewShell {
 
     @Override
     protected String subtitle() {
-        return "· nested · arrays of objects as embedded grids";
+        return org.fxt.freexmltoolkit.i18n.I18n.t("JsonGridView.subtitle");
     }
 
     /** @param yaml whether the shown model is read from YAML text (problem markers find their lines there) */

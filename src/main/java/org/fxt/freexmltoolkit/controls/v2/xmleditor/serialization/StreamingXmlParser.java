@@ -80,7 +80,10 @@ public class StreamingXmlParser {
             XMLInputFactory factory = SecureXmlFactory.createSecureXMLInputFactory();
             factory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, namespaceAware);
             XMLStreamReader streamReader = factory.createXMLStreamReader(reader);
-            return parseFromStream(streamReader);
+            XmlDocument document = parseFromStream(streamReader);
+            // attributes on lines of their own stay there when the model is written back
+            org.fxt.freexmltoolkit.controls.v2.xmleditor.model.StartTagLayout.capture(document, xmlContent);
+            return document;
         } catch (XMLStreamException e) {
             throw new XmlParser.XmlParseException("Failed to parse XML string", e);
         }
