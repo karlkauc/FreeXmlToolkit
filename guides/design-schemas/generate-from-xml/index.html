@@ -4712,8 +4712,9 @@
 
 <h1 id="generate-a-schema-from-xml">Generate a schema from XML<a class="headerlink" href="#generate-a-schema-from-xml" title="Permanent link">¶</a></h1>
 <p><strong>Generate XSD from XML</strong> reads an XML document and writes an XSD that describes what it found:
-the elements, their nesting, the attributes and a data type for each value. Use it to get a first
-draft of a schema for XML that has none, then finish the draft in the schema editor.</p>
+the elements, their nesting, how often they occur, the attributes and a data type for each value.
+Use it to get a first draft of a schema for XML that has none, then finish the draft in the schema
+editor.</p>
 <p>The generator has no options and no dialog. It runs at once and opens the result as a new tab.</p>
 <h2 id="before-you-start">Before you start<a class="headerlink" href="#before-you-start" title="Permanent link">¶</a></h2>
 <ul>
@@ -4757,16 +4758,17 @@ XML document is not changed - it is not bound to the new schema either.</p>
 <p>Hold <strong>Ctrl</strong> or <strong>Shift</strong> to select several files in the Explorer or in the file dialog. Only
 files ending in <code>.xml</code> are used.</p>
 <p>One schema opens in a new, unsaved tab named <strong>Generated.xsd</strong>. If a file cannot be read or is not
-well-formed, an error message appears and no schema is generated.</p>
-<div class="admonition warning">
-<p class="admonition-title">Several files are not merged yet</p>
-<p>The result for several files describes a single element taken from the files - not
-necessarily the root element - without a target namespace. The header comment only counts the
-files. For a usable draft, generate from the one file that shows the most complete structure.</p>
-</div>
+well-formed, an error message names the document and no schema is generated.</p>
+<p>The samples are merged: the schema describes every file you picked. An element that is missing in
+one file becomes optional, a value that is a number in one file and text in another becomes
+<code>xs:string</code>, and files with different root elements give a schema with several global elements.
+All files must be in the same namespace - one schema file describes one namespace.</p>
+<p>The more the samples differ, the better the draft: pick files that show the optional parts and the
+repeating parts of the format.</p>
 <h2 id="what-the-schema-contains">What the schema contains<a class="headerlink" href="#what-the-schema-contains" title="Permanent link">¶</a></h2>
-<p>The generated schema is one global element - the root element of the document - with everything
-else declared inline below it ("Russian doll" style). It declares no named types.</p>
+<p>The generated schema has one global element for the root element of the document, with everything
+else declared inline below it ("Russian doll" style). It declares no named types. Every sample is
+valid against the schema it was generated from.</p>
 <table>
 <thead>
 <tr>
@@ -4781,28 +4783,54 @@ else declared inline below it ("Russian doll" style). It declares no named types
 </tr>
 <tr>
 <td>An element with child elements</td>
-<td><code>xs:element</code> with an inline <code>xs:complexType</code> and an <code>xs:sequence</code> of the children</td>
+<td><code>xs:element</code> with an inline <code>xs:complexType</code> and an <code>xs:sequence</code> of the children, in document order</td>
 </tr>
 <tr>
 <td>An element with text and attributes</td>
 <td><code>xs:complexType</code> with <code>xs:simpleContent</code>, extending the type of the text</td>
 </tr>
 <tr>
-<td>An attribute</td>
-<td><code>xs:attribute</code> with a built-in type and <code>use="required"</code></td>
+<td>An element with text between its child elements</td>
+<td><code>xs:complexType mixed="true"</code></td>
 </tr>
 <tr>
-<td>A default namespace on the document (else the first namespace found)</td>
+<td>A child that occurs several times in its parent</td>
+<td><code>maxOccurs="unbounded"</code></td>
+</tr>
+<tr>
+<td>A child that is missing in one occurrence of its parent</td>
+<td><code>minOccurs="0"</code></td>
+</tr>
+<tr>
+<td>An attribute on every occurrence of its element</td>
+<td><code>xs:attribute</code> with <code>use="required"</code></td>
+</tr>
+<tr>
+<td>An attribute that is missing on one occurrence</td>
+<td><code>xs:attribute</code> without <code>use</code> (optional)</td>
+</tr>
+<tr>
+<td>The namespace of the root element</td>
 <td><code>targetNamespace</code>, the prefix <code>tns</code> and <code>elementFormDefault="qualified"</code></td>
 </tr>
 <tr>
-<td>A child element that occurs several times in its parent</td>
-<td><code>maxOccurs</code> set to the number counted</td>
+<td>A child without a namespace in a document that has one</td>
+<td><code>form="unqualified"</code></td>
+</tr>
+<tr>
+<td>A child element or an attribute of another namespace</td>
+<td><code>xs:any</code> / <code>xs:anyAttribute</code> for that namespace with <code>processContents="lax"</code></td>
 </tr>
 </tbody>
 </table>
-<p>A comment in <code>xs:annotation</code> at the top names the generator and the time of generation.</p>
-<p>The data type is taken from the value, checked in this order:</p>
+<p>All occurrences of an element below the same parent are put together - the three <code>item</code> elements
+of an order give one declaration that fits all three. <code>xsi:</code> attributes and namespace declarations
+are not declared.</p>
+<p>When the samples list the children of an element in different orders, or a child comes back after
+another one (<code>a</code>, <code>b</code>, <code>a</code>), no <code>xs:sequence</code> fits; the content then becomes
+<code>&lt;xs:choice minOccurs="0" maxOccurs="unbounded"&gt;</code>, which allows the children in any order and number.</p>
+<p>A documentation note at the top names the generator and the number of source documents.</p>
+<p>The data type is the narrowest type that fits <strong>every</strong> value seen at that place:</p>
 <table>
 <thead>
 <tr>
@@ -4812,19 +4840,19 @@ else declared inline below it ("Russian doll" style). It declares no named types
 </thead>
 <tbody>
 <tr>
-<td><code>true</code>, <code>false</code>, <code>0</code>, <code>1</code></td>
+<td><code>true</code>, <code>false</code></td>
 <td><code>xs:boolean</code></td>
 </tr>
 <tr>
-<td>A whole number</td>
-<td><code>xs:long</code> (<code>xs:integer</code> if it is too large for that)</td>
+<td>A whole number without leading zeros (<code>7</code>, <code>-42</code>, also <code>0</code> and <code>1</code>)</td>
+<td><code>xs:integer</code></td>
 </tr>
 <tr>
 <td>A number with a decimal point</td>
 <td><code>xs:decimal</code></td>
 </tr>
 <tr>
-<td><code>2026-03-31T10:15:00…</code></td>
+<td><code>2026-03-31T10:15:00</code>, also with a time zone</td>
 <td><code>xs:dateTime</code></td>
 </tr>
 <tr>
@@ -4832,7 +4860,7 @@ else declared inline below it ("Russian doll" style). It declares no named types
 <td><code>xs:date</code></td>
 </tr>
 <tr>
-<td><code>10:15:00…</code></td>
+<td><code>10:15:00</code></td>
 <td><code>xs:time</code></td>
 </tr>
 <tr>
@@ -4845,24 +4873,23 @@ else declared inline below it ("Russian doll" style). It declares no named types
 </tr>
 </tbody>
 </table>
+<p>Whole numbers and decimals at the same place give <code>xs:decimal</code>; any other mix gives <code>xs:string</code>,
+and so does a place that is empty in one occurrence. A value with leading zeros (<code>01234</code>) stays
+<code>xs:string</code>, because a number would lose them, and an impossible date (<code>2026-02-30</code>) is text.</p>
 <h2 id="what-to-check-afterwards">What to check afterwards<a class="headerlink" href="#what-to-check-afterwards" title="Permanent link">¶</a></h2>
-<p>The schema is derived from one sample, not from a specification. Go through it before you use it:</p>
+<p>The schema is derived from samples, not from a specification - it is as good as the samples are
+complete. Go through it before you use it:</p>
 <ul>
-<li><strong>Repeated elements.</strong> An element that occurs more than once in its parent is declared with an
-  empty <code>xs:complexType</code>: its children, attributes and text type are missing. Add them by hand,
-  for example from a sample that contains the element only once.</li>
-<li><strong>Cardinality.</strong> <code>maxOccurs</code> is the count in the sample (<code>maxOccurs="3"</code> for three items), and
-  nothing is declared optional. Set <code>maxOccurs="unbounded"</code> and <code>minOccurs="0"</code> where they belong.</li>
-<li><strong>Attributes.</strong> Every attribute is <code>use="required"</code>. Remove that for optional ones.</li>
-<li><strong>Data types.</strong> A type fits the one value seen. An <code>id="1"</code> becomes <code>xs:boolean</code>, a postal code
-  becomes <code>xs:long</code>, an amount written as <code>7</code> becomes <code>xs:long</code> instead of <code>xs:decimal</code>. Correct
-  the types that are too narrow.</li>
-<li><strong>Order of the children.</strong> The children of an element are not guaranteed to be listed in
-  document order. Reorder the <code>xs:sequence</code> or the document will not validate.</li>
-<li><strong>Namespaces.</strong> Only one target namespace is written. Elements from other namespaces need their
-  own schema and an <code>xs:import</code>.</li>
-<li><strong>Empty elements.</strong> An element without content, children and attributes gets an empty
-  <code>xs:complexType</code>.</li>
+<li><strong>Cardinality.</strong> An element is optional or repeatable only if a sample showed it that way. Add
+  <code>minOccurs="0"</code> and <code>maxOccurs="unbounded"</code> where the format allows more than the samples show.</li>
+<li><strong>Attributes.</strong> An attribute that every sample carries is <code>use="required"</code>. Remove that for
+  optional ones.</li>
+<li><strong>Data types.</strong> A type fits the values seen. A field that happened to hold only numbers becomes
+  <code>xs:integer</code> although the format allows letters. Widen the types that are too narrow.</li>
+<li><strong>A repeatable choice</strong> is looser than the format usually is. Replace it with the real content
+  model once you know it.</li>
+<li><strong>Other namespaces.</strong> Elements of another namespace are only let through. Give them their own
+  schema and an <code>xs:import</code> if they should be checked.</li>
 <li><strong>Enumerations, patterns and lengths</strong> are not derived. Add facets where values are restricted.</li>
 </ul>
 <p>Then:</p>
