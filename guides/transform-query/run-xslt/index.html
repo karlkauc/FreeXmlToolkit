@@ -9,7 +9,7 @@
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/guides/transform-query/run-xslt/">
+        <link rel="canonical" href="https://freexmltoolkit.org/docs/guides/transform-query/run-xslt/">
       
       
         <link rel="prev" href="../">
@@ -53,7 +53,20 @@
       
 
     
-    
+    <script>
+  if (location.hostname === "karlkauc.github.io") {
+    location.replace("https://freexmltoolkit.org/docs/"
+      + location.pathname.replace(/^\/FreeXmlToolkit\/?/, "") + location.search + location.hash);
+  }
+</script>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Run a transformation - FreeXmlToolkit Docs">
+<meta property="og:description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
+<meta property="og:url" content="https://freexmltoolkit.org/docs/guides/transform-query/run-xslt/">
+<meta property="og:image" content="https://freexmltoolkit.org/docs/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
   <link href="../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
@@ -83,7 +96,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#run-a-transformation" class="md-skip">
+        <a href="#description-run-xslt-30-and-xquery-31-transformations-with-saxon-parameters-live-preview-scenarios-and-batch-transformation" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +117,7 @@
   FreeXmlToolkit <strong class="fxt-release-version">latest release</strong> is available –
   <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download now</a>
   <span class="fxt-announce__sep">·</span>
-  <a href="https://karlkauc.github.io/FreeXmlToolkit/#download">All platforms</a>
+  <a href="https://freexmltoolkit.org/docs/#download">All platforms</a>
 </span>
 
           </div>
@@ -1332,6 +1345,8 @@
       
         
       
+        
+      
     
     
     
@@ -1564,6 +1579,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../design-schemas/generate-from-xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate a schema from XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../design-schemas/documentation/" class="md-nav__link">
         
   
@@ -1716,6 +1759,8 @@
       
         
           
+        
+      
         
       
         
@@ -1925,6 +1970,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../validate/dtd-relaxng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DTD and RELAX NG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2034,8 +2107,6 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
-        
-      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
@@ -2078,8 +2149,6 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -2088,6 +2157,29 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
+  <a href="#description-run-xslt-30-and-xquery-31-transformations-with-saxon-parameters-live-preview-scenarios-and-batch-transformation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        description: Run XSLT 3.0 and XQuery 3.1 transformations with Saxon: parameters, live preview, scenarios and batch transformation.
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-a-transformation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run a transformation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Run a transformation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#before-you-start" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2097,8 +2189,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#run-a-stylesheet" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2147,8 +2239,8 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#controls-at-a-glance" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2158,8 +2250,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#live-preview-and-watch-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2169,8 +2261,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#using-xslt-parameters" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2208,8 +2300,8 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#output-format" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2219,8 +2311,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#multi-file-batch-processing" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2230,8 +2322,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#tracing-and-messages" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2258,8 +2350,8 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2269,8 +2361,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2278,6 +2370,11 @@
       
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -3464,6 +3561,8 @@
       
         
       
+        
+      
     
     
     
@@ -3533,6 +3632,34 @@
     
   
     Policies and silent installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../administer/updates-and-network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updates and network access
   
 
     
@@ -4230,7 +4357,7 @@
   <span class="md-ellipsis">
     
   
-    What's New
+    Whats new
   
 
     
@@ -4640,8 +4767,6 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -4650,6 +4775,29 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
+  <a href="#description-run-xslt-30-and-xquery-31-transformations-with-saxon-parameters-live-preview-scenarios-and-batch-transformation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        description: Run XSLT 3.0 and XQuery 3.1 transformations with Saxon: parameters, live preview, scenarios and batch transformation.
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-a-transformation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run a transformation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Run a transformation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#before-you-start" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4659,8 +4807,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#run-a-stylesheet" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4709,8 +4857,8 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#controls-at-a-glance" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4720,8 +4868,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#live-preview-and-watch-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4731,8 +4879,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#using-xslt-parameters" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4770,8 +4918,8 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#output-format" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4781,8 +4929,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#multi-file-batch-processing" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4792,8 +4940,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#tracing-and-messages" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4820,8 +4968,8 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4831,8 +4979,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4840,6 +4988,11 @@
       
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -4863,6 +5016,8 @@
   
 
 
+<hr>
+<h2 id="description-run-xslt-30-and-xquery-31-transformations-with-saxon-parameters-live-preview-scenarios-and-batch-transformation">description: Run XSLT 3.0 and XQuery 3.1 transformations with Saxon: parameters, live preview, scenarios and batch transformation.<a class="headerlink" href="#description-run-xslt-30-and-xquery-31-transformations-with-saxon-parameters-live-preview-scenarios-and-batch-transformation" title="Permanent link">¶</a></h2>
 <h1 id="run-a-transformation">Run a transformation<a class="headerlink" href="#run-a-transformation" title="Permanent link">¶</a></h1>
 <p>Pick a stylesheet and an input in the <strong>Transform</strong> panel, run it, and read the result in the
 <strong>OUTPUT</strong> panel below the editor. This page covers the everyday run, parameters, live preview and

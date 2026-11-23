@@ -9,7 +9,7 @@
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/automate/command-line/">
+        <link rel="canonical" href="https://freexmltoolkit.org/docs/automate/command-line/">
       
       
         <link rel="prev" href="../">
@@ -53,7 +53,20 @@
       
 
     
-    
+    <script>
+  if (location.hostname === "karlkauc.github.io") {
+    location.replace("https://freexmltoolkit.org/docs/"
+      + location.pathname.replace(/^\/FreeXmlToolkit\/?/, "") + location.search + location.hash);
+  }
+</script>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Command line (fxt-cli) - FreeXmlToolkit Docs">
+<meta property="og:description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
+<meta property="og:url" content="https://freexmltoolkit.org/docs/automate/command-line/">
+<meta property="og:image" content="https://freexmltoolkit.org/docs/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
   <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
@@ -83,7 +96,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#command-line-fxt-cli" class="md-skip">
+        <a href="#description-fxt-cli-validate-transform-query-compare-convert-sign-and-encrypt-xml-from-the-command-line-and-in-build-pipelines" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +117,7 @@
   FreeXmlToolkit <strong class="fxt-release-version">latest release</strong> is available –
   <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download now</a>
   <span class="fxt-announce__sep">·</span>
-  <a href="https://karlkauc.github.io/FreeXmlToolkit/#download">All platforms</a>
+  <a href="https://freexmltoolkit.org/docs/#download">All platforms</a>
 </span>
 
           </div>
@@ -1321,6 +1334,8 @@
       
         
       
+        
+      
     
     
     
@@ -1550,6 +1565,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guides/design-schemas/generate-from-xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate a schema from XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guides/design-schemas/documentation/" class="md-nav__link">
         
   
@@ -1702,6 +1745,8 @@
       
         
           
+        
+      
         
       
         
@@ -1895,6 +1940,34 @@
     
   
     Schematron Quick Fixes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/validate/dtd-relaxng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DTD and RELAX NG
   
 
     
@@ -2986,8 +3059,6 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
-        
-      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
@@ -3030,8 +3101,6 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -3040,6 +3109,29 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
+  <a href="#description-fxt-cli-validate-transform-query-compare-convert-sign-and-encrypt-xml-from-the-command-line-and-in-build-pipelines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        description: fxt-cli: validate, transform, query, compare, convert, sign and encrypt XML from the command line and in build pipelines.
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#command-line-fxt-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command Line (fxt-cli)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Command Line (fxt-cli)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#commands" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3049,8 +3141,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#where-it-is" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3060,8 +3152,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#mcp" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3071,8 +3163,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#exit-codes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3082,8 +3174,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#output-logging-and-settings" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3093,8 +3185,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#in-a-ci-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3102,6 +3194,11 @@
       
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -3316,6 +3413,8 @@
       
         
       
+        
+      
     
     
     
@@ -3385,6 +3484,34 @@
     
   
     Policies and silent installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administer/updates-and-network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updates and network access
   
 
     
@@ -4082,7 +4209,7 @@
   <span class="md-ellipsis">
     
   
-    What's New
+    Whats new
   
 
     
@@ -4492,8 +4619,6 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -4502,6 +4627,29 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
+  <a href="#description-fxt-cli-validate-transform-query-compare-convert-sign-and-encrypt-xml-from-the-command-line-and-in-build-pipelines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        description: fxt-cli: validate, transform, query, compare, convert, sign and encrypt XML from the command line and in build pipelines.
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#command-line-fxt-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command Line (fxt-cli)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Command Line (fxt-cli)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#commands" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4511,8 +4659,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#where-it-is" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4522,8 +4670,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#mcp" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4533,8 +4681,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#exit-codes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4544,8 +4692,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#output-logging-and-settings" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4555,8 +4703,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#in-a-ci-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4564,6 +4712,11 @@
       
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -4587,6 +4740,8 @@
   
 
 
+<hr>
+<h2 id="description-fxt-cli-validate-transform-query-compare-convert-sign-and-encrypt-xml-from-the-command-line-and-in-build-pipelines">description: fxt-cli: validate, transform, query, compare, convert, sign and encrypt XML from the command line and in build pipelines.<a class="headerlink" href="#description-fxt-cli-validate-transform-query-compare-convert-sign-and-encrypt-xml-from-the-command-line-and-in-build-pipelines" title="Permanent link">¶</a></h2>
 <h1 id="command-line-fxt-cli">Command Line (fxt-cli)<a class="headerlink" href="#command-line-fxt-cli" title="Permanent link">¶</a></h1>
 <p><code>fxt-cli</code> runs FreeXmlToolkit's validators, transformation engines, XPath/XQuery/JSONPath queries, XML
 comparison and merge, schema documentation, XML/JSON/YAML conversion, PDF output, XML signatures and XML encryption without the user interface: in build pipelines, scripts and scheduled jobs. <code>fxt-cli mcp</code> offers the same engines to AI agents. It uses the

@@ -9,7 +9,7 @@
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/guides/json-yaml/">
+        <link rel="canonical" href="https://freexmltoolkit.org/docs/guides/json-yaml/">
       
       
         <link rel="prev" href="../edit-xml/large-files/">
@@ -53,7 +53,20 @@
       
 
     
-    
+    <script>
+  if (location.hostname === "karlkauc.github.io") {
+    location.replace("https://freexmltoolkit.org/docs/"
+      + location.pathname.replace(/^\/FreeXmlToolkit\/?/, "") + location.search + location.hash);
+  }
+</script>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="JSON &amp; YAML - FreeXmlToolkit Docs">
+<meta property="og:description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
+<meta property="og:url" content="https://freexmltoolkit.org/docs/guides/json-yaml/">
+<meta property="og:image" content="https://freexmltoolkit.org/docs/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
   <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
@@ -104,7 +117,7 @@
   FreeXmlToolkit <strong class="fxt-release-version">latest release</strong> is available –
   <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download now</a>
   <span class="fxt-announce__sep">·</span>
-  <a href="https://karlkauc.github.io/FreeXmlToolkit/#download">All platforms</a>
+  <a href="https://freexmltoolkit.org/docs/#download">All platforms</a>
 </span>
 
           </div>
@@ -1675,6 +1688,8 @@
       
         
       
+        
+      
     
     
     
@@ -1907,6 +1922,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../design-schemas/generate-from-xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate a schema from XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../design-schemas/documentation/" class="md-nav__link">
         
   
@@ -2059,6 +2102,8 @@
       
         
           
+        
+      
         
       
         
@@ -2255,6 +2300,34 @@
     
   
     Schematron Quick Fixes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validate/dtd-relaxng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DTD and RELAX NG
   
 
     
@@ -3564,6 +3637,8 @@
       
         
       
+        
+      
     
     
     
@@ -3633,6 +3708,34 @@
     
   
     Policies and silent installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administer/updates-and-network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updates and network access
   
 
     
@@ -4330,7 +4433,7 @@
   <span class="md-ellipsis">
     
   
-    What's New
+    Whats new
   
 
     
@@ -5078,8 +5181,8 @@ from the extension - a <code>.json</code> file with comments is treated as JSONC
 <code>.jsonc</code> file. Only <code>.json</code> is offered for operating-system file associations
 (<code>.jsonc</code>/<code>.json5</code> have no MIME type in the shared databases).</p>
 </div>
-<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../img/unified-shell-json-tree.png" data-desc-position="bottom"><img alt="JSON in the Unified Shell" src="../../img/unified-shell-json-tree.png"></a>
-<strong><em>The Tree view of a JSON document in the Unified Shell</em></strong></p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../img/unified-shell-json-tree.png" data-desc-position="bottom"><img alt="The Tree view of a JSON document" src="../../img/unified-shell-json-tree.png"></a>
+<strong><em>The Tree view of a JSON document</em></strong></p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../img/unified-shell-json-grid.png" data-desc-position="bottom"><img alt="JSON in the grid view" src="../../img/unified-shell-json-grid.png"></a>
 <strong><em>The same document in the Graphic (grid) view - the grid the shell also uses for XML</em></strong></p>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">¶</a></h2>
@@ -5504,9 +5607,9 @@ For those the editor asks once per document whether it may write the whole docum
 style (as <strong>Format</strong> does), which removes comments, anchors, tags and directives; <strong>Cancel</strong> takes the
 change back. Validation markers of the grid point at the YAML lines.</p>
 <h2 id="toolbar">Toolbar<a class="headerlink" href="#toolbar" title="Permanent link">¶</a></h2>
-<p>JSON files use the shell's single-row editor toolbar. Related
+<p>JSON files use the single-row editor toolbar. Related
 actions sit in <strong>split buttons</strong> with a visible <strong>▾</strong> arrow menu; see
-<a href="../../reference/workspace/#toolbar">Unified Shell - Toolbar</a> for the full reference.</p>
+<a href="../../reference/workspace/#toolbar">Workspace - Toolbar</a> for the full reference.</p>
 <p>With a JSON file active, the relevant actions are:</p>
 <table>
 <thead>

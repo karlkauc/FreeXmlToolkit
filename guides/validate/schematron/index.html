@@ -3,13 +3,13 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
+        <meta name="description" content="Write and run Schematron rules, with a rule builder, templates and Schematron Quick Fixes.">
       
       
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/guides/validate/schematron/">
+        <link rel="canonical" href="https://freexmltoolkit.org/docs/guides/validate/schematron/">
       
       
         <link rel="prev" href="../problems/">
@@ -53,7 +53,20 @@
       
 
     
-    
+    <script>
+  if (location.hostname === "karlkauc.github.io") {
+    location.replace("https://freexmltoolkit.org/docs/"
+      + location.pathname.replace(/^\/FreeXmlToolkit\/?/, "") + location.search + location.hash);
+  }
+</script>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Schematron - FreeXmlToolkit Docs">
+<meta property="og:description" content="Write and run Schematron rules, with a rule builder, templates and Schematron Quick Fixes.">
+<meta property="og:url" content="https://freexmltoolkit.org/docs/guides/validate/schematron/">
+<meta property="og:image" content="https://freexmltoolkit.org/docs/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
   <link href="../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
@@ -104,7 +117,7 @@
   FreeXmlToolkit <strong class="fxt-release-version">latest release</strong> is available –
   <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download now</a>
   <span class="fxt-announce__sep">·</span>
-  <a href="https://karlkauc.github.io/FreeXmlToolkit/#download">All platforms</a>
+  <a href="https://freexmltoolkit.org/docs/#download">All platforms</a>
 </span>
 
           </div>
@@ -1332,6 +1345,8 @@
       
         
       
+        
+      
     
     
     
@@ -1564,6 +1579,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../design-schemas/generate-from-xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate a schema from XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../design-schemas/documentation/" class="md-nav__link">
         
   
@@ -1718,6 +1761,8 @@
       
         
           
+        
+      
         
       
         
@@ -2016,15 +2061,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#schematron-tools-in-the-unified-shell" class="md-nav__link">
+  <a href="#schematron-tools-in-the-validation-panel" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Schematron Tools in the Unified Shell
+        Schematron Tools in the Validation Panel
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Schematron Tools in the Unified Shell">
+    <nav class="md-nav" aria-label="Schematron Tools in the Validation Panel">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2327,6 +2372,34 @@
     
   
     Schematron Quick Fixes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dtd-relaxng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DTD and RELAX NG
   
 
     
@@ -3636,6 +3709,8 @@
       
         
       
+        
+      
     
     
     
@@ -3705,6 +3780,34 @@
     
   
     Policies and silent installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../administer/updates-and-network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updates and network access
   
 
     
@@ -4402,7 +4505,7 @@
   <span class="md-ellipsis">
     
   
-    What's New
+    Whats new
   
 
     
@@ -4900,15 +5003,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#schematron-tools-in-the-unified-shell" class="md-nav__link">
+  <a href="#schematron-tools-in-the-validation-panel" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Schematron Tools in the Unified Shell
+        Schematron Tools in the Validation Panel
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Schematron Tools in the Unified Shell">
+    <nav class="md-nav" aria-label="Schematron Tools in the Validation Panel">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -5250,9 +5353,9 @@
 </ul>
 <hr>
 <h2 id="toolbar">Toolbar<a class="headerlink" href="#toolbar" title="Permanent link">¶</a></h2>
-<p>Schematron files use the shell's single-row editor toolbar.
+<p>Schematron files use the single-row editor toolbar.
 Related actions sit in <strong>split buttons</strong> with a visible <strong>▾</strong> arrow menu; see
-<a href="../../../reference/workspace/#toolbar">Unified Shell - Toolbar</a> for the full reference.</p>
+<a href="../../../reference/workspace/#toolbar">Workspace - Toolbar</a> for the full reference.</p>
 <p>With a <code>.sch</code> file active, the relevant actions are:</p>
 <table>
 <thead>
@@ -5301,7 +5404,7 @@ Related actions sit in <strong>split buttons</strong> with a visible <strong>▾
 </tbody>
 </table>
 <p>Rule templates, the tester, the visual builder, and <strong>Check Rules</strong> are reached through the
-<strong>Validation activity panel</strong> (see <a href="#schematron-tools-in-the-unified-shell">Schematron Tools in the Unified Shell</a>).</p>
+<strong>Validation activity panel</strong> (see <a href="#schematron-tools-in-the-validation-panel">Schematron Tools in the Validation Panel</a>).</p>
 <hr>
 <h2 id="editing-schematron-files">Editing Schematron Files<a class="headerlink" href="#editing-schematron-files" title="Permanent link">¶</a></h2>
 <p>A <code>.sch</code> (or <code>.schematron</code>) file opens as a normal file tab in the shell's editor — there is
@@ -5324,7 +5427,9 @@ XQuery) against the active document and lists the matching nodes, so you can ref
 expression before putting it into a rule. See
 <a href="../../transform-query/query-console/#query-console">Query Console</a>.</p>
 <hr>
-<h2 id="schematron-tools-in-the-unified-shell">Schematron Tools in the Unified Shell<a class="headerlink" href="#schematron-tools-in-the-unified-shell" title="Permanent link">¶</a></h2>
+<h2 id="schematron-tools-in-the-validation-panel">Schematron Tools in the Validation Panel<a class="headerlink" href="#schematron-tools-in-the-validation-panel" title="Permanent link">¶</a></h2>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../img/schematron-problems.png" data-desc-position="bottom"><img alt="Schematron results in the Problems panel below the document" src="../../../img/schematron-problems.png"></a>
+<em>Schematron results below the document: errors, warnings and hints, each with the line it belongs to</em></p>
 <p>The <strong>Validation</strong> activity panel offers the Schematron tools as labelled rows in two
 collapsible sections at the top of the panel (both open at first - click a header to collapse it). Each tool
 opens as a closable tool tab in the editor area:</p>
@@ -5707,6 +5812,9 @@ working unchanged.</p>
 
 
 
+
+  
+  
 
 
 

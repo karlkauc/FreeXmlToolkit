@@ -9,7 +9,7 @@
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/get-started/workspace-tour/">
+        <link rel="canonical" href="https://freexmltoolkit.org/docs/get-started/workspace-tour/">
       
       
         <link rel="prev" href="../first-steps/">
@@ -53,7 +53,20 @@
       
 
     
-    
+    <script>
+  if (location.hostname === "karlkauc.github.io") {
+    location.replace("https://freexmltoolkit.org/docs/"
+      + location.pathname.replace(/^\/FreeXmlToolkit\/?/, "") + location.search + location.hash);
+  }
+</script>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Tour of the workspace - FreeXmlToolkit Docs">
+<meta property="og:description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
+<meta property="og:url" content="https://freexmltoolkit.org/docs/get-started/workspace-tour/">
+<meta property="og:image" content="https://freexmltoolkit.org/docs/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
   <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
@@ -104,7 +117,7 @@
   FreeXmlToolkit <strong class="fxt-release-version">latest release</strong> is available –
   <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download now</a>
   <span class="fxt-announce__sep">·</span>
-  <a href="https://karlkauc.github.io/FreeXmlToolkit/#download">All platforms</a>
+  <a href="https://freexmltoolkit.org/docs/#download">All platforms</a>
 </span>
 
           </div>
@@ -1573,6 +1586,8 @@
       
         
       
+        
+      
     
     
     
@@ -1802,6 +1817,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guides/design-schemas/generate-from-xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate a schema from XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guides/design-schemas/documentation/" class="md-nav__link">
         
   
@@ -1954,6 +1997,8 @@
       
         
           
+        
+      
         
       
         
@@ -2147,6 +2192,34 @@
     
   
     Schematron Quick Fixes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/validate/dtd-relaxng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DTD and RELAX NG
   
 
     
@@ -3450,6 +3523,8 @@
       
         
       
+        
+      
     
     
     
@@ -3519,6 +3594,34 @@
     
   
     Policies and silent installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administer/updates-and-network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updates and network access
   
 
     
@@ -4216,7 +4319,7 @@
   <span class="md-ellipsis">
     
   
-    What's New
+    Whats new
   
 
     
@@ -4860,13 +4963,13 @@
 activity bar on the left, and inspect or edit the selected node on the right. This page walks
 through that layout, the view modes and the editor tabs.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>The Unified Shell is the single workspace for everything FreeXmlToolkit does. Instead of
+<p>The application window is a single workspace for everything FreeXmlToolkit does. Instead of
 switching between separate editor pages, you open files as tabs in the central <strong>editor
 host</strong> and reach every tool through the <strong>activity bar</strong> on the left. You can work with an
 XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the same time.</p>
-<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../img/unified-shell-overview.png#only-light" data-desc-position="bottom"><img alt="Unified Shell overview" src="../../img/unified-shell-overview.png#only-light"></a>
-<a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../img/unified-shell-overview-dark.png#only-dark" data-desc-position="bottom"><img alt="Unified Shell overview" src="../../img/unified-shell-overview-dark.png#only-dark"></a>
-<em>The Unified Shell: activity bar (left), Explorer side panel, editor host with an XML file
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../img/unified-shell-overview.png#only-light" data-desc-position="bottom"><img alt="The workspace" src="../../img/unified-shell-overview.png#only-light"></a>
+<a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../img/unified-shell-overview-dark.png#only-dark" data-desc-position="bottom"><img alt="The workspace" src="../../img/unified-shell-overview-dark.png#only-dark"></a>
+<em>The workspace: activity bar (left), Explorer side panel, editor host with an XML file
 (Text/Tree/Graphic view toggle), the Properties inspector (right) and the status bar.</em></p>
 <h3 id="layout">Layout<a class="headerlink" href="#layout" title="Permanent link">¶</a></h3>
 <table>
@@ -4879,7 +4982,7 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 <tbody>
 <tr>
 <td><strong>Activity bar</strong> (far left)</td>
-<td>Switch tools / side panels: Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library (its label wraps onto two lines), PDF/FOP, Sign &amp; Encrypt, Settings - plus a <strong>FundsXML</strong> activity when the optional <a href="../../industry/fundsxml/">FundsXML extension</a> is enabled (see <a href="../../industry/fundsxml/">FundsXML Panel</a>). <strong>Always visible</strong> - it cannot be collapsed. (<strong>Settings</strong>, <strong>Schema Library</strong> and <strong>Sign &amp; Encrypt</strong> open as a full page in the editor area - see <a href="../../reference/settings/#settings-page">Settings Page</a>, <a href="../../guides/design-schemas/schema-library/#schema-library-page">Schema Library Page</a> and <a href="../../guides/sign-encrypt/">Sign &amp; Encrypt Page</a>. Help is not an activity - it is the <strong>Help</strong> menu, see <a href="../../reference/workspace/#help-menu-about">Help Menu &amp; About</a>.)</td>
+<td>Switch tools / side panels: Explorer, Search, Favorites, <a href="../../guides/edit-xml/bookmarks/">Bookmarks</a>, Validation, Transform, Schema, Schema Library (its label wraps onto two lines), PDF / FOP, Sign &amp; Encrypt and, at the bottom, Settings. Every <a href="../../industry/">industry plugin</a> you switch on adds an activity of its own before Settings - FundsXML, ISO 20022, ebInterface, FinDatEx, XBRL, PK-Meldewesen, KAG-Meldewesen, ESMA Reporting (see <a href="../../industry/manage-extensions/">Manage extensions</a>). <strong>Always visible</strong> - it cannot be collapsed. (<strong>Settings</strong>, <strong>Schema Library</strong> and <strong>Sign &amp; Encrypt</strong> open as a full page in the editor area - see <a href="../../reference/settings/#settings-page">Settings Page</a>, <a href="../../guides/design-schemas/schema-library/#schema-library-page">Schema Library Page</a> and <a href="../../guides/sign-encrypt/">Sign &amp; Encrypt Page</a>. Help is not an activity - it is the <strong>Help</strong> menu, see <a href="../../reference/workspace/#help-menu-about">Help Menu &amp; About</a>.)</td>
 </tr>
 <tr>
 <td><strong>Menu bar</strong> (very top)</td>
@@ -4991,7 +5094,7 @@ passed validation a green check. Both layers switch with the light/dark theme:</
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../img/unified-shell-validation-dark.png" data-desc-position="bottom"><img alt="Validation activity in the dark theme" src="../../img/unified-shell-validation-dark.png"></a></p>
 <h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">¶</a></h2>
 <ol>
-<li>The Unified Shell opens automatically on startup.</li>
+<li>The workspace opens on startup.</li>
 <li>Use the <strong>Explorer</strong> activity (or <strong>File → Open</strong>) to open files; <strong>File → New</strong> (Ctrl+N) opens the guided <a href="../../guides/edit-xml/working-with-files/#new-file-dialog">New File dialog</a> to create a new file from a template or schema. You can also <strong>drag &amp; drop</strong> files from your file manager anywhere onto the window - every <a href="../../guides/edit-xml/working-with-files/#supported-file-types">supported file type</a> (XML, XSD, XSLT, XProc, XQuery, XPath, Schematron, JSON, HTML) opens as a new tab; other files are ignored.</li>
 <li>Files open as tabs in the editor host - switch tabs by clicking their headers (drag a header to reorder, right-click it for <a href="#editor-tabs">tab actions</a>), and switch view modes (Text / Tree / Graphic - plus <strong>Preview</strong> for HTML files) with the segmented view switch.</li>
 </ol>

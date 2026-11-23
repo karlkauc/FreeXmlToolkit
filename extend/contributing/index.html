@@ -9,7 +9,7 @@
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/extend/contributing/">
+        <link rel="canonical" href="https://freexmltoolkit.org/docs/extend/contributing/">
       
       
         <link rel="prev" href="../technology-stack/">
@@ -53,7 +53,20 @@
       
 
     
-    
+    <script>
+  if (location.hostname === "karlkauc.github.io") {
+    location.replace("https://freexmltoolkit.org/docs/"
+      + location.pathname.replace(/^\/FreeXmlToolkit\/?/, "") + location.search + location.hash);
+  }
+</script>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Contributing - FreeXmlToolkit Docs">
+<meta property="og:description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
+<meta property="og:url" content="https://freexmltoolkit.org/docs/extend/contributing/">
+<meta property="og:image" content="https://freexmltoolkit.org/docs/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
   <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
@@ -104,7 +117,7 @@
   FreeXmlToolkit <strong class="fxt-release-version">latest release</strong> is available –
   <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download now</a>
   <span class="fxt-announce__sep">·</span>
-  <a href="https://karlkauc.github.io/FreeXmlToolkit/#download">All platforms</a>
+  <a href="https://freexmltoolkit.org/docs/#download">All platforms</a>
 </span>
 
           </div>
@@ -1321,6 +1334,8 @@
       
         
       
+        
+      
     
     
     
@@ -1550,6 +1565,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guides/design-schemas/generate-from-xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate a schema from XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guides/design-schemas/documentation/" class="md-nav__link">
         
   
@@ -1702,6 +1745,8 @@
       
         
           
+        
+      
         
       
         
@@ -1895,6 +1940,34 @@
     
   
     Schematron Quick Fixes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/validate/dtd-relaxng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DTD and RELAX NG
   
 
     
@@ -3198,6 +3271,8 @@
       
         
       
+        
+      
     
     
     
@@ -3267,6 +3342,34 @@
     
   
     Policies and silent installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administer/updates-and-network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updates and network access
   
 
     
@@ -3964,7 +4067,7 @@
   <span class="md-ellipsis">
     
   
-    What's New
+    Whats new
   
 
     
@@ -4712,8 +4815,8 @@ bug reports, feature ideas, documentation fixes and code.</p>
 <li>❤️ <strong>Sponsor</strong> the project on <a href="https://github.com/sponsors/karlkauc">GitHub Sponsors</a></li>
 </ul>
 <p>Questions are welcome on the <a href="https://github.com/karlkauc/FreeXmlToolkit/issues">Issues page</a> too —
-but please check the <a href="https://karlkauc.github.io/FreeXmlToolkit/">user guide</a> and the
-<a href="https://karlkauc.github.io/FreeXmlToolkit/reference/faq/">FAQ &amp; Troubleshooting</a> page first.</p>
+but please check the <a href="https://freexmltoolkit.org/docs/">user guide</a> and the
+<a href="https://freexmltoolkit.org/docs/reference/faq/">FAQ &amp; Troubleshooting</a> page first.</p>
 <h2 id="reporting-bugs">Reporting Bugs<a class="headerlink" href="#reporting-bugs" title="Permanent link">¶</a></h2>
 <p>You can send a report straight from the application with <strong>Help → Report a Problem…</strong>, or open an
 issue on GitHub. Before opening an issue, search the <a href="https://github.com/karlkauc/FreeXmlToolkit/issues">existing issues</a>
@@ -4783,7 +4886,7 @@ rules:</p>
 </ul>
 <h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">¶</a></h2>
 <p>The user guide is an <a href="https://www.mkdocs.org/">MkDocs</a> site in <a href="https://github.com/karlkauc/FreeXmlToolkit/tree/main/docs"><code>docs/</code></a>, published at
-<a href="https://karlkauc.github.io/FreeXmlToolkit/">karlkauc.github.io/FreeXmlToolkit</a>. When you change a
+<a href="https://freexmltoolkit.org/docs/">freexmltoolkit.org/docs</a>. When you change a
 feature, update the matching page. New pages need an entry in the <code>nav</code> section of
 <a href="https://github.com/karlkauc/FreeXmlToolkit/blob/main/mkdocs.yml"><code>mkdocs.yml</code></a>. To preview locally:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements-docs.txt

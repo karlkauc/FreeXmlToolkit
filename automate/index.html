@@ -9,7 +9,7 @@
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/automate/">
+        <link rel="canonical" href="https://freexmltoolkit.org/docs/automate/">
       
       
         <link rel="prev" href="../industry/manage-extensions/">
@@ -53,7 +53,20 @@
       
 
     
-    
+    <script>
+  if (location.hostname === "karlkauc.github.io") {
+    location.replace("https://freexmltoolkit.org/docs/"
+      + location.pathname.replace(/^\/FreeXmlToolkit\/?/, "") + location.search + location.hash);
+  }
+</script>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Automate - FreeXmlToolkit Docs">
+<meta property="og:description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
+<meta property="og:url" content="https://freexmltoolkit.org/docs/automate/">
+<meta property="og:image" content="https://freexmltoolkit.org/docs/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
   <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
@@ -104,7 +117,7 @@
   FreeXmlToolkit <strong class="fxt-release-version">latest release</strong> is available –
   <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download now</a>
   <span class="fxt-announce__sep">·</span>
-  <a href="https://karlkauc.github.io/FreeXmlToolkit/#download">All platforms</a>
+  <a href="https://freexmltoolkit.org/docs/#download">All platforms</a>
 </span>
 
           </div>
@@ -1321,6 +1334,8 @@
       
         
       
+        
+      
     
     
     
@@ -1550,6 +1565,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../guides/design-schemas/generate-from-xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate a schema from XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../guides/design-schemas/documentation/" class="md-nav__link">
         
   
@@ -1702,6 +1745,8 @@
       
         
           
+        
+      
         
       
         
@@ -1895,6 +1940,34 @@
     
   
     Schematron Quick Fixes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/validate/dtd-relaxng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DTD and RELAX NG
   
 
     
@@ -3203,6 +3276,8 @@
       
         
       
+        
+      
     
     
     
@@ -3272,6 +3347,34 @@
     
   
     Policies and silent installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../administer/updates-and-network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updates and network access
   
 
     
@@ -3969,7 +4072,7 @@
   <span class="md-ellipsis">
     
   
-    What's New
+    Whats new
   
 
     
@@ -4407,8 +4510,27 @@ build pipelines, and the MCP server that gives AI agents the same engines as too
 <ul>
 <li>
 <p><strong><a href="command-line/">Command line (fxt-cli)</a></strong></p>
-<p>Validate, transform, query, compare, convert, sign and encrypt from a shell. Every command with
-its options and exit codes, and how to use it in a CI pipeline.</p>
+<p>Validate, transform, query, compare, convert, sign and encrypt from a shell. The overview with
+installation, exit codes and the list of commands; the options are on the four pages below.</p>
+</li>
+<li>
+<p><strong><a href="cli-validate/">Validate and query</a></strong></p>
+<p><code>validate</code>, <code>query</code>, <code>lei</code> and <code>isin</code>: check files and folders, write reports, run XPath,
+XQuery and JSONPath.</p>
+</li>
+<li>
+<p><strong><a href="cli-transform/">Transform and publish</a></strong></p>
+<p><code>transform</code>, <code>scenario</code>, <code>xspec</code>, <code>fop</code> and <code>xsd-doc</code>: run stylesheets, queries, pipelines and
+tests, render PDF, generate schema documentation.</p>
+</li>
+<li>
+<p><strong><a href="cli-compare/">Compare, merge, convert</a></strong></p>
+<p><code>compare</code>, <code>merge</code> and <code>convert</code>: structural XML comparison, three-way merge, XML, JSON and YAML
+into one another.</p>
+</li>
+<li>
+<p><strong><a href="cli-sign/">Sign and encrypt</a></strong></p>
+<p><code>sign</code>, <code>verify</code>, <code>encrypt</code> and <code>decrypt</code>.</p>
 </li>
 <li>
 <p><strong><a href="ci-recipes/">CI recipes</a></strong></p>

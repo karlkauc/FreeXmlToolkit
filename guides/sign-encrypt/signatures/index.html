@@ -9,7 +9,7 @@
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/guides/sign-encrypt/signatures/">
+        <link rel="canonical" href="https://freexmltoolkit.org/docs/guides/sign-encrypt/signatures/">
       
       
         <link rel="prev" href="../">
@@ -53,7 +53,20 @@
       
 
     
-    
+    <script>
+  if (location.hostname === "karlkauc.github.io") {
+    location.replace("https://freexmltoolkit.org/docs/"
+      + location.pathname.replace(/^\/FreeXmlToolkit\/?/, "") + location.search + location.hash);
+  }
+</script>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Signatures - FreeXmlToolkit Docs">
+<meta property="og:description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
+<meta property="og:url" content="https://freexmltoolkit.org/docs/guides/sign-encrypt/signatures/">
+<meta property="og:image" content="https://freexmltoolkit.org/docs/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
   <link href="../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
@@ -104,7 +117,7 @@
   FreeXmlToolkit <strong class="fxt-release-version">latest release</strong> is available –
   <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download now</a>
   <span class="fxt-announce__sep">·</span>
-  <a href="https://karlkauc.github.io/FreeXmlToolkit/#download">All platforms</a>
+  <a href="https://freexmltoolkit.org/docs/#download">All platforms</a>
 </span>
 
           </div>
@@ -1332,6 +1345,8 @@
       
         
       
+        
+      
     
     
     
@@ -1564,6 +1579,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../design-schemas/generate-from-xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate a schema from XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../design-schemas/documentation/" class="md-nav__link">
         
   
@@ -1716,6 +1759,8 @@
       
         
           
+        
+      
         
       
         
@@ -1912,6 +1957,34 @@
     
   
     Schematron Quick Fixes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../validate/dtd-relaxng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DTD and RELAX NG
   
 
     
@@ -3669,6 +3742,8 @@
       
         
       
+        
+      
     
     
     
@@ -3738,6 +3813,34 @@
     
   
     Policies and silent installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../administer/updates-and-network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updates and network access
   
 
     
@@ -4435,7 +4538,7 @@
   <span class="md-ellipsis">
     
   
-    What's New
+    Whats new
   
 
     
@@ -5278,7 +5381,7 @@
 <p class="admonition-title">Note</p>
 <p>Signing, signature validation (including detailed and PKIX
 trust/chain/revocation/timestamp validation) and self-signed certificate creation
-live on the <strong>Sign &amp; Encrypt</strong> page of the Unified Shell. Click <strong>Sign &amp; Encrypt</strong> in the
+live on the <strong>Sign &amp; Encrypt</strong> page. Click <strong>Sign &amp; Encrypt</strong> in the
 activity bar to open it as a tab in the main editor area. The same page encrypts and decrypts
 XML - see <a href="../encryption/">XML Encryption</a>. On the command line: <code>fxt-cli sign</code> and
 <code>fxt-cli verify</code> (<a href="../../../automate/cli-sign/#sign">Command Line</a>).</p>
@@ -5291,11 +5394,11 @@ XML - see <a href="../encryption/">XML Encryption</a>. On the command line: <cod
 </ul>
 <hr>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../img/unified-shell-signature.png#only-light" data-desc-position="bottom"><img alt="Signature activity in the Unified Shell" src="../../../img/unified-shell-signature.png#only-light"></a>
-<a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../img/unified-shell-signature-dark.png#only-dark" data-desc-position="bottom"><img alt="Signature activity in the Unified Shell" src="../../../img/unified-shell-signature-dark.png#only-dark"></a>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../img/unified-shell-signature.png#only-light" data-desc-position="bottom"><img alt="The Sign &amp; Encrypt page" src="../../../img/unified-shell-signature.png#only-light"></a>
+<a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../img/unified-shell-signature-dark.png#only-dark" data-desc-position="bottom"><img alt="The Sign &amp; Encrypt page" src="../../../img/unified-shell-signature-dark.png#only-dark"></a>
 <em>Signing, validation and certificate creation live on the Signature page (screenshot may show an older layout)</em></p>
 <h3 id="what-can-you-do">What Can You Do?<a class="headerlink" href="#what-can-you-do" title="Permanent link">¶</a></h3>
-<p>In the <a href="../../../get-started/workspace-tour/">Unified Shell</a>, click <strong>Sign &amp; Encrypt</strong> in the activity bar. The
+<p>Click <strong>Sign &amp; Encrypt</strong> in the <a href="../../../get-started/workspace-tour/">activity bar</a>. The
 page opens as a tab in the main editor area, and the side panel on the left lists the actions in
 order of use (Encrypt, Decrypt and Inspect Encryption are described in <a href="../encryption/">XML Encryption</a>). Click an action to show it on the page; the current action is
 highlighted, and the status message of the previously selected action is cleared:</p>

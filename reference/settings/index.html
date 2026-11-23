@@ -9,7 +9,7 @@
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/reference/settings/">
+        <link rel="canonical" href="https://freexmltoolkit.org/docs/reference/settings/">
       
       
         <link rel="prev" href="../keyboard-shortcuts/">
@@ -53,7 +53,20 @@
       
 
     
-    
+    <script>
+  if (location.hostname === "karlkauc.github.io") {
+    location.replace("https://freexmltoolkit.org/docs/"
+      + location.pathname.replace(/^\/FreeXmlToolkit\/?/, "") + location.search + location.hash);
+  }
+</script>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Settings - FreeXmlToolkit Docs">
+<meta property="og:description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
+<meta property="og:url" content="https://freexmltoolkit.org/docs/reference/settings/">
+<meta property="og:image" content="https://freexmltoolkit.org/docs/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
   <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
@@ -104,7 +117,7 @@
   FreeXmlToolkit <strong class="fxt-release-version">latest release</strong> is available –
   <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download now</a>
   <span class="fxt-announce__sep">·</span>
-  <a href="https://karlkauc.github.io/FreeXmlToolkit/#download">All platforms</a>
+  <a href="https://freexmltoolkit.org/docs/#download">All platforms</a>
 </span>
 
           </div>
@@ -1321,6 +1334,8 @@
       
         
       
+        
+      
     
     
     
@@ -1550,6 +1565,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guides/design-schemas/generate-from-xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate a schema from XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guides/design-schemas/documentation/" class="md-nav__link">
         
   
@@ -1702,6 +1745,8 @@
       
         
           
+        
+      
         
       
         
@@ -1895,6 +1940,34 @@
     
   
     Schematron Quick Fixes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/validate/dtd-relaxng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DTD and RELAX NG
   
 
     
@@ -3198,6 +3271,8 @@
       
         
       
+        
+      
     
     
     
@@ -3267,6 +3342,34 @@
     
   
     Policies and silent installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administer/updates-and-network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updates and network access
   
 
     
@@ -3710,6 +3813,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
+  <a href="#language" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Language
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#accent-colour" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4140,7 +4254,7 @@
   <span class="md-ellipsis">
     
   
-    What's New
+    Whats new
   
 
     
@@ -4560,6 +4674,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
+  <a href="#language" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Language
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#accent-colour" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4739,7 +4864,7 @@ settings may be greyed out and a notice at the top of the page says so; see
 <tbody>
 <tr>
 <td><strong>Appearance</strong></td>
-<td><strong>Theme</strong> - <strong>Light</strong>, <strong>Dark</strong> or <strong>System</strong> (follows the light or dark setting of the operating system, also while the application runs; the theme button in the header and <strong>View → Toggle Light / Dark Theme</strong> switch to a fixed Light or Dark, so choose <strong>System</strong> here again to follow the operating system), plus <strong>High contrast</strong>; see <a href="#high-contrast">High contrast</a> below. <strong>Accent colour</strong> - the colour of buttons, selection, focus and links: eight presets or <strong>Own colour</strong>; see <a href="#accent-colour">Accent colour</a> below. <strong>Text size &amp; font</strong> - <strong>Small</strong>, <strong>Normal</strong>, <strong>Large</strong> or <strong>Extra Large</strong> text, the <strong>Density</strong> (<strong>Compact</strong> / <strong>Normal</strong> / <strong>Comfortable</strong>) and the font of the interface; see <a href="#text-size-and-font">Text size and font</a> below. <strong>Language</strong> - the language of the interface: <strong>System default</strong>, <strong>English</strong> or <strong>Deutsch</strong> (takes effect after a restart; the system default is used when it is English or German, otherwise English). <strong>Layout</strong> - <strong>Show toolbar button labels</strong>; <strong>Show activity bar labels</strong>; <strong>Use small icons</strong>; toolbar icon size (<strong>Small</strong> / <strong>Large</strong>); <strong>Show left side panel</strong>; <strong>Show Properties (inspector) panel</strong>. <strong>Rendering</strong> - JavaFX graphics pipeline: <strong>Auto</strong> / <strong>Hardware</strong> / <strong>Software</strong> (takes effect after restart), with the active pipeline and GPU status; see <a href="#rendering-mode">Rendering mode (hardware vs. software)</a> below. <strong>Memory</strong> - <strong>Maximum memory</strong> for the application: <strong>Automatic</strong> (half of the installed memory) or a fixed limit (takes effect after restart); <strong>Large File Viewer: keep a backup (.bak) when writing</strong>; see <a href="#memory">Memory and large files</a> below.</td>
+<td><strong>Theme</strong> - <strong>Light</strong>, <strong>Dark</strong> or <strong>System</strong> (follows the light or dark setting of the operating system, also while the application runs; the theme button in the header and <strong>View → Toggle Light / Dark Theme</strong> switch to a fixed Light or Dark, so choose <strong>System</strong> here again to follow the operating system), plus <strong>High contrast</strong>; see <a href="#high-contrast">High contrast</a> below. <strong>Accent colour</strong> - the colour of buttons, selection, focus and links: eight presets or <strong>Own colour</strong>; see <a href="#accent-colour">Accent colour</a> below. <strong>Text size &amp; font</strong> - <strong>Small</strong>, <strong>Normal</strong>, <strong>Large</strong> or <strong>Extra Large</strong> text, the <strong>Density</strong> (<strong>Compact</strong> / <strong>Normal</strong> / <strong>Comfortable</strong>) and the font of the interface; see <a href="#text-size-and-font">Text size and font</a> below. <strong>Language</strong> - the language of the interface: <strong>System default</strong>, <strong>English</strong> or <strong>Deutsch</strong>; see <a href="#language">Language</a> below. <strong>Layout</strong> - <strong>Show toolbar button labels</strong>; <strong>Show activity bar labels</strong>; <strong>Use small icons</strong>; toolbar icon size (<strong>Small</strong> / <strong>Large</strong>); <strong>Show left side panel</strong>; <strong>Show Properties (inspector) panel</strong>. <strong>Rendering</strong> - JavaFX graphics pipeline: <strong>Auto</strong> / <strong>Hardware</strong> / <strong>Software</strong> (takes effect after restart), with the active pipeline and GPU status; see <a href="#rendering-mode">Rendering mode (hardware vs. software)</a> below. <strong>Memory</strong> - <strong>Maximum memory</strong> for the application: <strong>Automatic</strong> (half of the installed memory) or a fixed limit (takes effect after restart); <strong>Large File Viewer: keep a backup (.bak) when writing</strong>; see <a href="#memory">Memory and large files</a> below.</td>
 </tr>
 <tr>
 <td><strong>Editor</strong></td>
@@ -4755,7 +4880,7 @@ settings may be greyed out and a notice at the top of the page says so; see
 </tr>
 <tr>
 <td><strong>Network &amp; Security</strong></td>
-<td><strong>HTTP Proxy</strong> - <strong>Connection</strong>: <em>System proxy</em> (default, includes automatic configuration via PAC/WPAD), <em>Manual proxy</em> (host and port) or <em>No proxy</em>; <strong>No proxy for</strong>: hosts connected directly (<code>*</code> wildcard, e.g. <code>*.corp.example, 10.*</code>; local addresses always); <strong>Proxy authentication</strong>: user (<code>DOMAIN\user</code> or <code>user@domain</code> also work), password (stored encrypted) and NTLM domain, or — without a user — sign-in with the Windows account (NTLM/Kerberos; takes effect after a restart); <strong>Timeouts</strong> for connecting and reading; <strong>Test Connection</strong> checks an address with the values shown, saved or not. Every connection uses these settings: schema and catalog downloads, updates, FundsXML, telemetry, <code>doc()</code> in XPath/XQuery, JSON Schema <code>$ref</code>s, XProc (incl. <code>p:http-request</code>) and HTML previews. <strong>Security</strong> - <strong>Trust all certificates</strong>: accept any TLS certificate for HTTPS downloads (schemas, updates); use with care. <strong>Allow JavaScript and remote content in HTML previews</strong> (off: previews run no scripts and load nothing from the network). <strong>Run XProc pipelines without restrictions</strong> (off: pipelines may not run programs, run computed pipelines, send HTTP requests or load documents from the network); see <a href="../../administer/threat-model/">Threat Model</a>. <strong>Updates</strong> - <strong>Check for updates on startup</strong>.</td>
+<td><strong>HTTP Proxy</strong> - <strong>Connection</strong>: <em>System proxy</em> (default, includes PAC/WPAD), <em>Manual proxy</em> (host and port) or <em>No proxy</em>; <strong>No proxy for</strong> (hosts reached directly); <strong>Proxy authentication</strong> (user and password, NTLM domain, or the Windows account); <strong>Timeouts</strong>; <strong>Test Connection</strong>. Every connection of the application uses these settings; see <a href="../../administer/updates-and-network/#network">Updates and network access</a>. <strong>Security</strong> - <strong>Trust all certificates</strong>: accept any TLS certificate for HTTPS downloads such as schemas (never for updates); use with care. <strong>Allow JavaScript and remote content in HTML previews</strong> (off: previews run no scripts and load nothing from the network). <strong>Run XProc pipelines without restrictions</strong> (off: pipelines may not run programs, run computed pipelines, send HTTP requests or load documents from the network); see <a href="../../administer/threat-model/">Threat Model</a>. <strong>Validate documents against their DTD</strong> (off: a DOCTYPE is only checked for well-formedness). <strong>GLEIF (LEI lookup)</strong> - <strong>Check LEIs at GLEIF on every validation (F8)</strong>, <strong>Look up LEIs at GLEIF when the mouse rests on them</strong> (both off by default), <strong>Keep answers (hours)</strong> and <strong>Forget answers</strong>. <strong>Instrument lookup (ESMA FIRDS, OpenFIGI)</strong> - the same two options for ISINs, <strong>Ask OpenFIGI about ISINs that ESMA FIRDS does not know</strong> and an optional <strong>OpenFIGI API key</strong>; see <a href="../../industry/identifier-lookup/#settings">Online identifier lookup</a>. <strong>Updates</strong> - <strong>Check for updates on startup</strong>; see <a href="../../administer/updates-and-network/#updates">Updates</a>.</td>
 </tr>
 <tr>
 <td><strong>Privacy</strong></td>
@@ -4767,10 +4892,43 @@ settings may be greyed out and a notice at the top of the page says so; see
 </tr>
 <tr>
 <td><strong>Extensions</strong></td>
-<td><strong>Installed Extensions</strong> - every built-in extension and every jar in the extensions folder, with version and description; <strong>Open Extensions Folder</strong>. Ticking <strong>FundsXML</strong> adds the <a href="../../industry/fundsxml/">FundsXML activity</a> to the activity bar at once; any other extension is switched on or off at the next start (<a href="../../industry/manage-extensions/">Extensions</a>). <strong>Developer</strong> - <strong>Record execution statistics</strong> collects duration, CPU and memory per XSLT/XQuery/validation run; view them in the <strong>Execution Statistics</strong> tool tab or via the "last run" item in the status bar. <strong>Support the Project</strong> - a <strong>Sponsor on GitHub</strong> link.</td>
+<td><strong>Installed Extensions</strong> - every built-in extension and every jar in the extensions folder, with version and description; <strong>Open Extensions Folder</strong>. Ticking <strong>FundsXML</strong> adds the <a href="../../industry/fundsxml/">FundsXML activity</a> to the activity bar at once; any other extension is switched on or off at the next start (<a href="../../industry/manage-extensions/">Extensions</a>). <strong>XSL-FO Processors</strong> - the formatters that can render a PDF instead of the bundled Apache FOP (<strong>Add…</strong>, <strong>Edit…</strong>, <strong>Remove</strong>, <strong>Use as Default</strong>); see <a href="../../guides/publish-pdf/#external-xsl-fo-processors">External XSL-FO Processors</a>. <strong>XSLT Processors</strong> - the processors that can transform instead of the bundled Saxon HE (same buttons, plus <strong>Add Saxon HE 13.1</strong>); see <a href="../../guides/transform-query/external-processors/">External XSLT processors</a>. Both lists save their changes at once. <strong>Developer</strong> - <strong>Record execution statistics</strong> collects duration, CPU and memory per XSLT/XQuery/validation run; view them in the <strong>Execution Statistics</strong> tool tab or via the "last run" item in the status bar. <strong>Support the Project</strong> - a <strong>Sponsor on GitHub</strong> link.</td>
 </tr>
 </tbody>
 </table>
+<h2 id="language">Language<a class="headerlink" href="#language" title="Permanent link">¶</a></h2>
+<p>The interface is available in <strong>English</strong> and <strong>German</strong>. Choose the language in the
+<strong>Language</strong> card of the Appearance group:</p>
+<table>
+<thead>
+<tr>
+<th>Choice</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>System default</strong></td>
+<td>The language of the operating system when that is English or German, otherwise English</td>
+</tr>
+<tr>
+<td><strong>English</strong></td>
+<td>English</td>
+</tr>
+<tr>
+<td><strong>Deutsch</strong></td>
+<td>German</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>The choice takes effect <strong>at the next start</strong>, after <strong>Save Settings</strong>.</li>
+<li>The setting is stored as <code>ui.language</code> (<code>system</code>, <code>en</code> or <code>de</code>); administrators can preset or
+  lock it, see <a href="../../administer/policies/">Policies</a>.</li>
+<li>The Java option <code>-Dfxt.locale=de</code> (or <code>en</code>) sets the language whatever the setting says. See
+  <a href="../../administer/offline/#java-options-for-an-installed-application">Java options for an installed application</a>.</li>
+<li>The translation is not complete yet: some texts appear in English in the German interface too.</li>
+</ul>
 <h2 id="accent-colour">Accent colour<a class="headerlink" href="#accent-colour" title="Permanent link">¶</a></h2>
 <p>The accent colour replaces the blue of the primary buttons, selected rows, focus rings, links,
 active tabs and toggles - in the shell, in dialogs, in the XSD diagram and in the grid. Pick one of

@@ -3,13 +3,13 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
+        <meta name="description" content="Compare XML by structure, compare folders and merge three versions of a file.">
       
       
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/guides/compare-merge/">
+        <link rel="canonical" href="https://freexmltoolkit.org/docs/guides/compare-merge/">
       
       
         <link rel="prev" href="../publish-pdf/">
@@ -53,7 +53,20 @@
       
 
     
-    
+    <script>
+  if (location.hostname === "karlkauc.github.io") {
+    location.replace("https://freexmltoolkit.org/docs/"
+      + location.pathname.replace(/^\/FreeXmlToolkit\/?/, "") + location.search + location.hash);
+  }
+</script>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Compare and merge - FreeXmlToolkit Docs">
+<meta property="og:description" content="Compare XML by structure, compare folders and merge three versions of a file.">
+<meta property="og:url" content="https://freexmltoolkit.org/docs/guides/compare-merge/">
+<meta property="og:image" content="https://freexmltoolkit.org/docs/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
   <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
@@ -104,7 +117,7 @@
   FreeXmlToolkit <strong class="fxt-release-version">latest release</strong> is available –
   <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download now</a>
   <span class="fxt-announce__sep">·</span>
-  <a href="https://karlkauc.github.io/FreeXmlToolkit/#download">All platforms</a>
+  <a href="https://freexmltoolkit.org/docs/#download">All platforms</a>
 </span>
 
           </div>
@@ -1332,6 +1345,8 @@
       
         
       
+        
+      
     
     
     
@@ -1564,6 +1579,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../design-schemas/generate-from-xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate a schema from XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../design-schemas/documentation/" class="md-nav__link">
         
   
@@ -1716,6 +1759,8 @@
       
         
           
+        
+      
         
       
         
@@ -1912,6 +1957,34 @@
     
   
     Schematron Quick Fixes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validate/dtd-relaxng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DTD and RELAX NG
   
 
     
@@ -3323,6 +3396,8 @@
       
         
       
+        
+      
     
     
     
@@ -3392,6 +3467,34 @@
     
   
     Policies and silent installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administer/updates-and-network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updates and network access
   
 
     
@@ -4089,7 +4192,7 @@
   <span class="md-ellipsis">
     
   
-    What's New
+    Whats new
   
 
     
@@ -4587,6 +4690,8 @@
 <p><strong>Tools → Compare with File…</strong> compares the active document (XML, XSD or any other text file)
 with another file, side by side, and lets you merge the differences. XML documents can also be
 compared by structure (<a href="#comparing-as-xml">Comparing as XML</a>).</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../img/compare-text.png" data-desc-position="bottom"><img alt="Two price lists compared as text, with changed lines marked" src="../../img/compare-text.png"></a>
+<em>Two versions of a price list in the Text mode: changed lines and the changed parts inside them are marked</em></p>
 <ol>
 <li>Choose <strong>Tools → Compare with File…</strong> and pick a file to compare against the current document.</li>
 <li>A new tab opens titled <code>Compare: &lt;left&gt; ↔ &lt;right&gt;</code> with synchronized scrolling and live re-diff.</li>
@@ -4635,6 +4740,8 @@ compared by structure (<a href="#comparing-as-xml">Comparing as XML</a>).</p>
 <li>Two files to compare; for a three-way merge also the version both were derived from.</li>
 </ul>
 <h2 id="comparing-as-xml">Comparing as XML<a class="headerlink" href="#comparing-as-xml" title="Permanent link">¶</a></h2>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../img/compare-xml.png" data-desc-position="bottom"><img alt="The same two price lists compared as XML, with a table of seven differences" src="../../img/compare-xml.png"></a>
+<em>The XML mode lists every difference with its node, both values and its location</em></p>
 <p>When both sides are XML, the <strong>XML</strong> button in the toolbar compares the documents by structure
 instead of by lines (<strong>Text</strong> switches back). Indentation, line breaks, the order of attributes,
 quote styles and the choice of namespace prefixes no longer count: two files that differ only in
@@ -4745,6 +4852,8 @@ of the list.</p>
 <p>The XML mode only compares. To take changes over, switch back to <strong>Text</strong> and use the arrows, or
 <strong>All →</strong> / <strong>All ←</strong>. The view opens in the mode you used last.</p>
 <h2 id="comparing-folders">Comparing folders<a class="headerlink" href="#comparing-folders" title="Permanent link">¶</a></h2>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../img/compare-folders.png" data-desc-position="bottom"><img alt="Folder comparison with the status of every file" src="../../img/compare-folders.png"></a>
+<em>Two folders: identical, equivalent and different files, and files that exist on one side only</em></p>
 <p><strong>Tools → Compare Folders…</strong> asks for a left and a right folder and compares them file by file,
 including subfolders (hidden folders such as <code>.git</code> are skipped). A tab lists the files that
 differ:</p>
@@ -4783,6 +4892,8 @@ compared by their bytes (the <strong>Note</strong> column says so). A JSON or YA
 view's <strong>Data</strong> mode.</p>
 <p>On the command line: <a href="../../automate/cli-compare/#compare"><code>fxt-cli compare</code></a>.</p>
 <h2 id="merging-three-files">Merging three files<a class="headerlink" href="#merging-three-files" title="Permanent link">¶</a></h2>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../img/merge-three-way.png" data-desc-position="bottom"><img alt="Three-way merge with one conflict marked in the text" src="../../img/merge-three-way.png"></a>
+<em>A merge with one conflict left, marked the way Git marks it</em></p>
 <p>When two people changed the same file, <strong>Tools → Merge Files…</strong> combines both versions with their
 common ancestor (a three-way merge, as in Git). Choose the <strong>Base</strong> (the version both started
 from), <strong>Left</strong> (mine; the active document is suggested) and <strong>Right</strong> (theirs), and optionally the
@@ -4845,6 +4956,9 @@ as in Git.</p>
 
 
 
+
+  
+  
 
 
 

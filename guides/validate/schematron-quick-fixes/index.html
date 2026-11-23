@@ -9,13 +9,13 @@
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/guides/validate/schematron-quick-fixes/">
+        <link rel="canonical" href="https://freexmltoolkit.org/docs/guides/validate/schematron-quick-fixes/">
       
       
         <link rel="prev" href="../schematron/">
       
       
-        <link rel="next" href="../../transform-query/">
+        <link rel="next" href="../dtd-relaxng/">
       
       
         
@@ -53,7 +53,20 @@
       
 
     
-    
+    <script>
+  if (location.hostname === "karlkauc.github.io") {
+    location.replace("https://freexmltoolkit.org/docs/"
+      + location.pathname.replace(/^\/FreeXmlToolkit\/?/, "") + location.search + location.hash);
+  }
+</script>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Schematron Quick Fixes - FreeXmlToolkit Docs">
+<meta property="og:description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
+<meta property="og:url" content="https://freexmltoolkit.org/docs/guides/validate/schematron-quick-fixes/">
+<meta property="og:image" content="https://freexmltoolkit.org/docs/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
   <link href="../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
@@ -104,7 +117,7 @@
   FreeXmlToolkit <strong class="fxt-release-version">latest release</strong> is available –
   <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download now</a>
   <span class="fxt-announce__sep">·</span>
-  <a href="https://karlkauc.github.io/FreeXmlToolkit/#download">All platforms</a>
+  <a href="https://freexmltoolkit.org/docs/#download">All platforms</a>
 </span>
 
           </div>
@@ -1332,6 +1345,8 @@
       
         
       
+        
+      
     
     
     
@@ -1564,6 +1579,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../design-schemas/generate-from-xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate a schema from XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../design-schemas/documentation/" class="md-nav__link">
         
   
@@ -1718,6 +1761,8 @@
       
         
           
+        
+      
         
       
         
@@ -2035,6 +2080,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dtd-relaxng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DTD and RELAX NG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -3336,6 +3409,8 @@
       
         
       
+        
+      
     
     
     
@@ -3405,6 +3480,34 @@
     
   
     Policies and silent installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../administer/updates-and-network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updates and network access
   
 
     
@@ -4102,7 +4205,7 @@
   <span class="md-ellipsis">
     
   
-    What's New
+    Whats new
   
 
     
@@ -4630,6 +4733,8 @@ finding offers a quick fix.</p>
 <li>A Schematron whose rules define fixes (<code>sqf:fix</code>), bound to the document.</li>
 </ul>
 <h2 id="using-quick-fixes">Using quick fixes<a class="headerlink" href="#using-quick-fixes" title="Permanent link">¶</a></h2>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../img/schematron-quick-fix.png" data-desc-position="bottom"><img alt="The quick fix menu at a line with a Schematron problem" src="../../../img/schematron-quick-fix.png"></a>
+<em>The light bulb at line 26 offers the fixes the rule defines</em></p>
 <p>Bind a Schematron to your XML document as usual (Validation panel → SCHEMATRON
 source row, or the Explorer's one-click validation bar). After validation,
 problems that carry fixes can be corrected from three places:</p>
@@ -4770,13 +4875,13 @@ while an AI fix is a proposal that is validated against the schema and the Schem
         
         
           
-          <a href="../../transform-query/" class="md-footer__link md-footer__link--next" aria-label="Next: Transform &amp;amp; query">
+          <a href="../dtd-relaxng/" class="md-footer__link md-footer__link--next" aria-label="Next: DTD and RELAX NG">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Transform &amp; query
+                DTD and RELAX NG
               </div>
             </div>
             <div class="md-footer__button md-icon">

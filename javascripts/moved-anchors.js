@@ -188,6 +188,9 @@
     "xpath-examples": "guides/transform-query/examples/#xpath-examples",
     "xquery-examples": "guides/transform-query/examples/#xquery-examples"
   },
+  "guides/edit-xml/favorites/": {
+    "grouped-by-folder-or-file-type-unified-shell": "guides/edit-xml/favorites/#grouped-by-folder-or-file-type"
+  },
   "guides/edit-xml/grid/": {
     "json-grid": "guides/json-grid/"
   },
@@ -231,6 +234,9 @@
   },
   "guides/validate/": {
     "problems": "guides/validate/problems/#the-problems-list"
+  },
+  "guides/validate/schematron/": {
+    "schematron-tools-in-the-unified-shell": "guides/validate/schematron/#schematron-tools-in-the-validation-panel"
   },
   "guides/validate/xsd/": {
     "batch-validation": "guides/validate/folders/#validate-a-folder",

@@ -9,7 +9,7 @@
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/guides/transform-query/xproc/">
+        <link rel="canonical" href="https://freexmltoolkit.org/docs/guides/transform-query/xproc/">
       
       
         <link rel="prev" href="../xspec/">
@@ -53,7 +53,20 @@
       
 
     
-    
+    <script>
+  if (location.hostname === "karlkauc.github.io") {
+    location.replace("https://freexmltoolkit.org/docs/"
+      + location.pathname.replace(/^\/FreeXmlToolkit\/?/, "") + location.search + location.hash);
+  }
+</script>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="XProc pipelines - FreeXmlToolkit Docs">
+<meta property="og:description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
+<meta property="og:url" content="https://freexmltoolkit.org/docs/guides/transform-query/xproc/">
+<meta property="og:image" content="https://freexmltoolkit.org/docs/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
   <link href="../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
@@ -104,7 +117,7 @@
   FreeXmlToolkit <strong class="fxt-release-version">latest release</strong> is available –
   <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download now</a>
   <span class="fxt-announce__sep">·</span>
-  <a href="https://karlkauc.github.io/FreeXmlToolkit/#download">All platforms</a>
+  <a href="https://freexmltoolkit.org/docs/#download">All platforms</a>
 </span>
 
           </div>
@@ -1332,6 +1345,8 @@
       
         
       
+        
+      
     
     
     
@@ -1564,6 +1579,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../design-schemas/generate-from-xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate a schema from XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../design-schemas/documentation/" class="md-nav__link">
         
   
@@ -1716,6 +1759,8 @@
       
         
           
+        
+      
         
       
         
@@ -1912,6 +1957,34 @@
     
   
     Schematron Quick Fixes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../validate/dtd-relaxng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DTD and RELAX NG
   
 
     
@@ -2228,10 +2301,87 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
+  <a href="#before-you-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before you start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-first-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A first pipeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-the-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run the pipeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#read-the-result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Read the result
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bundled-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bundled examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#steps-that-are-not-available" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Steps that are not available
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#restrictions" class="md-nav__link">
     <span class="md-ellipsis">
       
         Restrictions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#on-the-command-line" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        On the command line
       
     </span>
   </a>
@@ -3292,6 +3442,8 @@
       
         
       
+        
+      
     
     
     
@@ -3361,6 +3513,34 @@
     
   
     Policies and silent installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../administer/updates-and-network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updates and network access
   
 
     
@@ -4058,7 +4238,7 @@
   <span class="md-ellipsis">
     
   
-    What's New
+    Whats new
   
 
     
@@ -4478,10 +4658,87 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
+  <a href="#before-you-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before you start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-first-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A first pipeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-the-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run the pipeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#read-the-result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Read the result
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bundled-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bundled examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#steps-that-are-not-available" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Steps that are not available
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#restrictions" class="md-nav__link">
     <span class="md-ellipsis">
       
         Restrictions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#on-the-command-line" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        On the command line
       
     </span>
   </a>
@@ -4520,52 +4777,201 @@
 
 
 <h1 id="xproc-pipelines">XProc Pipelines<a class="headerlink" href="#xproc-pipelines" title="Permanent link">¶</a></h1>
-<p>XProc 3.0 pipelines (<code>.xpl</code>, <code>.xproc</code>) are first-class editor
-documents, executed with the embedded <strong>XML Calabash 3</strong> engine:</p>
+<p><a href="https://xproc.org/">XProc 3.0</a> is a language for XML processing pipelines: instead of running one
+stylesheet at a time, a pipeline declares a chain of steps — delete, transform, validate, split,
+merge — that documents flow through. Pipelines (<code>.xpl</code>, <code>.xproc</code>) are editor documents like
+stylesheets and queries, and run on the embedded <strong>XML Calabash 3</strong> engine.</p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../img/unified-shell-xproc-pipeline.png" data-desc-position="bottom"><img alt="An XProc pipeline after Run Pipeline, with its CSV result in the OUTPUT panel" src="../../../img/unified-shell-xproc-pipeline.png"></a>
 <em>The bundled <code>03-positions-csv.xpl</code> example after <strong>Run Pipeline</strong>: the pipeline runs
 the CSV export stylesheet (referenced with a relative href) against the Automatic
-target and streams the result into the OUTPUT panel.</em></p>
+input and shows the result in the OUTPUT panel.</em></p>
+<h2 id="before-you-start">Before you start<a class="headerlink" href="#before-you-start" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong>Run Pipeline</strong> (the toolbar's <strong>Run</strong> button or its ▾ menu, or <code>Ctrl+Enter</code>) runs the active pipeline. The
-  primary input (<code>source</code> port) is the document chosen in the <strong>Input</strong> dropdown —
-  by default the most recently active XML document, exactly like
-  <a href="../query-console/#query-documents-the-target-selector">Run Query and Run Transform</a>.</li>
-<li>Relative <code>href</code>s in the pipeline (<code>p:document</code>, <code>p:xslt</code> stylesheets, Schematron
-  schemas) resolve against the pipeline file's directory.</li>
-<li>Results appear in the <strong>OUTPUT panel</strong>; XML, HTML, text/CSV and JSON outputs are
-  routed to the matching view automatically.</li>
-<li>Self-contained pipelines (no input ports, or ports with default bindings) run
-  without a target.</li>
-<li><strong>File → New</strong> offers an XProc skeleton (<code>p:declare-step</code> with <code>source</code>/<code>result</code>
-  ports and <code>p:identity</code>).</li>
-<li>Ready-to-run examples ship in <code>examples/xproc/</code> — see
-  <a href="../examples/#bundled-example-collections">Bundled Example Collections</a>.</li>
+<li>A pipeline file. <strong>File → New…</strong>, type <strong>XProc</strong>, gives you a skeleton: a <code>p:declare-step</code> with a
+  <code>source</code> and a <code>result</code> port and one <code>p:identity</code> step.</li>
+<li>An XML document for the pipeline's input, unless the pipeline loads its documents itself.</li>
 </ul>
+<h2 id="a-first-pipeline">A first pipeline<a class="headerlink" href="#a-first-pipeline" title="Permanent link">¶</a></h2>
+<p>Save these two files into one folder.</p>
+<p><code>orders.xml</code> — the input:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">&lt;orders&gt;</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&lt;order</span><span class="w"> </span><span class="na">id=</span><span class="s">"1"</span><span class="w"> </span><span class="na">status=</span><span class="s">"open"</span><span class="nt">&gt;&lt;total&gt;</span>120.00<span class="nt">&lt;/total&gt;&lt;/order&gt;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">&lt;order</span><span class="w"> </span><span class="na">id=</span><span class="s">"2"</span><span class="w"> </span><span class="na">status=</span><span class="s">"shipped"</span><span class="nt">&gt;&lt;total&gt;</span>80.50<span class="nt">&lt;/total&gt;&lt;/order&gt;</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">&lt;order</span><span class="w"> </span><span class="na">id=</span><span class="s">"3"</span><span class="w"> </span><span class="na">status=</span><span class="s">"open"</span><span class="nt">&gt;&lt;total&gt;</span>15.00<span class="nt">&lt;/total&gt;&lt;/order&gt;</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nt">&lt;/orders&gt;</span>
+</code></pre></div>
+<p><code>open-orders.xpl</code> — the pipeline, three steps in a row:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">&lt;p:declare-step</span><span class="w"> </span><span class="na">xmlns:p=</span><span class="s">"http://www.w3.org/ns/xproc"</span><span class="w"> </span><span class="na">version=</span><span class="s">"3.0"</span><span class="nt">&gt;</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">&lt;p:input</span><span class="w"> </span><span class="na">port=</span><span class="s">"source"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">&lt;p:output</span><span class="w"> </span><span class="na">port=</span><span class="s">"result"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="cm">&lt;!-- 1. Drop every order that is not open --&gt;</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="nt">&lt;p:delete</span><span class="w"> </span><span class="na">match=</span><span class="s">"order[@status != 'open']"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="cm">&lt;!-- 2. Summarise what is left with an inline stylesheet --&gt;</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="nt">&lt;p:xslt&gt;</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="nt">&lt;p:with-input</span><span class="w"> </span><span class="na">port=</span><span class="s">"stylesheet"</span><span class="nt">&gt;</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">      </span><span class="nt">&lt;p:inline</span><span class="w"> </span><span class="na">expand-text=</span><span class="s">"false"</span><span class="nt">&gt;</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">        </span><span class="nt">&lt;xsl:stylesheet</span><span class="w"> </span><span class="na">xmlns:xsl=</span><span class="s">"http://www.w3.org/1999/XSL/Transform"</span><span class="w"> </span><span class="na">version=</span><span class="s">"3.0"</span><span class="nt">&gt;</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">          </span><span class="nt">&lt;xsl:template</span><span class="w"> </span><span class="na">match=</span><span class="s">"/orders"</span><span class="nt">&gt;</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">            </span><span class="nt">&lt;open-orders</span><span class="w"> </span><span class="na">count=</span><span class="s">"{count(order)}"</span><span class="w"> </span><span class="na">total=</span><span class="s">"{sum(order/total)}"</span><span class="nt">&gt;</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">              </span><span class="nt">&lt;xsl:copy-of</span><span class="w"> </span><span class="na">select=</span><span class="s">"order"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">            </span><span class="nt">&lt;/open-orders&gt;</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">          </span><span class="nt">&lt;/xsl:template&gt;</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">        </span><span class="nt">&lt;/xsl:stylesheet&gt;</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">      </span><span class="nt">&lt;/p:inline&gt;</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">    </span><span class="nt">&lt;/p:with-input&gt;</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">  </span><span class="nt">&lt;/p:xslt&gt;</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">  </span><span class="cm">&lt;!-- 3. Stamp the root element --&gt;</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">  </span><span class="nt">&lt;p:add-attribute</span><span class="w"> </span><span class="na">match=</span><span class="s">"/*"</span><span class="w"> </span><span class="na">attribute-name=</span><span class="s">"source"</span><span class="w"> </span><span class="na">attribute-value=</span><span class="s">"orders.xml"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="nt">&lt;/p:declare-step&gt;</span>
+</code></pre></div>
+<p>Each step reads the result of the step before it; the first step reads the <code>source</code> port and the
+last step's result goes to the <code>result</code> port.</p>
+<div class="admonition note">
+<p class="admonition-title">Curly braces in inline content</p>
+<p>XProc evaluates <code>{…}</code> inside <code>p:inline</code> itself, before the stylesheet ever sees it.
+<code>expand-text="false"</code> leaves the braces to XSLT. Without it, <code>count(order)</code> above would be
+computed by the pipeline and the result would say <code>count="0"</code>.</p>
+</div>
+<h2 id="run-the-pipeline">Run the pipeline<a class="headerlink" href="#run-the-pipeline" title="Permanent link">¶</a></h2>
+<ol>
+<li>Open <code>orders.xml</code> and <code>open-orders.xpl</code>, and make the pipeline the active tab.</li>
+<li>Click <strong>Run</strong> in the editor toolbar, choose <strong>Run Pipeline</strong> in its ▾ menu, or press
+   <code>Ctrl+Enter</code>.</li>
+</ol>
+<p>The pipeline runs with the text in the editor, including unsaved changes.</p>
+<p><strong>Which document is the input.</strong> The document on the pipeline's primary input port — the port
+marked <code>primary="true"</code>, or the only input port — is the one named in the toolbar's <strong>Input</strong>
+dropdown. <strong>Automatic</strong> is the most recently active XML document; you can also pick another open
+document or a file from disk, exactly as for
+<a href="../query-console/#query-documents-the-target-selector">Run Query and Run Transform</a>.</p>
+<ul>
+<li>A pipeline without input ports, or whose input port has a default binding (for example a
+  <code>p:document</code> inside <code>p:input</code>), runs without an input document.</li>
+<li>A pipeline that needs an input while none is available does not run; the message asks you to
+  open an XML document or pick one in the dropdown.</li>
+</ul>
+<p><strong>Relative addresses.</strong> <code>href</code>s in the pipeline (<code>p:document</code>, <code>p:import</code>, stylesheets of <code>p:xslt</code>,
+Schematron schemas) resolve against the pipeline file's folder. In a pipeline that was never
+saved they resolve against the application's working directory — save the pipeline first.</p>
+<h2 id="read-the-result">Read the result<a class="headerlink" href="#read-the-result" title="Permanent link">¶</a></h2>
+<p>The result appears in the <strong>OUTPUT</strong> panel below the editor. For the example (indented here for
+reading; write <code>&lt;p:output port="result" serialization="map{'indent': true()}"/&gt;</code> in the pipeline
+to get it indented):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">&lt;open-orders</span><span class="w"> </span><span class="na">count=</span><span class="s">"2"</span><span class="w"> </span><span class="na">total=</span><span class="s">"135"</span><span class="w"> </span><span class="na">source=</span><span class="s">"orders.xml"</span><span class="nt">&gt;</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">&lt;order</span><span class="w"> </span><span class="na">id=</span><span class="s">"1"</span><span class="w"> </span><span class="na">status=</span><span class="s">"open"</span><span class="nt">&gt;&lt;total&gt;</span>120.00<span class="nt">&lt;/total&gt;&lt;/order&gt;</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">&lt;order</span><span class="w"> </span><span class="na">id=</span><span class="s">"3"</span><span class="w"> </span><span class="na">status=</span><span class="s">"open"</span><span class="nt">&gt;&lt;total&gt;</span>15.00<span class="nt">&lt;/total&gt;&lt;/order&gt;</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nt">&lt;/open-orders&gt;</span>
+</code></pre></div>
+<ul>
+<li>The panel shows what arrived on the <strong>primary output port</strong>. If the pipeline declares no primary
+  output, the first port that received documents is shown. Several documents on the port are
+  shown one after the other.</li>
+<li>The view follows the result's media type: XML, HTML, JSON and text (CSV, YAML and other text
+  formats) each open in the matching view of the panel.</li>
+<li>A pipeline that produces nothing shows <em>(the pipeline produced no output documents)</em>.</li>
+<li>An error is shown in the same panel as <code>ERROR:</code> followed by the message, with the XProc error
+  code in brackets where the engine reports one, for example <code>[err:XC0050]</code>.</li>
+</ul>
+<p>Files that the pipeline writes itself (<code>p:store</code>) are written where the pipeline says.</p>
+<h2 id="bundled-examples">Bundled examples<a class="headerlink" href="#bundled-examples" title="Permanent link">¶</a></h2>
+<p>Ready-to-run pipelines are in the <code>examples/xproc/</code> folder of the installation. They run against
+the FundsXML files in <code>examples/xml/</code>, for example <code>FundsXML4_Equity_Fund.xml</code>.</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Demonstrates</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>01-identity.xpl</code></td>
+<td>The anatomy of a pipeline: <code>p:declare-step</code>, ports, <code>p:identity</code></td>
+<td>XML (the input, unchanged)</td>
+</tr>
+<tr>
+<td><code>02-extract-fund-core.xpl</code></td>
+<td><code>p:delete</code> with match patterns</td>
+<td>XML without positions and FX rates</td>
+</tr>
+<tr>
+<td><code>03-positions-csv.xpl</code></td>
+<td><code>p:xslt</code> with a stylesheet from a relative <code>href</code></td>
+<td>CSV, one row per position</td>
+</tr>
+<tr>
+<td><code>04-stamp-metadata.xpl</code></td>
+<td>Several steps in a row: <code>p:add-attribute</code>, <code>p:insert</code>, computed options</td>
+<td>XML with audit metadata</td>
+</tr>
+<tr>
+<td><code>05-for-each-shareclass.xpl</code></td>
+<td><code>p:for-each</code>, inline XSLT, <code>p:wrap-sequence</code></td>
+<td>XML share-class report</td>
+</tr>
+<tr>
+<td><code>06-choose-by-fund-type.xpl</code></td>
+<td><code>p:variable</code>, <code>p:choose</code> / <code>p:when</code></td>
+<td>XML with category attributes</td>
+</tr>
+<tr>
+<td><code>07-schematron-report.xpl</code></td>
+<td><code>p:validate-with-schematron</code>, reading a secondary port</td>
+<td>SVRL validation report</td>
+</tr>
+<tr>
+<td><code>08-fund-kpis-json.xpl</code></td>
+<td>XML to JSON</td>
+<td>JSON fund summary</td>
+</tr>
+</tbody>
+</table>
+<p>Keep the folder structure when you copy them: several reference stylesheets and schemas in the
+neighbouring folders. See also
+<a href="../examples/#bundled-example-collections">Bundled Example Collections</a>.</p>
+<h2 id="steps-that-are-not-available">Steps that are not available<a class="headerlink" href="#steps-that-are-not-available" title="Permanent link">¶</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Saxon-HE limitations</p>
 <p><code>p:validate-with-xml-schema</code> and <code>p:xsl-formatter</code> require Saxon-EE and are not
-available; use the Validation activity (Xerces, full XSD 1.1) and the PDF/FOP
-activity instead. <code>p:validate-with-json-schema</code> is not supported in this bundle.</p>
+available; use the <a href="../../validate/">Validation</a> activity (Xerces, full XSD 1.1) and the
+<a href="../../publish-pdf/">PDF / FOP</a> activity instead. <code>p:validate-with-json-schema</code> is not supported
+in this bundle.</p>
 </div>
 <h2 id="restrictions">Restrictions<a class="headerlink" href="#restrictions" title="Permanent link">¶</a></h2>
 <p>Pipelines are programs, so by default they run with restrictions:</p>
 <ul>
 <li>Pipelines that use <strong><code>p:os-exec</code></strong> (run a program), <strong><code>p:run</code></strong> (run a pipeline computed at run
-  time) or <strong><code>p:http-request</code></strong> are not run, also when the step is in an imported library. The
-  message names the step.</li>
+  time) or <strong><code>p:http-request</code></strong> are not run, also when the step is in a local library the pipeline
+  imports with <code>p:import</code>. The message names the step.</li>
 <li>Documents, imports and <code>doc()</code> may only be <strong>local files</strong>; loading from <code>http:</code>, <code>https:</code> or
   <code>ftp:</code> fails with a message that says so.</li>
 <li>Reading and writing local files (<code>p:store</code>, <code>p:file-copy</code>, <code>p:file-delete</code>, …) works as before,
   with your rights: run only pipelines you trust.</li>
 </ul>
 <p><strong>Settings → Network &amp; Security → Run XProc pipelines without restrictions</strong> lifts all of it (an
-administrator can lock it, see <a href="../../../administer/policies/">Administration &amp; Policies</a>). The same rules apply
-to <code>fxt-cli transform</code>. See also the <a href="../../../administer/threat-model/">Threat Model</a>.</p>
+administrator can lock it, see <a href="../../../administer/policies/">Administration &amp; Policies</a>). It is
+off by default. See also the <a href="../../../administer/threat-model/">Threat Model</a>.</p>
+<h2 id="on-the-command-line">On the command line<a class="headerlink" href="#on-the-command-line" title="Permanent link">¶</a></h2>
+<p><code>fxt-cli transform</code> runs a pipeline; the <code>.xpl</code> extension selects XProc (for other extensions add
+<code>-l xproc</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>fxt-cli<span class="w"> </span>transform<span class="w"> </span>-s<span class="w"> </span>open-orders.xpl<span class="w"> </span>orders.xml<span class="w">                 </span><span class="c1"># result on standard output</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>fxt-cli<span class="w"> </span>transform<span class="w"> </span>-s<span class="w"> </span>open-orders.xpl<span class="w"> </span>orders.xml<span class="w"> </span>-o<span class="w"> </span>open.xml<span class="w">     </span><span class="c1"># result into a file</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>fxt-cli<span class="w"> </span>transform<span class="w"> </span>-s<span class="w"> </span>report.xpl<span class="w">                                 </span><span class="c1"># a pipeline that needs no input</span>
+</code></pre></div>
+<p>The same restrictions apply as in the application, unless <code>security.xproc.unrestricted=true</code> is
+set in the settings. See <a href="../../../automate/cli-transform/#transform">fxt-cli transform</a> for all
+options.</p>
 <h2 id="next-steps">Next steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
 <ul>
 <li><a href="../run-xslt/">Run a transformation</a></li>
-<li><a href="../../projects/">Projects &amp; scenarios</a> - pipelines as scenarios</li>
+<li><a href="../../projects/">Projects &amp; scenarios</a> - save a pipeline with its input and output as a scenario</li>
+<li><a href="../../../automate/ci-recipes/">CI recipes</a></li>
 </ul>
 
 

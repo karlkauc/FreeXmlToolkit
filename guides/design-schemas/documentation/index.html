@@ -3,16 +3,16 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
+        <meta name="description" content="Generate HTML, Word or PDF documentation and an Excel data dictionary from an XSD schema.">
       
       
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/guides/design-schemas/documentation/">
+        <link rel="canonical" href="https://freexmltoolkit.org/docs/guides/design-schemas/documentation/">
       
       
-        <link rel="prev" href="../analysis/">
+        <link rel="prev" href="../generate-from-xml/">
       
       
         <link rel="next" href="../sample-xml/">
@@ -53,7 +53,20 @@
       
 
     
-    
+    <script>
+  if (location.hostname === "karlkauc.github.io") {
+    location.replace("https://freexmltoolkit.org/docs/"
+      + location.pathname.replace(/^\/FreeXmlToolkit\/?/, "") + location.search + location.hash);
+  }
+</script>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Schema documentation - FreeXmlToolkit Docs">
+<meta property="og:description" content="Generate HTML, Word or PDF documentation and an Excel data dictionary from an XSD schema.">
+<meta property="og:url" content="https://freexmltoolkit.org/docs/guides/design-schemas/documentation/">
+<meta property="og:image" content="https://freexmltoolkit.org/docs/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
   <link href="../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
@@ -104,7 +117,7 @@
   FreeXmlToolkit <strong class="fxt-release-version">latest release</strong> is available –
   <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download now</a>
   <span class="fxt-announce__sep">·</span>
-  <a href="https://karlkauc.github.io/FreeXmlToolkit/#download">All platforms</a>
+  <a href="https://freexmltoolkit.org/docs/#download">All platforms</a>
 </span>
 
           </div>
@@ -1334,6 +1347,8 @@
       
         
       
+        
+      
     
     
     
@@ -1546,6 +1561,34 @@
     
   
     Schema analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../generate-from-xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate a schema from XML
   
 
     
@@ -1882,6 +1925,8 @@
       
         
       
+        
+      
     
     
     
@@ -2066,6 +2111,34 @@
     
   
     Schematron Quick Fixes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../validate/dtd-relaxng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DTD and RELAX NG
   
 
     
@@ -3375,6 +3448,8 @@
       
         
       
+        
+      
     
     
     
@@ -3444,6 +3519,34 @@
     
   
     Policies and silent installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../administer/updates-and-network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updates and network access
   
 
     
@@ -4141,7 +4244,7 @@
   <span class="md-ellipsis">
     
   
-    What's New
+    Whats new
   
 
     
@@ -4714,8 +4817,17 @@
 <td><strong>PDF</strong></td>
 <td>PDF document using Apache FOP</td>
 </tr>
+<tr>
+<td><strong>Excel</strong></td>
+<td>The data dictionary as a workbook (<code>dataDictionary.xlsx</code>) - written together with the HTML output, not a format of its own</td>
+</tr>
 </tbody>
 </table>
+<p>The <strong>HTML</strong> output also contains an Excel workbook, <code>dataDictionary.xlsx</code>, in the output folder:
+the data dictionary as a table with one row per element and attribute path (XPath, name, type,
+cardinality, documentation, restrictions, sample data). It has a <strong>Schema Info</strong> sheet and one
+sheet per documentation language; the <strong>Download Excel</strong> button on the HTML Data Dictionary page
+opens it. There is no separate Excel format to choose, and PDF and Word do not write the workbook.</p>
 <h2 id="how-to-generate-documentation">How to Generate Documentation<a class="headerlink" href="#how-to-generate-documentation" title="Permanent link">¶</a></h2>
 <ol>
 <li>Open your XSD file in the editor host</li>
@@ -5069,6 +5181,9 @@ schema from the toolkit; the generated documentation is the same either way. An
 
 
 
+  
+  
+
 
 
 
@@ -5099,7 +5214,7 @@ schema from the toolkit; the generated documentation is the same either way. An
       <nav class="md-footer__inner md-grid" aria-label="Footer">
         
           
-          <a href="../analysis/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Schema analysis">
+          <a href="../generate-from-xml/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Generate a schema from XML">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
@@ -5109,7 +5224,7 @@ schema from the toolkit; the generated documentation is the same either way. An
                 Previous
               </span>
               <div class="md-ellipsis">
-                Schema analysis
+                Generate a schema from XML
               </div>
             </div>
           </a>

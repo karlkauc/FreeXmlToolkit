@@ -3,13 +3,13 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
+        <meta name="description" content="A project file binds schemas, Schematron rules and transformation scenarios to files by pattern and checks transformation results against expected output.">
       
       
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/guides/projects/">
+        <link rel="canonical" href="https://freexmltoolkit.org/docs/guides/projects/">
       
       
         <link rel="prev" href="../sign-encrypt/encryption/">
@@ -53,7 +53,20 @@
       
 
     
-    
+    <script>
+  if (location.hostname === "karlkauc.github.io") {
+    location.replace("https://freexmltoolkit.org/docs/"
+      + location.pathname.replace(/^\/FreeXmlToolkit\/?/, "") + location.search + location.hash);
+  }
+</script>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Projects &amp; scenarios - FreeXmlToolkit Docs">
+<meta property="og:description" content="A project file binds schemas, Schematron rules and transformation scenarios to files by pattern and checks transformation results against expected output.">
+<meta property="og:url" content="https://freexmltoolkit.org/docs/guides/projects/">
+<meta property="og:image" content="https://freexmltoolkit.org/docs/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
   <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
@@ -104,7 +117,7 @@
   FreeXmlToolkit <strong class="fxt-release-version">latest release</strong> is available –
   <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download now</a>
   <span class="fxt-announce__sep">·</span>
-  <a href="https://karlkauc.github.io/FreeXmlToolkit/#download">All platforms</a>
+  <a href="https://freexmltoolkit.org/docs/#download">All platforms</a>
 </span>
 
           </div>
@@ -1332,6 +1345,8 @@
       
         
       
+        
+      
     
     
     
@@ -1564,6 +1579,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../design-schemas/generate-from-xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate a schema from XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../design-schemas/documentation/" class="md-nav__link">
         
   
@@ -1716,6 +1759,8 @@
       
         
           
+        
+      
         
       
         
@@ -1912,6 +1957,34 @@
     
   
     Schematron Quick Fixes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validate/dtd-relaxng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DTD and RELAX NG
   
 
     
@@ -3395,6 +3468,8 @@
       
         
       
+        
+      
     
     
     
@@ -3464,6 +3539,34 @@
     
   
     Policies and silent installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administer/updates-and-network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updates and network access
   
 
     
@@ -4161,7 +4264,7 @@
   <span class="md-ellipsis">
     
   
-    What's New
+    Whats new
   
 
     
@@ -4863,6 +4966,10 @@ therefore add a Schematron to every file, while narrower ones before it choose t
 </ul>
 <p>The Explorer's tooltip on a file says what the project assigns to it.</p>
 <h2 id="project-settings">Project Settings<a class="headerlink" href="#project-settings" title="Permanent link">¶</a></h2>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../img/project-settings.png" data-desc-position="bottom"><img alt="Project settings, Bindings tab" src="../../img/project-settings.png"></a>
+<em><strong>Bindings</strong>: which schema, Schematron and scenario belong to which files</em></p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../img/project-settings-scenarios.png" data-desc-position="bottom"><img alt="Project settings, Scenarios tab" src="../../img/project-settings-scenarios.png"></a>
+<em><strong>Scenarios</strong>: stylesheet, input, output and the expected result</em></p>
 <p><strong>File → Project → Project Settings…</strong> (also in the Explorer's context menu) edits the project
 without touching the JSON:</p>
 <table>
@@ -4931,6 +5038,8 @@ below OPTIONS &amp; TOOLS.</p>
 <li>The <strong>trash button</strong> removes the chosen scenario from the project.</li>
 </ul>
 <h3 id="regression-checks">Regression checks<a class="headerlink" href="#regression-checks" title="Permanent link">¶</a></h3>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../img/project-scenario-check.png" data-desc-position="bottom"><img alt="Transform panel after a scenario check that found differences" src="../../img/project-scenario-check.png"></a>
+<em>A check that found four differences from the expected result; <strong>Differences</strong> opens them, <strong>Accept</strong> takes the new result</em></p>
 <p>A scenario with an <strong>expected result</strong> can be checked: it runs as usual, and its result is
 compared with the expected file ("golden file"). XML results are compared by structure, like
 <a href="../compare-merge/#comparing-as-xml">Comparing as XML</a> — formatting and attribute order do not
@@ -5029,6 +5138,9 @@ to the Schema Library's own list.</p>
 
 
 
+
+  
+  
 
 
 

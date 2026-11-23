@@ -9,7 +9,7 @@
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/guides/edit-xml/large-files/">
+        <link rel="canonical" href="https://freexmltoolkit.org/docs/guides/edit-xml/large-files/">
       
       
         <link rel="prev" href="../bookmarks/">
@@ -53,7 +53,20 @@
       
 
     
-    
+    <script>
+  if (location.hostname === "karlkauc.github.io") {
+    location.replace("https://freexmltoolkit.org/docs/"
+      + location.pathname.replace(/^\/FreeXmlToolkit\/?/, "") + location.search + location.hash);
+  }
+</script>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Large files - FreeXmlToolkit Docs">
+<meta property="og:description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
+<meta property="og:url" content="https://freexmltoolkit.org/docs/guides/edit-xml/large-files/">
+<meta property="og:image" content="https://freexmltoolkit.org/docs/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
   <link href="../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
@@ -83,7 +96,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#large-file-viewer" class="md-skip">
+        <a href="#description-open-xml-files-of-several-gigabytes-in-the-large-file-viewer-text-structure-statistics-validation-and-editing-a-part-of-the-file" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +117,7 @@
   FreeXmlToolkit <strong class="fxt-release-version">latest release</strong> is available –
   <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download now</a>
   <span class="fxt-announce__sep">·</span>
-  <a href="https://karlkauc.github.io/FreeXmlToolkit/#download">All platforms</a>
+  <a href="https://freexmltoolkit.org/docs/#download">All platforms</a>
 </span>
 
           </div>
@@ -1151,8 +1164,6 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
-        
-      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
@@ -1195,8 +1206,6 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -1205,6 +1214,29 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
+  <a href="#description-open-xml-files-of-several-gigabytes-in-the-large-file-viewer-text-structure-statistics-validation-and-editing-a-part-of-the-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        description: Open XML files of several gigabytes in the Large File Viewer: text, structure, statistics, validation, and editing a part of the file.
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#large-file-viewer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Large File Viewer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Large File Viewer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#opening-a-file-in-the-viewer" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1214,8 +1246,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#text" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1225,8 +1257,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#structure-xml" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1236,8 +1268,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#graphic-view-and-edit-a-part-of-the-file-xml" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1264,8 +1296,8 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#statistics-xml" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1275,8 +1307,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#validation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1286,8 +1318,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#changes-on-disk" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1297,8 +1329,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#limits" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1308,8 +1340,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1317,6 +1349,11 @@
       
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1473,6 +1510,8 @@
       
         
           
+        
+      
         
       
         
@@ -1729,6 +1768,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../design-schemas/generate-from-xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate a schema from XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../design-schemas/documentation/" class="md-nav__link">
         
   
@@ -1881,6 +1948,8 @@
       
         
           
+        
+      
         
       
         
@@ -2077,6 +2146,34 @@
     
   
     Schematron Quick Fixes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../validate/dtd-relaxng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DTD and RELAX NG
   
 
     
@@ -3386,6 +3483,8 @@
       
         
       
+        
+      
     
     
     
@@ -3455,6 +3554,34 @@
     
   
     Policies and silent installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../administer/updates-and-network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updates and network access
   
 
     
@@ -4152,7 +4279,7 @@
   <span class="md-ellipsis">
     
   
-    What's New
+    Whats new
   
 
     
@@ -4562,8 +4689,6 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -4572,6 +4697,29 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
+  <a href="#description-open-xml-files-of-several-gigabytes-in-the-large-file-viewer-text-structure-statistics-validation-and-editing-a-part-of-the-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        description: Open XML files of several gigabytes in the Large File Viewer: text, structure, statistics, validation, and editing a part of the file.
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#large-file-viewer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Large File Viewer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Large File Viewer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#opening-a-file-in-the-viewer" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4581,8 +4729,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#text" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4592,8 +4740,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#structure-xml" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4603,8 +4751,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#graphic-view-and-edit-a-part-of-the-file-xml" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4631,8 +4779,8 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#statistics-xml" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4642,8 +4790,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#validation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4653,8 +4801,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#changes-on-disk" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4664,8 +4812,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#limits" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4675,8 +4823,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4684,6 +4832,11 @@
       
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -4707,6 +4860,8 @@
   
 
 
+<hr>
+<h2 id="description-open-xml-files-of-several-gigabytes-in-the-large-file-viewer-text-structure-statistics-validation-and-editing-a-part-of-the-file">description: Open XML files of several gigabytes in the Large File Viewer: text, structure, statistics, validation, and editing a part of the file.<a class="headerlink" href="#description-open-xml-files-of-several-gigabytes-in-the-large-file-viewer-text-structure-statistics-validation-and-editing-a-part-of-the-file" title="Permanent link">¶</a></h2>
 <h1 id="large-file-viewer">Large File Viewer<a class="headerlink" href="#large-file-viewer" title="Permanent link">¶</a></h1>
 <p>The <strong>Large File Viewer</strong> shows text and XML files of any size: a 1 GB file opens in a few seconds
 and needs only a few megabytes of memory. It reads the file from disk as you scroll, instead of
@@ -4771,6 +4926,8 @@ shows the line and the byte offset of the selection.</p>
 minified document on one line, is shown as several rows; the continuation rows are marked with <code>↪</code>
 instead of a line number. A match that spans two such rows is not found.</p>
 <h2 id="structure-xml">Structure (XML)<a class="headerlink" href="#structure-xml" title="Permanent link">¶</a></h2>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../img/large-file-structure.png" data-desc-position="bottom"><img alt="Large File Viewer, Structure tab: tree on the left, records as a table on the right" src="../../../img/large-file-structure.png"></a>
+<em>The children of the selected element as a table, loaded a page at a time</em></p>
 <p>The <strong>Structure</strong> tab shows the elements without reading the whole file:</p>
 <ul>
 <li><strong>Tree</strong> (left): the root element; expanding an element lists its children, 1,000 at a time.
@@ -4864,6 +5021,8 @@ them.</p>
   line names it.</li>
 </ul>
 <h2 id="statistics-xml">Statistics (XML)<a class="headerlink" href="#statistics-xml" title="Permanent link">¶</a></h2>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../img/large-file-statistics.png" data-desc-position="bottom"><img alt="Large File Viewer, Statistics tab with counts per element" src="../../../img/large-file-statistics.png"></a>
+<em>Counts, occurrences per parent, attributes and a sample value for every element</em></p>
 <p><strong>Scan</strong> reads the whole file once and lists every element path (names from the root, without
 positions, such as <code>/orders/order/item</code>):</p>
 <table>

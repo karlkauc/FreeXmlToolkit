@@ -9,7 +9,7 @@
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/guides/transform-query/debug/">
+        <link rel="canonical" href="https://freexmltoolkit.org/docs/guides/transform-query/debug/">
       
       
         <link rel="prev" href="../query-console/">
@@ -53,7 +53,20 @@
       
 
     
-    
+    <script>
+  if (location.hostname === "karlkauc.github.io") {
+    location.replace("https://freexmltoolkit.org/docs/"
+      + location.pathname.replace(/^\/FreeXmlToolkit\/?/, "") + location.search + location.hash);
+  }
+</script>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Debugger - FreeXmlToolkit Docs">
+<meta property="og:description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
+<meta property="og:url" content="https://freexmltoolkit.org/docs/guides/transform-query/debug/">
+<meta property="og:image" content="https://freexmltoolkit.org/docs/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
   <link href="../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
@@ -83,7 +96,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#debugger-xslt-xquery-schematron" class="md-skip">
+        <a href="#description-debug-xslt-xquery-and-schematron-conditional-breakpoints-logpoints-stepping-variables-watches-call-stack-coverage-and-explain-match" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +117,7 @@
   FreeXmlToolkit <strong class="fxt-release-version">latest release</strong> is available –
   <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download now</a>
   <span class="fxt-announce__sep">·</span>
-  <a href="https://karlkauc.github.io/FreeXmlToolkit/#download">All platforms</a>
+  <a href="https://freexmltoolkit.org/docs/#download">All platforms</a>
 </span>
 
           </div>
@@ -1332,6 +1345,8 @@
       
         
       
+        
+      
     
     
     
@@ -1564,6 +1579,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../design-schemas/generate-from-xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate a schema from XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../design-schemas/documentation/" class="md-nav__link">
         
   
@@ -1716,6 +1759,8 @@
       
         
           
+        
+      
         
       
         
@@ -1925,6 +1970,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../validate/dtd-relaxng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DTD and RELAX NG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2090,8 +2163,6 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
-        
-      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
@@ -2134,8 +2205,6 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -2144,6 +2213,29 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
+  <a href="#description-debug-xslt-xquery-and-schematron-conditional-breakpoints-logpoints-stepping-variables-watches-call-stack-coverage-and-explain-match" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        description: Debug XSLT, XQuery and Schematron: conditional breakpoints, logpoints, stepping, variables, watches, call stack, coverage and Explain Match.
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugger-xslt-xquery-schematron" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debugger (XSLT, XQuery, Schematron)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Debugger (XSLT, XQuery, Schematron)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#before-you-start" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2153,8 +2245,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#interactive-live-debugger" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2164,8 +2256,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#debug-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2175,8 +2267,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#setting-breakpoints" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2258,8 +2350,8 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#starting-and-stepping" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2286,8 +2378,8 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#inspecting-state" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2391,8 +2483,8 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#the-result" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2402,8 +2494,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#debugging-xsl-fo-stylesheets" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2413,8 +2505,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#debugging-xquery" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2424,8 +2516,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#debugging-a-schematron" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2435,8 +2527,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2444,6 +2536,11 @@
       
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -3574,6 +3671,8 @@
       
         
       
+        
+      
     
     
     
@@ -3643,6 +3742,34 @@
     
   
     Policies and silent installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../administer/updates-and-network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updates and network access
   
 
     
@@ -4340,7 +4467,7 @@
   <span class="md-ellipsis">
     
   
-    What's New
+    Whats new
   
 
     
@@ -4750,8 +4877,6 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -4760,6 +4885,29 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
+  <a href="#description-debug-xslt-xquery-and-schematron-conditional-breakpoints-logpoints-stepping-variables-watches-call-stack-coverage-and-explain-match" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        description: Debug XSLT, XQuery and Schematron: conditional breakpoints, logpoints, stepping, variables, watches, call stack, coverage and Explain Match.
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugger-xslt-xquery-schematron" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debugger (XSLT, XQuery, Schematron)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Debugger (XSLT, XQuery, Schematron)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#before-you-start" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4769,8 +4917,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#interactive-live-debugger" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4780,8 +4928,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#debug-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4791,8 +4939,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#setting-breakpoints" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4874,8 +5022,8 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#starting-and-stepping" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4902,8 +5050,8 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#inspecting-state" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5007,8 +5155,8 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#the-result" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5018,8 +5166,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#debugging-xsl-fo-stylesheets" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5029,8 +5177,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#debugging-xquery" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5040,8 +5188,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#debugging-a-schematron" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5051,8 +5199,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5060,6 +5208,11 @@
       
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -5083,6 +5236,8 @@
   
 
 
+<hr>
+<h2 id="description-debug-xslt-xquery-and-schematron-conditional-breakpoints-logpoints-stepping-variables-watches-call-stack-coverage-and-explain-match">description: Debug XSLT, XQuery and Schematron: conditional breakpoints, logpoints, stepping, variables, watches, call stack, coverage and Explain Match.<a class="headerlink" href="#description-debug-xslt-xquery-and-schematron-conditional-breakpoints-logpoints-stepping-variables-watches-call-stack-coverage-and-explain-match" title="Permanent link">¶</a></h2>
 <h1 id="debugger-xslt-xquery-schematron">Debugger (XSLT, XQuery, Schematron)<a class="headerlink" href="#debugger-xslt-xquery-schematron" title="Permanent link">¶</a></h1>
 <p>FreeXmlToolkit has an interactive debugger for <strong>XSLT stylesheets</strong>, <strong>XQuery</strong> files and <strong>Schematron</strong> schemas: breakpoints (conditional, hit counts, logpoints, template/function/input-node breakpoints), stepping, variables and watches, call stack, coverage and an output-to-source mapping.</p>
 <h2 id="before-you-start">Before you start<a class="headerlink" href="#before-you-start" title="Permanent link">¶</a></h2>

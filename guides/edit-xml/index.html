@@ -3,13 +3,13 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
+        <meta name="description" content="Edit XML in Text, Tree and Grid views with schema-aware auto-completion, folding, formatting and live validation.">
       
       
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/guides/edit-xml/">
+        <link rel="canonical" href="https://freexmltoolkit.org/docs/guides/edit-xml/">
       
       
         <link rel="prev" href="../">
@@ -53,7 +53,20 @@
       
 
     
-    
+    <script>
+  if (location.hostname === "karlkauc.github.io") {
+    location.replace("https://freexmltoolkit.org/docs/"
+      + location.pathname.replace(/^\/FreeXmlToolkit\/?/, "") + location.search + location.hash);
+  }
+</script>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Edit XML - FreeXmlToolkit Docs">
+<meta property="og:description" content="Edit XML in Text, Tree and Grid views with schema-aware auto-completion, folding, formatting and live validation.">
+<meta property="og:url" content="https://freexmltoolkit.org/docs/guides/edit-xml/">
+<meta property="og:image" content="https://freexmltoolkit.org/docs/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
   <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
@@ -104,7 +117,7 @@
   FreeXmlToolkit <strong class="fxt-release-version">latest release</strong> is available –
   <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download now</a>
   <span class="fxt-announce__sep">·</span>
-  <a href="https://karlkauc.github.io/FreeXmlToolkit/#download">All platforms</a>
+  <a href="https://freexmltoolkit.org/docs/#download">All platforms</a>
 </span>
 
           </div>
@@ -1334,6 +1347,8 @@
       
         
       
+        
+      
     
     
     
@@ -1566,6 +1581,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../design-schemas/generate-from-xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate a schema from XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../design-schemas/documentation/" class="md-nav__link">
         
   
@@ -1718,6 +1761,8 @@
       
         
           
+        
+      
         
       
         
@@ -1914,6 +1959,34 @@
     
   
     Schematron Quick Fixes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validate/dtd-relaxng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DTD and RELAX NG
   
 
     
@@ -3223,6 +3296,8 @@
       
         
       
+        
+      
     
     
     
@@ -3292,6 +3367,34 @@
     
   
     Policies and silent installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administer/updates-and-network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updates and network access
   
 
     
@@ -3989,7 +4092,7 @@
   <span class="md-ellipsis">
     
   
-    What's New
+    Whats new
   
 
     
@@ -4672,7 +4775,7 @@ facts shown in the Properties panel.</p>
 </ul>
 <h3 id="graphic-view-grid">Graphic View (Grid)<a class="headerlink" href="#graphic-view-grid" title="Permanent link">¶</a></h3>
 <p>For XML documents (and XSLT / Schematron), the <strong>Graphic</strong> view shows the editable grid.</p>
-<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../img/unified-shell-xml-grid.png" data-desc-position="bottom"><img alt="XML Grid view in the Unified Shell" src="../../img/unified-shell-xml-grid.png"></a>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../img/unified-shell-xml-grid.png" data-desc-position="bottom"><img alt="XML Grid view" src="../../img/unified-shell-xml-grid.png"></a>
 <em>An XML document in the Graphic view (grid editing)</em></p>
 <ol>
 <li>Open an XML file and switch to the <strong>Graphic</strong> view with the view switch</li>
@@ -4746,16 +4849,9 @@ wildcard), the first declaration with that name is selected instead.</p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../img/xml-editor-pretty-print-after.png" data-desc-position="bottom"><img alt="Pretty Print After" src="../../img/xml-editor-pretty-print-after.png"></a>
 <em>After pretty print</em></p>
 <h2 id="schema-generator">Schema Generator<a class="headerlink" href="#schema-generator" title="Permanent link">¶</a></h2>
-<p>With the XML document active, open the editor toolbar's <strong>Schema ▾</strong> menu (click the small
-arrow next to the <strong>Schema</strong> button) and choose <strong>Generate XSD from XML</strong> (or <strong>Generate XSD
-from XML Files…</strong> for several files) to generate an XSD schema from your XML. Both entries are
-also in the menu bar's <strong>Tools</strong> menu; <strong>Generate XSD from XML Files…</strong> works there even without
-an open document, because it asks for its files itself:</p>
-<ul>
-<li>Analyze XML structure</li>
-<li>Generate matching XSD schema</li>
-<li>Customize type detection</li>
-</ul>
+<p><strong>Tools → Generate XSD from XML</strong> writes a first draft of an XSD from the active XML document;
+<strong>Generate XSD from XML Files…</strong> starts from several files - see
+<a href="../design-schemas/generate-from-xml/">Generate a schema from XML</a>.</p>
 <h2 id="xmlexcelcsv-converter">XML/Excel/CSV converter<a class="headerlink" href="#xmlexcelcsv-converter" title="Permanent link">¶</a></h2>
 <p><strong>Tools → Spreadsheet Converter…</strong> (Ctrl+E) turns an XML document into an Excel workbook or a CSV
 file and back - see
@@ -4775,6 +4871,9 @@ file and back - see
 
 
 
+
+  
+  
 
 
 

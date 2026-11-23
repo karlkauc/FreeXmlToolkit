@@ -9,7 +9,7 @@
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/guides/transform-query/profile/">
+        <link rel="canonical" href="https://freexmltoolkit.org/docs/guides/transform-query/profile/">
       
       
         <link rel="prev" href="../debug/">
@@ -53,7 +53,20 @@
       
 
     
-    
+    <script>
+  if (location.hostname === "karlkauc.github.io") {
+    location.replace("https://freexmltoolkit.org/docs/"
+      + location.pathname.replace(/^\/FreeXmlToolkit\/?/, "") + location.search + location.hash);
+  }
+</script>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Profile - FreeXmlToolkit Docs">
+<meta property="og:description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
+<meta property="og:url" content="https://freexmltoolkit.org/docs/guides/transform-query/profile/">
+<meta property="og:image" content="https://freexmltoolkit.org/docs/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
   <link href="../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
@@ -83,7 +96,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#profile-a-transformation" class="md-skip">
+        <a href="#description-profile-an-xslt-stylesheet-or-an-xquery-time-per-template-and-function-call-tree-and-flame-graph" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +117,7 @@
   FreeXmlToolkit <strong class="fxt-release-version">latest release</strong> is available –
   <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download now</a>
   <span class="fxt-announce__sep">·</span>
-  <a href="https://karlkauc.github.io/FreeXmlToolkit/#download">All platforms</a>
+  <a href="https://freexmltoolkit.org/docs/#download">All platforms</a>
 </span>
 
           </div>
@@ -1332,6 +1345,8 @@
       
         
       
+        
+      
     
     
     
@@ -1564,6 +1579,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../design-schemas/generate-from-xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate a schema from XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../design-schemas/documentation/" class="md-nav__link">
         
   
@@ -1716,6 +1759,8 @@
       
         
           
+        
+      
         
       
         
@@ -1925,6 +1970,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../validate/dtd-relaxng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DTD and RELAX NG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2118,8 +2191,6 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
-        
-      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
@@ -2162,8 +2233,6 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -2172,6 +2241,29 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
+  <a href="#description-profile-an-xslt-stylesheet-or-an-xquery-time-per-template-and-function-call-tree-and-flame-graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        description: Profile an XSLT stylesheet or an XQuery: time per template and function, call tree and flame graph.
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#profile-a-transformation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Profile a transformation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Profile a transformation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#before-you-start" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2181,8 +2273,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#profiling-an-xquery" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2192,8 +2284,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#performance-statistics" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2203,8 +2295,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2212,6 +2304,11 @@
       
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -3314,6 +3411,8 @@
       
         
       
+        
+      
     
     
     
@@ -3383,6 +3482,34 @@
     
   
     Policies and silent installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../administer/updates-and-network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updates and network access
   
 
     
@@ -4080,7 +4207,7 @@
   <span class="md-ellipsis">
     
   
-    What's New
+    Whats new
   
 
     
@@ -4490,8 +4617,6 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -4500,6 +4625,29 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
+  <a href="#description-profile-an-xslt-stylesheet-or-an-xquery-time-per-template-and-function-call-tree-and-flame-graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        description: Profile an XSLT stylesheet or an XQuery: time per template and function, call tree and flame graph.
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#profile-a-transformation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Profile a transformation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Profile a transformation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#before-you-start" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4509,8 +4657,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#profiling-an-xquery" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4520,8 +4668,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#performance-statistics" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4531,8 +4679,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4540,6 +4688,11 @@
       
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -4563,9 +4716,15 @@
   
 
 
+<hr>
+<h2 id="description-profile-an-xslt-stylesheet-or-an-xquery-time-per-template-and-function-call-tree-and-flame-graph">description: Profile an XSLT stylesheet or an XQuery: time per template and function, call tree and flame graph.<a class="headerlink" href="#description-profile-an-xslt-stylesheet-or-an-xquery-time-per-template-and-function-call-tree-and-flame-graph" title="Permanent link">¶</a></h2>
 <h1 id="profile-a-transformation">Profile a transformation<a class="headerlink" href="#profile-a-transformation" title="Permanent link">¶</a></h1>
 <p>Every run shows compact statistics in the OUTPUT panel's status line:
 <code>Transformed · N ms · M chars</code> — the <strong>execution time</strong> and the <strong>output size</strong>.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../img/profile-table.png" data-desc-position="bottom"><img alt="Profile of a stylesheet: time and calls per template and function" src="../../../img/profile-table.png"></a>
+<em><strong>Hot Spots</strong>: calls, own time and total time of every template rule and function</em></p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../img/profile-flame-graph.png" data-desc-position="bottom"><img alt="Flame graph of the same profile" src="../../../img/profile-flame-graph.png"></a>
+<em><strong>Flame Graph</strong>: the width of a bar is its total time</em></p>
 <p>For a deeper look, enable <strong>Profile run</strong> in the Transform panel's <strong>OPTIONS &amp; TOOLS</strong> section: the next
 transformation runs under the XSLT profiler and opens a <strong>Profile: <stylesheet></stylesheet></strong> tab that shows
 where the time goes.</p>

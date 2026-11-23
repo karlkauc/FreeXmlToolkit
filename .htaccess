@@ -1,0 +1,13 @@
+# freexmltoolkit.org/docs/ - Apache settings of the documentation (MkDocs Material).
+# The website's own policy (script-src 'self'; style-src 'self') is too strict for the theme,
+# which starts with inline scripts and inline styles; everything else is inherited from /.htaccess.
+
+ErrorDocument 404 /docs/404.html
+
+<IfModule mod_headers.c>
+  Header always set Content-Security-Policy "default-src 'self'; img-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; worker-src 'self' blob:; connect-src 'self' https://api.github.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresByType application/json "access plus 10 minutes"
+</IfModule>

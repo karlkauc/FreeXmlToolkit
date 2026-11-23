@@ -1,435 +1,447 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/administer/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/administer/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/administer/code-signing/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/administer/code-signing/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/administer/file-associations/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/administer/file-associations/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/administer/offline/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/administer/offline/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/administer/policies/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/administer/policies/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/administer/privacy-telemetry/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/administer/privacy-telemetry/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/administer/security-features/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/administer/security-features/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/administer/threat-model/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/administer/threat-model/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/automate/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/administer/updates-and-network/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/automate/ci-recipes/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/automate/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/automate/cli-compare/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/automate/ci-recipes/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/automate/cli-sign/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/automate/cli-compare/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/automate/cli-transform/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/automate/cli-sign/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/automate/cli-validate/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/automate/cli-transform/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/automate/command-line/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/automate/cli-validate/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/automate/mcp-server/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/automate/command-line/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/extend/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/automate/mcp-server/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/extend/code-of-conduct/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/extend/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/extend/contributing/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/extend/code-of-conduct/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/extend/security-policy/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/extend/contributing/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/extend/technology-stack/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/extend/security-policy/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/extend/writing-plugins/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/extend/technology-stack/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/get-started/coming-from-another-editor/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/extend/writing-plugins/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/get-started/features/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/get-started/coming-from-another-editor/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/get-started/first-steps/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/get-started/features/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/get-started/get-help/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/get-started/first-steps/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/get-started/install/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/get-started/get-help/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/get-started/workspace-tour/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/get-started/install/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/get-started/workspace-tour/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/ai-assistant/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/compare-merge/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/ai-assistant/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/convert/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/compare-merge/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/json-grid/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/convert/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/json-yaml/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/json-grid/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/projects/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/json-yaml/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/publish-pdf/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/projects/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/design-schemas/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/publish-pdf/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/design-schemas/analysis/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/design-schemas/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/design-schemas/documentation/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/design-schemas/analysis/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/design-schemas/flatten/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/design-schemas/documentation/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/design-schemas/graphic-view/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/design-schemas/flatten/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/design-schemas/overview-view/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/design-schemas/generate-from-xml/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/design-schemas/sample-xml-profiles/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/design-schemas/graphic-view/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/design-schemas/sample-xml/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/design-schemas/overview-view/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/design-schemas/schema-library/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/design-schemas/sample-xml-profiles/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/design-schemas/schema-panel/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/design-schemas/sample-xml/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/design-schemas/text-view/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/design-schemas/schema-library/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/design-schemas/types/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/design-schemas/schema-panel/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/edit-xml/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/design-schemas/text-view/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/edit-xml/auto-completion/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/design-schemas/types/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/edit-xml/bookmarks/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/edit-xml/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/edit-xml/favorites/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/edit-xml/auto-completion/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/edit-xml/find-replace/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/edit-xml/bookmarks/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/edit-xml/grid/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/edit-xml/favorites/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/edit-xml/large-files/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/edit-xml/find-replace/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/edit-xml/properties/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/edit-xml/grid/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/edit-xml/search-in-files/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/edit-xml/large-files/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/edit-xml/templates/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/edit-xml/properties/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/edit-xml/working-with-files/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/edit-xml/search-in-files/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/sign-encrypt/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/edit-xml/templates/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/sign-encrypt/encryption/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/edit-xml/working-with-files/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/sign-encrypt/signatures/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/sign-encrypt/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/transform-query/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/sign-encrypt/encryption/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/transform-query/debug/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/sign-encrypt/signatures/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/transform-query/examples/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/transform-query/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/transform-query/external-processors/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/transform-query/debug/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/transform-query/profile/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/transform-query/examples/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/transform-query/query-console/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/transform-query/external-processors/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/transform-query/run-xslt/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/transform-query/profile/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/transform-query/xproc/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/transform-query/query-console/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/transform-query/xspec/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/transform-query/run-xslt/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/validate/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/transform-query/xproc/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/validate/folders/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/transform-query/xspec/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/validate/problems/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/validate/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/validate/schematron-quick-fixes/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/validate/dtd-relaxng/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/validate/schematron/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/validate/folders/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/guides/validate/xsd/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/validate/problems/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/industry/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/validate/schematron-quick-fixes/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/industry/ebinterface/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/validate/schematron/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/industry/esma-reporting/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/guides/validate/xsd/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/industry/findatex/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/industry/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/industry/fundsxml/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/industry/ebinterface/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/industry/identifier-lookup/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/industry/esma-reporting/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/industry/iso20022/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/industry/findatex/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/industry/kag-meldewesen/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/industry/fundsxml/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/industry/manage-extensions/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/industry/identifier-lookup/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/industry/pk-meldewesen/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/industry/iso20022/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/industry/xbrl/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/industry/kag-meldewesen/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/reference/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/industry/manage-extensions/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/reference/accessibility/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/industry/pk-meldewesen/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/reference/comparison/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/industry/xbrl/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/reference/execution-statistics/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/reference/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/reference/faq/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/reference/accessibility/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/reference/glossary/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/reference/comparison/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/reference/inspector/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/reference/execution-statistics/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/reference/keyboard-shortcuts/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/reference/faq/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/reference/licenses/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/reference/glossary/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/reference/project-file/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/reference/inspector/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/reference/schema-support/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/reference/keyboard-shortcuts/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/reference/settings/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/reference/licenses/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/reference/standards-versions/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/reference/project-file/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/reference/transform-panel/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/reference/schema-support/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/reference/whats-new-2/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/reference/settings/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/reference/whats-new-3/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/reference/standards-versions/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/reference/whats-new/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/reference/transform-panel/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/reference/workspace/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/reference/whats-new-2/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
     <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/reference/xsddoc-tags/</loc>
-         <lastmod>2026-11-22</lastmod>
+         <loc>https://freexmltoolkit.org/docs/reference/whats-new-3/</loc>
+         <lastmod>2026-11-23</lastmod>
+    </url>
+    <url>
+         <loc>https://freexmltoolkit.org/docs/reference/whats-new/</loc>
+         <lastmod>2026-11-23</lastmod>
+    </url>
+    <url>
+         <loc>https://freexmltoolkit.org/docs/reference/workspace/</loc>
+         <lastmod>2026-11-23</lastmod>
+    </url>
+    <url>
+         <loc>https://freexmltoolkit.org/docs/reference/xsddoc-tags/</loc>
+         <lastmod>2026-11-23</lastmod>
     </url>
 </urlset>

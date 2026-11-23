@@ -9,13 +9,13 @@
         <meta name="author" content="Karl Kauc">
       
       
-        <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/guides/design-schemas/analysis/">
+        <link rel="canonical" href="https://freexmltoolkit.org/docs/guides/design-schemas/analysis/">
       
       
         <link rel="prev" href="../text-view/">
       
       
-        <link rel="next" href="../documentation/">
+        <link rel="next" href="../generate-from-xml/">
       
       
         
@@ -53,7 +53,20 @@
       
 
     
-    
+    <script>
+  if (location.hostname === "karlkauc.github.io") {
+    location.replace("https://freexmltoolkit.org/docs/"
+      + location.pathname.replace(/^\/FreeXmlToolkit\/?/, "") + location.search + location.hash);
+  }
+</script>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Schema analysis - FreeXmlToolkit Docs">
+<meta property="og:description" content="Universal Toolkit for XML - User Documentation (XSD, XSLT, XQuery, Schematron, JSON, optional AI assistant and MCP server)">
+<meta property="og:url" content="https://freexmltoolkit.org/docs/guides/design-schemas/analysis/">
+<meta property="og:image" content="https://freexmltoolkit.org/docs/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
   <link href="../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
@@ -104,7 +117,7 @@
   FreeXmlToolkit <strong class="fxt-release-version">latest release</strong> is available –
   <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Download now</a>
   <span class="fxt-announce__sep">·</span>
-  <a href="https://karlkauc.github.io/FreeXmlToolkit/#download">All platforms</a>
+  <a href="https://freexmltoolkit.org/docs/#download">All platforms</a>
 </span>
 
           </div>
@@ -1334,6 +1347,8 @@
       
         
       
+        
+      
     
     
     
@@ -1690,6 +1705,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../generate-from-xml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generate a schema from XML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../documentation/" class="md-nav__link">
         
   
@@ -1842,6 +1885,8 @@
       
         
           
+        
+      
         
       
         
@@ -2038,6 +2083,34 @@
     
   
     Schematron Quick Fixes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../validate/dtd-relaxng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DTD and RELAX NG
   
 
     
@@ -3347,6 +3420,8 @@
       
         
       
+        
+      
     
     
     
@@ -3416,6 +3491,34 @@
     
   
     Policies and silent installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../administer/updates-and-network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updates and network access
   
 
     
@@ -4113,7 +4216,7 @@
   <span class="md-ellipsis">
     
   
-    What's New
+    Whats new
   
 
     
@@ -4637,7 +4740,7 @@ to the file. The header shows the document, the quality score, the number of iss
 number of unused types and - when unused components drag further components along - the size
 of the unreachable set; <strong>Refresh</strong> re-runs the analysis, and opening the tool again while the
 tab is already open re-analyzes the active document instead of adding a second tab.</p>
-<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../img/unified-shell-schema-statistics.png" data-desc-position="bottom"><img alt="Schema analysis in the Unified Shell" src="../../../img/unified-shell-schema-statistics.png"></a>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../../img/unified-shell-schema-statistics.png" data-desc-position="bottom"><img alt="Schema analysis" src="../../../img/unified-shell-schema-statistics.png"></a>
 <em>The Schema Analysis tool tab with its five sub-tabs, opened from the Schema activity</em></p>
 <p>Every finding is a link into the schema: selecting a row, an unused type, a usage location or
 an affected element switches the document to the <strong>Tree</strong> view and reveals the node.</p>
@@ -4917,13 +5020,13 @@ see <a href="../text-view/#what-you-can-edit-in-the-properties-pane">What You Ca
         
         
           
-          <a href="../documentation/" class="md-footer__link md-footer__link--next" aria-label="Next: Schema documentation">
+          <a href="../generate-from-xml/" class="md-footer__link md-footer__link--next" aria-label="Next: Generate a schema from XML">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Schema documentation
+                Generate a schema from XML
               </div>
             </div>
             <div class="md-footer__button md-icon">
