@@ -81,12 +81,14 @@ public class NewNodeDialog extends Dialog<ButtonType> {
         this.parent = parent;
         this.attribute = attribute;
         this.global = parent instanceof XsdSchema;
-        String what = attribute ? "Attribute" : global ? "Root Element" : "Element";
+        String what = I18n.t(attribute ? "NewNodeDialog.what.attribute"
+                : global ? "NewNodeDialog.what.root" : "NewNodeDialog.what.element");
         setTitle(I18n.t("NewNodeDialog.add", what));
-        String target = parent == null || parent.getName() == null || parent.getName().isBlank()
-                ? "" : " to '" + parent.getName() + "'";
-        setHeaderText(global ? "Add a top-level element to the schema."
-                : "Add " + (attribute ? "an attribute" : "an element") + target + ".");
+        boolean named = parent != null && parent.getName() != null && !parent.getName().isBlank();
+        String kind = attribute ? "attribute" : "element";
+        setHeaderText(global ? I18n.t("NewNodeDialog.header.root")
+                : named ? I18n.t("NewNodeDialog.header." + kind + "-to", parent.getName())
+                : I18n.t("NewNodeDialog.header." + kind));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/NewNodeDialog.fxml"));
         DialogHelper.prepare(this);
@@ -97,7 +99,7 @@ public class NewNodeDialog extends Dialog<ButtonType> {
             // Attributes carry text only: no complex types.
             typeField.setChoiceFilter(c -> c.kind() != TypeChoice.Kind.COMPLEX);
         }
-        typeField.setPromptText("none");
+        typeField.setPromptText(I18n.t("NewNodeDialog.type.none"));
         useCombo.getItems().setAll("optional", "required", "prohibited");
         useCombo.getSelectionModel().select("optional");
         formCombo.getItems().setAll(SCHEMA_DEFAULT_FORM, "qualified", "unqualified");

@@ -1145,7 +1145,7 @@ public class XsdNodeRenderer {
 
             // Handle Compositor nodes (sequence, choice, all) - show child count
             if (type == NodeWrapperType.SEQUENCE || type == NodeWrapperType.CHOICE || type == NodeWrapperType.ALL) {
-                return xsdNode.getChildren().size() + " items";
+                return org.fxt.freexmltoolkit.i18n.I18n.t("XsdNodeRenderer.items", xsdNode.getChildren().size());
             }
 
             // Handle wildcards - what they admit, and how it gets validated

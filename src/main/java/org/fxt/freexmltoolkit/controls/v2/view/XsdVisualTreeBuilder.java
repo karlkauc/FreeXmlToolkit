@@ -1098,7 +1098,7 @@ public class XsdVisualTreeBuilder {
      */
     private VisualNode createCompositorNode(XsdNode compositorNode, VisualNode parent, String compositorType, Set<String> visitedTypes, Set<String> visitedElements) {
         String label = compositorType;
-        String detail = compositorNode.getChildren().size() + " items";
+        String detail = org.fxt.freexmltoolkit.i18n.I18n.t("XsdNodeRenderer.items", compositorNode.getChildren().size());
 
         NodeWrapperType nodeType = switch (compositorType) {
             case "sequence" -> NodeWrapperType.SEQUENCE;
