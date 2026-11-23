@@ -608,7 +608,7 @@ controls; controls outside the tab order need an entry in `KEYBOARD_ALTERNATIVES
 `docs/img` through the script's `IMAGES` map (WebP). Never edit `website/**/*.html`; `--check` fails when it is stale,
 `scripts/check-website.py` checks links, both languages and the chrome. The documentation is published at
 `freexmltoolkit.org/docs/` (`mkdocs.yml` `site_url`; `docs/.htaccess` relaxes the site's CSP for the MkDocs theme;
-the GitHub Pages copy redirects there from `docs/overrides/main.html`). Upload: `scripts/upload-website.py --dir /html
+the GitHub Pages copy redirects there from `docs/overrides/main.html`). Upload: `scripts/upload-website.py --dir /www
 --docs` (documentation), then without `--docs` (website); FTPS, password from `~/.netrc`.
 
 ## Documentation

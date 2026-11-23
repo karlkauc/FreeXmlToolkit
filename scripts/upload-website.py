@@ -7,9 +7,9 @@ The password is read from ~/.netrc (never from the command line or the repositor
 
 Usage:
     python3 scripts/upload-website.py --list [PATH]      show what is on the server (two levels deep)
-    python3 scripts/upload-website.py --dir /html --dry-run
-    python3 scripts/upload-website.py --dir /html
-    python3 scripts/upload-website.py --dir /html --docs [--dry-run]    the documentation, to <dir>/docs
+    python3 scripts/upload-website.py --dir /www --dry-run
+    python3 scripts/upload-website.py --dir /www
+    python3 scripts/upload-website.py --dir /www --docs [--dry-run]    the documentation, to <dir>/docs
 
 Uploads only files whose size differs from the server copy (or all with --all). Never deletes anything.
 Runs scripts/check-website.py first and stops when it reports a problem.
