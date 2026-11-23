@@ -600,6 +600,17 @@ controls; controls outside the tab order need an entry in `KEYBOARD_ALTERNATIVES
   FXML uses `%Layout.key` (run `scripts/i18n-extract-fxml.py` after adding texts), Java `I18n.t(key, args…)`;
   `I18nBundlesTest` requires every key in both bundles. Many Java-built texts are still plain English.
 
+## Website (freexmltoolkit.org)
+
+`website/` is generated: `python3 scripts/build-website.py` builds it from `website-src/<en|de>/<path>/index.html`
+(title/description/nav header + `<main>`; `{{root}}` = site root, `{{home}}` = language root), with header, footer,
+`<head>`, hreflang and `sitemap.xml` from the script; German pages go to `website/de/`. Screenshots come from
+`docs/img` through the script's `IMAGES` map (WebP). Never edit `website/**/*.html`; `--check` fails when it is stale,
+`scripts/check-website.py` checks links, both languages and the chrome. The documentation is published at
+`freexmltoolkit.org/docs/` (`mkdocs.yml` `site_url`; `docs/.htaccess` relaxes the site's CSP for the MkDocs theme;
+the GitHub Pages copy redirects there from `docs/overrides/main.html`). Upload: `scripts/upload-website.py --dir /html
+--docs` (documentation), then without `--docs` (website); FTPS, password from `~/.netrc`.
+
 ## Documentation
 
 **Architecture:** `docs/ThreadPoolArchitecture.md`
