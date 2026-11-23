@@ -127,7 +127,7 @@ Key Features:
 ```
 org.fxt.freexmltoolkit.service/
 ├── TemplateEngine            # Template processing
-├── SchemaGenerationEngine    # Schema-based generation
+├── XsdInference              # XSD from sample XML
 ├── XPathSnippetRepository    # XPath expression library
 └── TransformationProfile     # XSLT transformation profiles
 ```

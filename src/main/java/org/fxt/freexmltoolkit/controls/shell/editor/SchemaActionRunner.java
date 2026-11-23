@@ -8,9 +8,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.flatten.XsdOutputMinifier;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
-import org.fxt.freexmltoolkit.service.SchemaGenerationEngine;
-import org.fxt.freexmltoolkit.service.SchemaGenerationOptions;
-import org.fxt.freexmltoolkit.service.SchemaGenerationResult;
+import org.fxt.freexmltoolkit.service.XsdInference;
 
 /**
  * UI-free schema actions for the Schema activity, reusing the existing services.
@@ -44,15 +42,10 @@ public final class SchemaActionRunner {
             return errorCode == null;
         }
 
-        static XsdGeneration of(SchemaGenerationResult result) {
-            if (!result.isSuccess()) {
-                String code = result.isInvalidInput() ? "not_well_formed"
-                        : result.getExceptionType() != null ? result.getExceptionType() : "generation_failed";
-                return new XsdGeneration("ERROR: " + result.getErrorMessage(), code, result.isInvalidInput());
-            }
-            String formatted = result.getFormattedXsdContent();
-            return new XsdGeneration((formatted != null && !formatted.isBlank()) ? formatted : result.getXsdContent(),
-                    null, false);
+        /** The samples are the user's: not well-formed, or documents of different namespaces. */
+        static XsdGeneration invalid(XsdInference.InvalidInputException e) {
+            return new XsdGeneration("ERROR: " + e.getMessage(),
+                    e.getCause() != null ? "not_well_formed" : "invalid_samples", true);
         }
 
         static XsdGeneration failed(Exception e, boolean invalidInput) {
@@ -70,17 +63,22 @@ public final class SchemaActionRunner {
 
     /** Infers an XSD from the given XML, keeping the failure classification. */
     public static XsdGeneration generateXsd(String xmlContent) {
+        return infer(java.util.List.of(xmlContent == null ? "" : xmlContent));
+    }
+
+    private static XsdGeneration infer(java.util.List<String> documents) {
         try {
-            return XsdGeneration.of(SchemaGenerationEngine.getInstance()
-                    .generateSchema(xmlContent, new SchemaGenerationOptions()));
+            return new XsdGeneration(XsdInference.infer(documents), null, false);
+        } catch (XsdInference.InvalidInputException e) {
+            return XsdGeneration.invalid(e);
         } catch (Exception e) {
             return XsdGeneration.failed(e, false);
         }
     }
 
     /**
-     * Infers a single XSD from several XML sample files (batch), reusing the
-     * engine's multi-document analysis. @return the XSD content, or {@code "ERROR: …"}.
+     * Infers a single XSD from several XML sample files (batch): one schema that
+     * every sample is valid against. @return the XSD content, or {@code "ERROR: …"}.
      */
     public static String generateXsdFromMultiple(java.util.List<java.io.File> xmlFiles) {
         return generateXsdBatch(xmlFiles).text();
@@ -91,17 +89,11 @@ public final class SchemaActionRunner {
         if (xmlFiles == null || xmlFiles.isEmpty()) {
             return new XsdGeneration("ERROR: no XML files selected", "no_input", true);
         }
-        java.util.List<String> documents = new java.util.ArrayList<>();
         try {
-            for (java.io.File file : xmlFiles) {
-                documents.add(java.nio.file.Files.readString(file.toPath()));
-            }
-        } catch (Exception e) {
-            return XsdGeneration.failed(e, true);
-        }
-        try {
-            return XsdGeneration.of(SchemaGenerationEngine.getInstance()
-                    .generateSchemaFromMultipleDocuments(documents, new SchemaGenerationOptions()));
+            return new XsdGeneration(XsdInference.inferFiles(xmlFiles.stream().map(java.io.File::toPath).toList()),
+                    null, false);
+        } catch (XsdInference.InvalidInputException e) {
+            return XsdGeneration.invalid(e);
         } catch (Exception e) {
             return XsdGeneration.failed(e, false);
         }

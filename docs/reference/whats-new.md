@@ -8,6 +8,16 @@ The highlights of each release. The complete notes and all downloads are on the
 [GitHub Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases); the version you are
 running is shown under **Help → About FreeXmlToolkit**.
 
+## Unreleased
+
+- **Generate XSD from XML gives a usable schema.** All occurrences of an element are put together, so repeated
+  elements keep their children, attributes and type. What is missing somewhere becomes optional, what repeats becomes
+  `maxOccurs="unbounded"`, a type fits every value seen (`id="1"` is a number, no boolean), children stay in document
+  order, and several files are merged into one schema. Every sample is valid against the schema generated from it.
+  [Generate a schema from XML](../guides/design-schemas/generate-from-xml.md)
+- **The documentation moved** to [freexmltoolkit.org/docs](https://freexmltoolkit.org/docs/); old links are
+  forwarded. Pages that had no pictures got screenshots.
+
 ## 3.5.0 (2026-11-22)
 
 - **A new logo.** Two tag brackets, blue and orange, form the X of XML. The application, its window and taskbar
