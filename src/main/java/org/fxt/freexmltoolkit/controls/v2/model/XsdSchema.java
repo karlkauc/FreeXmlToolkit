@@ -18,8 +18,10 @@ import java.util.Set;
 public class XsdSchema extends XsdNode {
 
     private String targetNamespace;
-    private String elementFormDefault = "qualified";
-    private String attributeFormDefault = "unqualified";
+    /** {@code null} when the schema does not declare it: XSD then means "unqualified". */
+    private String elementFormDefault;
+    /** {@code null} when the schema does not declare it: XSD then means "unqualified". */
+    private String attributeFormDefault;
     private String version;
     private final Map<String, String> namespaces = new LinkedHashMap<>();
     private final Map<String, String> additionalAttributes = new HashMap<>();
@@ -120,7 +122,7 @@ public class XsdSchema extends XsdNode {
     /**
      * Gets the elementFormDefault attribute.
      *
-     * @return the elementFormDefault value
+     * @return the elementFormDefault value, or {@code null} when not declared (XSD: unqualified)
      */
     public String getElementFormDefault() {
         return elementFormDefault;
@@ -140,7 +142,7 @@ public class XsdSchema extends XsdNode {
     /**
      * Gets the attributeFormDefault attribute.
      *
-     * @return the attributeFormDefault value
+     * @return the attributeFormDefault value, or {@code null} when not declared (XSD: unqualified)
      */
     public String getAttributeFormDefault() {
         return attributeFormDefault;

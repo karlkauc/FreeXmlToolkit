@@ -152,7 +152,7 @@ public class XsdSerializer {
             }
         }
 
-        // Add attributeFormDefault if not default (unqualified)
+        // Form defaults only as declared (the model keeps null for an undeclared one)
         if (schema.getAttributeFormDefault() != null && !schema.getAttributeFormDefault().isEmpty()) {
             sb.append(" attributeFormDefault=\"").append(escapeXml(schema.getAttributeFormDefault())).append("\"");
         }

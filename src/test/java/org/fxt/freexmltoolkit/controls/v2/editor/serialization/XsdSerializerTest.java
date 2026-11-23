@@ -577,8 +577,20 @@ class XsdSerializerTest {
         assertNotNull(xml);
         assertTrue(xml.contains("<xs:schema"));
         assertTrue(xml.contains("xmlns:xs=\"http://www.w3.org/2001/XMLSchema\""));
-        assertTrue(xml.contains("elementFormDefault=\"qualified\""));
         assertTrue(xml.contains("</xs:schema>"));
+        assertFalse(xml.contains("FormDefault"), "undeclared form defaults are not invented");
+    }
+
+    @Test
+    @DisplayName("form defaults are written only as declared")
+    void formDefaultsOnlyAsDeclared() throws Exception {
+        String declared = new XsdSerializer().serialize(new org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory().fromString(
+                "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" elementFormDefault=\"qualified\"/>"));
+        assertTrue(declared.contains("elementFormDefault=\"qualified\""));
+        assertFalse(declared.contains("attributeFormDefault"));
+        String none = new XsdSerializer().serialize(new org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory().fromString(
+                "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"/>"));
+        assertFalse(none.contains("FormDefault"), "an undeclared elementFormDefault means unqualified: never add qualified");
     }
 
     // ========== List Serialization Tests ==========
