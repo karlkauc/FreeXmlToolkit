@@ -1,0 +1,100 @@
+{
+  "id": "validate-xml",
+  "scenario": "ValidateXmlDocVideo",
+  "docs": "get-started/first-steps/",
+  "title": {
+    "en": "Validate an XML file against its schema",
+    "de": "Eine XML-Datei gegen ihr Schema prüfen"
+  },
+  "description": {
+    "en": "Open the bundled example in FreeXmlToolkit, validate it with F8, read a problem and repair it.",
+    "de": "Das mitgelieferte Beispiel in FreeXmlToolkit öffnen, mit F8 prüfen, ein Problem lesen und beheben."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "In this video you validate an XML file against its schema, and you repair an error. It takes one minute.",
+        "de": "In diesem Video prüfen Sie eine XML-Datei gegen ihr Schema und beheben einen Fehler. Das dauert eine Minute."
+      }
+    },
+    {
+      "id": "welcome",
+      "chapter": {
+        "en": "Open the example",
+        "de": "Das Beispiel öffnen"
+      },
+      "say": {
+        "en": "FreeXmlToolkit opens on the Welcome page. A new installation offers an example there. Click Open an Example.",
+        "de": "FreeXmlToolkit startet mit der Willkommensseite. Eine neue Installation bietet dort ein Beispiel an. Klicken Sie auf Beispiel öffnen."
+      }
+    },
+    {
+      "id": "document",
+      "say": {
+        "en": "The example is a small purchase order. In its first lines it names its schema, order.xsd. So the editor can validate it without any setup.",
+        "de": "Das Beispiel ist eine kleine Bestellung. In den ersten Zeilen nennt sie ihr Schema, order.xsd. Der Editor kann sie deshalb ohne weitere Einstellung prüfen."
+      }
+    },
+    {
+      "id": "valid",
+      "chapter": {
+        "en": "Validate with F8",
+        "de": "Mit F8 prüfen"
+      },
+      "say": {
+        "en": "Press F8 to validate. A note in the bottom right corner shows the result: the document is valid.",
+        "de": "Drücken Sie F8, um zu prüfen. Ein Hinweis unten rechts zeigt das Ergebnis: Das Dokument ist gültig."
+      }
+    },
+    {
+      "id": "break",
+      "chapter": {
+        "en": "Make a mistake",
+        "de": "Einen Fehler einbauen"
+      },
+      "say": {
+        "en": "Now make a mistake. In the first item, the quantity is the number two. Replace it with the word two.",
+        "de": "Bauen Sie jetzt einen Fehler ein. Im ersten Artikel steht als Menge die Zahl zwei. Ersetzen Sie sie durch das englische Wort two."
+      }
+    },
+    {
+      "id": "problems",
+      "chapter": {
+        "en": "Read the problem",
+        "de": "Das Problem lesen"
+      },
+      "say": {
+        "en": "Press F8 again. The Problems panel below the editor lists the error: the schema wants a positive whole number here.",
+        "de": "Drücken Sie noch einmal F8. Der Bereich Probleme unter dem Editor listet den Fehler auf: Das Schema verlangt hier eine positive ganze Zahl."
+      }
+    },
+    {
+      "id": "jump",
+      "say": {
+        "en": "Click the problem. The caret moves to the line that caused it.",
+        "de": "Klicken Sie auf das Problem. Die Schreibmarke springt in die Zeile, die es verursacht hat."
+      }
+    },
+    {
+      "id": "repair",
+      "chapter": {
+        "en": "Repair it",
+        "de": "Den Fehler beheben"
+      },
+      "say": {
+        "en": "Change the value back to the number two, and press F8 once more. The problem is gone, and the document is valid again.",
+        "de": "Ändern Sie den Wert zurück auf die Zahl zwei und drücken Sie noch einmal F8. Das Problem ist verschwunden, das Dokument ist wieder gültig."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was validating against a schema. The documentation shows the next steps: views, transformations and queries.",
+        "de": "Das war das Prüfen gegen ein Schema. Die Dokumentation zeigt die nächsten Schritte: Ansichten, Transformationen und Abfragen."
+      }
+    }
+  ]
+}

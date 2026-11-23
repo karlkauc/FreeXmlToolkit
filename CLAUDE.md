@@ -611,6 +611,15 @@ controls; controls outside the tab order need an entry in `KEYBOARD_ALTERNATIVES
 the GitHub Pages copy redirects there from `docs/overrides/main.html`). Upload: `scripts/upload-website.py --dir /www
 --docs` (documentation), then without `--docs` (website); FTPS, password from `~/.netrc`.
 
+## Tutorial videos
+
+Generated end to end, see `videos/README.md`: `python3 scripts/make-video.py <id> --lang de|en` speaks the storyboard
+`videos/<id>.json` with Piper (local, cache `~/.cache/fxt-video`), records the scenario class
+`screenshots/*DocVideo` in the real application (`docVideos` task under Xvfb 1920x1080, UI language via
+`fxt.locale` + `I18n.initialize`; `DocVideoRecorder` = ffmpeg x11grab, real pointer moves and clicks, keys fired in
+the scene, `events.json` with scenes / clicks / keys / zoom regions) and cuts `build/videos/<id>-<lang>.mp4` with
+subtitles and the upload text. The speech comes first; scenes wait for its length (`video.spoken`).
+
 ## Documentation
 
 **Architecture:** `docs/ThreadPoolArchitecture.md`

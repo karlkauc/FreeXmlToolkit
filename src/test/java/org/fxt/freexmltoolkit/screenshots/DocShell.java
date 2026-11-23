@@ -49,6 +49,11 @@ final class DocShell {
 
     /** Loads the shell into {@code stage} (call from the generator's {@code @Start} method). */
     void start(Stage stage) throws Exception {
+        start(stage, 1680, 1000);
+    }
+
+    /** Loads the shell with a scene of the given size (the videos record a whole 1920 x 1080 screen). */
+    void start(Stage stage, int width, int height) throws Exception {
         this.stage = stage;
         org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
         // The one-time FundsXML hint would sit above the editor in every later image.
@@ -62,7 +67,7 @@ final class DocShell {
         }
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_unified_shell.fxml"));
         root = loader.load();
-        stage.setScene(new Scene(root, 1680, 1000));
+        stage.setScene(new Scene(root, width, height));
         stage.setX(0);
         stage.setY(0);
         stage.show();

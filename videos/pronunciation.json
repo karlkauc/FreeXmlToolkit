@@ -1,0 +1,19 @@
+{
+  "_comment": "Spellings for the speech synthesis only (whole words, case-sensitive). Subtitles keep the storyboard text.",
+  "en": {
+    "FreeXmlToolkit": "Free X M L Toolkit",
+    "XSD": "X S D",
+    "XML": "X M L",
+    "XSLT": "X S L T",
+    "F8": "F 8",
+    "order.xsd": "order dot X S D"
+  },
+  "de": {
+    "FreeXmlToolkit": "Free X M L Toolkit",
+    "XSD": "X S D",
+    "XML": "X M L",
+    "XSLT": "X S L T",
+    "F8": "F 8",
+    "order.xsd": "order Punkt X S D"
+  }
+}

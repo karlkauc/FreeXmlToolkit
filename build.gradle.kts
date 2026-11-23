@@ -511,6 +511,7 @@ tasks.test {
     // dedicated `perfBenchmark` task instead. Both excludes must apply.
     filter {
         excludeTestsMatching("*DocScreenshotGenerator*")
+        excludeTestsMatching("*DocVideo")
         excludeTestsMatching("*PerfBenchmark*")
         // Feasibility "spike" tests assert hard wall-clock budgets (e.g. expand ≤ 100ms) that are
         // inherently flaky under headless CI / shared-machine load. Their conclusions are already
@@ -571,6 +572,57 @@ tasks.register<Test>("docScreenshots") {
     // home folder: the generators open copies under one neutral root (screenshots/DocFiles), and
     // the application's own folder (~/.freeXmlToolkit) lives there too.
     val docsRoot = File(System.getProperty("java.io.tmpdir"), "FreeXmlToolkit-docs")
+    systemProperty("fxt.docs.root", docsRoot.absolutePath)
+    systemProperty("user.home", File(docsRoot, "home").absolutePath)
+    doFirst {
+        docsRoot.deleteRecursively()
+        File(docsRoot, "home").mkdirs()
+    }
+    // Same module opens/exports as `test`, but with a real display + software rendering.
+    jvmArgs(
+        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
+        "--add-opens", "java.base/java.util=ALL-UNNAMED",
+        "--add-opens", "java.base/java.io=ALL-UNNAMED",
+        "--add-opens", "java.base/java.nio=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/com.sun.javafx.application=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/com.sun.prism=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/javafx.stage=ALL-UNNAMED",
+        "--add-opens", "javafx.graphics/javafx.scene=ALL-UNNAMED",
+        "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED",
+        "--add-exports", "javafx.graphics/com.sun.javafx.application=ALL-UNNAMED",
+        "-Djava.awt.headless=false",
+        "-Dtestfx.robot=awt",
+        "-Dprism.order=sw",
+        "-Dprism.text=t2k",
+        "-Dglass.gtk.uiScale=1.0"
+    )
+}
+
+// Tutorial videos: `python3 scripts/make-video.py <storyboard> --lang de` speaks the storyboard
+// (videos/<id>.json), runs this task under Xvfb (1920x1080) to record the scenario class, and cuts
+// the film. The scenarios are the `*DocVideo` classes next to the screenshot generators.
+tasks.register<Test>("docVideos") {
+    group = "documentation"
+    description = "Record the screen part of a tutorial video (started by scripts/make-video.py)."
+    useJUnitPlatform()
+    maxHeapSize = "8G"
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    testLogging { events("passed", "skipped", "failed") }
+    filter { includeTestsMatching("*DocVideo") }
+    outputs.upToDateWhen { false }
+    // -Pvideo.dir: the folder with timing.json, where screen.mkv and events.json go; -Pvideo.lang: UI language
+    systemProperty("fxt.video.dir", (findProperty("video.dir") as String?) ?: "build/videos/scratch")
+    // in doFirst: the settings shared by all Test tasks pin fxt.locale=en
+    doFirst { systemProperty("fxt.locale", (findProperty("video.lang") as String?) ?: "en") }
+    systemProperty("fxt.suppressExportDialogs", "true")
+    // Paths in the screenshots (status bar, recent files, Settings) must not name the developer's
+    // home folder: the generators open copies under one neutral root (screenshots/DocFiles), and
+    // the application's own folder (~/.freeXmlToolkit) lives there too.
+    val docsRoot = File(System.getProperty("java.io.tmpdir"), "FreeXmlToolkit-video")
     systemProperty("fxt.docs.root", docsRoot.absolutePath)
     systemProperty("user.home", File(docsRoot, "home").absolutePath)
     doFirst {
