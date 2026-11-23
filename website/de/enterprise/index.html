@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Unternehmen und Sicherheit – FreeXmlToolkit</title>
+<meta name="description" content="FreeXmlToolkit mit MSI und stiller Installation verteilen, Einstellungen mit rechnerweiten Richtlinien sperren, offline betreiben und nachlesen, was es sendet: Bedrohungsmodell, SBOM, Telemetrie.">
+<link rel="canonical" href="https://freexmltoolkit.org/de/enterprise/">
+<link rel="alternate" hreflang="en" href="https://freexmltoolkit.org/enterprise/">
+<link rel="alternate" hreflang="de" href="https://freexmltoolkit.org/de/enterprise/">
+<link rel="alternate" hreflang="x-default" href="https://freexmltoolkit.org/enterprise/">
+<meta name="theme-color" content="#2a284c">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Unternehmen und Sicherheit – FreeXmlToolkit">
+<meta property="og:description" content="FreeXmlToolkit mit MSI und stiller Installation verteilen, Einstellungen mit rechnerweiten Richtlinien sperren, offline betreiben und nachlesen, was es sendet: Bedrohungsmodell, SBOM, Telemetrie.">
+<meta property="og:url" content="https://freexmltoolkit.org/de/enterprise/">
+<meta property="og:image" content="https://freexmltoolkit.org/assets/brand/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../../assets/brand/app-icon.svg" type="image/svg+xml">
+<link rel="icon" href="../../assets/brand/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../../assets/brand/apple-touch-icon.png">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<script src="../../assets/js/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+<div class="wrap">
+<a class="brand" href="../" aria-label="FreeXmlToolkit Startseite"><img src="../../assets/brand/lockup-horizontal-on-dark.svg" alt="" width="181" height="30"></a>
+<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menü</button>
+<nav class="site-nav" id="site-nav" aria-label="Hauptmenü"><a href="../features/">Funktionen</a><a href="../industries/">Branchen</a><a href="../enterprise/" aria-current="page">Unternehmen</a><a href="../ai/">KI</a><a href="../compare/">Vergleich</a><a href="../../docs/">Doku</a><a class="lang" href="../../enterprise/" hreflang="en" lang="en">English</a><a class="btn" href="../download/">Download</a></nav>
+</div>
+</header>
+<main id="main">
+<section class="page-head"><div class="wrap">
+<div class="eyebrow">Unternehmen</div><h1 class="page-title">Bereit für verwaltete Arbeitsplätze</h1>
+<p class="lead">Für Administratoren und Sicherheitsprüfer: wie FreeXmlToolkit verteilt wird, welche Einstellungen Sie sperren können, was es über das Netzwerk sendet und wie es geschützt ist.</p>
+</div></section>
+<section class="section"><div class="wrap cards three">
+<div class="card"><h3>Stille Installation</h3><p>MSI und exe für Windows, pkg für macOS, deb und rpm für Linux, alle ohne Benutzereingriff installierbar. Auch in Scoop und Homebrew.</p><a class="more" href="../../docs/administer/policies/">Installation und Richtlinien</a></div>
+<div class="card"><h3>Rechnerweite Richtlinien</h3><p>Eine Datei <code>policy.properties</code> sperrt Einstellungen für alle Benutzer: Updates, Telemetrie, KI, Netzwerkzugriff, externe Prozessoren und Plugins. <code>defaults.properties</code> legt Vorgaben fest, die Benutzer ändern dürfen.</p><a class="more" href="../../docs/administer/policies/">Richtlinien</a></div>
+<div class="card"><h3>Funktioniert offline</h3><p>Validierung, Transformation und Dokumentation laufen ohne Internet. Schemas kommen aus der Schema-Bibliothek, aus OASIS-Katalogen oder einem gemeinsamen Ordner; Updates lassen sich abschalten.</p><a class="more" href="../../docs/administer/offline/">Betrieb ohne Internet</a></div>
+<div class="card"><h3>Sicher ab Werk</h3><p>Schutz vor XXE, SSRF und unsicheren Stylesheets; externe Entitäten, entfernte Schemas und Erweiterungsfunktionen werden über Einstellungen gesteuert, die ein Administrator sperren kann.</p><a class="more" href="../../docs/administer/security-features/">Sicherheitsfunktionen</a></div>
+<div class="card"><h3>Bedrohungsmodell und SBOM</h3><p>Ein dokumentiertes Bedrohungsmodell sagt, wogegen sich die Anwendung schützt und wogegen nicht. Jede Version wird mit einer CycloneDX-SBOM und SHA-256-Prüfsummen ausgeliefert.</p><a class="more" href="../../docs/administer/threat-model/">Bedrohungsmodell</a></div>
+<div class="card"><h3>Signierte Pakete</h3><p>Die macOS-Pakete sind mit einer Developer ID signiert und von Apple notarisiert. Wie Versionen gebaut und signiert werden, ist dokumentiert.</p><a class="more" href="../../docs/administer/code-signing/">Code-Signierung</a></div>
+</div></section>
+<section class="section section-alt"><div class="wrap row">
+<div class="row-copy wide"><div class="eyebrow">Telemetrie, offen gesagt</div><h2>Was die Anwendung sendet und wie Sie es abstellen</h2>
+<p class="text">Anonyme Nutzungsstatistik und Fehlerberichte sind standardmäßig eingeschaltet. Der Benutzer kann sie abschalten, eine Richtlinie schaltet sie für alle ab. Sie enthalten Funktionsnamen, Zähler, Laufzeiten, die Betriebssystemfamilie und eine zufällige Installations-ID – nie Dateinamen, Pfade, Dokumentinhalte, Prompts oder KI-Antworten.</p>
+<a class="more" href="../../docs/administer/privacy-telemetry/">Datenschutz und Telemetrie im Detail</a></div>
+<div class="row-media"><pre class="term" aria-label="Beispiel einer Richtliniendatei"><span class="c"># /etc/freexmltoolkit/policy.properties</span>
+fxt.telemetry.disabled=true
+update.allowed=false
+ai.allowed=false
+security.dtd.allowed=false</pre></div>
+</div></section>
+<section class="section"><div class="wrap cards two">
+<div class="card big"><div class="eyebrow">Barrierefreiheit</div><h2>Mit Tastatur und Screenreader bedienbar</h2>
+<p>Jedes Bedienelement hat einen zugänglichen Namen, Texte erfüllen den Kontrast nach WCAG AA, ein Modus mit hohem Kontrast hebt ihn auf 7:1, und die Oberfläche lässt sich von klein bis sehr groß skalieren, mit kompakter oder großzügiger Dichte.</p>
+<a class="more" href="../../docs/reference/accessibility/">Barrierefreiheit</a></div>
+<div class="card big"><div class="eyebrow">KI unter Kontrolle</div><h2>Aus, solange Sie es nicht erlauben</h2>
+<p>Der KI-Assistent ist standardmäßig aus und braucht einen Anbieter, den Sie einrichten. Administratoren entfernen ihn mit <code>ai.allowed=false</code> vollständig; der MCP-Server für Agenten hat einen eigenen Schalter.</p>
+<a class="more" href="../ai/">KI und Automatisierung</a></div>
+</div></section>
+<section class="section"><div class="wrap cta">
+<img src="../../assets/brand/app-icon.svg" alt="" width="88" height="88">
+<h2>Verteilen Sie es</h2><p class="lead">Ein MSI, eine Richtliniendatei, kein Lizenzserver.</p>
+<div class="btn-row"><a class="btn" href="../download/">FreeXmlToolkit herunterladen</a><a class="btn btn-ghost" href="../../docs/administer/">Dokumentation für Administratoren</a></div>
+</div></section>
+</main>
+<footer class="site-footer on-navy">
+<div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand"><img src="../../assets/brand/lockup-horizontal-on-dark.svg" alt="FreeXmlToolkit" width="181" height="30"><p>Frei und Open Source unter Apache 2.0.</p></div>
+<div><h2>Produkt</h2><ul><li><a href="../features/">Funktionen</a></li><li><a href="../industries/">Branchen</a></li><li><a href="../enterprise/">Unternehmen</a></li><li><a href="../ai/">KI &amp; Automatisierung</a></li><li><a href="../compare/">Vergleich</a></li><li><a href="../screenshots/">Screenshots</a></li></ul></div>
+<div><h2>Projekt</h2><ul><li><a href="../news/">Neuigkeiten</a></li><li><a href="../about/">Über das Projekt</a></li><li><a href="https://github.com/sponsors/karlkauc">Sponsern</a></li><li><a href="https://github.com/karlkauc/FreeXmlToolkit">GitHub</a></li></ul></div>
+<div><h2>Hilfe</h2><ul><li><a href="../../docs/">Dokumentation (englisch)</a></li><li><a href="../faq/">Fragen und Antworten</a></li><li><a href="../../docs/reference/faq/">Fehlerbehebung (englisch)</a></li><li><a href="https://github.com/karlkauc/FreeXmlToolkit/issues/new/choose">Problem melden</a></li></ul></div>
+<div><h2>Rechtliches</h2><ul><li><a href="../imprint/">Impressum</a></li><li><a href="../privacy/">Datenschutz</a></li><li><a href="../../docs/reference/licenses/">Lizenzen</a></li></ul></div>
+</div>
+<div class="foot-bottom"><span>© 2024–2026 Karl Kauc</span><span>Produktnamen sind Marken ihrer Inhaber.</span></div>
+</div>
+</footer>
+</body>
+</html>

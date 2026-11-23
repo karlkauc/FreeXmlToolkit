@@ -5,7 +5,8 @@
 - every internal link, image, stylesheet and script points to an existing file;
 - links into the documentation (the docs/ folder of the server, built from docs/ by MkDocs) point to an
   existing page in docs/;
-- header and footer are the same on every page (apart from the relative path prefix and aria-current);
+- header and footer are the same on every page of a language (apart from the relative path prefix,
+  aria-current and the language switch); every page exists in English and in German;
 - every <img> has an alt attribute; no inline style attributes (the Content-Security-Policy forbids them).
 
 Usage: python3 scripts/check-website.py   (exit code 1 when something is wrong)
@@ -19,6 +20,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SITE = ROOT / "website"
 DOCS = ROOT / "docs"
 DOCS_URL = "https://freexmltoolkit.org/docs/"
+LANGUAGES = ["de"]  # folders below the root that hold the pages in another language
 DOCS_DIR = SITE / "docs"  # only on the server: scripts/upload-website.py --docs puts the MkDocs build there
 
 
@@ -73,6 +75,8 @@ def chrome(text, tag):
     part = m.group(0)
     part = re.sub(r'(href|src)="(\.\./)+', r'\1="', part)
     part = part.replace(' aria-current="page"', "").replace('href="./"', 'href=""')
+    # the language switch points to the page's counterpart; a page without one has no switch
+    part = re.sub(r'<a class="lang"[^>]*>.*?</a>', "", part)
     return part
 
 
@@ -122,13 +126,22 @@ def main():
         if rel.name != "404.html":
             headers[rel] = chrome(text, "header")
             footers[rel] = chrome(text, "footer")
+        language = rel.parts[0] if rel.parts[0] in LANGUAGES else "en"
+        if p.lang != language:
+            problems.append(f"{rel}: lang is {p.lang}, expected {language}")
+        if language == "en" and rel.name != "404.html" and (SITE / "de").is_dir() and not (SITE / "de" / rel).exists():
+            problems.append(f"{rel}: no German page de/{rel}")
+        if language != "en" and not (SITE / rel.relative_to(language)).exists():
+            problems.append(f"{rel}: no English page")
     for name, parts in (("header", headers), ("footer", footers)):
-        variants = {}
-        for rel, part in parts.items():
-            variants.setdefault(part, []).append(str(rel))
-        if len(variants) > 1:
-            groups = sorted(variants.values(), key=len)
-            problems.append(f"{name} differs on: {', '.join(groups[0])}")
+        for language in ["en"] + LANGUAGES:   # header and footer are the same within one language
+            variants = {}
+            for rel, part in parts.items():
+                if (rel.parts[0] if rel.parts[0] in LANGUAGES else "en") == language:
+                    variants.setdefault(part, []).append(str(rel))
+            if len(variants) > 1:
+                groups = sorted(variants.values(), key=len)
+                problems.append(f"{name} differs on: {', '.join(groups[0])}")
     for line in problems:
         print(line)
     print(f"{len(pages)} pages checked, {len(problems)} problem(s)")

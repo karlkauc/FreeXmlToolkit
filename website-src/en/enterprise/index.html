@@ -1,0 +1,41 @@
+title: Enterprise and security – FreeXmlToolkit
+description: Deploy FreeXmlToolkit with MSI and silent installation, lock settings with machine-wide policies, run it offline, and read what it sends: threat model, SBOM, telemetry.
+nav: enterprise
+
+<main id="main">
+<section class="page-head"><div class="wrap">
+<div class="eyebrow">Enterprise</div><h1 class="page-title">Ready for managed desktops</h1>
+<p class="lead">For administrators and security reviewers: how FreeXmlToolkit is rolled out, which settings you can lock, what it sends over the network and how it is protected.</p>
+</div></section>
+<section class="section"><div class="wrap cards three">
+<div class="card"><h3>Silent installation</h3><p>MSI and exe for Windows, pkg for macOS, deb and rpm for Linux, all installable without user interaction. Also in Scoop and Homebrew.</p><a class="more" href="{{root}}docs/administer/policies/">Installation and policies</a></div>
+<div class="card"><h3>Machine-wide policies</h3><p>A <code>policy.properties</code> file locks settings for every user: updates, telemetry, AI, network access, external processors and plugins. <code>defaults.properties</code> sets defaults users may change.</p><a class="more" href="{{root}}docs/administer/policies/">Policies</a></div>
+<div class="card"><h3>Works offline</h3><p>Validation, transformation and documentation run without internet. Schemas come from the Schema Library, OASIS catalogs or a shared folder; updates can be switched off.</p><a class="more" href="{{root}}docs/administer/offline/">Operation without internet</a></div>
+<div class="card"><h3>Secure by default</h3><p>Protection against XXE, SSRF and unsafe stylesheets; external entities, remote schemas and extension functions are controlled by settings an administrator can lock.</p><a class="more" href="{{root}}docs/administer/security-features/">Security features</a></div>
+<div class="card"><h3>Threat model and SBOM</h3><p>A documented threat model says what the application defends against and what it does not. Every release ships a CycloneDX SBOM and SHA-256 checksums.</p><a class="more" href="{{root}}docs/administer/threat-model/">Threat model</a></div>
+<div class="card"><h3>Signed packages</h3><p>macOS packages are signed with a Developer ID and notarized by Apple. How releases are built and signed is documented.</p><a class="more" href="{{root}}docs/administer/code-signing/">Code signing</a></div>
+</div></section>
+<section class="section section-alt"><div class="wrap row">
+<div class="row-copy wide"><div class="eyebrow">Telemetry, openly</div><h2>What the application sends, and how to stop it</h2>
+<p class="text">Anonymous usage statistics and error reports are on by default and can be switched off by the user or for everyone with a policy. They contain feature names, counts, timings, the operating-system family and a random installation id - never file names, paths, document content, prompts or AI answers.</p>
+<a class="more" href="{{root}}docs/administer/privacy-telemetry/">Privacy and telemetry in detail</a></div>
+<div class="row-media"><pre class="term" aria-label="Example policy file"><span class="c"># /etc/freexmltoolkit/policy.properties</span>
+fxt.telemetry.disabled=true
+update.allowed=false
+ai.allowed=false
+security.dtd.allowed=false</pre></div>
+</div></section>
+<section class="section"><div class="wrap cards two">
+<div class="card big"><div class="eyebrow">Accessibility</div><h2>Usable with keyboard and screen reader</h2>
+<p>Every control has an accessible name, text meets WCAG AA contrast, a high-contrast mode raises it to 7:1, and the interface scales from small to extra large with a compact or roomy density.</p>
+<a class="more" href="{{root}}docs/reference/accessibility/">Accessibility</a></div>
+<div class="card big"><div class="eyebrow">AI under control</div><h2>Off unless you allow it</h2>
+<p>The AI assistant is off by default and needs a provider you configure. Administrators remove it completely with <code>ai.allowed=false</code>; the MCP server for agents has its own switch.</p>
+<a class="more" href="{{home}}ai/">AI and automation</a></div>
+</div></section>
+<section class="section"><div class="wrap cta">
+<img src="{{root}}assets/brand/app-icon.svg" alt="" width="88" height="88">
+<h2>Roll it out</h2><p class="lead">One MSI, one policy file, no licence server.</p>
+<div class="btn-row"><a class="btn" href="{{home}}download/">Download FreeXmlToolkit</a><a class="btn btn-ghost" href="{{root}}docs/administer/">Administrator documentation</a></div>
+</div></section>
+</main>

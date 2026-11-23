@@ -1,0 +1,54 @@
+title: Grafischer XSD-Editor und Schema-Werkzeuge – FreeXmlToolkit
+description: XSD 1.0 und 1.1 als Diagramm entwerfen, Schemas analysieren, Dokumentation und Beispiel-XML erzeugen und Namensräume und Kataloge in der Schema-Bibliothek verwalten.
+nav: features
+
+<main id="main">
+<section class="page-head"><div class="wrap">
+<div class="eyebrow"><a class="crumb" href="{{home}}features/">Funktionen</a> › Schemas</div><h1 class="page-title">XSD entwerfen und verstehen</h1>
+<p class="lead">Ein grafischer Editor, der nur gültige Änderungen zulässt, und die Werkzeuge rund um ein Schema: Analyse, Dokumentation, Testdaten und eine Bibliothek, die Importe auflöst.</p>
+<nav class="jump" aria-label="Abschnitte"><a href="#graphic">Grafik-Ansicht</a><a href="#overview">Übersicht</a><a href="#types">Typen</a><a href="#analysis">Analyse</a><a href="#documentation">Dokumentation</a><a href="#sample-xml">Testdaten</a><a href="#library">Schema-Bibliothek</a></nav>
+</div></section>
+<section class="section"><div class="wrap rows">
+<div class="row" id="graphic">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/schema-graphic.webp"><img src="{{root}}assets/img/schema-graphic.webp" alt="Grafischer XSD-Editor mit verbundenen Typ-Karten" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Grafik-Ansicht</div><h2>Das Schema als Diagramm</h2><p class="text">Elemente, Attribute und Kompositoren sind Karten, die Sie hinzufügen, verschieben und bearbeiten. Jede Änderung ist ein Rückgängig-Schritt.</p><ul class="ticks big"><li>XSD 1.0 und 1.1, einschließlich Assertions und Typalternativen</li><li>Drag & Drop mit Prüfung, dass das Ergebnis gültiges XSD ist</li><li>Benannte Typen als Rahmen, Identity Constraints auf den Karten</li><li>Importe und Includes werden verfolgt, auch über das Netzwerk</li></ul><a class="more" href="{{root}}docs/guides/design-schemas/graphic-view/">Zur Dokumentation (englisch)</a></div>
+</div>
+<div class="row flip" id="overview">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/schema-overview.webp"><img src="{{root}}assets/img/schema-overview.webp" alt="Übersicht mit einer Tabelle aller globalen Komponenten eines Schemas" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Übersicht</div><h2>Alle globalen Komponenten in einer Tabelle</h2><p class="text">Elemente, Typen, Gruppen, Importe und Namensräume des Schemas, darunter die Details der gewählten Komponente.</p><ul class="ticks big"><li>Komponenten einfügen, umordnen und sortieren</li><li>Eine Komponente samt ihren Referenzen umbenennen</li><li>Namensräume, Identity Constraints und Assertions bearbeiten</li></ul><a class="more" href="{{root}}docs/guides/design-schemas/overview-view/">Zur Dokumentation (englisch)</a></div>
+</div>
+<div class="row" id="types">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/type-editor.webp"><img src="{{root}}assets/img/type-editor.webp" alt="Typ-Editor mit einem komplexen Typ als Diagramm" width="1680" height="1003" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Typen</div><h2>Typbibliothek und Typ-Editor</h2><p class="text">Alle Typen des Schemas in einer Liste, jeder in einem eigenen Editor.</p><ul class="ticks big"><li>Komplexe und einfache Typen, Facetten, Aufzählungen und Muster</li><li>Wo ein Typ verwendet wird und welche gar nicht verwendet werden</li><li>Eine Typauswahl mit den eingebauten Typen von XSD</li></ul><a class="more" href="{{root}}docs/guides/design-schemas/types/">Zur Dokumentation (englisch)</a></div>
+</div>
+<div class="row flip" id="analysis">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/schema-analysis.webp"><img src="{{root}}assets/img/schema-analysis.webp" alt="Schema-Analyse mit Statistik über Elemente und Typen eines Schemas" width="1680" height="1003" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Analyse</div><h2>Wissen, was in einem Schema steckt</h2><p class="text">Statistik, Qualitätsprüfungen und die Identity Constraints eines Schemas in einem Bericht.</p><ul class="ticks big"><li>Unbenutzte und unerreichbare Definitionen, Referenzzyklen</li><li>Export als CSV, JSON, HTML, PDF oder Excel</li></ul><a class="more" href="{{root}}docs/guides/design-schemas/analysis/">Zur Dokumentation (englisch)</a></div>
+</div>
+<div class="row" id="documentation">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/schema-documentation.webp"><img src="{{root}}assets/img/schema-documentation.webp" alt="Dokumentationsgenerator mit seinen Ausgabeoptionen" width="1680" height="1003" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Dokumentation</div><h2>Dokumentation aus dem Schema</h2><p class="text">Eine durchblätterbare Beschreibung jedes Elements und Typs, mit Diagrammen.</p><ul class="ticks big"><li>HTML, Word oder PDF</li><li>Ein Excel-Datenwörterbuch zur HTML-Ausgabe</li><li>Von der Kommandozeile mit fxt-cli xsd-doc</li></ul><a class="more" href="{{root}}docs/guides/design-schemas/documentation/">Zur Dokumentation (englisch)</a></div>
+</div>
+<div class="row flip" id="sample-xml">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/sample-xml.webp"><img src="{{root}}assets/img/sample-xml.webp" alt="Beispiel-XML-Generator mit einem erzeugten Dokument" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Testdaten</div><h2>Beispiel-XML aus einem Schema</h2><p class="text">Instanzdokumente erzeugen, die gegen das Schema gültig sind.</p><ul class="ticks big"><li>Profile legen fest, welche Werte die Felder bekommen</li><li>Das Ergebnis wird sofort validiert</li></ul><a class="more" href="{{root}}docs/guides/design-schemas/sample-xml/">Zur Dokumentation (englisch)</a></div>
+</div>
+<div class="row" id="library">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/schema-library.webp"><img src="{{root}}assets/img/schema-library.webp" alt="Schema-Bibliothek mit den Zuordnungen von Namensräumen zu Schemadateien" width="1680" height="1003" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Schema-Bibliothek</div><h2>Importe, die sich selbst auflösen</h2><p class="text">Die Bibliothek ordnet Namensräume Schemadateien zu, und jeder Validator und Editor fragt sie zuerst.</p><ul class="ticks big"><li>Namensraum-Zuordnungen und OASIS-XML-Kataloge</li><li>Ein Cache heruntergeladener Schemas für die Arbeit ohne Netzwerk</li><li>Heruntergeladene Importe liegen neben dem Schema, das sie verwendet</li></ul><a class="more" href="{{root}}docs/guides/design-schemas/schema-library/">Zur Dokumentation (englisch)</a></div>
+</div>
+</div></section>
+<section class="section section-alt"><div class="wrap stack-lg">
+<div class="stack"><div class="eyebrow">Ebenfalls enthalten</div><h2>Weitere Schema-Werkzeuge</h2></div>
+<div class="cards three">
+<div class="card"><h3>Schema zusammenführen</h3><p>Die Includes eines Schemas in eine Datei zusammenführen.</p><a class="more" href="{{root}}docs/guides/design-schemas/flatten/">Flatten</a></div>
+<div class="card"><h3>Schema aus XML</h3><p>Ein erstes XSD aus Beispieldokumenten ableiten.</p><a class="more" href="{{root}}docs/guides/design-schemas/generate-from-xml/">Schema erzeugen</a></div>
+<div class="card"><h3>Diagramm exportieren</h3><p>PNG, SVG oder PDF des Diagramms, des Grids und des Flame Graphs, oder eine Kopie in die Zwischenablage.</p><a class="more" href="{{root}}docs/get-started/workspace-tour/#export-view">Ansicht exportieren</a></div>
+</div>
+</div></section>
+<section class="section"><div class="wrap cta">
+<h2>Weitere Funktionen</h2>
+<nav class="jump center" aria-label="Weitere Funktionen"><a href="{{home}}features/editing/">Bearbeiten</a><a href="{{home}}features/validation/">Validierung</a><a href="{{home}}features/transform/">Transformieren und Debuggen</a><a href="{{home}}features/publish-security/">PDF und Sicherheit</a><a href="{{home}}features/compare-convert/">Vergleichen und Konvertieren</a><a href="{{home}}features/projects-cli/">Projekte und Kommandozeile</a></nav>
+<div class="btn-row"><a class="btn" href="{{home}}download/">FreeXmlToolkit herunterladen</a><a class="btn btn-ghost" href="{{home}}screenshots/">Screenshots</a></div>
+</div></section>
+</main>

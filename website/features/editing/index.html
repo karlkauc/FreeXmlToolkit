@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>XML, JSON and YAML editor – FreeXmlToolkit</title>
+<meta name="description" content="A schema-aware editor for XML, JSON and YAML with Text, Tree and Grid views, IntelliSense, a properties inspector and a viewer for files of several gigabytes.">
+<link rel="canonical" href="https://freexmltoolkit.org/features/editing/">
+<link rel="alternate" hreflang="en" href="https://freexmltoolkit.org/features/editing/">
+<link rel="alternate" hreflang="de" href="https://freexmltoolkit.org/de/features/editing/">
+<link rel="alternate" hreflang="x-default" href="https://freexmltoolkit.org/features/editing/">
+<meta name="theme-color" content="#2a284c">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="XML, JSON and YAML editor – FreeXmlToolkit">
+<meta property="og:description" content="A schema-aware editor for XML, JSON and YAML with Text, Tree and Grid views, IntelliSense, a properties inspector and a viewer for files of several gigabytes.">
+<meta property="og:url" content="https://freexmltoolkit.org/features/editing/">
+<meta property="og:image" content="https://freexmltoolkit.org/assets/brand/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../../assets/brand/app-icon.svg" type="image/svg+xml">
+<link rel="icon" href="../../assets/brand/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../../assets/brand/apple-touch-icon.png">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<script src="../../assets/js/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="wrap">
+<a class="brand" href="../../" aria-label="FreeXmlToolkit home"><img src="../../assets/brand/lockup-horizontal-on-dark.svg" alt="" width="181" height="30"></a>
+<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+<nav class="site-nav" id="site-nav" aria-label="Main"><a href="../../features/" aria-current="page">Features</a><a href="../../industries/">Industries</a><a href="../../enterprise/">Enterprise</a><a href="../../ai/">AI</a><a href="../../compare/">Compare</a><a href="../../docs/">Docs</a><a class="lang" href="../../de/features/editing/" hreflang="de" lang="de">Deutsch</a><a class="btn" href="../../download/">Download</a></nav>
+</div>
+</header>
+<main id="main">
+<section class="page-head"><div class="wrap">
+<div class="eyebrow"><a class="crumb" href="../../features/">Features</a> › Editing</div><h1 class="page-title">An editor that knows your schema</h1>
+<p class="lead">Text, Tree and Grid are three views of the same document. The bound schema drives completion, validation and the properties of every node.</p>
+<nav class="jump" aria-label="Sections"><a href="#views">Views</a><a href="#completion">Auto-completion</a><a href="#grid">Grid</a><a href="#inspector">Properties</a><a href="#large-files">Large files</a><a href="#json-yaml">JSON and YAML</a><a href="#find">Find and organise</a></nav>
+</div></section>
+<section class="section"><div class="wrap rows">
+<div class="row" id="views">
+<div class="row-media"><a class="shot" href="../../assets/img/xml-grid.webp"><img src="../../assets/img/xml-grid.webp" alt="Grid view with nested XML shown as tables" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Views</div><h2>One document, three views</h2><p class="text">Text, Tree and Grid share one undo history, and switching views keeps the node you were on.</p><ul class="ticks big"><li>Text view with syntax highlighting, code folding, formatting and minifying</li><li>Tree view for the structure, Grid for repeating elements</li><li>A rendered Preview for HTML documents</li><li>Files changed by another program are noticed and reloaded on request</li></ul><a class="more" href="../../docs/guides/edit-xml/">Read the documentation</a></div>
+</div>
+<div class="row flip" id="completion">
+<div class="row-media"><a class="shot" href="../../assets/img/intellisense.webp"><img src="../../assets/img/intellisense.webp" alt="Auto-completion popup listing the elements the schema allows at the caret" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Auto-completion</div><h2>Only what the schema allows</h2><p class="text">The completion list is built from the bound schema for the exact place of the caret.</p><ul class="ticks big"><li>Elements, attributes and enumeration values from the XSD</li><li>Works with DTD and RELAX NG schemas too</li><li>The schema is found from the document, the project or the Schema Library</li><li>Validation runs while you type</li></ul><a class="more" href="../../docs/guides/edit-xml/auto-completion/">Read the documentation</a></div>
+</div>
+<div class="row" id="grid">
+<div class="row-media"><a class="shot" href="../../assets/img/grid-formulas.webp"><img src="../../assets/img/grid-formulas.webp" alt="Grid view with a table of records and named sums above it" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Grid</div><h2>Tables, filters and formulas</h2><p class="text">Repeating elements become editable tables, at any depth of nesting.</p><ul class="ticks big"><li>Sort and filter rows, add sums and other formulas</li><li>Insert, rename and move columns; paste cells from a spreadsheet</li><li>Entry helpers list the siblings, children and values the schema allows</li><li>Drag and drop to move nodes</li></ul><a class="more" href="../../docs/guides/edit-xml/grid/">Read the documentation</a></div>
+</div>
+<div class="row flip" id="inspector">
+<div class="row-media"><a class="shot" href="../../assets/img/inspector.webp"><img src="../../assets/img/inspector.webp" alt="Properties inspector showing type, cardinality and documentation of the selected element" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Properties</div><h2>Everything about the node at the caret</h2><p class="text">The inspector on the right shows what the schema says about the selected node, in every view.</p><ul class="ticks big"><li>Type, cardinality, facets and documentation</li><li>Edit values and attributes in place</li><li>Change the declaration in the XSD without leaving the XML document</li></ul><a class="more" href="../../docs/reference/inspector/">Read the documentation</a></div>
+</div>
+<div class="row" id="large-files">
+<div class="row-media"><a class="shot" href="../../assets/img/large-file.webp"><img src="../../assets/img/large-file.webp" alt="Large File Viewer with the structure tree and a table of records" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Large files</div><h2>Files of several gigabytes</h2><p class="text">Files from 50 MB open in the Large File Viewer, which reads from disk only what it shows.</p><ul class="ticks big"><li>Text, structure tree, record table and statistics</li><li>Edit a part of the file in the grid and write it back</li><li>Streaming validation against an XSD</li><li>Export records to CSV or Excel</li></ul><a class="more" href="../../docs/guides/edit-xml/large-files/">Read the documentation</a></div>
+</div>
+<div class="row flip" id="json-yaml">
+<div class="row-media"><a class="shot" href="../../assets/img/json-grid.webp"><img src="../../assets/img/json-grid.webp" alt="A JSON document in the grid view" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">JSON and YAML</div><h2>The same views for JSON and YAML</h2><p class="text">JSON, JSON5 and YAML documents get Text, Tree and Grid as well.</p><ul class="ticks big"><li>Validation against JSON Schema Draft-07, 2019-09 and 2020-12</li><li>JSONPath in the Query Console</li><li>Conversion to and from XML</li></ul><a class="more" href="../../docs/guides/json-yaml/">Read the documentation</a></div>
+</div>
+<div class="row" id="find">
+<div class="row-media"><a class="shot" href="../../assets/img/search-in-files.webp"><img src="../../assets/img/search-in-files.webp" alt="Search activity with results from several files" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Find and organise</div><h2>Find it again</h2><p class="text">Search across folders, and keep the places and files you return to.</p><ul class="ticks big"><li>Find and replace across files, by text or by XPath</li><li>Line bookmarks, nine of them numbered, that follow your edits</li><li>Favorites for files, templates for new ones</li></ul><a class="more" href="../../docs/guides/edit-xml/search-in-files/">Read the documentation</a></div>
+</div>
+</div></section>
+<section class="section"><div class="wrap cta">
+<h2>More features</h2>
+<nav class="jump center" aria-label="More features"><a href="../../features/schemas/">Schemas</a><a href="../../features/validation/">Validation</a><a href="../../features/transform/">Transform and debug</a><a href="../../features/publish-security/">PDF and security</a><a href="../../features/compare-convert/">Compare and convert</a><a href="../../features/projects-cli/">Projects and command line</a></nav>
+<div class="btn-row"><a class="btn" href="../../download/">Download FreeXmlToolkit</a><a class="btn btn-ghost" href="../../screenshots/">Screenshots</a></div>
+</div></section>
+</main>
+<footer class="site-footer on-navy">
+<div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand"><img src="../../assets/brand/lockup-horizontal-on-dark.svg" alt="FreeXmlToolkit" width="181" height="30"><p>Free and open source under Apache 2.0.</p></div>
+<div><h2>Product</h2><ul><li><a href="../../features/">Features</a></li><li><a href="../../industries/">Industries</a></li><li><a href="../../enterprise/">Enterprise</a></li><li><a href="../../ai/">AI &amp; automation</a></li><li><a href="../../compare/">Compare</a></li><li><a href="../../screenshots/">Screenshots</a></li></ul></div>
+<div><h2>Project</h2><ul><li><a href="../../news/">News</a></li><li><a href="../../about/">About</a></li><li><a href="https://github.com/sponsors/karlkauc">Sponsor</a></li><li><a href="https://github.com/karlkauc/FreeXmlToolkit">GitHub</a></li></ul></div>
+<div><h2>Help</h2><ul><li><a href="../../docs/">Documentation</a></li><li><a href="../../faq/">FAQ</a></li><li><a href="../../docs/reference/faq/">Troubleshooting</a></li><li><a href="https://github.com/karlkauc/FreeXmlToolkit/issues/new/choose">Report a problem</a></li></ul></div>
+<div><h2>Legal</h2><ul><li><a href="../../imprint/">Imprint</a></li><li><a href="../../privacy/">Privacy</a></li><li><a href="../../docs/reference/licenses/">Licenses</a></li></ul></div>
+</div>
+<div class="foot-bottom"><span>© 2024–2026 Karl Kauc</span><span>Product names are trademarks of their owners.</span></div>
+</div>
+</footer>
+</body>
+</html>

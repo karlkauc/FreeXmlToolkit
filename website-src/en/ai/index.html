@@ -1,0 +1,41 @@
+title: AI assistant, MCP server and command line – FreeXmlToolkit
+description: An AI assistant whose answers are checked before you see them, an MCP server that gives AI agents XML validation and XSLT tools, and fxt-cli for build pipelines.
+nav: ai
+
+<main id="main">
+<section class="page-head"><div class="wrap">
+<div class="eyebrow">AI and automation</div><h1 class="page-title">AI on your terms</h1>
+<p class="lead">An assistant whose answers are checked before you see them, a server that gives AI agents real XML tools, and a command line for your build pipeline.</p>
+</div></section>
+<section class="section"><div class="wrap rows">
+<div class="row">
+<div class="row-media"><div class="shot"><img src="{{root}}assets/img/ai.webp" alt="AI assistant proposing a verified fix for a validation problem" width="1680" height="1000" loading="lazy" decoding="async"></div></div>
+<div class="row-copy"><div class="eyebrow">AI assistant</div><h2>Answers that are checked first</h2><p class="text">The application compiles, runs, validates and compares what the model proposes, and sends the errors back for up to three repair rounds. Nothing is applied or saved without you.</p><ul class="ticks big"><li>Explain and fix validation problems</li><li>Turn a question into XPath or XQuery</li><li>Generate an XSLT stylesheet from a target sample</li><li>Off by default; a local model (Ollama, LM Studio) or a provider you have an account with</li><li>Data levels and a preview of every request decide what leaves your computer</li></ul><a class="more" href="{{root}}docs/guides/ai-assistant/">The AI assistant</a></div>
+</div>
+</div></section>
+<section class="section section-navy on-navy"><div class="wrap row">
+<div class="row-copy wide"><div class="eyebrow">MCP server</div><h2>Give your agent XML tools</h2>
+<p class="text"><code>fxt-cli mcp</code> offers validation, XPath, XQuery, XSLT, XSpec, Schematron, schema lookups and compare to Claude Code and any other client of the Model Context Protocol. The agent checks its own work instead of guessing.</p>
+<ul class="ticks"><li>Runs on your machine over standard input and output, no network port</li><li>Read-only and sandboxed to the folders you name</li><li>Calls no language model and sends nothing anywhere</li></ul>
+<a class="more" href="{{root}}docs/automate/mcp-server/">MCP server</a></div>
+<div class="row-media"><pre class="term" aria-label="MCP set-up example"><span class="c"># register with Claude Code</span>
+<span class="p">$ </span>claude mcp add fxt -- fxt-cli mcp --root .
+
+<span class="c"># list the tools</span>
+<span class="p">$ </span>fxt-cli mcp --list-tools</pre></div>
+</div></section>
+<section class="section"><div class="wrap row flip">
+<div class="row-copy wide"><div class="eyebrow">Command line</div><h2>The same engines in your build</h2>
+<p class="text"><code>fxt-cli</code> is installed with the application. It validates, transforms, queries, runs XSpec tests and scenarios, compares, signs and encrypts - and reports as text, JSON, JUnit or SARIF.</p>
+<a class="more" href="{{root}}docs/automate/ci-recipes/">CI recipes for GitHub Actions and GitLab CI</a></div>
+<div class="row-media"><pre class="term" aria-label="Command line examples"><span class="p">$ </span>fxt-cli validate data/ --xsd schema.xsd -f junit -r report.xml
+<span class="p">$ </span>fxt-cli transform in.xml -s style.xsl -o out.html
+<span class="p">$ </span>fxt-cli xspec tests/invoice.xspec -r results.xml
+<span class="p">$ </span>fxt-cli compare expected.xml actual.xml</pre></div>
+</div></section>
+<section class="section"><div class="wrap cta">
+<img src="{{root}}assets/brand/app-icon.svg" alt="" width="88" height="88">
+<h2>Bring your own model, or none</h2><p class="lead">Everything else works without AI.</p>
+<div class="btn-row"><a class="btn" href="{{home}}download/">Download FreeXmlToolkit</a></div>
+</div></section>
+</main>

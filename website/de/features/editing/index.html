@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Editor für XML, JSON und YAML – FreeXmlToolkit</title>
+<meta name="description" content="Ein schemagestützter Editor für XML, JSON und YAML mit Text-, Baum- und Grid-Ansicht, IntelliSense, Eigenschaftenbereich und einem Viewer für Dateien mit mehreren Gigabyte.">
+<link rel="canonical" href="https://freexmltoolkit.org/de/features/editing/">
+<link rel="alternate" hreflang="en" href="https://freexmltoolkit.org/features/editing/">
+<link rel="alternate" hreflang="de" href="https://freexmltoolkit.org/de/features/editing/">
+<link rel="alternate" hreflang="x-default" href="https://freexmltoolkit.org/features/editing/">
+<meta name="theme-color" content="#2a284c">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Editor für XML, JSON und YAML – FreeXmlToolkit">
+<meta property="og:description" content="Ein schemagestützter Editor für XML, JSON und YAML mit Text-, Baum- und Grid-Ansicht, IntelliSense, Eigenschaftenbereich und einem Viewer für Dateien mit mehreren Gigabyte.">
+<meta property="og:url" content="https://freexmltoolkit.org/de/features/editing/">
+<meta property="og:image" content="https://freexmltoolkit.org/assets/brand/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../../../assets/brand/app-icon.svg" type="image/svg+xml">
+<link rel="icon" href="../../../assets/brand/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../../../assets/brand/apple-touch-icon.png">
+<link rel="stylesheet" href="../../../assets/css/site.css">
+<script src="../../../assets/js/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+<div class="wrap">
+<a class="brand" href="../../" aria-label="FreeXmlToolkit Startseite"><img src="../../../assets/brand/lockup-horizontal-on-dark.svg" alt="" width="181" height="30"></a>
+<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menü</button>
+<nav class="site-nav" id="site-nav" aria-label="Hauptmenü"><a href="../../features/" aria-current="page">Funktionen</a><a href="../../industries/">Branchen</a><a href="../../enterprise/">Unternehmen</a><a href="../../ai/">KI</a><a href="../../compare/">Vergleich</a><a href="../../../docs/">Doku</a><a class="lang" href="../../../features/editing/" hreflang="en" lang="en">English</a><a class="btn" href="../../download/">Download</a></nav>
+</div>
+</header>
+<main id="main">
+<section class="page-head"><div class="wrap">
+<div class="eyebrow"><a class="crumb" href="../../features/">Funktionen</a> › Bearbeiten</div><h1 class="page-title">Ein Editor, der Ihr Schema kennt</h1>
+<p class="lead">Text, Baum und Grid sind drei Ansichten desselben Dokuments. Das gebundene Schema steuert Vervollständigung, Validierung und die Eigenschaften jedes Knotens.</p>
+<nav class="jump" aria-label="Abschnitte"><a href="#views">Ansichten</a><a href="#completion">Auto-Vervollständigung</a><a href="#grid">Grid</a><a href="#inspector">Eigenschaften</a><a href="#large-files">Große Dateien</a><a href="#json-yaml">JSON und YAML</a><a href="#find">Finden und Ordnen</a></nav>
+</div></section>
+<section class="section"><div class="wrap rows">
+<div class="row" id="views">
+<div class="row-media"><a class="shot" href="../../../assets/img/xml-grid.webp"><img src="../../../assets/img/xml-grid.webp" alt="Grid-Ansicht mit verschachteltem XML als Tabellen" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Ansichten</div><h2>Ein Dokument, drei Ansichten</h2><p class="text">Text, Baum und Grid teilen sich einen Rückgängig-Verlauf, und beim Wechsel der Ansicht bleiben Sie auf demselben Knoten.</p><ul class="ticks big"><li>Textansicht mit Syntaxhervorhebung, Code-Faltung, Formatieren und Minimieren</li><li>Baumansicht für die Struktur, Grid für wiederholte Elemente</li><li>Gerenderte Vorschau für HTML-Dokumente</li><li>Änderungen durch andere Programme werden erkannt und auf Wunsch neu geladen</li></ul><a class="more" href="../../../docs/guides/edit-xml/">Zur Dokumentation (englisch)</a></div>
+</div>
+<div class="row flip" id="completion">
+<div class="row-media"><a class="shot" href="../../../assets/img/intellisense.webp"><img src="../../../assets/img/intellisense.webp" alt="Vervollständigungsliste mit den Elementen, die das Schema an der Cursorposition erlaubt" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Auto-Vervollständigung</div><h2>Nur, was das Schema erlaubt</h2><p class="text">Die Vorschlagsliste entsteht aus dem gebundenen Schema, genau für die Stelle des Cursors.</p><ul class="ticks big"><li>Elemente, Attribute und Aufzählungswerte aus dem XSD</li><li>Auch mit DTD- und RELAX-NG-Schemas</li><li>Das Schema kommt aus dem Dokument, dem Projekt oder der Schema-Bibliothek</li><li>Validierung während der Eingabe</li></ul><a class="more" href="../../../docs/guides/edit-xml/auto-completion/">Zur Dokumentation (englisch)</a></div>
+</div>
+<div class="row" id="grid">
+<div class="row-media"><a class="shot" href="../../../assets/img/grid-formulas.webp"><img src="../../../assets/img/grid-formulas.webp" alt="Grid-Ansicht mit einer Tabelle von Datensätzen und benannten Summen darüber" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Grid</div><h2>Tabellen, Filter und Formeln</h2><p class="text">Wiederholte Elemente werden zu bearbeitbaren Tabellen, in jeder Verschachtelungstiefe.</p><ul class="ticks big"><li>Zeilen sortieren und filtern, Summen und andere Formeln ergänzen</li><li>Spalten einfügen, umbenennen und verschieben; Zellen aus einer Tabellenkalkulation einfügen</li><li>Eingabehilfen zeigen die Geschwister, Kinder und Werte, die das Schema erlaubt</li><li>Knoten per Drag & Drop verschieben</li></ul><a class="more" href="../../../docs/guides/edit-xml/grid/">Zur Dokumentation (englisch)</a></div>
+</div>
+<div class="row flip" id="inspector">
+<div class="row-media"><a class="shot" href="../../../assets/img/inspector.webp"><img src="../../../assets/img/inspector.webp" alt="Eigenschaftenbereich mit Typ, Kardinalität und Dokumentation des gewählten Elements" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Eigenschaften</div><h2>Alles über den Knoten am Cursor</h2><p class="text">Der Bereich rechts zeigt in jeder Ansicht, was das Schema über den gewählten Knoten sagt.</p><ul class="ticks big"><li>Typ, Kardinalität, Facetten und Dokumentation</li><li>Werte und Attribute direkt bearbeiten</li><li>Die Deklaration im XSD ändern, ohne das XML-Dokument zu verlassen</li></ul><a class="more" href="../../../docs/reference/inspector/">Zur Dokumentation (englisch)</a></div>
+</div>
+<div class="row" id="large-files">
+<div class="row-media"><a class="shot" href="../../../assets/img/large-file.webp"><img src="../../../assets/img/large-file.webp" alt="Betrachter für große Dateien mit Strukturbaum und Datensatztabelle" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Große Dateien</div><h2>Dateien mit mehreren Gigabyte</h2><p class="text">Dateien ab 50 MB öffnen sich im Betrachter für große Dateien, der nur von der Platte liest, was er anzeigt.</p><ul class="ticks big"><li>Text, Strukturbaum, Datensatztabelle und Statistik</li><li>Einen Teil der Datei im Grid bearbeiten und zurückschreiben</li><li>Streaming-Validierung gegen ein XSD</li><li>Datensätze als CSV oder Excel exportieren</li></ul><a class="more" href="../../../docs/guides/edit-xml/large-files/">Zur Dokumentation (englisch)</a></div>
+</div>
+<div class="row flip" id="json-yaml">
+<div class="row-media"><a class="shot" href="../../../assets/img/json-grid.webp"><img src="../../../assets/img/json-grid.webp" alt="Ein JSON-Dokument in der Grid-Ansicht" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">JSON und YAML</div><h2>Dieselben Ansichten für JSON und YAML</h2><p class="text">Auch JSON-, JSON5- und YAML-Dokumente haben Text, Baum und Grid.</p><ul class="ticks big"><li>Validierung gegen JSON Schema Draft-07, 2019-09 und 2020-12</li><li>JSONPath in der Abfragekonsole</li><li>Konvertierung von und nach XML</li></ul><a class="more" href="../../../docs/guides/json-yaml/">Zur Dokumentation (englisch)</a></div>
+</div>
+<div class="row" id="find">
+<div class="row-media"><a class="shot" href="../../../assets/img/search-in-files.webp"><img src="../../../assets/img/search-in-files.webp" alt="Suche mit Treffern aus mehreren Dateien" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Finden und Ordnen</div><h2>Wiederfinden</h2><p class="text">Über Ordner hinweg suchen und die Stellen und Dateien behalten, zu denen Sie zurückkehren.</p><ul class="ticks big"><li>Suchen und Ersetzen über Dateien hinweg, nach Text oder per XPath</li><li>Zeilen-Lesezeichen, neun davon nummeriert, die Ihren Änderungen folgen</li><li>Favoriten für Dateien, Vorlagen für neue</li></ul><a class="more" href="../../../docs/guides/edit-xml/search-in-files/">Zur Dokumentation (englisch)</a></div>
+</div>
+</div></section>
+<section class="section"><div class="wrap cta">
+<h2>Weitere Funktionen</h2>
+<nav class="jump center" aria-label="Weitere Funktionen"><a href="../../features/schemas/">Schemas</a><a href="../../features/validation/">Validierung</a><a href="../../features/transform/">Transformieren und Debuggen</a><a href="../../features/publish-security/">PDF und Sicherheit</a><a href="../../features/compare-convert/">Vergleichen und Konvertieren</a><a href="../../features/projects-cli/">Projekte und Kommandozeile</a></nav>
+<div class="btn-row"><a class="btn" href="../../download/">FreeXmlToolkit herunterladen</a><a class="btn btn-ghost" href="../../screenshots/">Screenshots</a></div>
+</div></section>
+</main>
+<footer class="site-footer on-navy">
+<div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand"><img src="../../../assets/brand/lockup-horizontal-on-dark.svg" alt="FreeXmlToolkit" width="181" height="30"><p>Frei und Open Source unter Apache 2.0.</p></div>
+<div><h2>Produkt</h2><ul><li><a href="../../features/">Funktionen</a></li><li><a href="../../industries/">Branchen</a></li><li><a href="../../enterprise/">Unternehmen</a></li><li><a href="../../ai/">KI &amp; Automatisierung</a></li><li><a href="../../compare/">Vergleich</a></li><li><a href="../../screenshots/">Screenshots</a></li></ul></div>
+<div><h2>Projekt</h2><ul><li><a href="../../news/">Neuigkeiten</a></li><li><a href="../../about/">Über das Projekt</a></li><li><a href="https://github.com/sponsors/karlkauc">Sponsern</a></li><li><a href="https://github.com/karlkauc/FreeXmlToolkit">GitHub</a></li></ul></div>
+<div><h2>Hilfe</h2><ul><li><a href="../../../docs/">Dokumentation (englisch)</a></li><li><a href="../../faq/">Fragen und Antworten</a></li><li><a href="../../../docs/reference/faq/">Fehlerbehebung (englisch)</a></li><li><a href="https://github.com/karlkauc/FreeXmlToolkit/issues/new/choose">Problem melden</a></li></ul></div>
+<div><h2>Rechtliches</h2><ul><li><a href="../../imprint/">Impressum</a></li><li><a href="../../privacy/">Datenschutz</a></li><li><a href="../../../docs/reference/licenses/">Lizenzen</a></li></ul></div>
+</div>
+<div class="foot-bottom"><span>© 2024–2026 Karl Kauc</span><span>Produktnamen sind Marken ihrer Inhaber.</span></div>
+</div>
+</footer>
+</body>
+</html>

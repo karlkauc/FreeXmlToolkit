@@ -1,0 +1,35 @@
+title: Projects, command line and CI – FreeXmlToolkit
+description: A project file binds schemas, rules and transformation scenarios to files. fxt-cli runs the same engines in build pipelines, with JUnit and SARIF reports.
+nav: features
+
+<main id="main">
+<section class="page-head"><div class="wrap">
+<div class="eyebrow"><a class="crumb" href="{{home}}features/">Features</a> › Projects and command line</div><h1 class="page-title">From one file to a pipeline</h1>
+<p class="lead">Describe once which schema, which rules and which transformation belong to which files, then check all of it in the application and in the build.</p>
+<nav class="jump" aria-label="Sections"><a href="#projects">Projects</a><a href="#scenarios">Scenarios</a></nav>
+</div></section>
+<section class="section"><div class="wrap rows">
+<div class="row" id="projects">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/project-settings.webp"><img src="{{root}}assets/img/project-settings.webp" alt="Project settings with schema bindings and scenarios" width="900" height="542" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Projects</div><h2>One project file</h2><p class="text">A .fxtproj file sits next to your data and can be shared with the team.</p><ul class="ticks big"><li>Bind a schema, a Schematron and a scenario to files by pattern</li><li>XML catalogs of the project</li><li>Validate the whole project in one run</li></ul><a class="more" href="{{root}}docs/guides/projects/">Read the documentation</a></div>
+</div>
+<div class="row flip" id="scenarios">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/scenario-check.webp"><img src="{{root}}assets/img/scenario-check.webp" alt="Scenario check reporting a difference from the expected result" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Scenarios</div><h2>Regression checks for transformations</h2><p class="text">A scenario names a stylesheet, its input and the result that is expected.</p><ul class="ticks big"><li>Check compares the result with the expected file</li><li>Differences open in the compare view; Accept takes the new result</li><li>As fxt-cli scenario --check with a JUnit report</li></ul><a class="more" href="{{root}}docs/guides/projects/">Read the documentation</a></div>
+</div>
+</div></section>
+<section class="section section-alt"><div class="wrap stack-lg">
+<div class="stack"><div class="eyebrow">Also included</div><h2>Automate</h2></div>
+<div class="cards three">
+<div class="card"><h3>fxt-cli</h3><p>validate, transform, query, xsd-doc, xspec, scenario, compare, merge, convert, fop, sign, verify, encrypt and decrypt. Installed with the application.</p><a class="more" href="{{root}}docs/automate/command-line/">Command line</a></div>
+<div class="card"><h3>CI recipes</h3><p>Ready examples for build pipelines, with text, JSON, JUnit and SARIF reports.</p><a class="more" href="{{root}}docs/automate/ci-recipes/">CI recipes</a></div>
+<div class="card"><h3>MCP server</h3><p>fxt-cli mcp gives AI agents the same engines as tools, read-only and inside the folders you name.</p><a class="more" href="{{home}}ai/">AI and automation</a></div>
+<div class="card"><h3>Plugins</h3><p>Add activities, menu items, validators and schemas from a jar file.</p><a class="more" href="{{root}}docs/extend/writing-plugins/">Writing plugins</a></div>
+</div>
+</div></section>
+<section class="section"><div class="wrap cta">
+<h2>More features</h2>
+<nav class="jump center" aria-label="More features"><a href="{{home}}features/editing/">Editing</a><a href="{{home}}features/schemas/">Schemas</a><a href="{{home}}features/validation/">Validation</a><a href="{{home}}features/transform/">Transform and debug</a><a href="{{home}}features/publish-security/">PDF and security</a><a href="{{home}}features/compare-convert/">Compare and convert</a></nav>
+<div class="btn-row"><a class="btn" href="{{home}}download/">Download FreeXmlToolkit</a><a class="btn btn-ghost" href="{{home}}screenshots/">Screenshots</a></div>
+</div></section>
+</main>

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>XSLT and XQuery with debugger and profiler – FreeXmlToolkit</title>
+<meta name="description" content="Run XSLT 3.0, XPath 3.1 and XQuery 3.1 with Saxon, debug stylesheets, queries and Schematron, profile them, test with XSpec and run XProc 3.0 pipelines.">
+<link rel="canonical" href="https://freexmltoolkit.org/features/transform/">
+<link rel="alternate" hreflang="en" href="https://freexmltoolkit.org/features/transform/">
+<link rel="alternate" hreflang="de" href="https://freexmltoolkit.org/de/features/transform/">
+<link rel="alternate" hreflang="x-default" href="https://freexmltoolkit.org/features/transform/">
+<meta name="theme-color" content="#2a284c">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="XSLT and XQuery with debugger and profiler – FreeXmlToolkit">
+<meta property="og:description" content="Run XSLT 3.0, XPath 3.1 and XQuery 3.1 with Saxon, debug stylesheets, queries and Schematron, profile them, test with XSpec and run XProc 3.0 pipelines.">
+<meta property="og:url" content="https://freexmltoolkit.org/features/transform/">
+<meta property="og:image" content="https://freexmltoolkit.org/assets/brand/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../../assets/brand/app-icon.svg" type="image/svg+xml">
+<link rel="icon" href="../../assets/brand/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../../assets/brand/apple-touch-icon.png">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<script src="../../assets/js/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="wrap">
+<a class="brand" href="../../" aria-label="FreeXmlToolkit home"><img src="../../assets/brand/lockup-horizontal-on-dark.svg" alt="" width="181" height="30"></a>
+<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+<nav class="site-nav" id="site-nav" aria-label="Main"><a href="../../features/" aria-current="page">Features</a><a href="../../industries/">Industries</a><a href="../../enterprise/">Enterprise</a><a href="../../ai/">AI</a><a href="../../compare/">Compare</a><a href="../../docs/">Docs</a><a class="lang" href="../../de/features/transform/" hreflang="de" lang="de">Deutsch</a><a class="btn" href="../../download/">Download</a></nav>
+</div>
+</header>
+<main id="main">
+<section class="page-head"><div class="wrap">
+<div class="eyebrow"><a class="crumb" href="../../features/">Features</a> › Transform and debug</div><h1 class="page-title">From stylesheet to result</h1>
+<p class="lead">Run, debug, profile and test transformations in the editor you write them in.</p>
+<nav class="jump" aria-label="Sections"><a href="#run">Transform</a><a href="#query">Query Console</a><a href="#debug">Debugger</a><a href="#profile">Profiler</a><a href="#xspec">Tests</a><a href="#xproc">Pipelines</a></nav>
+</div></section>
+<section class="section"><div class="wrap rows">
+<div class="row" id="run">
+<div class="row-media"><a class="shot" href="../../assets/img/transform.webp"><img src="../../assets/img/transform.webp" alt="Transform panel with stylesheet, input, parameters and the result below the editor" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Transform</div><h2>XSLT, XQuery and XPath</h2><p class="text">XSLT 3.0, XPath 3.1 and XQuery 3.1 run on Saxon HE, with the result below the editor.</p><ul class="ticks big"><li>Parameters, output method and a live preview</li><li>Scenarios keep stylesheet, input and parameters together</li><li>Batch transformation of many files</li><li>XSLT 1.0 and 2.0 when a stylesheet has to stay compatible</li></ul><a class="more" href="../../docs/guides/transform-query/run-xslt/">Read the documentation</a></div>
+</div>
+<div class="row flip" id="query">
+<div class="row-media"><a class="shot" href="../../assets/img/query-console.webp"><img src="../../assets/img/query-console.webp" alt="Query Console with an XPath expression and its result" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Query Console</div><h2>Ask the open document</h2><p class="text">Type an XPath, XQuery or JSONPath expression and see the result at once.</p><ul class="ticks big"><li>Runs against the document in the editor</li><li>A time limit stops a query that runs away</li><li>Optional: turn a question into a query with the AI assistant</li></ul><a class="more" href="../../docs/guides/transform-query/query-console/">Read the documentation</a></div>
+</div>
+<div class="row" id="debug">
+<div class="row-media"><a class="shot" href="../../assets/img/debugger.webp"><img src="../../assets/img/debugger.webp" alt="XSLT debugger paused at a breakpoint with variables and call stack" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Debugger</div><h2>Step through XSLT, XQuery and Schematron</h2><p class="text">Stop where it matters and look at the context node, the variables and the output written so far.</p><ul class="ticks big"><li>Conditional breakpoints, hit counts and logpoints</li><li>Watches, call stack, inline values and a value window with XPath</li><li>Break on errors, on messages or when an input node is processed</li><li>Coverage, and Explain Match for the template rule that won</li></ul><a class="more" href="../../docs/guides/transform-query/debug/">Read the documentation</a></div>
+</div>
+<div class="row flip" id="profile">
+<div class="row-media"><a class="shot" href="../../assets/img/profiler.webp"><img src="../../assets/img/profiler.webp" alt="Flame graph of a profiled XSLT transformation" width="1680" height="1003" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Profiler</div><h2>Find the slow template</h2><p class="text">A profile run measures every template and function of a stylesheet or query.</p><ul class="ticks big"><li>Total and own time, call tree and flame graph</li><li>For XSLT and XQuery</li><li>From the command line with transform --profile</li></ul><a class="more" href="../../docs/guides/transform-query/profile/">Read the documentation</a></div>
+</div>
+<div class="row" id="xspec">
+<div class="row-media"><a class="shot" href="../../assets/img/xspec.webp"><img src="../../assets/img/xspec.webp" alt="Result of an XSpec test run" width="1680" height="1003" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Tests</div><h2>Test with XSpec</h2><p class="text">Run XSpec tests for XSLT, XQuery and Schematron and see which expectations failed.</p><ul class="ticks big"><li>Run from the editor or with fxt-cli xspec</li><li>Scenario checks compare a transformation result with an expected file</li></ul><a class="more" href="../../docs/guides/transform-query/xspec/">Read the documentation</a></div>
+</div>
+<div class="row flip" id="xproc">
+<div class="row-media"><a class="shot" href="../../assets/img/xproc.webp"><img src="../../assets/img/xproc.webp" alt="XProc pipeline with its result in the output panel" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Pipelines</div><h2>XProc 3.0 pipelines</h2><p class="text">Pipelines run on XML Calabash 3.</p><ul class="ticks big"><li>Restricted by default: no programs, no network</li><li>Run Pipeline on any .xpl document, with the result in the output panel</li></ul><a class="more" href="../../docs/guides/transform-query/xproc/">Read the documentation</a></div>
+</div>
+</div></section>
+<section class="section section-alt"><div class="wrap stack-lg">
+<div class="stack"><div class="eyebrow">Also included</div><h2>More about transformations</h2></div>
+<div class="cards three">
+<div class="card"><h3>Other XSLT processors</h3><p>Saxon HE 13.1 with one click, or your own Saxon PE/EE, xsltproc, RaptorXML or any command line.</p><a class="more" href="../../docs/guides/transform-query/external-processors/">External processors</a></div>
+<div class="card"><h3>Generate a stylesheet</h3><p>Optional: the AI assistant writes a stylesheet from a sample of the result and runs it to check.</p><a class="more" href="../../ai/">AI assistant</a></div>
+<div class="card"><h3>Examples</h3><p>Stylesheets and queries to start from.</p><a class="more" href="../../docs/guides/transform-query/examples/">Examples</a></div>
+</div>
+</div></section>
+<section class="section"><div class="wrap cta">
+<h2>More features</h2>
+<nav class="jump center" aria-label="More features"><a href="../../features/editing/">Editing</a><a href="../../features/schemas/">Schemas</a><a href="../../features/validation/">Validation</a><a href="../../features/publish-security/">PDF and security</a><a href="../../features/compare-convert/">Compare and convert</a><a href="../../features/projects-cli/">Projects and command line</a></nav>
+<div class="btn-row"><a class="btn" href="../../download/">Download FreeXmlToolkit</a><a class="btn btn-ghost" href="../../screenshots/">Screenshots</a></div>
+</div></section>
+</main>
+<footer class="site-footer on-navy">
+<div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand"><img src="../../assets/brand/lockup-horizontal-on-dark.svg" alt="FreeXmlToolkit" width="181" height="30"><p>Free and open source under Apache 2.0.</p></div>
+<div><h2>Product</h2><ul><li><a href="../../features/">Features</a></li><li><a href="../../industries/">Industries</a></li><li><a href="../../enterprise/">Enterprise</a></li><li><a href="../../ai/">AI &amp; automation</a></li><li><a href="../../compare/">Compare</a></li><li><a href="../../screenshots/">Screenshots</a></li></ul></div>
+<div><h2>Project</h2><ul><li><a href="../../news/">News</a></li><li><a href="../../about/">About</a></li><li><a href="https://github.com/sponsors/karlkauc">Sponsor</a></li><li><a href="https://github.com/karlkauc/FreeXmlToolkit">GitHub</a></li></ul></div>
+<div><h2>Help</h2><ul><li><a href="../../docs/">Documentation</a></li><li><a href="../../faq/">FAQ</a></li><li><a href="../../docs/reference/faq/">Troubleshooting</a></li><li><a href="https://github.com/karlkauc/FreeXmlToolkit/issues/new/choose">Report a problem</a></li></ul></div>
+<div><h2>Legal</h2><ul><li><a href="../../imprint/">Imprint</a></li><li><a href="../../privacy/">Privacy</a></li><li><a href="../../docs/reference/licenses/">Licenses</a></li></ul></div>
+</div>
+<div class="foot-bottom"><span>© 2024–2026 Karl Kauc</span><span>Product names are trademarks of their owners.</span></div>
+</div>
+</footer>
+</body>
+</html>

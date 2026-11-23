@@ -6,6 +6,9 @@
 <title>FreeXmlToolkit – free XML editor, XSD designer and XSLT debugger</title>
 <meta name="description" content="Edit, validate, transform, debug and document XML, XSD, XSLT, XQuery, Schematron and JSON in one free, open-source desktop application for Windows, macOS and Linux.">
 <link rel="canonical" href="https://freexmltoolkit.org/">
+<link rel="alternate" hreflang="en" href="https://freexmltoolkit.org/">
+<link rel="alternate" hreflang="de" href="https://freexmltoolkit.org/de/">
+<link rel="alternate" hreflang="x-default" href="https://freexmltoolkit.org/">
 <meta name="theme-color" content="#2a284c">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="FreeXmlToolkit">
@@ -27,7 +30,7 @@
 <div class="wrap">
 <a class="brand" href="./" aria-label="FreeXmlToolkit home"><img src="assets/brand/lockup-horizontal-on-dark.svg" alt="" width="181" height="30"></a>
 <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
-<nav class="site-nav" id="site-nav" aria-label="Main"><a href="features/">Features</a><a href="industries/">Industries</a><a href="enterprise/">Enterprise</a><a href="ai/">AI</a><a href="compare/">Compare</a><a href="docs/">Docs</a><a class="btn" href="download/">Download</a></nav>
+<nav class="site-nav" id="site-nav" aria-label="Main"><a href="features/">Features</a><a href="industries/">Industries</a><a href="enterprise/">Enterprise</a><a href="ai/">AI</a><a href="compare/">Compare</a><a href="docs/">Docs</a><a class="lang" href="de/" hreflang="de" lang="de">Deutsch</a><a class="btn" href="download/">Download</a></nav>
 </div>
 </header>
 <main id="main">
@@ -49,31 +52,36 @@
 <div class="fact"><span class="chev" aria-hidden="true">›</span><div><b>Nothing to sign up for</b><span>No account, no administrator rights.</span></div></div>
 <div class="fact"><span class="chev" aria-hidden="true">›</span><div><b>Current standards</b><span>XSD 1.1, XSLT 3.0, XQuery 3.1, XProc 3.0.</span></div></div>
 </div></section>
+<section class="section section-alt"><div class="wrap stack-lg">
+<div class="stack"><div class="eyebrow">Tour</div><h2>The application in one minute</h2></div>
+<div class="shot tour"><picture><source media="(prefers-reduced-motion: reduce)" srcset="assets/img/overview.webp"><img src="assets/img/tour.webp" alt="Slideshow of the application: XSD diagram, XML grid, validation, debugger, Query Console, PDF, compare and more" width="960" height="635" loading="lazy" decoding="async"></picture></div>
+<div class="btn-row"><a class="btn btn-ghost" href="screenshots/">All screenshots</a><a class="btn btn-ghost" href="features/">All features</a></div>
+</div></section>
 <section class="section"><div class="wrap rows">
 <div class="row">
 <div class="row-media"><div class="shot"><img src="assets/img/schema-graphic.webp" alt="Graphical XSD editor showing FundsXML types as connected cards" width="1680" height="1000" loading="lazy" decoding="async"></div></div>
-<div class="row-copy"><div class="eyebrow">Schemas</div><h2>Design schemas as a diagram</h2><p class="text">A graphical and a tree view of the same XSD, with type editor, facets, documentation and undo for every change. XSD 1.0 and 1.1.</p><a class="more" href="docs/guides/design-schemas/graphic-view/">The XSD editor</a></div>
+<div class="row-copy"><div class="eyebrow">Schemas</div><h2>Design schemas as a diagram</h2><p class="text">A graphical and a tree view of the same XSD, with type editor, facets, documentation and undo for every change. XSD 1.0 and 1.1.</p><a class="more" href="features/schemas/">The XSD editor</a></div>
 </div>
 <div class="row flip">
 <div class="row-media"><div class="shot"><img src="assets/img/xml-grid.webp" alt="Grid view showing nested XML elements as tables" width="1680" height="1000" loading="lazy" decoding="async"></div></div>
-<div class="row-copy"><div class="eyebrow">Editing</div><h2>An editor that knows your schema</h2><p class="text">IntelliSense offers only what the schema allows at the caret, validation runs while you type, and the Grid shows repeating elements as editable tables.</p><a class="more" href="docs/guides/edit-xml/">The XML editor</a></div>
+<div class="row-copy"><div class="eyebrow">Editing</div><h2>An editor that knows your schema</h2><p class="text">IntelliSense offers only what the schema allows at the caret, validation runs while you type, and the Grid shows repeating elements as editable tables.</p><a class="more" href="features/editing/">The XML editor</a></div>
 </div>
 <div class="row">
 <div class="row-media"><div class="shot"><img src="assets/img/debugger.webp" alt="XSLT debugger paused at a breakpoint with variables and call stack" width="1680" height="1000" loading="lazy" decoding="async"></div></div>
-<div class="row-copy"><div class="eyebrow">Debugging</div><h2>Step through XSLT, XQuery and Schematron</h2><p class="text">Conditional breakpoints, logpoints, watches, call stack, inline values and coverage, right in the editor.</p><a class="more" href="docs/guides/transform-query/debug/">The debugger</a></div>
+<div class="row-copy"><div class="eyebrow">Debugging</div><h2>Step through XSLT, XQuery and Schematron</h2><p class="text">Conditional breakpoints, logpoints, watches, call stack, inline values and coverage, right in the editor.</p><a class="more" href="features/transform/#debug">The debugger</a></div>
 </div>
 </div></section>
 <section class="section section-alt"><div class="wrap stack-lg">
 <div class="stack"><div class="eyebrow">One application</div><h2>Everything else is already in the box</h2></div>
 <div class="cards">
-<div class="card"><h3>Validation that explains itself</h3><p>XSD, Schematron with Quick Fixes, JSON Schema, DTD and RELAX NG, also for whole folders.</p></div>
-<div class="card"><h3>Transformations</h3><p>XSLT 3.0, XPath 3.1 and XQuery 3.1 with Saxon, live preview and XProc 3.0 pipelines.</p></div>
-<div class="card"><h3>PDF with Apache FOP</h3><p>XSL-FO to PDF with preview and PDF/A-1b output.</p></div>
-<div class="card"><h3>Signatures and encryption</h3><p>Sign, verify and encrypt documents and single elements.</p></div>
-<div class="card"><h3>Compare and merge</h3><p>XML-aware compare, folder comparison and three-way merge.</p></div>
-<div class="card"><h3>Large files</h3><p>A 1 GB file opens in seconds, with search and streaming validation.</p></div>
-<div class="card"><h3>JSON and YAML</h3><p>The same Text, Tree and Grid views, plus conversion to and from XML.</p></div>
-<div class="card"><h3>Command line</h3><p>fxt-cli validates, transforms and tests in build pipelines.</p></div>
+<div class="card"><h3>Validation that explains itself</h3><p>XSD, Schematron with Quick Fixes, JSON Schema, DTD and RELAX NG, also for whole folders.</p><a class="more" href="features/validation/">More</a></div>
+<div class="card"><h3>Transformations</h3><p>XSLT 3.0, XPath 3.1 and XQuery 3.1 with Saxon, live preview and XProc 3.0 pipelines.</p><a class="more" href="features/transform/">More</a></div>
+<div class="card"><h3>PDF with Apache FOP</h3><p>XSL-FO to PDF with preview and PDF/A-1b output.</p><a class="more" href="features/publish-security/">More</a></div>
+<div class="card"><h3>Signatures and encryption</h3><p>Sign, verify and encrypt documents and single elements.</p><a class="more" href="features/publish-security/#sign">More</a></div>
+<div class="card"><h3>Compare and merge</h3><p>XML-aware compare, folder comparison and three-way merge.</p><a class="more" href="features/compare-convert/">More</a></div>
+<div class="card"><h3>Large files</h3><p>A 1 GB file opens in seconds, with search and streaming validation.</p><a class="more" href="features/editing/#large-files">More</a></div>
+<div class="card"><h3>JSON and YAML</h3><p>The same Text, Tree and Grid views, plus conversion to and from XML.</p><a class="more" href="features/editing/#json-yaml">More</a></div>
+<div class="card"><h3>Command line</h3><p>fxt-cli validates, transforms and tests in build pipelines.</p><a class="more" href="features/projects-cli/">More</a></div>
 </div>
 <div class="chips" aria-label="Supported standards"><span class="chip">XSD 1.0 / 1.1</span><span class="chip">XSLT 3.0</span><span class="chip">XPath 3.1</span><span class="chip">XQuery 3.1</span><span class="chip">XProc 3.0</span><span class="chip">Schematron + SQF</span><span class="chip">RELAX NG</span><span class="chip">DTD</span><span class="chip">XSL-FO 1.1</span><span class="chip">XML Signature 1.1</span><span class="chip">XML Encryption 1.1</span><span class="chip">JSON Schema 2020-12</span><span class="chip">YAML 1.2</span></div>
 <a class="more" href="features/">All features</a>
@@ -115,16 +123,16 @@
 <section class="section"><div class="wrap cta">
 <img src="assets/brand/app-icon.svg" alt="" width="88" height="88">
 <h2>Start working with XML today</h2><p class="lead">Download, install, open a file. No account needed.</p>
-<div class="btn-row"><a class="btn" href="download/">Download FreeXmlToolkit</a><a class="btn btn-ghost" href="https://github.com/karlkauc/FreeXmlToolkit">Star on GitHub</a><a class="btn btn-ghost" href="https://github.com/sponsors/karlkauc">Sponsor</a></div>
+<div class="btn-row"><a class="btn" href="download/">Download FreeXmlToolkit</a><a class="btn btn-ghost" href="faq/">Questions and answers</a><a class="btn btn-ghost" href="https://github.com/karlkauc/FreeXmlToolkit">Star on GitHub</a><a class="btn btn-ghost" href="https://github.com/sponsors/karlkauc">Sponsor</a></div>
 </div></section>
 </main>
 <footer class="site-footer on-navy">
 <div class="wrap">
 <div class="foot-grid">
 <div class="foot-brand"><img src="assets/brand/lockup-horizontal-on-dark.svg" alt="FreeXmlToolkit" width="181" height="30"><p>Free and open source under Apache 2.0.</p></div>
-<div><h2>Product</h2><ul><li><a href="features/">Features</a></li><li><a href="industries/">Industries</a></li><li><a href="enterprise/">Enterprise</a></li><li><a href="ai/">AI &amp; automation</a></li><li><a href="compare/">Compare</a></li></ul></div>
+<div><h2>Product</h2><ul><li><a href="features/">Features</a></li><li><a href="industries/">Industries</a></li><li><a href="enterprise/">Enterprise</a></li><li><a href="ai/">AI &amp; automation</a></li><li><a href="compare/">Compare</a></li><li><a href="screenshots/">Screenshots</a></li></ul></div>
 <div><h2>Project</h2><ul><li><a href="news/">News</a></li><li><a href="about/">About</a></li><li><a href="https://github.com/sponsors/karlkauc">Sponsor</a></li><li><a href="https://github.com/karlkauc/FreeXmlToolkit">GitHub</a></li></ul></div>
-<div><h2>Help</h2><ul><li><a href="docs/">Documentation</a></li><li><a href="docs/reference/faq/">FAQ</a></li><li><a href="https://github.com/karlkauc/FreeXmlToolkit/issues/new/choose">Report a problem</a></li></ul></div>
+<div><h2>Help</h2><ul><li><a href="docs/">Documentation</a></li><li><a href="faq/">FAQ</a></li><li><a href="docs/reference/faq/">Troubleshooting</a></li><li><a href="https://github.com/karlkauc/FreeXmlToolkit/issues/new/choose">Report a problem</a></li></ul></div>
 <div><h2>Legal</h2><ul><li><a href="imprint/">Imprint</a></li><li><a href="privacy/">Privacy</a></li><li><a href="docs/reference/licenses/">Licenses</a></li></ul></div>
 </div>
 <div class="foot-bottom"><span>© 2024–2026 Karl Kauc</span><span>Product names are trademarks of their owners.</span></div>

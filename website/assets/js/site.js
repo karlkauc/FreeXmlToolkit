@@ -33,7 +33,17 @@
     "linux-zip": /^FreeXmlToolkit-linux-x64-app-image-.*\.zip$/i
   };
 
-  var PLATFORMS = {
+  // texts by page language (<html lang>); the German pages live under /de/
+  var GERMAN = (document.documentElement.getAttribute("lang") || "en").toLowerCase().indexOf("de") === 0;
+
+  var PLATFORMS = GERMAN ? {
+    windows: { name: "Windows", title: "Windows, 64 Bit", asset: "win-exe", button: ".exe-Installer herunterladen",
+      note: "Keine Administratorrechte nötig. Nicht Ihr System? Wählen Sie unten ein Paket." },
+    macos: { name: "macOS", title: "macOS, Apple Silicon", asset: "mac-arm64-dmg", button: ".dmg herunterladen",
+      note: "Von Apple signiert und notarisiert. Auf einem Intel-Mac nehmen Sie das Intel-.dmg unten." },
+    linux: { name: "Linux", title: "Linux, 64 Bit", asset: "linux-deb", button: ".deb-Paket herunterladen",
+      note: "Für Debian und Ubuntu. Fedora, RHEL und openSUSE: das .rpm unten." }
+  } : {
     windows: { name: "Windows", title: "Windows, 64-bit", asset: "win-exe", button: "Download .exe installer",
       note: "No administrator rights required. Not your system? Pick a package below." },
     macos: { name: "macOS", title: "macOS, Apple Silicon", asset: "mac-arm64-dmg", button: "Download .dmg",
@@ -130,15 +140,19 @@
   function formatSize(bytes) {
     if (!bytes) return "";
     var mb = bytes / (1024 * 1024);
-    return (mb >= 100 ? Math.round(mb) : mb.toFixed(1)) + " MB";
+    var text = mb >= 100 ? String(Math.round(mb)) : mb.toFixed(1);
+    return (GERMAN ? text.replace(".", ",") : text) + " MB";
   }
 
   function formatDate(iso) {
     var d = new Date(iso);
     if (isNaN(d.getTime())) return "";
-    var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September",
-      "October", "November", "December"];
-    return d.getUTCDate() + " " + months[d.getUTCMonth()] + " " + d.getUTCFullYear();
+    var months = GERMAN
+      ? ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober",
+        "November", "Dezember"]
+      : ["January", "February", "March", "April", "May", "June", "July", "August", "September",
+        "October", "November", "December"];
+    return d.getUTCDate() + (GERMAN ? ". " : " ") + months[d.getUTCMonth()] + " " + d.getUTCFullYear();
   }
 
   function applyRelease(release) {

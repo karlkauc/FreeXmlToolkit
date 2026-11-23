@@ -1,0 +1,54 @@
+title: Industry standards – FundsXML, ISO 20022, FinDatEx, XBRL – FreeXmlToolkit
+description: Validate FundsXML, ISO 20022 / SEPA, FinDatEx EMT/EET/EPT/TPT, XBRL, ebInterface and FMA / ESMA reports with their business rules - free and open source.
+nav: industries
+
+<main id="main">
+<section class="page-head"><div class="wrap">
+<div class="eyebrow">Industries</div><h1 class="page-title">Speaks your standard</h1>
+<p class="lead">Optional extensions check documents against the rules of financial and public-sector standards, not just against their schema. Switch on the ones you need under Settings → Extensions.</p>
+<nav class="jump" aria-label="Standards"><a href="#fundsxml">FundsXML</a><a href="#iso20022">ISO 20022</a><a href="#findatex">FinDatEx</a><a href="#xbrl">XBRL</a><a href="#ebinterface">ebInterface</a><a href="#fma">FMA reporting</a><a href="#esma">ESMA</a><a href="#identifiers">LEI and ISIN</a></nav>
+</div></section>
+<section class="section"><div class="wrap rows">
+<div class="row" id="fundsxml">
+<div class="row-media"><div class="shot"><img src="{{root}}assets/img/fundsxml.webp" alt="FundsXML extension with data-quality checks next to a fund document" width="1680" height="1000" loading="lazy" decoding="async"></div></div>
+<div class="row-copy"><div class="eyebrow">Investment funds</div><h2>FundsXML</h2><p class="text">Fund data in the FundsXML 4 format, with the schema bound automatically and checks that go beyond it.</p><ul class="ticks big"><li>54 data-quality checks with severity and an XPath for each</li><li>Position weights, totals and identifiers checked against each other</li><li>Grid view of positions, share classes and portfolios</li><li>Welcome page and templates for new documents</li></ul><a class="more" href="{{root}}docs/industry/fundsxml/">Read the documentation</a></div>
+</div>
+<div class="row flip" id="iso20022">
+<div class="row-media"><div class="shot"><img src="{{root}}assets/img/iso20022.webp" alt="ISO 20022 payment message with control-sum problems" width="1680" height="1000" loading="lazy" decoding="async"></div></div>
+<div class="row-copy"><div class="eyebrow">Payments</div><h2>ISO 20022 and SEPA</h2><p class="text">pain, pacs and camt messages in 19 versions, with control sums and the EPC SEPA rules.</p><ul class="ticks big"><li>Schemas bound automatically</li><li>Control sums and transaction counts recalculated</li><li>IBAN, BIC and LEI check digits</li><li>Sample SEPA credit transfer and direct debit</li></ul><a class="more" href="{{root}}docs/industry/iso20022/">Read the documentation</a></div>
+</div>
+<div class="row" id="findatex">
+<div class="row-media"><div class="shot"><img src="{{root}}assets/img/findatex.webp" alt="FinDatEx template opened as a table with field checks" width="1680" height="1000" loading="lazy" decoding="async"></div></div>
+<div class="row-copy"><div class="eyebrow">Fund data exchange</div><h2>FinDatEx templates</h2><p class="text">EMT, EET, EPT and TPT files in versions 7 and 8, as CSV or Excel.</p><ul class="ticks big"><li>Mandatory fields per template, version and CIC category</li><li>Code lists, formats and ISIN / LEI check digits</li><li>New template files and Excel import</li></ul><a class="more" href="{{root}}docs/industry/findatex/">Read the documentation</a></div>
+</div>
+<div class="row flip" id="xbrl">
+<div class="row-media"><div class="shot"><img src="{{root}}assets/img/xbrl.webp" alt="XBRL instance validated with Arelle" width="1680" height="1000" loading="lazy" decoding="async"></div></div>
+<div class="row-copy"><div class="eyebrow">Financial reporting</div><h2>XBRL</h2><p class="text">XBRL instances and inline XBRL reports, validated with your own installation of Arelle.</p><ul class="ticks big"><li>Findings in the problem list with their line</li><li>Arelle command line shown for reuse</li></ul><a class="more" href="{{root}}docs/industry/xbrl/">Read the documentation</a></div>
+</div>
+<div class="row" id="ebinterface">
+<div class="row-media"><div class="shot"><img src="{{root}}assets/img/ebinterface.webp" alt="ebInterface e-invoice with calculation checks" width="1680" height="1000" loading="lazy" decoding="async"></div></div>
+<div class="row-copy"><div class="eyebrow">E-invoicing</div><h2>ebInterface</h2><p class="text">Austrian XML e-invoices in versions 4.1 to 6.1.</p><ul class="ticks big"><li>Line, tax and total calculations checked</li><li>Austrian VAT ids (UID), IBAN and BIC</li><li>Sample ebInterface 6.1 invoice</li></ul><a class="more" href="{{root}}docs/industry/ebinterface/">Read the documentation</a></div>
+</div>
+<div class="row flip" id="fma">
+<div class="row-media"><div class="shot"><img src="{{root}}assets/img/kag-meldewesen.webp" alt="KAG reporting extension with rule findings by field" width="1680" height="1000" loading="lazy" decoding="async"></div></div>
+<div class="row-copy"><div class="eyebrow">Austrian supervisory reporting</div><h2>FMA reporting</h2><p class="text">Reports of Austrian pension funds and management companies to the Financial Market Authority.</p><ul class="ticks big"><li>PK-Meldewesen: quarterly and annual pension fund reports with the FMA's rules</li><li>KAG-Meldewesen: AIFMD files, money market fund report and derivative risk report (4. DeRiMV)</li><li>Field number, name and rule of every element in the editor</li><li>Check reports as HTML, grouped by rule</li></ul><div class="links"><a class="more" href="{{root}}docs/industry/pk-meldewesen/">PK-Meldewesen</a><a class="more" href="{{root}}docs/industry/kag-meldewesen/">KAG-Meldewesen</a></div></div>
+</div>
+<div class="row" id="esma">
+<div class="row-media"><div class="shot"><img src="{{root}}assets/img/esma.webp" alt="ESMA EMIR report with validation findings" width="1680" height="1000" loading="lazy" decoding="async"></div></div>
+<div class="row-copy"><div class="eyebrow">European supervisory reporting</div><h2>ESMA reporting</h2><p class="text">EMIR Refit trade reports, SFTR reports and MiFIR transaction reports with ESMA's validation rules.</p><ul class="ticks big"><li>Mandatory, conditional and optional fields per action type</li><li>Conditional rules and date orders from ESMA's rules text</li><li>Check report grouped by rule and field</li></ul><a class="more" href="{{root}}docs/industry/esma-reporting/">Read the documentation</a></div>
+</div>
+</div></section>
+<section class="section section-alt" id="identifiers"><div class="wrap cards two">
+<div class="card big"><div class="eyebrow">Identifiers</div><h2>LEI and ISIN, checked online on request</h2>
+<p>Every LEI of a document can be looked up at GLEIF, every ISIN at ESMA FIRDS and OpenFIGI: lapsed or retired LEIs, ISINs without a trading venue, CFI codes and issuers that do not match. Values leave your computer only when you click or switch it on.</p>
+<a class="more" href="{{root}}docs/industry/identifier-lookup/">Online identifier lookup</a></div>
+<div class="card big"><div class="eyebrow">Your own standard</div><h2>Write an extension</h2>
+<p>Extensions are Java plugins: an activity with a side panel, menu items, validators that run with every check, schemas for the Schema Library and descriptions for the Inspector. A documented API and a sample project get you started.</p>
+<a class="more" href="{{root}}docs/industry/manage-extensions/">Install and manage extensions</a></div>
+</div></section>
+<section class="section"><div class="wrap cta">
+<img src="{{root}}assets/brand/app-icon.svg" alt="" width="88" height="88">
+<h2>Try it with your own files</h2><p class="lead">The extensions are part of every download. Switch them on in Settings → Extensions.</p>
+<div class="btn-row"><a class="btn" href="{{home}}download/">Download FreeXmlToolkit</a></div>
+</div></section>
+</main>

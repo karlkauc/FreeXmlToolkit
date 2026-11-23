@@ -1,0 +1,41 @@
+title: Unternehmen und Sicherheit – FreeXmlToolkit
+description: FreeXmlToolkit mit MSI und stiller Installation verteilen, Einstellungen mit rechnerweiten Richtlinien sperren, offline betreiben und nachlesen, was es sendet: Bedrohungsmodell, SBOM, Telemetrie.
+nav: enterprise
+
+<main id="main">
+<section class="page-head"><div class="wrap">
+<div class="eyebrow">Unternehmen</div><h1 class="page-title">Bereit für verwaltete Arbeitsplätze</h1>
+<p class="lead">Für Administratoren und Sicherheitsprüfer: wie FreeXmlToolkit verteilt wird, welche Einstellungen Sie sperren können, was es über das Netzwerk sendet und wie es geschützt ist.</p>
+</div></section>
+<section class="section"><div class="wrap cards three">
+<div class="card"><h3>Stille Installation</h3><p>MSI und exe für Windows, pkg für macOS, deb und rpm für Linux, alle ohne Benutzereingriff installierbar. Auch in Scoop und Homebrew.</p><a class="more" href="{{root}}docs/administer/policies/">Installation und Richtlinien</a></div>
+<div class="card"><h3>Rechnerweite Richtlinien</h3><p>Eine Datei <code>policy.properties</code> sperrt Einstellungen für alle Benutzer: Updates, Telemetrie, KI, Netzwerkzugriff, externe Prozessoren und Plugins. <code>defaults.properties</code> legt Vorgaben fest, die Benutzer ändern dürfen.</p><a class="more" href="{{root}}docs/administer/policies/">Richtlinien</a></div>
+<div class="card"><h3>Funktioniert offline</h3><p>Validierung, Transformation und Dokumentation laufen ohne Internet. Schemas kommen aus der Schema-Bibliothek, aus OASIS-Katalogen oder einem gemeinsamen Ordner; Updates lassen sich abschalten.</p><a class="more" href="{{root}}docs/administer/offline/">Betrieb ohne Internet</a></div>
+<div class="card"><h3>Sicher ab Werk</h3><p>Schutz vor XXE, SSRF und unsicheren Stylesheets; externe Entitäten, entfernte Schemas und Erweiterungsfunktionen werden über Einstellungen gesteuert, die ein Administrator sperren kann.</p><a class="more" href="{{root}}docs/administer/security-features/">Sicherheitsfunktionen</a></div>
+<div class="card"><h3>Bedrohungsmodell und SBOM</h3><p>Ein dokumentiertes Bedrohungsmodell sagt, wogegen sich die Anwendung schützt und wogegen nicht. Jede Version wird mit einer CycloneDX-SBOM und SHA-256-Prüfsummen ausgeliefert.</p><a class="more" href="{{root}}docs/administer/threat-model/">Bedrohungsmodell</a></div>
+<div class="card"><h3>Signierte Pakete</h3><p>Die macOS-Pakete sind mit einer Developer ID signiert und von Apple notarisiert. Wie Versionen gebaut und signiert werden, ist dokumentiert.</p><a class="more" href="{{root}}docs/administer/code-signing/">Code-Signierung</a></div>
+</div></section>
+<section class="section section-alt"><div class="wrap row">
+<div class="row-copy wide"><div class="eyebrow">Telemetrie, offen gesagt</div><h2>Was die Anwendung sendet und wie Sie es abstellen</h2>
+<p class="text">Anonyme Nutzungsstatistik und Fehlerberichte sind standardmäßig eingeschaltet. Der Benutzer kann sie abschalten, eine Richtlinie schaltet sie für alle ab. Sie enthalten Funktionsnamen, Zähler, Laufzeiten, die Betriebssystemfamilie und eine zufällige Installations-ID – nie Dateinamen, Pfade, Dokumentinhalte, Prompts oder KI-Antworten.</p>
+<a class="more" href="{{root}}docs/administer/privacy-telemetry/">Datenschutz und Telemetrie im Detail</a></div>
+<div class="row-media"><pre class="term" aria-label="Beispiel einer Richtliniendatei"><span class="c"># /etc/freexmltoolkit/policy.properties</span>
+fxt.telemetry.disabled=true
+update.allowed=false
+ai.allowed=false
+security.dtd.allowed=false</pre></div>
+</div></section>
+<section class="section"><div class="wrap cards two">
+<div class="card big"><div class="eyebrow">Barrierefreiheit</div><h2>Mit Tastatur und Screenreader bedienbar</h2>
+<p>Jedes Bedienelement hat einen zugänglichen Namen, Texte erfüllen den Kontrast nach WCAG AA, ein Modus mit hohem Kontrast hebt ihn auf 7:1, und die Oberfläche lässt sich von klein bis sehr groß skalieren, mit kompakter oder großzügiger Dichte.</p>
+<a class="more" href="{{root}}docs/reference/accessibility/">Barrierefreiheit</a></div>
+<div class="card big"><div class="eyebrow">KI unter Kontrolle</div><h2>Aus, solange Sie es nicht erlauben</h2>
+<p>Der KI-Assistent ist standardmäßig aus und braucht einen Anbieter, den Sie einrichten. Administratoren entfernen ihn mit <code>ai.allowed=false</code> vollständig; der MCP-Server für Agenten hat einen eigenen Schalter.</p>
+<a class="more" href="{{home}}ai/">KI und Automatisierung</a></div>
+</div></section>
+<section class="section"><div class="wrap cta">
+<img src="{{root}}assets/brand/app-icon.svg" alt="" width="88" height="88">
+<h2>Verteilen Sie es</h2><p class="lead">Ein MSI, eine Richtliniendatei, kein Lizenzserver.</p>
+<div class="btn-row"><a class="btn" href="{{home}}download/">FreeXmlToolkit herunterladen</a><a class="btn btn-ghost" href="{{root}}docs/administer/">Dokumentation für Administratoren</a></div>
+</div></section>
+</main>

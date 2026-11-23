@@ -1,0 +1,41 @@
+title: KI-Assistent, MCP-Server und Kommandozeile – FreeXmlToolkit
+description: Ein KI-Assistent, dessen Antworten geprüft werden, bevor Sie sie sehen, ein MCP-Server, der KI-Agenten Werkzeuge für XML-Validierung und XSLT gibt, und fxt-cli für Build-Pipelines.
+nav: ai
+
+<main id="main">
+<section class="page-head"><div class="wrap">
+<div class="eyebrow">KI und Automatisierung</div><h1 class="page-title">KI zu Ihren Bedingungen</h1>
+<p class="lead">Ein Assistent, dessen Antworten geprüft werden, bevor Sie sie sehen, ein Server, der KI-Agenten echte XML-Werkzeuge gibt, und eine Kommandozeile für Ihre Build-Pipeline.</p>
+</div></section>
+<section class="section"><div class="wrap rows">
+<div class="row">
+<div class="row-media"><div class="shot"><img src="{{root}}assets/img/ai.webp" alt="Der KI-Assistent schlägt eine geprüfte Korrektur für ein Validierungsproblem vor" width="1680" height="1000" loading="lazy" decoding="async"></div></div>
+<div class="row-copy"><div class="eyebrow">KI-Assistent</div><h2>Antworten, die zuerst geprüft werden</h2><p class="text">Die Anwendung kompiliert, startet, validiert und vergleicht, was das Modell vorschlägt, und schickt die Fehler für bis zu drei Korrekturrunden zurück. Nichts wird ohne Sie übernommen oder gespeichert.</p><ul class="ticks big"><li>Validierungsprobleme erklären und beheben</li><li>Aus einer Frage XPath oder XQuery machen</li><li>Ein XSLT-Stylesheet aus einem Zielbeispiel erzeugen</li><li>Standardmäßig aus; ein lokales Modell (Ollama, LM Studio) oder ein Anbieter, bei dem Sie ein Konto haben</li><li>Datenstufen und eine Vorschau jeder Anfrage bestimmen, was Ihren Computer verlässt</li></ul><a class="more" href="{{root}}docs/guides/ai-assistant/">Der KI-Assistent</a></div>
+</div>
+</div></section>
+<section class="section section-navy on-navy"><div class="wrap row">
+<div class="row-copy wide"><div class="eyebrow">MCP-Server</div><h2>Geben Sie Ihrem Agenten XML-Werkzeuge</h2>
+<p class="text"><code>fxt-cli mcp</code> bietet Claude Code und jedem anderen Client des Model Context Protocol Validierung, XPath, XQuery, XSLT, XSpec, Schematron, Schema-Abfragen und Vergleich. Der Agent prüft seine eigene Arbeit, statt zu raten.</p>
+<ul class="ticks"><li>Läuft auf Ihrem Rechner über Standardeingabe und -ausgabe, ohne Netzwerk-Port</li><li>Nur lesend und auf die Ordner beschränkt, die Sie angeben</li><li>Ruft kein Sprachmodell auf und sendet nichts irgendwohin</li></ul>
+<a class="more" href="{{root}}docs/automate/mcp-server/">MCP-Server</a></div>
+<div class="row-media"><pre class="term" aria-label="Beispiel für die Einrichtung des MCP-Servers"><span class="c"># bei Claude Code anmelden</span>
+<span class="p">$ </span>claude mcp add fxt -- fxt-cli mcp --root .
+
+<span class="c"># die Werkzeuge auflisten</span>
+<span class="p">$ </span>fxt-cli mcp --list-tools</pre></div>
+</div></section>
+<section class="section"><div class="wrap row flip">
+<div class="row-copy wide"><div class="eyebrow">Kommandozeile</div><h2>Dieselben Engines in Ihrem Build</h2>
+<p class="text"><code>fxt-cli</code> wird mit der Anwendung installiert. Es validiert, transformiert, fragt ab, führt XSpec-Tests und Szenarien aus, vergleicht, signiert und verschlüsselt – und berichtet als Text, JSON, JUnit oder SARIF.</p>
+<a class="more" href="{{root}}docs/automate/ci-recipes/">CI-Rezepte für GitHub Actions und GitLab CI</a></div>
+<div class="row-media"><pre class="term" aria-label="Beispiele für die Kommandozeile"><span class="p">$ </span>fxt-cli validate data/ --xsd schema.xsd -f junit -r report.xml
+<span class="p">$ </span>fxt-cli transform in.xml -s style.xsl -o out.html
+<span class="p">$ </span>fxt-cli xspec tests/invoice.xspec -r results.xml
+<span class="p">$ </span>fxt-cli compare expected.xml actual.xml</pre></div>
+</div></section>
+<section class="section"><div class="wrap cta">
+<img src="{{root}}assets/brand/app-icon.svg" alt="" width="88" height="88">
+<h2>Mit Ihrem eigenen Modell oder ohne</h2><p class="lead">Alles andere funktioniert auch ohne KI.</p>
+<div class="btn-row"><a class="btn" href="{{home}}download/">FreeXmlToolkit herunterladen</a></div>
+</div></section>
+</main>

@@ -1,0 +1,35 @@
+title: Projekte, Kommandozeile und CI – FreeXmlToolkit
+description: Eine Projektdatei bindet Schemas, Regeln und Transformationsszenarien an Dateien. fxt-cli führt dieselben Engines in Build-Pipelines aus, mit JUnit- und SARIF-Berichten.
+nav: features
+
+<main id="main">
+<section class="page-head"><div class="wrap">
+<div class="eyebrow"><a class="crumb" href="{{home}}features/">Funktionen</a> › Projekte und Kommandozeile</div><h1 class="page-title">Von einer Datei zur Pipeline</h1>
+<p class="lead">Einmal beschreiben, welches Schema, welche Regeln und welche Transformation zu welchen Dateien gehören, und dann alles in der Anwendung und im Build prüfen.</p>
+<nav class="jump" aria-label="Abschnitte"><a href="#projects">Projekte</a><a href="#scenarios">Szenarien</a></nav>
+</div></section>
+<section class="section"><div class="wrap rows">
+<div class="row" id="projects">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/project-settings.webp"><img src="{{root}}assets/img/project-settings.webp" alt="Projekteinstellungen mit Schema-Bindungen und Szenarien" width="900" height="542" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Projekte</div><h2>Eine Projektdatei</h2><p class="text">Eine .fxtproj-Datei liegt neben Ihren Daten und lässt sich mit dem Team teilen.</p><ul class="ticks big"><li>Ein Schema, ein Schematron und ein Szenario per Muster an Dateien binden</li><li>XML-Kataloge des Projekts</li><li>Das ganze Projekt in einem Lauf validieren</li></ul><a class="more" href="{{root}}docs/guides/projects/">Zur Dokumentation (englisch)</a></div>
+</div>
+<div class="row flip" id="scenarios">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/scenario-check.webp"><img src="{{root}}assets/img/scenario-check.webp" alt="Szenario-Prüfung, die eine Abweichung vom erwarteten Ergebnis meldet" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Szenarien</div><h2>Regressionsprüfungen für Transformationen</h2><p class="text">Ein Szenario nennt ein Stylesheet, seine Eingabe und das erwartete Ergebnis.</p><ul class="ticks big"><li>„Check“ vergleicht das Ergebnis mit der erwarteten Datei</li><li>Unterschiede öffnen sich in der Vergleichsansicht; „Accept“ übernimmt das neue Ergebnis</li><li>Als fxt-cli scenario --check mit JUnit-Bericht</li></ul><a class="more" href="{{root}}docs/guides/projects/">Zur Dokumentation (englisch)</a></div>
+</div>
+</div></section>
+<section class="section section-alt"><div class="wrap stack-lg">
+<div class="stack"><div class="eyebrow">Ebenfalls enthalten</div><h2>Automatisieren</h2></div>
+<div class="cards three">
+<div class="card"><h3>fxt-cli</h3><p>validate, transform, query, xsd-doc, xspec, scenario, compare, merge, convert, fop, sign, verify, encrypt und decrypt. Wird mit der Anwendung installiert.</p><a class="more" href="{{root}}docs/automate/command-line/">Kommandozeile</a></div>
+<div class="card"><h3>CI-Rezepte</h3><p>Fertige Beispiele für Build-Pipelines, mit Text-, JSON-, JUnit- und SARIF-Berichten.</p><a class="more" href="{{root}}docs/automate/ci-recipes/">CI-Rezepte</a></div>
+<div class="card"><h3>MCP-Server</h3><p>fxt-cli mcp gibt KI-Agenten dieselben Engines als Werkzeuge, nur lesend und innerhalb der Ordner, die Sie nennen.</p><a class="more" href="{{home}}ai/">KI und Automatisierung</a></div>
+<div class="card"><h3>Plugins</h3><p>Aktivitäten, Menüeinträge, Validatoren und Schemas aus einer jar-Datei ergänzen.</p><a class="more" href="{{root}}docs/extend/writing-plugins/">Plugins schreiben</a></div>
+</div>
+</div></section>
+<section class="section"><div class="wrap cta">
+<h2>Weitere Funktionen</h2>
+<nav class="jump center" aria-label="Weitere Funktionen"><a href="{{home}}features/editing/">Bearbeiten</a><a href="{{home}}features/schemas/">Schemas</a><a href="{{home}}features/validation/">Validierung</a><a href="{{home}}features/transform/">Transformieren und Debuggen</a><a href="{{home}}features/publish-security/">PDF und Sicherheit</a><a href="{{home}}features/compare-convert/">Vergleichen und Konvertieren</a></nav>
+<div class="btn-row"><a class="btn" href="{{home}}download/">FreeXmlToolkit herunterladen</a><a class="btn btn-ghost" href="{{home}}screenshots/">Screenshots</a></div>
+</div></section>
+</main>

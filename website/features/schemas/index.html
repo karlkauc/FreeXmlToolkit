@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Graphical XSD editor and schema tools – FreeXmlToolkit</title>
+<meta name="description" content="Design XSD 1.0 and 1.1 schemas as a diagram, analyse them, generate documentation and sample XML, and manage namespaces and catalogs in the Schema Library.">
+<link rel="canonical" href="https://freexmltoolkit.org/features/schemas/">
+<link rel="alternate" hreflang="en" href="https://freexmltoolkit.org/features/schemas/">
+<link rel="alternate" hreflang="de" href="https://freexmltoolkit.org/de/features/schemas/">
+<link rel="alternate" hreflang="x-default" href="https://freexmltoolkit.org/features/schemas/">
+<meta name="theme-color" content="#2a284c">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Graphical XSD editor and schema tools – FreeXmlToolkit">
+<meta property="og:description" content="Design XSD 1.0 and 1.1 schemas as a diagram, analyse them, generate documentation and sample XML, and manage namespaces and catalogs in the Schema Library.">
+<meta property="og:url" content="https://freexmltoolkit.org/features/schemas/">
+<meta property="og:image" content="https://freexmltoolkit.org/assets/brand/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../../assets/brand/app-icon.svg" type="image/svg+xml">
+<link rel="icon" href="../../assets/brand/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../../assets/brand/apple-touch-icon.png">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<script src="../../assets/js/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="wrap">
+<a class="brand" href="../../" aria-label="FreeXmlToolkit home"><img src="../../assets/brand/lockup-horizontal-on-dark.svg" alt="" width="181" height="30"></a>
+<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+<nav class="site-nav" id="site-nav" aria-label="Main"><a href="../../features/" aria-current="page">Features</a><a href="../../industries/">Industries</a><a href="../../enterprise/">Enterprise</a><a href="../../ai/">AI</a><a href="../../compare/">Compare</a><a href="../../docs/">Docs</a><a class="lang" href="../../de/features/schemas/" hreflang="de" lang="de">Deutsch</a><a class="btn" href="../../download/">Download</a></nav>
+</div>
+</header>
+<main id="main">
+<section class="page-head"><div class="wrap">
+<div class="eyebrow"><a class="crumb" href="../../features/">Features</a> › Schemas</div><h1 class="page-title">Design and understand XSD</h1>
+<p class="lead">A graphical editor that only makes valid changes, plus the tools around a schema: analysis, documentation, test data and a library that resolves imports.</p>
+<nav class="jump" aria-label="Sections"><a href="#graphic">Graphic view</a><a href="#overview">Overview</a><a href="#types">Types</a><a href="#analysis">Analysis</a><a href="#documentation">Documentation</a><a href="#sample-xml">Test data</a><a href="#library">Schema Library</a></nav>
+</div></section>
+<section class="section"><div class="wrap rows">
+<div class="row" id="graphic">
+<div class="row-media"><a class="shot" href="../../assets/img/schema-graphic.webp"><img src="../../assets/img/schema-graphic.webp" alt="Graphical XSD editor with connected type cards" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Graphic view</div><h2>The schema as a diagram</h2><p class="text">Elements, attributes and compositors are cards you add, move and edit. Every change is one undo step.</p><ul class="ticks big"><li>XSD 1.0 and 1.1, including assertions and type alternatives</li><li>Drag and drop, with a check that the result is valid XSD</li><li>Named types shown as frames, identity constraints on the cards</li><li>Imports and includes are followed, also across the network</li></ul><a class="more" href="../../docs/guides/design-schemas/graphic-view/">Read the documentation</a></div>
+</div>
+<div class="row flip" id="overview">
+<div class="row-media"><a class="shot" href="../../assets/img/schema-overview.webp"><img src="../../assets/img/schema-overview.webp" alt="Overview view with a table of all global components of a schema" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Overview</div><h2>Every global component in one table</h2><p class="text">Elements, types, groups, imports and namespaces of the schema, with the details of the selected one below.</p><ul class="ticks big"><li>Insert, reorder and sort components</li><li>Rename a component together with its references</li><li>Edit namespaces, identity constraints and assertions</li></ul><a class="more" href="../../docs/guides/design-schemas/overview-view/">Read the documentation</a></div>
+</div>
+<div class="row" id="types">
+<div class="row-media"><a class="shot" href="../../assets/img/type-editor.webp"><img src="../../assets/img/type-editor.webp" alt="Type editor showing a complex type as a diagram" width="1680" height="1003" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Types</div><h2>Type library and type editor</h2><p class="text">All types of the schema in one list, each opened in an editor of its own.</p><ul class="ticks big"><li>Complex and simple types, facets, enumerations and patterns</li><li>Where a type is used, and which ones are not used at all</li><li>A type picker with the built-in types of XSD</li></ul><a class="more" href="../../docs/guides/design-schemas/types/">Read the documentation</a></div>
+</div>
+<div class="row flip" id="analysis">
+<div class="row-media"><a class="shot" href="../../assets/img/schema-analysis.webp"><img src="../../assets/img/schema-analysis.webp" alt="Schema analysis with statistics about the elements and types of a schema" width="1680" height="1003" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Analysis</div><h2>Know what is in a schema</h2><p class="text">Statistics, quality checks and the identity constraints of a schema in one report.</p><ul class="ticks big"><li>Unused and unreachable definitions, reference cycles</li><li>Export as CSV, JSON, HTML, PDF or Excel</li></ul><a class="more" href="../../docs/guides/design-schemas/analysis/">Read the documentation</a></div>
+</div>
+<div class="row" id="documentation">
+<div class="row-media"><a class="shot" href="../../assets/img/schema-documentation.webp"><img src="../../assets/img/schema-documentation.webp" alt="Documentation generator with its output options" width="1680" height="1003" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Documentation</div><h2>Documentation from the schema</h2><p class="text">A browsable description of every element and type, with diagrams.</p><ul class="ticks big"><li>HTML, Word or PDF</li><li>An Excel data dictionary with the HTML output</li><li>From the command line with fxt-cli xsd-doc</li></ul><a class="more" href="../../docs/guides/design-schemas/documentation/">Read the documentation</a></div>
+</div>
+<div class="row flip" id="sample-xml">
+<div class="row-media"><a class="shot" href="../../assets/img/sample-xml.webp"><img src="../../assets/img/sample-xml.webp" alt="Sample XML generator with a generated document" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Test data</div><h2>Sample XML from a schema</h2><p class="text">Generate instance documents that are valid against the schema.</p><ul class="ticks big"><li>Profiles decide which values the fields get</li><li>The result is validated right away</li></ul><a class="more" href="../../docs/guides/design-schemas/sample-xml/">Read the documentation</a></div>
+</div>
+<div class="row" id="library">
+<div class="row-media"><a class="shot" href="../../assets/img/schema-library.webp"><img src="../../assets/img/schema-library.webp" alt="Schema Library with the mappings from namespaces to schema files" width="1680" height="1003" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Schema Library</div><h2>Imports that resolve themselves</h2><p class="text">The library maps namespaces to schema files, and every validator and editor asks it first.</p><ul class="ticks big"><li>Namespace mappings and OASIS XML catalogs</li><li>A cache of downloaded schemas, for work without a network</li><li>Downloaded imports are kept next to the schema that uses them</li></ul><a class="more" href="../../docs/guides/design-schemas/schema-library/">Read the documentation</a></div>
+</div>
+</div></section>
+<section class="section section-alt"><div class="wrap stack-lg">
+<div class="stack"><div class="eyebrow">Also included</div><h2>More schema tools</h2></div>
+<div class="cards three">
+<div class="card"><h3>Flatten a schema</h3><p>Merge the includes of a schema into one file.</p><a class="more" href="../../docs/guides/design-schemas/flatten/">Flatten</a></div>
+<div class="card"><h3>Schema from XML</h3><p>Derive a first XSD from sample documents.</p><a class="more" href="../../docs/guides/design-schemas/generate-from-xml/">Generate a schema</a></div>
+<div class="card"><h3>Export the diagram</h3><p>PNG, SVG or PDF of the diagram, the grid and the flame graph, or a copy to the clipboard.</p><a class="more" href="../../docs/get-started/workspace-tour/#export-view">Export a view</a></div>
+</div>
+</div></section>
+<section class="section"><div class="wrap cta">
+<h2>More features</h2>
+<nav class="jump center" aria-label="More features"><a href="../../features/editing/">Editing</a><a href="../../features/validation/">Validation</a><a href="../../features/transform/">Transform and debug</a><a href="../../features/publish-security/">PDF and security</a><a href="../../features/compare-convert/">Compare and convert</a><a href="../../features/projects-cli/">Projects and command line</a></nav>
+<div class="btn-row"><a class="btn" href="../../download/">Download FreeXmlToolkit</a><a class="btn btn-ghost" href="../../screenshots/">Screenshots</a></div>
+</div></section>
+</main>
+<footer class="site-footer on-navy">
+<div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand"><img src="../../assets/brand/lockup-horizontal-on-dark.svg" alt="FreeXmlToolkit" width="181" height="30"><p>Free and open source under Apache 2.0.</p></div>
+<div><h2>Product</h2><ul><li><a href="../../features/">Features</a></li><li><a href="../../industries/">Industries</a></li><li><a href="../../enterprise/">Enterprise</a></li><li><a href="../../ai/">AI &amp; automation</a></li><li><a href="../../compare/">Compare</a></li><li><a href="../../screenshots/">Screenshots</a></li></ul></div>
+<div><h2>Project</h2><ul><li><a href="../../news/">News</a></li><li><a href="../../about/">About</a></li><li><a href="https://github.com/sponsors/karlkauc">Sponsor</a></li><li><a href="https://github.com/karlkauc/FreeXmlToolkit">GitHub</a></li></ul></div>
+<div><h2>Help</h2><ul><li><a href="../../docs/">Documentation</a></li><li><a href="../../faq/">FAQ</a></li><li><a href="../../docs/reference/faq/">Troubleshooting</a></li><li><a href="https://github.com/karlkauc/FreeXmlToolkit/issues/new/choose">Report a problem</a></li></ul></div>
+<div><h2>Legal</h2><ul><li><a href="../../imprint/">Imprint</a></li><li><a href="../../privacy/">Privacy</a></li><li><a href="../../docs/reference/licenses/">Licenses</a></li></ul></div>
+</div>
+<div class="foot-bottom"><span>© 2024–2026 Karl Kauc</span><span>Product names are trademarks of their owners.</span></div>
+</div>
+</footer>
+</body>
+</html>

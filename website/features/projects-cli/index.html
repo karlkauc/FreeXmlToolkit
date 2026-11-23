@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Projects, command line and CI – FreeXmlToolkit</title>
+<meta name="description" content="A project file binds schemas, rules and transformation scenarios to files. fxt-cli runs the same engines in build pipelines, with JUnit and SARIF reports.">
+<link rel="canonical" href="https://freexmltoolkit.org/features/projects-cli/">
+<link rel="alternate" hreflang="en" href="https://freexmltoolkit.org/features/projects-cli/">
+<link rel="alternate" hreflang="de" href="https://freexmltoolkit.org/de/features/projects-cli/">
+<link rel="alternate" hreflang="x-default" href="https://freexmltoolkit.org/features/projects-cli/">
+<meta name="theme-color" content="#2a284c">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="Projects, command line and CI – FreeXmlToolkit">
+<meta property="og:description" content="A project file binds schemas, rules and transformation scenarios to files. fxt-cli runs the same engines in build pipelines, with JUnit and SARIF reports.">
+<meta property="og:url" content="https://freexmltoolkit.org/features/projects-cli/">
+<meta property="og:image" content="https://freexmltoolkit.org/assets/brand/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../../assets/brand/app-icon.svg" type="image/svg+xml">
+<link rel="icon" href="../../assets/brand/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../../assets/brand/apple-touch-icon.png">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<script src="../../assets/js/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="wrap">
+<a class="brand" href="../../" aria-label="FreeXmlToolkit home"><img src="../../assets/brand/lockup-horizontal-on-dark.svg" alt="" width="181" height="30"></a>
+<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+<nav class="site-nav" id="site-nav" aria-label="Main"><a href="../../features/" aria-current="page">Features</a><a href="../../industries/">Industries</a><a href="../../enterprise/">Enterprise</a><a href="../../ai/">AI</a><a href="../../compare/">Compare</a><a href="../../docs/">Docs</a><a class="lang" href="../../de/features/projects-cli/" hreflang="de" lang="de">Deutsch</a><a class="btn" href="../../download/">Download</a></nav>
+</div>
+</header>
+<main id="main">
+<section class="page-head"><div class="wrap">
+<div class="eyebrow"><a class="crumb" href="../../features/">Features</a> › Projects and command line</div><h1 class="page-title">From one file to a pipeline</h1>
+<p class="lead">Describe once which schema, which rules and which transformation belong to which files, then check all of it in the application and in the build.</p>
+<nav class="jump" aria-label="Sections"><a href="#projects">Projects</a><a href="#scenarios">Scenarios</a></nav>
+</div></section>
+<section class="section"><div class="wrap rows">
+<div class="row" id="projects">
+<div class="row-media"><a class="shot" href="../../assets/img/project-settings.webp"><img src="../../assets/img/project-settings.webp" alt="Project settings with schema bindings and scenarios" width="900" height="542" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Projects</div><h2>One project file</h2><p class="text">A .fxtproj file sits next to your data and can be shared with the team.</p><ul class="ticks big"><li>Bind a schema, a Schematron and a scenario to files by pattern</li><li>XML catalogs of the project</li><li>Validate the whole project in one run</li></ul><a class="more" href="../../docs/guides/projects/">Read the documentation</a></div>
+</div>
+<div class="row flip" id="scenarios">
+<div class="row-media"><a class="shot" href="../../assets/img/scenario-check.webp"><img src="../../assets/img/scenario-check.webp" alt="Scenario check reporting a difference from the expected result" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Scenarios</div><h2>Regression checks for transformations</h2><p class="text">A scenario names a stylesheet, its input and the result that is expected.</p><ul class="ticks big"><li>Check compares the result with the expected file</li><li>Differences open in the compare view; Accept takes the new result</li><li>As fxt-cli scenario --check with a JUnit report</li></ul><a class="more" href="../../docs/guides/projects/">Read the documentation</a></div>
+</div>
+</div></section>
+<section class="section section-alt"><div class="wrap stack-lg">
+<div class="stack"><div class="eyebrow">Also included</div><h2>Automate</h2></div>
+<div class="cards three">
+<div class="card"><h3>fxt-cli</h3><p>validate, transform, query, xsd-doc, xspec, scenario, compare, merge, convert, fop, sign, verify, encrypt and decrypt. Installed with the application.</p><a class="more" href="../../docs/automate/command-line/">Command line</a></div>
+<div class="card"><h3>CI recipes</h3><p>Ready examples for build pipelines, with text, JSON, JUnit and SARIF reports.</p><a class="more" href="../../docs/automate/ci-recipes/">CI recipes</a></div>
+<div class="card"><h3>MCP server</h3><p>fxt-cli mcp gives AI agents the same engines as tools, read-only and inside the folders you name.</p><a class="more" href="../../ai/">AI and automation</a></div>
+<div class="card"><h3>Plugins</h3><p>Add activities, menu items, validators and schemas from a jar file.</p><a class="more" href="../../docs/extend/writing-plugins/">Writing plugins</a></div>
+</div>
+</div></section>
+<section class="section"><div class="wrap cta">
+<h2>More features</h2>
+<nav class="jump center" aria-label="More features"><a href="../../features/editing/">Editing</a><a href="../../features/schemas/">Schemas</a><a href="../../features/validation/">Validation</a><a href="../../features/transform/">Transform and debug</a><a href="../../features/publish-security/">PDF and security</a><a href="../../features/compare-convert/">Compare and convert</a></nav>
+<div class="btn-row"><a class="btn" href="../../download/">Download FreeXmlToolkit</a><a class="btn btn-ghost" href="../../screenshots/">Screenshots</a></div>
+</div></section>
+</main>
+<footer class="site-footer on-navy">
+<div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand"><img src="../../assets/brand/lockup-horizontal-on-dark.svg" alt="FreeXmlToolkit" width="181" height="30"><p>Free and open source under Apache 2.0.</p></div>
+<div><h2>Product</h2><ul><li><a href="../../features/">Features</a></li><li><a href="../../industries/">Industries</a></li><li><a href="../../enterprise/">Enterprise</a></li><li><a href="../../ai/">AI &amp; automation</a></li><li><a href="../../compare/">Compare</a></li><li><a href="../../screenshots/">Screenshots</a></li></ul></div>
+<div><h2>Project</h2><ul><li><a href="../../news/">News</a></li><li><a href="../../about/">About</a></li><li><a href="https://github.com/sponsors/karlkauc">Sponsor</a></li><li><a href="https://github.com/karlkauc/FreeXmlToolkit">GitHub</a></li></ul></div>
+<div><h2>Help</h2><ul><li><a href="../../docs/">Documentation</a></li><li><a href="../../faq/">FAQ</a></li><li><a href="../../docs/reference/faq/">Troubleshooting</a></li><li><a href="https://github.com/karlkauc/FreeXmlToolkit/issues/new/choose">Report a problem</a></li></ul></div>
+<div><h2>Legal</h2><ul><li><a href="../../imprint/">Imprint</a></li><li><a href="../../privacy/">Privacy</a></li><li><a href="../../docs/reference/licenses/">Licenses</a></li></ul></div>
+</div>
+<div class="foot-bottom"><span>© 2024–2026 Karl Kauc</span><span>Product names are trademarks of their owners.</span></div>
+</div>
+</footer>
+</body>
+</html>

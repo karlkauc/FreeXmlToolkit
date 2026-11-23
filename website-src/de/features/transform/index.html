@@ -1,0 +1,50 @@
+title: XSLT und XQuery mit Debugger und Profiler – FreeXmlToolkit
+description: XSLT 3.0, XPath 3.1 und XQuery 3.1 mit Saxon ausführen, Stylesheets, Abfragen und Schematron debuggen, profilen, mit XSpec testen und XProc-3.0-Pipelines ausführen.
+nav: features
+
+<main id="main">
+<section class="page-head"><div class="wrap">
+<div class="eyebrow"><a class="crumb" href="{{home}}features/">Funktionen</a> › Transformieren und Debuggen</div><h1 class="page-title">Vom Stylesheet zum Ergebnis</h1>
+<p class="lead">Transformationen ausführen, debuggen, profilen und testen – in dem Editor, in dem Sie sie schreiben.</p>
+<nav class="jump" aria-label="Abschnitte"><a href="#run">Transformieren</a><a href="#query">Abfragekonsole</a><a href="#debug">Debugger</a><a href="#profile">Profiler</a><a href="#xspec">Tests</a><a href="#xproc">Pipelines</a></nav>
+</div></section>
+<section class="section"><div class="wrap rows">
+<div class="row" id="run">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/transform.webp"><img src="{{root}}assets/img/transform.webp" alt="Transformationsbereich mit Stylesheet, Eingabe, Parametern und dem Ergebnis unter dem Editor" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Transformieren</div><h2>XSLT, XQuery und XPath</h2><p class="text">XSLT 3.0, XPath 3.1 und XQuery 3.1 laufen auf Saxon HE, das Ergebnis erscheint unter dem Editor.</p><ul class="ticks big"><li>Parameter, Ausgabemethode und eine Live-Vorschau</li><li>Szenarien halten Stylesheet, Eingabe und Parameter zusammen</li><li>Stapeltransformation vieler Dateien</li><li>XSLT 1.0 und 2.0, wenn ein Stylesheet kompatibel bleiben muss</li></ul><a class="more" href="{{root}}docs/guides/transform-query/run-xslt/">Zur Dokumentation (englisch)</a></div>
+</div>
+<div class="row flip" id="query">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/query-console.webp"><img src="{{root}}assets/img/query-console.webp" alt="Abfragekonsole mit einem XPath-Ausdruck und seinem Ergebnis" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Abfragekonsole</div><h2>Das offene Dokument befragen</h2><p class="text">Einen XPath-, XQuery- oder JSONPath-Ausdruck eingeben und das Ergebnis sofort sehen.</p><ul class="ticks big"><li>Läuft gegen das Dokument im Editor</li><li>Ein Zeitlimit stoppt eine Abfrage, die aus dem Ruder läuft</li><li>Optional: mit dem KI-Assistenten aus einer Frage eine Abfrage machen</li></ul><a class="more" href="{{root}}docs/guides/transform-query/query-console/">Zur Dokumentation (englisch)</a></div>
+</div>
+<div class="row" id="debug">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/debugger.webp"><img src="{{root}}assets/img/debugger.webp" alt="XSLT-Debugger, an einem Haltepunkt angehalten, mit Variablen und Aufrufliste" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Debugger</div><h2>XSLT, XQuery und Schematron schrittweise</h2><p class="text">Anhalten, wo es zählt, und Kontextknoten, Variablen und die bisher geschriebene Ausgabe ansehen.</p><ul class="ticks big"><li>Bedingte Haltepunkte, Trefferzähler und Logpoints</li><li>Überwachungen, Aufrufliste, Inline-Werte und ein Wertefenster mit XPath</li><li>Anhalten bei Fehlern, bei Meldungen oder wenn ein Eingabeknoten verarbeitet wird</li><li>Abdeckung und „Explain Match“ für die Template-Regel, die gewonnen hat</li></ul><a class="more" href="{{root}}docs/guides/transform-query/debug/">Zur Dokumentation (englisch)</a></div>
+</div>
+<div class="row flip" id="profile">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/profiler.webp"><img src="{{root}}assets/img/profiler.webp" alt="Flame Graph einer profilierten XSLT-Transformation" width="1680" height="1003" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Profiler</div><h2>Das langsame Template finden</h2><p class="text">Ein Profillauf misst jedes Template und jede Funktion eines Stylesheets oder einer Abfrage.</p><ul class="ticks big"><li>Gesamt- und Eigenzeit, Aufrufbaum und Flame Graph</li><li>Für XSLT und XQuery</li><li>Von der Kommandozeile mit transform --profile</li></ul><a class="more" href="{{root}}docs/guides/transform-query/profile/">Zur Dokumentation (englisch)</a></div>
+</div>
+<div class="row" id="xspec">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/xspec.webp"><img src="{{root}}assets/img/xspec.webp" alt="Ergebnis eines XSpec-Testlaufs" width="1680" height="1003" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Tests</div><h2>Mit XSpec testen</h2><p class="text">XSpec-Tests für XSLT, XQuery und Schematron ausführen und sehen, welche Erwartungen fehlgeschlagen sind.</p><ul class="ticks big"><li>Aus dem Editor oder mit fxt-cli xspec</li><li>Szenario-Prüfungen vergleichen ein Transformationsergebnis mit einer erwarteten Datei</li></ul><a class="more" href="{{root}}docs/guides/transform-query/xspec/">Zur Dokumentation (englisch)</a></div>
+</div>
+<div class="row flip" id="xproc">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/xproc.webp"><img src="{{root}}assets/img/xproc.webp" alt="XProc-Pipeline mit ihrem Ergebnis im Ausgabebereich" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Pipelines</div><h2>XProc-3.0-Pipelines</h2><p class="text">Pipelines laufen auf XML Calabash 3.</p><ul class="ticks big"><li>Standardmäßig eingeschränkt: keine Programme, kein Netzwerk</li><li>„Run Pipeline“ auf jedem .xpl-Dokument, das Ergebnis im Ausgabebereich</li></ul><a class="more" href="{{root}}docs/guides/transform-query/xproc/">Zur Dokumentation (englisch)</a></div>
+</div>
+</div></section>
+<section class="section section-alt"><div class="wrap stack-lg">
+<div class="stack"><div class="eyebrow">Ebenfalls enthalten</div><h2>Mehr zu Transformationen</h2></div>
+<div class="cards three">
+<div class="card"><h3>Andere XSLT-Prozessoren</h3><p>Saxon HE 13.1 mit einem Klick, oder Ihr eigener Saxon PE/EE, xsltproc, RaptorXML oder eine beliebige Kommandozeile.</p><a class="more" href="{{root}}docs/guides/transform-query/external-processors/">Externe Prozessoren</a></div>
+<div class="card"><h3>Stylesheet erzeugen</h3><p>Optional: Der KI-Assistent schreibt ein Stylesheet aus einem Beispiel des Ergebnisses und führt es zur Kontrolle aus.</p><a class="more" href="{{home}}ai/">KI-Assistent</a></div>
+<div class="card"><h3>Beispiele</h3><p>Stylesheets und Abfragen als Ausgangspunkt.</p><a class="more" href="{{root}}docs/guides/transform-query/examples/">Beispiele</a></div>
+</div>
+</div></section>
+<section class="section"><div class="wrap cta">
+<h2>Weitere Funktionen</h2>
+<nav class="jump center" aria-label="Weitere Funktionen"><a href="{{home}}features/editing/">Bearbeiten</a><a href="{{home}}features/schemas/">Schemas</a><a href="{{home}}features/validation/">Validierung</a><a href="{{home}}features/publish-security/">PDF und Sicherheit</a><a href="{{home}}features/compare-convert/">Vergleichen und Konvertieren</a><a href="{{home}}features/projects-cli/">Projekte und Kommandozeile</a></nav>
+<div class="btn-row"><a class="btn" href="{{home}}download/">FreeXmlToolkit herunterladen</a><a class="btn btn-ghost" href="{{home}}screenshots/">Screenshots</a></div>
+</div></section>
+</main>

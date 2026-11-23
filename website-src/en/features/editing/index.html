@@ -1,0 +1,46 @@
+title: XML, JSON and YAML editor – FreeXmlToolkit
+description: A schema-aware editor for XML, JSON and YAML with Text, Tree and Grid views, IntelliSense, a properties inspector and a viewer for files of several gigabytes.
+nav: features
+
+<main id="main">
+<section class="page-head"><div class="wrap">
+<div class="eyebrow"><a class="crumb" href="{{home}}features/">Features</a> › Editing</div><h1 class="page-title">An editor that knows your schema</h1>
+<p class="lead">Text, Tree and Grid are three views of the same document. The bound schema drives completion, validation and the properties of every node.</p>
+<nav class="jump" aria-label="Sections"><a href="#views">Views</a><a href="#completion">Auto-completion</a><a href="#grid">Grid</a><a href="#inspector">Properties</a><a href="#large-files">Large files</a><a href="#json-yaml">JSON and YAML</a><a href="#find">Find and organise</a></nav>
+</div></section>
+<section class="section"><div class="wrap rows">
+<div class="row" id="views">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/xml-grid.webp"><img src="{{root}}assets/img/xml-grid.webp" alt="Grid view with nested XML shown as tables" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Views</div><h2>One document, three views</h2><p class="text">Text, Tree and Grid share one undo history, and switching views keeps the node you were on.</p><ul class="ticks big"><li>Text view with syntax highlighting, code folding, formatting and minifying</li><li>Tree view for the structure, Grid for repeating elements</li><li>A rendered Preview for HTML documents</li><li>Files changed by another program are noticed and reloaded on request</li></ul><a class="more" href="{{root}}docs/guides/edit-xml/">Read the documentation</a></div>
+</div>
+<div class="row flip" id="completion">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/intellisense.webp"><img src="{{root}}assets/img/intellisense.webp" alt="Auto-completion popup listing the elements the schema allows at the caret" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Auto-completion</div><h2>Only what the schema allows</h2><p class="text">The completion list is built from the bound schema for the exact place of the caret.</p><ul class="ticks big"><li>Elements, attributes and enumeration values from the XSD</li><li>Works with DTD and RELAX NG schemas too</li><li>The schema is found from the document, the project or the Schema Library</li><li>Validation runs while you type</li></ul><a class="more" href="{{root}}docs/guides/edit-xml/auto-completion/">Read the documentation</a></div>
+</div>
+<div class="row" id="grid">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/grid-formulas.webp"><img src="{{root}}assets/img/grid-formulas.webp" alt="Grid view with a table of records and named sums above it" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Grid</div><h2>Tables, filters and formulas</h2><p class="text">Repeating elements become editable tables, at any depth of nesting.</p><ul class="ticks big"><li>Sort and filter rows, add sums and other formulas</li><li>Insert, rename and move columns; paste cells from a spreadsheet</li><li>Entry helpers list the siblings, children and values the schema allows</li><li>Drag and drop to move nodes</li></ul><a class="more" href="{{root}}docs/guides/edit-xml/grid/">Read the documentation</a></div>
+</div>
+<div class="row flip" id="inspector">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/inspector.webp"><img src="{{root}}assets/img/inspector.webp" alt="Properties inspector showing type, cardinality and documentation of the selected element" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Properties</div><h2>Everything about the node at the caret</h2><p class="text">The inspector on the right shows what the schema says about the selected node, in every view.</p><ul class="ticks big"><li>Type, cardinality, facets and documentation</li><li>Edit values and attributes in place</li><li>Change the declaration in the XSD without leaving the XML document</li></ul><a class="more" href="{{root}}docs/reference/inspector/">Read the documentation</a></div>
+</div>
+<div class="row" id="large-files">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/large-file.webp"><img src="{{root}}assets/img/large-file.webp" alt="Large File Viewer with the structure tree and a table of records" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Large files</div><h2>Files of several gigabytes</h2><p class="text">Files from 50 MB open in the Large File Viewer, which reads from disk only what it shows.</p><ul class="ticks big"><li>Text, structure tree, record table and statistics</li><li>Edit a part of the file in the grid and write it back</li><li>Streaming validation against an XSD</li><li>Export records to CSV or Excel</li></ul><a class="more" href="{{root}}docs/guides/edit-xml/large-files/">Read the documentation</a></div>
+</div>
+<div class="row flip" id="json-yaml">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/json-grid.webp"><img src="{{root}}assets/img/json-grid.webp" alt="A JSON document in the grid view" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">JSON and YAML</div><h2>The same views for JSON and YAML</h2><p class="text">JSON, JSON5 and YAML documents get Text, Tree and Grid as well.</p><ul class="ticks big"><li>Validation against JSON Schema Draft-07, 2019-09 and 2020-12</li><li>JSONPath in the Query Console</li><li>Conversion to and from XML</li></ul><a class="more" href="{{root}}docs/guides/json-yaml/">Read the documentation</a></div>
+</div>
+<div class="row" id="find">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/search-in-files.webp"><img src="{{root}}assets/img/search-in-files.webp" alt="Search activity with results from several files" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Find and organise</div><h2>Find it again</h2><p class="text">Search across folders, and keep the places and files you return to.</p><ul class="ticks big"><li>Find and replace across files, by text or by XPath</li><li>Line bookmarks, nine of them numbered, that follow your edits</li><li>Favorites for files, templates for new ones</li></ul><a class="more" href="{{root}}docs/guides/edit-xml/search-in-files/">Read the documentation</a></div>
+</div>
+</div></section>
+<section class="section"><div class="wrap cta">
+<h2>More features</h2>
+<nav class="jump center" aria-label="More features"><a href="{{home}}features/schemas/">Schemas</a><a href="{{home}}features/validation/">Validation</a><a href="{{home}}features/transform/">Transform and debug</a><a href="{{home}}features/publish-security/">PDF and security</a><a href="{{home}}features/compare-convert/">Compare and convert</a><a href="{{home}}features/projects-cli/">Projects and command line</a></nav>
+<div class="btn-row"><a class="btn" href="{{home}}download/">Download FreeXmlToolkit</a><a class="btn btn-ghost" href="{{home}}screenshots/">Screenshots</a></div>
+</div></section>
+</main>

@@ -1,0 +1,42 @@
+title: XML-Validierung mit XSD, Schematron, RELAX NG und DTD – FreeXmlToolkit
+description: XML gegen XSD 1.0 und 1.1, Schematron mit Quick Fixes, DTD und RELAX NG validieren, JSON gegen JSON Schema – während der Eingabe, für Ordner und für ganze Projekte.
+nav: features
+
+<main id="main">
+<section class="page-head"><div class="wrap">
+<div class="eyebrow"><a class="crumb" href="{{home}}features/">Funktionen</a> › Validierung</div><h1 class="page-title">Probleme, mit denen Sie etwas anfangen können</h1>
+<p class="lead">Ergebnisse zeigen auf die Zeile, erklären die Regel und wenden, wo es eine Korrektur gibt, diese in einem Schritt an.</p>
+<nav class="jump" aria-label="Abschnitte"><a href="#live">Schemas</a><a href="#schematron">Schematron</a><a href="#problems">Probleme</a><a href="#folders">Ordner und Projekte</a></nav>
+</div></section>
+<section class="section"><div class="wrap rows">
+<div class="row" id="live">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/validation.webp"><img src="{{root}}assets/img/validation.webp" alt="Validierung neben einem XML-Dokument mit markierten Problemen" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Schemas</div><h2>Validierung während der Eingabe</h2><p class="text">Das Dokument wird beim Bearbeiten gegen sein Schema geprüft, Probleme werden im Text markiert.</p><ul class="ticks big"><li>XSD 1.0 und 1.1</li><li>DTD und RELAX NG, in XML- und Kompaktsyntax</li><li>JSON Schema für JSON- und YAML-Dokumente</li><li>Das Schema kommt aus dem Dokument, dem Projekt oder der Schema-Bibliothek</li></ul><a class="more" href="{{root}}docs/guides/validate/">Zur Dokumentation (englisch)</a></div>
+</div>
+<div class="row flip" id="schematron">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/quick-fix.webp"><img src="{{root}}assets/img/quick-fix.webp" alt="Schematron-Problem mit den angebotenen Quick Fixes im Editor" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Schematron</div><h2>Geschäftsregeln mit Quick Fixes</h2><p class="text">Schematron-Regeln prüfen, was ein Schema nicht ausdrücken kann, und Quick Fixes reparieren das Dokument.</p><ul class="ticks big"><li>Eine Korrektur ist ein Rückgängig-Schritt und erhält die Formatierung des Dokuments</li><li>Ein Regel-Assistent und Vorlagen zum Schreiben von Regeln</li><li>Ein Schematron im Debugger schrittweise ausführen</li></ul><a class="more" href="{{root}}docs/guides/validate/schematron-quick-fixes/">Zur Dokumentation (englisch)</a></div>
+</div>
+<div class="row" id="problems">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/problems.webp"><img src="{{root}}assets/img/problems.webp" alt="Problembereich mit nach Regel gruppierten Problemen" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Probleme</div><h2>Tausende Probleme, trotzdem lesbar</h2><p class="text">Der Problembereich gruppiert, filtert und exportiert, was eine Validierung gefunden hat.</p><ul class="ticks big"><li>Gruppieren nach Objekt, nach Regel oder nach Kategorie</li><li>Fehler, Warnungen und Hinweise, mit Suche</li><li>Export nach Excel, auch je Gruppe</li></ul><a class="more" href="{{root}}docs/guides/validate/problems/">Zur Dokumentation (englisch)</a></div>
+</div>
+<div class="row flip" id="folders">
+<div class="row-media"><a class="shot" href="{{root}}assets/img/batch-validation.webp"><img src="{{root}}assets/img/batch-validation.webp" alt="Stapelvalidierung eines Ordners mit dem Ergebnis je Datei" width="1680" height="1000" loading="lazy" decoding="async"></a></div>
+<div class="row-copy"><div class="eyebrow">Ordner und Projekte</div><h2>Ganze Ordner auf einmal</h2><p class="text">Alle Dateien eines Ordners oder Projekts validieren und das Ergebnis als Bericht behalten.</p><ul class="ticks big"><li>Ein Projekt bindet Schemas und Schematron-Regeln per Muster an Dateien</li><li>Dieselbe Prüfung von der Kommandozeile, mit JUnit- und SARIF-Berichten</li></ul><a class="more" href="{{root}}docs/guides/validate/folders/">Zur Dokumentation (englisch)</a></div>
+</div>
+</div></section>
+<section class="section section-alt"><div class="wrap stack-lg">
+<div class="stack"><div class="eyebrow">Ebenfalls enthalten</div><h2>Mehr zur Validierung</h2></div>
+<div class="cards three">
+<div class="card"><h3>Kennungen online prüfen</h3><p>LEIs bei GLEIF und ISINs bei ESMA FIRDS und OpenFIGI nachschlagen. Werte verlassen den Computer nur, wenn Sie es verlangen.</p><a class="more" href="{{root}}docs/industry/identifier-lookup/">Kennungen nachschlagen</a></div>
+<div class="card"><h3>Sprachversion wählen</h3><p>Gegen XSD 1.0 statt 1.1 oder XML 1.0 statt 1.1 validieren, wenn ein Empfänger es verlangt.</p><a class="more" href="{{root}}docs/reference/standards-versions/">Sprachversionen</a></div>
+<div class="card"><h3>Mit KI erklären und beheben</h3><p>Optional: Ein Modell erklärt ein Problem oder schlägt eine Korrektur vor, die die Anwendung zuerst prüft.</p><a class="more" href="{{home}}ai/">KI-Assistent</a></div>
+</div>
+</div></section>
+<section class="section"><div class="wrap cta">
+<h2>Weitere Funktionen</h2>
+<nav class="jump center" aria-label="Weitere Funktionen"><a href="{{home}}features/editing/">Bearbeiten</a><a href="{{home}}features/schemas/">Schemas</a><a href="{{home}}features/transform/">Transformieren und Debuggen</a><a href="{{home}}features/publish-security/">PDF und Sicherheit</a><a href="{{home}}features/compare-convert/">Vergleichen und Konvertieren</a><a href="{{home}}features/projects-cli/">Projekte und Kommandozeile</a></nav>
+<div class="btn-row"><a class="btn" href="{{home}}download/">FreeXmlToolkit herunterladen</a><a class="btn btn-ghost" href="{{home}}screenshots/">Screenshots</a></div>
+</div></section>
+</main>
