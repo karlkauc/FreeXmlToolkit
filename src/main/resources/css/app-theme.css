@@ -660,7 +660,7 @@
    ============================================ */
 
 .query-code-area {
-    -fx-font-family: 'Consolas', 'Monaco', monospace;
+    -fx-font-family: "JetBrains Mono";
     -fx-font-size: 13px;
     -fx-background-color: -bg-primary;
 }
@@ -855,7 +855,7 @@
 
 /* Expert mode monospace text area */
 .expert-results-area {
-    -fx-font-family: 'Courier New', monospace;
+    -fx-font-family: "JetBrains Mono";
 }
 
 /* Expert mode italic description label */

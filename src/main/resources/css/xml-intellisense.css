@@ -63,7 +63,7 @@
 
 .intellisense-popup .list-cell {
     -fx-padding: 3 8 3 8;
-    -fx-font-family: "Consolas", "Monaco", monospace;
+    -fx-font-family: "JetBrains Mono";
     -fx-font-size: 12px;
 }
 
@@ -74,29 +74,6 @@
 
 .intellisense-popup .list-cell:filled:hover {
     -fx-background-color: #e6f3ff;
-}
-
-/* Completion item icons */
-.completion-icon {
-    -fx-font-family: "Font Awesome 5 Free";
-    -fx-font-size: 14px;
-    -fx-padding: 0 5 0 0;
-}
-
-.completion-icon.element {
-    -fx-text-fill: #0066cc;
-}
-
-.completion-icon.attribute {
-    -fx-text-fill: #009900;
-}
-
-.completion-icon.value {
-    -fx-text-fill: #cc6600;
-}
-
-.completion-icon.snippet {
-    -fx-text-fill: #9900cc;
 }
 
 /* Documentation tooltip */
@@ -122,7 +99,7 @@
 }
 
 .doc-tooltip .code {
-    -fx-font-family: "Consolas", "Monaco", monospace;
+    -fx-font-family: "JetBrains Mono";
     -fx-background-color: rgba(0, 0, 0, 0.05);
     -fx-padding: 2 4 2 4;
 }
@@ -177,7 +154,7 @@
 
 /* Line numbers with folding support */
 .lineno {
-    -fx-font-family: "Consolas", "Monaco", monospace;
+    -fx-font-family: "JetBrains Mono";
     -fx-font-size: 11px;
     -fx-text-fill: #999999;
     -fx-padding: 0 8 0 4;
@@ -278,7 +255,7 @@
 
 /* Performance mode for large files */
 .performance-mode .code-area {
-    -fx-font-family: "Consolas", "Monaco", monospace;
+    -fx-font-family: "JetBrains Mono";
     -fx-font-size: 12px;
     /* Disable expensive effects in performance mode */
     -fx-effect: null;

@@ -179,7 +179,7 @@
 /* ========== JSON Code Area ========== */
 
 .json-code-area {
-    -fx-font-family: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+    -fx-font-family: "JetBrains Mono";
     -fx-font-size: 13px;
     -fx-line-spacing: 1.2em;
     -fx-background-color: white;
@@ -247,7 +247,7 @@
     -fx-padding: 3px 5px;
     -fx-text-fill: #495057;
     -fx-font-size: 12px;
-    -fx-font-family: 'Consolas', 'Monaco', monospace;
+    -fx-font-family: "JetBrains Mono";
 }
 
 .json-tree-view .tree-cell:selected {
@@ -310,7 +310,7 @@
 }
 
 .json-properties-panel .text-field {
-    -fx-font-family: 'Consolas', 'Monaco', monospace;
+    -fx-font-family: "JetBrains Mono";
     -fx-font-size: 12px;
 }
 
@@ -355,7 +355,7 @@
 }
 
 .jsonpath-input {
-    -fx-font-family: 'Consolas', 'Monaco', monospace;
+    -fx-font-family: "JetBrains Mono";
     -fx-font-size: 12px;
     -fx-background-color: white;
     -fx-border-color: #f57c00;
@@ -370,7 +370,7 @@
 }
 
 .jsonpath-results {
-    -fx-font-family: 'Consolas', 'Monaco', monospace;
+    -fx-font-family: "JetBrains Mono";
     -fx-font-size: 12px;
     -fx-background-color: white;
     -fx-border-color: #dee2e6;
