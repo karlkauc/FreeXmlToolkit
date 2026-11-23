@@ -87,7 +87,7 @@ val saxon13: Configuration = configurations.create("saxon13") {
 
 dependencies {
     saxon13("net.sf.saxon:Saxon-HE:13.1")
-    saxon13("org.xmlresolver:xmlresolver:6.1.0")
+    saxon13("org.xmlresolver:xmlresolver:6.1.1")
 
     // Pinned to 12.10: XML Calabash 3 (also 3.1.0) is compiled against Saxon 12.10 internals
     // (Saxon 13 support: codeberg.org/xmlcalabash/xmlcalabash3/issues/717). Move to 13.x once Calabash
@@ -159,7 +159,7 @@ dependencies {
     implementation("org.apache.santuario:xmlsec:4.0.4")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.87")
 
-    implementation("org.controlsfx:controlsfx:11.2.6")
+    implementation("org.controlsfx:controlsfx:11.2.7")
     // Native macOS application/window menu (only touched on macOS, see app/MacMenuIntegration)
     implementation("de.jangassen:nsmenufx:3.1.0") {
         // JavaFX comes from the Liberica Full JDK; keep the library's OpenJFX 11 jars off the classpath
@@ -194,10 +194,10 @@ dependencies {
         implementation("org.jsoup:jsoup:1.24.1") { because("CVE fix; via flexmark") }
         testImplementation("org.assertj:assertj-core:3.27.7") { because("CVE fix; via TestFX") }
         implementation("io.projectreactor:reactor-core:3.9.0") { because("MCP SDK 2.2.0 declares the release candidate 3.9.0-RC1") }
-        implementation("com.fasterxml.woodstox:woodstox-core:7.2.0") { because("jackson-bom 2.23 no longer lifts it; xmlsec alone pulls 7.1.0") }
+        implementation("com.fasterxml.woodstox:woodstox-core:7.3.0") { because("jackson-bom 2.23 no longer lifts it; xmlsec alone pulls 7.1.0") }
     }
 
-    implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.4.4")
+    implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.5")
     implementation("org.apache.httpcomponents.client5:httpclient5:5.6.5")
 
     implementation("com.github.mifmif:generex:1.0.2")
@@ -215,7 +215,7 @@ dependencies {
     // Anthropic provider of the AI assistant (decision D13): the official SDK, used only in
     // org.fxt.freexmltoolkit.service.ai.provider.anthropic (AiLayeringGuardTest), on a transport over
     // ConnectionService (no OkHttp: anthropic-java-core, not anthropic-java).
-    implementation("com.anthropic:anthropic-java-core:3.8.0")
+    implementation("com.anthropic:anthropic-java-core:3.11.0")
 
     // Note: Guice 7.0.0 doesn't support Java 25 (class file version 69)
     // Using manual DI pattern instead - see org.fxt.freexmltoolkit.di package
@@ -230,12 +230,12 @@ dependencies {
     testImplementation("org.testfx:openjfx-monocle:21.0.2")
     testImplementation("org.hamcrest:hamcrest:3.0")
 
-    implementation(platform("com.helger.schematron:ph-schematron-parent-pom:10.3.2"))
-    implementation("com.helger.schematron:ph-schematron-api:10.3.2")
+    implementation(platform("com.helger.schematron:ph-schematron-parent-pom:11.0.0"))
+    implementation("com.helger.schematron:ph-schematron-api:11.0.0")
     runtimeOnly("org.glassfish.jaxb:jaxb-runtime:4.0.9") // JAXB impl for ph-schematron's SVRL marshalling
-    implementation("com.helger.schematron:ph-schematron-xslt:10.3.2")
-    implementation("com.helger.schematron:ph-schematron-pure:10.3.2")
-    implementation("com.helger.schematron:ph-schematron-schxslt:10.3.2")
+    implementation("com.helger.schematron:ph-schematron-xslt:11.0.0")
+    implementation("com.helger.schematron:ph-schematron-pure:11.0.0")
+    implementation("com.helger.schematron:ph-schematron-schxslt:11.0.0")
 }
 
 // Java Toolchain Configuration - Use JDK with JavaFX included
