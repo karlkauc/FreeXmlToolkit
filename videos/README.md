@@ -46,6 +46,24 @@ python3 scripts/make-video.py --series --set fundsxml --lang en
 | 4 | `fundsxml-portfolio` | Portfolio positions and asset master data | recorded |
 | 5 | `fundsxml-validate` | Valid XML is not correct data: schema and data-quality checks | recorded |
 
+### Overview: `fundsxml-explained` (stand-alone, about 10 min)
+
+"FundsXML explained: one language for fund data" is for business readers: what the standard is for,
+what it covers, who uses it, quality, how a project runs. It is not in `series.json`
+(`"standalone": true`); its closing card points to the series instead. Most of it is **slides**, with
+two short runs in FreeXmlToolkit (`FundsXmlExplainedDocVideo.java`):
+
+- A scene with `"slide"` is not recorded: `make-video.py` draws it in the set's theme (needs `theme.json`).
+- Layouts: `statement` (headline, sub), `bullets`, `tiles` (items with head, text, optional tag),
+  `steps` (a numbered chain), and `hub` (actors around a centre; `"mode": "mesh"` joins all with all).
+- `"builds"` gives, per part, the share of the narration at which it fades in (missing ones: at once).
+- Recorded scenes between two slides form one run of the screen recording. A storyboard without slides
+  is cut exactly as before.
+
+```bash
+python3 scripts/make-video.py fundsxml-explained --set fundsxml --lang en
+```
+
 Files over 19 MiB are copied to `FXT-Videos` as a zip cut into 19 MiB parts (`<name>.zip.001`, …),
 because the folder is copied over WebDAV, which takes files below 20 MB (20,000,000 bytes) only.
 

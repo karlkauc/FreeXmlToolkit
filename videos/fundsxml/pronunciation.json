@@ -33,6 +33,14 @@
     "ccy": "C C Y",
     "ID_001": "I D zero zero one",
     "ID_099": "I D zero nine nine",
-    "NAV date": "N A V date"
+    "NAV date": "N A V date",
+    "EPT": "E P T",
+    "SFDR": "S F D R",
+    "MiFID": "miffid",
+    "ESG": "E S G",
+    "NAVs": "N A Vs",
+    "ISO": "I S O",
+    "FIX": "fix",
+    "openfunds": "open funds"
   }
 }

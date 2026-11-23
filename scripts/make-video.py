@@ -10,7 +10,10 @@ all generated - nobody records, speaks or edits.
 A set is a series of its own in a sub-folder of videos/ (storyboards, series.json, an optional
 pronunciation.json that adds to the shared one); its films are copied to a sub-folder of the same
 name. A storyboard may name its own card kicker ("kicker") and closing link ("link") instead of the
-FreeXmlToolkit documentation.
+FreeXmlToolkit documentation. In a set with a theme.json, a scene with "slide" is drawn, not recorded
+(layouts statement, bullets, tiles, steps, hub; see draw_slide); the recorded scenes between slides
+become runs of the one screen recording. A storyboard with "standalone": true is not an episode of
+the set's series; its closing card points to the series.
 
 Steps:
   tts      speaks every scene with Piper (a local model, no cloud service) and writes timing.json;
@@ -31,6 +34,7 @@ are respelled for the speech only."""
 import argparse
 import hashlib
 import json
+import math
 import os
 import re
 import shutil
@@ -274,7 +278,10 @@ def brand_intro(path, theme, lang, board, series_title):
     t = theme["text"][lang]
     img, d = b.canvas()
     n, total, _ = place_in_series(board)
-    kicker = t["kicker"].format(n=n, total=total) if n else t["series_kicker"]
+    own = board.get("kicker", {}).get(lang)
+    kicker = t["kicker"].format(n=n, total=total) if n else own or t["series_kicker"]
+    if board.get("standalone"):   # not an episode: its own subtitle instead of the series' name
+        series_title = board.get("subtitle", {}).get(lang)
     d.text((160, 330), kicker, font=b.font(40, True), fill=b.c["accent"])
     b.accent(img, 160, 410, 260)
     fnt, lines, size = b.title_lines(d, board["title"][lang], 96, 60, W - 400, 3)
@@ -313,7 +320,8 @@ def brand_outro(path, theme, lang, board, series_title):
     # left column: the series, this film marked, the next one named
     episodes = series_titles(lang)
     if episodes:
-        d.text((160, 395), t["series"] + (f": {series_title}" if series_title else ""), font=b.font(34, True),
+        heading = t.get("series_continue", t["series"]) if board.get("standalone") else t["series"]
+        d.text((160, 395), heading + (f": {series_title}" if series_title else ""), font=b.font(34, True),
                fill=b.c["accent"])
         ids = [vid for vid, _ in episodes]
         here = ids.index(board["id"]) if board["id"] in ids else -1
@@ -348,6 +356,183 @@ def brand_outro(path, theme, lang, board, series_title):
     for line in lines:
         d.text((left + 32, y), line, font=fnt, fill=b.c["heading"])
         y += 35
+    img.save(path)
+
+
+# ---------------------------------------------------------------- slides (scenes with "slide", branded sets only)
+
+SLIDE_TAIL = 0.8    # seconds a slide stays after its narration
+BUILD_FADE = 0.4    # seconds a built-up element takes to fade in
+
+
+def slide_units(slide, lang):
+    """The number of parts of a slide that appear one after the other (see draw_slide)."""
+    text = slide[lang]
+    layout = slide["layout"]
+    n = {"statement": 1 + bool(text.get("sub")), "hub": 2}.get(layout) or len(text["items"])
+    return n + bool(text.get("note"))
+
+
+def slide_states(slide, lang):
+    """[(fraction of the narration, indexes of the parts shown)]: "builds" gives each part's fraction
+    (missing ones: 0), the slide changes at every distinct one."""
+    units = slide_units(slide, lang)
+    builds = list(slide.get("builds", []))[:units]
+    builds += [0.0] * (units - len(builds))
+    return [(f, {i for i, b in enumerate(builds) if b <= f}) for f in sorted(set(builds))]
+
+
+def draw_slide(path, theme, lang, slide, shown):
+    """One state of a slide: the brand's page, a title, and the layout's parts whose index is in shown.
+    Layouts: statement (headline, sub), bullets, tiles, steps (items with head and text), hub (actors
+    around a centre: "mesh" joins every actor with every other, "hub" all through the centre)."""
+    b = Brand(theme)
+    t = slide[lang]
+    layout = slide["layout"]
+    img, d = b.canvas()
+    top = 230
+    if t.get("title"):
+        d.text((160, top), t["title"], font=b.font(60, True), fill=b.c["heading"])
+        b.accent(img, 160, top + 92, 200, 10)
+        top += 150
+    bottom = H - 90
+    note = t.get("note")
+    if note:
+        bottom -= 70
+    units = slide_units(slide, lang)
+
+    if layout == "statement":
+        fnt, lines, size = b.title_lines(d, t["headline"], 92, 56, W - 420, 4)
+        sub = wrap(d, t.get("sub", ""), b.font(44), W - 420) if t.get("sub") else []
+        height = len(lines) * size * 1.2 + (40 + len(sub) * 58 if sub else 0)
+        y = top + (bottom - top - height) / 2
+        if 0 in shown:
+            for line in lines:
+                d.text((160, y), line, font=fnt, fill=b.c["heading"])
+                y += size * 1.2
+        else:
+            y += len(lines) * size * 1.2
+        if sub and 1 in shown:
+            y += 40
+            for line in sub:
+                d.text((160, y), line, font=b.font(44), fill=b.c["text"])
+                y += 58
+
+    elif layout == "bullets":
+        items = t["items"]
+        head_f, text_f = b.font(44, True), b.font(34)
+        blocks = []
+        for item in items:
+            head, body = (item, "") if isinstance(item, str) else (item["head"], item.get("text", ""))
+            blocks.append((head, wrap(d, body, text_f, W - 560) if body else []))
+        heights = [58 + 46 * len(body) for _, body in blocks]
+        gap = min(56, max(24, (bottom - top - sum(heights)) / max(1, len(blocks))))
+        y = top + 10
+        for i, ((head, body), h) in enumerate(zip(blocks, heights)):
+            if i in shown:
+                d.ellipse([168, y + 22, 190, y + 44], fill=b.c["accent"])
+                d.text((230, y), head, font=head_f, fill=b.c["heading"])
+                for j, line in enumerate(body):
+                    d.text((230, y + 62 + j * 46), line, font=text_f, fill=b.c["text"])
+            y += h + gap
+
+    elif layout == "tiles":
+        items = t["items"]
+        n = len(items)
+        cols = {1: 1, 2: 2, 3: 3, 4: 2, 5: 3, 6: 3, 7: 4, 8: 4}.get(n, 4)
+        rows = -(-n // cols)
+        gap = 32
+        tw = (W - 320 - gap * (cols - 1)) / cols
+        th = min(300, (bottom - top - gap * (rows - 1)) / rows)
+        head_size = 36 if cols < 4 else 32
+        for i, item in enumerate(items):
+            if i not in shown:
+                continue
+            x = 160 + (i % cols) * (tw + gap)
+            y = top + (i // cols) * (th + gap)
+            d.rounded_rectangle([x, y, x + tw, y + th], radius=16, fill=b.c["panel"], outline=b.c["border"], width=2)
+            b.accent(img, int(x + 28), int(y + 26), 90, 8)
+            hf = b.font(head_size, True)
+            heads = wrap(d, item["head"], hf, tw - 56)
+            yy = y + 54
+            for line in heads:
+                d.text((x + 28, yy), line, font=hf, fill=b.c["heading"])
+                yy += head_size * 1.25
+            tf = b.font(27 if cols < 4 else 25)
+            for line in wrap(d, item.get("text", ""), tf, tw - 56):
+                if yy + 36 > y + th - (52 if item.get("tag") else 14):
+                    break
+                d.text((x + 28, yy + 6), line, font=tf, fill=b.c["text"])
+                yy += 36
+            if item.get("tag"):
+                tagf = b.font(22, True)
+                width = d.textlength(item["tag"], font=tagf) + 28
+                d.rounded_rectangle([x + 28, y + th - 50, x + 28 + width, y + th - 16], radius=17, fill=b.c["accent"])
+                d.text((x + 42, y + th - 33), item["tag"], font=tagf, fill=(255, 255, 255), anchor="lm")
+
+    elif layout == "steps":
+        items = t["items"]
+        n = len(items)
+        gap = 56
+        sw = (W - 320 - gap * (n - 1)) / n
+        cy = top + (bottom - top) / 2 - 130   # the chain sits in the middle of the free space
+        for i, item in enumerate(items):
+            x = 160 + i * (sw + gap)
+            if i not in shown:
+                continue
+            if i > 0:   # the arrow from the step before
+                ax = x - gap + 10
+                d.line([(ax, cy), (x - 14, cy)], fill=b.c["text"], width=5)
+                d.polygon([(x - 6, cy), (x - 24, cy - 13), (x - 24, cy + 13)], fill=b.c["text"])
+            d.ellipse([x + sw / 2 - 44, cy - 44, x + sw / 2 + 44, cy + 44], fill=b.c["accent"])
+            d.text((x + sw / 2, cy), str(i + 1), font=b.font(44, True), fill=(255, 255, 255), anchor="mm")
+            hf = b.font(34 if n <= 5 else 30, True)
+            y = cy + 80
+            for line in wrap(d, item["head"], hf, sw):
+                d.text((x + sw / 2, y), line, font=hf, fill=b.c["heading"], anchor="ma")
+                y += 44
+            tf = b.font(27 if n <= 5 else 25)
+            y += 14
+            for line in wrap(d, item.get("text", ""), tf, sw):
+                d.text((x + sw / 2, y), line, font=tf, fill=b.c["text"], anchor="ma")
+                y += 37
+
+    elif layout == "hub":
+        actors = t["items"]
+        cx, cy = W / 2, (top + bottom) / 2 + 10
+        rx, ry = 640, (bottom - top) / 2 - 50
+        pf = b.font(32, True)
+        boxes = []
+        for i, name in enumerate(actors):
+            a = -math.pi / 2 + 2 * math.pi * i / len(actors)
+            x, y = cx + rx * math.cos(a), cy + ry * math.sin(a)
+            w = d.textlength(name, font=pf) + 64
+            boxes.append((x, y, w))
+        mode = slide.get("mode", "hub")
+        if 1 in shown:
+            if mode == "mesh":
+                for i in range(len(boxes)):
+                    for j in range(i + 1, len(boxes)):
+                        d.line([boxes[i][:2], boxes[j][:2]], fill=(203, 213, 224), width=4)
+            else:
+                for x, y, _ in boxes:
+                    d.line([(cx, cy), (x, y)], fill=b.c["accent"], width=6)
+        if 0 in shown:
+            for name, (x, y, w) in zip(actors, boxes):
+                d.rounded_rectangle([x - w / 2, y - 38, x + w / 2, y + 38], radius=38, fill=b.c["panel"],
+                                    outline=b.c["border"], width=3)
+                d.text((x, y), name, font=pf, fill=b.c["heading"], anchor="mm")
+        if 1 in shown and mode == "hub":
+            label = t.get("centre", "FundsXML")
+            cf = b.font(54, True)
+            w = d.textlength(label, font=cf) + 120
+            d.rounded_rectangle([cx - w / 2, cy - 62, cx + w / 2, cy + 62], radius=62, fill=b.c["accent"])
+            d.text((cx, cy), label, font=cf, fill=(255, 255, 255), anchor="mm")
+
+    if note and units - 1 in shown:
+        nf = b.font(34)
+        b.accent(img, 160, H - 128, 8, 46)
+        d.text((190, H - 105), note, font=nf, fill=b.c["heading"], anchor="lm")
     img.save(path)
 
 
@@ -400,16 +585,30 @@ def subtitles(path, spoken):
     path.write_text("\n".join(out), encoding="utf-8")
 
 
+def screen_runs(board):
+    """The storyboard's recorded scenes in runs that follow each other without a card or slide between."""
+    runs, run_ = [], []
+    for scene in board["scenes"]:
+        if "card" in scene or "slide" in scene:
+            if run_:
+                runs.append(run_)
+            run_ = []
+        else:
+            run_.append(scene)
+    return runs + ([run_] if run_ else [])
+
+
 def compose(board, lang, work, out):
+    """Cuts the film from segments in the storyboard's order: the title card, slides, runs of the
+    screen recording (between slides), the closing card. A storyboard without slides has one run."""
     timing = json.loads((work / "timing.json").read_text())["scenes"]
-    events = json.loads((work / "events.json").read_text())["events"]
+    runs = screen_runs(board)
+    events = json.loads((work / "events.json").read_text())["events"] if runs else []
     starts = {e["id"]: e["t"] for e in events if e["type"] == "scene-start"}
-    ends = [e["t"] for e in events if e["type"] == "scene-end"]
+    finish = {e["id"]: e["t"] for e in events if e["type"] == "scene-end"}
     cards = [s for s in board["scenes"] if "card" in s]
     intro = next(s for s in cards if s["card"] == "title")
     outro = next(s for s in cards if s["card"] == "outro")
-    t0 = max(0.0, min(starts.values()) - 0.4)
-    screen_len = max(ends) - t0
     intro_len = LEAD + timing[intro["id"]]["duration"] + INTRO_TAIL
     outro_len = LEAD + timing[outro["id"]]["duration"] + OUTRO_TAIL
 
@@ -425,62 +624,119 @@ def compose(board, lang, work, out):
     else:
         card(work / "intro.png", board.get("kicker", {}).get(lang, texts["kicker"]), board["title"][lang], texts["ai"])
         card(work / "outro.png", texts["more"], link, texts["ai"])
-    ring = click_ring(work / "ring.png")
+    if any("slide" in s for s in board["scenes"]) and not theme:
+        sys.exit("slides need the set's theme.json")
 
-    inputs = ["-i", work / "screen.mkv",
-              "-loop", "1", "-framerate", FPS, "-t", f"{intro_len:.3f}", "-i", work / "intro.png",
+    inputs = ["-loop", "1", "-framerate", FPS, "-t", f"{intro_len:.3f}", "-i", work / "intro.png",
               "-loop", "1", "-framerate", FPS, "-t", f"{outro_len:.3f}", "-i", work / "outro.png"]
-    n = 3
-    graph = [f"[0:v]trim=start={t0:.3f}:end={t0 + screen_len:.3f},setpts=PTS-STARTPTS,fps={FPS}[s0]"]
-    last = "s0"
-    for i, e in enumerate(e for e in events if e["type"] == "click"):
-        inputs += ["-loop", "1", "-framerate", FPS, "-t", f"{screen_len:.3f}", "-i", work / "ring.png"]
-        t = e["t"] - t0
-        graph.append(f"[{last}][{n}:v]overlay=x={e['x'] - ring / 2:.0f}:y={e['y'] - ring / 2:.0f}"
-                     f":enable='between(t,{t - 0.1:.3f},{t + 0.45:.3f})'[c{i}]")
-        last, n = f"c{i}", n + 1
-
-    states = zoom_states(events, t0)
-    if len(states) > 1:
-        # zoompan places its window on whole pixels: working at twice the size keeps the glide smooth
-        z, cx, cy = eased(states, 1), eased(states, 2, 2), eased(states, 3, 2)
-        graph.append(f"[{last}]scale={2 * W}:{2 * H}:flags=bicubic,zoompan=z='{z}'"
-                     f":x='max(0,min(iw-iw/zoom,{cx}-iw/zoom/2))':y='max(0,min(ih-ih/zoom,{cy}-ih/zoom/2))'"
-                     f":d=1:s={W}x{H}:fps={FPS}[zoomed]")
-        last = "zoomed"
-
-    for i, e in enumerate(e for e in events if e["type"] == "key"):
-        cap = work / f"key{i}.png"
-        key_cap(cap, e["label"])
-        inputs += ["-loop", "1", "-framerate", FPS, "-t", f"{screen_len:.3f}", "-i", cap]
-        t = e["t"] - t0
-        graph.append(f"[{last}][{n}:v]overlay=x=(W-w)/2:y=H-h-150"
-                     f":enable='between(t,{t - 0.2:.3f},{t + 1.6:.3f})'[k{i}]")
-        last, n = f"k{i}", n + 1
+    n = 2
+    graph = []
 
     def faded(src, length, name):
         return (f"[{src}]fps={FPS},fade=t=in:st=0:d=0.4,fade=t=out:st={length - 0.4:.3f}:d=0.4,"
                 f"format=yuv420p,setsar=1[{name}]")
-    graph += [faded(last, screen_len, "screen"), faded("1:v", intro_len, "intro"), faded("2:v", outro_len, "outro"),
-              "[intro][screen][outro]concat=n=3:v=1:a=0[v]"]
+
+    # the screen recording, processed as one: zoom, click rings and key caps (times from t0)
+    run_parts = {}
+    if runs:
+        t0 = max(0.0, min(starts.values()) - 0.4)
+        screen_len = max(finish.values()) - t0
+        inputs += ["-i", work / "screen.mkv"]
+        graph.append(f"[{n}:v]trim=start={t0:.3f}:end={t0 + screen_len:.3f},setpts=PTS-STARTPTS,fps={FPS}[s0]")
+        n += 1
+        last = "s0"
+        ring = click_ring(work / "ring.png")
+        for i, e in enumerate(e for e in events if e["type"] == "click"):
+            inputs += ["-loop", "1", "-framerate", FPS, "-t", f"{screen_len:.3f}", "-i", work / "ring.png"]
+            t = e["t"] - t0
+            graph.append(f"[{last}][{n}:v]overlay=x={e['x'] - ring / 2:.0f}:y={e['y'] - ring / 2:.0f}"
+                         f":enable='between(t,{t - 0.1:.3f},{t + 0.45:.3f})'[c{i}]")
+            last, n = f"c{i}", n + 1
+        states = zoom_states(events, t0)
+        if len(states) > 1:
+            # zoompan places its window on whole pixels: working at twice the size keeps the glide smooth
+            z, cx, cy = eased(states, 1), eased(states, 2, 2), eased(states, 3, 2)
+            graph.append(f"[{last}]scale={2 * W}:{2 * H}:flags=bicubic,zoompan=z='{z}'"
+                         f":x='max(0,min(iw-iw/zoom,{cx}-iw/zoom/2))':y='max(0,min(ih-ih/zoom,{cy}-ih/zoom/2))'"
+                         f":d=1:s={W}x{H}:fps={FPS}[zoomed]")
+            last = "zoomed"
+        for i, e in enumerate(e for e in events if e["type"] == "key"):
+            cap = work / f"key{i}.png"
+            key_cap(cap, e["label"])
+            inputs += ["-loop", "1", "-framerate", FPS, "-t", f"{screen_len:.3f}", "-i", cap]
+            t = e["t"] - t0
+            graph.append(f"[{last}][{n}:v]overlay=x=(W-w)/2:y=H-h-150"
+                         f":enable='between(t,{t - 0.2:.3f},{t + 1.6:.3f})'[k{i}]")
+            last, n = f"k{i}", n + 1
+        # one part per run; with a single run that is the whole screen part, as before slides existed
+        bounds = []
+        for i, r in enumerate(runs):
+            begin = t0 if i == 0 else starts[r[0]["id"]] - 0.4
+            end = t0 + screen_len if i == len(runs) - 1 else finish[r[-1]["id"]]
+            bounds.append((begin, end))
+        if len(runs) == 1:
+            graph.append(faded(last, screen_len, "run0"))
+        else:
+            graph.append(f"[{last}]split={len(runs)}" + "".join(f"[r{i}]" for i in range(len(runs))))
+            for i, (begin, end) in enumerate(bounds):
+                graph.append(f"[r{i}]trim=start={begin - t0:.3f}:end={end - t0:.3f},setpts=PTS-STARTPTS[rt{i}]")
+                graph.append(faded(f"rt{i}", end - begin, f"run{i}"))
+        for i, r in enumerate(runs):
+            run_parts[r[0]["id"]] = (i, *bounds[i])
+
+    # the segments in order, and every scene's place on the final time line
+    segments, at, run_no = [], 0.0, None
+    graph.append(faded("0:v", intro_len, "intro"))
+    for scene in board["scenes"]:
+        sid = scene["id"]
+        if scene is intro:
+            segments.append("intro")
+            scene["_at"] = LEAD
+            at += intro_len
+        elif scene is outro:
+            segments.append("outro")
+            scene["_at"] = at + LEAD
+            at += outro_len
+        elif "slide" in scene:
+            length = LEAD + timing[sid]["duration"] + SLIDE_TAIL
+            label = f"slide_{len(segments)}"
+            base = None
+            for k, (fraction, shown) in enumerate(slide_states(scene["slide"], lang)):
+                png = work / f"{sid}-{k}.png"
+                draw_slide(png, theme, lang, scene["slide"], shown)
+                inputs += ["-loop", "1", "-framerate", FPS, "-t", f"{length:.3f}", "-i", png]
+                if base is None:
+                    base = f"{n}:v"
+                else:
+                    when = 0 if fraction == 0 else LEAD + fraction * timing[sid]["duration"]
+                    graph.append(f"[{n}:v]format=rgba,fade=t=in:st={when:.3f}:d={BUILD_FADE}:alpha=1[{label}f{k}]")
+                    graph.append(f"[{base}][{label}f{k}]overlay=shortest=1[{label}o{k}]")
+                    base = f"{label}o{k}"
+                n += 1
+            graph.append(f"[{base}]fps={FPS},format=yuv420p,setsar=1[{label}]")
+            segments.append(label)
+            scene["_at"] = at + LEAD
+            at += length
+        else:
+            if sid in run_parts:
+                run_no, begin, end = run_parts[sid]
+                segments.append(f"run{run_no}")
+                run_at, run_begin = at, begin
+                at += end - begin
+            scene["_at"] = run_at + starts[sid] - run_begin
+    graph.append(faded("1:v", outro_len, "outro"))
+    total = at
+    graph.append("".join(f"[{s}]" for s in segments) + f"concat=n={len(segments)}:v=1:a=0[v]")
 
     # narration: every scene's file at its place on the final time line
     spoken, mix = [], []
     for scene in board["scenes"]:
         sid = scene["id"]
-        if scene is intro:
-            at = LEAD
-        elif scene is outro:
-            at = intro_len + screen_len + LEAD
-        else:
-            at = intro_len + starts[sid] - t0
-        scene["_at"] = at
-        spoken.append((at, timing[sid]["duration"], scene["say"][lang]))
+        spoken.append((scene["_at"], timing[sid]["duration"], scene["say"][lang]))
         inputs += ["-i", timing[sid]["wav"]]
-        graph.append(f"[{n}:a]adelay={at * 1000:.0f}:all=1[a{n}]")
+        graph.append(f"[{n}:a]adelay={scene['_at'] * 1000:.0f}:all=1[a{n}]")
         mix.append(f"[a{n}]")
         n += 1
-    total = intro_len + screen_len + outro_len
     graph.append(f"{''.join(mix)}amix=inputs={len(mix)}:normalize=0:duration=longest,"
                  f"aresample=48000,apad=whole_dur={total:.3f}[a]")
 
@@ -647,7 +903,7 @@ def main():
     steps = args.steps.split(",")
     if "tts" in steps:
         tts(board, args.lang, work)
-    if "record" in steps:
+    if "record" in steps and screen_runs(board):
         record(board, args.lang, work)
     if "compose" in steps:
         compose(board, args.lang, work, ROOT / "build" / "videos" / f"{board['id']}-{args.lang}.mp4")
