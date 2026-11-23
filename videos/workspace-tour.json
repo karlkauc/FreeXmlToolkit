@@ -1,0 +1,79 @@
+{
+  "id": "workspace-tour",
+  "scenario": "WorkspaceTourDocVideo",
+  "docs": "get-started/workspace-tour/",
+  "title": {
+    "en": "A tour of the workspace",
+    "de": "Ein Rundgang durch die Arbeitsfläche"
+  },
+  "description": {
+    "en": "Where everything is in FreeXmlToolkit: the activity bar with the tools, the editor with its views, the Properties pane, the status bar, and how to make room for the editor.",
+    "de": "Wo in FreeXmlToolkit was ist: die Aktivitätsleiste mit den Werkzeugen, der Editor mit seinen Ansichten, der Bereich Eigenschaften, die Statusleiste und wie Sie dem Editor mehr Platz geben."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "This video shows you around the workspace of FreeXmlToolkit: where the tools are, where your files are, and where you edit properties.",
+        "de": "Dieses Video zeigt Ihnen die Arbeitsfläche von FreeXmlToolkit: wo die Werkzeuge sind, wo Ihre Dateien sind und wo Sie Eigenschaften bearbeiten."
+      }
+    },
+    {
+      "id": "welcome",
+      "chapter": { "en": "The start page", "de": "Die Startseite" },
+      "say": {
+        "en": "After the start, the middle shows the start page. Open the bundled example: an order with its schema and a stylesheet.",
+        "de": "Nach dem Start zeigt die Mitte die Startseite. Öffnen Sie das mitgelieferte Beispiel: eine Bestellung mit Schema und Stylesheet."
+      }
+    },
+    {
+      "id": "activities",
+      "chapter": { "en": "The activity bar", "de": "Die Aktivitätsleiste" },
+      "say": {
+        "en": "On the far left is the activity bar. Each symbol opens a tool in the side panel next to it: the Explorer with your files, Validation, and Transform for XSLT.",
+        "de": "Ganz links ist die Aktivitätsleiste. Jedes Symbol öffnet ein Werkzeug in der Seitenleiste daneben: den Explorer mit Ihren Dateien, die Validierung und das Umwandeln mit XSLT."
+      }
+    },
+    {
+      "id": "editor",
+      "chapter": { "en": "Editor and views", "de": "Editor und Ansichten" },
+      "say": {
+        "en": "In the middle, the open files are tabs. The view switch shows the same document as text, as a tree, or as a graphic.",
+        "de": "In der Mitte stehen die geöffneten Dateien als Tabs. Der Ansichtsumschalter zeigt dasselbe Dokument als Text, als Baum oder als Grafik."
+      }
+    },
+    {
+      "id": "inspector",
+      "chapter": { "en": "Properties", "de": "Eigenschaften" },
+      "say": {
+        "en": "On the right is the Properties pane. With the caret on an element, it shows the element's attributes and what the schema says about it. You can change the values here, too.",
+        "de": "Rechts ist der Bereich Eigenschaften. Steht die Schreibmarke auf einem Element, zeigt er seine Attribute und was das Schema darüber sagt. Die Werte lassen sich hier auch ändern."
+      }
+    },
+    {
+      "id": "status",
+      "chapter": { "en": "The status bar", "de": "Die Statusleiste" },
+      "say": {
+        "en": "At the bottom, the status bar shows the caret position, the file type, the bound schema, and the encoding.",
+        "de": "Unten zeigt die Statusleiste die Position der Schreibmarke, den Dateityp, das gebundene Schema und die Kodierung."
+      }
+    },
+    {
+      "id": "room",
+      "chapter": { "en": "Make room", "de": "Platz schaffen" },
+      "say": {
+        "en": "The buttons at both ends of the toolbar hide the side panel and the Properties pane, and bring them back.",
+        "de": "Die Knöpfe an beiden Enden der Werkzeugleiste blenden die Seitenleiste und den Bereich Eigenschaften aus und wieder ein."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was the tour. The documentation describes every area in detail.",
+        "de": "Das war der Rundgang. Die Dokumentation beschreibt jeden Bereich im Detail."
+      }
+    }
+  ]
+}

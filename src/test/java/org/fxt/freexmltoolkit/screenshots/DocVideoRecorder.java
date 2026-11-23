@@ -228,6 +228,34 @@ final class DocVideoRecorder {
         click(b.getCenterX(), b.getCenterY());
     }
 
+    /** Glides to a position and right-clicks there (opens a context menu). */
+    void rightClick(double x, double y) {
+        moveTo(x, y);
+        pause(250);
+        event("click").putAll(Map.of("x", x, "y", y));
+        robot.mousePress(java.awt.event.InputEvent.BUTTON3_DOWN_MASK);
+        pause(60);
+        robot.mouseRelease(java.awt.event.InputEvent.BUTTON3_DOWN_MASK);
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+
+    /**
+     * The scene keys go to: the newest open dialog, else the main window. Without a window manager
+     * no window reports the focus, so it is not asked.
+     */
+    Scene activeScene() {
+        return doc.fx(() -> {
+            Scene scene = doc.stage().getScene();
+            for (javafx.stage.Window window : javafx.stage.Window.getWindows()) {
+                if (window instanceof javafx.stage.Stage stage && stage != doc.stage() && stage.isShowing()
+                        && stage.getScene() != null) {
+                    scene = stage.getScene();
+                }
+            }
+            return scene;
+        });
+    }
+
     // ----- keyboard -----
 
     /**
@@ -236,8 +264,8 @@ final class DocVideoRecorder {
      */
     void key(KeyCode code, String label) {
         event("key").put("label", label);
+        Scene scene = activeScene();
         doc.onFx(() -> {
-            Scene scene = doc.stage().getScene();
             Node target = scene.getFocusOwner() != null ? scene.getFocusOwner() : scene.getRoot();
             String text = code == KeyCode.ENTER ? "\r" : "";
             Event.fireEvent(target, new KeyEvent(KeyEvent.KEY_PRESSED, "", text, code, false, false, false, false));
@@ -266,15 +294,16 @@ final class DocVideoRecorder {
     /** Replaces the text of the focused input field with {@code text}, one key stroke at a time. */
     void typeIntoFocused(String text) {
         // without a window manager no window reports the focus: take the scene's focus owner
+        Scene scene = activeScene();
         javafx.scene.control.TextInputControl field = doc.fx(() -> {
-            Node owner = doc.stage().getScene().getFocusOwner();
+            Node owner = scene.getFocusOwner();
             if (owner instanceof javafx.scene.control.TextInputControl input) {
                 return input;
             }
             if (owner instanceof javafx.scene.control.Spinner<?> spinner) {
                 return spinner.getEditor(); // the grid's editor of a number
             }
-            throw new IllegalStateException("No input field has the focus: " + doc.stage().getScene().getFocusOwner());
+            throw new IllegalStateException("No input field has the focus: " + owner);
         });
         doc.onFx(field::clear);
         pause(200);
@@ -284,8 +313,11 @@ final class DocVideoRecorder {
             pause(150);
         }
         doc.onFx(() -> {
-            if (doc.stage().getScene().getFocusOwner() instanceof javafx.scene.control.Spinner<?> spinner) {
-                spinner.commitValue(); // as the spinner does on Enter in its editor
+            for (Node n = field; n != null; n = n.getParent()) {
+                if (n instanceof javafx.scene.control.Spinner<?> spinner) {
+                    spinner.commitValue(); // as the spinner does on Enter in its editor
+                    break;
+                }
             }
         });
     }
@@ -305,6 +337,60 @@ final class DocVideoRecorder {
 
     void zoomOut() {
         event("zoom-out");
+    }
+
+    /**
+     * The item of an open context menu (or its submenu) with the text {@code text}, as a node on
+     * screen; waits up to 5 s for it to show.
+     */
+    Node menuItem(String text) throws Exception {
+        Node[] found = new Node[1];
+        doc.waitUntilFx(5, () -> {
+            for (javafx.stage.Window window : javafx.stage.Window.getWindows()) {
+                if (window instanceof javafx.stage.PopupWindow && window.isShowing() && window.getScene() != null) {
+                    for (Node item : window.getScene().getRoot().lookupAll(".menu-item")) {
+                        if (item.lookupAll(".label").stream()
+                                .anyMatch(l -> l instanceof javafx.scene.control.Label label && text.equals(label.getText()))) {
+                            found[0] = item;
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        });
+        return found[0];
+    }
+
+    /**
+     * The node matching {@code selector} in an open popup (a menu item keeps its id there:
+     * {@code #menu-project-settings}); waits up to 5 s for it to show.
+     */
+    Node inPopup(String selector) throws Exception {
+        Node[] found = new Node[1];
+        doc.waitUntilFx(5, () -> {
+            for (javafx.stage.Window window : javafx.stage.Window.getWindows()) {
+                if (window instanceof javafx.stage.PopupWindow && window.isShowing() && window.getScene() != null) {
+                    Node node = window.getScene().getRoot().lookup(selector);
+                    if (node != null && node.localToScreen(node.getBoundsInLocal()) != null) {
+                        found[0] = node;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        });
+        return found[0];
+    }
+
+    /** The first node matching {@code selector} in the newest open dialog (see {@link #activeScene}). */
+    Node inDialog(String selector) {
+        Scene scene = activeScene();
+        Node node = doc.fx(() -> scene.getRoot().lookup(selector));
+        if (node == null) {
+            throw new IllegalStateException("Not in the dialog: " + selector);
+        }
+        return node;
     }
 
     Bounds screenBounds(Node node) {

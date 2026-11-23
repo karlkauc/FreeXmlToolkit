@@ -1,0 +1,71 @@
+{
+  "id": "xslt-debug",
+  "scenario": "XsltDebugDocVideo",
+  "docs": "guides/transform-query/debug/",
+  "title": {
+    "en": "Run and debug an XSLT stylesheet",
+    "de": "Ein XSLT-Stylesheet ausführen und debuggen"
+  },
+  "description": {
+    "en": "Run an XSLT stylesheet on an XML file in FreeXmlToolkit, set a breakpoint, step through the transformation, and look at the current node and the variables.",
+    "de": "Ein XSLT-Stylesheet in FreeXmlToolkit auf eine XML-Datei anwenden, einen Haltepunkt setzen, die Transformation Schritt für Schritt verfolgen und den aktuellen Knoten und die Variablen ansehen."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "In this video you run an XSLT stylesheet, and then you watch it work: with a breakpoint, step by step.",
+        "de": "In diesem Video führen Sie ein XSLT-Stylesheet aus und sehen ihm danach bei der Arbeit zu: mit einem Haltepunkt, Schritt für Schritt."
+      }
+    },
+    {
+      "id": "run",
+      "chapter": { "en": "Run the stylesheet", "de": "Das Stylesheet ausführen" },
+      "say": {
+        "en": "In the Transform tool, the input order.xml and the stylesheet order-summary.xslt are chosen. Run Transform starts it, and the result appears below the editor, in the output panel.",
+        "de": "Im Werkzeug Umwandeln sind die Eingabe order.xml und das Stylesheet order-summary.xslt gewählt. Transformation ausführen startet es, und das Ergebnis erscheint unter dem Editor im Bereich Ausgabe."
+      }
+    },
+    {
+      "id": "breakpoint",
+      "chapter": { "en": "Set a breakpoint", "de": "Einen Haltepunkt setzen" },
+      "say": {
+        "en": "To see what the stylesheet does, open it and set a breakpoint: click the margin next to the line that writes the quantity.",
+        "de": "Um zu sehen, was das Stylesheet tut, öffnen Sie es und setzen einen Haltepunkt: ein Klick in den Rand neben der Zeile, die die Menge schreibt."
+      }
+    },
+    {
+      "id": "debug",
+      "chapter": { "en": "Debug", "de": "Debuggen" },
+      "say": {
+        "en": "Debug starts the same run under the debugger. It stops at the breakpoint: the line is marked, and below you see the current node and the variables.",
+        "de": "Debuggen startet denselben Lauf im Debugger. Er hält am Haltepunkt an: Die Zeile ist markiert, und unten sehen Sie den aktuellen Knoten und die Variablen."
+      }
+    },
+    {
+      "id": "step",
+      "chapter": { "en": "Step through", "de": "Schritt für Schritt" },
+      "say": {
+        "en": "Continue runs to the next stop: the second item. Step Over goes on line by line.",
+        "de": "Weiter läuft bis zum nächsten Halt: dem zweiten Artikel. Überspringen geht Zeile für Zeile weiter."
+      }
+    },
+    {
+      "id": "finish",
+      "chapter": { "en": "Run to the end", "de": "Zu Ende laufen lassen" },
+      "say": {
+        "en": "Mute skips all breakpoints. Continue runs the transformation to the end, and the output shows the result.",
+        "de": "Stummschalten überspringt alle Haltepunkte. Weiter führt die Transformation zu Ende, und die Ausgabe zeigt das Ergebnis."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was running and debugging XSLT. The documentation shows more: conditional breakpoints, watches, and coverage.",
+        "de": "Das war Ausführen und Debuggen von XSLT. Die Dokumentation zeigt mehr: bedingte Haltepunkte, Überwachungsausdrücke und Abdeckung."
+      }
+    }
+  ]
+}

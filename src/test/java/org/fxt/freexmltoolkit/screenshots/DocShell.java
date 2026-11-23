@@ -79,6 +79,11 @@ final class DocShell {
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> root.lookup(".fxt-shell") != null);
         shell = (UnifiedShellView) root.lookup(".fxt-shell");
         onFx(() -> org.fxt.freexmltoolkit.controls.shell.ThemeManager.apply(root.getScene(), false));
+        // both side panes show, whatever an earlier run left in the stored layout
+        onFx(() -> {
+            shell.setLeftPanelVisible(true);
+            shell.setInspectorVisible(true);
+        });
         settle(600);
         return shell;
     }

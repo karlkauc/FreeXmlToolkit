@@ -1631,6 +1631,11 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         }
     }
 
+    /** @return the root card of the diagram (for tests and the tutorial videos), or null */
+    VisualNode rootNodeForTest() {
+        return rootNode;
+    }
+
     /** @return the diagram canvas (for tests that fire mouse events at it) */
     javafx.scene.canvas.Canvas canvasForTest() {
         return canvas;

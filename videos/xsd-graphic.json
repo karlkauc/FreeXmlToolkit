@@ -1,0 +1,97 @@
+{
+  "id": "xsd-graphic",
+  "scenario": "XsdGraphicDocVideo",
+  "docs": "guides/design-schemas/graphic-view/",
+  "title": {
+    "en": "Edit an XSD schema graphically",
+    "de": "Ein XSD-Schema grafisch bearbeiten"
+  },
+  "description": {
+    "en": "The Graphic view of FreeXmlToolkit shows an XSD schema as a diagram of cards. Read the cards, open a named type in the Type Editor, add an element with all its properties, and find it in the schema's text.",
+    "de": "Die Ansicht Grafik in FreeXmlToolkit zeigt ein XSD-Schema als Diagramm aus Karten. Karten lesen, einen benannten Typ im Typ-Editor öffnen, ein Element mit allen Eigenschaften hinzufügen und es im Quelltext des Schemas wiederfinden."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "In this video you edit an XML schema as a diagram. You read its cards, open a type in the Type Editor, and add a new element.",
+        "de": "In diesem Video bearbeiten Sie ein XML-Schema als Diagramm. Sie lesen die Karten, öffnen einen Typ im Typ-Editor und fügen ein neues Element hinzu."
+      }
+    },
+    {
+      "id": "switch",
+      "chapter": {
+        "en": "The diagram",
+        "de": "Das Diagramm"
+      },
+      "say": {
+        "en": "The schema of the example order is open as text. Click Graphic in the view switch. The diagram starts with the root element, order.",
+        "de": "Das Schema der Beispielbestellung ist als Text geöffnet. Klicken Sie im Ansichtsumschalter auf Grafik. Das Diagramm beginnt mit dem Wurzelelement order."
+      }
+    },
+    {
+      "id": "cards",
+      "chapter": {
+        "en": "Read the cards",
+        "de": "Die Karten lesen"
+      },
+      "say": {
+        "en": "The diagram opens with the content of order. The button at the right edge of a card opens it, here customer. Every card shows the name, and below it the type. A dashed card is optional, like note. The attributes id and date are required.",
+        "de": "Das Diagramm zeigt gleich den Inhalt von order. Der Knopf am rechten Rand einer Karte klappt sie auf, hier customer. Jede Karte zeigt den Namen und darunter den Typ. Eine gestrichelte Karte ist optional, wie note. Die Attribute id und date sind Pflicht."
+      }
+    },
+    {
+      "id": "frame",
+      "chapter": {
+        "en": "Named types in frames",
+        "de": "Benannte Typen im Rahmen"
+      },
+      "say": {
+        "en": "The content of order comes from the named type OrderType. It is drawn in a dashed frame, and it is read-only here. A double-click on the frame's title opens the type in the Type Editor.",
+        "de": "Der Inhalt von order kommt aus dem benannten Typ OrderType. Er steht in einem gestrichelten Rahmen und ist hier schreibgeschützt. Ein Doppelklick auf den Titel des Rahmens öffnet den Typ im Typ-Editor."
+      }
+    },
+    {
+      "id": "add",
+      "chapter": {
+        "en": "Add an element",
+        "de": "Ein Element hinzufügen"
+      },
+      "say": {
+        "en": "In the Type Editor the content can be changed. Right-click the sequence, then Add, Element. The dialog takes all properties at once: the name deliveryDate, the type xs:date, and a minimum of zero, so the element is optional.",
+        "de": "Im Typ-Editor lässt sich der Inhalt ändern. Rechtsklick auf die Sequenz, dann Hinzufügen, Element. Der Dialog nimmt gleich alle Eigenschaften auf: den Namen deliveryDate, den Typ xs:date und mindestens null Vorkommen, damit das Element optional ist."
+      }
+    },
+    {
+      "id": "save",
+      "chapter": {
+        "en": "Save to the schema",
+        "de": "Ins Schema speichern"
+      },
+      "say": {
+        "en": "After OK the new card is in the diagram, dashed because it is optional. Save to schema writes the change into the schema.",
+        "de": "Nach OK steht die neue Karte im Diagramm, gestrichelt, weil sie optional ist. Ins Schema speichern schreibt die Änderung in das Schema."
+      }
+    },
+    {
+      "id": "text",
+      "chapter": {
+        "en": "Back to the text",
+        "de": "Zurück zum Text"
+      },
+      "say": {
+        "en": "Back in the schema's Text view, the new element is in the source of OrderType. Every change can be undone with Ctrl Z.",
+        "de": "Zurück in der Ansicht Text des Schemas steht das neue Element im Quelltext von OrderType. Jede Änderung lässt sich mit Strg Z rückgängig machen."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was the Graphic view for XSD. The documentation shows more: drag and drop, constraints on the cards, and the type picker.",
+        "de": "Das war die Ansicht Grafik für XSD. Die Dokumentation zeigt mehr: Ziehen und Ablegen, Constraints auf den Karten und die Typauswahl."
+      }
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "_comment": "The first series, in the order it is meant to be watched; make-video.py --series joins the films in this order.",
+  "id": "all-videos",
+  "title": {
+    "en": "FreeXmlToolkit tutorials",
+    "de": "FreeXmlToolkit-Lernvideos"
+  },
+  "videos": ["workspace-tour", "validate-xml", "xml-grid", "xsd-graphic", "xslt-debug", "schematron-quick-fixes", "projects"]
+}

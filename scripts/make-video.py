@@ -4,6 +4,7 @@ all generated - nobody records, speaks or edits.
 
     python3 scripts/make-video.py validate-xml --lang de          # all three steps
     python3 scripts/make-video.py validate-xml --lang en --steps compose
+    python3 scripts/make-video.py --series --lang de                # all films of videos/series.json in one
 
 Steps:
   tts      speaks every scene with Piper (a local model, no cloud service) and writes timing.json;
@@ -340,12 +341,86 @@ def publish(out):
     print(f"copied to {target}")
 
 
+def seconds_of(path):
+    out = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(path)],
+                         check=True, capture_output=True, text=True).stdout
+    return float(out.strip())
+
+
+def series(lang):
+    """Joins the finished films of videos/series.json, in its order, into one film with a chapter per
+    video (build/videos/all-videos-<lang>.mp4, .srt, .txt) and writes an .m3u playlist of the single
+    films. The films share their encoding, so the picture is joined without encoding it again."""
+    spec = json.loads((ROOT / "videos" / "series.json").read_text(encoding="utf-8"))
+    films, boards = [], []
+    for vid in spec["videos"]:
+        film = ROOT / "build" / "videos" / f"{vid}-{lang}.mp4"
+        if not film.exists():
+            print(f"missing {film.name} - left out (run make-video.py {vid} --lang {lang})")
+            continue
+        films.append(film)
+        boards.append(json.loads((ROOT / "videos" / f"{vid}.json").read_text(encoding="utf-8")))
+    if not films:
+        sys.exit("no film to join")
+    out = ROOT / "build" / "videos" / f"{spec['id']}-{lang}.mp4"
+    work = ROOT / "build" / "videos" / spec["id"] / lang
+    work.mkdir(parents=True, exist_ok=True)
+    (work / "list.txt").write_text("".join(f"file '{f}'\n" for f in films))
+    meta = [";FFMETADATA1", f"title={spec['title'][lang]}"]
+    chapters, srt_parts, start = [], [], 0.0
+    for film, board in zip(films, boards):
+        length = seconds_of(film)
+        meta += ["[CHAPTER]", "TIMEBASE=1/1000", f"START={int(start * 1000)}", f"END={int((start + length) * 1000)}",
+                 f"title={board['title'][lang]}"]
+        chapters.append(f"{int(start) // 3600}:{int(start) % 3600 // 60:02}:{int(start) % 60:02} {board['title'][lang]}")
+        srt = film.with_suffix(".srt")
+        if srt.exists():
+            srt_parts.append((start, srt.read_text(encoding="utf-8")))
+        start += length
+    (work / "chapters.txt").write_text("\n".join(meta) + "\n", encoding="utf-8")
+    run(["ffmpeg", "-y", "-loglevel", "warning", "-f", "concat", "-safe", "0", "-i", work / "list.txt",
+         "-i", work / "chapters.txt", "-map", "0", "-map_metadata", "1", "-map_chapters", "1", "-c:v", "copy", "-c:s", "copy",
+         "-c:a", "aac", "-b:a", "160k",  # each film's audio starts with its own priming: joined anew
+         "-movflags", "+faststart", out])
+    # one subtitle file for the whole film: every film's cues moved by its start
+    cues, number = [], 1
+    stamp = re.compile(r"(\d+):(\d+):(\d+),(\d+) --> (\d+):(\d+):(\d+),(\d+)")
+    for offset, text in srt_parts:
+        for block in text.strip().split("\n\n"):
+            lines = block.split("\n")
+            m = stamp.match(lines[1]) if len(lines) > 2 else None
+            if not m:
+                continue
+            g = [int(x) for x in m.groups()]
+            a = g[0] * 3600 + g[1] * 60 + g[2] + g[3] / 1000 + offset
+            b = g[4] * 3600 + g[5] * 60 + g[6] + g[7] / 1000 + offset
+            cues.append(f"{number}\n{srt_time(a)} --> {srt_time(b)}\n" + "\n".join(lines[2:]))
+            number += 1
+    out.with_suffix(".srt").write_text("\n\n".join(cues) + "\n", encoding="utf-8")
+    out.with_suffix(".txt").write_text("\n".join([spec["title"][lang], "", *chapters]) + "\n", encoding="utf-8")
+    playlist = ROOT / "build" / "videos" / f"{spec['id']}-{lang}.m3u"
+    playlist.write_text("#EXTM3U\n" + "".join(
+        f"#EXTINF:{int(seconds_of(f))},{b['title'][lang]}\n{f.name}\n" for f, b in zip(films, boards)), encoding="utf-8")
+    print(f"wrote {out} ({start / 60:.1f} min, {len(films)} films), {playlist.name}")
+    publish(out)
+    target = os.environ.get("FXT_VIDEO_COPY_TO")
+    target = Path(target) if target else ROOT.parent / "FXT-Videos"
+    if target.is_dir():
+        shutil.copy2(playlist, target)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("storyboard", help="id of videos/<id>.json")
+    ap.add_argument("storyboard", nargs="?", help="id of videos/<id>.json")
     ap.add_argument("--lang", default="en", choices=sorted(VOICES))
     ap.add_argument("--steps", default="tts,record,compose", help="comma list of tts, record, compose")
+    ap.add_argument("--series", action="store_true", help="join the films of videos/series.json into one")
     args = ap.parse_args()
+    if args.series:
+        series(args.lang)
+        return
+    if not args.storyboard:
+        ap.error("a storyboard id or --series is needed")
     board = json.loads((ROOT / "videos" / f"{args.storyboard}.json").read_text(encoding="utf-8"))
     work = ROOT / "build" / "videos" / board["id"] / args.lang
     steps = args.steps.split(",")

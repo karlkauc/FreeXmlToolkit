@@ -1,0 +1,62 @@
+{
+  "id": "schematron-quick-fixes",
+  "scenario": "SchematronQuickFixDocVideo",
+  "docs": "guides/validate/schematron-quick-fixes/",
+  "title": {
+    "en": "Correct problems with Schematron quick fixes",
+    "de": "Probleme mit Schematron-Schnellkorrekturen beheben"
+  },
+  "description": {
+    "en": "A Schematron can bring its own corrections (SQF). FreeXmlToolkit offers them at the lightbulb in the editor and in the problems list, applies them to the affected text only and validates again.",
+    "de": "Ein Schematron kann seine Korrekturen gleich mitbringen (SQF). FreeXmlToolkit bietet sie an der Glühbirne im Editor und in der Problemliste an, ändert nur die betroffene Stelle und prüft sofort neu."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "In this video you check a document against Schematron rules, and you correct the problems with the quick fixes the rules bring along.",
+        "de": "In diesem Video prüfen Sie ein Dokument gegen Schematron-Regeln und beheben die Probleme mit den Schnellkorrekturen, die die Regeln mitbringen."
+      }
+    },
+    {
+      "id": "validate",
+      "chapter": { "en": "Validate with Schematron", "de": "Mit Schematron prüfen" },
+      "say": {
+        "en": "A small book list is open. In the Validation tool, the rule file quickfix-demo.sch is chosen as the Schematron. F8 validates, and the problems are listed below the editor.",
+        "de": "Eine kleine Bücherliste ist geöffnet. Im Werkzeug Validierung ist die Regeldatei quickfix-demo.sch als Schematron gewählt. F8 prüft, und die Probleme stehen unter dem Editor."
+      }
+    },
+    {
+      "id": "bulb",
+      "chapter": { "en": "The lightbulb", "de": "Die Glühbirne" },
+      "say": {
+        "en": "A line with problems that can be fixed shows a yellow lightbulb in the margin. A click on it lists the corrections the rules offer. Choose Rename writer to author.",
+        "de": "Eine Zeile mit behebbaren Problemen zeigt am Rand eine gelbe Glühbirne. Ein Klick darauf listet die Korrekturen, die die Regeln anbieten. Wählen Sie: writer in author umbenennen."
+      }
+    },
+    {
+      "id": "fixed",
+      "say": {
+        "en": "The fix changes only this place, the rest of the document stays as it is. Then the document is validated again, and the problem is gone.",
+        "de": "Die Korrektur ändert nur diese Stelle, der Rest des Dokuments bleibt, wie er ist. Danach wird sofort neu geprüft, und das Problem ist verschwunden."
+      }
+    },
+    {
+      "id": "list",
+      "chapter": { "en": "From the problems list", "de": "Aus der Problemliste" },
+      "say": {
+        "en": "The problems list offers the fixes too: right-click a problem, then Quick Fix. Here the spaces in the ISBN become dashes.",
+        "de": "Auch die Problemliste bietet die Korrekturen an: Rechtsklick auf ein Problem, dann Schnellkorrektur. Hier werden die Leerzeichen in der ISBN zu Bindestrichen."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That were Schematron quick fixes. Every fix is one undo step. The documentation shows how to write fixes of your own.",
+        "de": "Das waren Schematron-Schnellkorrekturen. Jede Korrektur ist ein Schritt, den Rückgängig zurücknimmt. Die Dokumentation zeigt, wie Sie eigene Korrekturen schreiben."
+      }
+    }
+  ]
+}

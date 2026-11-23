@@ -6,7 +6,15 @@
     "XML": "X M L",
     "XSLT": "X S L T",
     "F8": "F 8",
-    "order.xsd": "order dot X S D"
+    "order.xsd": "order dot X S D",
+    "xs:date": "X S date",
+    "deliveryDate": "delivery date",
+    "OrderType": "order type",
+    "Ctrl": "control",
+    "quickfix-demo.sch": "quick fix demo dot S C H",
+    "ISBN": "I S B N",
+    "order-summary.xslt": "order summary dot X S L T",
+    "order.xml": "order dot X M L"
   },
   "de": {
     "FreeXmlToolkit": "Free X M L Toolkit",
@@ -14,6 +22,14 @@
     "XML": "X M L",
     "XSLT": "X S L T",
     "F8": "F 8",
-    "order.xsd": "order Punkt X S D"
+    "order.xsd": "order Punkt X S D",
+    "xs:date": "X S Date",
+    "deliveryDate": "Delivery Date",
+    "OrderType": "Order Type",
+    "Strg": "Steuerung",
+    "quickfix-demo.sch": "Quickfix Demo Punkt S C H",
+    "ISBN": "I S B N",
+    "order-summary.xslt": "order summary Punkt X S L T",
+    "order.xml": "order Punkt X M L"
   }
 }

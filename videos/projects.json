@@ -1,0 +1,71 @@
+{
+  "id": "projects",
+  "scenario": "ProjectsDocVideo",
+  "docs": "guides/projects/",
+  "title": {
+    "en": "Projects: schemas and scenarios for a whole folder",
+    "de": "Projekte: Schemas und Szenarien für einen ganzen Ordner"
+  },
+  "description": {
+    "en": "A FreeXmlToolkit project binds schemas, Schematron rules and transformation scenarios to files by pattern. Open a project, look at its bindings, validate all its files at once and run a scenario.",
+    "de": "Ein FreeXmlToolkit-Projekt bindet Schemas, Schematron-Regeln und Transformationsszenarien über Muster an Dateien. Ein Projekt öffnen, seine Zuordnungen ansehen, alle Dateien auf einmal validieren und ein Szenario ausführen."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "In this video you work with a project. It keeps the schemas and transformations of a set of files in one file next to them.",
+        "de": "In diesem Video arbeiten Sie mit einem Projekt. Es hält die Schemas und Transformationen einer Gruppe von Dateien in einer Datei neben ihnen fest."
+      }
+    },
+    {
+      "id": "explorer",
+      "chapter": { "en": "An open project", "de": "Ein geöffnetes Projekt" },
+      "say": {
+        "en": "The example project Shop orders is open. The Explorer shows its folders: the orders, the schemas, and the stylesheets.",
+        "de": "Das Beispielprojekt Shop orders ist geöffnet. Der Explorer zeigt seine Ordner: die Bestellungen, die Schemas und die Stylesheets."
+      }
+    },
+    {
+      "id": "settings",
+      "chapter": { "en": "Bindings", "de": "Zuordnungen" },
+      "say": {
+        "en": "File, Project, Project Settings. A binding says which schema, which Schematron and which scenario belong to which files. Here: every XML file in the folder orders.",
+        "de": "Datei, Projekt, Projekt-Einstellungen. Eine Zuordnung legt fest, welches Schema, welches Schematron und welches Szenario zu welchen Dateien gehören. Hier: alle XML-Dateien im Ordner orders."
+      }
+    },
+    {
+      "id": "open",
+      "chapter": { "en": "Validate a file", "de": "Eine Datei validieren" },
+      "say": {
+        "en": "Open an order. The file names no schema, the project binds it. F8 checks it against the schema and the Schematron.",
+        "de": "Öffnen Sie eine Bestellung. Die Datei nennt kein Schema, das Projekt bindet es. F8 prüft sie gegen das Schema und das Schematron."
+      }
+    },
+    {
+      "id": "all",
+      "chapter": { "en": "Validate the project", "de": "Das Projekt validieren" },
+      "say": {
+        "en": "Validate Project checks every file of the project at once. One order has a price below zero.",
+        "de": "Projekt validieren prüft alle Dateien des Projekts auf einmal. Eine Bestellung hat einen Preis unter null."
+      }
+    },
+    {
+      "id": "scenario",
+      "chapter": { "en": "Run a scenario", "de": "Ein Szenario ausführen" },
+      "say": {
+        "en": "In the Transform tool, the scenario bound to the order is ready. Run Scenario applies its stylesheet and writes the result into the folder out.",
+        "de": "Im Werkzeug Umwandeln steht das Szenario bereit, das zur Bestellung gehört. Szenario ausführen wendet sein Stylesheet an und schreibt das Ergebnis in den Ordner out."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That were projects. Commit the project file with your files, and everyone gets the same bindings, in the application and on the command line.",
+        "de": "Das waren Projekte. Legen Sie die Projektdatei zu Ihren Dateien ins Repository, dann haben alle dieselben Zuordnungen, in der Anwendung und auf der Kommandozeile."
+      }
+    }
+  ]
+}
