@@ -1,0 +1,90 @@
+{
+  "id": "fundsxml-extension",
+  "scenario": "FundsXmlExtensionDocVideo",
+  "link": "fundsxml.org",
+  "kicker": {
+    "en": "FundsXML · Tutorial"
+  },
+  "title": {
+    "en": "Set up FreeXmlToolkit for FundsXML"
+  },
+  "description": {
+    "en": "Turn on the FundsXML extension of FreeXmlToolkit: it brings the official schemas and examples, a FundsXML panel with validation, data-quality checks and an identifier checker, and it recognises FundsXML documents."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "In this video you set up FreeXmlToolkit for FundsXML, and you get to know the FundsXML panel. It takes about three minutes."
+      }
+    },
+    {
+      "id": "open",
+      "chapter": {
+        "en": "Turn the extension on"
+      },
+      "say": {
+        "en": "FreeXmlToolkit is a free XML editor. Its FundsXML extension is off at first. Open a FundsXML file, and a bar above the editor offers to turn it on."
+      }
+    },
+    {
+      "id": "enable",
+      "say": {
+        "en": "Click Enable the FundsXML extension. FreeXmlToolkit fetches the official FundsXML schemas and examples from GitHub, and keeps them up to date. You can turn the extension off again at any time in the settings."
+      }
+    },
+    {
+      "id": "mark",
+      "say": {
+        "en": "Two things change right away. The status bar shows a green FundsXML mark: the document was recognised. And the activity bar on the left has a new FundsXML button."
+      }
+    },
+    {
+      "id": "panel",
+      "chapter": {
+        "en": "The FundsXML panel"
+      },
+      "say": {
+        "en": "Click it to open the FundsXML panel. At the top, you choose the schema version, here four point two point eleven, the current release."
+      }
+    },
+    {
+      "id": "tools",
+      "say": {
+        "en": "Below are the tools for the open document: validate it against the FundsXML schema, run the data-quality checks, look up its identifiers online, and helpers for the grid view and for percentages."
+      }
+    },
+    {
+      "id": "more",
+      "say": {
+        "en": "Further down, the identifier checker, and links to the schema, its documentation, and the example files."
+      }
+    },
+    {
+      "id": "dq",
+      "chapter": {
+        "en": "The data-quality report"
+      },
+      "say": {
+        "en": "Click Run Data Quality Checks. More than fifty checks run against the document, and a report opens next to it: which checks passed, and which found something to look at."
+      }
+    },
+    {
+      "id": "welcome",
+      "chapter": {
+        "en": "Start from an example"
+      },
+      "say": {
+        "en": "One more place. Close all documents, and the Welcome page shows a FundsXML row. Open an example, open the schema, or browse all example files. Click Open Example, and you start with a real FundsXML document, ready to explore."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "Thanks for watching. In the next video, you read the fund data: share classes and the net asset value. The links are on the screen and in the description below."
+      }
+    }
+  ]
+}

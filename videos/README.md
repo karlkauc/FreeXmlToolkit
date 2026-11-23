@@ -20,6 +20,35 @@ Keep this table up to date when a video is added or re-recorded. The order is al
 `all-videos-de.mp4` with a chapter per video, one subtitle file and an `.m3u` playlist of the single
 films, all copied to `FXT-Videos` as well.
 
+## FundsXML basics (`videos/fundsxml/`)
+
+A set of its own that explains the FundsXML standard with FreeXmlToolkit, English only for now; its
+films are copied to `FXT-Videos/fundsxml/`. The example documents are in
+`src/test/resources/fundsxml/video/` (copies of github.com/fundsxml/examples with a local schema
+location and correct ISIN/LEI check digits); the schema comes from `../fundsxml_schema`
+(`FundsXmlVideoFiles.java`); the steps the scenarios share are in `FundsXmlVideoKit.java`.
+
+The title and closing cards are in the FundsXML look (`videos/fundsxml/theme.json`, logo and Manrope in
+`videos/fundsxml/brand/`, after https://branding.status20.net/): the title card names the episode,
+the closing card lists the series with the next film, the links and a disclaimer; the upload text gets
+the same links and disclaimer. A set without `theme.json` keeps the FreeXmlToolkit cards.
+
+```bash
+python3 scripts/make-video.py fundsxml-validate --set fundsxml --lang en
+python3 scripts/make-video.py --series --set fundsxml --lang en
+```
+
+| # | Id | Title | Status |
+|---|----|-------|--------|
+| 1 | `fundsxml-what-is` | What is FundsXML? | recorded |
+| 2 | `fundsxml-extension` | Set up FreeXmlToolkit for FundsXML | recorded |
+| 3 | `fundsxml-fund-shareclass` | Funds, share classes and NAV | recorded |
+| 4 | `fundsxml-portfolio` | Portfolio positions and asset master data | recorded |
+| 5 | `fundsxml-validate` | Valid XML is not correct data: schema and data-quality checks | recorded |
+
+Files over 19 MiB are copied to `FXT-Videos` as a zip cut into 19 MiB parts (`<name>.zip.001`, …),
+because the folder is copied over WebDAV, which takes files below 20 MB (20,000,000 bytes) only.
+
 ## How a video is made
 
 Every video is generated: the storyboard here, the speech from a local model (Piper), the picture

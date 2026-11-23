@@ -1,0 +1,28 @@
+{
+  "_comment": "FundsXML basics: the standard explained with FreeXmlToolkit, in the order it is meant to be watched; make-video.py --series --set fundsxml joins the films in this order. 'planned' gives the titles of films whose storyboard does not exist yet (for the episode list on the closing card).",
+  "id": "fundsxml-basics",
+  "title": {
+    "en": "FundsXML basics"
+  },
+  "videos": [
+    "fundsxml-what-is",
+    "fundsxml-extension",
+    "fundsxml-fund-shareclass",
+    "fundsxml-portfolio",
+    "fundsxml-validate"
+  ],
+  "planned": {
+    "fundsxml-what-is": {
+      "en": "What is FundsXML?"
+    },
+    "fundsxml-extension": {
+      "en": "Set up FreeXmlToolkit for FundsXML"
+    },
+    "fundsxml-fund-shareclass": {
+      "en": "Funds, share classes and NAV"
+    },
+    "fundsxml-portfolio": {
+      "en": "Portfolio positions and asset master data"
+    }
+  }
+}

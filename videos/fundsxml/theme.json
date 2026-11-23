@@ -1,0 +1,47 @@
+{
+  "_comment": "The FundsXML look of this set's title and closing cards, after the FundsXML brand guide (https://branding.status20.net/, presentation template title slide). Manrope: SIL Open Font License 1.1. The logo belongs to FundsXML.",
+  "logo": "brand/fundsxml-logo.png",
+  "font": "brand/Manrope-Regular.ttf",
+  "font_bold": "brand/Manrope-Bold.ttf",
+  "colors": {
+    "background": "#FFFFFF",
+    "bar": "#4A90E2",
+    "accent": "#4A90E2",
+    "accent_to": "#20C997",
+    "heading": "#2D3748",
+    "text": "#718096",
+    "panel": "#F7FAFC",
+    "border": "#E2E8F0"
+  },
+  "outro_min": 12,
+  "text": {
+    "en": {
+      "kicker": "Tutorial · Episode {n} of {total}",
+      "series_kicker": "Tutorial",
+      "footer": "Shown with FreeXmlToolkit  ·  fundsxml.org",
+      "thanks": "Thanks for watching",
+      "next": "up next",
+      "more": "Learn more",
+      "links": [
+        [
+          "The standard and its documentation",
+          "fundsxml.org"
+        ],
+        [
+          "Schema",
+          "github.com/fundsxml/schema"
+        ],
+        [
+          "Example files",
+          "github.com/fundsxml/examples"
+        ],
+        [
+          "The tool in this video",
+          "freexmltoolkit.org"
+        ]
+      ],
+      "disclaimer": "Disclaimer: This video is for training purposes only and is not legal, regulatory or investment advice. The example data is fictitious, even where names of real companies, funds or securities appear. The official FundsXML documentation and the applicable regulations are binding. Narration and editing are AI-generated; the video shows the real application.",
+      "series": "In this series"
+    }
+  }
+}

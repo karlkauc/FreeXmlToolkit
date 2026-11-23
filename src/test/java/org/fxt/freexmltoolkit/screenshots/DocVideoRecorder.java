@@ -274,6 +274,14 @@ final class DocVideoRecorder {
     }
 
     /**
+     * Shows {@code label} as a key cap in the video without pressing anything - for a shortcut whose
+     * action the scenario then runs itself (a key combination cannot be fired as one event).
+     */
+    void showKey(String label) {
+        event("key").put("label", label);
+    }
+
+    /**
      * Replaces {@code length} characters at {@code offset} of the active document with {@code text},
      * one key stroke at a time: first the old characters go, then the new ones appear.
      */
