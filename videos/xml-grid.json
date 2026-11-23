@@ -1,0 +1,78 @@
+{
+  "id": "xml-grid",
+  "scenario": "XmlGridDocVideo",
+  "docs": "guides/edit-xml/grid/",
+  "title": {
+    "en": "The XML grid: edit a document as tables",
+    "de": "Das XML-Grid: ein Dokument als Tabellen bearbeiten"
+  },
+  "description": {
+    "en": "The Graphic view of FreeXmlToolkit shows an XML document as a grid: nested blocks, repeating elements as tables, editing in the cell and sorting by column.",
+    "de": "Die Ansicht Grafik in FreeXmlToolkit zeigt ein XML-Dokument als Grid: verschachtelte Blöcke, wiederholte Elemente als Tabellen, Bearbeiten in der Zelle und Sortieren nach Spalten."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "In this video you look at an XML document as a grid. You edit a value in a cell, and you sort a table.",
+        "de": "In diesem Video sehen Sie ein XML-Dokument als Grid. Sie ändern einen Wert in einer Zelle und sortieren eine Tabelle."
+      }
+    },
+    {
+      "id": "switch",
+      "chapter": { "en": "Switch to the grid", "de": "Zum Grid wechseln" },
+      "say": {
+        "en": "The example order is open as text. The view switch at the top right changes the view of the document. Click Graphic.",
+        "de": "Die Beispielbestellung ist als Text geöffnet. Der Ansichtsumschalter oben rechts wechselt die Ansicht des Dokuments. Klicken Sie auf Grafik."
+      }
+    },
+    {
+      "id": "blocks",
+      "say": {
+        "en": "The grid shows the document as nested blocks. Every element is a row: its name on the left, its value or its children on the right. Expand all opens every block.",
+        "de": "Das Grid zeigt das Dokument als verschachtelte Blöcke. Jedes Element ist eine Zeile: links der Name, rechts der Wert oder die Kindelemente. Alle aufklappen öffnet jeden Block."
+      }
+    },
+    {
+      "id": "table",
+      "chapter": { "en": "Repeating elements as a table", "de": "Wiederholte Elemente als Tabelle" },
+      "say": {
+        "en": "Repeating elements become a table. The three items of the order are the rows, and their attributes are the columns.",
+        "de": "Wiederholte Elemente werden zu einer Tabelle. Die drei Artikel der Bestellung sind die Zeilen, ihre Attribute sind die Spalten."
+      }
+    },
+    {
+      "id": "edit",
+      "chapter": { "en": "Edit a cell", "de": "Eine Zelle bearbeiten" },
+      "say": {
+        "en": "Double-click a cell to edit it. Change the first quantity to five, and confirm with Enter.",
+        "de": "Ein Doppelklick auf eine Zelle öffnet sie zum Bearbeiten. Ändern Sie die erste Menge auf fünf und bestätigen Sie mit Enter."
+      }
+    },
+    {
+      "id": "sort",
+      "chapter": { "en": "Sort a column", "de": "Eine Spalte sortieren" },
+      "say": {
+        "en": "A click on the small arrow in a column header sorts the table. Here it is sorted by price. One undo restores the old order.",
+        "de": "Ein Klick auf den kleinen Pfeil im Spaltenkopf sortiert die Tabelle. Hier wird nach dem Preis sortiert. Einmal Rückgängig stellt die alte Reihenfolge wieder her."
+      }
+    },
+    {
+      "id": "text",
+      "chapter": { "en": "Back to the text", "de": "Zurück zum Text" },
+      "say": {
+        "en": "All views share one document. Back in the Text view, the source has the new quantity, and the items are in their new order.",
+        "de": "Alle Ansichten teilen sich ein Dokument. Zurück in der Ansicht Text steht im Quelltext die neue Menge, und die Artikel stehen in der neuen Reihenfolge."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was the grid. The documentation shows more: filters, formulas, and pasting from a spreadsheet.",
+        "de": "Das war das Grid. Die Dokumentation zeigt mehr: Filter, Formeln und das Einfügen aus einer Tabellenkalkulation."
+      }
+    }
+  ]
+}

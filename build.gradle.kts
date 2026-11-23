@@ -614,6 +614,8 @@ tasks.register<Test>("docVideos") {
     testLogging { events("passed", "skipped", "failed") }
     filter { includeTestsMatching("*DocVideo") }
     outputs.upToDateWhen { false }
+    // no coverage agent: it only slows the recording down
+    extensions.configure<JacocoTaskExtension> { isEnabled = false }
     // -Pvideo.dir: the folder with timing.json, where screen.mkv and events.json go; -Pvideo.lang: UI language
     systemProperty("fxt.video.dir", (findProperty("video.dir") as String?) ?: "build/videos/scratch")
     // in doFirst: the settings shared by all Test tasks pin fxt.locale=en

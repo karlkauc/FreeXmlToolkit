@@ -208,6 +208,21 @@ final class DocVideoRecorder {
         WaitForAsyncUtils.waitForFxEvents();
     }
 
+    /** Glides to a position and double-clicks there (both clicks within the system's double-click time). */
+    void doubleClick(double x, double y) {
+        moveTo(x, y);
+        pause(250);
+        event("click").putAll(Map.of("x", x, "y", y));
+        for (int i = 0; i < 2; i++) {
+            robot.mousePress(java.awt.event.InputEvent.BUTTON1_DOWN_MASK);
+            robot.delay(30);
+            robot.mouseRelease(java.awt.event.InputEvent.BUTTON1_DOWN_MASK);
+            robot.delay(50);
+        }
+        WaitForAsyncUtils.waitForFxEvents();
+        pause(300);
+    }
+
     void click(Node node) {
         Bounds b = screenBounds(node);
         click(b.getCenterX(), b.getCenterY());
@@ -224,7 +239,8 @@ final class DocVideoRecorder {
         doc.onFx(() -> {
             Scene scene = doc.stage().getScene();
             Node target = scene.getFocusOwner() != null ? scene.getFocusOwner() : scene.getRoot();
-            Event.fireEvent(target, new KeyEvent(KeyEvent.KEY_PRESSED, "", "", code, false, false, false, false));
+            String text = code == KeyCode.ENTER ? "\r" : "";
+            Event.fireEvent(target, new KeyEvent(KeyEvent.KEY_PRESSED, "", text, code, false, false, false, false));
             Event.fireEvent(target, new KeyEvent(KeyEvent.KEY_RELEASED, "", "", code, false, false, false, false));
         });
     }
@@ -245,6 +261,33 @@ final class DocVideoRecorder {
             doc.onFx(() -> doc.host().replaceActiveTextRegion(at, at, ch));
             pause(150);
         }
+    }
+
+    /** Replaces the text of the focused input field with {@code text}, one key stroke at a time. */
+    void typeIntoFocused(String text) {
+        // without a window manager no window reports the focus: take the scene's focus owner
+        javafx.scene.control.TextInputControl field = doc.fx(() -> {
+            Node owner = doc.stage().getScene().getFocusOwner();
+            if (owner instanceof javafx.scene.control.TextInputControl input) {
+                return input;
+            }
+            if (owner instanceof javafx.scene.control.Spinner<?> spinner) {
+                return spinner.getEditor(); // the grid's editor of a number
+            }
+            throw new IllegalStateException("No input field has the focus: " + doc.stage().getScene().getFocusOwner());
+        });
+        doc.onFx(field::clear);
+        pause(200);
+        for (int i = 0; i < text.length(); i++) {
+            String ch = text.substring(i, i + 1);
+            doc.onFx(() -> field.appendText(ch));
+            pause(150);
+        }
+        doc.onFx(() -> {
+            if (doc.stage().getScene().getFocusOwner() instanceof javafx.scene.control.Spinner<?> spinner) {
+                spinner.commitValue(); // as the spinner does on Enter in its editor
+            }
+        });
     }
 
     // ----- zoom -----
