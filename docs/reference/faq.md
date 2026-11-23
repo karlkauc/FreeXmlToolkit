@@ -1,3 +1,7 @@
+---
+description: Answers and troubleshooting: starting the application, large files and memory, network and proxy, schemas, settings, updates.
+---
+
 # FAQ & Troubleshooting
 
 Answers to common questions and fixes for typical problems. If your problem is not listed,

@@ -9,9 +9,15 @@ Usage:
     python3 scripts/upload-website.py --list [PATH]      show what is on the server (two levels deep)
     python3 scripts/upload-website.py --dir /html --dry-run
     python3 scripts/upload-website.py --dir /html
+    python3 scripts/upload-website.py --dir /html --docs [--dry-run]    the documentation, to <dir>/docs
 
 Uploads only files whose size differs from the server copy (or all with --all). Never deletes anything.
 Runs scripts/check-website.py first and stops when it reports a problem.
+
+--docs builds the MkDocs documentation (mkdocs build --strict, as the GitHub workflow does) into a
+temporary folder and uploads that to the docs/ folder of the website instead of website/ itself.
+The website links to it with relative links, so upload the documentation before the website when
+pages were added.
 """
 import argparse
 import ftplib
@@ -19,6 +25,7 @@ import netrc
 import pathlib
 import subprocess
 import sys
+import tempfile
 
 HOST = "host10.ssl-net.net"
 PORT = 21
@@ -89,7 +96,7 @@ def ensure_dir(ftp, path, known):
         known.add(current)
 
 
-def upload(ftp, target, dry_run, everything):
+def upload(ftp, source, target, dry_run, everything):
     target = "/" + target.strip("/") if target.strip("/") else ""
     known_dirs = set()
     remote_sizes = {}
@@ -105,8 +112,10 @@ def upload(ftp, target, dry_run, everything):
         return remote_sizes[folder].get(name)
 
     sent = skipped = 0
-    for local in sorted(p for p in SITE.rglob("*") if p.is_file()):
-        rel = local.relative_to(SITE).as_posix()
+    for local in sorted(p for p in source.rglob("*") if p.is_file()):
+        rel = local.relative_to(source).as_posix()
+        if local.name in (".DS_Store", "._.DS_Store"):
+            continue
         rpath = f"{target}/{rel}"
         size = local.stat().st_size
         if not everything and remote_size(rpath) == size:
@@ -128,23 +137,36 @@ def main():
     ap.add_argument("--dry-run", action="store_true", help="only show what would be uploaded")
     ap.add_argument("--all", action="store_true", help="upload every file, not only changed ones")
     ap.add_argument("--insecure", action="store_true", help="plain FTP without TLS (only if the server has no TLS)")
+    ap.add_argument("--docs", action="store_true",
+                    help="build the MkDocs documentation and upload it to <dir>/docs instead of the website")
     args = ap.parse_args()
+
+    source, target, build = SITE, args.dir, None
+    if args.list is None:
+        if not args.dir:
+            sys.exit("--dir is required (see --list)")
+        if args.docs:
+            # built before the connection is opened: the server closes an idle control connection
+            build = tempfile.TemporaryDirectory(prefix="fxt-docs-")
+            if subprocess.run(["mkdocs", "build", "--strict", "-q", "-d", build.name], cwd=ROOT).returncode != 0:
+                sys.exit("mkdocs build failed; nothing uploaded")
+            source, target = pathlib.Path(build.name), args.dir.rstrip("/") + "/docs"
+        elif subprocess.run([sys.executable, str(ROOT / "scripts" / "check-website.py")]).returncode != 0:
+            sys.exit("check-website.py reported problems; nothing uploaded")
 
     ftp = connect(args.insecure)
     try:
         if args.list is not None:
             list_remote(ftp, args.list)
             return 0
-        if not args.dir:
-            sys.exit("--dir is required (see --list)")
-        if subprocess.run([sys.executable, str(ROOT / "scripts" / "check-website.py")]).returncode != 0:
-            sys.exit("check-website.py reported problems; nothing uploaded")
-        upload(ftp, args.dir, args.dry_run, args.all)
+        upload(ftp, source, target, args.dry_run, args.all)
     finally:
         try:
             ftp.quit()
         except Exception:
             ftp.close()
+        if build:
+            build.cleanup()
     return 0
 
 

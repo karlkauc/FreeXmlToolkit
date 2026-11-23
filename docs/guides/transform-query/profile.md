@@ -1,3 +1,7 @@
+---
+description: Profile an XSLT stylesheet or an XQuery: time per template and function, call tree and flame graph.
+---
+
 # Profile a transformation
 
 Every run shows compact statistics in the OUTPUT panel's status line:

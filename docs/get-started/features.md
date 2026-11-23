@@ -1,3 +1,7 @@
+---
+description: Everything FreeXmlToolkit can do: XML and JSON editing, XSD design, validation, XSLT and XQuery with debugger and profiler, PDF, signatures, compare, conversion, command line and industry plugins.
+---
+
 # What FreeXmlToolkit can do
 
 An overview of the application by area, with a link to the guide for each.

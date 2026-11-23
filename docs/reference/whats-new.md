@@ -1,3 +1,7 @@
+---
+description: Release notes of FreeXmlToolkit: what is new in the current versions.
+---
+
 # What's New
 
 The highlights of each release. The complete notes and all downloads are on the

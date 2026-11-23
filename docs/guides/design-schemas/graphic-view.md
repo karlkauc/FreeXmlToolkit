@@ -1,3 +1,7 @@
+---
+description: Design XSD 1.0 and 1.1 schemas as a diagram: drag and drop, type frames, constraints, undo for every change, only valid edits.
+---
+
 # Graphic view
 
 The Graphic View lets you explore and edit your schemas visually.

@@ -27,7 +27,7 @@ public final class ProjectLinks {
     /** The GitHub repository. */
     public static final String GITHUB_URL = "https://github.com/karlkauc/FreeXmlToolkit";
     /** The user documentation (MkDocs site). */
-    public static final String DOCS_URL = "https://karlkauc.github.io/FreeXmlToolkit";
+    public static final String DOCS_URL = "https://freexmltoolkit.org/docs";
     /** New GitHub issue form. */
     public static final String ISSUES_URL = GITHUB_URL + "/issues/new";
     /** The maintainer's GitHub Sponsors page. */

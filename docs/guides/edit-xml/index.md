@@ -1,3 +1,7 @@
+---
+description: Edit XML in Text, Tree and Grid views with schema-aware auto-completion, folding, formatting and live validation.
+---
+
 # Edit XML
 
 Open an XML file and work on it as text, as a tree or as a grid. The three views show the same

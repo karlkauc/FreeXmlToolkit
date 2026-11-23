@@ -1,3 +1,7 @@
+---
+description: Open the bundled example, validate it, transform it and query it - the first 15 minutes with FreeXmlToolkit.
+---
+
 # First steps
 
 In about 15 minutes you open a document, validate it against its schema, look at it in three

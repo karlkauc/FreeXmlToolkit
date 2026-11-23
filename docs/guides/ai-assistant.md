@@ -1,3 +1,7 @@
+---
+description: The optional AI assistant explains and fixes validation problems, writes XPath, XQuery and stylesheets - every answer is checked by the application first.
+---
+
 # AI Assistant
 
 FreeXmlToolkit can ask a language model for help with three tasks: fixing a validation problem, turning a question

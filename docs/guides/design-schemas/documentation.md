@@ -1,3 +1,7 @@
+---
+description: Generate HTML, Word or PDF documentation and an Excel data dictionary from an XSD schema.
+---
+
 # Generate schema documentation
 
 Create professional documentation from your XSD file automatically.

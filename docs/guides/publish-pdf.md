@@ -1,3 +1,7 @@
+---
+description: Create PDF from XML with XSL-FO and Apache FOP: preview, PDF/A, and external processors such as Antenna House and RenderX XEP.
+---
+
 # PDF Generator (FOP)
 
 Create professional PDF documents from your XML files using Apache FOP (Formatting Objects Processor).

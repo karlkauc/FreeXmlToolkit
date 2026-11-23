@@ -1,3 +1,7 @@
+---
+description: Debug XSLT, XQuery and Schematron: conditional breakpoints, logpoints, stepping, variables, watches, call stack, coverage and Explain Match.
+---
+
 # Debugger (XSLT, XQuery, Schematron)
 
 FreeXmlToolkit has an interactive debugger for **XSLT stylesheets**, **XQuery** files and **Schematron** schemas: breakpoints (conditional, hit counts, logpoints, template/function/input-node breakpoints), stepping, variables and watches, call stack, coverage and an output-to-source mapping.

@@ -14,8 +14,8 @@ By participating you agree to follow our [Code of Conduct](https://github.com/ka
 - ❤️ **Sponsor** the project on [GitHub Sponsors](https://github.com/sponsors/karlkauc)
 
 Questions are welcome on the [Issues page](https://github.com/karlkauc/FreeXmlToolkit/issues) too —
-but please check the [user guide](https://karlkauc.github.io/FreeXmlToolkit/) and the
-[FAQ & Troubleshooting](https://karlkauc.github.io/FreeXmlToolkit/reference/faq/) page first.
+but please check the [user guide](https://freexmltoolkit.org/docs/) and the
+[FAQ & Troubleshooting](https://freexmltoolkit.org/docs/reference/faq/) page first.
 
 ## Reporting Bugs
 
@@ -97,7 +97,7 @@ rules:
 ## Documentation
 
 The user guide is an [MkDocs](https://www.mkdocs.org/) site in [`docs/`](https://github.com/karlkauc/FreeXmlToolkit/tree/main/docs), published at
-[karlkauc.github.io/FreeXmlToolkit](https://karlkauc.github.io/FreeXmlToolkit/). When you change a
+[freexmltoolkit.org/docs](https://freexmltoolkit.org/docs/). When you change a
 feature, update the matching page. New pages need an entry in the `nav` section of
 [`mkdocs.yml`](https://github.com/karlkauc/FreeXmlToolkit/blob/main/mkdocs.yml). To preview locally:
 

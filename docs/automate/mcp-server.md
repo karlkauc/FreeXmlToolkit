@@ -1,3 +1,7 @@
+---
+description: The MCP server gives AI agents XML tools: validation, XPath, XQuery, XSLT, XSpec, Schematron, schema outlines and comparison - read-only, inside the folders you name.
+---
+
 # MCP Server (AI agents)
 
 `fxt-cli mcp` makes FreeXmlToolkit's engines available to AI agents — Claude Code, and any other client of the

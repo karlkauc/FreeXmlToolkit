@@ -1,3 +1,7 @@
+---
+description: Install FreeXmlToolkit on Windows, macOS or Linux: installer, MSI, portable ZIP, .dmg, .deb, .rpm, Scoop and Homebrew. No registration, no administrator rights.
+---
+
 # Installation
 
 FreeXmlToolkit is free and needs no registration. All files are published on the

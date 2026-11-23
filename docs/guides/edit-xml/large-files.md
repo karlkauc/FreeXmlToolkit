@@ -1,3 +1,7 @@
+---
+description: Open XML files of several gigabytes in the Large File Viewer: text, structure, statistics, validation, and editing a part of the file.
+---
+
 # Large File Viewer
 
 The **Large File Viewer** shows text and XML files of any size: a 1 GB file opens in a few seconds

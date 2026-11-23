@@ -1,5 +1,27 @@
 {% extends "base.html" %}
 
+{% block extrahead %}
+{#- The documentation moved from GitHub Pages to freexmltoolkit.org/docs/: the copy that is still
+    published there sends every reader (and, through the canonical link, every search engine) on. -#}
+<script>
+  if (location.hostname === "karlkauc.github.io") {
+    location.replace("https://freexmltoolkit.org/docs/"
+      + location.pathname.replace(/^\/FreeXmlToolkit\/?/, "") + location.search + location.hash);
+  }
+</script>
+{%- set fxt_title = (page.meta.title or page.title) ~ " - " ~ config.site_name if page and page.title and not page.is_homepage else config.site_name %}
+{%- set fxt_description = page.meta.description if page and page.meta and page.meta.description else config.site_description %}
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="{{ fxt_title | striptags }}">
+<meta property="og:description" content="{{ fxt_description }}">
+{%- if page and page.canonical_url %}
+<meta property="og:url" content="{{ page.canonical_url }}">
+{%- endif %}
+<meta property="og:image" content="{{ config.site_url }}img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+{% endblock %}
+
 {% block announce %}
 <span class="fxt-announce">
   <span class="fxt-announce__icon" aria-hidden="true">⬇</span>

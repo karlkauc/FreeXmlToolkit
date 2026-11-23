@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://freexmltoolkit.org/sitemap.xml
+Sitemap: https://freexmltoolkit.org/docs/sitemap.xml

@@ -30,7 +30,7 @@ import org.fxt.freexmltoolkit.util.DialogHelper;
 public final class TelemetryInfoDialog {
 
     /** Online documentation of the telemetry (docs/administer/privacy-telemetry.md). */
-    public static final String DOCS_URL = "https://karlkauc.github.io/FreeXmlToolkit/administer/privacy-telemetry/";
+    public static final String DOCS_URL = "https://freexmltoolkit.org/docs/administer/privacy-telemetry/";
 
     private final TelemetryService telemetry;
     @FXML private TextArea payload;

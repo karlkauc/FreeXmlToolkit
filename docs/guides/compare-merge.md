@@ -1,3 +1,7 @@
+---
+description: Compare XML by structure, compare folders and merge three versions of a file.
+---
+
 # Compare and merge
 
 **Tools → Compare with File…** compares the active document (XML, XSD or any other text file)

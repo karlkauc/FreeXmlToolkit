@@ -1,3 +1,7 @@
+---
+description: A project file binds schemas, Schematron rules and transformation scenarios to files by pattern and checks transformation results against expected output.
+---
+
 # Projects and Transformation Scenarios
 
 A **project** keeps the settings that belong to a set of files in one file next to them:

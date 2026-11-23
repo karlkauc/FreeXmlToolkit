@@ -1,3 +1,7 @@
+---
+description: Convert between XML, JSON and YAML, and between XML and Excel or CSV.
+---
+
 # Convert formats
 
 Turn a document into another format: XML, JSON and YAML into one another, and XML into Excel or CSV and back.

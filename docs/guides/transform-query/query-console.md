@@ -1,3 +1,7 @@
+---
+description: Run ad-hoc XPath, XQuery and JSONPath against the open document in the Query Console.
+---
+
 # Query Console & Query Documents
 
 XPath, XQuery and JSONPath queries run either in the **Query Console** at the bottom of the editor (Ctrl+K) or as query documents (`.xq`, `.xpath`) with an input selector.

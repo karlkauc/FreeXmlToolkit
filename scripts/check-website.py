@@ -3,7 +3,8 @@
 
 - every page has lang, <title>, a meta description and a canonical link;
 - every internal link, image, stylesheet and script points to an existing file;
-- links into the documentation point to an existing page in docs/;
+- links into the documentation (the docs/ folder of the server, built from docs/ by MkDocs) point to an
+  existing page in docs/;
 - header and footer are the same on every page (apart from the relative path prefix and aria-current);
 - every <img> has an alt attribute; no inline style attributes (the Content-Security-Policy forbids them).
 
@@ -17,7 +18,8 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SITE = ROOT / "website"
 DOCS = ROOT / "docs"
-DOCS_URL = "https://karlkauc.github.io/FreeXmlToolkit/"
+DOCS_URL = "https://freexmltoolkit.org/docs/"
+DOCS_DIR = SITE / "docs"  # only on the server: scripts/upload-website.py --docs puts the MkDocs build there
 
 
 class Page(html.parser.HTMLParser):
@@ -56,8 +58,9 @@ class Page(html.parser.HTMLParser):
             self.title = (self.title or "") + data
 
 
-def docs_page_exists(url):
-    rest = url[len(DOCS_URL):].split("#")[0].strip("/")
+def docs_page_exists(rest):
+    """rest: the path below the documentation root, e.g. guides/edit-xml/grid/"""
+    rest = rest.split("#")[0].strip("/")
     if not rest:
         return (DOCS / "index.md").exists()
     return (DOCS / (rest + ".md")).exists() or (DOCS / rest / "index.md").exists()
@@ -96,7 +99,7 @@ def main():
             problems.append(f"{rel}: {p.styles} inline style attribute(s)")
         for ref in p.refs:
             if ref.startswith(DOCS_URL):
-                if not docs_page_exists(ref):
+                if not docs_page_exists(ref[len(DOCS_URL):]):
                     problems.append(f"{rel}: documentation page not found: {ref}")
                 continue
             if re.match(r"^(https?:|mailto:)", ref):
@@ -108,6 +111,10 @@ def main():
                 continue
             base = SITE if path.startswith("/") else page.parent
             target = (base / path.lstrip("/")).resolve()
+            if target == DOCS_DIR or DOCS_DIR in target.parents:
+                if not docs_page_exists(target.relative_to(DOCS_DIR).as_posix()):
+                    problems.append(f"{rel}: documentation page not found: {ref}")
+                continue
             if target.is_dir():
                 target = target / "index.html"
             if not target.exists():

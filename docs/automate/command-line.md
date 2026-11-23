@@ -1,3 +1,7 @@
+---
+description: fxt-cli: validate, transform, query, compare, convert, sign and encrypt XML from the command line and in build pipelines.
+---
+
 # Command Line (fxt-cli)
 
 `fxt-cli` runs FreeXmlToolkit's validators, transformation engines, XPath/XQuery/JSONPath queries, XML

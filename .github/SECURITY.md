@@ -38,5 +38,5 @@ Please include:
 FreeXmlToolkit protects against common XML attacks (XXE, SSRF, path traversal, untrusted XSLT/XQuery
 extensions, tampered updates) and keeps its optional AI features in check (a sandbox for code an AI agent
 runs through the MCP server, data levels for the AI assistant). See
-[Security Features](https://karlkauc.github.io/FreeXmlToolkit/administer/security-features/) and the
-[Threat Model](https://karlkauc.github.io/FreeXmlToolkit/administer/threat-model/) in the user guide for details.
+[Security Features](https://freexmltoolkit.org/docs/administer/security-features/) and the
+[Threat Model](https://freexmltoolkit.org/docs/administer/threat-model/) in the user guide for details.

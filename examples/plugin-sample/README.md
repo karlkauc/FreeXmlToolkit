@@ -1,7 +1,7 @@
 # Sample FreeXmlToolkit plugin
 
 A complete plugin for "order" documents: an activity with a side panel, a Tools menu item, a validator,
-a hint bar and a stylesheet. See the guide: https://karlkauc.github.io/FreeXmlToolkit/plugin-development/
+a hint bar and a stylesheet. See the guide: https://freexmltoolkit.org/docs/extend/writing-plugins/
 
 ```bash
 gradle jar -PfxtJar=/opt/freexmltoolkit/lib/app/FreeXmlToolkit.jar   # path of your installation

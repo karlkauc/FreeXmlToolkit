@@ -1,3 +1,7 @@
+---
+description: Validate XML against XSD 1.0/1.1, Schematron, DTD and RELAX NG, and JSON against JSON Schema - live, for folders and for whole projects.
+---
+
 # Validate
 
 **F8** validates the active document against everything bound to it: XSD, DTD or RELAX NG,

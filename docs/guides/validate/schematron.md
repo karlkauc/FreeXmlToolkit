@@ -1,3 +1,7 @@
+---
+description: Write and run Schematron rules, with a rule builder, templates and Schematron Quick Fixes.
+---
+
 # Schematron Validation
 
 Schematron lets you create custom validation rules that go beyond what XSD schemas can check. It's perfect for validating business rules and data relationships.

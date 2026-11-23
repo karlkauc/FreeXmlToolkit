@@ -1,3 +1,7 @@
+---
+description: The Grid view shows repeating XML elements as editable tables, with sorting, filters, formulas, entry helpers and paste from spreadsheets.
+---
+
 # Grid view
 
 The **Graphic** view of an XML or JSON document is an editable grid: nested blocks for containers, repeating elements as tables, inline editing, drag & drop and search. Switch to it with the **Graphic** button of the view switch in the editor toolbar.

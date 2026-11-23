@@ -1,3 +1,7 @@
+---
+description: FreeXmlToolkit compared with Oxygen XML Editor, XMLSpy and Liquid Studio - feature by feature, with sources.
+---
+
 # Comparison with Other XML Editors
 
 This page compares the features of FreeXmlToolkit with three other XML editors, so you can

@@ -12,45 +12,45 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
 
 ![Feature tour: visual XSD editor, XML grid, IntelliSense, validation, debugger, transformations, Query Console, AI assistant, PDF, schema analysis, JSON, signatures, dark mode](docs/img/feature-tour.webp)
 
-**[⬇ Download the latest release](https://github.com/karlkauc/FreeXmlToolkit/releases/latest)** – Windows (.exe/.msi/portable), macOS (.dmg/.pkg, Apple Silicon & Intel), Linux (.deb/.rpm/portable) – or via `scoop install freexmltoolkit` / `brew install --cask karlkauc/tap/freexmltoolkit` ([details](#install-with-a-package-manager)). Website: **[freexmltoolkit.org](https://freexmltoolkit.org/)** · Full guide: [karlkauc.github.io/FreeXmlToolkit](https://karlkauc.github.io/FreeXmlToolkit/).
+**[⬇ Download the latest release](https://github.com/karlkauc/FreeXmlToolkit/releases/latest)** – Windows (.exe/.msi/portable), macOS (.dmg/.pkg, Apple Silicon & Intel), Linux (.deb/.rpm/portable) – or via `scoop install freexmltoolkit` / `brew install --cask karlkauc/tap/freexmltoolkit` ([details](#install-with-a-package-manager)). Website: **[freexmltoolkit.org](https://freexmltoolkit.org/)** · Full guide: [freexmltoolkit.org/docs](https://freexmltoolkit.org/docs/).
 
 ## Highlights
 
 <table>
   <tr>
-    <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/guides/design-schemas/">Visual XSD editor</a></b><br>Design schemas as a graphical diagram or a tree, with type editor, facets, documentation and undo for every change. XSD 1.0 and 1.1.</td>
+    <td width="50%"><b><a href="https://freexmltoolkit.org/docs/guides/design-schemas/">Visual XSD editor</a></b><br>Design schemas as a graphical diagram or a tree, with type editor, facets, documentation and undo for every change. XSD 1.0 and 1.1.</td>
     <td width="50%"><a href="docs/img/unified-shell-schema-graphic.png"><img src="docs/img/unified-shell-schema-graphic.png" alt="Visual XSD editor" width="420"></a></td>
   </tr>
   <tr>
-    <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/guides/edit-xml/grid/">Schema-aware XML editor</a></b><br>IntelliSense that offers only what the schema allows at the caret, live validation while you type, and three views of one document: Text, Tree and a <b>Grid</b> that shows repeating elements as editable tables.</td>
+    <td width="50%"><b><a href="https://freexmltoolkit.org/docs/guides/edit-xml/grid/">Schema-aware XML editor</a></b><br>IntelliSense that offers only what the schema allows at the caret, live validation while you type, and three views of one document: Text, Tree and a <b>Grid</b> that shows repeating elements as editable tables.</td>
     <td width="50%"><a href="docs/img/unified-shell-xml-grid.png"><img src="docs/img/unified-shell-xml-grid.png" alt="Schema-aware XML editor" width="420"></a></td>
   </tr>
   <tr>
-    <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/guides/transform-query/debug/">XSLT, XQuery and Schematron debugger</a></b><br>Breakpoints (conditional, hit counts, logpoints), stepping, variables, watches, call stack, inline values and coverage - right in the editor.</td>
+    <td width="50%"><b><a href="https://freexmltoolkit.org/docs/guides/transform-query/debug/">XSLT, XQuery and Schematron debugger</a></b><br>Breakpoints (conditional, hit counts, logpoints), stepping, variables, watches, call stack, inline values and coverage - right in the editor.</td>
     <td width="50%"><a href="docs/img/xslt-debugger-paused.png"><img src="docs/img/xslt-debugger-paused.png" alt="XSLT, XQuery and Schematron debugger" width="420"></a></td>
   </tr>
   <tr>
-    <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/guides/validate/schematron-quick-fixes/">Validation that explains itself</a></b><br>XSD 1.1, Schematron with <b>Quick Fixes</b> (SQF), JSON Schema, batch validation of whole folders, and a Schema Library with OASIS XML catalogs that resolves imports without touching your files.</td>
+    <td width="50%"><b><a href="https://freexmltoolkit.org/docs/guides/validate/schematron-quick-fixes/">Validation that explains itself</a></b><br>XSD 1.1, Schematron with <b>Quick Fixes</b> (SQF), JSON Schema, batch validation of whole folders, and a Schema Library with OASIS XML catalogs that resolves imports without touching your files.</td>
     <td width="50%"><a href="docs/img/xml-editor-schematron.png"><img src="docs/img/xml-editor-schematron.png" alt="Validation that explains itself" width="420"></a></td>
   </tr>
   <tr>
-    <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/guides/transform-query/">Transformations</a></b><br>XSLT 3.0, XPath 3.1 and XQuery 3.1 with Saxon, live preview, XProc 3.0 pipelines, and a Query Console for ad-hoc XPath/XQuery (Ctrl+K).</td>
+    <td width="50%"><b><a href="https://freexmltoolkit.org/docs/guides/transform-query/">Transformations</a></b><br>XSLT 3.0, XPath 3.1 and XQuery 3.1 with Saxon, live preview, XProc 3.0 pipelines, and a Query Console for ad-hoc XPath/XQuery (Ctrl+K).</td>
     <td width="50%"><a href="docs/img/xslt-developer-overview.png"><img src="docs/img/xslt-developer-overview.png" alt="Transformations" width="420"></a></td>
   </tr>
   <tr>
-    <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/guides/ai-assistant/">AI assistant and MCP server</a></b><br>Optional and off by default: fix or explain validation problems, turn a question into XPath / XQuery and generate a stylesheet from a target sample - with a local model (Ollama, LM Studio) or a provider you choose. Every answer is checked by the application before you see it. <code>fxt-cli mcp</code> gives AI agents such as Claude Code the same engines as tools.</td>
+    <td width="50%"><b><a href="https://freexmltoolkit.org/docs/guides/ai-assistant/">AI assistant and MCP server</a></b><br>Optional and off by default: fix or explain validation problems, turn a question into XPath / XQuery and generate a stylesheet from a target sample - with a local model (Ollama, LM Studio) or a provider you choose. Every answer is checked by the application before you see it. <code>fxt-cli mcp</code> gives AI agents such as Claude Code the same engines as tools.</td>
     <td width="50%"><a href="docs/img/ai-assistant-proposal.png"><img src="docs/img/ai-assistant-proposal.png" alt="AI assistant and MCP server" width="420"></a></td>
   </tr>
   <tr>
-    <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/guides/publish-pdf/">PDF with Apache FOP</a></b><br>XSL-FO to PDF with in-app preview, the intermediate FO and every FOP message at hand, and PDF/A-1b output.</td>
+    <td width="50%"><b><a href="https://freexmltoolkit.org/docs/guides/publish-pdf/">PDF with Apache FOP</a></b><br>XSL-FO to PDF with in-app preview, the intermediate FO and every FOP message at hand, and PDF/A-1b output.</td>
     <td width="50%"><a href="docs/img/fop-pdf-preview.png"><img src="docs/img/fop-pdf-preview.png" alt="PDF with Apache FOP" width="420"></a></td>
   </tr>
   <tr>
-    <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/guides/design-schemas/">Schema documentation, analysis and test data</a></b><br>HTML, PDF or Word documentation from XSD, schema analysis with quality score and reports, and sample XML generated from any schema.</td>
+    <td width="50%"><b><a href="https://freexmltoolkit.org/docs/guides/design-schemas/">Schema documentation, analysis and test data</a></b><br>HTML, PDF or Word documentation from XSD, schema analysis with quality score and reports, and sample XML generated from any schema.</td>
     <td width="50%"><a href="docs/img/unified-shell-schema-statistics.png"><img src="docs/img/unified-shell-schema-statistics.png" alt="Schema documentation, analysis and test data" width="420"></a></td>
   </tr>
   <tr>
-    <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/guides/sign-encrypt/signatures/">XML signatures and encryption</a></b><br>Sign and verify documents (RSA, RSA-PSS, ECDSA), create RSA or EC certificates, and encrypt or decrypt elements and documents with W3C XML Encryption 1.1 for certificates, keys or a password.</td>
+    <td width="50%"><b><a href="https://freexmltoolkit.org/docs/guides/sign-encrypt/signatures/">XML signatures and encryption</a></b><br>Sign and verify documents (RSA, RSA-PSS, ECDSA), create RSA or EC certificates, and encrypt or decrypt elements and documents with W3C XML Encryption 1.1 for certificates, keys or a password.</td>
     <td width="50%"><a href="docs/img/signature-validation.png"><img src="docs/img/signature-validation.png" alt="XML digital signatures" width="420"></a></td>
   </tr>
 </table>
@@ -90,7 +90,7 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
 | AI assistant (local models possible) | ✓ | ◐ | ◐ | – |
 | MCP server for AI agents | ✓ | ◐ | – | – |
 
-✓ supported · ◐ partly or as a separate product · – not found in the publisher's documentation. As of November 2026; details, sources and trademarks: [Comparison with Other Editors](https://karlkauc.github.io/FreeXmlToolkit/reference/comparison/).
+✓ supported · ◐ partly or as a separate product · – not found in the publisher's documentation. As of November 2026; details, sources and trademarks: [Comparison with Other Editors](https://freexmltoolkit.org/docs/reference/comparison/).
 
 ## Features
 
@@ -168,17 +168,17 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
   Schema; text, JSON, JUnit and SARIF reports), `transform` (XSLT, XQuery, XProc, profiling),
   `query`, `xsd-doc`, `xspec`, `scenario`, `compare`, `merge`, `convert`, `fop`, `sign`, `verify`,
   `encrypt`, `decrypt` and `mcp` (MCP server for AI agents); installed with the
-  application. See [Command Line](https://karlkauc.github.io/FreeXmlToolkit/automate/command-line/).
+  application. See [Command Line](https://freexmltoolkit.org/docs/automate/command-line/).
 
 ### AI
 
 - **AI assistant** (off by default): fix validation problems, write XPath/XQuery from a question and XSLT from a
   target sample with a model you choose — local (Ollama, LM Studio) or a provider (OpenAI-compatible, Anthropic).
   Every answer is checked by the application before you see it. See
-  [AI Assistant](https://karlkauc.github.io/FreeXmlToolkit/guides/ai-assistant/).
+  [AI Assistant](https://freexmltoolkit.org/docs/guides/ai-assistant/).
 - **`fxt-cli mcp`** gives AI agents (Claude Code and other MCP clients) the same engines as tools, so an
   agent can validate, run and test the XML, XSLT and XQuery it writes: read-only, sandboxed, limited to the
-  folders you name, no AI service involved. See [MCP Server](https://karlkauc.github.io/FreeXmlToolkit/automate/mcp-server/).
+  folders you name, no AI service involved. See [MCP Server](https://freexmltoolkit.org/docs/automate/mcp-server/).
 - **Data stays under your control:** data levels (schema only, structure, excerpts), a preview of every
   request, no telemetry of prompts or answers; administrators can remove the feature (`ai.allowed=false`).
 
@@ -186,7 +186,7 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
 
 ### Download
 
-1. Go to the [Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases/latest) (or use the download buttons on the [documentation home page](https://karlkauc.github.io/FreeXmlToolkit/))
+1. Go to the [Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases/latest) (or use the download buttons on the [documentation home page](https://freexmltoolkit.org/docs/))
 2. Download the package for your operating system:
     - **Windows** (x64): `.exe` installer (no administrator rights required), `.msi` for managed deployments, or the portable `…windows-x64-app-image….zip`
     - **macOS** (Apple Silicon `arm64` or Intel `x64`): `.dmg` (drag to Applications), `.pkg` installer, or the portable app-image `.zip` — all signed with a Developer ID and notarized by Apple
@@ -241,23 +241,23 @@ has every action.
 - On first start, **Open an Example** on the welcome page loads ready-made sample files; more are in the
   `examples` folder of the installation
 
-All shortcuts: [Keyboard Shortcuts](https://karlkauc.github.io/FreeXmlToolkit/reference/keyboard-shortcuts/).
+All shortcuts: [Keyboard Shortcuts](https://freexmltoolkit.org/docs/reference/keyboard-shortcuts/).
 
 ## Getting Help
 
-- **Documentation**: the [user guide](https://karlkauc.github.io/FreeXmlToolkit/), including
-  [What's New](https://karlkauc.github.io/FreeXmlToolkit/reference/whats-new/) and
-  [FAQ & Troubleshooting](https://karlkauc.github.io/FreeXmlToolkit/reference/faq/)
+- **Documentation**: the [user guide](https://freexmltoolkit.org/docs/), including
+  [What's New](https://freexmltoolkit.org/docs/reference/whats-new/) and
+  [FAQ & Troubleshooting](https://freexmltoolkit.org/docs/reference/faq/)
 - **In the app**: the **Help** menu (F1)
 - **Bugs, ideas and questions**: the [Issues page](https://github.com/karlkauc/FreeXmlToolkit/issues)
 
 ### Privacy
 
-FreeXmlToolkit sends anonymous usage statistics and error reports (never file names, paths or document content). Both are on by default and can be switched off under **Settings → Privacy**. See [Privacy & Anonymous Telemetry](https://karlkauc.github.io/FreeXmlToolkit/administer/privacy-telemetry/) for exactly what is sent. Requests of the optional AI assistant go only to the AI provider you configure and are not telemetry.
+FreeXmlToolkit sends anonymous usage statistics and error reports (never file names, paths or document content). Both are on by default and can be switched off under **Settings → Privacy**. See [Privacy & Anonymous Telemetry](https://freexmltoolkit.org/docs/administer/privacy-telemetry/) for exactly what is sent. Requests of the optional AI assistant go only to the AI provider you configure and are not telemetry.
 
 ### Code Signing
 
-Code signing for the Windows releases is provided by SignPath Foundation (being set up); the [Code Signing Policy](https://karlkauc.github.io/FreeXmlToolkit/administer/code-signing/) describes what is signed, by whom, and which network connections the application makes.
+Code signing for the Windows releases is provided by SignPath Foundation (being set up); the [Code Signing Policy](https://freexmltoolkit.org/docs/administer/code-signing/) describes what is signed, by whom, and which network connections the application makes.
 
 ## Support the Project
 
@@ -289,4 +289,4 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE.md](LIC
 
 FreeXmlToolkit is built on many excellent open-source projects, among them **JavaFX**, **Saxon** (XSLT/XQuery),
 **XML Calabash** (XProc), **Apache Xerces** (XSD 1.1), **ph-schematron**, **Apache FOP**, **Apache Santuario**
-and **RichTextFX**. The [full list with licenses](https://karlkauc.github.io/FreeXmlToolkit/reference/licenses/) is part of the documentation.
+and **RichTextFX**. The [full list with licenses](https://freexmltoolkit.org/docs/reference/licenses/) is part of the documentation.
