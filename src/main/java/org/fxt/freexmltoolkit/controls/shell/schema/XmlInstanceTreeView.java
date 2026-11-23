@@ -260,7 +260,7 @@ public class XmlInstanceTreeView extends TreeView<XmlNode> {
             } else if (item instanceof XmlProcessingInstruction pi) {
                 setText("<?" + pi.getTarget() + " " + pi.getData() + "?>");
             } else if (item instanceof XmlDocument) {
-                setText("(document)");
+                setText(I18n.t("XmlInstanceTreeView.document"));
             } else {
                 setText(item.toString());
             }

@@ -567,15 +567,15 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
                 }
                 return;
             } catch (IllegalArgumentException e) {
-                showWarningAlert("Not Well-Formed", "The content is not well-formed XML:\n" + e.getMessage());
+                showWarningAlert(I18n.t("XmlGridContextMenu.not-well-formed-title"), I18n.t("XmlGridContextMenu.content-not-well-formed", e.getMessage()));
             }
         }
     }
 
     private java.util.Optional<String> showRawTextDialog(String elementName, String text) {
         javafx.scene.control.Dialog<String> dialog = DialogHelper.createDialog(null, null, null);
-        dialog.setTitle("Edit as Raw Text");
-        dialog.setHeaderText("Content of <" + elementName + "> as markup");
+        dialog.setTitle(I18n.t("XmlGridContextMenu.edit-as-raw-text-title"));
+        dialog.setHeaderText(I18n.t("XmlGridContextMenu.raw-text-header", elementName));
         javafx.scene.control.TextArea area = new javafx.scene.control.TextArea(text);
         area.setId("grid-raw-text-area");
         area.setWrapText(true);
@@ -630,9 +630,8 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
             return;
         }
         javafx.scene.control.Dialog<GridFormulas.Formula> dialog = DialogHelper.createDialog(null, null, null);
-        dialog.setTitle("Add Formula");
-        dialog.setHeaderText("XQuery formula evaluated with <" + element.getName() + "> as context,\n"
-                + "e.g. avg(Month/Min) or count(item)");
+        dialog.setTitle(I18n.t("XmlGridContextMenu.add-formula-title"));
+        dialog.setHeaderText(I18n.t("XmlGridContextMenu.formula-header", element.getName()));
         javafx.scene.control.TextField name = new javafx.scene.control.TextField("formula");
         name.setId("grid-formula-name");
         javafx.scene.control.TextField expression = new javafx.scene.control.TextField();
@@ -689,7 +688,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         if (selected == null || selected instanceof XmlDocument || selected.getParent() == null) {
             return;
         }
-        String name = showInputDialog("Wrap in Element", "Name of the new parent element:", "wrapper");
+        String name = showInputDialog(I18n.t("XmlGridContextMenu.wrap-in-element-title"), I18n.t("XmlGridContextMenu.new-parent-element-name"), "wrapper");
         if (name == null || name.isBlank()) {
             return;
         }
@@ -728,7 +727,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         if (clickedTable == null) {
             return;
         }
-        String name = showInputDialog("Insert Column", "Name of the new attribute or element:", "newColumn");
+        String name = showInputDialog(I18n.t("XmlGridContextMenu.insert-column-title"), I18n.t("XmlGridContextMenu.new-column-name"), "newColumn");
         if (name == null || name.isBlank()) {
             return;
         }
@@ -760,7 +759,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         if (col == null || col.getType() == RepeatingElementsTable.ColumnType.TEXT_CONTENT) {
             return;
         }
-        String newName = showInputDialog("Rename Column", "New name for " + col.getDisplayName() + ":", columnName);
+        String newName = showInputDialog(I18n.t("XmlGridContextMenu.rename-column-title"), I18n.t("XmlGridContextMenu.new-name-for", col.getDisplayName()), columnName);
         if (newName == null || newName.isBlank() || newName.trim().equals(columnName)) {
             return;
         }
@@ -817,8 +816,8 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
 
         // Prevent mixed content: check for existing non-whitespace text content
         if (parent.hasNonWhitespaceTextContent()) {
-            showWarningAlert("Cannot Add Child Element",
-                    "This element has text content. Remove the text content first before adding child elements.");
+            showWarningAlert(I18n.t("XmlGridContextMenu.cannot-add-child-element"),
+                    I18n.t("XmlGridContextMenu.has-text-content-remove-first"));
             return;
         }
 
@@ -838,12 +837,12 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
             } else {
                 // Schema available but no specific constraints - use free-text
                 logger.debug("Schema available but no constraints for parent: {}", parentXPath);
-                name = showInputDialog("Add Child Element", "Element name:", "newElement");
+                name = showInputDialog(I18n.t("XmlGridContextMenu.add-child-element-title"), I18n.t("XmlGridContextMenu.element-name"), "newElement");
             }
         } else {
             // No schema - use free-text input
             logger.debug("No schema available, using free-text input");
-            name = showInputDialog("Add Child Element", "Element name:", "newElement");
+            name = showInputDialog(I18n.t("XmlGridContextMenu.add-child-element-title"), I18n.t("XmlGridContextMenu.element-name"), "newElement");
         }
 
         if (name == null || name.trim().isEmpty()) {
@@ -864,11 +863,11 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
      */
     private String showSchemaBasedElementDialog(List<String> validElements, String parentXPath) {
         Dialog<String> dialog = DialogHelper.createDialog(null, null, null);
-        dialog.setTitle("Add Child Element");
-        dialog.setHeaderText("Select an element to add:");
+        dialog.setTitle(I18n.t("XmlGridContextMenu.add-child-element-title"));
+        dialog.setHeaderText(I18n.t("XmlGridContextMenu.select-element-to-add"));
 
         // Set dialog buttons
-        ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+        ButtonType addButtonType = new ButtonType(I18n.t("XmlGridContextMenu.add"), ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
 
         // Create the content
@@ -906,7 +905,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
 
                     // Add type info
                     if (info.typeName() != null && !info.typeName().isEmpty()) {
-                        sb.append("Type: ").append(info.typeName());
+                        sb.append(I18n.t("XmlGridContextMenu.info-type", info.typeName()));
                     }
 
                     // Add cardinality
@@ -915,7 +914,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
                         if (sb.length() > 0) {
                             sb.append("\n");
                         }
-                        sb.append("Cardinality: ").append(cardinality);
+                        sb.append(I18n.t("XmlGridContextMenu.info-cardinality", cardinality));
                     }
 
                     // Add documentation
@@ -1037,13 +1036,13 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         }
 
         if (minOccurs == 1 && maxOccurs == 1) {
-            return "[1] (required)";
+            return I18n.t("XmlGridContextMenu.cardinality-required");
         } else if (minOccurs == 0 && maxOccurs == 1) {
-            return "[0..1] (optional)";
+            return I18n.t("XmlGridContextMenu.cardinality-optional");
         } else if (minOccurs == 0 && maxOccurs == -1) {
-            return "[0..*] (optional, unbounded)";
+            return I18n.t("XmlGridContextMenu.cardinality-optional-unbounded");
         } else if (minOccurs == 1 && maxOccurs == -1) {
-            return "[1..*] (required, unbounded)";
+            return I18n.t("XmlGridContextMenu.cardinality-required-unbounded");
         } else if (maxOccurs == -1) {
             return "[" + minOccurs + "..*]";
         } else {
@@ -1081,17 +1080,17 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
                 defaultValue = attrResult.defaultValue() != null ? attrResult.defaultValue() : "";
             } else if (!validAttributes.isEmpty()) {
                 // All valid attributes already exist
-                showWarningAlert("No Available Attributes",
-                        "All schema-defined attributes for this element are already present.");
+                showWarningAlert(I18n.t("XmlGridContextMenu.no-available-attributes"),
+                        I18n.t("XmlGridContextMenu.all-attributes-present"));
                 return;
             } else {
                 // Schema available but no specific constraints - use free-text
                 logger.debug("Schema available but no attribute constraints for element: {}", elementXPath);
-                name = showInputDialog("Add Attribute", "Attribute name:", "newAttribute");
+                name = showInputDialog(I18n.t("XmlGridContextMenu.add-attribute-title"), I18n.t("XmlGridContextMenu.attribute-name"), "newAttribute");
             }
         } else {
             // No schema - use free-text input
-            name = showInputDialog("Add Attribute", "Attribute name:", "newAttribute");
+            name = showInputDialog(I18n.t("XmlGridContextMenu.add-attribute-title"), I18n.t("XmlGridContextMenu.attribute-name"), "newAttribute");
         }
 
         if (name == null || name.trim().isEmpty()) {
@@ -1099,7 +1098,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         }
 
         // Get the value (may already have a default from schema)
-        String value = showInputDialog("Add Attribute", "Attribute value for '" + name + "':", defaultValue);
+        String value = showInputDialog(I18n.t("XmlGridContextMenu.add-attribute-title"), I18n.t("XmlGridContextMenu.attribute-value-for", name), defaultValue);
         if (value == null) {
             return;
         }
@@ -1121,11 +1120,11 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
      */
     private AttributeDialogResult showSchemaBasedAttributeDialog(List<String> validAttributes, String elementXPath) {
         Dialog<AttributeDialogResult> dialog = DialogHelper.createDialog(null, null, null);
-        dialog.setTitle("Add Attribute");
-        dialog.setHeaderText("Select an attribute to add:");
+        dialog.setTitle(I18n.t("XmlGridContextMenu.add-attribute-title"));
+        dialog.setHeaderText(I18n.t("XmlGridContextMenu.select-attribute-to-add"));
 
         // Set dialog buttons
-        ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+        ButtonType addButtonType = new ButtonType(I18n.t("XmlGridContextMenu.add"), ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
 
         // Create the content
@@ -1164,17 +1163,16 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
                     StringBuilder sb = new StringBuilder();
 
                     // Add required/optional status
-                    String status = info.isRequired() ? "Required" : "Optional";
-                    sb.append("Status: ").append(status);
+                    sb.append(info.isRequired() ? I18n.t("XmlGridContextMenu.info-status-required") : I18n.t("XmlGridContextMenu.info-status-optional"));
 
                     // Add type info
                     if (info.typeName() != null && !info.typeName().isEmpty()) {
-                        sb.append("\nType: ").append(info.typeName());
+                        sb.append("\n").append(I18n.t("XmlGridContextMenu.info-type", info.typeName()));
                     }
 
                     // Add default value info
                     if (info.defaultValue() != null && !info.defaultValue().isEmpty()) {
-                        sb.append("\nDefault: ").append(info.defaultValue());
+                        sb.append("\n").append(I18n.t("XmlGridContextMenu.info-default", info.defaultValue()));
                         currentDefaultValue[0] = info.defaultValue();
                     } else {
                         currentDefaultValue[0] = "";
@@ -1182,13 +1180,13 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
 
                     // Add fixed value info
                     if (info.fixedValue() != null && !info.fixedValue().isEmpty()) {
-                        sb.append("\nFixed: ").append(info.fixedValue());
+                        sb.append("\n").append(I18n.t("XmlGridContextMenu.info-fixed", info.fixedValue()));
                         currentDefaultValue[0] = info.fixedValue();
                     }
 
                     // Add enumeration values
                     if (info.enumerationValues() != null && !info.enumerationValues().isEmpty()) {
-                        sb.append("\nAllowed values: ").append(String.join(", ", info.enumerationValues()));
+                        sb.append("\n").append(I18n.t("XmlGridContextMenu.info-allowed-values", String.join(", ", info.enumerationValues())));
                     }
 
                     // Add documentation
@@ -1281,12 +1279,12 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
 
         // Prevent mixed content: check for existing child elements
         if (element.hasElementChildren()) {
-            showWarningAlert("Cannot Add Text Content",
-                    "This element has child elements. Remove all child elements first before adding text content.");
+            showWarningAlert(I18n.t("XmlGridContextMenu.cannot-add-text-content"),
+                    I18n.t("XmlGridContextMenu.has-children-remove-first"));
             return;
         }
 
-        String text = showInputDialog("Add Text Content", "Text:", "");
+        String text = showInputDialog(I18n.t("XmlGridContextMenu.add-text-content-title"), I18n.t("XmlGridContextMenu.text-label"), "");
         if (text == null) {
             return;
         }
@@ -1307,7 +1305,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
             return;
         }
 
-        String name = showInputDialog("Add Sibling Element", "Element name:", "newElement");
+        String name = showInputDialog(I18n.t("XmlGridContextMenu.add-sibling-element-title"), I18n.t("XmlGridContextMenu.element-name"), "newElement");
         if (name == null || name.trim().isEmpty()) {
             return;
         }
@@ -1330,7 +1328,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
             return;
         }
 
-        String newName = showInputDialog("Rename Element", "New name:", element.getName());
+        String newName = showInputDialog(I18n.t("XmlGridContextMenu.rename-element-title"), I18n.t("XmlGridContextMenu.new-name"), element.getName());
         if (newName == null || newName.trim().isEmpty()) {
             return;
         }
@@ -1423,8 +1421,8 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
 
         // Prevent mixed content: check for existing non-whitespace text content
         if (parentElement.hasNonWhitespaceTextContent()) {
-            showWarningAlert("Cannot Paste as Child",
-                    "This element has text content. Remove the text content first before pasting child elements.");
+            showWarningAlert(I18n.t("XmlGridContextMenu.cannot-paste-as-child"),
+                    I18n.t("XmlGridContextMenu.has-text-content-paste"));
             return;
         }
 
@@ -1660,7 +1658,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
 
         // Confirm deletion
         Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
-                Alert.AlertType.CONFIRMATION, "Delete Element", "Delete \"" + getNodeName(selected) + "\"?", "This action cannot be undone from this dialog.");
+                Alert.AlertType.CONFIRMATION, I18n.t("XmlGridContextMenu.delete-element-title"), I18n.t("XmlGridContextMenu.delete-element-question", getNodeName(selected)), I18n.t("XmlGridContextMenu.cannot-undo-from-dialog"));
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -1678,7 +1676,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
             String text = ((XmlText) node).getText();
             return text.length() > 20 ? text.substring(0, 20) + "..." : text;
         }
-        return "Node";
+        return I18n.t("XmlGridContextMenu.node-fallback");
     }
 
     private String showInputDialog(String title, String header, String defaultValue) {
@@ -1703,8 +1701,8 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         }
 
         if (!clickedTable.isColumnSortable(clickedColumnName)) {
-            showWarningAlert("Cannot Sort Column",
-                    "This column contains complex data and cannot be sorted.");
+            showWarningAlert(I18n.t("XmlGridContextMenu.cannot-sort-column"),
+                    I18n.t("XmlGridContextMenu.column-complex-data"));
             return;
         }
 

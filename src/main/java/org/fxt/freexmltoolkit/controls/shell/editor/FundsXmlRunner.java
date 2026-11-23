@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlCache;
@@ -53,18 +54,18 @@ public final class FundsXmlRunner {
                     FundsXmlCache.getInstance(), ServiceRegistry.get(XmlService.class));
             var outcome = validator.validate(xml);
             return switch (outcome.status()) {
-                case NO_ACTIVE_SCHEMA -> "No active FundsXML schema — download content and pick a version.";
-                case NO_XML_CONTENT -> "No XML document open.";
-                case VALID -> "Valid against FundsXML schema "
-                        + (outcome.schemaVersion() == null ? "" : outcome.schemaVersion()) + ".";
-                case INVALID -> "Invalid: " + outcome.errors().size() + " issue(s) against schema "
-                        + (outcome.schemaVersion() == null ? "" : outcome.schemaVersion()) + ".";
-                case ERROR -> "Validation error: "
-                        + (outcome.errorMessage() == null ? "unexpected error" : outcome.errorMessage());
+                case NO_ACTIVE_SCHEMA -> I18n.t("FundsXmlRunner.no-active-fundsxml-schema");
+                case NO_XML_CONTENT -> I18n.t("FundsXmlRunner.no-xml-document-open");
+                case VALID -> I18n.t("FundsXmlRunner.valid-against-fundsxml-schema",
+                        outcome.schemaVersion() == null ? "" : outcome.schemaVersion());
+                case INVALID -> I18n.t("FundsXmlRunner.invalid-issues-against-schema", outcome.errors().size(),
+                        outcome.schemaVersion() == null ? "" : outcome.schemaVersion());
+                case ERROR -> I18n.t("FundsXmlRunner.validation-error", outcome.errorMessage() == null
+                        ? I18n.t("FundsXmlRunner.unexpected-error") : outcome.errorMessage());
             };
         } catch (Throwable t) {
             org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportError(t, "fundsxml.validate");
-            return "Validation error: " + t.getMessage();
+            return I18n.t("FundsXmlRunner.validation-error", t.getMessage());
         }
     }
 

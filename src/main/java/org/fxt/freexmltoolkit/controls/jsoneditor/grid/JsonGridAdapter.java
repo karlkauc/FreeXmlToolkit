@@ -51,9 +51,6 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
     /** Label of the root row. */
     public static final String ROOT_LABEL = "$";
 
-    static final String LOSSY_FORMAT_MESSAGE =
-            "Comments and JSON5 syntax are not preserved by the grid: the first edit rewrites the file as standard JSON.";
-
     private final JsonEditorContext context;
     private GridCanvasView<JsonNode> view;
     private boolean lossyToastShown;
@@ -532,7 +529,7 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
         }
         lossyToastShown = true;
         javafx.application.Platform.runLater(
-                () -> view.showToast(LOSSY_FORMAT_MESSAGE, ToastNotification.Type.WARNING));
+                () -> view.showToast(I18n.t("JsonGridAdapter.lossy-format"), ToastNotification.Type.WARNING));
     }
 
     // ==================== Nodes & selection ====================
@@ -574,7 +571,7 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
 
     @Override
     public String emptyStateText() {
-        return "No JSON document loaded";
+        return I18n.t("JsonGridAdapter.no-json-document-loaded");
     }
 
     // ==================== Inline editing ====================
@@ -694,7 +691,7 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
         try {
             value = JsonValueParser.parse(text, primitive.getNodeType());
         } catch (IllegalArgumentException e) {
-            toast(primitive.isNumber() ? "Not a valid number: " + text : "Not a valid boolean: " + text);
+            toast(primitive.isNumber() ? I18n.t("JsonGridAdapter.not-a-valid-number", text) : I18n.t("JsonGridAdapter.not-a-valid-boolean", text));
             return false;
         }
         if (Objects.equals(value, primitive.getValue())

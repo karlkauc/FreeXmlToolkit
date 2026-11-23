@@ -43,11 +43,11 @@ public final class EditorActions {
      * Status of a clean run without any schema: only well-formedness was checked. Not a
      * green "Valid" - the text says that no schema took part.
      */
-    public static final String WELL_FORMED_NO_SCHEMA = "Well-formed · no schema bound";
+    public static final String WELL_FORMED_NO_SCHEMA = I18n.t("EditorActions.well-formed-no-schema-bound");
 
     /** @return "1 problem" / "n problems" — the shared wording of validation counts */
     public static String problemCount(int count) {
-        return count + (count == 1 ? " problem" : " problems");
+        return count == 1 ? I18n.t("EditorActions.one-problem") : I18n.t("EditorActions.problems-count", count);
     }
 
     public EditorActions(EditorHost editorHost) {
@@ -171,9 +171,9 @@ public final class EditorActions {
         }
         String content = editorHost.getActiveText().orElse("");
         if (content.isBlank()) {
-            editorHost.setValidationStatus(EditorHost.ValidationState.NOT_VALIDATED, 0, "Not validated");
+            editorHost.setValidationStatus(EditorHost.ValidationState.NOT_VALIDATED, 0, I18n.t("EditorActions.not-validated"));
             editorHost.openToolTab(I18n.t("EditorActions.validation"), "bi-check2-circle",
-                    messageRegion("Empty document — nothing to validate."));
+                    messageRegion(I18n.t("EditorActions.empty-document-nothing-to-validate")));
             return;
         }
         boolean json = editorHost.getActiveDocument()
@@ -201,7 +201,7 @@ public final class EditorActions {
                     docKind, content, result.size(), t0, runResult.failure(), false);
             Platform.runLater(() -> {
                 String summary = result.isEmpty()
-                        ? (hasSchema ? "Valid" : WELL_FORMED_NO_SCHEMA)
+                        ? (hasSchema ? I18n.t("EditorActions.valid") : WELL_FORMED_NO_SCHEMA)
                         : problemCount(result.size());
                 editorHost.publishValidation(target,
                         result.isEmpty() ? EditorHost.ValidationState.VALID : EditorHost.ValidationState.INVALID,
@@ -221,11 +221,11 @@ public final class EditorActions {
 
     private static Region validationResultRegion(List<ValidationProblem> problems, String summary) {
         if (problems.isEmpty()) {
-            return messageRegion(summary + " — no problems found.");
+            return messageRegion(I18n.t("EditorActions.no-problems-found", summary));
         }
         StringBuilder sb = new StringBuilder(summary).append('\n').append('\n');
         for (ValidationProblem p : problems) {
-            String line = p.line() > 0 ? "Ln " + p.line() + ": " : "";
+            String line = p.line() > 0 ? I18n.t("EditorActions.line-prefix", p.line()) + " " : "";
             sb.append('[').append(p.source()).append("] ").append(line).append(p.message()).append('\n');
         }
         return textRegion(sb.toString());
@@ -826,8 +826,8 @@ public final class EditorActions {
         var doc = editorHost.getActiveDocument().orElseThrow();
         var resolved = editorHost.resolveQueryTarget(doc);
         File pipelineFile = doc.getPath() != null ? doc.getPath().toFile() : null;
-        out.showPending(resolved.map(t -> "Running pipeline against " + t.displayName() + "…")
-                .orElse("Running pipeline…"));
+        out.showPending(resolved.map(t -> I18n.t("EditorActions.running-pipeline-against", t.displayName()))
+                .orElse(I18n.t("EditorActions.running-pipeline")));
         String pipelineName = doc.getDisplayName();
         final int gen = ++queryRunGeneration;
         FxtGui.executorService.submit(() -> {
@@ -875,7 +875,7 @@ public final class EditorActions {
      * @param window unused (kept for the toolbar wiring's signature)
      */
     public void generateDocsActive(Window window) {
-        editorHost.openOrFocusToolTab("Documentation", "bi-file-earmark-text",
+        editorHost.openOrFocusToolTab(I18n.t("EditorActions.documentation"), "bi-file-earmark-text",
                 () -> new DocumentationView(editorHost));
     }
 
@@ -896,11 +896,12 @@ public final class EditorActions {
                 .distinct()
                 .toList();
         if (names.isEmpty()) {
-            alert(Alert.AlertType.INFORMATION, "Open Type Editor",
-                    "The active schema declares no named types.");
+            alert(Alert.AlertType.INFORMATION, I18n.t("EditorActions.open-type-editor"),
+                    I18n.t("EditorActions.the-active-schema-declares-no"));
             return;
         }
-        DialogHelper.choose("Open Type Editor", "Choose a named type to edit", "Type:", names.get(0), names)
+        DialogHelper.choose(I18n.t("EditorActions.open-type-editor"), I18n.t("EditorActions.choose-a-named-type-to"),
+                        I18n.t("EditorActions.type"), names.get(0), names)
                 .ifPresent(editorHost::openTypeEditorTab);
     }
 

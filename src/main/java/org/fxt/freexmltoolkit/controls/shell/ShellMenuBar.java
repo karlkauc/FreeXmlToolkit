@@ -577,7 +577,7 @@ public final class ShellMenuBar extends MenuBar {
                 if (error != null || info == null) {
                     DialogHelper.showWarning(I18n.t("ShellMenuBar.check-for-updates"), I18n.t("ShellMenuBar.could-not-check-for-updates"),
                             error != null && error.getMessage() != null ? error.getMessage()
-                                    : "The update service did not answer.");
+                                    : I18n.t("ShellMenuBar.the-update-service-did-not-answer"));
                 } else if (info.updateAvailable()) {
                     AboutDialog.showUpdateDialog(info);
                 } else {

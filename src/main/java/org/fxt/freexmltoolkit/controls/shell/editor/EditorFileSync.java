@@ -186,20 +186,16 @@ final class EditorFileSync {
         if (largeFileAnswer != null) {
             return largeFileAnswer.apply(path, tooLarge);
         }
-        String header = path.getFileName() + " is " + LargeFileGuard.formatSize(size);
+        String header = I18n.t("EditorFileSync.file-is-size", path.getFileName(), LargeFileGuard.formatSize(size));
         String content = tooLarge
-                ? "With the current memory limit of " + LargeFileGuard.formatSize(maxHeap) + ", the editor opens files "
-                        + "up to about " + LargeFileGuard.formatSize(LargeFileGuard.largestOpenable(maxHeap))
-                        + " (raise it under Settings > Memory).\n\nThe Large File Viewer shows files of any size, "
-                        + "read-only: scroll, go to line, find, copy."
-                : "In the editor, large files open slowly and make editing sluggish; syntax highlighting, validation "
-                        + "and the structured views may take a long time.\n\nThe Large File Viewer shows the file at once, "
-                        + "read-only: scroll, go to line, find, copy.";
+                ? I18n.t("EditorFileSync.large-file-too-large", LargeFileGuard.formatSize(maxHeap),
+                        LargeFileGuard.formatSize(LargeFileGuard.largestOpenable(maxHeap)))
+                : I18n.t("EditorFileSync.large-file-slow");
         javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
-                javafx.scene.control.Alert.AlertType.CONFIRMATION, "Open Large File", header, content);
-        javafx.scene.control.ButtonType viewer = new javafx.scene.control.ButtonType("Open in Viewer",
+                javafx.scene.control.Alert.AlertType.CONFIRMATION, I18n.t("EditorFileSync.open-large-file"), header, content);
+        javafx.scene.control.ButtonType viewer = new javafx.scene.control.ButtonType(I18n.t("EditorFileSync.open-in-viewer"),
                 javafx.scene.control.ButtonBar.ButtonData.YES);
-        javafx.scene.control.ButtonType editor = new javafx.scene.control.ButtonType("Open in Editor",
+        javafx.scene.control.ButtonType editor = new javafx.scene.control.ButtonType(I18n.t("EditorFileSync.open-in-editor"),
                 javafx.scene.control.ButtonBar.ButtonData.OTHER);
         javafx.scene.control.ButtonType cancel = javafx.scene.control.ButtonType.CANCEL;
         if (tooLarge) {
@@ -786,16 +782,16 @@ final class EditorFileSync {
         String names = documents.stream().map(OpenDocument::getDisplayName)
                 .collect(java.util.stream.Collectors.joining("\n"));
         javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
-                javafx.scene.control.Alert.AlertType.CONFIRMATION, "Unsaved Changes",
-                one ? "Save changes to " + documents.get(0).getDisplayName() + " before quitting?"
-                        : "Save changes to " + documents.size() + " documents before quitting?",
-                (one ? "" : names + "\n\n") + "Your changes will be lost if you don't save them.");
+                javafx.scene.control.Alert.AlertType.CONFIRMATION, I18n.t("EditorFileSync.unsaved-changes"),
+                one ? I18n.t("EditorFileSync.save-changes-to-before-quitting", documents.get(0).getDisplayName())
+                        : I18n.t("EditorFileSync.save-changes-to-documents-before-quitting", documents.size()),
+                (one ? "" : names + "\n\n") + I18n.t("EditorFileSync.your-changes-will-be-lost"));
         javafx.scene.control.ButtonType save = new javafx.scene.control.ButtonType(
-                one ? "Save" : "Save All", javafx.scene.control.ButtonBar.ButtonData.YES);
+                one ? I18n.t("EditorFileSync.save") : I18n.t("EditorFileSync.save-all"), javafx.scene.control.ButtonBar.ButtonData.YES);
         javafx.scene.control.ButtonType discard =
-                new javafx.scene.control.ButtonType("Don't Save", javafx.scene.control.ButtonBar.ButtonData.NO);
+                new javafx.scene.control.ButtonType(I18n.t("EditorFileSync.dont-save"), javafx.scene.control.ButtonBar.ButtonData.NO);
         javafx.scene.control.ButtonType cancel =
-                new javafx.scene.control.ButtonType("Cancel", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+                new javafx.scene.control.ButtonType(I18n.t("EditorFileSync.cancel"), javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
         alert.getButtonTypes().setAll(save, discard, cancel);
         if (host.getScene() != null && host.getScene().getWindow() != null) {
             alert.initOwner(host.getScene().getWindow());
@@ -813,15 +809,15 @@ final class EditorFileSync {
         }
         host.tabPane.getSelectionModel().select(tab);
         javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
-                javafx.scene.control.Alert.AlertType.CONFIRMATION, "Unsaved Changes",
-                "Save changes to " + tab.document.getDisplayName() + "?",
-                "Your changes will be lost if you don't save them.");
+                javafx.scene.control.Alert.AlertType.CONFIRMATION, I18n.t("EditorFileSync.unsaved-changes"),
+                I18n.t("EditorFileSync.save-changes-to", tab.document.getDisplayName()),
+                I18n.t("EditorFileSync.your-changes-will-be-lost"));
         javafx.scene.control.ButtonType save =
-                new javafx.scene.control.ButtonType("Save", javafx.scene.control.ButtonBar.ButtonData.YES);
+                new javafx.scene.control.ButtonType(I18n.t("EditorFileSync.save"), javafx.scene.control.ButtonBar.ButtonData.YES);
         javafx.scene.control.ButtonType discard =
-                new javafx.scene.control.ButtonType("Don't Save", javafx.scene.control.ButtonBar.ButtonData.NO);
+                new javafx.scene.control.ButtonType(I18n.t("EditorFileSync.dont-save"), javafx.scene.control.ButtonBar.ButtonData.NO);
         javafx.scene.control.ButtonType cancel =
-                new javafx.scene.control.ButtonType("Cancel", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+                new javafx.scene.control.ButtonType(I18n.t("EditorFileSync.cancel"), javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
         alert.getButtonTypes().setAll(save, discard, cancel);
 
         var choice = alert.showAndWait();
@@ -867,11 +863,11 @@ final class EditorFileSync {
             return normalized;
         }
         javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
-                javafx.scene.control.Alert.AlertType.CONFIRMATION, "Replace File",
-                normalized.getFileName() + " already exists.",
-                "Do you want to replace it?");
+                javafx.scene.control.Alert.AlertType.CONFIRMATION, I18n.t("EditorFileSync.replace-file"),
+                I18n.t("EditorFileSync.already-exists", normalized.getFileName()),
+                I18n.t("EditorFileSync.do-you-want-to-replace"));
         javafx.scene.control.ButtonType replace =
-                new javafx.scene.control.ButtonType("Replace", javafx.scene.control.ButtonBar.ButtonData.YES);
+                new javafx.scene.control.ButtonType(I18n.t("EditorFileSync.replace"), javafx.scene.control.ButtonBar.ButtonData.YES);
         alert.getButtonTypes().setAll(replace, javafx.scene.control.ButtonType.CANCEL);
         return alert.showAndWait().filter(replace::equals).isPresent() ? normalized : null;
     }

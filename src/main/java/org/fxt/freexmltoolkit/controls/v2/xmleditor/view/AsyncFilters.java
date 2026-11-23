@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -100,7 +101,7 @@ final class AsyncFilters {
                     // Failed without an edit meanwhile: not a race, so an error (else the rebuild
                     // below would start the same failing run again and again)
                     results.computeIfAbsent(context, c -> new HashMap<>()).put(expression, result != null
-                            ? result : new Cached(rev, doc, null, "The filter could not be evaluated"));
+                            ? result : new Cached(rev, doc, null, I18n.t("AsyncFilters.filter-not-evaluated")));
                 }
                 onReady.run();
             });

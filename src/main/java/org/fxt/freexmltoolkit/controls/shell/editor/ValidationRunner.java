@@ -277,7 +277,7 @@ public final class ValidationRunner {
             failure = org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(t);
             error = t;
             problems.add(new ValidationProblem(source, "error", 0,
-                    "Validation could not run: " + (t.getMessage() != null ? t.getMessage() : t.toString())));
+                    I18n.t("ValidationRunner.could-not-run", t.getMessage() != null ? t.getMessage() : t.toString())));
         }
         long xsdMillis = (System.nanoTime() - xsdStart) / 1_000_000;
         long schematronMillis = 0;
@@ -289,7 +289,7 @@ public final class ValidationRunner {
                     for (var issue : org.fxt.freexmltoolkit.service.standards.SchematronCompatibilityCheck.check(
                             java.nio.file.Files.readString(schematron.toPath()), std.schematron())) {
                         problems.add(new ValidationProblem("Schematron", "error", 0,
-                                schematron.getName() + " line " + issue.line() + ": " + issue.message()));
+                                I18n.t("ValidationRunner.schematron-line", schematron.getName(), String.valueOf(issue.line()), issue.message())));
                     }
                 }
                 SchematronService service = new SchematronServiceImpl();
@@ -328,7 +328,7 @@ public final class ValidationRunner {
                     error = e;
                 }
                 problems.add(new ValidationProblem("Schematron", "error", 0,
-                        "Schematron could not be run: " + (e.getMessage() != null ? e.getMessage() : e.toString())));
+                        I18n.t("ValidationRunner.schematron-could-not-run", e.getMessage() != null ? e.getMessage() : e.toString())));
             }
             schematronMillis = (System.nanoTime() - schematronStart) / 1_000_000;
         }

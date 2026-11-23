@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.inspector;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -42,9 +44,9 @@ public final class AppInfoFieldsEditor extends VBox {
             Set.of("@since", "@version", "@see", "@deprecated", "@markdown");
 
     /** The three states of the per-node Markdown preference. */
-    private static final String MARKDOWN_UNSET = "Not set";
-    private static final String MARKDOWN_ON = "Markdown";
-    private static final String MARKDOWN_OFF = "Plain text";
+    private static final String MARKDOWN_UNSET = I18n.t("AppInfoFieldsEditor.markdown-not-set");
+    private static final String MARKDOWN_ON = I18n.t("AppInfoFieldsEditor.markdown-on");
+    private static final String MARKDOWN_OFF = I18n.t("AppInfoFieldsEditor.markdown-plain-text");
 
     private final Supplier<XsdSchema> schemaSupplier;
     private final Consumer<XsdAppInfo> onCommit;
@@ -188,11 +190,9 @@ public final class AppInfoFieldsEditor extends VBox {
         if (deprecatedCheck.isSelected()) {
             result.setDeprecated(deprecatedArea.getText() == null ? "" : deprecatedArea.getText().trim());
         }
-        result.setMarkdown(switch (nullToEmpty(markdownChoice.getValue())) {
-            case MARKDOWN_ON -> Boolean.TRUE;
-            case MARKDOWN_OFF -> Boolean.FALSE;
-            default -> null;
-        });
+        String markdownValue = nullToEmpty(markdownChoice.getValue());
+        result.setMarkdown(MARKDOWN_ON.equals(markdownValue) ? Boolean.TRUE
+                : MARKDOWN_OFF.equals(markdownValue) ? Boolean.FALSE : null);
         if (examplesChanged) {
             result.setExampleValues(examples);
         }
@@ -208,9 +208,9 @@ public final class AppInfoFieldsEditor extends VBox {
     @FXML
     public void onAddSee() {
         TextInputDialog dialog = DialogHelper.createTextInputDialog("");
-        dialog.setTitle("Add @see Reference");
-        dialog.setHeaderText("Enter a reference (use {@link /XPath} for a link)");
-        dialog.setContentText("Reference:");
+        dialog.setTitle(I18n.t("AppInfoFieldsEditor.add-see-reference"));
+        dialog.setHeaderText(I18n.t("AppInfoFieldsEditor.enter-a-reference"));
+        dialog.setContentText(I18n.t("AppInfoFieldsEditor.reference"));
         TextField editor = dialog.getEditor();
         editor.textProperty().addListener((o, ov, nv) -> {
             if (nv != null && LinkAutocompletePopup.isLinkTrigger(nv)) {
@@ -237,9 +237,9 @@ public final class AppInfoFieldsEditor extends VBox {
     @FXML
     public void onAddExample() {
         TextInputDialog dialog = DialogHelper.createTextInputDialog("");
-        dialog.setTitle("Add Example Value");
-        dialog.setHeaderText("Enter a sample value for this element/attribute");
-        dialog.setContentText("Value:");
+        dialog.setTitle(I18n.t("AppInfoFieldsEditor.add-example-value"));
+        dialog.setHeaderText(I18n.t("AppInfoFieldsEditor.enter-a-sample-value"));
+        dialog.setContentText(I18n.t("AppInfoFieldsEditor.value"));
         dialog.showAndWait().ifPresent(value -> {
             if (!value.isBlank()) {
                 exampleItems.add(value.trim());

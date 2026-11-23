@@ -822,7 +822,7 @@ public class ExplorerPanel extends VBox {
         java.util.List<MenuItem> items = new java.util.ArrayList<>();
 
         File xslt = currentStylesheet();
-        MenuItem transform = menuItem(xslt != null ? "Transform with " + xslt.getName() : "Transform with XSLT…",
+        MenuItem transform = menuItem(xslt != null ? I18n.t("ExplorerPanel.transform-with", xslt.getName()) : I18n.t("ExplorerPanel.transform-with-xslt"),
                 this::runTransformOnSelection);
         transform.setId("explorer-ctx-transform");
         transform.setGraphic(org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(icon("bi-arrow-repeat", 16),
@@ -850,8 +850,8 @@ public class ExplorerPanel extends VBox {
         otherXslt.setDisable(!hasXml);
 
         File schematron = currentSchematronFile();
-        MenuItem validate = menuItem(schematron != null ? "Validate with " + schematron.getName()
-                : "Validate with Schematron…", this::runValidationOnSelection);
+        MenuItem validate = menuItem(schematron != null ? I18n.t("ExplorerPanel.validate-with", schematron.getName())
+                : I18n.t("ExplorerPanel.validate-with-schematron"), this::runValidationOnSelection);
         validate.setId("explorer-ctx-validate");
         validate.setGraphic(org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(icon("bi-ui-checks-grid", 16),
                 org.fxt.freexmltoolkit.controls.theme.ActionColor.CREATE));
@@ -992,7 +992,7 @@ public class ExplorerPanel extends VBox {
         if (!menu.getItems().isEmpty()) {
             menu.getItems().add(new javafx.scene.control.SeparatorMenuItem());
         }
-        menu.getItems().add(FavoritesMenu.submenu("Favorites",
+        menu.getItems().add(FavoritesMenu.submenu(I18n.t("ExplorerPanel.favorites.text"),
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.SCHEMATRON, file -> {
                     pickSchematron(file);
                     runValidationOnSelection();
@@ -1059,7 +1059,7 @@ public class ExplorerPanel extends VBox {
         workspace.setRootFolder(folder);
         Path name = folder != null ? folder.getFileName() : null;
         workspaceTitle.setText(name != null
-                ? name.toString().toUpperCase(java.util.Locale.ROOT) : "WORKSPACE");
+                ? name.toString().toUpperCase(java.util.Locale.ROOT) : I18n.t("ExplorerPanel.workspace"));
     }
 
     /**
@@ -1217,7 +1217,7 @@ public class ExplorerPanel extends VBox {
                 getStyleClass().add("fxt-explorer-missing");
             }
             setTooltip(new javafx.scene.control.Tooltip(
-                    (missing ? "File not found: " : "") + item.getFilePath()));
+                    missing ? I18n.t("ExplorerPanel.file-not-found", item.getFilePath()) : String.valueOf(item.getFilePath())));
         }
     }
 

@@ -71,7 +71,8 @@ public class XPathSearchPane extends VBox {
     @FXML private SearchResultsTree resultsTree;
 
     private static final String[] MODE_LABELS = {
-            "Set value", "Compute value (XPath)", "Delete nodes", "Replace with XML"};
+            I18n.t("XPathSearchPane.mode-set-value"), I18n.t("XPathSearchPane.mode-compute-value"),
+            I18n.t("XPathSearchPane.mode-delete-nodes"), I18n.t("XPathSearchPane.mode-replace-with-xml")};
     private static final ReplaceMode[] MODES = {
             ReplaceMode.SET_VALUE, ReplaceMode.COMPUTE_VALUE,
             ReplaceMode.DELETE, ReplaceMode.REPLACE_FRAGMENT};
@@ -123,7 +124,7 @@ public class XPathSearchPane extends VBox {
         modeChoice.getSelectionModel().selectedIndexProperty().addListener(
                 (obs, oldV, newV) -> refreshArgumentPrompt(newV.intValue()));
         refreshArgumentPrompt(0);
-        resultsTree.setEmptyHint("Results appear here. Enter an XPath expression above to find matching nodes in all XML files of the folder.");
+        resultsTree.setEmptyHint(I18n.t("XPathSearchPane.results-appear-here"));
         resultsTree.setOnNavigate(this::navigateTo);
         refreshFolderLabel();
     }
@@ -139,9 +140,9 @@ public class XPathSearchPane extends VBox {
         argumentArea.setVisible(!delete);
         argumentArea.setManaged(!delete);
         argumentArea.setPromptText(switch (MODES[modeIndex]) {
-            case SET_VALUE -> "New value (literal text)";
-            case COMPUTE_VALUE -> "Value expression per match, e.g. concat(., '-suffix')";
-            case REPLACE_FRAGMENT -> "XML fragment, e.g. <NewElement>…</NewElement>";
+            case SET_VALUE -> I18n.t("XPathSearchPane.new-value-literal-text");
+            case COMPUTE_VALUE -> I18n.t("XPathSearchPane.value-expression-per-match");
+            case REPLACE_FRAGMENT -> I18n.t("XPathSearchPane.xml-fragment-prompt");
             case DELETE -> "";
         });
     }
@@ -178,7 +179,7 @@ public class XPathSearchPane extends VBox {
         namespaces.forEach((prefix, uri) -> sb.append(prefix).append('=').append(uri).append('\n'));
         nsArea.setText(sb.toString().stripTrailing());
         savePref("search.xpath.namespaces", nsArea.getText());
-        PanelStatus.success(status, namespaces.size() + " namespace binding(s) detected");
+        PanelStatus.success(status, I18n.t("XPathSearchPane.namespace-bindings-detected", String.valueOf(namespaces.size())));
     }
 
     @FXML
@@ -205,8 +206,8 @@ public class XPathSearchPane extends VBox {
 
     private void refreshFolderLabel() {
         Path folder = effectiveFolder();
-        folderLabel.setText(folder != null ? String.valueOf(folder.getFileName()) : "No folder — choose one");
-        folderLabel.setTooltip(new Tooltip(folder != null ? folder.toString() : "Choose the folder to search"));
+        folderLabel.setText(folder != null ? String.valueOf(folder.getFileName()) : I18n.t("XPathSearchPane.folderLabel.text"));
+        folderLabel.setTooltip(new Tooltip(folder != null ? folder.toString() : I18n.t("XPathSearchPane.choose-the-folder-to-search")));
         folderLabel.setTextOverrun(javafx.scene.control.OverrunStyle.CENTER_ELLIPSIS);
     }
 
@@ -306,8 +307,9 @@ public class XPathSearchPane extends VBox {
                         .map(d -> d.getDisplayName()).orElse("untitled.xml"));
         resultsTree.setResults(List.of(toEntry(display, null, matches)));
         long located = matches.stream().filter(NodeMatch::located).count();
-        PanelStatus.success(status, located + " match(es)"
-                + (located < matches.size() ? " (" + (matches.size() - located) + " not locatable)" : ""));
+        PanelStatus.success(status, I18n.t("XPathSearchPane.matches", String.valueOf(located))
+                + (located < matches.size() ? " (" + I18n.t("XPathSearchPane.not-locatable",
+                        String.valueOf(matches.size() - located)) + ")" : ""));
         Map<Integer, Integer> ranges = new HashMap<>();
         for (NodeMatch match : matches) {
             if (match.located()) {
@@ -333,13 +335,13 @@ public class XPathSearchPane extends VBox {
             }
         }
         resultsTree.setResults(entries);
-        String summary = total + " match(es) in "
-                + results.stream().filter(r -> r.error() == null).count() + " file(s)";
+        String summary = I18n.t("XPathSearchPane.matches-in-files", String.valueOf(total),
+                String.valueOf(results.stream().filter(r -> r.error() == null).count()));
         if (errors > 0) {
-            summary += " (" + errors + " file(s) failed)";
+            summary += " (" + I18n.t("XPathSearchPane.files-failed", String.valueOf(errors)) + ")";
         }
         if (wasCancelled) {
-            summary += " — cancelled";
+            summary += " — " + I18n.t("XPathSearchPane.cancelled");
         }
         if (total == 0 && errors == 0) {
             PanelStatus.info(status, I18n.t("XPathSearchPane.no-matches"));
@@ -360,7 +362,7 @@ public class XPathSearchPane extends VBox {
                     match.span().start(), match.span().end(), match.matchedText(), match));
         }
         String note = unlocated > 0
-                ? unlocated + " match(es) could not be located in the text and are excluded"
+                ? I18n.t("XPathSearchPane.matches-not-located", String.valueOf(unlocated))
                 : null;
         return new SearchResultsTree.FileEntry(file, error, false, note, rows);
     }
@@ -412,10 +414,10 @@ public class XPathSearchPane extends VBox {
         }
         Alert confirm = DialogHelper.createAlert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle(I18n.t("XPathSearchPane.xpath-replace"));
-        confirm.setHeaderText(modeChoice.getValue() + ": " + checked.size() + " match(es)");
+        confirm.setHeaderText(I18n.t("XPathSearchPane.mode-matches", modeChoice.getValue(), String.valueOf(checked.size())));
         confirm.setContentText(docSnapshot != null
-                ? "The active document is edited in place — one Ctrl+Z undoes everything."
-                : "Open files are edited in the editor; the rest are written to disk.");
+                ? I18n.t("XPathSearchPane.the-active-document-is-edited")
+                : I18n.t("XPathSearchPane.open-files-are-edited"));
         if (confirm.showAndWait().filter(bt -> bt == ButtonType.OK).isEmpty()) {
             return;
         }
@@ -447,9 +449,9 @@ public class XPathSearchPane extends VBox {
             resultsTree.clearResults();
             editorHost.clearActiveSearchHighlights();
             docSnapshot = null;
-            String summary = "Replaced " + result.plan().edits().size() + " match(es) — Ctrl+Z undoes";
+            String summary = I18n.t("XPathSearchPane.replaced-matches-undo", String.valueOf(result.plan().edits().size()));
             if (result.subsumed() > 0) {
-                summary += " (" + result.subsumed() + " nested match(es) covered by their ancestor)";
+                summary += " (" + I18n.t("XPathSearchPane.nested-matches-covered", String.valueOf(result.subsumed())) + ")";
             }
             PanelStatus.success(status, summary);
             org.fxt.freexmltoolkit.service.telemetry.UsageEvents.replaced("xpath", "document",
@@ -515,7 +517,7 @@ public class XPathSearchPane extends VBox {
                     String current = editorHost.getOpenDocumentText(apply.file()).orElse(null);
                     if (current == null || !current.equals(apply.result().baseText())) {
                         outcomes.add(new ReplaceOutcome(apply.file(), 0, true,
-                                "Document changed while replacing — skipped"));
+                                I18n.t("XPathSearchPane.document-changed-skipped")));
                         continue;
                     }
                     String merged = apply.plan().mergedRegion(apply.result().baseText());
@@ -523,7 +525,7 @@ public class XPathSearchPane extends VBox {
                             apply.plan().minStart(), apply.plan().maxEnd(), merged);
                     outcomes.add(new ReplaceOutcome(apply.file(),
                             ok ? apply.plan().edits().size() : 0, true,
-                            ok ? null : "Editor tab no longer open — skipped"));
+                            ok ? null : I18n.t("XPathSearchPane.editor-tab-closed-skipped")));
                 }
                 progress.finish();
                 resultsTree.clearResults();

@@ -125,7 +125,7 @@ public class ValidationPanel extends VBox {
         // loaded into the editor behind it (pick*).
         schematronFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.SCHEMATRON,
-                "Schematron favorites", this::pickSchematron);
+                I18n.t("ValidationPanel.schematronFavorites"), this::pickSchematron);
         schematronRow.addExtras(schematronFavoritesMenu);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(schematronRow,
                 org.fxt.freexmltoolkit.service.DragDropService.SCHEMATRON_EXTENSIONS, this::pickSchematron);
@@ -133,7 +133,7 @@ public class ValidationPanel extends VBox {
         // schemas and data documents are indistinguishable there.
         jsonSchemaFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.JSON,
-                "JSON Schema favorites", this::pickJsonSchema);
+                I18n.t("ValidationPanel.jsonSchemaFavorites"), this::pickJsonSchema);
         jsonSchemaRow.addExtras(jsonSchemaFavoritesMenu);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(jsonSchemaRow,
                 org.fxt.freexmltoolkit.service.DragDropService.JSON_SCHEMA_EXTENSIONS, this::pickJsonSchema);
@@ -247,7 +247,7 @@ public class ValidationPanel extends VBox {
         problemsJump.getStyleClass().add("fxt-vp-problems-jump");
         Runnable syncJump = () -> {
             boolean show = !isBatchMode() && !problems.isEmpty();
-            problemsJump.setText(EditorActions.problemCount(problems.size()) + " — show below the editor");
+            problemsJump.setText(I18n.t("ValidationPanel.show-below", EditorActions.problemCount(problems.size())));
             problemsJump.setVisible(show);
             problemsJump.setManaged(show);
         };
@@ -402,7 +402,7 @@ public class ValidationPanel extends VBox {
         if (editorHost.getActiveDocument().isEmpty()) {
             PanelStatus.precondition(status, I18n.t("ValidationPanel.no-document-open"));
             setProblems(List.of());
-            editorHost.setValidationStatus(EditorHost.ValidationState.NOT_VALIDATED, 0, "Not validated");
+            editorHost.setValidationStatus(EditorHost.ValidationState.NOT_VALIDATED, 0, I18n.t("ValidationPanel.status.text"));
             return;
         }
         // Re-check the type at run time: the debounce timer may fire after the user
@@ -412,7 +412,7 @@ public class ValidationPanel extends VBox {
         if (!validatable) {
             PanelStatus.precondition(status, I18n.t("ValidationPanel.not-a-validatable-document-type"));
             setProblems(List.of());
-            editorHost.setValidationStatus(EditorHost.ValidationState.NOT_VALIDATED, 0, "Not validated");
+            editorHost.setValidationStatus(EditorHost.ValidationState.NOT_VALIDATED, 0, I18n.t("ValidationPanel.status.text"));
             return;
         }
         EditorHost.ValidationTarget runTarget = editorHost.validationTarget();
@@ -435,7 +435,7 @@ public class ValidationPanel extends VBox {
             // Nothing to validate (e.g. a document still loading) — avoid parsing empty text.
             PanelStatus.precondition(status, I18n.t("ValidationPanel.empty-document"));
             setProblems(List.of());
-            editorHost.setValidationStatus(EditorHost.ValidationState.NOT_VALIDATED, 0, "Not validated");
+            editorHost.setValidationStatus(EditorHost.ValidationState.NOT_VALIDATED, 0, I18n.t("ValidationPanel.status.text"));
             return;
         }
         boolean json = isJsonActive();
@@ -482,7 +482,7 @@ public class ValidationPanel extends VBox {
                 Platform.runLater(() -> {
                     boolean hasSchema = json ? schema != null : (schema != null || schematron != null);
                     String summary = (result.isEmpty()
-                            ? (hasSchema ? "Valid" : EditorActions.WELL_FORMED_NO_SCHEMA)
+                            ? (hasSchema ? I18n.t("ValidationPanel.valid") : EditorActions.WELL_FORMED_NO_SCHEMA)
                             : EditorActions.problemCount(result.size()))
                             + (showStats ? " · " + elapsedMs + " ms" : "");
                     var state = result.isEmpty() ? EditorHost.ValidationState.VALID : EditorHost.ValidationState.INVALID;
@@ -786,14 +786,14 @@ public class ValidationPanel extends VBox {
         batchReportMissing.set(false);
         long failed = batchFailedCount();
         resultsHeaderLabel.setText(failed > 0
-                ? "RESULTS · " + failed + " OF " + results.size() + " FAILED"
-                : "RESULTS · " + results.size() + " OK");
+                ? I18n.t("ValidationPanel.results-failed", String.valueOf(failed), String.valueOf(results.size()))
+                : I18n.t("ValidationPanel.results-ok", String.valueOf(results.size())));
         batchList.setVisible(!results.isEmpty());
         batchList.setManaged(!results.isEmpty());
         if (failed > 0) {
-            PanelStatus.info(status, failed + " of " + results.size() + " file(s) failed");
+            PanelStatus.info(status, I18n.t("ValidationPanel.batch-failed", String.valueOf(failed), String.valueOf(results.size())));
         } else {
-            PanelStatus.success(status, results.size() + " file(s) valid");
+            PanelStatus.success(status, I18n.t("ValidationPanel.batch-valid", String.valueOf(results.size())));
         }
     }
 
@@ -954,7 +954,7 @@ public class ValidationPanel extends VBox {
     /** Shows a bound file whose name opens it in the editor (path + hint as tooltip). */
     private static void showOpenableSource(SourceRow row, File file) {
         row.showName(file != null ? file.getName() : null,
-                file != null ? file.getAbsolutePath() + "\nClick to open in the editor" : null);
+                file != null ? file.getAbsolutePath() + "\n" + I18n.t("ValidationPanel.click-to-open") : null);
     }
 
     @FXML
@@ -1043,7 +1043,7 @@ public class ValidationPanel extends VBox {
                 .orElse(null);
         FileChooser chooser = new FileChooser();
         chooser.setTitle(I18n.t("ValidationPanel.export-problems-to-excel"));
-        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Workbook", "*.xlsx"));
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(I18n.t("ValidationPanel.excel-workbook"), "*.xlsx"));
         chooser.setInitialFileName((sourceName != null ? stripExtension(sourceName) : "validation") + "-problems.xlsx");
         File target = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (target == null) {
@@ -1141,7 +1141,7 @@ public class ValidationPanel extends VBox {
                 setContextMenu(null);
                 return;
             }
-            String line = item.line() > 0 ? "Ln " + item.line() + ": " : "";
+            String line = item.line() > 0 ? I18n.t("ValidationPanel.line-prefix", String.valueOf(item.line())) + " " : "";
             setText("[" + item.source() + "] " + line + item.message());
             setGraphic(ProblemsPanel.levelIcon(item.level(), 13));
             javafx.scene.control.ContextMenu menu = new javafx.scene.control.ContextMenu();

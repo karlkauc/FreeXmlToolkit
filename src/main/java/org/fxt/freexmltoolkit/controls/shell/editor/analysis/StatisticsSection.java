@@ -166,7 +166,8 @@ final class StatisticsSection extends VBox {
                     boolean derivation = item.startsWith(DERIVATION_PREFIX);
                     setText(item.substring(item.indexOf(' ') + 1));
                     setGraphic(AnalysisSupport.icon(derivation ? "bi-x-circle-fill" : "bi-arrow-repeat", 14));
-                    setTooltip(new Tooltip(derivation ? "Type derivation cycle — invalid schema" : "Recursive content model (legal)"));
+                    setTooltip(new Tooltip(derivation ? I18n.t("StatisticsSection.type-derivation-cycle")
+                            : I18n.t("StatisticsSection.recursive-content-model")));
                 }
             }
         });
@@ -215,34 +216,34 @@ final class StatisticsSection extends VBox {
         }
 
         kpis.getChildren().setAll(
-                kpi("Elements", s.getElementCount(), "bi-box"),
-                kpi("Attributes", s.getAttributeCount(), "bi-at"),
-                kpi("Complex types", s.getComplexTypeCount(), "bi-diagram-3"),
-                kpi("Simple types", s.getSimpleTypeCount(), "bi-braces"),
-                kpi("Groups", s.getGroupCount(), "bi-collection"),
-                kpi("Attribute groups", s.getAttributeGroupCount(), "bi-tags"));
+                kpi(I18n.t("StatisticsSection.elements"), s.getElementCount(), "bi-box"),
+                kpi(I18n.t("StatisticsSection.attributes"), s.getAttributeCount(), "bi-at"),
+                kpi(I18n.t("StatisticsSection.complex-types"), s.getComplexTypeCount(), "bi-diagram-3"),
+                kpi(I18n.t("StatisticsSection.simple-types"), s.getSimpleTypeCount(), "bi-braces"),
+                kpi(I18n.t("StatisticsSection.groups"), s.getGroupCount(), "bi-collection"),
+                kpi(I18n.t("StatisticsSection.attribute-groups"), s.getAttributeGroupCount(), "bi-tags"));
 
         List<Node> cardList = new ArrayList<>();
-        cardList.add(card("Schema", "bi-file-earmark-code", null, rows(
-                row("XSD version", s.isXsd11() ? "1.1" : "1.0"),
+        cardList.add(card(I18n.t("StatisticsSection.schema"), "bi-file-earmark-code", null, rows(
+                row(I18n.t("StatisticsSection.xsd-version"), s.isXsd11() ? "1.1" : "1.0"),
                 namespaceRow(s.targetNamespace()),
                 row("elementFormDefault", s.elementFormDefault()),
                 row("attributeFormDefault", s.attributeFormDefault()),
-                row("Namespaces", s.namespaceCount()),
-                row("Total nodes", s.totalNodeCount()))));
+                row(I18n.t("StatisticsSection.namespaces"), s.namespaceCount()),
+                row(I18n.t("StatisticsSection.total-nodes"), s.totalNodeCount()))));
         cardList.add(filesCard(s));
-        cardList.add(card("Constraints", "bi-key", null, rows(
-                row("Keys", s.getNodeCount(XsdNodeType.KEY)),
-                row("Key references", s.getNodeCount(XsdNodeType.KEYREF)),
-                row("Unique", s.getNodeCount(XsdNodeType.UNIQUE)),
-                row("Assertions", s.getNodeCount(XsdNodeType.ASSERT)))));
-        cardList.add(card("Documentation", "bi-bookmark",
+        cardList.add(card(I18n.t("StatisticsSection.constraints"), "bi-key", null, rows(
+                row(I18n.t("StatisticsSection.keys"), s.getNodeCount(XsdNodeType.KEY)),
+                row(I18n.t("StatisticsSection.key-references"), s.getNodeCount(XsdNodeType.KEYREF)),
+                row(I18n.t("StatisticsSection.unique"), s.getNodeCount(XsdNodeType.UNIQUE)),
+                row(I18n.t("StatisticsSection.assertions"), s.getNodeCount(XsdNodeType.ASSERT)))));
+        cardList.add(card(I18n.t("StatisticsSection.documentation"), "bi-bookmark",
                 coverageBar(s.documentationCoveragePercent()), documentationRows(s)));
-        cardList.add(card("Cardinality", "bi-layers",
+        cardList.add(card(I18n.t("StatisticsSection.cardinality"), "bi-layers",
                 cardinalityBar(s.optionalElements(), s.requiredElements()), rows(
-                        row("Optional elements", s.optionalElements()),
-                        row("Required elements", s.requiredElements()),
-                        row("Unbounded elements", s.unboundedElements()))));
+                        row(I18n.t("StatisticsSection.optional-elements"), s.optionalElements()),
+                        row(I18n.t("StatisticsSection.required-elements"), s.requiredElements()),
+                        row(I18n.t("StatisticsSection.unbounded-elements"), s.unboundedElements()))));
         cardList.add(complexityCard(s.complexity()));
         cardList.add(facetsCard(s.complexity()));
         layoutCards(cardList);
@@ -250,7 +251,7 @@ final class StatisticsSection extends VBox {
         List<XsdSchemaReferenceInfo> refs = s.schemaReferences() == null ? List.of() : s.schemaReferences();
         references.getItems().setAll(refs);
         referencesBox.setVisible(!refs.isEmpty());
-        referencesTitle.setText(I18n.t("StatisticsSection.schema-references", refs.size(), (s.unresolvedReferencesCount() > 0 ? " · " + s.unresolvedReferencesCount() + " unresolved" : "")));
+        referencesTitle.setText(I18n.t("StatisticsSection.schema-references", refs.size(), (s.unresolvedReferencesCount() > 0 ? " · " + I18n.t("StatisticsSection.n-unresolved", s.unresolvedReferencesCount()) : "")));
 
         XsdStatistics.ComponentUsage usage = s.componentUsage();
         List<String> groups = new ArrayList<>(usage.unusedGroups());
@@ -265,7 +266,7 @@ final class StatisticsSection extends VBox {
             cycleItems.add(CONTAINMENT_PREFIX + chain(cycle));
         }
         cycles.getItems().setAll(cycleItems);
-        cyclesTitle.setText(I18n.t("StatisticsSection.circular-references", cycleItems.size(), (usage.derivationCycles().isEmpty() ? "" : " · " + usage.derivationCycles().size() + " derivation error(s)")));
+        cyclesTitle.setText(I18n.t("StatisticsSection.circular-references", cycleItems.size(), (usage.derivationCycles().isEmpty() ? "" : " · " + I18n.t("StatisticsSection.n-derivation-errors", usage.derivationCycles().size()))));
 
         List<XsdStatistics.TypeUsageEntry> top = s.topUsedTypes() == null ? List.of() : s.topUsedTypes();
         maxUsage = Math.max(1, top.stream().mapToInt(XsdStatistics.TypeUsageEntry::usageCount).max().orElse(1));
@@ -302,52 +303,52 @@ final class StatisticsSection extends VBox {
 
     private static List<Row> documentationRows(XsdStatistics s) {
         List<Row> rows = new ArrayList<>(rows(
-                row("Documented nodes", s.nodesWithDocumentation()),
-                row("Nodes with appinfo", s.nodesWithAppInfo()),
-                row("Languages", s.documentationLanguages() == null || s.documentationLanguages().isEmpty()
-                        ? "(none)" : String.join(", ", s.documentationLanguages().stream().sorted().toList()))));
+                row(I18n.t("StatisticsSection.documented-nodes"), s.nodesWithDocumentation()),
+                row(I18n.t("StatisticsSection.nodes-with-appinfo"), s.nodesWithAppInfo()),
+                row(I18n.t("StatisticsSection.languages"), s.documentationLanguages() == null || s.documentationLanguages().isEmpty()
+                        ? I18n.t("StatisticsSection.none") : String.join(", ", s.documentationLanguages().stream().sorted().toList()))));
         if (s.appInfoTagCounts() != null) {
             s.appInfoTagCounts().entrySet().stream()
                     .sorted(Map.Entry.<String, Integer>comparingByValue().reversed().thenComparing(Map.Entry.comparingByKey()))
                     .limit(5)
-                    .forEach(e -> rows.add(row(e.getKey() + " tags", e.getValue())));
+                    .forEach(e -> rows.add(row(I18n.t("StatisticsSection.tags", e.getKey()), e.getValue())));
         }
         return rows;
     }
 
     private static VBox complexityCard(XsdStatistics.ComplexityMetrics c) {
-        Row depth = row("Max element nesting", c.maxElementNestingDepth());
+        Row depth = row(I18n.t("StatisticsSection.max-element-nesting"), c.maxElementNestingDepth());
         if (c.deepestElementXPath() != null) {
             depth.value().setTooltip(new Tooltip(c.deepestElementXPath()));
         }
-        Row widest = row("Max declarations per type", c.maxChildrenPerComplexType());
+        Row widest = row(I18n.t("StatisticsSection.max-declarations-per-type"), c.maxChildrenPerComplexType());
         if (c.widestComplexType() != null) {
             widest.value().setTooltip(new Tooltip(c.widestComplexType()));
         }
-        return card("Complexity", "bi-speedometer2", null, rows(
+        return card(I18n.t("StatisticsSection.complexity"), "bi-speedometer2", null, rows(
                 depth,
-                row("Max derivation depth", c.maxTypeDerivationDepth()),
+                row(I18n.t("StatisticsSection.max-derivation-depth"), c.maxTypeDerivationDepth()),
                 widest,
-                row("Avg declarations per type", String.format(Locale.ROOT, "%.1f", c.avgChildrenPerComplexType())),
-                row("Abstract types / elements", c.abstractTypes() + " / " + c.abstractElements()),
-                row("Substitution heads / members", c.substitutionGroupHeads() + " / " + c.substitutionGroupMembers()),
-                row("Anonymous complex / simple", c.anonymousComplexTypes() + " / " + c.anonymousSimpleTypes()),
-                row("Mixed content types", c.mixedContentTypes()),
-                row("Extensions / restrictions", c.extensions() + " / " + c.restrictions()),
-                row("XSD 1.1 features", c.xsd11Features())));
+                row(I18n.t("StatisticsSection.avg-declarations-per-type"), String.format(Locale.ROOT, "%.1f", c.avgChildrenPerComplexType())),
+                row(I18n.t("StatisticsSection.abstract-types-elements"), c.abstractTypes() + " / " + c.abstractElements()),
+                row(I18n.t("StatisticsSection.substitution-heads-members"), c.substitutionGroupHeads() + " / " + c.substitutionGroupMembers()),
+                row(I18n.t("StatisticsSection.anonymous-complex-simple"), c.anonymousComplexTypes() + " / " + c.anonymousSimpleTypes()),
+                row(I18n.t("StatisticsSection.mixed-content-types"), c.mixedContentTypes()),
+                row(I18n.t("StatisticsSection.extensions-restrictions"), c.extensions() + " / " + c.restrictions()),
+                row(I18n.t("StatisticsSection.xsd-1-1-features"), c.xsd11Features())));
     }
 
     private static VBox facetsCard(XsdStatistics.ComplexityMetrics c) {
         List<Row> rows = new ArrayList<>();
-        rows.add(row("Facets", c.totalFacets()));
-        rows.add(row("Enumeration values", c.enumerationValues()));
+        rows.add(row(I18n.t("StatisticsSection.facets"), c.totalFacets()));
+        rows.add(row(I18n.t("StatisticsSection.enumeration-values"), c.enumerationValues()));
         for (XsdFacetType type : XsdFacetType.values()) {
             int count = c.facetCounts().getOrDefault(type, 0);
             if (count > 0) {
                 rows.add(row(AnalysisSupport.titleCase(type), count));
             }
         }
-        return card("Facets", "bi-sliders", null, rows);
+        return card(I18n.t("StatisticsSection.facets"), "bi-sliders", null, rows);
     }
 
     private void configureReferenceStatusColumn() {
@@ -412,7 +413,7 @@ final class StatisticsSection extends VBox {
 
     private static Row namespaceRow(String namespace) {
         boolean none = namespace == null || namespace.isBlank();
-        Row r = row("Target namespace", none ? "(none)" : namespace);
+        Row r = row(I18n.t("StatisticsSection.target-namespace"), none ? I18n.t("StatisticsSection.none") : namespace);
         if (!none) {
             r.value().getStyleClass().add("fxt-analysis-value-mono");
             r.value().setTooltip(new Tooltip(namespace));
@@ -456,9 +457,9 @@ final class StatisticsSection extends VBox {
     /** Schema files, includes / imports, unresolved references and (for multi-file schemas) nodes per file. */
     private static VBox filesCard(XsdStatistics s) {
         List<Row> rows = new ArrayList<>(rows(
-                row("Schema files", s.fileCount()),
-                row("Includes / imports", s.getIncludeCount() + " / " + s.getImportCount()),
-                row("Unresolved references", s.unresolvedReferencesCount())));
+                row(I18n.t("StatisticsSection.schema-files"), s.fileCount()),
+                row(I18n.t("StatisticsSection.includes-imports"), s.getIncludeCount() + " / " + s.getImportCount()),
+                row(I18n.t("StatisticsSection.unresolved-references"), s.unresolvedReferencesCount())));
         Map<Path, Map<XsdNodeType, Integer>> countsByFile = s.nodeCountsByFile();
         if (countsByFile != null && countsByFile.size() > 1) {
             countsByFile.entrySet().stream()
@@ -470,7 +471,7 @@ final class StatisticsSection extends VBox {
             rows.get(3).key().getStyleClass().add("fxt-analysis-key-section");
             rows.get(3).value().getStyleClass().add("fxt-analysis-key-section");
         }
-        return card("Files", "bi-files", null, rows);
+        return card(I18n.t("StatisticsSection.files"), "bi-files", null, rows);
     }
 
     private void layoutCards(List<Node> cardList) {
@@ -529,8 +530,8 @@ final class StatisticsSection extends VBox {
         track.setMaxWidth(Double.MAX_VALUE);
         optionalSeg.prefWidthProperty().bind(track.widthProperty().multiply((double) optional / total));
         requiredSeg.prefWidthProperty().bind(track.widthProperty().multiply((double) required / total));
-        Label legendOptional = legend("Optional " + percent(optional, total), "fxt-analysis-seg-optional");
-        Label legendRequired = legend("Required " + percent(required, total), "fxt-analysis-seg-required");
+        Label legendOptional = legend(I18n.t("StatisticsSection.optional-percent", percent(optional, total)), "fxt-analysis-seg-optional");
+        Label legendRequired = legend(I18n.t("StatisticsSection.required-percent", percent(required, total)), "fxt-analysis-seg-required");
         HBox legend = new HBox(12, legendOptional, legendRequired);
         legend.setAlignment(Pos.CENTER_LEFT);
         return new VBox(4, legend, track);

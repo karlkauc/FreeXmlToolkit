@@ -96,7 +96,7 @@ final class AssertionsPane extends VBox {
             assertTable.refresh();
             return;
         }
-        overview.run("Edit Assertion", AssertCommands.checkTest(test), new AssertCommands.Edit(target, test, namespace));
+        overview.run(I18n.t("AssertionsPane.edit-assertion"), AssertCommands.checkTest(test), new AssertCommands.Edit(target, test, namespace));
     }
 
     @FXML
@@ -105,7 +105,7 @@ final class AssertionsPane extends VBox {
             return;
         }
         AssertCommands.Add command = new AssertCommands.Add(owner, "true()", null);
-        if (overview.run("Add Assertion", null, command)) {
+        if (overview.run(I18n.t("AssertionsPane.add-assertion"), null, command)) {
             assertTable.getSelectionModel().select(command.getCreated());
             assertTable.edit(assertTable.getItems().indexOf(command.getCreated()), testColumn);
         }
@@ -115,7 +115,7 @@ final class AssertionsPane extends VBox {
     public void onDelete() {
         XsdAssert selected = assertTable.getSelectionModel().getSelectedItem();
         if (selected != null && editable) {
-            overview.run("Delete Assertion", null, new DeleteNodeCommand(selected));
+            overview.run(I18n.t("AssertionsPane.delete-assertion"), null, new DeleteNodeCommand(selected));
         }
     }
 

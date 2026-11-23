@@ -50,7 +50,7 @@ public final class NodeContextMenu {
                 node -> NewNodeDialog.askElement(null, node, schema, "NewElement")
                         .ifPresent(spec -> actions.addElement(node, spec)));
         MenuItem addContainer = item(I18n.t("NodeContextMenu.add-container-element"), "bi-node-plus", ActionColor.CREATE, currentNode,
-                node -> promptName(actions::addContainerElement, node, "Add Container Element", "NewContainer"));
+                node -> promptName(actions::addContainerElement, node, I18n.t("NodeContextMenu.add-container-element-title"), "NewContainer"));
         MenuItem addAttribute = item(I18n.t("NodeContextMenu.add-attribute"), "bi-at", ActionColor.CREATE, currentNode,
                 node -> NewNodeDialog.askAttribute(null, node, schema, "newAttribute")
                         .ifPresent(spec -> actions.addAttribute(node, spec)));
@@ -128,8 +128,8 @@ public final class NodeContextMenu {
 
     private static void promptComment(NodeEditActions actions, XsdNode node) {
         TextInputDialog dialog = DialogHelper.createTextInputDialog("comment");
-        dialog.setTitle("Add Comment");
-        dialog.setHeaderText("Comment text:");
+        dialog.setTitle(I18n.t("NodeContextMenu.add-comment-title"));
+        dialog.setHeaderText(I18n.t("NodeContextMenu.comment-text"));
         dialog.showAndWait().ifPresent(text -> {
             if (!text.isBlank()) {
                 actions.addComment(node, text.trim());
@@ -141,7 +141,7 @@ public final class NodeContextMenu {
                                    String title, String defaultName) {
         TextInputDialog dialog = DialogHelper.createTextInputDialog(defaultName);
         dialog.setTitle(title);
-        dialog.setHeaderText("Name:");
+        dialog.setHeaderText(I18n.t("NodeContextMenu.name"));
         dialog.showAndWait().ifPresent(name -> {
             if (!name.isBlank()) {
                 action.accept(node, name.trim());
@@ -152,7 +152,7 @@ public final class NodeContextMenu {
     private static void promptChangeType(NodeEditActions actions, XsdNode node, Supplier<XsdSchema> schema) {
         String current = node instanceof XsdElement el ? el.getType()
                 : node instanceof XsdAttribute at ? at.getType() : null;
-        TypePickerDialog.show(null, "Change Type", "New type for '" + node.getName() + "':",
+        TypePickerDialog.show(null, I18n.t("NodeContextMenu.change-type-title"), I18n.t("NodeContextMenu.new-type-for", node.getName()),
                         current == null || current.isBlank() ? "xs:string" : current,
                         () -> TypeChoices.of(schema == null ? null : schema.get()))
                 .ifPresent(type -> {
@@ -164,8 +164,8 @@ public final class NodeContextMenu {
 
     private static void promptRename(NodeEditActions actions, XsdNode node) {
         TextInputDialog dialog = DialogHelper.createTextInputDialog(node.getName() != null ? node.getName() : "");
-        dialog.setTitle("Rename");
-        dialog.setHeaderText("New name:");
+        dialog.setTitle(I18n.t("NodeContextMenu.rename-title"));
+        dialog.setHeaderText(I18n.t("NodeContextMenu.new-name"));
         dialog.showAndWait().ifPresent(name -> {
             if (!name.isBlank()) {
                 actions.rename(node, name.trim());
@@ -176,8 +176,8 @@ public final class NodeContextMenu {
     private static void promptCardinality(NodeEditActions actions, XsdNode node) {
         String current = node.getMinOccurs() + ".." + (node.getMaxOccurs() < 0 ? "*" : node.getMaxOccurs());
         TextInputDialog dialog = DialogHelper.createTextInputDialog(current);
-        dialog.setTitle("Change Cardinality");
-        dialog.setHeaderText("Cardinality as min..max (use * for unbounded):");
+        dialog.setTitle(I18n.t("NodeContextMenu.change-cardinality-title"));
+        dialog.setHeaderText(I18n.t("NodeContextMenu.cardinality-prompt"));
         dialog.showAndWait().ifPresent(text -> {
             String[] parts = text.split("\\.\\.");
             if (parts.length == 2) {

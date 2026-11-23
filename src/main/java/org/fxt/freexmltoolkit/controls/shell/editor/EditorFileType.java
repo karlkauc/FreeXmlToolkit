@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Locale;
 
 import javafx.stage.FileChooser;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 import org.fxt.freexmltoolkit.service.telemetry.DocKind;
 
@@ -198,14 +199,14 @@ public enum EditorFileType {
      */
     public static List<FileChooser.ExtensionFilter> fileChooserFilters() {
         List<FileChooser.ExtensionFilter> filters = new ArrayList<>();
-        filters.add(new FileChooser.ExtensionFilter("All supported files", OPENABLE_GLOBS));
+        filters.add(new FileChooser.ExtensionFilter(I18n.t("EditorFileType.all-supported-files"), OPENABLE_GLOBS));
         for (EditorFileType type : values()) {
             if (type != OTHER) {
                 filters.add(new FileChooser.ExtensionFilter(
                         type.label + " (" + String.join(", ", type.globs()) + ")", type.globs()));
             }
         }
-        filters.add(new FileChooser.ExtensionFilter("All files", "*.*"));
+        filters.add(new FileChooser.ExtensionFilter(I18n.t("EditorFileType.all-files"), "*.*"));
         return filters;
     }
 
@@ -258,7 +259,7 @@ public enum EditorFileType {
             chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(
                     label + " (" + String.join(", ", globs()) + ")", globs()));
         }
-        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("All files", "*.*"));
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(I18n.t("EditorFileType.all-files"), "*.*"));
         String initial = withDefaultExtension(baseName);
         if (initial != null && !initial.isBlank()) {
             chooser.setInitialFileName(initial);

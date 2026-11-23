@@ -42,7 +42,7 @@ import org.fxt.freexmltoolkit.i18n.I18n;
  */
 final class QualitySection extends VBox {
 
-    static final String ALL = "All";
+    static final String ALL = I18n.t("QualitySection.all");
 
     private final EditorHost editorHost;
     @FXML private HBox toolbar;
@@ -134,7 +134,7 @@ final class QualitySection extends VBox {
         int score = result.score();
         scoreNumber.setText(score + " / 100");
         scoreDescription.setText(result.getScoreDescription());
-        scoreChecks.setText(result.passedChecks() + " of " + result.totalChecks() + " checks passed");
+        scoreChecks.setText(I18n.t("QualitySection.checks-passed", result.passedChecks(), result.totalChecks()));
         NamingConvention naming = result.dominantNamingConvention();
         scoreNaming.setText(I18n.t("QualitySection.naming", (naming == null ? "–" : naming.getDisplayName())));
         scoreTile.getStyleClass().removeAll("fxt-analysis-score-good", "fxt-analysis-score-fair", "fxt-analysis-score-poor");
@@ -150,8 +150,8 @@ final class QualitySection extends VBox {
         severityChips.getChildren().clear();
         categoryChips.getChildren().clear();
         if (result.issues().isEmpty()) {
-            severityChips.getChildren().add(AnalysisSupport.chip("No issues", "ok"));
-            categoryChips.getChildren().add(AnalysisSupport.chip("No issues", "ok"));
+            severityChips.getChildren().add(AnalysisSupport.chip(I18n.t("QualitySection.no-issues"), "ok"));
+            categoryChips.getChildren().add(AnalysisSupport.chip(I18n.t("QualitySection.no-issues"), "ok"));
         }
         for (IssueSeverity s : IssueSeverity.values()) {
             long n = bySeverity.getOrDefault(s, 0L);
@@ -179,12 +179,13 @@ final class QualitySection extends VBox {
             if (n > 0) {
                 boolean dominant = convention == naming;
                 Label chip = AnalysisSupport.chip(convention.getDisplayName() + " " + n, dominant ? "ok" : "neutral");
-                chip.setTooltip(new Tooltip(dominant ? "Dominant convention" : "Deviates from the dominant convention"));
+                chip.setTooltip(new Tooltip(dominant ? I18n.t("QualitySection.dominant-convention")
+                        : I18n.t("QualitySection.deviates-from-the-dominant-convention")));
                 namingChips.getChildren().add(chip);
             }
         }
         if (namingChips.getChildren().isEmpty()) {
-            namingChips.getChildren().add(AnalysisSupport.chip("No named components", "neutral"));
+            namingChips.getChildren().add(AnalysisSupport.chip(I18n.t("QualitySection.no-named-components"), "neutral"));
         }
         issues.setAll(result.issues());
         showDetails(null);

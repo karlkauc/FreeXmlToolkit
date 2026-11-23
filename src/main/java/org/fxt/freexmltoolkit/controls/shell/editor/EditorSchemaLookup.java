@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -487,15 +488,15 @@ final class EditorSchemaLookup {
      */
     static String schemaReadOnlyReason(File xsd) {
         if (xsd == null) {
-            return "No schema file.";
+            return I18n.t("EditorSchemaLookup.no-schema-file");
         }
         Path file = xsd.toPath().toAbsolutePath().normalize();
         Path appDir = Path.of(System.getProperty("user.home"), ".freeXmlToolkit").toAbsolutePath().normalize();
         if (file.startsWith(appDir)) {
-            return "Read-only: a cached copy from the Schema Library.";
+            return I18n.t("EditorSchemaLookup.read-only-a-cached-copy");
         }
         if (Files.exists(file) && !Files.isWritable(file)) {
-            return "The schema file is read-only.";
+            return I18n.t("EditorSchemaLookup.the-schema-file-is-read");
         }
         return null;
     }
@@ -637,7 +638,7 @@ final class EditorSchemaLookup {
     private static String usageDetail(XsdNode referrer, XsdNode owner) {
         String kind = org.fxt.freexmltoolkit.controls.shell.schema.XsdNodeLabels.kindLabel(referrer.getNodeType());
         return owner != null && owner != referrer && owner.getName() != null
-                ? kind + " in " + owner.getName() : kind;
+                ? I18n.t("EditorSchemaLookup.kind-in-owner", kind, owner.getName()) : kind;
     }
 
     /** @return the active document's XSD element map (xpath → extended element), or {@code null}. */

@@ -1124,7 +1124,7 @@ public class LargeFileView extends VBox {
         } else {
             javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
             chooser.setTitle(I18n.t("LargeFileView.validate-against-a-schema"));
-            chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("XML Schema", "*.xsd"));
+            chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter(I18n.t("LargeFileView.xml-schema"), "*.xsd"));
             schema = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser,
                     getScene() != null ? getScene().getWindow() : null);
         }

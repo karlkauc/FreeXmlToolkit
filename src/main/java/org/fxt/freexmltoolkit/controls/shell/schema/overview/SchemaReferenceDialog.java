@@ -61,10 +61,10 @@ public final class SchemaReferenceDialog extends Dialog<SchemaReferenceDialog.An
         String name = "xs:" + kind.name().toLowerCase(Locale.ROOT);
         setTitle(I18n.t("SchemaReferenceDialog.add", name));
         setHeaderText(switch (kind) {
-            case IMPORT -> "Import the components of a schema with another target namespace.";
-            case INCLUDE -> "Include a schema with the same (or no) target namespace.";
-            case REDEFINE -> "Include a schema and redefine some of its components (XSD 1.0).";
-            case OVERRIDE -> "Include a schema and override some of its components (XSD 1.1).";
+            case IMPORT -> I18n.t("SchemaReferenceDialog.import-header");
+            case INCLUDE -> I18n.t("SchemaReferenceDialog.include-header");
+            case REDEFINE -> I18n.t("SchemaReferenceDialog.redefine-header");
+            case OVERRIDE -> I18n.t("SchemaReferenceDialog.override-header");
         });
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/SchemaReferenceDialog.fxml"));
@@ -110,7 +110,7 @@ public final class SchemaReferenceDialog extends Dialog<SchemaReferenceDialog.An
 
     private String validate() {
         String location = locationField.getText() == null ? "" : locationField.getText().trim();
-        String error = location.isEmpty() && kind != Kind.IMPORT ? "Enter the schema location." : null;
+        String error = location.isEmpty() && kind != Kind.IMPORT ? I18n.t("SchemaReferenceDialog.enter-the-schema-location") : null;
         errorLabel.setText(error == null ? "" : error);
         errorLabel.setVisible(error != null);
         errorLabel.setManaged(error != null);
@@ -137,8 +137,8 @@ public final class SchemaReferenceDialog extends Dialog<SchemaReferenceDialog.An
         FileChooser chooser = new FileChooser();
         chooser.setTitle(I18n.t("SchemaReferenceDialog.choose-schema"));
         chooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("XML Schema (*.xsd)", "*.xsd"),
-                new FileChooser.ExtensionFilter("All files", "*.*"));
+                new FileChooser.ExtensionFilter(I18n.t("SchemaReferenceDialog.xml-schema-files"), "*.xsd"),
+                new FileChooser.ExtensionFilter(I18n.t("SchemaReferenceDialog.all-files"), "*.*"));
         if (documentPath != null && documentPath.getParent() != null) {
             chooser.setInitialDirectory(documentPath.getParent().toFile());
         }

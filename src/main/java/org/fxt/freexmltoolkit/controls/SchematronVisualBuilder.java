@@ -193,7 +193,7 @@ public class SchematronVisualBuilder extends VBox {
         String id = patternIdField.getText().trim();
 
         if (title.isEmpty()) {
-            showAlert("Pattern title is required");
+            showAlert(I18n.t("SchematronVisualBuilder.pattern-title-required"));
             return;
         }
 
@@ -218,7 +218,7 @@ public class SchematronVisualBuilder extends VBox {
         String context = ruleContextField.getText().trim();
 
         if (context.isEmpty()) {
-            showAlert("Rule context is required");
+            showAlert(I18n.t("SchematronVisualBuilder.rule-context-required"));
             return;
         }
 
@@ -679,7 +679,7 @@ public class SchematronVisualBuilder extends VBox {
             setTitle(I18n.t("SchematronVisualBuilder.add-assertion"));
             setHeaderText(I18n.t("SchematronVisualBuilder.create-a-new-assertion-rule"));
 
-            ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+            ButtonType addButtonType = new ButtonType(I18n.t("SchematronVisualBuilder.add-button"), ButtonBar.ButtonData.OK_DONE);
             getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
 
             GridPane grid = new GridPane();
@@ -688,7 +688,7 @@ public class SchematronVisualBuilder extends VBox {
             grid.setPadding(new Insets(20, 150, 10, 10));
 
             TextField testField = new TextField();
-            testField.setPromptText("XPath expression (e.g., count(item) > 0)");
+            testField.setPromptText(I18n.t("SchematronVisualBuilder.assertion-test-prompt"));
             testField.setPrefWidth(300);
 
             TextField messageField = new TextField();
@@ -731,7 +731,7 @@ public class SchematronVisualBuilder extends VBox {
             setTitle(I18n.t("SchematronVisualBuilder.add-report"));
             setHeaderText(I18n.t("SchematronVisualBuilder.create-a-new-report-rule"));
 
-            ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+            ButtonType addButtonType = new ButtonType(I18n.t("SchematronVisualBuilder.add-button"), ButtonBar.ButtonData.OK_DONE);
             getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
 
             GridPane grid = new GridPane();
@@ -740,7 +740,7 @@ public class SchematronVisualBuilder extends VBox {
             grid.setPadding(new Insets(20, 150, 10, 10));
 
             TextField testField = new TextField();
-            testField.setPromptText("XPath expression (e.g., @deprecated = 'true')");
+            testField.setPromptText(I18n.t("SchematronVisualBuilder.report-test-prompt"));
             testField.setPrefWidth(300);
 
             TextField messageField = new TextField();

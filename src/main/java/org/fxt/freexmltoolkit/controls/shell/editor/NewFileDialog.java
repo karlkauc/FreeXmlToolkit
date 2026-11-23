@@ -162,7 +162,7 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
 
     private void updateSaveExtension() {
         // Adjust the prompt only; the actual extension is enforced via the file chooser.
-        saveLocation.setPromptText("(optional) ." + defaultExtension() + " — empty = untitled");
+        saveLocation.setPromptText(I18n.t("NewFileDialog.save-location-prompt", defaultExtension()));
     }
 
     /**
@@ -193,8 +193,8 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
         FileChooser chooser = new FileChooser();
         chooser.setTitle(I18n.t("NewFileDialog.select-xsd-schema"));
         chooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("XSD Schema", "*.xsd"),
-                new FileChooser.ExtensionFilter("All files", "*.*"));
+                new FileChooser.ExtensionFilter(I18n.t("NewFileDialog.xsd-schema"), "*.xsd"),
+                new FileChooser.ExtensionFilter(I18n.t("NewFileDialog.all-files"), "*.*"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getOwnerWindow());
         if (file != null) {
             if (!schemaSourceBox.getItems().contains(file)) {
@@ -212,7 +212,7 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
         chooser.setTitle(I18n.t("NewFileDialog.save-new-file-as"));
         String ext = defaultExtension();
         chooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter(type.label() + " files", "*." + ext));
+                new FileChooser.ExtensionFilter(I18n.t("NewFileDialog.type-files", type.label()), "*." + ext));
         chooser.setInitialFileName("untitled." + ext);
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getOwnerWindow());
         if (file != null) {

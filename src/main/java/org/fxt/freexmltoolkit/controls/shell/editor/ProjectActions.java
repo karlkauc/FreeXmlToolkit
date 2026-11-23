@@ -33,13 +33,13 @@ public final class ProjectActions {
     private static FileChooser projectChooser(String title) {
         FileChooser chooser = new FileChooser();
         chooser.setTitle(title);
-        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("FreeXmlToolkit project", "*." + FxtProject.EXTENSION));
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(I18n.t("ProjectActions.project-filter"), "*." + FxtProject.EXTENSION));
         return chooser;
     }
 
     /** Asks for a new project file and opens the new project. */
     public static void newProject(Window owner) {
-        FileChooser chooser = projectChooser("New Project");
+        FileChooser chooser = projectChooser(I18n.t("ProjectActions.new-project"));
         chooser.setInitialFileName("project." + FxtProject.EXTENSION);
         File file = FileChooserHelper.showSaveDialog(chooser, owner);
         if (file == null) {
@@ -59,7 +59,7 @@ public final class ProjectActions {
 
     /** Asks for a project file and opens it. */
     public static void openProject(Window owner) {
-        File file = FileChooserHelper.showOpenDialog(projectChooser("Open Project"), owner);
+        File file = FileChooserHelper.showOpenDialog(projectChooser(I18n.t("ProjectActions.open-project")), owner);
         if (file != null) {
             openProject(file.toPath());
         }
@@ -226,7 +226,7 @@ public final class ProjectActions {
         FileChooser chooser = new FileChooser();
         chooser.setTitle(I18n.t("ProjectActions.add-catalog-to-project"));
         chooser.setInitialDirectory(open.get().root().toFile());
-        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML catalog", "*.xml", "*.cat"));
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(I18n.t("ProjectActions.catalog-filter"), "*.xml", "*.cat"));
         File file = FileChooserHelper.showOpenDialog(chooser, owner);
         if (file == null) {
             return;
@@ -342,7 +342,7 @@ public final class ProjectActions {
             List<Path> files = scenario.takesFile() ? project.filesForScenario(scenario.name, 10_000) : List.of();
             if (scenario.takesFile() && files.isEmpty()) {
                 checks.add(new Check(scenario, null, new ScenarioCheck.Result(ScenarioCheck.Status.ERROR, List.of(),
-                        null, null, "No file of the project is bound to this scenario.")));
+                        null, null, I18n.t("ProjectActions.no-bound-file"))));
                 continue;
             }
             for (ScenarioCheck.FileResult r : ScenarioCheck.checkAll(project, scenario, files, null, null)) {

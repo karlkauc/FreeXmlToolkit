@@ -1079,10 +1079,11 @@ public class UnifiedShellView extends BorderPane {
         var doc = docOpt.get();
         statusType.setText(doc.getFileType().label());
         var encoding = doc.getEncoding();
-        statusEncoding.setText(encoding.charset().displayName() + (encoding.bom() ? " with BOM" : ""));
+        statusEncoding.setText(encoding.bom() ? I18n.t("UnifiedShellView.encoding-with-bom", encoding.charset().displayName())
+                : encoding.charset().displayName());
         // Character count (relocated from the per-editor status line, which the shell hides).
         int length = editorHost.getActiveTextLength();
-        statusChars.setText(length >= 0 ? String.format("%,d chars", length) : "");
+        statusChars.setText(length >= 0 ? I18n.t("UnifiedShellView.chars", String.format("%,d", length)) : "");
         statusFile.setText(doc.getPath() != null ? doc.getPath().toString() : doc.getDisplayName());
     }
 
@@ -2350,10 +2351,10 @@ public class UnifiedShellView extends BorderPane {
             var chooser = new javafx.stage.FileChooser();
             chooser.setTitle(I18n.t("UnifiedShellView.choose-xml-target"));
             chooser.getExtensionFilters().addAll(
-                    new javafx.stage.FileChooser.ExtensionFilter("XML files", "*.xml"),
+                    new javafx.stage.FileChooser.ExtensionFilter(I18n.t("UnifiedShellView.xml-files"), "*.xml"),
                     new javafx.stage.FileChooser.ExtensionFilter(
-                            "XML family", "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch"),
-                    new javafx.stage.FileChooser.ExtensionFilter("All files", "*.*"));
+                            I18n.t("UnifiedShellView.xml-family"), "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch"),
+                    new javafx.stage.FileChooser.ExtensionFilter(I18n.t("UnifiedShellView.all-files"), "*.*"));
             var file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, window());
             if (file != null) {
                 editorHost.openFile(file.toPath(), false); // loaded into the editor, behind the query
@@ -2679,7 +2680,7 @@ public class UnifiedShellView extends BorderPane {
             }
             String format = excel ? (out.getName().toLowerCase().endsWith(".xls") ? "xls" : "xlsx") : "csv";
             var exported = editorHost.getActiveDocument().orElse(null); // where "Go to Error" jumps
-            Runnable done = beginSpreadsheetConversion("Exporting spreadsheet…");
+            Runnable done = beginSpreadsheetConversion(I18n.t("UnifiedShellView.exporting-spreadsheet"));
             long start = System.nanoTime();
             org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
                 var result = excel
@@ -2715,7 +2716,7 @@ public class UnifiedShellView extends BorderPane {
             }
             // Infer the actual format from the chosen file's extension.
             boolean isExcel = in.getName().toLowerCase().endsWith(".xlsx");
-            Runnable done = beginSpreadsheetConversion("Importing spreadsheet…");
+            Runnable done = beginSpreadsheetConversion(I18n.t("UnifiedShellView.importing-spreadsheet"));
             long start = System.nanoTime();
             org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
                 var result = isExcel
@@ -2805,13 +2806,12 @@ public class UnifiedShellView extends BorderPane {
         } else if (result.error() instanceof org.fxt.freexmltoolkit.service.XmlSpreadsheetConverterService.RowLimitExceededException limit) {
             org.fxt.freexmltoolkit.util.DialogHelper.showWarning(I18n.t("UnifiedShellView.spreadsheet-converter"),
                     I18n.t("UnifiedShellView.the-document-has-too-many"),
-                    String.format("The export needs %,d rows, but a sheet holds at most %,d."
-                            + "%n%nExport as CSV instead - it has no row limit.", limit.getRows(), limit.getMaxRows()));
+                    I18n.t("UnifiedShellView.export-needs-rows", String.format("%,d", limit.getRows()),
+                            String.format("%,d", limit.getMaxRows())));
         } else if (result.error() instanceof org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner.InsufficientMemoryException) {
             org.fxt.freexmltoolkit.util.DialogHelper.showWarning(I18n.t("UnifiedShellView.spreadsheet-converter"),
                     I18n.t("UnifiedShellView.the-document-is-too-large"),
-                    result.error().getMessage() + "."
-                            + "\n\nRaise \"Maximum memory\" in Settings > Memory, close other large documents, or export as CSV.");
+                    I18n.t("UnifiedShellView.raise-maximum-memory", result.error().getMessage()));
         } else if (!imported && result.error() instanceof org.xml.sax.SAXParseException parse) {
             // A malformed document is an input problem, not a failure of the converter: say where
             // it is instead of raising an error dialog (and an error report) with a stack trace.
@@ -2832,8 +2832,8 @@ public class UnifiedShellView extends BorderPane {
             org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("UnifiedShellView.spreadsheet-converter"),
                     I18n.t("UnifiedShellView.the-conversion-could-not-be"),
                     imported
-                            ? "Check that the spreadsheet is a valid .xlsx/.csv file and not open in another program, then try again."
-                            : "Check that the document is well-formed and the target file is writable (not open elsewhere), then try again.",
+                            ? I18n.t("UnifiedShellView.check-the-spreadsheet-is-valid")
+                            : I18n.t("UnifiedShellView.check-the-document-is-well-formed"),
                     // the exception (not just its message): class + stack reach the details and the error
                     // report; spreadsheet_convert already counted it
                     result.error(), false);
@@ -3088,7 +3088,7 @@ public class UnifiedShellView extends BorderPane {
     static String xsdDocumentStatusText(String schemaText) {
         String head = schemaText.length() > 8192 ? schemaText.substring(0, 8192) : schemaText;
         java.util.regex.Matcher m = XSD_MIN_VERSION.matcher(head);
-        return "XSD " + (m.find() ? m.group(1) : "1.0") + " schema";
+        return I18n.t("UnifiedShellView.xsd-version-schema", m.find() ? m.group(1) : "1.0");
     }
 
     private boolean isActiveDocumentXsd() {
@@ -3219,14 +3219,14 @@ public class UnifiedShellView extends BorderPane {
         if ("JSON Schema".equals(kind)) {
             tooltip = switch (status) {
                 case LOADING -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.jsonSchema.loading.tip");
-                case READY -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.jsonSchema.ready.tip", schema != null ? schema.getName() : "bound");
+                case READY -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.jsonSchema.ready.tip", schema != null ? schema.getName() : I18n.t("UnifiedShellView.bound"));
                 case ERROR -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.jsonSchema.error.tip");
                 case NONE -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.jsonSchema.none.tip");
             };
         } else {
             tooltip = switch (status) {
                 case LOADING -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.xsd.loading.tip");
-                case READY -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.xsd.ready.tip", schema != null ? schema.getName() : "bound");
+                case READY -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.xsd.ready.tip", schema != null ? schema.getName() : I18n.t("UnifiedShellView.bound"));
                 case ERROR -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.xsd.error.tip");
                 case NONE -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.xsd.none.tip");
             };

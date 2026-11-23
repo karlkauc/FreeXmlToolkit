@@ -231,14 +231,14 @@ public class SignatureView extends ScrollPane {
 
         keystoreFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.KEYSTORE,
-                "Keystore favorites", this::setKeystore);
+                I18n.t("SignatureView.keystore-favorites"), this::setKeystore);
         keystoreRow.addExtras(keystoreFavoritesMenu);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(keystoreRow,
                 org.fxt.freexmltoolkit.service.DragDropService.KEYSTORE_EXTENSIONS, this::setKeystore);
 
         trustStoreFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.KEYSTORE,
-                "Trust store favorites", this::setTrustStore);
+                I18n.t("SignatureView.trust-store-favorites"), this::setTrustStore);
         trustRow.addExtras(trustStoreFavoritesMenu);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(trustRow,
                 org.fxt.freexmltoolkit.service.DragDropService.KEYSTORE_EXTENSIONS, this::setTrustStore);
@@ -421,7 +421,7 @@ public class SignatureView extends ScrollPane {
             return;
         }
         // Signing reads the saved file: offer to save editor changes first.
-        if (!editorHost.ensureSavedBeforeTool(xml.toPath(), "Signing")) {
+        if (!editorHost.ensureSavedBeforeTool(xml.toPath(), I18n.t("SignatureView.tool-signing"))) {
             PanelStatus.info(status, I18n.t("SignatureView.signing-cancelled"));
             return;
         }
@@ -441,7 +441,7 @@ public class SignatureView extends ScrollPane {
             try {
                 File signed = new SignatureService()
                         .signDocument(xml, keystore, ksPw, aliasName, aliasPw, output.getAbsolutePath(), type, options);
-                result = "Signed: " + signed.getName();
+                result = I18n.t("SignatureView.signed", signed.getName());
                 ok = true;
             } catch (Exception e) {
                 result = "ERROR: " + e.getMessage();
@@ -499,16 +499,16 @@ public class SignatureView extends ScrollPane {
         String aliasName = alias.getText();
         String password = keystorePassword.getText();
         if (keystore == null || aliasName == null || aliasName.isBlank()) {
-            showCertificateMessage("Select a keystore and enter the alias first.");
+            showCertificateMessage(I18n.t("SignatureView.cert-select-keystore"));
             return;
         }
-        showCertificateMessage("Loading…");
+        showCertificateMessage(I18n.t("SignatureView.cert-loading"));
         FxtGui.executorService.submit(() -> {
             try {
                 var details = CertificateDetailsRunner.fromKeystore(keystore, password, aliasName);
                 Platform.runLater(() -> showCertificate(details));
             } catch (Exception e) {
-                Platform.runLater(() -> showCertificateMessage("Could not load the certificate: " + e.getMessage()));
+                Platform.runLater(() -> showCertificateMessage(I18n.t("SignatureView.cert-load-failed", e.getMessage())));
             }
         });
     }
@@ -533,30 +533,30 @@ public class SignatureView extends ScrollPane {
         Label name = new Label(details.subjectCn());
         name.setId("sign-cert-name");
         name.getStyleClass().add("fxt-sign-doc-name");
-        Label badge = new Label(details.selfSigned() ? "self-signed" : "CA-issued");
+        Label badge = new Label(details.selfSigned() ? I18n.t("SignatureView.cert-self-signed") : I18n.t("SignatureView.cert-ca-issued"));
         badge.getStyleClass().add("fxt-cert-badge");
         HBox headerRow = new HBox(8, shield, name, badge);
         headerRow.setAlignment(Pos.CENTER_LEFT);
 
         Label validity = new Label(details.currentlyValid()
-                ? "Valid · " + details.daysRemaining() + " days remaining"
+                ? I18n.t("SignatureView.cert-valid", String.valueOf(details.daysRemaining()))
                 : (details.daysRemaining() < 0
-                        ? "Expired " + Math.abs(details.daysRemaining()) + " days ago"
-                        : "Not yet valid"));
+                        ? I18n.t("SignatureView.cert-expired", String.valueOf(Math.abs(details.daysRemaining())))
+                        : I18n.t("SignatureView.cert-not-yet-valid")));
         validity.setId("sign-cert-validity");
         validity.setMaxWidth(Double.MAX_VALUE);
         validity.getStyleClass().add(details.currentlyValid() ? "fxt-cert-valid" : "fxt-cert-expired");
 
         java.time.format.DateTimeFormatter day = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd");
         VBox rows = new VBox(4,
-                certRow("Subject", details.subjectCn()
+                certRow(I18n.t("SignatureView.cert-subject"), details.subjectCn()
                         + (details.subjectO() != null ? " · " + details.subjectO() : "")
                         + (details.subjectC() != null ? " · " + details.subjectC() : "")),
-                certRow("Issued", details.issued().format(day)),
-                certRow("Expires", details.expires().format(day)),
-                certRow("Serial", details.serialHex()),
-                certRow("Signature", details.signatureAlgorithm()),
-                certRow("Key usage", details.keyUsage() != null ? details.keyUsage() : "–"));
+                certRow(I18n.t("SignatureView.cert-issued"), details.issued().format(day)),
+                certRow(I18n.t("SignatureView.cert-expires"), details.expires().format(day)),
+                certRow(I18n.t("SignatureView.cert-serial"), details.serialHex()),
+                certRow(I18n.t("SignatureView.cert-signature"), details.signatureAlgorithm()),
+                certRow(I18n.t("SignatureView.cert-key-usage"), details.keyUsage() != null ? details.keyUsage() : "–"));
 
         Label fingerprint = new Label(details.sha256Fingerprint());
         fingerprint.getStyleClass().add("fxt-cert-fingerprint");
@@ -610,7 +610,7 @@ public class SignatureView extends ScrollPane {
             } catch (Exception e) {
                 outcome = new SignatureService.ValidationOutcome(
                         SignatureService.ValidationStatus.ERROR,
-                        "Failed to validate the signature: " + e.getMessage(), e);
+                        I18n.t("SignatureView.validate-failed", e.getMessage()), e);
             }
             SignatureService.ValidationOutcome result = outcome;
             UsageEvents.signatureVerified("basic",
@@ -703,7 +703,7 @@ public class SignatureView extends ScrollPane {
             org.fxt.freexmltoolkit.service.telemetry.QueryFailure failure = null;
             try {
                 created = SignatureActionRunner.createKeystore(info, aliasName, ksPw, aliasPw, keyType);
-                result = "Created keystore: " + created.getAbsolutePath();
+                result = I18n.t("SignatureView.keystore-created", created.getAbsolutePath());
             } catch (Exception e) {
                 result = "ERROR: " + e.getMessage();
                 failure = org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e);
@@ -731,7 +731,7 @@ public class SignatureView extends ScrollPane {
         FileChooser chooser = new FileChooser();
         chooser.setTitle(I18n.t("SignatureView.select-trust-store"));
         chooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Key/Trust store", "*.jks", "*.p12", "*.pfx", "*.keystore"));
+                new FileChooser.ExtensionFilter(I18n.t("SignatureView.key-trust-store"), "*.jks", "*.p12", "*.pfx", "*.keystore"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, window());
         if (file != null) {
             setTrustStore(file);
@@ -741,7 +741,7 @@ public class SignatureView extends ScrollPane {
     /** Sets the trust store file (from the chooser, a favourite or a drop). */
     public void setTrustStore(File file) {
         this.trustStoreFile = file;
-        trustStoreName.setText(file != null ? file.getName() : "default (cacerts)");
+        trustStoreName.setText(file != null ? file.getName() : I18n.t("SignatureView.trustStoreName.text"));
     }
 
     /**
@@ -769,7 +769,7 @@ public class SignatureView extends ScrollPane {
                 java.security.KeyStore trustStore = loadTrustStore(store, storePassword);
                 SignatureTrustValidator.TrustResult result =
                         SignatureTrustValidator.validate(xml, trustStore, revocation);
-                report = "Trust validation of " + xml.getName() + "\n\n" + result.report();
+                report = I18n.t("SignatureView.trust-report-title", xml.getName()) + "\n\n" + result.report();
                 outcome = result.trusted() ? "valid" : "untrusted";
             } catch (Exception e) {
                 report = "ERROR: " + e.getMessage();
@@ -830,7 +830,10 @@ public class SignatureView extends ScrollPane {
 
     // ----- algorithm choices -----------------------------------------------------------
 
-    private static final String AUTO = "Automatic";
+    private static final String AUTO = I18n.t("SignatureView.automatic");
+
+    /** The key-wrap choice "the key file is the data key" (no key wrapping). */
+    private static final String DIRECT_KEY = I18n.t("SignatureView.key-wrap-direct");
 
     private void initAlgorithmChoices() {
         signMethod.getItems().add(AUTO);
@@ -858,7 +861,7 @@ public class SignatureView extends ScrollPane {
         encKdfDigest.setValue(XmlEncryptionAlgorithms.Algorithm.SHA256);
         encKeyWrap.getItems().add(AUTO);
         XmlEncryptionAlgorithms.of(XmlEncryptionAlgorithms.Kind.KEY_WRAP).forEach(a -> encKeyWrap.getItems().add(a.id()));
-        encKeyWrap.getItems().add("none (key file is the data key)");
+        encKeyWrap.getItems().add(DIRECT_KEY);
         encKeyWrap.setValue(AUTO);
         encX509.getItems().addAll(XmlEncryptionService.X509Reference.values());
         encX509.setValue(XmlEncryptionService.X509Reference.ISSUER_SERIAL);
@@ -1124,12 +1127,12 @@ public class SignatureView extends ScrollPane {
         if (encContentOnly.isSelected()) {
             targetKind = "content";
         }
-        if (!editorHost.ensureSavedBeforeTool(xml.toPath(), "Encryption")) {
+        if (!editorHost.ensureSavedBeforeTool(xml.toPath(), I18n.t("SignatureView.tool-encryption"))) {
             PanelStatus.info(status, I18n.t("SignatureView.encryption-cancelled"));
             return;
         }
         String wrapValue = encKeyWrap.getValue();
-        boolean direct = wrapValue != null && wrapValue.startsWith("none");
+        boolean direct = DIRECT_KEY.equals(wrapValue);
         var options = new EncryptionRecipients.Options(encKeyTransport.getValue(), encOaepDigest.getValue(),
                 encMgf.getValue(), encKdf.getValue(), encKdfDigest.getValue(), keyWrapChoice(), direct,
                 encX509.getValue(), encRecipientName.getText());
@@ -1274,7 +1277,7 @@ public class SignatureView extends ScrollPane {
             keys = () -> XmlEncryptionService.DecryptionKeys.privateKey(
                     KeyMaterial.privateKey(keystore.toPath(), storePass, aliasName, keyPass).privateKey());
         }
-        if (!editorHost.ensureSavedBeforeTool(xml.toPath(), "Decryption")) {
+        if (!editorHost.ensureSavedBeforeTool(xml.toPath(), I18n.t("SignatureView.tool-decryption"))) {
             PanelStatus.info(status, I18n.t("SignatureView.decryption-cancelled"));
             return;
         }

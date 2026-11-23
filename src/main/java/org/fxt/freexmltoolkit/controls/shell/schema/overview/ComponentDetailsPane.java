@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.schema.overview;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -78,8 +80,9 @@ final class ComponentDetailsPane extends VBox {
                         ? ((XsdImport) reference).getNamespace() : "");
                 locationField.setText(reference.getSchemaLocation() == null ? "" : reference.getSchemaLocation());
                 resolutionLabel.setText(reference.getResolutionError() != null
-                        ? "Not resolved: " + reference.getResolutionError()
-                        : reference.getResolvedPath() != null ? "Resolved to " + reference.getResolvedPath() : "");
+                        ? I18n.t("ComponentDetailsPane.not-resolved", reference.getResolutionError())
+                        : reference.getResolvedPath() != null
+                                ? I18n.t("ComponentDetailsPane.resolved-to", reference.getResolvedPath()) : "");
                 referenceBox.setDisable(!editable);
             }
             case XsdNotation notation -> {
@@ -114,7 +117,7 @@ final class ComponentDetailsPane extends VBox {
         String origin = OverviewRows.origin(node);
         StringBuilder text = new StringBuilder(details.isEmpty() ? OverviewRows.kind(node) : details);
         if (origin != null) {
-            text.append("\nDeclared in the included file ").append(origin).append(" (read-only here).");
+            text.append("\n").append(I18n.t("ComponentDetailsPane.declared-in-the-included-file", origin));
         }
         if (node instanceof XsdComment comment) {
             text = new StringBuilder(comment.getContent() == null ? "" : comment.getContent().strip());
@@ -135,7 +138,7 @@ final class ComponentDetailsPane extends VBox {
             EditSchemaReferenceCommand command = new EditSchemaReferenceCommand(reference,
                     namespaceField.getText(), locationField.getText());
             if (command.changesSomething()) {
-                overview.run("Edit " + OverviewRows.kind(reference), command.check(), command);
+                overview.run(I18n.t("ComponentDetailsPane.edit-kind", OverviewRows.kind(reference)), command.check(), command);
             }
         }
     }
@@ -166,7 +169,7 @@ final class ComponentDetailsPane extends VBox {
     public void onApplyNotation() {
         if (node instanceof XsdNotation notation) {
             ChangeNotationCommand command = new ChangeNotationCommand(notation, publicField.getText(), systemField.getText());
-            overview.run("Edit Notation", command.check(), command);
+            overview.run(I18n.t("ComponentDetailsPane.edit-notation"), command.check(), command);
         }
     }
 
@@ -181,7 +184,7 @@ final class ComponentDetailsPane extends VBox {
             if (!text.isEmpty()) {
                 docs.addFirst(new XsdDocumentation(text, lang, first != null ? first.getSource() : null));
             }
-            overview.run("Edit Annotation", null,
+            overview.run(I18n.t("ComponentDetailsPane.edit-annotation"), null,
                     new ChangeDocumentationsCommand(overview.getContext(), annotation, docs));
         }
     }

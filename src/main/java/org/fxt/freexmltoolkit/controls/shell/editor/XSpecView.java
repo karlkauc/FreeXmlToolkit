@@ -66,13 +66,9 @@ public class XSpecView extends VBox {
                 super.updateItem(item, empty);
                 getStyleClass().removeAll("fxt-xspec-failed", "fxt-xspec-passed", "fxt-xspec-pending");
                 if (!empty && item != null) {
-                    String status = statusOf(item);
-                    if (status.startsWith("Failed")) {
-                        getStyleClass().add("fxt-xspec-failed");
-                    } else if (status.startsWith("Passed")) {
-                        getStyleClass().add("fxt-xspec-passed");
-                    } else if (status.startsWith("Pending")) {
-                        getStyleClass().add("fxt-xspec-pending");
+                    String style = styleOf(item);
+                    if (style != null) {
+                        getStyleClass().add(style);
                     }
                 }
             }
@@ -176,10 +172,10 @@ public class XSpecView extends VBox {
 
     static String labelOf(Object value) {
         if (value instanceof XSpecRunner.Scenario scenario) {
-            return scenario.label().isEmpty() ? "(scenario)" : scenario.label();
+            return scenario.label().isEmpty() ? I18n.t("XSpecView.unnamed-scenario") : scenario.label();
         }
         if (value instanceof XSpecRunner.Test test) {
-            return test.label().isEmpty() ? "(expectation)" : test.label();
+            return test.label().isEmpty() ? I18n.t("XSpecView.unnamed-expectation") : test.label();
         }
         return "";
     }
@@ -187,21 +183,43 @@ public class XSpecView extends VBox {
     static String statusOf(Object value) {
         if (value instanceof XSpecRunner.Test test) {
             return switch (test.status()) {
-                case PASSED -> "Passed";
-                case FAILED -> "Failed";
-                case PENDING -> "Pending";
+                case PASSED -> I18n.t("XSpecView.passed");
+                case FAILED -> I18n.t("XSpecView.failed");
+                case PENDING -> I18n.t("XSpecView.pending");
             };
         }
         if (value instanceof XSpecRunner.Scenario scenario) {
             var tests = scenario.allTests();
             long failed = tests.stream().filter(t -> t.status() == XSpecRunner.Status.FAILED).count();
             if (scenario.pending()) {
-                return "Pending";
+                return I18n.t("XSpecView.pending");
             }
-            return failed > 0 ? "Failed (" + failed + " of " + tests.size() + ")"
-                    : tests.isEmpty() ? "" : "Passed (" + tests.size() + ")";
+            return failed > 0 ? I18n.t("XSpecView.failed-count", String.valueOf(failed), String.valueOf(tests.size()))
+                    : tests.isEmpty() ? "" : I18n.t("XSpecView.passed-count", String.valueOf(tests.size()));
         }
         return "";
+    }
+
+    /** @return the row's style class for a test or scenario's outcome, or {@code null} */
+    static String styleOf(Object value) {
+        if (value instanceof XSpecRunner.Test test) {
+            return switch (test.status()) {
+                case PASSED -> "fxt-xspec-passed";
+                case FAILED -> "fxt-xspec-failed";
+                case PENDING -> "fxt-xspec-pending";
+            };
+        }
+        if (value instanceof XSpecRunner.Scenario scenario) {
+            var tests = scenario.allTests();
+            if (scenario.pending()) {
+                return "fxt-xspec-pending";
+            }
+            if (tests.stream().anyMatch(t -> t.status() == XSpecRunner.Status.FAILED)) {
+                return "fxt-xspec-failed";
+            }
+            return tests.isEmpty() ? null : "fxt-xspec-passed";
+        }
+        return null;
     }
 
     @FXML

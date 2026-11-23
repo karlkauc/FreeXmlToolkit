@@ -36,7 +36,7 @@ public class SchemaAnalysisView extends BorderPane {
 
     public static final String TITLE = "Schema Analysis";
     public static final String ICON = "bi-clipboard-data";
-    static final String NO_DOCUMENT = "Open an XSD document first.";
+    static final String NO_DOCUMENT = I18n.t("SchemaAnalysisView.open-an-xsd-document-first");
 
     private static final Logger logger = LogManager.getLogger(SchemaAnalysisView.class);
 
@@ -154,13 +154,13 @@ public class SchemaAnalysisView extends BorderPane {
                 result = SchemaAnalysisRunner.analyze(text, name, path, nestingLimit);
                 outcome = null;
             } catch (InterruptedException | CancellationException e) {
-                outcome = "Cancelled.";
+                outcome = I18n.t("SchemaAnalysisView.cancelled");
                 cancelled = true;
             } catch (Throwable t) {
                 // classified first (a schema that does not parse is invalid_input), then logged
                 failure = org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(t);
                 logger.warn("Schema analysis failed for {}", name, t);
-                outcome = "ERROR: " + (t.getMessage() != null ? t.getMessage() : t.toString());
+                outcome = I18n.t("SchemaAnalysisView.error", t.getMessage() != null ? t.getMessage() : t.toString());
             }
             long inputChars = text != null ? text.length() : -1;
             if (cancelled) {
@@ -197,11 +197,11 @@ public class SchemaAnalysisView extends BorderPane {
         xpath.setData(data);
         int unused = data.statistics().unusedTypes() == null ? 0 : data.statistics().unusedTypes().size();
         int unreachable = data.unreachableComponents().size();
-        subtitle.setText(data.documentName()
-                + " · Score " + data.quality().score() + " / 100 (" + data.quality().getScoreDescription() + ")"
-                + " · " + AnalysisSupport.plural(data.quality().issues().size(), "issue")
-                + " · " + AnalysisSupport.plural(unused, "unused type")
-                + (unreachable > unused ? " · " + unreachable + " unreachable components" : ""));
+        subtitle.setText(I18n.t("SchemaAnalysisView.subtitle", data.documentName(), data.quality().score(),
+                data.quality().getScoreDescription(),
+                AnalysisSupport.plural(data.quality().issues().size(), "issue"),
+                AnalysisSupport.plural(unused, "unused type"))
+                + (unreachable > unused ? " · " + I18n.t("SchemaAnalysisView.unreachable-components", unreachable) : ""));
         status.getStyleClass().remove("fxt-lib-error");
         status.setText(I18n.t("SchemaAnalysisView.analyzed", data.documentName()));
     }

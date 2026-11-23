@@ -241,7 +241,7 @@ public class JsonTreeView extends VBox implements PropertyChangeListener,
     public void rebuildTree() {
         if (document == null) {
             treeView.setRoot(null);
-            updateStatus("No document");
+            updateStatus(I18n.t("JsonTreeView.no-document"));
             return;
         }
 
@@ -250,7 +250,7 @@ public class JsonTreeView extends VBox implements PropertyChangeListener,
         JsonNode rootValue = document.getRootValue();
         if (rootValue == null) {
             treeView.setRoot(null);
-            updateStatus("Empty document");
+            updateStatus(I18n.t("JsonTreeView.empty-document"));
             return;
         }
 
@@ -258,7 +258,7 @@ public class JsonTreeView extends VBox implements PropertyChangeListener,
         rootItem.setExpanded(true);
         treeView.setRoot(rootItem);
 
-        updateStatus(countNodes(rootValue) + " nodes");
+        updateStatus(I18n.t("JsonTreeView.node-count", String.valueOf(countNodes(rootValue))));
     }
 
     /**
@@ -345,9 +345,9 @@ public class JsonTreeView extends VBox implements PropertyChangeListener,
             // Select and scroll to match
             treeView.getSelectionModel().select(match);
             treeView.scrollTo(treeView.getRow(match));
-            updateStatus("Found: " + match.getValue().getPath());
+            updateStatus(I18n.t("JsonTreeView.found", match.getValue().getPath()));
         } else {
-            updateStatus("Not found: " + query);
+            updateStatus(I18n.t("JsonTreeView.not-found", query));
         }
     }
 

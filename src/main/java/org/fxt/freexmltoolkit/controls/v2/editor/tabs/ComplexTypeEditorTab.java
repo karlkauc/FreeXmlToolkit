@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.tabs;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import javafx.scene.control.Alert;
 
 import org.apache.logging.log4j.LogManager;
@@ -32,7 +33,7 @@ public class ComplexTypeEditorTab extends AbstractTypeEditorTab {
      * @param mainSchema the main XSD schema (for merging changes)
      */
     public ComplexTypeEditorTab(XsdComplexType complexType, XsdSchema mainSchema) {
-        super(complexType, "ComplexType: " + complexType.getName());
+        super(complexType, I18n.t("ComplexTypeEditorTab.tab-title", complexType.getName()));
         this.complexType = complexType;
         this.mainSchema = mainSchema;
         initializeContent(); // Call after field initialization
@@ -81,15 +82,15 @@ public class ComplexTypeEditorTab extends AbstractTypeEditorTab {
                 invokePostSaveCallback();
 
                 // Phase 6: User feedback for successful save
-                showSuccessMessage("Save Successful",
-                    "ComplexType '" + complexType.getName() + "' has been saved successfully.");
+                showSuccessMessage(I18n.t("ComplexTypeEditorTab.save-successful"),
+                    I18n.t("ComplexTypeEditorTab.saved-successfully", complexType.getName()));
             } else {
                 logger.warn("Failed to save ComplexType: {}", complexType.getName());
 
                 // Phase 6: User feedback for save failure
-                showErrorMessage("Save Failed",
-                    "Failed to save ComplexType '" + complexType.getName() + "'",
-                    "The save operation did not complete successfully.");
+                showErrorMessage(I18n.t("ComplexTypeEditorTab.save-failed"),
+                    I18n.t("ComplexTypeEditorTab.failed-to-save", complexType.getName()),
+                    I18n.t("ComplexTypeEditorTab.save-did-not-complete"));
             }
 
             return success;
@@ -98,9 +99,9 @@ public class ComplexTypeEditorTab extends AbstractTypeEditorTab {
             logger.error("Error saving ComplexType: {}", complexType.getName(), e);
 
             // Phase 6: User feedback for save error
-            showErrorMessage("Save Error",
-                "Error saving ComplexType '" + complexType.getName() + "'",
-                "Error: " + e.getMessage());
+            showErrorMessage(I18n.t("ComplexTypeEditorTab.save-error"),
+                I18n.t("ComplexTypeEditorTab.error-saving", complexType.getName()),
+                I18n.t("ComplexTypeEditorTab.error", e.getMessage()));
 
             return false;
         }

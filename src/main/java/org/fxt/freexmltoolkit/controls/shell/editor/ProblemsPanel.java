@@ -576,7 +576,7 @@ public class ProblemsPanel extends VBox {
         } else {
             javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
             chooser.setTitle(I18n.t("ProblemsPanel.export"));
-            chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("Excel Workbook", "*.xlsx"));
+            chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter(I18n.t("ProblemsPanel.excel-workbook"), "*.xlsx"));
             chooser.setInitialFileName(initial);
             target = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser,
                     getScene() != null ? getScene().getWindow() : null);
@@ -710,9 +710,9 @@ public class ProblemsPanel extends VBox {
     static String describe(ValidationProblem item, String documentName) {
         StringBuilder text = new StringBuilder()
                 .append('[').append(switch (item.level()) {
-                    case ERROR -> "Error";
-                    case WARNING -> "Warning";
-                    case INFO -> "Hint";
+                    case ERROR -> I18n.t("ProblemsPanel.level-error");
+                    case WARNING -> I18n.t("ProblemsPanel.level-warning");
+                    case INFO -> I18n.t("ProblemsPanel.level-hint");
                 }).append("] ");
         if (item.source() != null && !item.source().isBlank()) {
             text.append(item.source()).append(": ");
@@ -720,7 +720,7 @@ public class ProblemsPanel extends VBox {
         text.append(item.message() == null ? "" : item.message());
         String name = documentName == null ? "" : documentName;
         if (item.line() > 0) {
-            text.append(" (").append(name.isEmpty() ? "line " : name + " : ").append(item.line());
+            text.append(" (").append(name.isEmpty() ? I18n.t("ProblemsPanel.line") + " " : name + " : ").append(item.line());
             if (item.column() > 0) {
                 text.append(':').append(item.column());
             }
@@ -729,13 +729,13 @@ public class ProblemsPanel extends VBox {
             text.append(" (").append(name).append(')');
         }
         if (item.ruleId() != null && !item.ruleId().isBlank()) {
-            text.append("\n    Rule / Test: ").append(item.ruleId());
+            text.append("\n    ").append(I18n.t("ProblemsPanel.rule-test")).append(' ').append(item.ruleId());
         }
         if (item.context() != null && !item.context().isBlank()) {
-            text.append("\n    Context: ").append(item.context());
+            text.append("\n    ").append(I18n.t("ProblemsPanel.context")).append(' ').append(item.context());
         }
         if (item.hasLink()) {
-            text.append("\n    Link: ").append(item.link());
+            text.append("\n    ").append(I18n.t("ProblemsPanel.link")).append(' ').append(item.link());
         }
         return text.toString();
     }
@@ -807,10 +807,10 @@ public class ProblemsPanel extends VBox {
     static javafx.scene.control.Tooltip detailTooltip(ValidationProblem item) {
         StringBuilder text = new StringBuilder(item.message() == null ? "" : item.message());
         if (item.ruleId() != null && !item.ruleId().isBlank()) {
-            text.append("\n\nRule / Test: ").append(item.ruleId());
+            text.append("\n\n").append(I18n.t("ProblemsPanel.rule-test")).append(' ').append(item.ruleId());
         }
         if (item.context() != null && !item.context().isBlank()) {
-            text.append("\nContext: ").append(item.context());
+            text.append("\n").append(I18n.t("ProblemsPanel.context")).append(' ').append(item.context());
         }
         if (item.hasLink()) {
             text.append("\n\n").append(item.link());
@@ -1075,7 +1075,8 @@ public class ProblemsPanel extends VBox {
                 break;
             }
             detail.append(f.isin()).append(f.name() == null ? "" : " (" + f.name() + ")").append(": ")
-                    .append(f.field() == org.fxt.freexmltoolkit.service.finance.IdentifierFixes.Field.CFI ? "CFI " : "Issuer LEI ")
+                    .append(f.field() == org.fxt.freexmltoolkit.service.finance.IdentifierFixes.Field.CFI
+                            ? I18n.t("ProblemsPanel.fix-field-cfi") : I18n.t("ProblemsPanel.fix-field-issuer-lei")).append(' ')
                     .append(f.from()).append(" → ").append(f.to()).append("  ×").append(f.occurrences()).append('\n');
         }
         String header = I18n.t("ProblemsPanel.fix-header", plan.edits().size(), plan.isins());

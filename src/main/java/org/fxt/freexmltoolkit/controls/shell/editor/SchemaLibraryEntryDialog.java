@@ -53,10 +53,11 @@ public class SchemaLibraryEntryDialog extends Dialog<SchemaLibraryEntry> {
         SchemaLibraryEntry editing = asNew ? null : existing;
         SchemaLibraryEntry prefill = existing;
 
-        setTitle(editing == null ? "Add Schema Mapping" : "Edit Schema Mapping");
+        setTitle(editing == null ? I18n.t("SchemaLibraryEntryDialog.add-title") : I18n.t("SchemaLibraryEntryDialog.edit-title"));
         setHeaderText(editing == null
-                ? "Map a namespace, JSON $schema URI or file names to a local schema file or URL."
-                : "Change the mapping for " + (editing.namespace().isEmpty() ? editing.rootElement() : editing.namespace()));
+                ? I18n.t("SchemaLibraryEntryDialog.add-header")
+                : I18n.t("SchemaLibraryEntryDialog.edit-header",
+                        editing.namespace().isEmpty() ? editing.rootElement() : editing.namespace()));
         DialogHelper.prepare(this);
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
@@ -94,8 +95,8 @@ public class SchemaLibraryEntryDialog extends Dialog<SchemaLibraryEntry> {
         FileChooser fc = new FileChooser();
         fc.setTitle(I18n.t("SchemaLibraryEntryDialog.select-schema-file"));
         fc.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Schemas", "*.xsd", "*.json", "*.dtd"),
-                new FileChooser.ExtensionFilter("All files", "*.*"));
+                new FileChooser.ExtensionFilter(I18n.t("SchemaLibraryEntryDialog.schemas"), "*.xsd", "*.json", "*.dtd"),
+                new FileChooser.ExtensionFilter(I18n.t("SchemaLibraryEntryDialog.all-files"), "*.*"));
         File f = fc.showOpenDialog(getOwner());
         if (f != null) {
             locationField.setText(f.getAbsolutePath());

@@ -213,21 +213,21 @@ public class ScenarioEditDialog extends Dialog<FxtProject.Scenario> {
         String name = nameField.getText() == null ? "" : nameField.getText().strip();
         String problem = null;
         if (name.isEmpty()) {
-            problem = "Enter a name.";
+            problem = I18n.t("ScenarioEditDialog.enter-name");
         } else if (otherNames.contains(name)) {
-            problem = "Another scenario already has this name.";
+            problem = I18n.t("ScenarioEditDialog.name-taken");
         } else if (stylesheetField.getText() == null || stylesheetField.getText().isBlank()) {
-            problem = "Choose the stylesheet, query or pipeline.";
+            problem = I18n.t("ScenarioEditDialog.choose-stylesheet");
         } else if ("PDF".equals(formatChoice.getValue()) && (outputField.getText() == null || outputField.getText().isBlank())) {
-            problem = "A PDF scenario needs an output file.";
+            problem = I18n.t("ScenarioEditDialog.pdf-needs-output");
         } else if (!parametersArea.getText().isBlank() && invalidParameterLine(parametersArea.getText()) != null) {
-            problem = "Not a parameter (name=value): " + invalidParameterLine(parametersArea.getText());
+            problem = I18n.t("ScenarioEditDialog.not-a-parameter", invalidParameterLine(parametersArea.getText()));
         } else if (tolerance() < 0) {
-            problem = "The tolerance must be a number of 0 or more.";
+            problem = I18n.t("ScenarioEditDialog.tolerance");
         } else if (XmlStructuralDiff.Options.DEFAULTS.withIgnoreXPaths(
                 XmlStructuralDiff.Options.parseXPaths(ignoreArea.getText())).invalidIgnoreXPath() != null) {
-            problem = "Not an XPath: " + XmlStructuralDiff.Options.DEFAULTS.withIgnoreXPaths(
-                    XmlStructuralDiff.Options.parseXPaths(ignoreArea.getText())).invalidIgnoreXPath();
+            problem = I18n.t("ScenarioEditDialog.not-an-xpath", XmlStructuralDiff.Options.DEFAULTS.withIgnoreXPaths(
+                    XmlStructuralDiff.Options.parseXPaths(ignoreArea.getText())).invalidIgnoreXPath());
         }
         boolean show = problem != null && !name.isEmpty();
         error.setText(problem == null ? "" : problem);
@@ -279,7 +279,7 @@ public class ScenarioEditDialog extends Dialog<FxtProject.Scenario> {
 
     @FXML
     public void onBrowseExpected() {
-        browse(expectedField, new FileChooser.ExtensionFilter("All files", "*.*"));
+        browse(expectedField, new FileChooser.ExtensionFilter(I18n.t("ScenarioEditDialog.all-files"), "*.*"));
     }
 
     private void browse(TextField field, FileChooser.ExtensionFilter filter) {

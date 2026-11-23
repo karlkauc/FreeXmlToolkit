@@ -38,7 +38,8 @@ public class MessagesView extends VBox {
 
     /** Level filter choices. */
     enum LevelFilter {
-        ALL("All levels"), MESSAGES("Messages"), WARNINGS("Warnings"), ERRORS("Errors");
+        ALL("MessagesView.all-levels"), MESSAGES("MessagesView.level-messages"),
+        WARNINGS("MessagesView.level-warnings"), ERRORS("MessagesView.level-errors");
 
         private final String label;
 
@@ -48,7 +49,7 @@ public class MessagesView extends VBox {
 
         @Override
         public String toString() {
-            return label;
+            return I18n.t(label);
         }
     }
 
@@ -199,8 +200,8 @@ public class MessagesView extends VBox {
         String text = search.getText() == null ? "" : search.getText().strip().toLowerCase(Locale.ROOT);
         shown.setPredicate(m -> matchesLevel(m, lf) && (text.isEmpty()
                 || format(m).toLowerCase(Locale.ROOT).contains(text)));
-        placeholder.setText(all.isEmpty() ? "No messages yet — xsl:message output appears here."
-                : "No message matches the filter.");
+        placeholder.setText(all.isEmpty() ? I18n.t("MessagesView.no-messages-yet-xsl-message")
+                : I18n.t("MessagesView.no-message-matches-the-filter"));
     }
 
     private static boolean matchesLevel(TransformationMessage m, LevelFilter lf) {

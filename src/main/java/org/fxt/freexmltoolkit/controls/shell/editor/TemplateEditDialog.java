@@ -40,7 +40,7 @@ public class TemplateEditDialog extends Dialog<XmlTemplate> {
     public TemplateEditDialog(XmlTemplate existing) {
         DialogHelper.prepare(this);
         this.existing = existing;
-        setTitle(existing == null ? "New Template" : "Edit Template");
+        setTitle(existing == null ? I18n.t("TemplateEditDialog.new-title") : I18n.t("TemplateEditDialog.edit-title"));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         getDialogPane().setPrefWidth(620);
 

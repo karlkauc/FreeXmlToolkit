@@ -178,17 +178,16 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
             alert.setHeaderText(I18n.t("XmlGridAdapter.this-xml-contains-element-s", mixedElements.size()));
 
             StringBuilder details = new StringBuilder();
-            details.append("Elements with both text and child elements were found:\n\n");
+            details.append(I18n.t("XmlGridAdapter.mixed-elements-found"));
             int count = 0;
             for (XmlElement elem : mixedElements) {
                 if (count++ >= 5) {
-                    details.append("... and ").append(mixedElements.size() - 5).append(" more\n");
+                    details.append(I18n.t("XmlGridAdapter.and-more", String.valueOf(mixedElements.size() - 5)));
                     break;
                 }
                 details.append("- <").append(elem.getName()).append(">\n");
             }
-            details.append("\nThis may cause display issues. Consider removing either the text content "
-                    + "or child elements to ensure valid XML structure.");
+            details.append(I18n.t("XmlGridAdapter.mixed-may-cause-issues"));
 
             alert.setContentText(details.toString());
             alert.showAndWait();
@@ -257,7 +256,7 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
 
     @Override
     public String emptyStateText() {
-        return "No XML document loaded";
+        return I18n.t("XmlGridAdapter.no-xml-document-loaded");
     }
 
     // ==================== Inline editing ====================

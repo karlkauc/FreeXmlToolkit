@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -99,8 +100,8 @@ public final class ScenarioRunner {
     public static Result runOnce(FxtProject project, FxtProject.Scenario scenario, Path file, java.util.Set<Path> written) {
         FxtProject.Scenario prepared = project.scenarioForFile(scenario, file);
         if (prepared.output != null && !prepared.output.isBlank() && !written.add(project.resolve(prepared.output))) {
-            return new Result(null, null, null, "The output " + prepared.output
-                    + " was already written for another file; use ${name} or ${dir} in the scenario's output.");
+            return new Result(null, null, null, I18n.t("ScenarioRunner.output-written",
+                    prepared.output, "${name}", "${dir}"));
         }
         return run(project, prepared);
     }
@@ -108,11 +109,11 @@ public final class ScenarioRunner {
     /** Runs a scenario (on the calling thread). */
     public static Result run(FxtProject project, FxtProject.Scenario scenario) {
         if (scenario.stylesheet == null || scenario.stylesheet.isBlank()) {
-            return new Result(null, null, null, "The scenario names no stylesheet, query or pipeline.");
+            return new Result(null, null, null, I18n.t("ScenarioRunner.no-stylesheet"));
         }
         if (scenario.input != null && scenario.input.contains(FxtProject.VAR_FILE)) {
-            return new Result(null, null, null, "The scenario runs for a file (" + FxtProject.VAR_FILE
-                    + "): run it for a file of the project.");
+            return new Result(null, null, null, I18n.t("ScenarioRunner.runs-for-file",
+                    FxtProject.VAR_FILE));
         }
         if (scenario.isPdf()) {
             return runPdf(project, scenario);
@@ -124,13 +125,13 @@ public final class ScenarioRunner {
             Path target = scenario.output == null || scenario.output.isBlank() ? null
                     : project.resolveWritable(scenario.output);
             if (!Files.isRegularFile(code)) {
-                return new Result(null, null, null, "Not found: " + code);
+                return new Result(null, null, null, I18n.t("ScenarioRunner.not-found", code));
             }
             if (input != null && !Files.isRegularFile(input)) {
-                return new Result(null, null, null, "Input not found: " + input);
+                return new Result(null, null, null, I18n.t("ScenarioRunner.input-not-found", input));
             }
             if (language == Language.XSLT && input == null) {
-                return new Result(null, null, null, "An XSLT scenario needs an input document.");
+                return new Result(null, null, null, I18n.t("ScenarioRunner.needs-input"));
             }
             String codeText = Files.readString(code, StandardCharsets.UTF_8);
             String xml = input == null ? null : Files.readString(input, StandardCharsets.UTF_8);
@@ -208,23 +209,23 @@ public final class ScenarioRunner {
     /** XSLT to XSL-FO with the scenario's parameters, then FOP renders the PDF to the output file. */
     private static Result runPdf(FxtProject project, FxtProject.Scenario scenario) {
         if (languageOf(scenario.stylesheet) != Language.XSLT) {
-            return new Result(null, null, null, "A PDF scenario needs an XSLT stylesheet that produces XSL-FO.");
+            return new Result(null, null, null, I18n.t("ScenarioRunner.pdf-needs-xslt"));
         }
         if (scenario.output == null || scenario.output.isBlank()) {
-            return new Result(null, null, null, "A PDF scenario needs an output file.");
+            return new Result(null, null, null, I18n.t("ScenarioRunner.pdf-needs-output"));
         }
         if (scenario.input == null || scenario.input.isBlank()) {
-            return new Result(null, null, null, "An XSLT scenario needs an input document.");
+            return new Result(null, null, null, I18n.t("ScenarioRunner.needs-input"));
         }
         try {
             Path target = project.resolveWritable(scenario.output);
             Path code = project.resolve(scenario.stylesheet);
             Path input = project.resolve(scenario.input);
             if (!Files.isRegularFile(code)) {
-                return new Result(null, null, null, "Not found: " + code);
+                return new Result(null, null, null, I18n.t("ScenarioRunner.not-found", code));
             }
             if (!Files.isRegularFile(input)) {
-                return new Result(null, null, null, "Input not found: " + input);
+                return new Result(null, null, null, I18n.t("ScenarioRunner.input-not-found", input));
             }
             Map<String, Object> parameters = new LinkedHashMap<>(scenario.parameters == null ? Map.of() : scenario.parameters);
             XsltTransformationResult fo = TransformRunner.xsltTransformResult(
@@ -248,7 +249,7 @@ public final class ScenarioRunner {
             if (!pdf.ok()) {
                 return new Result(null, null, null, pdf.error());
             }
-            return new Result("PDF written to " + target, null, target, null);
+            return new Result(I18n.t("ScenarioRunner.pdf-written", target), null, target, null);
         } catch (IOException | RuntimeException e) {
             return new Result(null, null, null, String.valueOf(e.getMessage()));
         }

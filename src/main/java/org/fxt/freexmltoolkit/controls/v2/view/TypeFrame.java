@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.v2.view;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 
 /**
@@ -105,10 +106,9 @@ public final class TypeFrame {
      * @param nodeLabel the label of the node the user tried to change
      */
     public String lockReason(String nodeLabel) {
-        String subject = nodeLabel == null || nodeLabel.isBlank() ? "This node" : "'" + nodeLabel + "'";
-        return subject + " belongs to the type '" + typeName + "' and is shown read-only here. "
-                + "To change it, edit the type: double-click the frame title or use "
-                + "\"Edit Type '" + typeName + "'\" in the context menu.";
+        return nodeLabel == null || nodeLabel.isBlank()
+                ? I18n.t("TypeFrame.lock-reason-this-node", typeName)
+                : I18n.t("TypeFrame.lock-reason", nodeLabel, typeName);
     }
 
     /**
@@ -118,9 +118,7 @@ public final class TypeFrame {
      */
     public String contentLockReason(String nodeLabel) {
         if (nodeLabel != null && !nodeLabel.isBlank() && !nodeLabel.equals(typeName)) {
-            return "The content of '" + nodeLabel + "' comes from the type '" + typeName
-                    + "' and is shown read-only here. To add to it, edit the type: double-click the "
-                    + "frame title or use \"Edit Referenced Type in Editor\" in the context menu.";
+            return I18n.t("TypeFrame.content-lock-reason", nodeLabel, typeName);
         }
         return lockReason(nodeLabel);
     }

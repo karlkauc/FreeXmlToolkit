@@ -90,7 +90,7 @@ public class SearchResultsTree extends TreeView<SearchResultsTree.Row> {
             if (entry.truncated()) {
                 // Plain TreeItem: a note must not participate in the checkbox tri-state.
                 fileItem.getChildren().add(new TreeItem<>(
-                        new NoteRow("More matches not shown (limit reached)")));
+                        new NoteRow(org.fxt.freexmltoolkit.i18n.I18n.t("SearchResultsTree.more-matches-not-shown"))));
             }
             if (entry.note() != null) {
                 fileItem.getChildren().add(new TreeItem<>(new NoteRow(entry.note())));

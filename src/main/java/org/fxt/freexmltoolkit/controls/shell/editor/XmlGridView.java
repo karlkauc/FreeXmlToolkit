@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import java.util.function.Consumer;
 
 import org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget;
@@ -82,7 +83,7 @@ public class XmlGridView extends GridViewShell {
         if (xml == null || xml.isBlank()) {
             context = null;
             canvasView = null;
-            showPlaceholder("No XML content to display.");
+            showPlaceholder(I18n.t("XmlGridView.no-content"));
             return;
         }
         XmlEditorContext ctx = new XmlEditorContext();
@@ -92,7 +93,7 @@ public class XmlGridView extends GridViewShell {
             context = null;
             canvasView = null;
             org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "grid.parse");
-            showPlaceholder("Cannot display grid:\n\n" + e.getMessage() + "\n\nFix the XML errors first.");
+            showPlaceholder(I18n.t("XmlGridView.cannot-display", e.getMessage()));
             return;
         }
         setContext(ctx);
@@ -127,7 +128,7 @@ public class XmlGridView extends GridViewShell {
         this.context = ctx;
         this.canvasView = null;
         if (ctx == null || ctx.getDocument() == null) {
-            showPlaceholder("No XML content to display.");
+            showPlaceholder(I18n.t("XmlGridView.no-content"));
             return;
         }
         ctx.getSelectionModel().addPropertyChangeListener("selectedNode", evt -> {

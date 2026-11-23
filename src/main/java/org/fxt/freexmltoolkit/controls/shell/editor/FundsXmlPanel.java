@@ -41,15 +41,15 @@ public class FundsXmlPanel extends VBox {
             endDownload();
             if (result.isSuccess()) {
                 PanelStatus.success(status, result.schemaVersion() != null
-                        ? "Download complete — schema version " + result.schemaVersion() + "."
-                        : "Download complete.");
+                        ? I18n.t("FundsXmlPanel.download-complete-schema-version", result.schemaVersion())
+                        : I18n.t("FundsXmlPanel.download-complete"));
             } else if (result.cause() != null) {
                 PanelStatus.failure(status, I18n.t("FundsXmlPanel.download-failed"),
-                        I18n.t("FundsXmlPanel.download-failed-2", (result.error() == null ? "unknown error" : result.error())),
+                        I18n.t("FundsXmlPanel.download-failed-2", (result.error() == null ? I18n.t("FundsXmlPanel.unknown-error") : result.error())),
                         I18n.t("FundsXmlPanel.check-your-internet-connection-and"), result.cause());
             } else {
                 PanelStatus.failure(status, I18n.t("FundsXmlPanel.download-failed"),
-                        I18n.t("FundsXmlPanel.download-failed-2", (result.error() == null ? "unknown error" : result.error())));
+                        I18n.t("FundsXmlPanel.download-failed-2", (result.error() == null ? I18n.t("FundsXmlPanel.unknown-error") : result.error())));
             }
             refreshVersions();
         }
@@ -389,10 +389,10 @@ public class FundsXmlPanel extends VBox {
             boolean ok = true;
             try {
                 var dir = FundsXmlRunner.generateDocumentation(job);
-                msg = "Documentation written to: " + dir;
+                msg = I18n.t("FundsXmlPanel.documentation-written-to", dir);
             } catch (Throwable t) {
                 ok = false;
-                msg = "Documentation failed: " + t.getMessage();
+                msg = I18n.t("FundsXmlPanel.documentation-failed-message", t.getMessage());
             } finally {
                 job.finish();
             }

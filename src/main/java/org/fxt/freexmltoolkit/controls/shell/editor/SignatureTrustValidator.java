@@ -46,17 +46,14 @@ public final class SignatureTrustValidator {
                               String revocation, String timestamp, String message) {
 
         static TrustResult error(String message) {
-            return new TrustResult(false, false, "—", "not checked", "none", message);
+            return new TrustResult(false, false, "—", I18n.t("SignatureTrustValidator.not-checked"), I18n.t("SignatureTrustValidator.none"), message);
         }
 
         /** @return a multi-line human-readable report. */
         public String report() {
-            return "Trust:      " + (trusted ? "TRUSTED ✓" : "NOT TRUSTED ✗") + '\n'
-                    + "Chain:      " + (selfSigned ? "self-signed (single certificate)" : "validated to a trust anchor") + '\n'
-                    + "Anchor:     " + anchor + '\n'
-                    + "Revocation: " + revocation + '\n'
-                    + "Timestamp:  " + timestamp + '\n'
-                    + "Detail:     " + message;
+            return I18n.t("SignatureTrustValidator.report", trusted ? I18n.t("SignatureTrustValidator.trusted") : I18n.t("SignatureTrustValidator.not-trusted"),
+                    selfSigned ? I18n.t("SignatureTrustValidator.chain-self-signed") : I18n.t("SignatureTrustValidator.chain-validated"),
+                    anchor, revocation, timestamp, message);
         }
     }
 
@@ -93,8 +90,8 @@ public final class SignatureTrustValidator {
                     && leaf.getSubjectX500Principal().equals(leaf.getIssuerX500Principal());
             Set<TrustAnchor> anchors = anchors(trustStore);
             if (anchors.isEmpty()) {
-                return new TrustResult(false, selfSigned, "(no trust anchors)",
-                        "not checked", "none", "The trust store has no trusted certificates.");
+                return new TrustResult(false, selfSigned, I18n.t("SignatureTrustValidator.no-anchors"),
+                        I18n.t("SignatureTrustValidator.not-checked"), I18n.t("SignatureTrustValidator.none"), I18n.t("SignatureTrustValidator.empty-store"));
             }
 
             // A self-signed certificate is its own trust anchor: it is trusted iff it is in the store.
@@ -102,10 +99,10 @@ public final class SignatureTrustValidator {
                 boolean inStore = anchors.stream()
                         .anyMatch(a -> leaf.equals(a.getTrustedCert()));
                 return new TrustResult(inStore, true,
-                        inStore ? leaf.getSubjectX500Principal().getName() : "(self-signed, untrusted)",
-                        "not applicable", "none",
-                        inStore ? "Self-signed certificate is present in the trust store."
-                                : "Self-signed certificate is not in the trust store.");
+                        inStore ? leaf.getSubjectX500Principal().getName() : I18n.t("SignatureTrustValidator.self-signed-untrusted"),
+                        I18n.t("SignatureTrustValidator.not-applicable"), I18n.t("SignatureTrustValidator.none"),
+                        inStore ? I18n.t("SignatureTrustValidator.self-signed-in-store")
+                                : I18n.t("SignatureTrustValidator.self-signed-not-in-store"));
             }
 
             CertPath path = CertificateFactory.getInstance("X.509").generateCertPath(chain);
@@ -118,21 +115,22 @@ public final class SignatureTrustValidator {
                 checker.setOptions(EnumSet.of(PKIXRevocationChecker.Option.SOFT_FAIL,
                         PKIXRevocationChecker.Option.PREFER_CRLS));
                 params.addCertPathChecker(checker);
-                revocation = "checked (soft-fail)";
+                revocation = I18n.t("SignatureTrustValidator.checked-soft-fail");
             } else {
                 params.setRevocationEnabled(false);
-                revocation = "not checked";
+                revocation = I18n.t("SignatureTrustValidator.not-checked");
             }
 
             PKIXCertPathValidatorResult result = (PKIXCertPathValidatorResult) validator.validate(path, params);
             X509Certificate anchorCert = result.getTrustAnchor().getTrustedCert();
-            String anchorName = anchorCert != null ? anchorCert.getSubjectX500Principal().getName() : "(anchor)";
-            return new TrustResult(true, false, anchorName, revocation, "none",
-                    "Certificate chain is trusted.");
+            String anchorName = anchorCert != null ? anchorCert.getSubjectX500Principal().getName() : I18n.t("SignatureTrustValidator.anchor");
+            return new TrustResult(true, false, anchorName, revocation, I18n.t("SignatureTrustValidator.none"),
+                    I18n.t("SignatureTrustValidator.chain-trusted"));
         } catch (CertPathValidatorException e) {
             boolean selfSigned = chain.size() == 1;
-            return new TrustResult(false, selfSigned, "(untrusted)",
-                    checkRevocation ? "checked" : "not checked", "none", "Untrusted chain: " + e.getMessage());
+            return new TrustResult(false, selfSigned, I18n.t("SignatureTrustValidator.untrusted"),
+                    checkRevocation ? I18n.t("SignatureTrustValidator.checked") : I18n.t("SignatureTrustValidator.not-checked"), I18n.t("SignatureTrustValidator.none"),
+                    I18n.t("SignatureTrustValidator.untrusted-chain", e.getMessage()));
         } catch (Exception e) {
             return TrustResult.error(e.getMessage() == null ? e.toString() : e.getMessage());
         }
@@ -168,9 +166,9 @@ public final class SignatureTrustValidator {
     private static String detectTimestamp(Document doc) {
         if (doc.getElementsByTagNameNS("*", "SignatureTimeStamp").getLength() > 0
                 || doc.getElementsByTagNameNS("*", "EncapsulatedTimeStamp").getLength() > 0) {
-            return "present (token not validated)";
+            return I18n.t("SignatureTrustValidator.timestamp-present");
         }
-        return "none";
+        return I18n.t("SignatureTrustValidator.none");
     }
 
     private static Document parse(File file) throws Exception {

@@ -45,6 +45,21 @@ public class FavoritesManagerView extends BorderPane {
     static final String RECENTLY_USED = "Recently Used";
     /** Smart collection: favorites sorted by how often they were opened. */
     static final String MOST_POPULAR = "Most Popular";
+    private static final String UNCATEGORIZED_LABEL = I18n.t("FavoritesManagerView.uncategorized");
+
+    /**
+     * @return the shown name of a folder entry: the built-in entries ({@link #ALL},
+     *         {@link #UNCATEGORIZED}, the smart collections) are internal names and shown translated
+     */
+    static String displayFolder(String folder) {
+        return switch (folder) {
+            case ALL -> I18n.t("FavoritesManagerView.all");
+            case UNCATEGORIZED -> UNCATEGORIZED_LABEL;
+            case RECENTLY_USED -> I18n.t("FavoritesManagerView.recently-used");
+            case MOST_POPULAR -> I18n.t("FavoritesManagerView.most-popular");
+            default -> folder;
+        };
+    }
 
     private final EditorHost editorHost;
     @FXML private TextField search;
@@ -72,6 +87,13 @@ public class FavoritesManagerView extends BorderPane {
         search.textProperty().addListener((obs, oldV, newV) -> refreshTable());
         folderList.getSelectionModel().selectedItemProperty()
                 .addListener((obs, oldV, newV) -> refreshTable());
+        folderList.setCellFactory(list -> new javafx.scene.control.ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : displayFolder(item));
+            }
+        });
 
         table.setItems(tableItems);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
@@ -84,7 +106,17 @@ public class FavoritesManagerView extends BorderPane {
         folderColumn.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(
                 d.getValue().getFolderName() != null && !d.getValue().getFolderName().isBlank()
                         ? d.getValue().getFolderName() : UNCATEGORIZED));
-        folderColumn.setCellFactory(ComboBoxTableCell.forTableColumn(folderOptions));
+        folderColumn.setCellFactory(ComboBoxTableCell.forTableColumn(new javafx.util.StringConverter<>() {
+            @Override
+            public String toString(String folder) {
+                return folder == null ? "" : displayFolder(folder);
+            }
+
+            @Override
+            public String fromString(String text) {
+                return UNCATEGORIZED_LABEL.equals(text) ? UNCATEGORIZED : text;
+            }
+        }, folderOptions));
         folderColumn.setOnEditCommit(e -> moveToFolder(e.getRowValue(), e.getNewValue()));
         pathColumn.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(
                 d.getValue().getFilePath()));
@@ -123,14 +155,14 @@ public class FavoritesManagerView extends BorderPane {
 
     @FXML
     public void onNewFolder() {
-        prompt("New Folder", "Folder name:", "").ifPresent(this::createFolder);
+        prompt(I18n.t("FavoritesManagerView.new-folder"), I18n.t("FavoritesManagerView.folder-name"), "").ifPresent(this::createFolder);
     }
 
     @FXML
     public void onRenameFolder() {
         String selected = selectedFolder();
         if (isRealFolder(selected)) {
-            prompt("Rename Folder", "New name:", selected)
+            prompt(I18n.t("FavoritesManagerView.rename-folder"), I18n.t("FavoritesManagerView.new-name"), selected)
                     .ifPresent(newName -> renameFolder(selected, newName));
         }
     }
@@ -285,8 +317,8 @@ public class FavoritesManagerView extends BorderPane {
                     ? favorite.getFileType().getDisplayName() : "–");
             detailAdded.setText(formatDate(favorite.getAddedDate()));
             detailUsage.setText(favorite.getAccessCount() > 0
-                    ? favorite.getAccessCount() + "× · last " + formatDate(favorite.getLastAccessed())
-                    : "never opened");
+                    ? I18n.t("FavoritesManagerView.usage", favorite.getAccessCount(), formatDate(favorite.getLastAccessed()))
+                    : I18n.t("FavoritesManagerView.never-opened"));
             notesArea.setText(favorite.getNotes() != null ? favorite.getNotes() : "");
             notesArea.setDisable(false);
         } finally {

@@ -59,7 +59,7 @@ public final class AboutDialog {
         final String buildTs = VersionUtil.getBuildTimestampFormatted();
 
         Dialog<Void> dialog = DialogHelper.createDialog(null, null, null);
-        dialog.setTitle("About FreeXmlToolkit");
+        dialog.setTitle(I18n.t("AboutDialog.about-freexmltoolkit"));
         dialog.initModality(Modality.APPLICATION_MODAL);
         if (owner != null) {
             dialog.initOwner(owner);
@@ -83,8 +83,8 @@ public final class AboutDialog {
         dialogPane.setContent(FxmlViews.loadContent(view, "/pages/dialogs/AboutDialog.fxml"));
         view.fill(version, buildTs);
 
-        ButtonType copyVersionType = new ButtonType("Copy version", ButtonBar.ButtonData.LEFT);
-        ButtonType checkUpdatesType = new ButtonType("Check for updates", ButtonBar.ButtonData.LEFT);
+        ButtonType copyVersionType = new ButtonType(I18n.t("AboutDialog.copy-version"), ButtonBar.ButtonData.LEFT);
+        ButtonType checkUpdatesType = new ButtonType(I18n.t("AboutDialog.check-for-updates"), ButtonBar.ButtonData.LEFT);
         dialogPane.getButtonTypes().addAll(copyVersionType, checkUpdatesType, ButtonType.CLOSE);
 
         Button copyBtn = (Button) dialogPane.lookupButton(copyVersionType);
@@ -127,14 +127,14 @@ public final class AboutDialog {
         versionPill.setText("v" + version);
 
         int row = 0;
-        addInfoRow(info, row++, "Version", version);
+        addInfoRow(info, row++, I18n.t("AboutDialog.version"), version);
         if (!buildTs.isBlank()) {
-            addInfoRow(info, row++, "Build", buildTs);
+            addInfoRow(info, row++, I18n.t("AboutDialog.build"), buildTs);
         }
         addInfoRow(info, row++, "Java", System.getProperty("java.version", "?")
                 + "  (" + System.getProperty("java.vm.vendor", "?") + ")");
         addInfoRow(info, row++, "JavaFX", System.getProperty("javafx.runtime.version", "?"));
-        addInfoRow(info, row++, "OS", System.getProperty("os.name", "?") + " "
+        addInfoRow(info, row++, I18n.t("AboutDialog.os"), System.getProperty("os.name", "?") + " "
                 + System.getProperty("os.version", "") + "  (" + System.getProperty("os.arch", "?") + ")");
         addLinkRow(info, row++, I18n.t("AboutDialog.website"), "about-website",
                 ProjectLinks.WEBSITE_URL.replaceFirst("^https://", ""),
@@ -235,12 +235,11 @@ public final class AboutDialog {
                             showUpdateDialog(updateInfo);
                         } else {
                             Alert info = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
-                                    Alert.AlertType.INFORMATION, "Up to date",
-                                    "You are running the latest version.",
-                                    "FreeXmlToolkit "
-                                            + (updateInfo != null ? updateInfo.currentVersion()
-                                                    : VersionUtil.getVersion())
-                                            + " is current.");
+                                    Alert.AlertType.INFORMATION, I18n.t("AboutDialog.up-to-date"),
+                                    I18n.t("AboutDialog.you-are-running-the-latest"),
+                                    I18n.t("AboutDialog.freexmltoolkit-is-current",
+                                            updateInfo != null ? updateInfo.currentVersion()
+                                                    : VersionUtil.getVersion()));
                             info.initOwner(trigger.getScene().getWindow());
                             info.showAndWait();
                         }
@@ -285,9 +284,8 @@ public final class AboutDialog {
                     logger.warn("Auto-update failed: {}", result.errorMessage());
                     // update_download / update_apply already carry the failure: show, don't report again
                     Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showErrorAlert(
-                            "Update Failed", "Could not complete the update",
-                            result.errorMessage()
-                                    + "\n\nYou can try again or download the update manually from GitHub."));
+                            I18n.t("AboutDialog.update-failed"), I18n.t("AboutDialog.could-not-complete-the-update"),
+                            I18n.t("AboutDialog.update-failed-try-again", result.errorMessage())));
                 }
             });
         } catch (Exception | LinkageError e) {
@@ -323,9 +321,8 @@ public final class AboutDialog {
 
     static String otherInstancesMessage(int others) {
         return (others == 1
-                ? "FreeXmlToolkit is running in 1 other window."
-                : "FreeXmlToolkit is running in " + others + " other windows.")
-                + " The update replaces the installed files, so the other windows would stop working"
-                + " and unsaved changes there could be lost.\n\nSave your work, close them and choose Retry.";
+                ? I18n.t("AboutDialog.running-in-one-other-window")
+                : I18n.t("AboutDialog.running-in-other-windows", others))
+                + " " + I18n.t("AboutDialog.the-update-replaces-the-installed");
     }
 }

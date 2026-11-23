@@ -34,9 +34,9 @@ public class OutputSoFarView extends VBox {
 
     private final Label info = new Label(I18n.t("OutputSoFarView.the-output-appears-here-while"));
     private final CodeArea area = new PlainTextCodeArea();
-    private static final String PRINCIPAL = "Principal result";
+
     private final ChoiceBox<String> resultChoice = new ChoiceBox<>();
-    private final MenuButton documents = new MenuButton("Documents");
+    private final MenuButton documents = new MenuButton(I18n.t("OutputSoFarView.documents-button"));
     /** The texts of the current state: "" = principal, else result-document URI. */
     private java.util.Map<String, String> texts = new java.util.LinkedHashMap<>();
     private boolean finalResult;
@@ -47,7 +47,7 @@ public class OutputSoFarView extends VBox {
         info.getStyleClass().add("fxt-output-status");
         info.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(info, Priority.ALWAYS);
-        Button copy = DebugToolbar.action("Copy", "bi-clipboard", "Copy the output shown here");
+        Button copy = DebugToolbar.action(I18n.t("OutputSoFarView.copy"), "bi-clipboard", I18n.t("OutputSoFarView.copy-the-output-shown-here"));
         copy.setOnAction(e -> {
             ClipboardContent content = new ClipboardContent();
             content.putString(area.getText());
@@ -56,7 +56,7 @@ public class OutputSoFarView extends VBox {
         resultChoice.setConverter(new javafx.util.StringConverter<>() {
             @Override
             public String toString(String key) {
-                return key == null || key.isEmpty() ? PRINCIPAL
+                return key == null || key.isEmpty() ? I18n.t("OutputSoFarView.principal-result")
                         : org.fxt.freexmltoolkit.debugger.SourceLocations.fileName(key);
             }
 
@@ -141,7 +141,7 @@ public class OutputSoFarView extends VBox {
         resultChoice.setVisible(false);
         resultChoice.setManaged(false);
         setDocuments(java.util.List.of());
-        show("", "The output appears here while the run is paused.");
+        show("", I18n.t("OutputSoFarView.the-output-appears-here"));
     }
 
     /** Invoked with the URI of a loaded document to open (Documents menu). */
@@ -171,14 +171,14 @@ public class OutputSoFarView extends VBox {
         String text = texts.get(key);
         String what = key.isEmpty() ? "" : org.fxt.freexmltoolkit.debugger.SourceLocations.fileName(key) + ": ";
         if (text == null) {
-            show("", key.isEmpty() && !finalResult ? "No output to show." : "");
+            show("", key.isEmpty() && !finalResult ? I18n.t("OutputSoFarView.no-output-to-show") : "");
         } else if (finalResult) {
-            show(text, what + String.format(Locale.ROOT, key.isEmpty()
-                    ? "Complete result: %,d chars (also in OUTPUT) · double-click to go to the instruction that wrote it"
-                    : "%,d chars", text.length()));
+            String chars = String.format(Locale.ROOT, "%,d", text.length());
+            show(text, what + I18n.t(key.isEmpty() ? "OutputSoFarView.complete-result" : "OutputSoFarView.chars", chars));
         } else {
-            show(text, what + String.format(Locale.ROOT, "Written so far: %,d chars — the rest follows when the run continues"
-                    + (key.isEmpty() ? " · double-click to go to the instruction that wrote it" : ""), text.length()));
+            String chars = String.format(Locale.ROOT, "%,d", text.length());
+            show(text, what + I18n.t(key.isEmpty() ? "OutputSoFarView.written-so-far-principal"
+                    : "OutputSoFarView.written-so-far", chars));
         }
     }
 

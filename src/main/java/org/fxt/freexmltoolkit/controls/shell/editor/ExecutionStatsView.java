@@ -86,7 +86,7 @@ public class ExecutionStatsView extends VBox {
         FxmlColumns.text(gcColumn, s -> s.gcCount() > 0 ? s.gcCount() + " (" + s.gcTimeMillis() + " ms)" : "-");
         FxmlColumns.text(inColumn, s -> s.inputChars() >= 0 ? FormattingUtils.formatFileSize(s.inputChars()) : "-");
         FxmlColumns.text(outColumn, s -> s.outputChars() >= 0 ? FormattingUtils.formatFileSize(s.outputChars()) : "-");
-        FxmlColumns.text(statusColumn, s -> s.success() ? "ok" : "error");
+        FxmlColumns.text(statusColumn, s -> s.success() ? I18n.t("ExecutionStatsView.status-ok") : I18n.t("ExecutionStatsView.status-error"));
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         table.getSelectionModel().selectedItemProperty().addListener(
                 (obs, old, selected) -> detail.setText(selected != null ? buildReportText(selected) : ""));
@@ -105,8 +105,8 @@ public class ExecutionStatsView extends VBox {
         boolean enabled = ExecutionStatsService.getInstance().isEnabled();
         recordingOffBar.setVisible(!enabled);
         emptyLabel.setText(enabled
-                ? "Run a transform, query or validation to record statistics."
-                : "Recording is off. Enable it to measure the next runs.");
+                ? I18n.t("ExecutionStatsView.run-a-transform-query-or")
+                : I18n.t("ExecutionStatsView.recording-is-off-enable-it"));
     }
 
     /** Turns recording on (same switch as Settings → Execution statistics). */
@@ -152,7 +152,7 @@ public class ExecutionStatsView extends VBox {
         chooser.setTitle(I18n.t("ExecutionStatsView.export-execution-statistics"));
         chooser.setInitialFileName("execution-statistics." + format);
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(
-                format.toUpperCase() + " files", "*." + format));
+                I18n.t("ExecutionStatsView.format-files", format.toUpperCase()), "*." + format));
         java.io.File file = chooser.showSaveDialog(getScene() != null ? getScene().getWindow() : null);
         if (file == null) {
             return;
@@ -176,29 +176,41 @@ public class ExecutionStatsView extends VBox {
         StringBuilder sb = new StringBuilder();
         sb.append("=== ").append(s.type()).append(" · ").append(s.target()).append(" ===\n");
         if (s.startedAt() != null) {
-            sb.append("Started:      ").append(DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(s.startedAt())).append('\n');
+            sb.append(reportLabel("ExecutionStatsView.report-started"))
+                    .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(s.startedAt())).append('\n');
         }
-        sb.append("Status:       ").append(s.success() ? "success" : "error — " + s.errorSummary()).append('\n');
-        sb.append("Wall time:    ").append(s.wallMillis()).append(" ms\n");
-        sb.append("CPU time:     ").append(s.cpuMillis() >= 0 ? s.cpuMillis() + " ms" : "unsupported").append('\n');
-        sb.append("Heap before:  ").append(FormattingUtils.formatFileSize(s.heapBeforeBytes())).append('\n');
-        sb.append("Heap delta:   ").append(formatSignedBytes(s.heapDeltaBytes())).append(" (approximate)\n");
-        sb.append("GC activity:  ").append(s.gcCount()).append(" collection(s), ")
-                .append(s.gcTimeMillis()).append(" ms\n");
-        sb.append("Input size:   ").append(s.inputChars() >= 0
-                ? FormattingUtils.formatFileSize(s.inputChars()) : "unknown").append('\n');
-        sb.append("Output size:  ").append(s.outputChars() >= 0
-                ? FormattingUtils.formatFileSize(s.outputChars()) : "unknown").append('\n');
+        sb.append(reportLabel("ExecutionStatsView.report-status")).append(s.success()
+                ? I18n.t("ExecutionStatsView.report-success")
+                : I18n.t("ExecutionStatsView.report-error", s.errorSummary())).append('\n');
+        sb.append(reportLabel("ExecutionStatsView.report-wall-time")).append(s.wallMillis()).append(" ms\n");
+        sb.append(reportLabel("ExecutionStatsView.report-cpu-time")).append(s.cpuMillis() >= 0 ? s.cpuMillis() + " ms"
+                : I18n.t("ExecutionStatsView.report-unsupported")).append('\n');
+        sb.append(reportLabel("ExecutionStatsView.report-heap-before"))
+                .append(FormattingUtils.formatFileSize(s.heapBeforeBytes())).append('\n');
+        sb.append(reportLabel("ExecutionStatsView.report-heap-delta"))
+                .append(I18n.t("ExecutionStatsView.report-approximate", formatSignedBytes(s.heapDeltaBytes()))).append('\n');
+        sb.append(reportLabel("ExecutionStatsView.report-gc-activity"))
+                .append(I18n.t("ExecutionStatsView.report-collections", s.gcCount(), s.gcTimeMillis())).append('\n');
+        sb.append(reportLabel("ExecutionStatsView.report-input-size")).append(s.inputChars() >= 0
+                ? FormattingUtils.formatFileSize(s.inputChars()) : I18n.t("ExecutionStatsView.report-unknown")).append('\n');
+        sb.append(reportLabel("ExecutionStatsView.report-output-size")).append(s.outputChars() >= 0
+                ? FormattingUtils.formatFileSize(s.outputChars()) : I18n.t("ExecutionStatsView.report-unknown")).append('\n');
         if (!s.phaseMillis().isEmpty()) {
-            sb.append("Phases:\n");
+            sb.append(I18n.t("ExecutionStatsView.report-phases")).append('\n');
             s.phaseMillis().forEach((name, ms) ->
                     sb.append("  ").append(name).append(": ").append(ms).append(" ms\n"));
         }
         if (s.wallMillis() > 0 && s.inputChars() > 0) {
             double kbPerSec = (s.inputChars() / 1024.0) / (s.wallMillis() / 1000.0);
-            sb.append("Throughput:   ").append(String.format(java.util.Locale.US, "%.1f KB/s", kbPerSec)).append('\n');
+            sb.append(reportLabel("ExecutionStatsView.report-throughput")).append(String.format(java.util.Locale.US, "%.1f KB/s", kbPerSec)).append('\n');
         }
         return sb.toString();
+    }
+
+    /** A report label padded to a common width, so the values line up. */
+    private static String reportLabel(String key) {
+        String label = I18n.t(key);
+        return label.length() < 14 ? String.format("%-14s", label) : label + " ";
     }
 
     private static String formatSignedBytes(long bytes) {

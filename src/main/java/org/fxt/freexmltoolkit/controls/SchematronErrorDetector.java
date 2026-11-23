@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -50,7 +51,7 @@ public class SchematronErrorDetector {
 
         if (schematronText == null || schematronText.trim().isEmpty()) {
             result.addError(new SchematronError(ErrorType.STRUCTURAL, 0, 0,
-                    "Document is empty", ErrorSeverity.ERROR));
+                    I18n.t("SchematronErrorDetector.document-is-empty"), ErrorSeverity.ERROR));
             return result;
         }
 
@@ -121,7 +122,7 @@ public class SchematronErrorDetector {
             }
 
             result.addError(new SchematronError(ErrorType.XML_SYNTAX, line, column,
-                    "XML syntax error: " + e.getMessage(), ErrorSeverity.ERROR));
+                    I18n.t("SchematronErrorDetector.xml-syntax-error", e.getMessage()), ErrorSeverity.ERROR));
         }
     }
 
@@ -144,7 +145,7 @@ public class SchematronErrorDetector {
             // Check root element
             if (!"schema".equals(root.getLocalName())) {
                 result.addError(new SchematronError(ErrorType.STRUCTURAL, 1, 1,
-                        "Root element must be 'schema', found: " + root.getLocalName(),
+                        I18n.t("SchematronErrorDetector.root-element-must-be-schema", root.getLocalName()),
                         ErrorSeverity.ERROR));
             }
 
@@ -152,14 +153,14 @@ public class SchematronErrorDetector {
             String namespace = root.getNamespaceURI();
             if (!"http://purl.oclc.org/dsdl/schematron".equals(namespace)) {
                 result.addWarning(new SchematronError(ErrorType.STRUCTURAL, 1, 1,
-                        "Missing or incorrect Schematron namespace", ErrorSeverity.WARNING));
+                        I18n.t("SchematronErrorDetector.missing-schematron-namespace"), ErrorSeverity.WARNING));
             }
 
             // Check for patterns
             NodeList patterns = root.getElementsByTagNameNS("*", "pattern");
             if (patterns.getLength() == 0) {
                 result.addWarning(new SchematronError(ErrorType.STRUCTURAL, 1, 1,
-                        "No patterns found - Schematron should contain at least one pattern",
+                        I18n.t("SchematronErrorDetector.no-patterns-found"),
                         ErrorSeverity.WARNING));
             }
 
@@ -173,7 +174,7 @@ public class SchematronErrorDetector {
             NodeList rules = root.getElementsByTagNameNS("*", "rule");
             if (rules.getLength() == 0) {
                 result.addWarning(new SchematronError(ErrorType.STRUCTURAL, 1, 1,
-                        "No rules found - patterns should contain rules",
+                        I18n.t("SchematronErrorDetector.no-rules-found"),
                         ErrorSeverity.WARNING));
             }
 
@@ -201,7 +202,7 @@ public class SchematronErrorDetector {
         if ("true".equals(pattern.getAttribute("abstract")) && pattern.getAttribute("id").isEmpty()) {
             result.addError(new SchematronError(ErrorType.STRUCTURAL,
                     getLineNumber(pattern), 1,
-                    "Abstract pattern must have an 'id' attribute",
+                    I18n.t("SchematronErrorDetector.abstract-pattern-needs-id"),
                     ErrorSeverity.ERROR));
         }
 
@@ -210,7 +211,7 @@ public class SchematronErrorDetector {
         if (rules.getLength() == 0 && !"true".equals(pattern.getAttribute("abstract"))) {
             result.addWarning(new SchematronError(ErrorType.STRUCTURAL,
                     getLineNumber(pattern), 1,
-                    "Pattern contains no rules",
+                    I18n.t("SchematronErrorDetector.pattern-contains-no-rules"),
                     ErrorSeverity.WARNING));
         }
     }
@@ -228,7 +229,7 @@ public class SchematronErrorDetector {
         if (context.isEmpty()) {
             result.addError(new SchematronError(ErrorType.STRUCTURAL,
                     getLineNumber(rule), 1,
-                    "Rule must have a 'context' attribute",
+                    I18n.t("SchematronErrorDetector.rule-needs-context"),
                     ErrorSeverity.ERROR));
         }
 
@@ -239,7 +240,7 @@ public class SchematronErrorDetector {
         if (assertions.getLength() == 0 && reports.getLength() == 0) {
             result.addWarning(new SchematronError(ErrorType.STRUCTURAL,
                     getLineNumber(rule), 1,
-                    "Rule contains no assertions or reports",
+                    I18n.t("SchematronErrorDetector.rule-contains-no-asserts"),
                     ErrorSeverity.WARNING));
         }
 
@@ -265,7 +266,7 @@ public class SchematronErrorDetector {
         if (test.isEmpty()) {
             result.addError(new SchematronError(ErrorType.STRUCTURAL,
                     getLineNumber(assertElement), 1,
-                    "Assert element must have a 'test' attribute",
+                    I18n.t("SchematronErrorDetector.assert-needs-test"),
                     ErrorSeverity.ERROR));
         }
 
@@ -274,7 +275,7 @@ public class SchematronErrorDetector {
         if (message.isEmpty()) {
             result.addWarning(new SchematronError(ErrorType.STRUCTURAL,
                     getLineNumber(assertElement), 1,
-                    "Assert element should contain a meaningful message",
+                    I18n.t("SchematronErrorDetector.assert-needs-message"),
                     ErrorSeverity.WARNING));
         }
     }
@@ -291,7 +292,7 @@ public class SchematronErrorDetector {
         if (test.isEmpty()) {
             result.addError(new SchematronError(ErrorType.STRUCTURAL,
                     getLineNumber(reportElement), 1,
-                    "Report element must have a 'test' attribute",
+                    I18n.t("SchematronErrorDetector.report-needs-test"),
                     ErrorSeverity.ERROR));
         }
 
@@ -300,7 +301,7 @@ public class SchematronErrorDetector {
         if (message.isEmpty()) {
             result.addWarning(new SchematronError(ErrorType.STRUCTURAL,
                     getLineNumber(reportElement), 1,
-                    "Report element should contain a meaningful message",
+                    I18n.t("SchematronErrorDetector.report-needs-message"),
                     ErrorSeverity.WARNING));
         }
     }
@@ -331,7 +332,7 @@ public class SchematronErrorDetector {
 
                 for (String error : validation.getErrors()) {
                     result.addError(new SchematronError(ErrorType.XPATH, line, column,
-                            "XPath error in " + location.attributeName() + ": " + error,
+                            I18n.t("SchematronErrorDetector.xpath-error-in", location.attributeName(), error),
                             ErrorSeverity.ERROR));
                 }
             }
@@ -341,7 +342,7 @@ public class SchematronErrorDetector {
                 int column = calculateColumnNumber(schematronText, location.start());
 
                 result.addWarning(new SchematronError(ErrorType.XPATH, line, column,
-                        "XPath warning in " + location.attributeName() + ": " + warning,
+                        I18n.t("SchematronErrorDetector.xpath-warning-in", location.attributeName(), warning),
                         ErrorSeverity.WARNING));
             }
         }
@@ -383,7 +384,7 @@ public class SchematronErrorDetector {
             if (seenIds.contains(id)) {
                 int line = calculateLineNumber(schematronText, matcher.start());
                 result.addError(new SchematronError(ErrorType.SEMANTIC, line, 1,
-                        "Duplicate ID: " + id, ErrorSeverity.ERROR));
+                        I18n.t("SchematronErrorDetector.duplicate-id", id), ErrorSeverity.ERROR));
             } else {
                 seenIds.add(id);
             }
@@ -410,7 +411,7 @@ public class SchematronErrorDetector {
             if (!definedIds.contains(referencedId)) {
                 int line = calculateLineNumber(schematronText, matcher.start());
                 result.addError(new SchematronError(ErrorType.SEMANTIC, line, 1,
-                        "Undefined rule reference: " + referencedId, ErrorSeverity.ERROR));
+                        I18n.t("SchematronErrorDetector.undefined-rule-reference", referencedId), ErrorSeverity.ERROR));
             }
         }
     }
@@ -437,7 +438,7 @@ public class SchematronErrorDetector {
             if (ruleId.equals(extendsId)) {
                 int line = calculateLineNumber(schematronText, matcher.start());
                 result.addError(new SchematronError(ErrorType.SEMANTIC, line, 1,
-                        "Rule cannot extend itself: " + ruleId, ErrorSeverity.ERROR));
+                        I18n.t("SchematronErrorDetector.rule-cannot-extend-itself", ruleId), ErrorSeverity.ERROR));
             }
         }
     }
@@ -453,14 +454,14 @@ public class SchematronErrorDetector {
         // Check for missing titles
         if (!schematronText.contains("<title>")) {
             result.addWarning(new SchematronError(ErrorType.BEST_PRACTICE, 1, 1,
-                    "Consider adding a title element to document the schema purpose",
+                    I18n.t("SchematronErrorDetector.consider-adding-title"),
                     ErrorSeverity.INFO));
         }
 
         // Check for missing documentation
         if (!schematronText.contains("<p>") && !schematronText.contains("<!--")) {
             result.addWarning(new SchematronError(ErrorType.BEST_PRACTICE, 1, 1,
-                    "Consider adding documentation (p elements or comments)",
+                    I18n.t("SchematronErrorDetector.consider-adding-documentation"),
                     ErrorSeverity.INFO));
         }
 
@@ -471,7 +472,7 @@ public class SchematronErrorDetector {
         while (matcher.find()) {
             int line = calculateLineNumber(schematronText, matcher.start());
             result.addWarning(new SchematronError(ErrorType.BEST_PRACTICE, line, 1,
-                    "Consider using variables instead of hardcoded values",
+                    I18n.t("SchematronErrorDetector.consider-using-variables"),
                     ErrorSeverity.INFO));
         }
     }

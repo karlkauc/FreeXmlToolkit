@@ -135,10 +135,10 @@ public class SchemaLibraryView extends VBox {
 
     /** The page's sections, in tab order (keys for {@link #showSection(String)}). */
     public static final java.util.List<PageNavigator.Entry> SECTIONS = java.util.List.of(
-            new PageNavigator.Entry("mappings", "Mappings", "bi-diagram-3", "namespace location schema"),
-            new PageNavigator.Entry("catalogs", "Catalogs", "bi-journal-bookmark", "oasis catalog.xml"),
+            new PageNavigator.Entry("mappings", I18n.t("SchemaLibraryView.mappingsTab.text"), "bi-diagram-3", "namespace location schema"),
+            new PageNavigator.Entry("catalogs", I18n.t("SchemaLibraryView.catalogsTab.text"), "bi-journal-bookmark", "oasis catalog.xml"),
             new PageNavigator.Entry("schemastore", "SchemaStore", "bi-shop", "json yaml file name pattern"),
-            new PageNavigator.Entry("cache", "Cache", "bi-hdd", "download remote"));
+            new PageNavigator.Entry("cache", I18n.t("SchemaLibraryView.cacheTab.text"), "bi-hdd", "download remote"));
 
     public void showCacheTab() { tabs.getSelectionModel().select(cacheTab); }
 
@@ -262,7 +262,9 @@ public class SchemaLibraryView extends VBox {
                     info.setText(I18n.t("SchemaLibraryView.error", err));
                     info.getStyleClass().add("fxt-lib-catalog-error");
                 } else {
-                    info.setText(catalogCountCache.getOrDefault(ref.id(), -1) + " entries" + (ref.enabled() ? "" : " (disabled)"));
+                    info.setText(ref.enabled()
+                            ? I18n.t("SchemaLibraryView.catalog-entries", String.valueOf(catalogCountCache.getOrDefault(ref.id(), -1)))
+                            : I18n.t("SchemaLibraryView.catalog-entries-disabled", String.valueOf(catalogCountCache.getOrDefault(ref.id(), -1))));
                     info.getStyleClass().add("fxt-lib-catalog-count");
                 }
                 info.setWrapText(true);
@@ -408,7 +410,7 @@ public class SchemaLibraryView extends VBox {
             // a remote that cannot be fetched is the environment, not the app
             org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaLibraryAction("refresh", result.isPresent() ? null
                     : org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("unavailable"));
-            Platform.runLater(() -> { setStatus(result.isPresent() ? "Refreshed " + remote : "Refresh failed for " + remote); refreshCache(); });
+            Platform.runLater(() -> { setStatus(result.isPresent() ? I18n.t("SchemaLibraryView.refreshed", remote) : I18n.t("SchemaLibraryView.refresh-failed", remote)); refreshCache(); });
         });
     }
 
@@ -424,7 +426,7 @@ public class SchemaLibraryView extends VBox {
     @FXML
     public void onClearCache() {
         if (DialogHelper.showConfirmation(I18n.t("SchemaLibraryView.clear-schema-cache"), I18n.t("SchemaLibraryView.delete-all-cached-remote-schemas"),
-                cache.getCacheDirectory() + "\n\nThis action cannot be undone.")) {
+                cache.getCacheDirectory() + "\n\n" + I18n.t("SchemaLibraryView.cannot-be-undone"))) {
             org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
                 int n = cache.clearCache();
                 Platform.runLater(() -> { setStatus(I18n.t("SchemaLibraryView.deleted-cached-file-s", n)); refreshCache(); });
@@ -454,7 +456,8 @@ public class SchemaLibraryView extends VBox {
                 : I18n.t("SchemaLibraryView.file-names", String.join(", ", entry.fileMatch()));
         if (!entry.namespace().isEmpty()) return files.isEmpty() ? entry.namespace() : entry.namespace() + "  " + files;
         if (!files.isEmpty()) return files;
-        return entry.rootElement() != null ? "<" + entry.rootElement() + "> (no namespace)" : "(no namespace)";
+        return entry.rootElement() != null ? I18n.t("SchemaLibraryView.root-no-namespace", "<" + entry.rootElement() + ">")
+                : I18n.t("SchemaLibraryView.no-namespace");
     }
 
     // ------------------------------------------------------------------ SchemaStore
@@ -572,7 +575,7 @@ public class SchemaLibraryView extends VBox {
      * their local filename is shown instead of {@code null}.
      */
     private static String urlOf(SchemaCacheEntry entry) {
-        return entry.remoteUrl() != null ? entry.remoteUrl() : entry.localFilename() + " (local copy)";
+        return entry.remoteUrl() != null ? entry.remoteUrl() : I18n.t("SchemaLibraryView.local-copy", entry.localFilename());
     }
 
     /** Reloads the cache table and footer (FX thread). */
@@ -583,11 +586,12 @@ public class SchemaLibraryView extends VBox {
         // Note: stats.totalFiles() counts every file physically in the cache directory,
         // including cache-index.json itself, so it overcounts by one vs. the actual number
         // of cached schemas. Use the entry count (== table row count) instead.
-        cacheFooter.setText(cacheEntries.size() + " file(s), " + stats.getTotalSizeFormatted()
-                + ", hit ratio " + String.format(Locale.ROOT, "%.0f%%", stats.getHitRatio())
-                + "  —  " + cache.getCacheDirectory());
+        cacheFooter.setText(I18n.t("SchemaLibraryView.cache-footer", String.valueOf(cacheEntries.size()),
+                stats.getTotalSizeFormatted(), String.format(Locale.ROOT, "%.0f%%", stats.getHitRatio()),
+                String.valueOf(cache.getCacheDirectory())));
         var dirs = xmlService.listAutoDetectedSchemaCacheDirs();
-        legacyInfo.setText(dirs.isEmpty() ? "Empty." : dirs.size() + " cached schema folder(s) under " + dirs.getFirst().getParent());
+        legacyInfo.setText(dirs.isEmpty() ? I18n.t("SchemaLibraryView.legacy-empty")
+                : I18n.t("SchemaLibraryView.legacy-folders", String.valueOf(dirs.size()), String.valueOf(dirs.getFirst().getParent())));
     }
 
     /** Test seam: deletes the selected cache entry without confirmation. */
@@ -604,8 +608,8 @@ public class SchemaLibraryView extends VBox {
     public void chooseCatalog() {
         FileChooser fc = new FileChooser();
         fc.setTitle(I18n.t("SchemaLibraryView.select-xml-catalog"));
-        fc.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XML catalogs", "*.xml"),
-                new FileChooser.ExtensionFilter("All files", "*.*"));
+        fc.getExtensionFilters().addAll(new FileChooser.ExtensionFilter(I18n.t("SchemaLibraryView.xml-catalogs"), "*.xml"),
+                new FileChooser.ExtensionFilter(I18n.t("SchemaLibraryView.all-files"), "*.*"));
         File f = fc.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
         if (f != null) {
             addCatalogFile(f.toPath());
@@ -620,7 +624,8 @@ public class SchemaLibraryView extends VBox {
         library.addCatalog(catalog);
         refreshCatalogs();
         String err = library.catalogErrors().get(library.getCatalogs().getLast().id());
-        setStatus(err != null ? "Catalog added but unparsable: " + err : "Catalog added: " + catalog.getFileName());
+        setStatus(err != null ? I18n.t("SchemaLibraryView.catalog-unparsable", err)
+                : I18n.t("SchemaLibraryView.catalog-added", catalog.getFileName()));
     }
 
     @FXML
@@ -634,8 +639,10 @@ public class SchemaLibraryView extends VBox {
             new CatalogImportDialog(preview, existing).showAndWait().ifPresent(chosen -> {
                 long alreadyPresent = chosen.stream().filter(e -> existing.contains(e.key())).count();
                 int added = importEntries(chosen);
-                String msg = "Imported " + added + " mapping(s) from " + s.asPath().getFileName();
-                if (alreadyPresent > 0) msg += ", skipped " + alreadyPresent + " already present";
+                String msg = alreadyPresent > 0
+                        ? I18n.t("SchemaLibraryView.imported-skipped", String.valueOf(added), s.asPath().getFileName(),
+                                String.valueOf(alreadyPresent))
+                        : I18n.t("SchemaLibraryView.imported", String.valueOf(added), s.asPath().getFileName());
                 setStatus(msg);
                 tabs.getSelectionModel().select(mappingsTab);
             });
@@ -774,7 +781,8 @@ public class SchemaLibraryView extends VBox {
             org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaLibraryAction("materialize", result.isPresent() ? null
                     : org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("unavailable"));
             Platform.runLater(() -> {
-                setStatus(result.map(p -> "Available: " + p).orElse("Failed: " + library.lastError(s).orElse("unknown error")));
+                setStatus(result.map(p -> I18n.t("SchemaLibraryView.available", p)).orElse(I18n.t("SchemaLibraryView.failed",
+                        library.lastError(s).orElse(I18n.t("SchemaLibraryView.unknown-error")))));
                 mappings.refresh();
             });
         });
@@ -787,7 +795,7 @@ public class SchemaLibraryView extends VBox {
             org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaLibraryAction("open", file.isPresent() ? null
                     : org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("unavailable"));
             Platform.runLater(() -> file.ifPresentOrElse(p -> { editorHost.openFile(p.toFile()); setStatus(""); },
-                    () -> setStatus(I18n.t("SchemaLibraryView.cannot-open", library.lastError(e).orElse("schema not available")))));
+                    () -> setStatus(I18n.t("SchemaLibraryView.cannot-open", library.lastError(e).orElse(I18n.t("SchemaLibraryView.not-available"))))));
         });
     }
 

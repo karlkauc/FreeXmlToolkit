@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import java.util.concurrent.CompletableFuture;
 
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
@@ -57,15 +58,15 @@ public final class UpdateActionRunner {
     /** @return a human-readable message describing the update status. */
     public static String describe(UpdateInfo info) {
         if (info == null) {
-            return "Update check failed.";
+            return I18n.t("UpdateActionRunner.check-failed");
         }
         if (org.fxt.freexmltoolkit.service.UpdateCheckServiceImpl.FAILURE_DISABLED_BY_POLICY
                 .equals(info.failureReason())) {
-            return "Updates are managed by your administrator.";
+            return I18n.t("UpdateActionRunner.managed");
         }
         if (info.updateAvailable()) {
-            return "Update available: " + info.latestVersion() + " (you have " + info.currentVersion() + ")";
+            return I18n.t("UpdateActionRunner.available", info.latestVersion(), info.currentVersion());
         }
-        return "You are up to date (" + info.currentVersion() + ").";
+        return I18n.t("UpdateActionRunner.up-to-date", info.currentVersion());
     }
 }

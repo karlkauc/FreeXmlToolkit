@@ -34,7 +34,7 @@ public class SimpleTypeEditorTab extends AbstractTypeEditorTab {
      * @param mainSchema the main schema (for context)
      */
     public SimpleTypeEditorTab(XsdSimpleType simpleType, XsdSchema mainSchema) {
-        super(simpleType, "SimpleType: " + simpleType.getName());
+        super(simpleType, I18n.t("SimpleTypeEditorTab.tab-title", simpleType.getName()));
         this.simpleType = simpleType;
         this.mainSchema = mainSchema;
         this.editorContext = new XsdEditorContext(mainSchema);
@@ -84,8 +84,8 @@ public class SimpleTypeEditorTab extends AbstractTypeEditorTab {
             invokePostSaveCallback();
 
             // Phase 6: User feedback for successful save
-            showSuccessMessage("Save Successful",
-                "SimpleType '" + simpleType.getName() + "' has been saved successfully.");
+            showSuccessMessage(I18n.t("SimpleTypeEditorTab.save-successful"),
+                I18n.t("SimpleTypeEditorTab.saved-successfully", simpleType.getName()));
 
             return true;
 
@@ -93,9 +93,9 @@ public class SimpleTypeEditorTab extends AbstractTypeEditorTab {
             logger.error("Error saving SimpleType: {}", simpleType.getName(), e);
 
             // Phase 6: User feedback for save error
-            showErrorMessage("Save Failed",
-                "Failed to save SimpleType '" + simpleType.getName() + "'",
-                "Error: " + e.getMessage());
+            showErrorMessage(I18n.t("SimpleTypeEditorTab.save-failed"),
+                I18n.t("SimpleTypeEditorTab.failed-to-save", simpleType.getName()),
+                I18n.t("SimpleTypeEditorTab.error", e.getMessage()));
 
             return false;
         }
@@ -133,11 +133,11 @@ public class SimpleTypeEditorTab extends AbstractTypeEditorTab {
 
         // Create dialog
         Alert dialog = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
-                Alert.AlertType.INFORMATION, "Find Usage", "Usage of SimpleType: " + simpleType.getName(), null);
+                Alert.AlertType.INFORMATION, I18n.t("SimpleTypeEditorTab.find-usage-title"), I18n.t("SimpleTypeEditorTab.usage-of", simpleType.getName()), null);
         dialog.setResizable(true);
 
         if (usages.isEmpty()) {
-            dialog.setContentText("No usages found for this type in the schema.");
+            dialog.setContentText(I18n.t("SimpleTypeEditorTab.no-usages-found"));
         } else {
             // Create list view with usages
             javafx.scene.control.ListView<String> listView = new javafx.scene.control.ListView<>();
@@ -187,32 +187,32 @@ public class SimpleTypeEditorTab extends AbstractTypeEditorTab {
         if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
             String type = element.getType();
             if (typeName.equals(type) || typeName.equals(stripNamespacePrefix(type))) {
-                usages.add(new UsageInfo("Element", element.getName(), currentPath));
+                usages.add(new UsageInfo(I18n.t("SimpleTypeEditorTab.usage-element"), element.getName(), currentPath));
             }
         } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute attribute) {
             String type = attribute.getType();
             if (typeName.equals(type) || typeName.equals(stripNamespacePrefix(type))) {
-                usages.add(new UsageInfo("Attribute", attribute.getName(), currentPath));
+                usages.add(new UsageInfo(I18n.t("SimpleTypeEditorTab.usage-attribute"), attribute.getName(), currentPath));
             }
         } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction restriction) {
             String base = restriction.getBase();
             if (typeName.equals(base) || typeName.equals(stripNamespacePrefix(base))) {
-                usages.add(new UsageInfo("Restriction base", base, currentPath));
+                usages.add(new UsageInfo(I18n.t("SimpleTypeEditorTab.usage-restriction-base"), base, currentPath));
             }
         } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdExtension extension) {
             String base = extension.getBase();
             if (typeName.equals(base) || typeName.equals(stripNamespacePrefix(base))) {
-                usages.add(new UsageInfo("Extension base", base, currentPath));
+                usages.add(new UsageInfo(I18n.t("SimpleTypeEditorTab.usage-extension-base"), base, currentPath));
             }
         } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdList list) {
             String itemType = list.getItemType();
             if (typeName.equals(itemType) || typeName.equals(stripNamespacePrefix(itemType))) {
-                usages.add(new UsageInfo("List itemType", itemType, currentPath));
+                usages.add(new UsageInfo(I18n.t("SimpleTypeEditorTab.usage-list-item-type"), itemType, currentPath));
             }
         } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdUnion union) {
             for (String memberType : union.getMemberTypes()) {
                 if (typeName.equals(memberType) || typeName.equals(stripNamespacePrefix(memberType))) {
-                    usages.add(new UsageInfo("Union memberType", memberType, currentPath));
+                    usages.add(new UsageInfo(I18n.t("SimpleTypeEditorTab.usage-union-member-type"), memberType, currentPath));
                 }
             }
         }

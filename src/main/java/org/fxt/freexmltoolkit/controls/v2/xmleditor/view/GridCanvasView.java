@@ -1357,9 +1357,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 initialFilterText(row));
         // A prefilled expression is selected: Enter takes it, typing replaces it
         dialog.setOnShown(e -> javafx.application.Platform.runLater(dialog.getEditor()::selectAll));
-        dialog.setTitle("Filter");
+        dialog.setTitle(I18n.t("GridCanvasView.filter-title"));
         dialog.setHeaderText(adapter.filterHint(row.getLabel()));
-        dialog.setContentText("Expression:");
+        dialog.setContentText(I18n.t("GridCanvasView.expression-label"));
         dialog.getEditor().setPrefColumnCount(40);
         dialog.showAndWait().ifPresent(expression -> setFilter(row, expression));
     }

@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.XmlStructuralDiff;
 import org.fxt.freexmltoolkit.service.project.FxtProject;
 
@@ -54,8 +55,9 @@ public final class ScenarioCheck {
         /** @return a one-line summary, e.g. {@code "3 differences"} */
         public String summary() {
             return switch (status) {
-                case PASSED -> "matches the expected result";
-                case FAILED -> differences.size() == 1 ? "1 difference" : differences.size() + " differences";
+                case PASSED -> I18n.t("ScenarioCheck.matches");
+                case FAILED -> differences.size() == 1 ? I18n.t("ScenarioCheck.one-difference")
+                        : I18n.t("ScenarioCheck.differences", String.valueOf(differences.size()));
                 case NO_EXPECTED, ERROR -> message;
             };
         }
@@ -76,10 +78,10 @@ public final class ScenarioCheck {
         FxtProject.Scenario prepared = file == null ? scenario : project.scenarioForFile(scenario, file);
         if (!prepared.hasExpected()) {
             return new Result(Status.NO_EXPECTED, List.of(), null, null,
-                    "The scenario names no expected result.");
+                    I18n.t("ScenarioCheck.no-expected"));
         }
         if (prepared.isPdf()) {
-            return new Result(Status.ERROR, List.of(), null, null, "PDF results cannot be compared.");
+            return new Result(Status.ERROR, List.of(), null, null, I18n.t("ScenarioCheck.pdf"));
         }
         ScenarioRunner.Result run = ScenarioRunner.run(project, prepared);
         Path expected = project.resolve(prepared.expected);
@@ -89,14 +91,14 @@ public final class ScenarioCheck {
         String actual = run.text() == null ? "" : run.text();
         if (!Files.isRegularFile(expected)) {
             return new Result(Status.NO_EXPECTED, List.of(), actual, expected,
-                    "The expected result " + prepared.expected + " does not exist yet; accept this result to create it.");
+                    I18n.t("ScenarioCheck.expected-missing", prepared.expected));
         }
         String expectedText;
         try {
             expectedText = Files.readString(expected, StandardCharsets.UTF_8);
         } catch (IOException e) {
             return new Result(Status.ERROR, List.of(), actual, expected,
-                    "Cannot read " + prepared.expected + ": " + e.getMessage());
+                    I18n.t("ScenarioCheck.cannot-read", prepared.expected, e.getMessage()));
         }
         return compare(expectedText, actual, expected,
                 FxtProject.CompareSettings.toOptions(prepared.compare));
@@ -109,8 +111,8 @@ public final class ScenarioCheck {
         if (XmlStructuralDiff.looksLikeXml(expectedText) && XmlStructuralDiff.looksLikeXml(actual)) {
             XmlStructuralDiff.Result diff = XmlStructuralDiff.compare(expectedText, actual, options);
             if (!diff.compared()) {
-                String why = diff.leftError() != null ? "The expected result is not well-formed: " + diff.leftError()
-                        : "The result is not well-formed: " + diff.rightError();
+                String why = diff.leftError() != null ? I18n.t("ScenarioCheck.expected-not-well-formed", diff.leftError())
+                        : I18n.t("ScenarioCheck.result-not-well-formed", diff.rightError());
                 return new Result(Status.ERROR, List.of(), actual, expected, why);
             }
             return new Result(diff.equivalent() ? Status.PASSED : Status.FAILED, diff.differences(), actual,
@@ -135,7 +137,7 @@ public final class ScenarioCheck {
             XmlStructuralDiff.Change change = l == null ? XmlStructuralDiff.Change.ADDED
                     : r == null ? XmlStructuralDiff.Change.REMOVED : XmlStructuralDiff.Change.CHANGED;
             differences.add(new XmlStructuralDiff.Difference(change, XmlStructuralDiff.NodeKind.DOCUMENT,
-                    "Line " + (i + 1), "", "", l == null ? "" : l, r == null ? "" : r,
+                    I18n.t("ScenarioCheck.line", String.valueOf(i + 1)), "", "", l == null ? "" : l, r == null ? "" : r,
                     l == null ? 0 : i + 1, r == null ? 0 : i + 1));
         }
         return differences;
@@ -178,7 +180,7 @@ public final class ScenarioCheck {
             throws IOException {
         FxtProject.Scenario prepared = file == null ? scenario : project.scenarioForFile(scenario, file);
         if (!prepared.hasExpected()) {
-            throw new IOException("The scenario " + scenario.name + " names no expected result.");
+            throw new IOException(I18n.t("ScenarioCheck.no-expected-named", scenario.name));
         }
         Path target = project.resolveWritable(prepared.expected);
         Path parent = target.getParent();

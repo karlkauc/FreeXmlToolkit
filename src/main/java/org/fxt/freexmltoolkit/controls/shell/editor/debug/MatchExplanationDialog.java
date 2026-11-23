@@ -34,7 +34,7 @@ public final class MatchExplanationDialog extends Dialog<Void> {
     public MatchExplanationDialog(String node, String mode, List<MatchExplanation.Line> lines,
                                   Consumer<MatchExplanation.Line> onOpen) {
         setTitle(I18n.t("MatchExplanationDialog.explain-match"));
-        setHeaderText(I18n.t("MatchExplanationDialog.template-rules-for", node, ("#default".equals(mode) ? "" : "  ·  mode " + mode)));
+        setHeaderText(I18n.t("MatchExplanationDialog.template-rules-for", node, ("#default".equals(mode) ? "" : "  ·  " + I18n.t("MatchExplanationDialog.mode", mode))));
         IconifyIcon icon = new IconifyIcon("bi-diagram-3");
         icon.setIconSize(32);
         setGraphic(icon);
@@ -44,9 +44,11 @@ public final class MatchExplanationDialog extends Dialog<Void> {
         setResizable(true);
         long matching = lines.stream().filter(l -> l.status() == MatchExplanation.Status.WINS
                 || l.status() == MatchExplanation.Status.LOSES).count();
-        summaryLabel.setText(matching == 0 ? "No template rule of this mode matches - the built-in rule applies."
-                : matching + (matching == 1 ? " rule matches." : " rules match.") + "  " + lines.size()
-                        + " rule pattern" + (lines.size() == 1 ? "" : "s") + " of this mode tested.");
+        summaryLabel.setText(matching == 0 ? I18n.t("MatchExplanationDialog.no-template-rule-matches")
+                : I18n.t(matching == 1 ? "MatchExplanationDialog.rule-matches" : "MatchExplanationDialog.rules-match",
+                        String.valueOf(matching)) + "  "
+                        + I18n.t(lines.size() == 1 ? "MatchExplanationDialog.rule-pattern-tested"
+                                : "MatchExplanationDialog.rule-patterns-tested", String.valueOf(lines.size())));
         ruleList.getItems().setAll(lines);
         ruleList.setCellFactory(lv -> new ListCell<>() {
             @Override

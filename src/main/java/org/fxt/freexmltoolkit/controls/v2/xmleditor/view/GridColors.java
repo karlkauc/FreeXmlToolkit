@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import java.lang.ref.WeakReference;
 import java.util.EnumMap;
 import java.util.Map;
@@ -20,23 +21,23 @@ public final class GridColors {
     /** The configurable colour slots. */
     public enum Slot {
         /** Column headers, row numbers and the corner cell. */
-        TABLE_HEADER("Table header"),
+        TABLE_HEADER("GridColors.slot-table-header"),
         /** Cells whose member lacks the column's attribute/element. */
-        MISSING_CELL("Missing cell"),
+        MISSING_CELL("GridColors.slot-missing-cell"),
         /** Selected rows and cells. */
-        SELECTION("Selection"),
+        SELECTION("GridColors.slot-selection"),
         /** The frame of the focused cell and selected rows. */
-        FOCUS("Focus frame");
+        FOCUS("GridColors.slot-focus");
 
-        private final String label;
+        private final String labelKey;
 
-        Slot(String label) {
-            this.label = label;
+        Slot(String labelKey) {
+            this.labelKey = labelKey;
         }
 
         /** @return the user-facing name */
         public String label() {
-            return label;
+            return I18n.t(labelKey);
         }
     }
 

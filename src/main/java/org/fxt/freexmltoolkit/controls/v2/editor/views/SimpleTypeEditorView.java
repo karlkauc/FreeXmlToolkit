@@ -539,7 +539,7 @@ public class SimpleTypeEditorView extends BorderPane {
         Label titleLabel = new Label(I18n.t("SimpleTypeEditorView.regular-expression-patterns"));
         titleLabel.setStyle("-fx-font-weight: bold;");
         titleLabel.getStyleClass().add("fxt-text-md");
-        Label descLabel = new Label("Define regex patterns that values must match (e.g., [0-9]{3}-[0-9]{2}-[0-9]{4})");
+        Label descLabel = new Label(I18n.t("SimpleTypeEditorView.patterns-description"));
         descLabel.setWrapText(true);
         descLabel.getStyleClass().add("desc-label");
 
@@ -701,9 +701,9 @@ public class SimpleTypeEditorView extends BorderPane {
      */
     private void handleAddEnumeration() {
         TextInputDialog dialog = DialogHelper.createTextInputDialog("");
-        dialog.setTitle("Add Enumeration");
-        dialog.setHeaderText("Add Enumeration Value");
-        dialog.setContentText("Enter value:");
+        dialog.setTitle(I18n.t("SimpleTypeEditorView.add-enumeration-title"));
+        dialog.setHeaderText(I18n.t("SimpleTypeEditorView.add-enumeration-header"));
+        dialog.setContentText(I18n.t("SimpleTypeEditorView.enter-value"));
 
         dialog.showAndWait().ifPresent(value -> {
             if (value != null && !value.trim().isEmpty()) {
@@ -740,9 +740,9 @@ public class SimpleTypeEditorView extends BorderPane {
         }
 
         TextInputDialog dialog = DialogHelper.createTextInputDialog(selected);
-        dialog.setTitle("Edit Enumeration");
-        dialog.setHeaderText("Edit Enumeration Value");
-        dialog.setContentText("Enter new value:");
+        dialog.setTitle(I18n.t("SimpleTypeEditorView.edit-enumeration-title"));
+        dialog.setHeaderText(I18n.t("SimpleTypeEditorView.edit-enumeration-header"));
+        dialog.setContentText(I18n.t("SimpleTypeEditorView.enter-new-value"));
 
         dialog.showAndWait().ifPresent(newValue -> {
             if (newValue != null && !newValue.trim().isEmpty() && !newValue.equals(selected)) {
@@ -817,9 +817,9 @@ public class SimpleTypeEditorView extends BorderPane {
      */
     private void handleAddPattern() {
         TextInputDialog dialog = DialogHelper.createTextInputDialog("");
-        dialog.setTitle("Add Pattern");
-        dialog.setHeaderText("Add Regex Pattern");
-        dialog.setContentText("Enter pattern:");
+        dialog.setTitle(I18n.t("SimpleTypeEditorView.add-pattern-title"));
+        dialog.setHeaderText(I18n.t("SimpleTypeEditorView.add-regex-pattern"));
+        dialog.setContentText(I18n.t("SimpleTypeEditorView.enter-pattern"));
 
         dialog.showAndWait().ifPresent(value -> {
             if (value != null && !value.trim().isEmpty()) {
@@ -852,9 +852,9 @@ public class SimpleTypeEditorView extends BorderPane {
         }
 
         TextInputDialog dialog = DialogHelper.createTextInputDialog(selected);
-        dialog.setTitle("Edit Pattern");
-        dialog.setHeaderText("Edit Regex Pattern");
-        dialog.setContentText("Enter new pattern:");
+        dialog.setTitle(I18n.t("SimpleTypeEditorView.edit-pattern-title"));
+        dialog.setHeaderText(I18n.t("SimpleTypeEditorView.edit-regex-pattern"));
+        dialog.setContentText(I18n.t("SimpleTypeEditorView.enter-new-pattern"));
 
         dialog.showAndWait().ifPresent(newValue -> {
             if (newValue != null && !newValue.trim().isEmpty() && !newValue.equals(selected)) {
@@ -923,9 +923,9 @@ public class SimpleTypeEditorView extends BorderPane {
      */
     private void handleAddAssertion() {
         TextInputDialog dialog = DialogHelper.createTextInputDialog("");
-        dialog.setTitle("Add Assertion");
-        dialog.setHeaderText("Add XPath Assertion");
-        dialog.setContentText("Enter XPath expression:");
+        dialog.setTitle(I18n.t("SimpleTypeEditorView.add-assertion-title"));
+        dialog.setHeaderText(I18n.t("SimpleTypeEditorView.add-xpath-assertion"));
+        dialog.setContentText(I18n.t("SimpleTypeEditorView.enter-xpath-expression"));
 
         dialog.showAndWait().ifPresent(value -> {
             if (value != null && !value.trim().isEmpty()) {
@@ -958,9 +958,9 @@ public class SimpleTypeEditorView extends BorderPane {
         }
 
         TextInputDialog dialog = DialogHelper.createTextInputDialog(selected);
-        dialog.setTitle("Edit Assertion");
-        dialog.setHeaderText("Edit XPath Assertion");
-        dialog.setContentText("Enter new XPath expression:");
+        dialog.setTitle(I18n.t("SimpleTypeEditorView.edit-assertion-title"));
+        dialog.setHeaderText(I18n.t("SimpleTypeEditorView.edit-xpath-assertion"));
+        dialog.setContentText(I18n.t("SimpleTypeEditorView.enter-new-xpath-expression"));
 
         dialog.showAndWait().ifPresent(newValue -> {
             if (newValue != null && !newValue.trim().isEmpty() && !newValue.equals(selected)) {
@@ -1294,7 +1294,7 @@ public class SimpleTypeEditorView extends BorderPane {
      */
     private void handleAddMemberType(ListView<String> memberTypesList) {
         TypePickerDialog.show(getScene() == null ? null : getScene().getWindow(),
-                "Add Member Type", "Select a type to add to the union", "xs:string",
+                I18n.t("SimpleTypeEditorView.add-member-type"), I18n.t("SimpleTypeEditorView.select-type-for-union"), "xs:string",
                 () -> simpleTypeChoices().stream().filter(simpleTypeFilter()).toList()
         ).ifPresent(selectedType -> {
             if (selectedType.isBlank() || memberTypesList.getItems().contains(selectedType)) {

@@ -72,10 +72,10 @@ public class TypeLibraryPanel extends VBox {
         configureList(elementsList, elements, false);
         configureList(complexList, complexTypes, true);
         configureList(simpleList, simpleTypes, true);
-        newComplexButton = complexSection.addHeaderAction("bi-plus-lg", "New complex type…",
+        newComplexButton = complexSection.addHeaderAction("bi-plus-lg", I18n.t("TypeLibraryPanel.new-complex-type"),
                 () -> newType(AddGlobalTypeCommand.Kind.COMPLEX));
         newComplexButton.setId("schema-new-complex-type");
-        newSimpleButton = simpleSection.addHeaderAction("bi-plus-lg", "New simple type…",
+        newSimpleButton = simpleSection.addHeaderAction("bi-plus-lg", I18n.t("TypeLibraryPanel.new-simple-type"),
                 () -> newType(AddGlobalTypeCommand.Kind.SIMPLE));
         newSimpleButton.setId("schema-new-simple-type");
 
@@ -168,8 +168,8 @@ public class TypeLibraryPanel extends VBox {
                     menuItem(I18n.t("TypeLibraryPanel.find-usage"), "bi-search", this::findUsageOfSelectedType),
                     new javafx.scene.control.SeparatorMenuItem(),
                     list == simpleList
-                            ? createItem("New Simple Type…", "bi-type", () -> newType(AddGlobalTypeCommand.Kind.SIMPLE))
-                            : createItem("New Complex Type…", "bi-diagram-3",
+                            ? createItem(I18n.t("TypeLibraryPanel.new-simple-type-menu"), "bi-type", () -> newType(AddGlobalTypeCommand.Kind.SIMPLE))
+                            : createItem(I18n.t("TypeLibraryPanel.new-complex-type-menu"), "bi-diagram-3",
                                     () -> newType(AddGlobalTypeCommand.Kind.COMPLEX)));
         }
         list.setContextMenu(menu);
@@ -240,7 +240,7 @@ public class TypeLibraryPanel extends VBox {
             SchemaActionRunner.XsdGeneration generation = SchemaActionRunner.generateXsdBatch(files);
             UsageEvents.xsdGenerated(files.size(), t0, generation.failure());
             String result = generation.text();
-            javafx.application.Platform.runLater(() -> showResult(result, "Generate XSD (Batch)",
+            javafx.application.Platform.runLater(() -> showResult(result, I18n.t("TypeLibraryPanel.generate-xsd-batch"),
                     EditorFileType.XSD, "Generated.xsd"));
         });
     }
@@ -256,7 +256,7 @@ public class TypeLibraryPanel extends VBox {
             long t0 = System.nanoTime();
             SchemaActionRunner.XsdGeneration generation = SchemaActionRunner.generateXsd(content);
             UsageEvents.xsdGenerated(1, t0, generation.failure());
-            javafx.application.Platform.runLater(() -> showResult(generation.text(), "Schema Tool",
+            javafx.application.Platform.runLater(() -> showResult(generation.text(), I18n.t("TypeLibraryPanel.schema-tool"),
                     EditorFileType.XSD, "Generated.xsd"));
         });
     }
@@ -310,7 +310,7 @@ public class TypeLibraryPanel extends VBox {
             ActionRun run = SchemaActionRunner.flattenResult(content, baseDir, schemaFile, options);
             UsageEvents.schemaFlattened(t0, run.failure());
             if (output == null || run.text().startsWith("ERROR:")) {
-                javafx.application.Platform.runLater(() -> showResult(run.text(), "Schema Tool",
+                javafx.application.Platform.runLater(() -> showResult(run.text(), I18n.t("TypeLibraryPanel.schema-tool"),
                         EditorFileType.XSD, "Flattened.xsd"));
                 return;
             }
@@ -319,7 +319,7 @@ public class TypeLibraryPanel extends VBox {
                 javafx.application.Platform.runLater(() -> editorHost.openFile(output));
             } catch (java.io.IOException | RuntimeException e) {
                 javafx.application.Platform.runLater(() -> alert(javafx.scene.control.Alert.AlertType.ERROR,
-                        "Schema Tool", "The flattened schema could not be written to " + output + ": " + e.getMessage()));
+                        I18n.t("TypeLibraryPanel.schema-tool"), I18n.t("TypeLibraryPanel.flatten-write-failed", output, e.getMessage())));
             }
         });
     }
@@ -355,7 +355,7 @@ public class TypeLibraryPanel extends VBox {
      */
     @FXML
     public void generateDocumentationForActive() {
-        editorHost.openOrFocusToolTab("Documentation", "bi-file-earmark-text",
+        editorHost.openOrFocusToolTab(I18n.t("EditorActions.documentation"), "bi-file-earmark-text",
                 () -> new DocumentationView(editorHost));
     }
 
@@ -365,7 +365,7 @@ public class TypeLibraryPanel extends VBox {
      */
     @FXML
     public void generateSampleXmlForActive() {
-        File xsd = activeXsdFileOrAlert("Generate Sample XML");
+        File xsd = activeXsdFileOrAlert(I18n.t("TypeLibraryPanel.generate-sample"));
         if (xsd == null) {
             return;
         }
@@ -384,7 +384,7 @@ public class TypeLibraryPanel extends VBox {
             UsageEvents.sampleGenerated("basic", 1, t0, run.failure());
             javafx.application.Platform.runLater(() -> {
                 if (result.startsWith("ERROR:")) {
-                    alert(javafx.scene.control.Alert.AlertType.ERROR, "Generate Sample XML", result);
+                    alert(javafx.scene.control.Alert.AlertType.ERROR, I18n.t("TypeLibraryPanel.generate-sample"), result);
                 } else {
                     openSample(result, xsd);
                 }
@@ -399,7 +399,7 @@ public class TypeLibraryPanel extends VBox {
      */
     @FXML
     public void generateProfiledSampleForActive() {
-        String title = "Generate Sample XML (Advanced)";
+        String title = I18n.t("TypeLibraryPanel.generate-sample-advanced");
         File xsd = activeXsdFileOrAlert(title);
         if (xsd == null) {
             return;
@@ -409,7 +409,7 @@ public class TypeLibraryPanel extends VBox {
             javafx.application.Platform.runLater(() -> {
                 if (xpaths.isEmpty()) {
                     alert(javafx.scene.control.Alert.AlertType.WARNING, title,
-                            "Could not extract any XPaths from the schema.");
+                            I18n.t("TypeLibraryPanel.no-xpaths"));
                     return;
                 }
                 var profileOpt = new ProfiledSampleDialog(xpaths).showAndWait();
@@ -461,8 +461,8 @@ public class TypeLibraryPanel extends VBox {
                             I18n.t("TypeLibraryPanel.batch-what"), dir.toPath(), written.size());
                 } else {
                     alert(javafx.scene.control.Alert.AlertType.INFORMATION, title,
-                            "Wrote " + written.size() + " of " + profile.getBatchCount()
-                                    + " files to:\n" + dir.getAbsolutePath());
+                            I18n.t("TypeLibraryPanel.wrote-files", String.valueOf(written.size()),
+                                    String.valueOf(profile.getBatchCount()), dir.getAbsolutePath()));
                 }
             });
         });
@@ -487,7 +487,7 @@ public class TypeLibraryPanel extends VBox {
     private File activeXsdFileOrAlert(String title) {
         var docOpt = editorHost.getActiveDocument();
         if (docOpt.isEmpty() || docOpt.get().getFileType() != EditorFileType.XSD) {
-            alert(javafx.scene.control.Alert.AlertType.WARNING, title, "Open an XSD schema first.");
+            alert(javafx.scene.control.Alert.AlertType.WARNING, title, I18n.t("TypeLibraryPanel.open-xsd-first"));
             return null;
         }
         try {

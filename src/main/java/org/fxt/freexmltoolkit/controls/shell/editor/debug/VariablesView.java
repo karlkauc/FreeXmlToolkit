@@ -50,13 +50,13 @@ public class VariablesView extends VBox {
     public VariablesView() {
         getStyleClass().add("fxt-debug-panel");
 
-        TreeTableColumn<VariableTree.Node, String> name = column("Name", VariableTree.Node::name, 140);
+        TreeTableColumn<VariableTree.Node, String> name = column(I18n.t("VariablesView.name"), VariableTree.Node::name, 140);
         // One line per row: serialized nodes are indented over several lines.
-        TreeTableColumn<VariableTree.Node, String> value = column("Value",
+        TreeTableColumn<VariableTree.Node, String> value = column(I18n.t("VariablesView.value"),
                 n -> n.value() == null ? "" : n.value().replaceAll("\\s*\\R\\s*", " "), 320);
         value.setCellFactory(c -> new ValueCell());
-        TreeTableColumn<VariableTree.Node, String> type = column("Type", VariableTree.Node::type, 110);
-        TreeTableColumn<VariableTree.Node, String> scope = column("Scope", VariableTree.Node::scope, 70);
+        TreeTableColumn<VariableTree.Node, String> type = column(I18n.t("VariablesView.type"), VariableTree.Node::type, 110);
+        TreeTableColumn<VariableTree.Node, String> scope = column(I18n.t("VariablesView.scope"), VariableTree.Node::scope, 70);
         table.getColumns().addAll(List.of(name, value, type, scope));
         // Share the width in proportion to the preferred widths: Value gets the most.
         table.setColumnResizePolicy(TreeTableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
@@ -118,7 +118,7 @@ public class VariablesView extends VBox {
             } else {
                 setText(item);
                 String preview = item.length() > 400 ? item.substring(0, 400) + "…" : item;
-                tip.setText(preview + "\n\nClick to open the full value");
+                tip.setText(I18n.t("VariablesView.click-to-open-the-full-value", preview));
                 setTooltip(tip);
                 getStyleClass().add("fxt-debug-value-cell");
             }

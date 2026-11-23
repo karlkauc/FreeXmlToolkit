@@ -242,7 +242,7 @@ final class EditorDebugSupport {
         });
         pane.setOnClose(this::endXsltDebug);
 
-        host.bottomDock().register(EditorHost.DEBUG_DOCK_KEY, pane, "DEBUG");
+        host.bottomDock().register(EditorHost.DEBUG_DOCK_KEY, pane, I18n.t("XsltDebugPane.debug.text"));
         host.bottomDock().show(EditorHost.DEBUG_DOCK_KEY);
         host.selectDocument(xsltDoc);
 
@@ -267,8 +267,7 @@ final class EditorDebugSupport {
                 == org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController.Language.SCHEMATRON) {
             // SchXslt compiles the file (and its includes) from disk
             if (doc.isDirty()) {
-                controller.note("Debugging the saved file of " + doc.getDisplayName()
-                        + " - save it to include the unsaved changes");
+                controller.note(I18n.t("EditorDebugSupport.debugging-the-saved-file-of", doc.getDisplayName()));
             }
             doc = null;
         }
@@ -276,8 +275,7 @@ final class EditorDebugSupport {
             var text = host.getDocumentText(doc);
             if (text.isPresent() && !text.get().isEmpty()) {
                 if (doc.isDirty()) {
-                    controller.note("Debugging the editor text of " + doc.getDisplayName()
-                            + " (unsaved changes included)");
+                    controller.note(I18n.t("EditorDebugSupport.debugging-the-editor-text-of", doc.getDisplayName()));
                 }
                 return text.get();
             }
@@ -614,20 +612,20 @@ final class EditorDebugSupport {
     public String rerunLastDebug() {
         LastLaunch last = lastLaunch;
         if (last == null) {
-            return "No debug run to repeat yet.";
+            return I18n.t("EditorDebugSupport.no-debug-run-to-repeat");
         }
         String xml;
         if (last.inputFile() != null) {
             try {
                 xml = java.nio.file.Files.readString(last.inputFile(), java.nio.charset.StandardCharsets.UTF_8);
             } catch (IOException e) {
-                return "Could not read the input " + last.inputFile() + ": " + e.getMessage();
+                return I18n.t("EditorDebugSupport.could-not-read-the-input-file", last.inputFile(), e.getMessage());
             }
             setDebugInputFile(last.inputFile());
         } else if (last.inputDocument() != null && host.getOpenDocuments().contains(last.inputDocument())) {
             xml = host.getDocumentText(last.inputDocument()).orElse("");
         } else {
-            return "The input document of the last debug run is no longer open.";
+            return I18n.t("EditorDebugSupport.the-input-document-of-the");
         }
         startXsltDebug(last.xsltFile(), xml, last.parameters(), last.format(), last.onFinished());
         return null;
@@ -646,7 +644,7 @@ final class EditorDebugSupport {
             xslt = java.nio.file.Files.readString(xsltFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
         } catch (IOException e) {
             UsageEvents.debugStartFailed("xslt", org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
-            return "Could not read the stylesheet: " + e.getMessage();
+            return I18n.t("EditorDebugSupport.could-not-read-the-stylesheet", e.getMessage());
         }
         String xml;
         Path input = null;
@@ -656,19 +654,19 @@ final class EditorDebugSupport {
                 xml = java.nio.file.Files.readString(input, java.nio.charset.StandardCharsets.UTF_8);
             } catch (IOException e) {
                 UsageEvents.debugStartFailed("xslt", org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
-                return "Could not read the input " + input + ": " + e.getMessage();
+                return I18n.t("EditorDebugSupport.could-not-read-the-input-file", input, e.getMessage());
             }
         } else {
             OpenDocument xsltDoc = documentAt(xsltFile.toPath());
             var target = xsltDoc == null ? Optional.<ResolvedQueryTarget>empty() : host.resolveQueryTarget(xsltDoc);
             if (target.isEmpty()) {
-                return "Open an XML document first, or set an input file in the debug configuration.";
+                return I18n.t("EditorDebugSupport.open-an-xml-document-first");
             }
             try {
                 xml = target.get().loadXml();
             } catch (IOException e) {
                 UsageEvents.debugStartFailed("xslt", org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
-                return "Could not read the input: " + e.getMessage();
+                return I18n.t("EditorDebugSupport.could-not-read-the-input", e.getMessage());
             }
             if (target.get().file() != null) {
                 input = target.get().file().toPath();
@@ -800,7 +798,7 @@ final class EditorDebugSupport {
             if (show) {
                 item.setText(inputNodeBreakpointAt(debug, tab.document, tab.view.getCodeArea().getText(),
                         tab.view.getCodeArea().getCaretPosition()) != null
-                        ? "Remove Break When Processed" : "Break When Processed");
+                        ? I18n.t("EditorDebugSupport.remove-break-when-processed") : I18n.t("EditorDebugSupport.break-when-processed"));
             }
         });
         item.setVisible(false);

@@ -218,20 +218,20 @@ public class XsdPropertiesPanel extends BorderPane {
         // Attributes tab. Schema Information is a fixed section at the top of the panel,
         // outside the TabPane, so it stays visible regardless of selection.
         attributesSectionContainer = new CustomizableSectionContainer("xsd-attributes");
-        attributesSectionContainer.addSection(new SectionDefinition("general", "General", generalPane, true, 1));
-        attributesSectionContainer.addSection(new SectionDefinition("cardinality", "Cardinality", cardinalityPane, true, 2));
-        attributesSectionContainer.addSection(new SectionDefinition("constraints", "Constraints", constraintsPane, true, 3));
-        attributesSectionContainer.addSection(new SectionDefinition("advanced", "Advanced", advancedPane, true, 4));
+        attributesSectionContainer.addSection(new SectionDefinition("general", I18n.t("XsdPropertiesPanel.generalPane.text"), generalPane, true, 1));
+        attributesSectionContainer.addSection(new SectionDefinition("cardinality", I18n.t("XsdPropertiesPanel.cardinalityPane.text"), cardinalityPane, true, 2));
+        attributesSectionContainer.addSection(new SectionDefinition("constraints", I18n.t("XsdPropertiesPanel.constraintsPane.text"), constraintsPane, true, 3));
+        attributesSectionContainer.addSection(new SectionDefinition("advanced", I18n.t("XsdPropertiesPanel.advancedPane.text"), advancedPane, true, 4));
         attributesSectionContainer.setPadding(new Insets(10));
         attributesSectionContainer.initialize();
         attributesScroll.setContent(attributesSectionContainer);
 
         // Facets tab
         facetsSectionContainer = new CustomizableSectionContainer("xsd-facets");
-        facetsSectionContainer.addSection(new SectionDefinition("facets", "Facets", facetsPane, true, 1));
-        facetsSectionContainer.addSection(new SectionDefinition("enumerations", "Enumerations", enumerationsPane, true, 2));
-        facetsSectionContainer.addSection(new SectionDefinition("patterns", "Patterns", patternsPane, true, 3));
-        facetsSectionContainer.addSection(new SectionDefinition("assertions", "Assertions", assertionsPane, true, 4));
+        facetsSectionContainer.addSection(new SectionDefinition("facets", I18n.t("XsdPropertiesPanel.facetsPane.text"), facetsPane, true, 1));
+        facetsSectionContainer.addSection(new SectionDefinition("enumerations", I18n.t("XsdPropertiesPanel.enumerationsPane.text"), enumerationsPane, true, 2));
+        facetsSectionContainer.addSection(new SectionDefinition("patterns", I18n.t("XsdPropertiesPanel.patternsPane.text"), patternsPane, true, 3));
+        facetsSectionContainer.addSection(new SectionDefinition("assertions", I18n.t("XsdPropertiesPanel.assertionsPane.text"), assertionsPane, true, 4));
         facetsSectionContainer.setPadding(new Insets(10));
         facetsSectionContainer.initialize();
         facetsScroll.setContent(facetsSectionContainer);
@@ -244,8 +244,8 @@ public class XsdPropertiesPanel extends BorderPane {
         VBox.setVgrow(appInfoEditorPanel, Priority.ALWAYS);
 
         docsSectionContainer = new CustomizableSectionContainer("xsd-docs");
-        docsSectionContainer.addSection(new SectionDefinition("documentation", "Documentation", documentationPane, true, 1));
-        docsSectionContainer.addSection(new SectionDefinition("appInfo", "AppInfo", appInfoPane, true, 2));
+        docsSectionContainer.addSection(new SectionDefinition("documentation", I18n.t("XsdPropertiesPanel.documentationPane.text"), documentationPane, true, 1));
+        docsSectionContainer.addSection(new SectionDefinition("appInfo", I18n.t("XsdPropertiesPanel.appInfoPane.text"), appInfoPane, true, 2));
         docsSectionContainer.setPadding(new Insets(10));
         docsSectionContainer.initialize();
         docsScroll.setContent(docsSectionContainer);
@@ -983,7 +983,7 @@ public class XsdPropertiesPanel extends BorderPane {
             org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCheck check =
                     org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.changeType(node, newType);
             var resolved = org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.resolve(
-                    getScene() == null ? null : getScene().getWindow(), "Change Type", check);
+                    getScene() == null ? null : getScene().getWindow(), I18n.t("XsdPropertiesPanel.change-type-title"), check);
             ChangeTypeCommand command = resolved.map(replace -> replace
                     ? ChangeTypeCommand.replacingInlineType(editorContext, node, newType)
                     : new ChangeTypeCommand(editorContext, node, newType)).orElse(null);
@@ -1275,9 +1275,9 @@ public class XsdPropertiesPanel extends BorderPane {
 
         // Show input dialog for pattern
         TextInputDialog dialog = DialogHelper.createTextInputDialog("");
-        dialog.setTitle("Add Pattern");
-        dialog.setHeaderText("Add Regex Pattern Constraint");
-        dialog.setContentText("Enter regex pattern:");
+        dialog.setTitle(I18n.t("XsdPropertiesPanel.add-pattern-title"));
+        dialog.setHeaderText(I18n.t("XsdPropertiesPanel.add-regex-pattern-header"));
+        dialog.setContentText(I18n.t("XsdPropertiesPanel.enter-regex-pattern"));
 
         dialog.showAndWait().ifPresent(pattern -> {
             if (pattern != null && !pattern.trim().isEmpty()) {
@@ -1313,9 +1313,9 @@ public class XsdPropertiesPanel extends BorderPane {
 
         // Show input dialog for enumeration value
         TextInputDialog dialog = DialogHelper.createTextInputDialog("");
-        dialog.setTitle("Add Enumeration");
-        dialog.setHeaderText("Add Enumeration Value");
-        dialog.setContentText("Enter value:");
+        dialog.setTitle(I18n.t("XsdPropertiesPanel.add-enumeration-title"));
+        dialog.setHeaderText(I18n.t("XsdPropertiesPanel.add-enumeration-header"));
+        dialog.setContentText(I18n.t("XsdPropertiesPanel.enter-value"));
 
         dialog.showAndWait().ifPresent(enumValue -> {
             if (enumValue != null && !enumValue.trim().isEmpty()) {
@@ -1351,9 +1351,9 @@ public class XsdPropertiesPanel extends BorderPane {
 
         // Show input dialog for assertion XPath expression
         TextInputDialog dialog = DialogHelper.createTextInputDialog("");
-        dialog.setTitle("Add Assertion");
-        dialog.setHeaderText("Add XSD 1.1 Assertion");
-        dialog.setContentText("Enter XPath expression:");
+        dialog.setTitle(I18n.t("XsdPropertiesPanel.add-assertion-title"));
+        dialog.setHeaderText(I18n.t("XsdPropertiesPanel.add-assertion-header"));
+        dialog.setContentText(I18n.t("XsdPropertiesPanel.enter-xpath-expression"));
 
         dialog.showAndWait().ifPresent(assertion -> {
             if (assertion != null && !assertion.trim().isEmpty()) {
@@ -2017,12 +2017,12 @@ public class XsdPropertiesPanel extends BorderPane {
             if (schemaFilePathLabel != null) {
                 schemaFilePathLabel.setText(filePath != null && !filePath.isEmpty()
                     ? filePath
-                    : "No file loaded");
+                    : I18n.t("XsdPropertiesPanel.no-file-loaded"));
             }
             if (schemaNamespaceLabel != null) {
                 schemaNamespaceLabel.setText(targetNamespace != null && !targetNamespace.isEmpty()
                     ? targetNamespace
-                    : "No target namespace");
+                    : I18n.t("XsdPropertiesPanel.no-target-namespace"));
             }
             if (schemaVersionLabel != null) {
                 schemaVersionLabel.setText(version != null && !version.isEmpty()

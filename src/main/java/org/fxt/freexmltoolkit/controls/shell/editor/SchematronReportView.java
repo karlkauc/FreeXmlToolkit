@@ -44,16 +44,16 @@ public class SchematronReportView extends VBox {
 
         VBox meta = new VBox(2);
         if (data.documentName() != null && !data.documentName().isBlank()) {
-            meta.getChildren().add(metaLabel("Document: " + data.documentName()));
+            meta.getChildren().add(metaLabel(I18n.t("SchematronReportView.document", data.documentName())));
         }
         if (data.schematronFile() != null) {
-            meta.getChildren().add(metaLabel("Schematron: " + data.schematronFile().getName()));
+            meta.getChildren().add(metaLabel(I18n.t("SchematronReportView.schematron", data.schematronFile().getName())));
         }
         meta.getChildren().add(metaLabel(summaryFor(data)));
 
-        Button saveHtml = button("Save Report (HTML)", "bi-filetype-html",
+        Button saveHtml = button(I18n.t("SchematronReportView.save-html"), "bi-filetype-html",
                 () -> save("html", "HTML", SchematronReportHtml.build(data)));
-        Button saveSvrl = button("Save SVRL (XML)", "bi-filetype-xml",
+        Button saveSvrl = button(I18n.t("SchematronReportView.save-svrl"), "bi-filetype-xml",
                 () -> save("xml", "SVRL XML", data.svrl()));
         saveSvrl.setDisable(data.svrl() == null || data.svrl().isBlank());
         status.getStyleClass().add("fxt-placeholder-text");
@@ -61,12 +61,12 @@ public class SchematronReportView extends VBox {
         toolbar.setSpacing(8);
 
         table.setId("schematron-report-table");
-        table.getColumns().add(column("Severity", p -> capitalize(p.severity()), 90));
-        table.getColumns().add(column("Line", p -> p.line() > 0 ? Integer.toString(p.line()) : "", 60));
+        table.getColumns().add(column(I18n.t("SchematronReportView.severity"), p -> capitalize(p.severity()), 90));
+        table.getColumns().add(column(I18n.t("SchematronReportView.line"), p -> p.line() > 0 ? Integer.toString(p.line()) : "", 60));
         table.getColumns().add(fixColumn(editorHost));
-        table.getColumns().add(column("Message", ValidationProblem::message, 380));
-        table.getColumns().add(column("Rule / Test", p -> nullSafe(p.ruleId()), 220));
-        TableColumn<ValidationProblem, String> context = column("Context (XPath)",
+        table.getColumns().add(column(I18n.t("SchematronReportView.message"), ValidationProblem::message, 380));
+        table.getColumns().add(column(I18n.t("SchematronReportView.rule-test"), p -> nullSafe(p.ruleId()), 220));
+        TableColumn<ValidationProblem, String> context = column(I18n.t("SchematronReportView.context"),
                 p -> nullSafe(p.context()), -1);
         table.getColumns().add(context);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
@@ -92,7 +92,7 @@ public class SchematronReportView extends VBox {
         chooser.setTitle(I18n.t("SchematronReportView.save-schematron-report-as", filterName));
         chooser.setInitialFileName("schematron-report." + extension);
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(
-                filterName + " File (*." + extension + ")", "*." + extension));
+                I18n.t("SchematronReportView.file-filter", filterName, extension), "*." + extension));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(
                 chooser, getScene() != null ? getScene().getWindow() : null);
         if (file == null) {
@@ -169,12 +169,12 @@ public class SchematronReportView extends VBox {
     private static String summaryFor(SchematronReportData data) {
         List<ValidationProblem> problems = data.problems();
         if (problems.isEmpty()) {
-            return "All rules passed.";
+            return I18n.t("SchematronReportView.all-passed");
         }
         long errors = data.errorCount();
         long warnings = data.warningCount();
-        return errors + " error" + (errors == 1 ? "" : "s")
-                + " · " + warnings + " warning" + (warnings == 1 ? "" : "s");
+        return I18n.t(errors == 1 ? "SchematronReportView.errors-one" : "SchematronReportView.errors", String.valueOf(errors))
+                + " · " + I18n.t(warnings == 1 ? "SchematronReportView.warnings-one" : "SchematronReportView.warnings", String.valueOf(warnings));
     }
 
     private static String nullSafe(String s) {

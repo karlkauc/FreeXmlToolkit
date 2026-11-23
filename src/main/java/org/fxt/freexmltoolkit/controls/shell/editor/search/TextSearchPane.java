@@ -84,7 +84,7 @@ public class TextSearchPane extends VBox {
         replaceToggle.selectedProperty().addListener(
                 (obs, oldV, newV) -> setReplaceRowVisible(newV));
         globField.setText(loadPref("search.glob", String.join(",", FileSearchRunner.DEFAULT_GLOBS)));
-        resultsTree.setEmptyHint("Results appear here. Type a word, phrase or regular expression above; all matching files in the folder are searched.");
+        resultsTree.setEmptyHint(I18n.t("TextSearchPane.results-appear-here"));
         resultsTree.setOnNavigate(match -> Platform.runLater(() ->
                 editorHost.openFileAndSelect(match.file(), match.start(), match.end(),
                         match.matched(), match.lineNumber())));
@@ -160,8 +160,8 @@ public class TextSearchPane extends VBox {
 
     private void refreshFolderLabel() {
         Path folder = effectiveFolder();
-        folderLabel.setText(folder != null ? String.valueOf(folder.getFileName()) : "No folder — choose one");
-        folderLabel.setTooltip(new Tooltip(folder != null ? folder.toString() : "Choose the folder to search"));
+        folderLabel.setText(folder != null ? String.valueOf(folder.getFileName()) : I18n.t("TextSearchPane.folderLabel.text"));
+        folderLabel.setTooltip(new Tooltip(folder != null ? folder.toString() : I18n.t("TextSearchPane.choose-the-folder-to-search")));
         folderLabel.setTextOverrun(javafx.scene.control.OverrunStyle.CENTER_ELLIPSIS);
     }
 
@@ -253,13 +253,15 @@ public class TextSearchPane extends VBox {
         }
         resultsTree.setResults(entries);
         long fileCount = results.stream().filter(r -> r.error() == null).count();
-        String summary = totalMatches + (totalMatches == 1 ? " match in " : " matches in ")
-                + fileCount + (fileCount == 1 ? " file" : " files");
+        String summary = I18n.t(totalMatches == 1
+                        ? (fileCount == 1 ? "TextSearchPane.match-in-file" : "TextSearchPane.match-in-files")
+                        : (fileCount == 1 ? "TextSearchPane.matches-in-file" : "TextSearchPane.matches-in-files"),
+                String.valueOf(totalMatches), String.valueOf(fileCount));
         if (fileErrors > 0) {
-            summary += " (" + fileErrors + " unreadable)";
+            summary += " (" + I18n.t("TextSearchPane.unreadable", String.valueOf(fileErrors)) + ")";
         }
         if (wasCancelled) {
-            summary += " — cancelled";
+            summary += " — " + I18n.t("TextSearchPane.cancelled");
         }
         if (totalMatches == 0 && fileErrors == 0) {
             PanelStatus.info(status, I18n.t("TextSearchPane.no-matches"));
@@ -327,9 +329,8 @@ public class TextSearchPane extends VBox {
         confirm.setTitle(I18n.t("TextSearchPane.replace-in-files"));
         confirm.setHeaderText(I18n.t("TextSearchPane.replace-match-es-in-file", checked.size(), checkedStarts.size()));
         confirm.setContentText(editorFiles > 0
-                ? editorFiles + " file(s) are open and will be edited in the editor (undo with Ctrl+Z, "
-                + "then save); the rest are written to disk."
-                : "The files will be modified on disk.");
+                ? I18n.t("TextSearchPane.files-are-open-and-edited", String.valueOf(editorFiles))
+                : I18n.t("TextSearchPane.the-files-will-be-modified"));
         if (confirm.showAndWait().filter(bt -> bt == ButtonType.OK).isEmpty()) {
             return;
         }
@@ -377,14 +378,14 @@ public class TextSearchPane extends VBox {
         String current = editorHost.getOpenDocumentText(plan.file()).orElse(null);
         if (current == null || !current.equals(plan.baseText())) {
             return new ReplaceOutcome(plan.file(), 0, true,
-                    "Document changed while replacing — skipped");
+                    I18n.t("TextSearchPane.document-changed-skipped"));
         }
         String merged = plan.plan().mergedRegion(plan.baseText());
         boolean ok = editorHost.replaceDocumentTextRegion(plan.file(),
                 plan.plan().minStart(), plan.plan().maxEnd(), merged);
         return ok
                 ? new ReplaceOutcome(plan.file(), plan.plan().edits().size(), true, null)
-                : new ReplaceOutcome(plan.file(), 0, true, "Editor tab no longer open — skipped");
+                : new ReplaceOutcome(plan.file(), 0, true, I18n.t("TextSearchPane.editor-tab-closed-skipped"));
     }
 
     private void showReplaceSummary(List<ReplaceOutcome> outcomes) {

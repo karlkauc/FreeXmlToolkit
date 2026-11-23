@@ -394,7 +394,7 @@ public class TransformPanel extends VBox {
         showCheckActions(false);
         if (none) {
             showScenarioInfo(scenarioChoice.getItems().isEmpty()
-                    ? "No scenarios yet — set up a transformation and save it with the disk button." : null);
+                    ? I18n.t("TransformPanel.no-scenarios") : null);
         }
     }
 
@@ -450,14 +450,15 @@ public class TransformPanel extends VBox {
             }
         }
         setOutputFormat(format);
-        String target = scenario.output == null || scenario.output.isBlank() ? null : "Output: " + scenario.output;
+        String target = scenario.output == null || scenario.output.isBlank() ? null
+                : I18n.t("TransformPanel.scenario-output", scenario.output);
         if (scenario.isPdf()) {
-            target = "PDF" + (target == null ? " — the scenario needs an output file." : ". " + target)
-                    + " Use Run Scenario.";
+            target = target == null ? I18n.t("TransformPanel.scenario-pdf-no-output")
+                    : I18n.t("TransformPanel.scenario-pdf", target);
         }
         showScenarioInfo(xslt ? target
-                : scenario.stylesheet + " is not a stylesheet — use Run Scenario"
-                        + (target == null ? "." : ". " + target));
+                : target == null ? I18n.t("TransformPanel.scenario-not-stylesheet", scenario.stylesheet)
+                        : I18n.t("TransformPanel.scenario-not-stylesheet-target", scenario.stylesheet, target));
     }
 
     /** Saves the panel's settings as a scenario of the open project (asks for name and output). */
@@ -514,7 +515,8 @@ public class TransformPanel extends VBox {
         scenarioChoice.setValue(name);
         fillingScenarios = false;
         updateScenarioButtons();
-        showScenarioInfo(output == null ? "Saved." : "Saved. Output: " + project.relativize(output));
+        showScenarioInfo(output == null ? I18n.t("TransformPanel.scenario-saved")
+                : I18n.t("TransformPanel.scenario-saved-output", project.relativize(output)));
     }
 
     /** Removes the chosen scenario from the project. */
@@ -555,7 +557,7 @@ public class TransformPanel extends VBox {
             forFile = editorHost.getActiveDocument().map(OpenDocument::getPath).orElse(null);
             if (forFile == null) {
                 out.showFailure(I18n.t("TransformPanel.scenario-failed", scenario.name,
-                        "The scenario runs for a file: open and save the document to run it for."));
+                        I18n.t("TransformPanel.scenario-needs-file-run")));
                 return;
             }
         }
@@ -574,7 +576,7 @@ public class TransformPanel extends VBox {
         runScenarioButton.setDisable(scenarioChoice.getValue() == null);
         if (!result.ok()) {
             out.showFailure(I18n.t("TransformPanel.scenario-failed", scenario.name, result.error()));
-            showScenarioInfo("Failed: " + result.error());
+            showScenarioInfo(I18n.t("TransformPanel.scenario-info-failed", result.error()));
             return;
         }
         if (scenario.isPdf() && result.written() != null) {
@@ -583,7 +585,9 @@ public class TransformPanel extends VBox {
         } else {
             out.showTransformResult(result.text(), result.format() != null ? result.format() : OutputFormat.XML, ms);
         }
-        showScenarioInfo(result.written() != null ? "Written to " + project.relativize(result.written()) : "Done.");
+        showScenarioInfo(result.written() != null
+                ? I18n.t("TransformPanel.scenario-written", project.relativize(result.written()))
+                : I18n.t("TransformPanel.scenario-done"));
     }
 
     /**
@@ -603,7 +607,7 @@ public class TransformPanel extends VBox {
             forFile = editorHost.getActiveDocument().map(OpenDocument::getPath).orElse(null);
             if (forFile == null) {
                 out.showFailure(I18n.t("TransformPanel.scenario-failed", scenario.name,
-                        "The scenario runs for a file: open and save the document to check it for."));
+                        I18n.t("TransformPanel.scenario-needs-file-check")));
                 return;
             }
         }
@@ -646,7 +650,7 @@ public class TransformPanel extends VBox {
             }
             case ERROR -> {
                 out.showFailure(I18n.t("TransformPanel.scenario-failed", check.scenario().name, result.message()));
-                showScenarioInfo("Failed: " + result.message());
+                showScenarioInfo(I18n.t("TransformPanel.scenario-info-failed", result.message()));
             }
         }
         showCheckActions(result.actual() != null
@@ -1053,7 +1057,8 @@ public class TransformPanel extends VBox {
         }
         var input = inputDocument();
         inputRow.showName(input.map(OpenDocument::getDisplayName).orElse(null),
-                input.map(d -> d.getPath() != null ? d.getPath() + " (active document)" : "Active document (unsaved)")
+                input.map(d -> d.getPath() != null ? I18n.t("TransformPanel.active-document-path", d.getPath())
+                                : I18n.t("TransformPanel.active-document-unsaved"))
                         .orElse(null));
     }
 
@@ -1590,7 +1595,7 @@ public class TransformPanel extends VBox {
         return recentXsltMenu.getItems().stream()
                 .filter(i -> !(i instanceof SeparatorMenuItem))
                 .map(MenuItem::getText)
-                .filter(t -> !"Clear recent".equals(t))
+                .filter(t -> !I18n.t("TransformPanel.clear-recent").equals(t))
                 .toList();
     }
 
@@ -1607,12 +1612,12 @@ public class TransformPanel extends VBox {
 
     /** Rebuilds the STYLESHEET star menu: "All XSLT favorites" + one submenu per folder. */
     public void refreshXsltFavMenu() {
-        populateFavMenu(xsltFavMenu, FileFavorite.FileType.XSLT, "All XSLT favorites", this::selectXslt);
+        populateFavMenu(xsltFavMenu, FileFavorite.FileType.XSLT, I18n.t("TransformPanel.all-xslt-favorites"), this::selectXslt);
     }
 
     /** Rebuilds the INPUT star menu: "All XML favorites" + one submenu per folder. */
     public void refreshInputFavMenu() {
-        populateFavMenu(inputFavMenu, FileFavorite.FileType.XML, "All XML favorites", this::selectInput);
+        populateFavMenu(inputFavMenu, FileFavorite.FileType.XML, I18n.t("TransformPanel.all-xml-favorites"), this::selectInput);
     }
 
     /**
@@ -1646,7 +1651,7 @@ public class TransformPanel extends VBox {
         java.util.Map<String, List<FileFavorite>> byFolder = new java.util.LinkedHashMap<>();
         for (FileFavorite fav : favorites) {
             String folder = (fav.getFolderName() == null || fav.getFolderName().isBlank())
-                    ? "Uncategorized" : fav.getFolderName();
+                    ? I18n.t("TransformPanel.uncategorized") : fav.getFolderName();
             byFolder.computeIfAbsent(folder, k -> new java.util.ArrayList<>()).add(fav);
         }
         if (!byFolder.isEmpty()) {
@@ -2273,9 +2278,9 @@ public class TransformPanel extends VBox {
         ParamRow(String name, String value) {
             super(6);
             setAlignment(Pos.CENTER_LEFT);
-            nameField.setPromptText("name");
+            nameField.setPromptText(I18n.t("TransformPanel.param-name"));
             nameField.setText(name);
-            valueField.setPromptText("value");
+            valueField.setPromptText(I18n.t("TransformPanel.param-value"));
             valueField.setText(value);
             Label eq = new Label("=");
             eq.getStyleClass().add("fxt-param-eq");

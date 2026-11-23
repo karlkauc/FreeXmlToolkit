@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.schema.overview;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -89,7 +91,7 @@ final class NamespacesPane extends VBox {
             return;
         }
         ChangeNamespaceDeclarationCommand command = new ChangeNamespaceDeclarationCommand(schema, row.prefix(), prefix, uri);
-        if (!overview.run("Edit Namespace", command.check(), command)) {
+        if (!overview.run(I18n.t("NamespacesPane.edit-namespace"), command.check(), command)) {
             namespaceTable.refresh();
         }
     }
@@ -106,7 +108,7 @@ final class NamespacesPane extends VBox {
         }
         ChangeNamespaceDeclarationCommand command = new ChangeNamespaceDeclarationCommand(schema, null, prefix,
                 "urn:example:" + prefix);
-        if (overview.run("Add Namespace", command.check(), command)) {
+        if (overview.run(I18n.t("NamespacesPane.add-namespace"), command.check(), command)) {
             String added = prefix;
             namespaceTable.getItems().stream().filter(r -> r.prefix().equals(added)).findFirst().ifPresent(r -> {
                 namespaceTable.getSelectionModel().select(r);
@@ -121,7 +123,7 @@ final class NamespacesPane extends VBox {
         Declaration row = namespaceTable.getSelectionModel().getSelectedItem();
         if (schema != null && row != null) {
             ChangeNamespaceDeclarationCommand command = new ChangeNamespaceDeclarationCommand(schema, row.prefix(), null, null);
-            overview.run("Remove Namespace", command.check(), command);
+            overview.run(I18n.t("NamespacesPane.remove-namespace"), command.check(), command);
         }
     }
 

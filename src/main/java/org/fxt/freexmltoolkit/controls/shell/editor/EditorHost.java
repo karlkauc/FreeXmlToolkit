@@ -88,7 +88,7 @@ public class EditorHost extends BorderPane {
      */
     public record ValidationStatus(ValidationState state, int problemCount, String summary) {
         public static final ValidationStatus NONE =
-                new ValidationStatus(ValidationState.NOT_VALIDATED, 0, "Not validated");
+                new ValidationStatus(ValidationState.NOT_VALIDATED, 0, I18n.t("EditorHost.not-validated"));
     }
 
     /**
@@ -960,15 +960,15 @@ public class EditorHost extends BorderPane {
             choice = saveBeforeToolPrompt.apply(name, toolName);
         } else {
             javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
-                    javafx.scene.control.Alert.AlertType.CONFIRMATION, "Unsaved Changes",
-                    "Save changes to " + name + " first?",
-                    toolName + " reads the saved file. Changes that are only in the editor would not be included.");
+                    javafx.scene.control.Alert.AlertType.CONFIRMATION, I18n.t("EditorHost.unsaved-changes"),
+                    I18n.t("EditorHost.save-changes-to-first", name),
+                    I18n.t("EditorHost.reads-the-saved-file", toolName));
             javafx.scene.control.ButtonType save = new javafx.scene.control.ButtonType(
-                    "Save and Continue", javafx.scene.control.ButtonBar.ButtonData.YES);
+                    I18n.t("EditorHost.save-and-continue"), javafx.scene.control.ButtonBar.ButtonData.YES);
             javafx.scene.control.ButtonType proceed = new javafx.scene.control.ButtonType(
-                    "Use Saved Version", javafx.scene.control.ButtonBar.ButtonData.NO);
+                    I18n.t("EditorHost.use-saved-version"), javafx.scene.control.ButtonBar.ButtonData.NO);
             javafx.scene.control.ButtonType cancel = new javafx.scene.control.ButtonType(
-                    "Cancel", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+                    I18n.t("EditorHost.cancel"), javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
             alert.getButtonTypes().setAll(save, proceed, cancel);
             var answer = alert.showAndWait();
             choice = answer.isEmpty() || answer.get() == cancel ? SaveBeforeTool.CANCEL
@@ -1280,8 +1280,8 @@ public class EditorHost extends BorderPane {
         }
         LargeFileView view = new LargeFileView(path);
         view.setDocumentOpener((name, text) -> openGeneratedDocument(text, EditorFileType.XML, name));
-        Tab tab = openToolTab(path.getFileName() + " (viewer)", "bi-eye", view);
-        tab.setTooltip(new javafx.scene.control.Tooltip(path + " - Large File Viewer"));
+        Tab tab = openToolTab(I18n.t("EditorHost.viewer-tab", path.getFileName()), "bi-eye", view);
+        tab.setTooltip(new javafx.scene.control.Tooltip(I18n.t("EditorHost.large-file-viewer-tooltip", path)));
         tab.setOnCloseRequest(e -> {
             if (!view.confirmClose()) {
                 e.consume();
@@ -1319,7 +1319,7 @@ public class EditorHost extends BorderPane {
      * the history of recorded operations with their resource consumption.
      */
     public void openExecutionStats() {
-        Tab tab = openOrFocusToolTab("Execution Statistics", "bi-speedometer2",
+        Tab tab = openOrFocusToolTab(I18n.t("EditorHost.execution-statistics"), "bi-speedometer2",
                 ExecutionStatsView::new);
         if (tab.getContent() instanceof ExecutionStatsView view) {
             tab.setOnClosed(e -> view.dispose());
@@ -1603,7 +1603,7 @@ public class EditorHost extends BorderPane {
                     java.nio.charset.StandardCharsets.UTF_8);
         } catch (IOException e) {
             org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("EditorHost.compare"),
-                    "The expected and the actual result could not be opened.",
+                    I18n.t("EditorHost.the-expected-and-the-actual"),
                     org.fxt.freexmltoolkit.util.DialogHelper.Remedies.FILE_UNREADABLE, e);
             return CompletableFuture.completedFuture(null);
         }
@@ -1921,9 +1921,9 @@ public class EditorHost extends BorderPane {
     /** Prompts for a URL and opens its fetched content as a new document (Welcome "From URL"). */
     public void openFromUrl() {
         javafx.scene.control.TextInputDialog dialog = org.fxt.freexmltoolkit.util.DialogHelper.createTextInputDialog("");
-        dialog.setTitle("Open from URL");
-        dialog.setHeaderText("Fetch and open a document from a URL");
-        dialog.setContentText("URL:");
+        dialog.setTitle(I18n.t("EditorHost.open-from-url"));
+        dialog.setHeaderText(I18n.t("EditorHost.fetch-and-open-a-document"));
+        dialog.setContentText(I18n.t("EditorHost.url"));
         if (getScene() != null) {
             dialog.initOwner(getScene().getWindow());
         }
@@ -1965,7 +1965,7 @@ public class EditorHost extends BorderPane {
         }
         int slash = path.lastIndexOf('/');
         String name = slash >= 0 ? path.substring(slash + 1) : path;
-        return name.isBlank() ? "Untitled" : name;
+        return name.isBlank() ? I18n.t("EditorHost.untitled") : name;
     }
 
     /**
@@ -2158,7 +2158,7 @@ public class EditorHost extends BorderPane {
     public TransformOutputPanel transformOutputPanel() {
         if (transformOutput == null) {
             transformOutput = new TransformOutputPanel(this);
-            bottomDock().register(TransformOutputPanel.DOCK_KEY, transformOutput, "OUTPUT");
+            bottomDock().register(TransformOutputPanel.DOCK_KEY, transformOutput, I18n.t("TransformOutputPanel.output.text"));
         }
         return transformOutput;
     }
@@ -2962,7 +2962,7 @@ public class EditorHost extends BorderPane {
             if (frame != null) {
                 String label = et.currentSelection != null ? et.currentSelection.getName() : null;
                 org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.showBlocked(
-                        getScene() == null ? null : getScene().getWindow(), "Add",
+                        getScene() == null ? null : getScene().getWindow(), I18n.t("EditorHost.add"),
                         org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCheck.blocked(
                                 frame.contentLockReason(label)));
                 return false;
@@ -2984,7 +2984,7 @@ public class EditorHost extends BorderPane {
         }
         String label = et.currentSelection != null ? et.currentSelection.getName() : null;
         org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.showBlocked(
-                getScene() == null ? null : getScene().getWindow(), "Edit",
+                getScene() == null ? null : getScene().getWindow(), I18n.t("EditorHost.edit"),
                 org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCheck.blocked(frame.lockReason(label)));
         return true;
     }
@@ -4038,11 +4038,11 @@ public class EditorHost extends BorderPane {
 
     private boolean confirmReload(OpenDocument doc) {
         javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
-                javafx.scene.control.Alert.AlertType.CONFIRMATION, "Reload from Disk",
-                "Reload " + doc.getDisplayName() + "?",
-                "Your unsaved changes will be lost.");
+                javafx.scene.control.Alert.AlertType.CONFIRMATION, I18n.t("EditorHost.reload-from-disk"),
+                I18n.t("EditorHost.reload-document", doc.getDisplayName()),
+                I18n.t("EditorHost.your-unsaved-changes-will-be"));
         javafx.scene.control.ButtonType reload =
-                new javafx.scene.control.ButtonType("Reload", javafx.scene.control.ButtonBar.ButtonData.YES);
+                new javafx.scene.control.ButtonType(I18n.t("EditorHost.reload"), javafx.scene.control.ButtonBar.ButtonData.YES);
         alert.getButtonTypes().setAll(reload, javafx.scene.control.ButtonType.CANCEL);
         if (getScene() != null && getScene().getWindow() != null) {
             alert.initOwner(getScene().getWindow());
@@ -4554,7 +4554,7 @@ public class EditorHost extends BorderPane {
     }
 
     private String untitledName() {
-        return "Untitled " + (openDocuments.size() + 1);
+        return I18n.t("EditorHost.untitled-n", openDocuments.size() + 1);
     }
 
     private void setupDragAndDrop() {

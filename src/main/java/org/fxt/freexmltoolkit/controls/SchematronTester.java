@@ -240,19 +240,19 @@ public class SchematronTester extends VBox {
         headerLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
 
         // Schematron file section
-        VBox schematronSection = createSection("Schematron File",
+        VBox schematronSection = createSection(I18n.t("SchematronTester.section-schematron-file"),
                 createSchematronFileControls());
 
         // Test files section  
-        VBox testFilesSection = createSection("XML Test Files",
+        VBox testFilesSection = createSection(I18n.t("SchematronTester.section-xml-test-files"),
                 createTestFilesControls());
 
         // Test execution section
-        VBox executionSection = createSection("Test Execution",
+        VBox executionSection = createSection(I18n.t("SchematronTester.section-test-execution"),
                 createExecutionControls());
 
         // Results section
-        VBox resultsSection = createSection("Test Results",
+        VBox resultsSection = createSection(I18n.t("SchematronTester.section-test-results"),
                 createResultsControls());
 
         // Add all sections
@@ -386,8 +386,8 @@ public class SchematronTester extends VBox {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle(I18n.t("SchematronTester.select-schematron-file"));
         fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Schematron files", "*.sch", "*.schematron"),
-                new FileChooser.ExtensionFilter("All Files", "*.*")
+                new FileChooser.ExtensionFilter(I18n.t("SchematronTester.schematron-files"), "*.sch", "*.schematron"),
+                new FileChooser.ExtensionFilter(I18n.t("SchematronTester.all-files"), "*.*")
         );
 
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(fileChooser, this.getScene().getWindow());
@@ -406,8 +406,8 @@ public class SchematronTester extends VBox {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle(I18n.t("SchematronTester.select-xml-test-files"));
         fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("XML files", "*.xml"),
-                new FileChooser.ExtensionFilter("All Files", "*.*")
+                new FileChooser.ExtensionFilter(I18n.t("SchematronTester.xml-files"), "*.xml"),
+                new FileChooser.ExtensionFilter(I18n.t("SchematronTester.all-files"), "*.*")
         );
 
         List<File> files = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenMultipleDialog(fileChooser, this.getScene().getWindow());
@@ -501,8 +501,8 @@ public class SchematronTester extends VBox {
             final int currentIndex = completedFiles;
 
             javafx.application.Platform.runLater(() -> {
-                statusLabel.setText(String.format("Testing %s (%d/%d)",
-                        testFile.file().getName(), currentIndex + 1, totalFiles));
+                statusLabel.setText(I18n.t("SchematronTester.testing-progress",
+                        testFile.file().getName(), String.valueOf(currentIndex + 1), String.valueOf(totalFiles)));
                 progressBar.setProgress((double) currentIndex / totalFiles);
             });
 
@@ -520,8 +520,8 @@ public class SchematronTester extends VBox {
         // Final status update
         javafx.application.Platform.runLater(() -> {
             long passedTests = testResults.stream().mapToLong(r -> "Passed".equals(r.getStatus()) ? 1 : 0).sum();
-            statusLabel.setText(String.format("Completed: %d passed, %d failed out of %d tests",
-                    passedTests, totalFiles - passedTests, totalFiles));
+            statusLabel.setText(I18n.t("SchematronTester.completed-summary",
+                    String.valueOf(passedTests), String.valueOf(totalFiles - passedTests), String.valueOf(totalFiles)));
             progressBar.setProgress(1.0);
         });
 
@@ -568,7 +568,7 @@ public class SchematronTester extends VBox {
 
             if (validationResult.hasErrors()) {
                 errorCount = validationResult.getErrors().size();
-                details.append("ERRORS:\n");
+                details.append(I18n.t("SchematronTester.details-errors-header"));
                 for (String error : validationResult.getErrors()) {
                     details.append("• ").append(error).append("\n");
                 }
@@ -577,7 +577,7 @@ public class SchematronTester extends VBox {
 
             if (validationResult.hasWarnings()) {
                 warningCount = validationResult.getWarnings().size();
-                details.append("WARNINGS:\n");
+                details.append(I18n.t("SchematronTester.details-warnings-header"));
                 for (String warning : validationResult.getWarnings()) {
                     details.append("• ").append(warning).append("\n");
                 }
@@ -591,7 +591,7 @@ public class SchematronTester extends VBox {
         } catch (Exception e) {
             logger.error("Error testing file: {}", fileName, e);
             return new TestResult(fileName, "Error", 0, 0, "N/A", timestamp,
-                    "Error: " + e.getMessage());
+                    I18n.t("SchematronTester.error", e.getMessage()));
         }
     }
 
@@ -611,13 +611,9 @@ public class SchematronTester extends VBox {
      * Show detailed information for a test result
      */
     private void showTestResultDetails(TestResult result) {
-        String details = "Test File: " + result.getFileName() + "\n" +
-                "Status: " + result.getStatus() + "\n" +
-                "Errors: " + result.getErrorCount() + "\n" +
-                "Warnings: " + result.getWarningCount() + "\n" +
-                "Duration: " + result.getDuration() + "\n" +
-                "Time: " + result.getTimestamp() + "\n" +
-                "\n" + "Details:\n" +
+        String details = I18n.t("SchematronTester.result-details", result.getFileName(), result.getStatus(),
+                String.valueOf(result.getErrorCount()), String.valueOf(result.getWarningCount()),
+                result.getDuration(), result.getTimestamp()) +
                 result.getDetails();
 
         detailsTextArea.setText(details);

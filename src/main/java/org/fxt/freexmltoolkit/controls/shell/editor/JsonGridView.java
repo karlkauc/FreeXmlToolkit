@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import java.util.function.Consumer;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext;
 import org.fxt.freexmltoolkit.controls.jsoneditor.grid.JsonCanvasView;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode;
@@ -124,7 +125,7 @@ public class JsonGridView extends GridViewShell {
         this.context = ctx;
         this.canvasView = null;
         if (ctx == null || ctx.getDocument() == null || ctx.getDocument().getRootValue() == null) {
-            showPlaceholder("No JSON content to display.");
+            showPlaceholder(I18n.t("JsonGridView.no-json-content-to-display"));
             return;
         }
         ctx.getSelectionModel().addPropertyChangeListener("selectedNode", evt -> {
@@ -223,7 +224,8 @@ public class JsonGridView extends GridViewShell {
     public void showParseError(String message) {
         this.context = null;
         this.canvasView = null;
-        showPlaceholder("Cannot display grid:\n\n" + message + (yaml ? "\n\nFix the YAML errors first." : "\n\nFix the JSON errors first."));
+        showPlaceholder(yaml ? I18n.t("JsonGridView.cannot-display-grid-yaml", message)
+                : I18n.t("JsonGridView.cannot-display-grid-json", message));
     }
 
     @Override

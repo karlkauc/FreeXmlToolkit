@@ -75,7 +75,7 @@ final class AnalysisSupport {
         if (visible == total) {
             return plural(total, singular);
         }
-        return "Showing " + visible + " of " + plural(total, singular);
+        return I18n.t("AnalysisSupport.showing-of", visible, plural(total, singular));
     }
 
     /** The icon for an identity-constraint validation status (colour via {@code fxt-analysis-sev-*}). */
@@ -137,8 +137,18 @@ final class AnalysisSupport {
      * An "Export" menu with one item per {@link ExportFormat}. Choosing an item prompts for a
      * target file, writes it off the FX thread and reports the outcome in {@code status}.
      */
+    /**
+     * @return the report name as the dialog shows it; {@code baseName} itself stays English, it is
+     *         also the file name and the report's own title
+     */
+    static String reportTitle(String baseName) {
+        String key = "AnalysisSupport.report." + baseName.toLowerCase(Locale.ROOT).replace(' ', '-');
+        String text = I18n.t(key);
+        return text.equals(key) ? baseName : text;
+    }
+
     static MenuButton exportMenu(String baseName, Label status, ExportWriter writer) {
-        MenuButton menu = new MenuButton("Export", icon("bi-download", 16));
+        MenuButton menu = new MenuButton(I18n.t("AnalysisSupport.export"), icon("bi-download", 16));
         menu.setId("analysis-export-" + baseName.toLowerCase(Locale.ROOT).replace(' ', '-'));
         menu.getStyleClass().add("fxt-tool-button");
         for (ReportFormat format : ReportFormat.values()) {
@@ -157,7 +167,7 @@ final class AnalysisSupport {
         return exportMenu(baseName, status, (format, target) -> {
             ReportModel report = model.get();
             if (report == null) {
-                throw new IllegalStateException("Nothing to export yet — run the analysis first");
+                throw new IllegalStateException(I18n.t("AnalysisSupport.nothing-to-export-yet"));
             }
             ReportWriters.write(report, format, target);
         });
@@ -165,10 +175,10 @@ final class AnalysisSupport {
 
     private static void export(Node owner, String baseName, ReportFormat format, Label status, ExportWriter writer) {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle(I18n.t("AnalysisSupport.export-as", baseName, format.label()));
+        chooser.setTitle(I18n.t("AnalysisSupport.export-as", reportTitle(baseName), format.label()));
         chooser.setInitialFileName(baseName.toLowerCase(Locale.ROOT).replace(' ', '-') + "." + format.extension());
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(
-                format.label() + " File (*." + format.extension() + ")", "*." + format.extension()));
+                I18n.t("AnalysisSupport.format-file", format.label(), format.extension()), "*." + format.extension()));
         File file = FileChooserHelper.showSaveDialog(chooser,
                 owner.getScene() != null ? owner.getScene().getWindow() : null);
         if (file == null) {
@@ -221,7 +231,26 @@ final class AnalysisSupport {
         return s == null ? "" : s;
     }
 
+    /** "1 issue" / "3 issues": the count with the noun in the UI language (English rule for unknown nouns). */
     static String plural(long count, String singular) {
-        return count + " " + singular + (count == 1 ? "" : "s");
+        boolean one = count == 1;
+        return switch (singular) {
+            case "issue" -> one ? I18n.t("AnalysisSupport.issue-one", count) : I18n.t("AnalysisSupport.issue-many", count);
+            case "component" -> one ? I18n.t("AnalysisSupport.component-one", count) : I18n.t("AnalysisSupport.component-many", count);
+            case "constraint" -> one ? I18n.t("AnalysisSupport.constraint-one", count) : I18n.t("AnalysisSupport.constraint-many", count);
+            case "node" -> one ? I18n.t("AnalysisSupport.node-one", count) : I18n.t("AnalysisSupport.node-many", count);
+            case "unused type" -> one ? I18n.t("AnalysisSupport.unused-type-one", count) : I18n.t("AnalysisSupport.unused-type-many", count);
+            case "unreachable component" -> one ? I18n.t("AnalysisSupport.unreachable-component-one", count)
+                    : I18n.t("AnalysisSupport.unreachable-component-many", count);
+            case "error" -> one ? I18n.t("AnalysisSupport.error-one", count) : I18n.t("AnalysisSupport.error-many", count);
+            case "warning" -> one ? I18n.t("AnalysisSupport.warning-one", count) : I18n.t("AnalysisSupport.warning-many", count);
+            case "info" -> one ? I18n.t("AnalysisSupport.info-one", count) : I18n.t("AnalysisSupport.info-many", count);
+            case "suggestion" -> one ? I18n.t("AnalysisSupport.suggestion-one", count) : I18n.t("AnalysisSupport.suggestion-many", count);
+            case "key" -> one ? I18n.t("AnalysisSupport.key-one", count) : I18n.t("AnalysisSupport.key-many", count);
+            case "keyref" -> one ? I18n.t("AnalysisSupport.keyref-one", count) : I18n.t("AnalysisSupport.keyref-many", count);
+            case "unique" -> one ? I18n.t("AnalysisSupport.unique-one", count) : I18n.t("AnalysisSupport.unique-many", count);
+            case "assert" -> one ? I18n.t("AnalysisSupport.assert-one", count) : I18n.t("AnalysisSupport.assert-many", count);
+            default -> count + " " + singular + (one ? "" : "s");
+        };
     }
 }

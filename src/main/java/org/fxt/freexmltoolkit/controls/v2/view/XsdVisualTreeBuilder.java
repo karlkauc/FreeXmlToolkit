@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.v2.view;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -406,8 +407,9 @@ public class XsdVisualTreeBuilder {
         if (globalElements.isEmpty()) {
             // No global elements - create empty schema node
             VisualNode rootNode = new VisualNode(
-                    "Schema: " + (schema.getTargetNamespace() != null ? schema.getTargetNamespace() : "empty"),
-                    "No elements",
+                    I18n.t("XsdVisualTreeBuilder.schema-label", schema.getTargetNamespace() != null ? schema.getTargetNamespace()
+                            : I18n.t("XsdVisualTreeBuilder.namespace-empty")),
+                    I18n.t("XsdVisualTreeBuilder.no-elements"),
                     NodeWrapperType.SCHEMA,
                     schema,
                     null,
@@ -431,8 +433,9 @@ public class XsdVisualTreeBuilder {
         } else {
             // Multiple global elements - create schema node as root
             VisualNode rootNode = new VisualNode(
-                    "Schema: " + (schema.getTargetNamespace() != null ? schema.getTargetNamespace() : "default"),
-                    globalElements.size() + " elements",
+                    I18n.t("XsdVisualTreeBuilder.schema-label", schema.getTargetNamespace() != null
+                            ? schema.getTargetNamespace() : I18n.t("XsdVisualTreeBuilder.namespace-default")),
+                    I18n.t("XsdVisualTreeBuilder.element-count", String.valueOf(globalElements.size())),
                     NodeWrapperType.SCHEMA,
                     schema,
                     null,
@@ -574,7 +577,7 @@ public class XsdVisualTreeBuilder {
         if (currentDepth > MAX_DEPTH) {
             logger.debug("Maximum depth ({}) exceeded for element '{}'. Truncating tree.", MAX_DEPTH, element.getName());
             String label = element.getName() != null ? element.getName() : "(unnamed)";
-            return withConstraints(element, new VisualNode(label + " (max depth)", "", NodeWrapperType.ELEMENT,
+            return withConstraints(element, new VisualNode(I18n.t("XsdVisualTreeBuilder.max-depth-suffix", label), "", NodeWrapperType.ELEMENT,
                     element, parent, element.getMinOccurs(), element.getMaxOccurs(), onModelChangeCallback));
         }
 
@@ -584,7 +587,7 @@ public class XsdVisualTreeBuilder {
                     element.getName(), element.getId());
             // Return a placeholder node without children
             String label = element.getName() != null ? element.getName() : "(unnamed)";
-            return withConstraints(element, new VisualNode(label + " (circular ref)", "", NodeWrapperType.ELEMENT,
+            return withConstraints(element, new VisualNode(I18n.t("XsdVisualTreeBuilder.circular-ref-suffix", label), "", NodeWrapperType.ELEMENT,
                     element, parent, element.getMinOccurs(), element.getMaxOccurs(), onModelChangeCallback));
         }
 
@@ -695,7 +698,7 @@ public class XsdVisualTreeBuilder {
             if (declaration == null) {
                 return List.of();
             }
-            origin = "from element " + declaration.getName();
+            origin = I18n.t("XsdVisualTreeBuilder.from-element", declaration.getName());
         }
 
         Map<String, ConstraintRow> rows = new LinkedHashMap<>();
@@ -828,7 +831,7 @@ public class XsdVisualTreeBuilder {
         XsdNode type = kind == TypeKind.COMPLEX ? indexFor(owner, name).types().find(name)
                 : kind == TypeKind.SIMPLE ? indexFor(owner, name).simpleTypes().find(name) : null;
         if (type != null) {
-            addAssertionsOfType(type, "from type " + type.getName(), visited, rows);
+            addAssertionsOfType(type, I18n.t("XsdVisualTreeBuilder.from-type", type.getName()), visited, rows);
         }
     }
 
@@ -1183,7 +1186,7 @@ public class XsdVisualTreeBuilder {
         XsdGroup definition = indexFor(group, name).groups().find(name);
 
         if (definition == null) {
-            addPlaceholder(node, "Unresolved group: " + group.getRef(), "Group definition not loaded");
+            addPlaceholder(node, I18n.t("XsdVisualTreeBuilder.unresolved-group", group.getRef()), I18n.t("XsdVisualTreeBuilder.group-not-loaded"));
         } else if (!visitedTypes.contains("group:" + definition.getId())) {
             Set<String> localVisitedTypes = new HashSet<>(visitedTypes);
             localVisitedTypes.add("group:" + definition.getId());
@@ -1238,8 +1241,8 @@ public class XsdVisualTreeBuilder {
         XsdAttributeGroup definition = indexFor(group, name).attributeGroups().find(name);
 
         if (definition == null) {
-            addPlaceholder(node, "Unresolved attribute group: " + group.getRef(),
-                    "Attribute group definition not loaded");
+            addPlaceholder(node, I18n.t("XsdVisualTreeBuilder.unresolved-attribute-group", group.getRef()),
+                    I18n.t("XsdVisualTreeBuilder.attribute-group-not-loaded"));
         } else if (!visitedTypes.contains("attributeGroup:" + definition.getId())) {
             Set<String> localVisitedTypes = new HashSet<>(visitedTypes);
             localVisitedTypes.add("attributeGroup:" + definition.getId());
@@ -1333,8 +1336,8 @@ public class XsdVisualTreeBuilder {
         QName name = resolveName(typeRef, owner);
         switch (classify(name)) {
             case BUILTIN, SIMPLE -> logger.trace("Type '{}' has no structure to show", typeRef);
-            case UNRESOLVED -> addPlaceholder(parentNode, "Unresolved type: " + typeRef,
-                    "Type definition not loaded");
+            case UNRESOLVED -> addPlaceholder(parentNode, I18n.t("XsdVisualTreeBuilder.unresolved-type", typeRef),
+                    I18n.t("XsdVisualTreeBuilder.type-not-loaded"));
             case COMPLEX -> {
                 // The same type may repeat in parallel branches, just not within its own chain
                 XsdComplexType type = indexFor(owner, name).types().find(name);
@@ -1440,10 +1443,10 @@ public class XsdVisualTreeBuilder {
             // This allows the user to see that there is a reference and expand the node
             String namespacePrefix = ref.contains(":") ? ref.substring(0, ref.indexOf(":")) : null;
             String placeholderLabel = namespacePrefix != null
-                    ? "External: " + ref + " (from " + namespacePrefix + " namespace)"
-                    : "External: " + ref + " (unresolved)";
+                    ? I18n.t("XsdVisualTreeBuilder.external-from-namespace", ref, namespacePrefix)
+                    : I18n.t("XsdVisualTreeBuilder.external-unresolved", ref);
 
-            addPlaceholder(parentNode, placeholderLabel, "Referenced element not loaded");
+            addPlaceholder(parentNode, placeholderLabel, I18n.t("XsdVisualTreeBuilder.referenced-element-not-loaded"));
             logger.info("Created placeholder for unresolved reference '{}', parentNode '{}' now has {} children",
                     ref, parentNode.getLabel(), parentNode.getChildren().size());
         }
@@ -1535,7 +1538,7 @@ public class XsdVisualTreeBuilder {
         QName name = resolveName(baseRef, owner);
         TypeKind kind = classify(name);
         if (kind == TypeKind.UNRESOLVED) {
-            addPlaceholder(parentNode, "Unresolved type: " + baseRef, "Type definition not loaded");
+            addPlaceholder(parentNode, I18n.t("XsdVisualTreeBuilder.unresolved-type", baseRef), I18n.t("XsdVisualTreeBuilder.type-not-loaded"));
             return;
         }
         if (kind != TypeKind.COMPLEX) {

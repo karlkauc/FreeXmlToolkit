@@ -87,9 +87,9 @@ public class DocumentationView extends BorderPane {
     @FXML private ToggleButton pdf;
     @FXML private ToggleButton word;
     /** The three labels of the Markdown rendering choice. */
-    static final String MARKDOWN_ALL = "All documentation";
-    static final String MARKDOWN_PER_NODE = "Per node (@markdown)";
-    static final String MARKDOWN_OFF = "Off";
+    static final String MARKDOWN_ALL = I18n.t("DocumentationView.markdown-all-documentation");
+    static final String MARKDOWN_PER_NODE = I18n.t("DocumentationView.markdown-per-node");
+    static final String MARKDOWN_OFF = I18n.t("DocumentationView.markdown-off");
 
     @FXML private ComboBox<String> markdownMode;
     @FXML private CheckBox includeTypeDefs;
@@ -208,7 +208,7 @@ public class DocumentationView extends BorderPane {
     @FXML
     public void onGenerate() {
         // The generator reads the XSD from disk: offer to save editor changes first.
-        if (xsdFile != null && !editorHost.ensureSavedBeforeTool(xsdFile.toPath(), "Generate Documentation")) {
+        if (xsdFile != null && !editorHost.ensureSavedBeforeTool(xsdFile.toPath(), I18n.t("DocumentationView.generate-documentation"))) {
             return;
         }
         generate(currentOptions());
@@ -242,11 +242,14 @@ public class DocumentationView extends BorderPane {
 
     /** @return the Markdown mode currently selected in the form. */
     XsdDocumentationService.MarkdownMode selectedMarkdownMode() {
-        return switch (markdownMode.getValue() == null ? MARKDOWN_ALL : markdownMode.getValue()) {
-            case MARKDOWN_PER_NODE -> XsdDocumentationService.MarkdownMode.PER_NODE;
-            case MARKDOWN_OFF -> XsdDocumentationService.MarkdownMode.OFF;
-            default -> XsdDocumentationService.MarkdownMode.ALL;
-        };
+        String mode = markdownMode.getValue() == null ? MARKDOWN_ALL : markdownMode.getValue();
+        if (MARKDOWN_PER_NODE.equals(mode)) {
+            return XsdDocumentationService.MarkdownMode.PER_NODE;
+        }
+        if (MARKDOWN_OFF.equals(mode)) {
+            return XsdDocumentationService.MarkdownMode.OFF;
+        }
+        return XsdDocumentationService.MarkdownMode.ALL;
     }
 
     String selectedFormat() {
@@ -408,14 +411,16 @@ public class DocumentationView extends BorderPane {
         running = FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
             String result;
+            boolean generated = false;
             boolean cancelled = false;
             org.fxt.freexmltoolkit.service.telemetry.QueryFailure failure = null;
             try {
                 runGeneration(options);
-                result = "Generated " + options.format() + " in " + humanDuration(System.currentTimeMillis() - start)
-                        + " — " + options.output().getAbsolutePath();
+                result = I18n.t("DocumentationView.generated-in", options.format(),
+                        humanDuration(System.currentTimeMillis() - start), options.output().getAbsolutePath());
+                generated = true;
             } catch (InterruptedException | java.util.concurrent.CancellationException e) {
-                result = "Cancelled.";
+                result = I18n.t("DocumentationView.cancelled");
                 cancelled = true;
             } catch (Throwable t) {
                 result = "ERROR: " + (t.getMessage() != null ? t.getMessage() : t.toString());
@@ -429,17 +434,18 @@ public class DocumentationView extends BorderPane {
                 org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaDocGenerated(options.format(), t0, failure);
             }
             String finalResult = result;
+            boolean finalGenerated = generated;
             Platform.runLater(() -> {
                 stopElapsedTimer();
                 status.setText(finalResult);
                 generate.setDisable(false);
                 cancel.setDisable(true);
                 running = null;
-                if (finalResult.startsWith("Generated") && options.openAfter()) {
+                if (finalGenerated && options.openAfter()) {
                     File target = options.output().isDirectory()
                             ? new File(options.output(), "index.html") : options.output();
                     openInDesktop(target);
-                } else if (finalResult.startsWith("Generated")) {
+                } else if (finalGenerated) {
                     // not opened: confirm where it is, with Open / Show in Folder
                     javafx.stage.Window window = getScene() != null ? getScene().getWindow() : null;
                     File index = new File(options.output(), "index.html");
@@ -669,7 +675,7 @@ public class DocumentationView extends BorderPane {
     }
 
     private static void setSourceName(Label label, String name) {
-        label.setText(name != null ? name : "Not selected");
+        label.setText(name != null ? name : I18n.t("DocumentationView.xsdName.text"));
         label.getStyleClass().remove("fxt-vp-source-none");
         if (name == null) {
             label.getStyleClass().add("fxt-vp-source-none");
@@ -689,7 +695,8 @@ public class DocumentationView extends BorderPane {
         if (!show) {
             return;
         }
-        formatOptionsLabel.setText("PDF".equals(format) ? "PDF OPTIONS" : "WORD OPTIONS");
+        formatOptionsLabel.setText("PDF".equals(format) ? I18n.t("DocumentationView.formatOptionsLabel.text")
+                : I18n.t("DocumentationView.word-options"));
         pdfOnlyBox.setVisible("PDF".equals(format));
         pdfOnlyBox.setManaged("PDF".equals(format));
         String keep = docPageSize.getValue();

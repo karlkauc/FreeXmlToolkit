@@ -67,9 +67,9 @@ public class ScenarioDialog extends Dialog<ScenarioDialog.Request> {
     String validate() {
         String problem = null;
         if (nameField.getText() == null || nameField.getText().isBlank()) {
-            problem = "Enter a name.";
+            problem = I18n.t("ScenarioDialog.enter-name");
         } else if (!outputField.getText().isBlank() && output() == null) {
-            problem = "The output file name is not valid.";
+            problem = I18n.t("ScenarioDialog.output-invalid");
         }
         boolean show = problem != null && !nameField.getText().isBlank();
         error.setText(problem == null ? "" : problem);

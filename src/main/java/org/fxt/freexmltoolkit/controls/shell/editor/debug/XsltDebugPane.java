@@ -359,24 +359,32 @@ public final class XsltDebugPane extends VBox {
         }
         String where = frame.hasFile()
                 ? org.fxt.freexmltoolkit.debugger.SourceLocations.fileName(frame.systemId()) + ":" + frame.lineNumber()
-                : "line " + frame.lineNumber();
-        ValueSource source = new ValueSource("Evaluate", frame.contextXdm() == null ? ""
-                : WatchEvaluator.describeType(frame.contextXdm()), "CONTEXT ITEM", frame.contextXdm(),
-                frame.contextXdm() == null ? "<no context item>" : null, frame, "evaluate at " + where);
+                : I18n.t("XsltDebugPane.line", String.valueOf(frame.lineNumber()));
+        String evaluateTitle = I18n.t("XsltDebugPane.evaluate-title");
+        ValueSource source = new ValueSource(evaluateTitle, frame.contextXdm() == null ? ""
+                : WatchEvaluator.describeType(frame.contextXdm()), I18n.t("XsltDebugPane.context-item-scope"), frame.contextXdm(),
+                frame.contextXdm() == null ? I18n.t("XsltDebugPane.no-context-item-placeholder") : null, frame,
+                I18n.t("XsltDebugPane.evaluate-at", where));
         openViewer(source);
         for (ValueViewerWindow window : viewers) {
-            if (window.getSource().snapshot() == frame && "Evaluate".equals(window.getSource().title())) {
+            if (window.getSource().snapshot() == frame && evaluateTitle.equals(window.getSource().title())) {
                 window.focusXPath();
             }
         }
     }
     @FXML public void onClose() { onClose.run(); }
 
+    /** What the status line shows, kept apart from its (translated) text, which logic must not read. */
+    private enum StatusKind { OTHER, RESTARTING, FINISHED, ERROR }
+
+    private StatusKind statusKind = StatusKind.OTHER;
+
     @FXML
     public void onRestart() {
         messagesView.clear();
         outputView.clear();
         status.setText(I18n.t("XsltDebugPane.restarting"));
+        statusKind = StatusKind.RESTARTING;
         controller.restart();
     }
 
@@ -489,11 +497,16 @@ public final class XsltDebugPane extends VBox {
                     if (snap.callStack().isEmpty()) {
                         watchView.evaluateAll(snap, scopeKey(snap.callStack(), 0));
                     }
-                    String file = snap.hasFile() ? org.fxt.freexmltoolkit.debugger.SourceLocations.fileName(snap.systemId()) + ":" : "line ";
                     String ctx = snap.contextItem().isEmpty() ? "" : "  ·  " + snap.contextItem();
                     breakpointsView.refresh(); // hit counts of this run
                     String note = controller.getSession().getPauseNote();
-                    status.setText(I18n.t("XsltDebugPane.paused-at", file, snap.lineNumber(), ctx, (note == null || note.isEmpty() ? "" : "  ·  " + note)));
+                    String noteText = note == null || note.isEmpty() ? "" : "  ·  " + note;
+                    status.setText(snap.hasFile()
+                            ? I18n.t("XsltDebugPane.paused-at",
+                                    org.fxt.freexmltoolkit.debugger.SourceLocations.fileName(snap.systemId()) + ":",
+                                    snap.lineNumber(), ctx, noteText)
+                            : I18n.t("XsltDebugPane.paused-at-line", snap.lineNumber(), ctx, noteText));
+                    statusKind = StatusKind.OTHER;
                     status.getStyleClass().remove(CONDITION_ERROR_CLASS);
                     if (note != null && (note.startsWith("condition failed") || note.startsWith("error "))) {
                         status.getStyleClass().add(CONDITION_ERROR_CLASS);
@@ -507,10 +520,11 @@ public final class XsltDebugPane extends VBox {
                 variablesView.clear();
                 callStackView.clear();
                 watchView.evaluateAll(null);
-                if (!status.getText().startsWith("Restarting")) {
+                if (statusKind != StatusKind.RESTARTING) {
                     messagesView.clear();
                 }
                 status.setText(I18n.t("XsltDebugPane.running"));
+                statusKind = StatusKind.OTHER;
                 onPaused.accept(null);
             }
             case STOPPED -> {
@@ -519,6 +533,7 @@ public final class XsltDebugPane extends VBox {
                 callStackView.clear();
                 watchView.evaluateAll(null);
                 status.setText(I18n.t("XsltDebugPane.stopped"));
+                statusKind = StatusKind.OTHER;
                 onPaused.accept(null);
             }
             case IDLE -> {
@@ -526,8 +541,9 @@ public final class XsltDebugPane extends VBox {
                 variablesView.clear();
                 callStackView.clear();
                 watchView.evaluateAll(null);
-                if (!status.getText().startsWith("Finished") && !status.getText().startsWith("Error")) {
+                if (statusKind != StatusKind.FINISHED && statusKind != StatusKind.ERROR) {
                     status.setText(I18n.t("XsltDebugPane.finished"));
+                    statusKind = StatusKind.FINISHED;
                 }
                 onPaused.accept(null);
             }
@@ -544,10 +560,13 @@ public final class XsltDebugPane extends VBox {
         }
         if (result.isSuccess()) {
             status.setText(I18n.t("XsltDebugPane.finished-ms-chars-output", result.getExecutionTime(), (result.getOutputContent() == null ? 0 : result.getOutputContent().length())));
+            statusKind = StatusKind.FINISHED;
         } else if (result.getErrorMessage() != null && result.getErrorMessage().contains("stopped")) {
             status.setText(I18n.t("XsltDebugPane.stopped"));
+            statusKind = StatusKind.OTHER;
         } else {
-            status.setText(I18n.t("XsltDebugPane.error", (result.getErrorMessage() == null ? "transformation failed"
+            statusKind = StatusKind.ERROR;
+            status.setText(I18n.t("XsltDebugPane.error", (result.getErrorMessage() == null ? I18n.t("XsltDebugPane.transformation-failed")
                     : result.getErrorMessage())));
             selectTab(rightTabs, messagesTab);
         }
@@ -571,9 +590,9 @@ public final class XsltDebugPane extends VBox {
         }
         List<String> dead = session.deadComponents();
         messagesView.append(new TransformationMessage("INFO", dead.isEmpty()
-                ? "Coverage: every template and function ran"
-                : "Coverage: " + dead.size() + (dead.size() == 1 ? " template or function" : " templates or functions")
-                        + " never ran for this input (red in the gutter)", 0, ""));
+                ? I18n.t("XsltDebugPane.coverage-every-component-ran")
+                : I18n.t(dead.size() == 1 ? "XsltDebugPane.coverage-one-never-ran" : "XsltDebugPane.coverage-never-ran",
+                        String.valueOf(dead.size())), 0, ""));
         for (String component : dead) {
             int open = component.lastIndexOf(" (");
             String location = open < 0 ? "" : component.substring(open + 2, component.length() - 1);
@@ -583,8 +602,8 @@ public final class XsltDebugPane extends VBox {
             } catch (RuntimeException ignored) {
                 // no line - the row does not jump
             }
-            messagesView.append(new TransformationMessage("INFO", "Never ran: "
-                    + (open < 0 ? component : component.substring(0, open)), line, location));
+            messagesView.append(new TransformationMessage("INFO", I18n.t("XsltDebugPane.never-ran",
+                    open < 0 ? component : component.substring(0, open)), line, location));
         }
     }
 
@@ -628,20 +647,21 @@ public final class XsltDebugPane extends VBox {
         String where = where(frame);
         PausedSnapshot frameScope = frameScope(frame, snap);
         if (frameScope == null) {
-            return new ValueSource(frame.description(), frame.kind().name(), "FRAME", null,
-                    frame.description() + "\n" + where + "\n\n(No context item or variables were captured for this frame.)",
-                    null, "frame at " + where);
+            return new ValueSource(frame.description(), frame.kind().name(), I18n.t("XsltDebugPane.frame-scope"), null,
+                    I18n.t("XsltDebugPane.frame-without-values", frame.description(), where),
+                    null, I18n.t("XsltDebugPane.frame-at", where));
         }
         int vars = frame.localVariables().size();
-        String type = frame.contextXdm() == null ? "no context item" : WatchEvaluator.describeType(frame.contextXdm());
+        String type = frame.contextXdm() == null ? I18n.t("XsltDebugPane.no-context-item") : WatchEvaluator.describeType(frame.contextXdm());
         return new ValueSource(frame.description(), type,
-                "FRAME · " + vars + (vars == 1 ? " variable" : " variables"),
-                frame.contextXdm(), frame.contextXdm() == null ? "<no context item>" : null, frameScope,
-                "frame at " + where);
+                I18n.t(vars == 1 ? "XsltDebugPane.frame-variable" : "XsltDebugPane.frame-variables", String.valueOf(vars)),
+                frame.contextXdm(), frame.contextXdm() == null ? I18n.t("XsltDebugPane.no-context-item-placeholder") : null, frameScope,
+                I18n.t("XsltDebugPane.frame-at", where));
     }
 
     private static String where(DebugStackFrame frame) {
-        return (frame.fileName().isEmpty() ? "line " : frame.fileName() + ":") + frame.lineNumber();
+        return frame.fileName().isEmpty() ? I18n.t("XsltDebugPane.line", String.valueOf(frame.lineNumber()))
+                : frame.fileName() + ":" + frame.lineNumber();
     }
 
     /**
@@ -694,14 +714,14 @@ public final class XsltDebugPane extends VBox {
             watchView.evaluateAll(snap, scopeKey(snap.callStack(), 0));
             return;
         }
-        String banner = "Frame " + (index + 1) + " of " + snap.callStack().size() + ":  "
-                + frame.description() + "  ·  " + where(frame);
+        String banner = I18n.t("XsltDebugPane.frame-banner", String.valueOf(index + 1),
+                String.valueOf(snap.callStack().size()), frame.description(), where(frame));
         variablesView.setFrameInfo(banner);
         if (frameScope == null) {
             scope = null;
             variablesView.setVariables(List.of());
             variablesView.setPlaceholderText(I18n.t("XsltDebugPane.no-variables-were-captured-for"));
-            watchView.markUnavailable("<no values for this frame>");
+            watchView.markUnavailable(I18n.t("XsltDebugPane.no-values-for-this-frame"));
             return;
         }
         scope = frameScope;
@@ -752,8 +772,9 @@ public final class XsltDebugPane extends VBox {
             Platform.runLater(() -> {
                 String label = node.getNodeKind() == net.sf.saxon.s9api.XdmNodeKind.ELEMENT
                         ? "<" + node.getNodeName() + ">" : node.getNodeKind().toString().toLowerCase(Locale.ROOT);
-                MatchExplanationDialog dialog = new MatchExplanationDialog(label
-                        + org.fxt.freexmltoolkit.debugger.InputLocation.of(node).map(l -> " (input line " + l.line() + ")").orElse(""),
+                MatchExplanationDialog dialog = new MatchExplanationDialog(
+                        org.fxt.freexmltoolkit.debugger.InputLocation.of(node)
+                                .map(l -> I18n.t("XsltDebugPane.node-input-line", label, String.valueOf(l.line()))).orElse(label),
                         mode, lines, line -> onJumpToFrame.accept(new DebugStackFrame(line.candidate().alternative(),
                                 line.candidate().rule().path(), line.candidate().rule().line(), List.of())));
                 if (getScene() != null && getScene().getWindow() != null) {
@@ -832,18 +853,18 @@ public final class XsltDebugPane extends VBox {
         PausedSnapshot snap = currentScope();
         WatchEvaluator evaluator = snap == null ? null : controller.getWatchEvaluator();
         if (evaluator == null) {
-            then.accept(new ValueSource(row.getExpression(), "", "WATCH", null, row.getValue(), snap));
+            then.accept(new ValueSource(row.getExpression(), "", I18n.t("XsltDebugPane.watch-scope"), null, row.getValue(), snap));
             return;
         }
         FxtGui.executorService.submit(() -> {
             ValueSource source;
             try {
                 XdmValue value = evaluator.evaluateValue(row.getExpression(), snap, null);
-                source = new ValueSource(row.getExpression(), WatchEvaluator.describeType(value), "WATCH",
+                source = new ValueSource(row.getExpression(), WatchEvaluator.describeType(value), I18n.t("XsltDebugPane.watch-scope"),
                         value, null, snap);
             } catch (SaxonApiException | RuntimeException e) {
-                source = new ValueSource(row.getExpression(), "", "WATCH", null,
-                        "ERROR: " + (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage()), snap);
+                source = new ValueSource(row.getExpression(), "", I18n.t("XsltDebugPane.watch-scope"), null,
+                        I18n.t("XsltDebugPane.error-text", e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage()), snap);
             }
             final ValueSource resolved = source;
             Platform.runLater(() -> then.accept(resolved));

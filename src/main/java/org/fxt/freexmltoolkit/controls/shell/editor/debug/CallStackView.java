@@ -43,8 +43,8 @@ public class CallStackView extends VBox {
                     return;
                 }
                 String file = frame.fileName();
-                setText(frame.description() + "  (" + (file.isEmpty() ? "" : file + ":") + "line "
-                        + frame.lineNumber() + ")");
+                setText(frame.description() + "  (" + (file.isEmpty() ? "" : file + ":")
+                        + I18n.t("CallStackView.line", String.valueOf(frame.lineNumber())) + ")");
                 if (frame.kind() == DebugStackFrame.FrameKind.INSTRUCTION) {
                     getStyleClass().add("fxt-stack-instruction");
                 }

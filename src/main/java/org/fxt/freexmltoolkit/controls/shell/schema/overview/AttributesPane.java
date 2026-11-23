@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.schema.overview;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -135,15 +137,15 @@ final class AttributesPane extends VBox {
 
     private String hint(XsdNode container) {
         if (!editable) {
-            return "Read-only: declared in an included file.";
+            return I18n.t("AttributesPane.read-only-declared-in-an-included-file");
         }
         if (owner instanceof XsdElement element && container instanceof XsdComplexType type
                 && type.getParent() != element) {
-            return "Attributes of type '" + type.getName() + "': changes apply to every use of the type.";
+            return I18n.t("AttributesPane.attributes-of-type", type.getName());
         }
         if (owner instanceof XsdElement && container == null) {
             EditCheck check = XsdEditRules.addAttribute(owner);
-            return check.isAllowed() ? "Adding an attribute gives the element a complex type." : check.reason();
+            return check.isAllowed() ? I18n.t("AttributesPane.adding-an-attribute-gives-complex-type") : check.reason();
         }
         return "";
     }
@@ -242,15 +244,15 @@ final class AttributesPane extends VBox {
         }
         String n = name.trim();
         EditCheck check = XsdEditRules.isNcName(n) ? EditCheck.allowed()
-                : EditCheck.blocked("'" + n + "' is not a valid attribute name.");
+                : EditCheck.blocked(I18n.t("AttributesPane.not-a-valid-attribute-name", n));
         if (check.isAllowed()) {
             for (XsdNode sibling : attributeTable.getItems()) {
                 if (sibling != row && sibling instanceof XsdAttribute && n.equals(sibling.getName())) {
-                    check = EditCheck.blocked("There already is an attribute named '" + n + "'.");
+                    check = EditCheck.blocked(I18n.t("AttributesPane.attribute-name-exists", n));
                 }
             }
         }
-        overview.run("Rename Attribute", check, new RenameNodeCommand(row, n));
+        overview.run(I18n.t("AttributesPane.rename-attribute"), check, new RenameNodeCommand(row, n));
     }
 
     private void changeType(XsdNode row, String type) {
@@ -260,13 +262,13 @@ final class AttributesPane extends VBox {
             return;
         }
         String value = type.trim();
-        Optional<Boolean> resolution = EditRuleDialogs.resolve(overview.window(), "Change Type",
+        Optional<Boolean> resolution = EditRuleDialogs.resolve(overview.window(), I18n.t("AttributesPane.change-type"),
                 XsdEditRules.changeType(attribute, value));
         if (resolution.isEmpty()) {
             attributeTable.refresh();
             return;
         }
-        overview.run("Change Type", null, resolution.get()
+        overview.run(I18n.t("AttributesPane.change-type"), null, resolution.get()
                 ? ChangeTypeCommand.replacingInlineType(context(), attribute, value)
                 : new ChangeTypeCommand(context(), attribute, value));
     }
@@ -275,9 +277,9 @@ final class AttributesPane extends VBox {
         if (row instanceof XsdAttribute attribute && context() != null && use != null
                 && !use.equals(attribute.getUse() == null ? "optional" : attribute.getUse())) {
             EditCheck check = "required".equals(use) && attribute.getDefaultValue() != null
-                    ? EditCheck.blocked("A required attribute cannot have a default value.")
+                    ? EditCheck.blocked(I18n.t("AttributesPane.required-attribute-no-default"))
                     : EditCheck.allowed();
-            overview.run("Change Use", check, new ChangeUseCommand(context(), attribute, use));
+            overview.run(I18n.t("AttributesPane.change-use"), check, new ChangeUseCommand(context(), attribute, use));
         } else {
             attributeTable.refresh();
         }
@@ -295,11 +297,11 @@ final class AttributesPane extends VBox {
         }
         EditCheck check = EditCheck.allowed();
         if (v != null && (fixed ? attribute.getDefaultValue() : attribute.getFixed()) != null) {
-            check = EditCheck.blocked("An attribute cannot have both a default and a fixed value.");
+            check = EditCheck.blocked(I18n.t("AttributesPane.default-and-fixed"));
         } else if (v != null && !fixed && "required".equals(attribute.getUse())) {
-            check = EditCheck.blocked("A required attribute cannot have a default value.");
+            check = EditCheck.blocked(I18n.t("AttributesPane.required-attribute-no-default"));
         }
-        overview.run(fixed ? "Fixed Value" : "Default Value", check, fixed
+        overview.run(fixed ? I18n.t("AttributesPane.fixed-value") : I18n.t("AttributesPane.default-value"), check, fixed
                 ? new ChangeFixedValueCommand(context(), attribute, v)
                 : new ChangeDefaultValueCommand(context(), attribute, v));
     }
@@ -318,7 +320,7 @@ final class AttributesPane extends VBox {
         XsdSchema schema = overview.schema();
         String type = XsdEditRules.xsdPrefix(schema != null ? schema : owner) + ":string";
         NewAttributeSpec spec = new NewAttributeSpec(name, type, null, null, null, null, null);
-        if (overview.run("Add Attribute", XsdEditRules.newAttribute(owner, spec), AddAttributeCommand.of(owner, spec))) {
+        if (overview.run(I18n.t("AttributesPane.add-attribute"), XsdEditRules.newAttribute(owner, spec), AddAttributeCommand.of(owner, spec))) {
             String added = name;
             attributeTable.getItems().stream().filter(r -> added.equals(r.getName())).findFirst().ifPresent(r -> {
                 attributeTable.getSelectionModel().select(r);
@@ -332,14 +334,14 @@ final class AttributesPane extends VBox {
             return;
         }
         AddAttributeGroupRefCommand command = new AddAttributeGroupRefCommand(owner, ref);
-        overview.run("Add Attribute Group Reference", command.check(), command);
+        overview.run(I18n.t("AttributesPane.add-attribute-group-reference"), command.check(), command);
     }
 
     @FXML
     public void onDelete() {
         XsdNode row = attributeTable.getSelectionModel().getSelectedItem();
         if (row != null && editable) {
-            overview.run("Delete Attribute", null, new DeleteNodeCommand(row));
+            overview.run(I18n.t("AttributesPane.delete-attribute"), null, new DeleteNodeCommand(row));
         }
     }
 

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.domain.PDFSettings;
 import org.fxt.freexmltoolkit.service.FOPService;
 import org.fxt.freexmltoolkit.service.FopEvent;
@@ -170,7 +171,7 @@ public final class FopRunner {
         public String notesText() {
             StringBuilder sb = new StringBuilder();
             if (!messages.isEmpty()) {
-                sb.append("XSLT messages (").append(messages.size()).append(")\n");
+                sb.append(I18n.t("FopRunner.xslt-messages", messages.size())).append('\n');
                 for (TransformationMessage m : messages) {
                     sb.append("  ").append(m.getLevel());
                     if (m.getLocation() != null && !m.getLocation().isBlank()) {
@@ -183,14 +184,14 @@ public final class FopRunner {
                 if (sb.length() > 0) {
                     sb.append('\n');
                 }
-                sb.append("Renderer messages (").append(events.size()).append(")\n");
+                sb.append(I18n.t("FopRunner.renderer-messages", events.size())).append('\n');
                 for (FopEvent e : events) {
                     sb.append("  ").append(e.severity()).append(" [").append(e.shortId()).append("]: ")
                             .append(e.message()).append('\n');
                 }
             }
             if (sb.length() == 0) {
-                sb.append("No messages: the stylesheet produced no xsl:message output and the renderer reported nothing.\n");
+                sb.append(I18n.t("FopRunner.no-messages")).append('\n');
             }
             return sb.toString();
         }
@@ -280,7 +281,7 @@ public final class FopRunner {
                     STAGE_RENDER, QueryFailure.of(e));
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return new FopResult(false, null, foXml, messages, List.of(), processor.name() + " was cancelled.",
+            return new FopResult(false, null, foXml, messages, List.of(), I18n.t("FopRunner.was-cancelled", processor.name()),
                     STAGE_RENDER, QueryFailure.of(e));
         }
     }

@@ -400,12 +400,12 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
 
     static String typeLabel(JsonNodeType type) {
         return switch (type) {
-            case STRING -> "String";
-            case NUMBER -> "Number";
-            case BOOLEAN -> "Boolean";
-            case NULL -> "Null";
-            case OBJECT -> "Object";
-            case ARRAY -> "Array";
+            case STRING -> I18n.t("JsonGridContextMenu.type-string");
+            case NUMBER -> I18n.t("JsonGridContextMenu.type-number");
+            case BOOLEAN -> I18n.t("JsonGridContextMenu.type-boolean");
+            case NULL -> I18n.t("JsonGridContextMenu.type-null");
+            case OBJECT -> I18n.t("JsonGridContextMenu.type-object");
+            case ARRAY -> I18n.t("JsonGridContextMenu.type-array");
             default -> type.name();
         };
     }
@@ -569,12 +569,12 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         } else {
             return;
         }
-        NewValue value = showNewValueDialog("Add Property", true, "newProperty");
+        NewValue value = showNewValueDialog(I18n.t("JsonGridContextMenu.add-property-title"), true, "newProperty");
         if (value == null) {
             return;
         }
         if (target.hasProperty(value.key())) {
-            showWarningAlert("Cannot Add Property", "The object already has a property \"" + value.key() + "\".");
+            showWarningAlert(I18n.t("JsonGridContextMenu.cannot-add-property"), I18n.t("JsonGridContextMenu.object-has-property", value.key()));
             return;
         }
         execute(new AddPropertyCommand(target, value.key(), newNode(value.type()), index));
@@ -594,7 +594,7 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         } else {
             return;
         }
-        NewValue value = showNewValueDialog("Add Array Item", false, null);
+        NewValue value = showNewValueDialog(I18n.t("JsonGridContextMenu.add-array-item-title"), false, null);
         if (value == null) {
             return;
         }
@@ -609,17 +609,17 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         JsonNode parent = selected.getParent();
         int index = parent != null ? parent.indexOf(selected) + (before ? 0 : 1) : -1;
         if (parent instanceof JsonObject object) {
-            NewValue value = showNewValueDialog("Add Sibling Property", true, "newProperty");
+            NewValue value = showNewValueDialog(I18n.t("JsonGridContextMenu.add-sibling-property-title"), true, "newProperty");
             if (value == null) {
                 return;
             }
             if (object.hasProperty(value.key())) {
-                showWarningAlert("Cannot Add Property", "The object already has a property \"" + value.key() + "\".");
+                showWarningAlert(I18n.t("JsonGridContextMenu.cannot-add-property"), I18n.t("JsonGridContextMenu.object-has-property", value.key()));
                 return;
             }
             execute(new AddPropertyCommand(object, value.key(), newNode(value.type()), index));
         } else if (parent instanceof JsonArray array) {
-            NewValue value = showNewValueDialog("Add Sibling Item", false, null);
+            NewValue value = showNewValueDialog(I18n.t("JsonGridContextMenu.add-sibling-item-title"), false, null);
             if (value == null) {
                 return;
             }
@@ -632,12 +632,12 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         if (selected == null || !(selected.getParent() instanceof JsonObject parent)) {
             return;
         }
-        String newKey = showInputDialog("Rename Key", "New key:", selected.getKey());
+        String newKey = showInputDialog(I18n.t("JsonGridContextMenu.rename-key-title"), I18n.t("JsonGridContextMenu.new-key"), selected.getKey());
         if (newKey == null || newKey.trim().isEmpty() || newKey.trim().equals(selected.getKey())) {
             return;
         }
         if (parent.hasProperty(newKey.trim())) {
-            showWarningAlert("Cannot Rename Key", "The object already has a property \"" + newKey.trim() + "\".");
+            showWarningAlert(I18n.t("JsonGridContextMenu.cannot-rename-key"), I18n.t("JsonGridContextMenu.object-has-property", newKey.trim()));
             return;
         }
         execute(new RenameKeyCommand(selected, newKey.trim()));
@@ -697,13 +697,13 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         JsonNode toPaste = isCut ? clipboardNode : clipboardNode.deepCopy();
         if (target instanceof JsonObject object) {
             String defaultKey = uniqueKey(object, clipboardNode.getKey() != null ? clipboardNode.getKey() : "pasted");
-            String key = showInputDialog("Paste Property", "Key:", defaultKey);
+            String key = showInputDialog(I18n.t("JsonGridContextMenu.paste-property-title"), I18n.t("JsonGridContextMenu.key"), defaultKey);
             if (key == null || key.trim().isEmpty()) {
                 return;
             }
             key = key.trim();
             if (object.hasProperty(key) && object.getProperty(key) != clipboardNode) {
-                showWarningAlert("Cannot Paste", "The object already has a property \"" + key + "\".");
+                showWarningAlert(I18n.t("JsonGridContextMenu.cannot-paste"), I18n.t("JsonGridContextMenu.object-has-property", key));
                 return;
             }
             if (isCut) {
@@ -842,7 +842,7 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         if (clickedTable == null) {
             return;
         }
-        String key = showInputDialog("Insert Column", "Key of the new property:", "newColumn");
+        String key = showInputDialog(I18n.t("JsonGridContextMenu.insert-column-title"), I18n.t("JsonGridContextMenu.key-of-new-property"), "newColumn");
         if (key == null || key.isBlank()) {
             return;
         }
@@ -862,7 +862,7 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         if (table == null || columnName == null || table.getColumn(columnName) == null) {
             return;
         }
-        String newKey = showInputDialog("Rename Column", "New key for " + columnName + ":", columnName);
+        String newKey = showInputDialog(I18n.t("JsonGridContextMenu.rename-column-title"), I18n.t("JsonGridContextMenu.new-key-for", columnName), columnName);
         if (newKey == null || newKey.isBlank() || newKey.trim().equals(columnName)) {
             return;
         }
@@ -873,7 +873,7 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         if (context.executeCommand(cmd)) {
             refresh();
         } else {
-            showWarningAlert("Cannot Rename Column", "A row already has a property \"" + newKey.trim() + "\".");
+            showWarningAlert(I18n.t("JsonGridContextMenu.cannot-rename-column"), I18n.t("JsonGridContextMenu.row-has-property", newKey.trim()));
         }
     }
 
@@ -918,8 +918,8 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
             return;
         }
         Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
-                Alert.AlertType.CONFIRMATION, "Delete Node", "Delete \"" + nodeName(selected) + "\"?",
-                "This action cannot be undone from this dialog.");
+                Alert.AlertType.CONFIRMATION, I18n.t("JsonGridContextMenu.delete-node-title"), I18n.t("JsonGridContextMenu.delete-node-question", nodeName(selected)),
+                I18n.t("JsonGridContextMenu.cannot-undo-from-dialog"));
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK
                 && context.executeCommand(new DeleteNodeCommand(selected))) {
@@ -934,7 +934,7 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
             return;
         }
         if (!clickedTable.isColumnSortable(clickedColumnName)) {
-            showWarningAlert("Cannot Sort Column", "This column contains nested values and cannot be sorted.");
+            showWarningAlert(I18n.t("JsonGridContextMenu.cannot-sort-column"), I18n.t("JsonGridContextMenu.column-nested-values"));
             return;
         }
         List<Object> nodes = clickedTable.getNodes();
@@ -993,8 +993,8 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
     private NewValue showNewValueDialog(String title, boolean askKey, String defaultKey) {
         Dialog<NewValue> dialog = DialogHelper.createDialog(null, null, null);
         dialog.setTitle(title);
-        dialog.setHeaderText(askKey ? "Enter the key and choose the value type:" : "Choose the value type:");
-        ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+        dialog.setHeaderText(askKey ? I18n.t("JsonGridContextMenu.enter-key-and-type") : I18n.t("JsonGridContextMenu.choose-value-type"));
+        ButtonType addButtonType = new ButtonType(I18n.t("JsonGridContextMenu.add"), ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
 
         GridPane grid = new GridPane();

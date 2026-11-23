@@ -51,10 +51,10 @@ import org.fxt.freexmltoolkit.util.DialogHelper;
  */
 final class TypesSection extends VBox {
 
-    static final String ALL = "All";
-    static final String UNUSED = "Unused";
-    static final String UNREACHABLE = "Unreachable";
-    static final String SINGLE_USE = "Single use";
+    static final String ALL = I18n.t("TypesSection.all");
+    static final String UNUSED = I18n.t("TypesSection.unused");
+    static final String UNREACHABLE = I18n.t("TypesSection.unreachable");
+    static final String SINGLE_USE = I18n.t("TypesSection.single-use");
 
     private final EditorHost editorHost;
     @FXML private HBox toolbar;
@@ -158,7 +158,7 @@ final class TypesSection extends VBox {
         boolean enabled = editorHost != null && document != null && data != null && !data.unreachableComponents().isEmpty();
         removeUnused.setDisable(!enabled);
         int n = data == null ? 0 : data.unreachableComponents().size();
-        removeUnused.setText(n > 0 ? "Remove unused (" + n + ")…" : "Remove unused…");
+        removeUnused.setText(n > 0 ? I18n.t("TypesSection.remove-unused-count", n) : I18n.t("TypesSection.removeUnused.text"));
     }
 
     private void rebuildChips() {
@@ -193,12 +193,16 @@ final class TypesSection extends VBox {
         String text = search.getText() == null ? "" : search.getText().trim().toLowerCase(Locale.ROOT);
         filtered.setPredicate(c -> {
             if (selected != null && !ALL.equals(selected)) {
-                boolean match = switch (selected) {
-                    case UNUSED -> c.isUnused();
-                    case UNREACHABLE -> c.unreachable();
-                    case SINGLE_USE -> c.isSingleUse();
-                    default -> c.kind().getDisplayName().equals(selected);
-                };
+                boolean match;
+                if (UNUSED.equals(selected)) {
+                    match = c.isUnused();
+                } else if (UNREACHABLE.equals(selected)) {
+                    match = c.unreachable();
+                } else if (SINGLE_USE.equals(selected)) {
+                    match = c.isSingleUse();
+                } else {
+                    match = c.kind().getDisplayName().equals(selected);
+                }
                 if (!match) {
                     return false;
                 }
@@ -236,7 +240,7 @@ final class TypesSection extends VBox {
         }
         usages.getItems().setAll(component.usages());
         usagesTitle.setText(I18n.t("TypesSection.used-in-2", component.usageCount()));
-        documentation.setText(component.documentation().isBlank() ? "(no documentation)" : component.documentation());
+        documentation.setText(component.documentation().isBlank() ? I18n.t("TypesSection.no-documentation") : component.documentation());
     }
 
     // ---------------------------------------------------------------- columns
@@ -286,8 +290,8 @@ final class TypesSection extends VBox {
                 String tone = item.usageCount() == 0 ? "error" : item.usageCount() <= 3 ? "warning" : "ok";
                 Label chip = AnalysisSupport.chip(Integer.toString(item.usageCount()), tone);
                 if (item.unreachable()) {
-                    chip.setTooltip(new Tooltip(item.isUnused() ? "Never referenced"
-                            : "Only referenced from components that are themselves unused"));
+                    chip.setTooltip(new Tooltip(item.isUnused() ? I18n.t("TypesSection.never-referenced")
+                            : I18n.t("TypesSection.only-referenced-from-unused")));
                 }
                 setGraphic(chip);
             }
@@ -325,28 +329,27 @@ final class TypesSection extends VBox {
         for (ComponentInfo c : unreachable) {
             if (c.fromInclude()) {
                 skipped++;
-                lines.add("• " + c.kind().getDisplayName() + " '" + c.name() + "' — in " + c.sourceFileName() + ", will be skipped");
+                lines.add(I18n.t("TypesSection.remove-line-skipped", c.kind().getDisplayName(), c.name(), c.sourceFileName()));
             } else {
                 keys.add(c.key());
-                lines.add("• " + c.kind().getDisplayName() + " '" + c.name() + "'");
+                lines.add(I18n.t("TypesSection.remove-line", c.kind().getDisplayName(), c.name()));
             }
         }
         if (keys.isEmpty()) {
             status.setText(I18n.t("TypesSection.nothing-to-remove-all-unreachable"));
             return;
         }
-        Alert alert = DialogHelper.createStyledAlert(Alert.AlertType.CONFIRMATION, "Remove unused components",
-                "Remove " + AnalysisSupport.plural(keys.size(), "unreachable component") + " from " + document.getDisplayName() + "?",
-                "No global element or attribute reaches these types, groups and attribute groups. "
-                        + "They are deleted from the schema text as one undo step (Ctrl+Z restores them)."
-                        + (skipped > 0 ? "\n" + skipped + " component(s) declared in included files are skipped." : ""));
+        Alert alert = DialogHelper.createStyledAlert(Alert.AlertType.CONFIRMATION, I18n.t("TypesSection.remove-unused-components"),
+                I18n.t("TypesSection.remove-from", AnalysisSupport.plural(keys.size(), "unreachable component"), document.getDisplayName()),
+                I18n.t("TypesSection.remove-explanation")
+                        + (skipped > 0 ? "\n" + I18n.t("TypesSection.remove-skipped-note", skipped) : ""));
         TextArea list = new TextArea(String.join("\n", lines));
         list.setEditable(false);
         list.setWrapText(false);
         list.setPrefRowCount(Math.min(12, lines.size() + 1));
         alert.getDialogPane().setExpandableContent(list);
         alert.getDialogPane().setExpanded(true);
-        ButtonType remove = new ButtonType("Remove", javafx.scene.control.ButtonBar.ButtonData.OK_DONE);
+        ButtonType remove = new ButtonType(I18n.t("TypesSection.remove"), javafx.scene.control.ButtonBar.ButtonData.OK_DONE);
         alert.getButtonTypes().setAll(remove, ButtonType.CANCEL);
         Optional<ButtonType> choice = alert.showAndWait();
         if (choice.isPresent() && choice.get() == remove) {
@@ -362,15 +365,15 @@ final class TypesSection extends VBox {
             return;
         }
         EditorHost.ComponentRemoval result = outcome.get();
-        StringBuilder text = new StringBuilder("Removed " + AnalysisSupport.plural(result.removed(), "component"));
+        StringBuilder text = new StringBuilder(I18n.t("TypesSection.removed", AnalysisSupport.plural(result.removed(), "component")));
         int skipped = skippedFromInclude + result.skippedFromInclude().size();
         if (skipped > 0) {
-            text.append(" (").append(skipped).append(" skipped: from included files)");
+            text.append(' ').append(I18n.t("TypesSection.removed-skipped", skipped));
         }
         if (!result.notFound().isEmpty()) {
-            text.append(" (").append(result.notFound().size()).append(" not found — re-run the analysis)");
+            text.append(' ').append(I18n.t("TypesSection.removed-not-found", result.notFound().size()));
         }
-        text.append(" — undo with Ctrl+Z in the editor.");
+        text.append(' ').append(I18n.t("TypesSection.removed-undo-hint"));
         status.setText(text.toString());
         Platform.runLater(afterRemoval);
     }

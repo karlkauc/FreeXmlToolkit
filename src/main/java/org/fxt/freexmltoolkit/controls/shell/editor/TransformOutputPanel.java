@@ -236,24 +236,24 @@ public class TransformOutputPanel extends VBox {
      * @param source the transform's input and its schema, or {@code null}
      */
     public void showTransformResult(String text, OutputFormat format, long elapsedMs, ResultSource source) {
-        showRun("Transformed", text, format, elapsedMs, null);
+        showRun(I18n.t("TransformOutputPanel.transformed"), text, format, elapsedMs, null);
         resultSource = text != null && text.startsWith("ERROR") ? null : source;
     }
 
     /** Shows an XPath/JSONPath query result. */
     public void showQueryResult(String text, long elapsedMs) {
-        showRun("Query", text, null, elapsedMs, null);
+        showRun(I18n.t("TransformOutputPanel.query"), text, null, elapsedMs, null);
     }
 
     /** Shows an XPath query result with its tabular projection (Table view selected). */
     public void showXPathResult(String text, XQueryTableRunner.XQueryTable table, long elapsedMs) {
-        showRun("Query", text, null, elapsedMs, table);
+        showRun(I18n.t("TransformOutputPanel.query"), text, null, elapsedMs, table);
     }
 
     /** Shows an XQuery result, with its tabular projection when available. */
     public void showXQueryResult(String text, XQueryTableRunner.XQueryTable table,
                                  OutputFormat format, long elapsedMs) {
-        showRun("XQuery", text, format, elapsedMs, table);
+        showRun(I18n.t("TransformOutputPanel.xquery"), text, format, elapsedMs, table);
     }
 
     /**
@@ -276,7 +276,7 @@ public class TransformOutputPanel extends VBox {
     private void showFailure(String message, boolean reportError) {
         showError(message);
         org.fxt.freexmltoolkit.util.DialogHelper.notifyActionFailure(
-                "Transform failed", PanelStatus.strip(message), reportError);
+                I18n.t("TransformOutputPanel.transform-failed"), PanelStatus.strip(message), reportError);
     }
 
     /**
@@ -444,7 +444,7 @@ public class TransformOutputPanel extends VBox {
         if (result == null || result.startsWith("ERROR")) {
             return "error";
         }
-        return elapsedMs + " ms · " + result.length() + " chars";
+        return I18n.t("TransformOutputPanel.stats", String.valueOf(elapsedMs), String.valueOf(result.length()));
     }
 
     // ----- header actions ---------------------------------------------------
@@ -454,9 +454,10 @@ public class TransformOutputPanel extends VBox {
     public void openResultInEditor() {
         String result = resultText();
         if (result == null || result.isBlank() || result.startsWith("ERROR")
-                || "Transforming…".equals(result) || "Running…".equals(result)) {
+                || I18n.t("TransformPanel.transforming").equals(result) || I18n.t("EditorHost.transforming").equals(result)
+                || I18n.t("QueryConsole.running").equals(result)) {
             setOutputText(result != null && result.startsWith("ERROR") ? result
-                    : "Run a transform or query first.", OutputFormat.TEXT);
+                    : I18n.t("TransformOutputPanel.run-first"), OutputFormat.TEXT);
             return;
         }
         EditorFileType type = switch (lastResultFormat) {
@@ -485,9 +486,10 @@ public class TransformOutputPanel extends VBox {
             try {
                 File file = writeHtmlPreview(html);
                 org.fxt.freexmltoolkit.util.DesktopActions.browse(file.toURI(),
-                        e -> statusLabel.setText("browser: " + e.getMessage()));
+                        e -> statusLabel.setText(I18n.t("TransformOutputPanel.browser-error", e.getMessage())));
             } catch (Exception e) {
-                javafx.application.Platform.runLater(() -> statusLabel.setText("browser: " + e.getMessage()));
+                javafx.application.Platform.runLater(() -> statusLabel.setText(
+                        I18n.t("TransformOutputPanel.browser-error", e.getMessage())));
             }
         });
     }
@@ -519,7 +521,7 @@ public class TransformOutputPanel extends VBox {
                     StandardCharsets.UTF_8);
             return true;
         } catch (Exception e) {
-            statusLabel.setText("save: " + e.getMessage());
+            statusLabel.setText(I18n.t("TransformOutputPanel.save-error", e.getMessage()));
             return false;
         }
     }

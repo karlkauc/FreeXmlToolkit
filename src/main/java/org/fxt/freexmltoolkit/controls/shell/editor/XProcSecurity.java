@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
@@ -133,10 +134,7 @@ public final class XProcSecurity {
 
     /** @return the message for a refused pipeline */
     static String refusal(List<String> steps) {
-        return "This pipeline uses " + String.join(", ", steps) + ", which " + (steps.size() == 1 ? "is" : "are")
-                + " not allowed: XProc pipelines may not run programs, run computed pipelines or send HTTP "
-                + "requests. Allow it under Settings > Network & Security > \"Run XProc pipelines without "
-                + "restrictions\" only for pipelines you trust.";
+        return I18n.t(steps.size() == 1 ? "XProcSecurity.refusal-one" : "XProcSecurity.refusal", String.join(", ", steps));
     }
 
     /**
@@ -170,9 +168,7 @@ public final class XProcSecurity {
     static String explain(String message) {
         if (message != null && (message.contains("127.0.0.1:1") || message.contains("Connection refused")
                 || message.contains("access denied"))) {
-            return "The pipeline tried to access the network, which XProc pipelines may not do. Allow it under "
-                    + "Settings > Network & Security > \"Run XProc pipelines without restrictions\" only for pipelines "
-                    + "you trust. (" + message + ")";
+            return I18n.t("XProcSecurity.network", message);
         }
         return message;
     }

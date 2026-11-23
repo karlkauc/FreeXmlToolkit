@@ -115,9 +115,9 @@ public class FavoritesActivityPanel extends VBox {
         MenuItem rename = new MenuItem(I18n.t("FavoritesActivityPanel.rename"), SemanticIcon.paint(icon("bi-pencil"), ActionColor.MODIFY));
         rename.setOnAction(e -> selectedFavorite().ifPresent(f -> {
             TextInputDialog dialog = DialogHelper.createTextInputDialog(displayName(f));
-            dialog.setTitle("Rename Favorite");
+            dialog.setTitle(I18n.t("FavoritesActivityPanel.rename-favorite"));
             dialog.setHeaderText(dialog.getTitle());
-            dialog.setContentText("New name:");
+            dialog.setContentText(I18n.t("FavoritesActivityPanel.new-name"));
             dialog.showAndWait().map(String::strip).filter(s -> !s.isEmpty())
                     .ifPresent(newName -> renameFavorite(f, newName));
         }));
@@ -168,7 +168,7 @@ public class FavoritesActivityPanel extends VBox {
     /** Opens (or focuses) the full management view in the editor area. */
     @FXML
     public void openManager() {
-        editorHost.openOrFocusToolTab("Favorites", "bi-star",
+        editorHost.openOrFocusToolTab(I18n.t("FavoritesActivityPanel.favorites"), "bi-star",
                 () -> new FavoritesManagerView(editorHost));
     }
 
@@ -225,9 +225,9 @@ public class FavoritesActivityPanel extends VBox {
         MenuItem newFolder = new MenuItem(I18n.t("FavoritesActivityPanel.new-folder"), SemanticIcon.paint(icon("bi-folder-plus"), ActionColor.CREATE));
         newFolder.setOnAction(e -> selectedFavorite().ifPresent(f -> {
             TextInputDialog dialog = DialogHelper.createTextInputDialog("");
-            dialog.setTitle("New Folder");
+            dialog.setTitle(I18n.t("FavoritesActivityPanel.new-folder-title"));
             dialog.setHeaderText(dialog.getTitle());
-            dialog.setContentText("Folder name:");
+            dialog.setContentText(I18n.t("FavoritesActivityPanel.folder-name"));
             dialog.showAndWait().map(String::strip).filter(s -> !s.isEmpty())
                     .ifPresent(name -> moveToFolder(f, name));
         }));
@@ -289,7 +289,7 @@ public class FavoritesActivityPanel extends VBox {
                 group.forEach(f -> next.add(Row.of(f)));
             });
             if (!uncategorized.isEmpty()) {
-                next.add(Row.folderHeader("Uncategorized"));
+                next.add(Row.folderHeader(I18n.t("FavoritesActivityPanel.uncategorized")));
                 uncategorized.forEach(f -> next.add(Row.of(f)));
             }
         } else {

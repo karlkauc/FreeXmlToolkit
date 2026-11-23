@@ -1091,8 +1091,8 @@ public class SettingsPanel extends VBox {
             FolderUsage temp = tempFolderUsage();
             FolderUsage cache = usageOf(cacheFolder(), true);
             javafx.application.Platform.runLater(() -> {
-                clearTempButton.setText(clearLabel("Clear Temp Folder", temp));
-                clearCacheButton.setText(clearLabel("Clear Cache Folder", cache));
+                clearTempButton.setText(clearLabel(I18n.t("SettingsPanel.clearTempButton.text"), temp));
+                clearCacheButton.setText(clearLabel(I18n.t("SettingsPanel.clearCacheButton.text"), cache));
             });
         });
     }
@@ -1100,10 +1100,10 @@ public class SettingsPanel extends VBox {
     /** @return the button text with the space in use, e.g. "Clear Cache Folder · 12.3 MB (45 files)" */
     static String clearLabel(String action, FolderUsage usage) {
         if (usage.files() == 0) {
-            return action + " \u00b7 empty";
+            return I18n.t("SettingsPanel.clear-label-empty", action);
         }
-        return action + " \u00b7 " + formatSize(usage.bytes()) + " (" + usage.files()
-                + (usage.files() == 1 ? " file)" : " files)");
+        return I18n.t(usage.files() == 1 ? "SettingsPanel.clear-label-one" : "SettingsPanel.clear-label",
+                action, formatSize(usage.bytes()), String.valueOf(usage.files()));
     }
 
     /** @return {@code bytes} as B, KB, MB or GB with one decimal */
@@ -1186,8 +1186,8 @@ public class SettingsPanel extends VBox {
             var result = org.fxt.freexmltoolkit.service.LogCleanupService.clean(dir, maxAge, maxSize);
             javafx.application.Platform.runLater(() -> {
                 cleanLogsButton.setDisable(false);
-                refreshLogStatus("Deleted " + result.files() + " file(s), "
-                        + formatMegabytes(result.bytes()) + " freed. ");
+                refreshLogStatus(I18n.t("SettingsPanel.logs-deleted", String.valueOf(result.files()),
+                        formatMegabytes(result.bytes())) + " ");
             });
         });
     }
@@ -1205,7 +1205,8 @@ public class SettingsPanel extends VBox {
         for (var info : manager.plugins()) {
             String title = info.name() + (info.version() == null || info.version().isBlank() ? "" : " " + info.version())
                     + (info.origin() == org.fxt.freexmltoolkit.plugin.PluginManager.Origin.EXTERNAL
-                            ? " (" + (info.jar() != null ? info.jar().getFileName() : "external") + ")" : " (built-in)");
+                            ? " (" + (info.jar() != null ? info.jar().getFileName() : I18n.t("SettingsPanel.plugin-external")) + ")"
+                            : " (" + I18n.t("SettingsPanel.plugin-built-in") + ")");
             boolean fundsXml = org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlPlugin.ID.equals(info.id());
             boolean pk = org.fxt.freexmltoolkit.plugins.pkmeldewesen.PkMeldewesenPlugin.ID.equals(info.id());
             CheckBox box = fundsXml ? fundsXmlEnabled : pk ? pkEnabled : new CheckBox();
@@ -1213,7 +1214,7 @@ public class SettingsPanel extends VBox {
             box.setId("settings-plugin-" + info.id());
             box.setSelected(info.state() != org.fxt.freexmltoolkit.plugin.PluginManager.State.DISABLED);
             String detail = info.state() == org.fxt.freexmltoolkit.plugin.PluginManager.State.FAILED
-                    ? "Failed: " + info.error() : info.description();
+                    ? I18n.t("SettingsPanel.plugin-failed", info.error()) : info.description();
             if (info.state() == org.fxt.freexmltoolkit.plugin.PluginManager.State.FAILED) {
                 box.setSelected(false);
                 box.setDisable(true);
@@ -1272,8 +1273,8 @@ public class SettingsPanel extends VBox {
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             var usage = org.fxt.freexmltoolkit.service.LogCleanupService.usage(dir);
             javafx.application.Platform.runLater(() -> logStatus.setText((prefix != null ? prefix : "")
-                    + "Log folder: " + dir + " (" + usage.files() + " file(s), "
-                    + formatMegabytes(usage.bytes()) + ")"));
+                    + I18n.t("SettingsPanel.log-folder", String.valueOf(dir), String.valueOf(usage.files()),
+                            formatMegabytes(usage.bytes()))));
         });
     }
 
@@ -1289,9 +1290,9 @@ public class SettingsPanel extends VBox {
     static {
         var labels = new java.util.EnumMap<org.fxt.freexmltoolkit.service.ProxySettings.Mode, String>(
                 org.fxt.freexmltoolkit.service.ProxySettings.Mode.class);
-        labels.put(org.fxt.freexmltoolkit.service.ProxySettings.Mode.SYSTEM, "System proxy (automatic)");
-        labels.put(org.fxt.freexmltoolkit.service.ProxySettings.Mode.MANUAL, "Manual proxy");
-        labels.put(org.fxt.freexmltoolkit.service.ProxySettings.Mode.NONE, "No proxy (direct connection)");
+        labels.put(org.fxt.freexmltoolkit.service.ProxySettings.Mode.SYSTEM, I18n.t("SettingsPanel.proxy-system"));
+        labels.put(org.fxt.freexmltoolkit.service.ProxySettings.Mode.MANUAL, I18n.t("SettingsPanel.proxy-manual"));
+        labels.put(org.fxt.freexmltoolkit.service.ProxySettings.Mode.NONE, I18n.t("SettingsPanel.proxy-none"));
         PROXY_MODE_LABELS = java.util.Collections.unmodifiableMap(labels);
     }
 
@@ -1501,14 +1502,15 @@ public class SettingsPanel extends VBox {
     static String describeTest(org.fxt.freexmltoolkit.domain.ConnectionResult result) {
         int status = result.httpStatus();
         if (status == 0) {
-            String why = result.resultBody() == null || result.resultBody().isBlank() ? "no answer" : result.resultBody();
-            return "Failed: " + why;
+            String why = result.resultBody() == null || result.resultBody().isBlank()
+                    ? I18n.t("SettingsPanel.test-no-answer") : result.resultBody();
+            return I18n.t("SettingsPanel.test-failed", why);
         }
         if (status == 407) {
-            return "Failed: the proxy asks for authentication (HTTP 407) — check user, password and domain.";
+            return I18n.t("SettingsPanel.test-407");
         }
-        String verdict = status < 400 ? "Connected" : "Reached the server, but it answered";
-        return verdict + ": HTTP " + status + " in " + result.duration() + " ms";
+        return I18n.t(status < 400 ? "SettingsPanel.test-connected" : "SettingsPanel.test-answered",
+                String.valueOf(status), String.valueOf(result.duration()));
     }
 
     @FXML
@@ -2106,7 +2108,7 @@ public class SettingsPanel extends VBox {
             // persistence unavailable — the action itself still works
         }
         setAssociationControlsDisabled(true);
-        assocStatus.setText(register ? "Registering…" : "Unregistering…");
+        assocStatus.setText(register ? I18n.t("SettingsPanel.registering") : I18n.t("SettingsPanel.unregistering"));
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             FileAssociationResult result = register ? svc.register(types) : svc.unregister(types);
             javafx.application.Platform.runLater(() -> {
@@ -2148,16 +2150,16 @@ public class SettingsPanel extends VBox {
             }
             StringBuilder summary = new StringBuilder();
             if (!asDefault.isEmpty()) {
-                summary.append("Default for: ").append(String.join(", ", asDefault));
+                summary.append(I18n.t("SettingsPanel.assoc-default", String.join(", ", asDefault)));
             }
             if (!registered.isEmpty()) {
                 if (!summary.isEmpty()) {
                     summary.append(" — ");
                 }
-                summary.append("Registered: ").append(String.join(", ", registered));
+                summary.append(I18n.t("SettingsPanel.assoc-registered", String.join(", ", registered)));
             }
             if (summary.isEmpty()) {
-                summary.append("Not registered.");
+                summary.append(I18n.t("SettingsPanel.assoc-none"));
             }
             String text = summary.toString();
             javafx.application.Platform.runLater(() -> assocStatus.setText(text));
@@ -2294,15 +2296,14 @@ public class SettingsPanel extends VBox {
     private void refreshMemoryStatus() {
         long currentMb = Runtime.getRuntime().maxMemory() / (1024 * 1024);
         long physicalMb = org.fxt.freexmltoolkit.app.MemoryLimit.physicalMemoryMb();
-        StringBuilder text = new StringBuilder("Current limit: ").append(formatMb(currentMb));
-        if (physicalMb > 0) {
-            text.append(" of ").append(formatMb(physicalMb)).append(" installed");
-        }
+        StringBuilder text = new StringBuilder(physicalMb > 0
+                ? I18n.t("SettingsPanel.memory-current-of", formatMb(currentMb), formatMb(physicalMb))
+                : I18n.t("SettingsPanel.memory-current", formatMb(currentMb)));
         long chosen = memoryValue(maxMemory.getValue());
         if (chosen > 0 && Math.abs(currentMb - chosen) > chosen / 10) {
-            text.append(System.getProperty("jpackage.app-path") != null
-                    ? ". Restart to apply " + memoryLabel(chosen) + "."
-                    : ". Applies to the installed application only (development run).");
+            text.append(". ").append(System.getProperty("jpackage.app-path") != null
+                    ? I18n.t("SettingsPanel.memory-restart", memoryLabel(chosen))
+                    : I18n.t("SettingsPanel.memory-dev-run"));
         }
         memoryStatus.setText(text.toString());
     }

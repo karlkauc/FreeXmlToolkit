@@ -114,8 +114,8 @@ public final class ValueViewerWindow extends Stage {
         ThemeManager.addThemeChangeListener(themeListener);
         setOnHidden(e -> ThemeManager.removeThemeChangeListener(themeListener));
 
-        setUpArea(valueArea, valueBox, "Loading…");
-        setUpArea(resultArea, resultBox, "Run an XPath to see its result here.");
+        setUpArea(valueArea, valueBox, I18n.t("ValueViewerWindow.loading"));
+        setUpArea(resultArea, resultBox, I18n.t("ValueViewerWindow.run-an-xpath-to-see"));
         fillHeader();
 
         boolean canQuery = evaluator != null && source.snapshot() != null;
@@ -159,8 +159,9 @@ public final class ValueViewerWindow extends Stage {
         if (source.location() != null) {
             pauseLabel.setText(source.location());
         } else if (snap != null) {
-            String where = snap.hasFile() ? SourceLocations.fileName(snap.systemId()) + ":" : "line ";
-            pauseLabel.setText(I18n.t("ValueViewerWindow.paused-at", where, snap.lineNumber()));
+            pauseLabel.setText(snap.hasFile()
+                    ? I18n.t("ValueViewerWindow.paused-at", SourceLocations.fileName(snap.systemId()) + ":", snap.lineNumber())
+                    : I18n.t("ValueViewerWindow.paused-at-line", snap.lineNumber()));
         }
     }
 
@@ -192,8 +193,8 @@ public final class ValueViewerWindow extends Stage {
         highlight(valueArea, text);
         valueArea.moveTo(0);
         valueArea.requestFollowCaret();
-        String chars = String.format(Locale.ROOT, "%,d chars", text.length());
-        sizeLabel.setText(items > 1 ? items + " items  ·  " + chars : chars);
+        String chars = I18n.t("ValueViewerWindow.chars", String.format(Locale.ROOT, "%,d", text.length()));
+        sizeLabel.setText(items > 1 ? I18n.t("ValueViewerWindow.items-and-chars", String.valueOf(items), chars) : chars);
     }
 
     private static void highlight(CodeArea area, String text) {
@@ -248,10 +249,12 @@ public final class ValueViewerWindow extends Stage {
                 long ms = (System.nanoTime() - start) / 1_000_000;
                 text = evaluator.serialize(result, pretty);
                 int n = result.size();
-                status = n + (n == 1 ? " item" : " items") + "  ·  " + ms + " ms";
+                status = I18n.t(n == 1 ? "ValueViewerWindow.item-ms" : "ValueViewerWindow.items-ms",
+                        String.valueOf(n), String.valueOf(ms));
             } catch (SaxonApiException | RuntimeException e) {
-                text = "ERROR: " + (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage());
-                status = "XPath error";
+                text = I18n.t("ValueViewerWindow.error-text",
+                        e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage());
+                status = I18n.t("ValueViewerWindow.xpath-error");
                 error = true;
             }
             final String shown = text;

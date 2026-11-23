@@ -9,6 +9,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Window;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
@@ -62,10 +63,11 @@ interface ExternalChangePrompt {
                 .map(file -> file.getFileName().toString())
                 .collect(Collectors.joining(", "));
         if (files.size() > shown) {
-            names += " and " + (files.size() - shown) + " more";
+            names = I18n.t("ExternalChangePrompt.names-and-more", names, files.size() - shown);
         }
-        return names + ", used by " + document.getDisplayName() + ", "
-                + (files.size() == 1 ? "was" : "were") + " changed on disk.";
+        return files.size() == 1
+                ? I18n.t("ExternalChangePrompt.used-by-was-changed", names, document.getDisplayName())
+                : I18n.t("ExternalChangePrompt.used-by-were-changed", names, document.getDisplayName());
     }
 
     /**
@@ -77,13 +79,12 @@ interface ExternalChangePrompt {
         return new ExternalChangePrompt() {
             @Override
             public ChangedChoice fileChanged(OpenDocument document, boolean dirty) {
-                ButtonType reload = new ButtonType("Reload", ButtonBar.ButtonData.YES);
-                ButtonType ignore = new ButtonType("Ignore", ButtonBar.ButtonData.CANCEL_CLOSE);
-                Alert alert = alert(owner.get(), "File Changed on Disk",
-                        document.getDisplayName() + " was changed by another program.",
-                        dirty ? "Do you want to reload it from disk? "
-                                + "Your unsaved changes will be lost if you reload."
-                                : "Do you want to reload it from disk?",
+                ButtonType reload = new ButtonType(I18n.t("ExternalChangePrompt.reload"), ButtonBar.ButtonData.YES);
+                ButtonType ignore = new ButtonType(I18n.t("ExternalChangePrompt.ignore"), ButtonBar.ButtonData.CANCEL_CLOSE);
+                Alert alert = alert(owner.get(), I18n.t("ExternalChangePrompt.file-changed-on-disk"),
+                        I18n.t("ExternalChangePrompt.was-changed-by-another-program", document.getDisplayName()),
+                        dirty ? I18n.t("ExternalChangePrompt.reload-unsaved-lost")
+                                : I18n.t("ExternalChangePrompt.do-you-want-to-reload"),
                         reload, ignore);
                 return alert.showAndWait().filter(reload::equals).isPresent()
                         ? ChangedChoice.RELOAD : ChangedChoice.IGNORE;
@@ -91,12 +92,12 @@ interface ExternalChangePrompt {
 
             @Override
             public DeletedChoice fileDeleted(OpenDocument document, boolean dirty) {
-                ButtonType keep = new ButtonType("Keep", ButtonBar.ButtonData.CANCEL_CLOSE);
-                ButtonType close = new ButtonType("Close", ButtonBar.ButtonData.NO);
-                Alert alert = alert(owner.get(), "File Deleted on Disk",
-                        document.getDisplayName() + " no longer exists on disk.",
-                        "Keep it open in the editor (saving recreates the file) or close the tab?"
-                                + (dirty ? " Closing discards your unsaved changes." : ""),
+                ButtonType keep = new ButtonType(I18n.t("ExternalChangePrompt.keep"), ButtonBar.ButtonData.CANCEL_CLOSE);
+                ButtonType close = new ButtonType(I18n.t("ExternalChangePrompt.close"), ButtonBar.ButtonData.NO);
+                Alert alert = alert(owner.get(), I18n.t("ExternalChangePrompt.file-deleted-on-disk"),
+                        I18n.t("ExternalChangePrompt.no-longer-exists-on-disk", document.getDisplayName()),
+                        dirty ? I18n.t("ExternalChangePrompt.keep-or-close-unsaved")
+                                : I18n.t("ExternalChangePrompt.keep-or-close"),
                         keep, close);
                 return alert.showAndWait().filter(close::equals).isPresent()
                         ? DeletedChoice.CLOSE : DeletedChoice.KEEP;
@@ -104,12 +105,11 @@ interface ExternalChangePrompt {
 
             @Override
             public ChangedChoice dependencyChanged(OpenDocument document, List<Path> files) {
-                ButtonType reload = new ButtonType("Reload", ButtonBar.ButtonData.YES);
-                ButtonType ignore = new ButtonType("Ignore", ButtonBar.ButtonData.CANCEL_CLOSE);
-                Alert alert = alert(owner.get(), "Schema Files Changed on Disk",
+                ButtonType reload = new ButtonType(I18n.t("ExternalChangePrompt.reload"), ButtonBar.ButtonData.YES);
+                ButtonType ignore = new ButtonType(I18n.t("ExternalChangePrompt.ignore"), ButtonBar.ButtonData.CANCEL_CLOSE);
+                Alert alert = alert(owner.get(), I18n.t("ExternalChangePrompt.schema-files-changed-on-disk"),
                         dependencySummary(document, files),
-                        "Do you want to reload the schema? Your text stays as it is, "
-                                + "but the undo history of diagram edits is cleared.",
+                        I18n.t("ExternalChangePrompt.do-you-want-to-reload-schema"),
                         reload, ignore);
                 return alert.showAndWait().filter(reload::equals).isPresent()
                         ? ChangedChoice.RELOAD : ChangedChoice.IGNORE;

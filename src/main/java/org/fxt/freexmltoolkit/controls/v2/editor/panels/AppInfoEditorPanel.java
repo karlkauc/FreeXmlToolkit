@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import java.util.Objects;
 import java.util.Set;
 
@@ -331,10 +332,10 @@ public class AppInfoEditorPanel extends VBox {
     private void handleAddSeeReference() {
         // Show dialog with autocomplete
         TextInputDialog dialog = DialogHelper.createTextInputDialog("");
-        dialog.setTitle("Add @see Reference");
-        dialog.setHeaderText("Enter a reference");
-        dialog.setContentText("Reference:");
-        dialog.getEditor().setPromptText("e.g., {@link /Root/Element} or plain text");
+        dialog.setTitle(I18n.t("AppInfoEditorPanel.add-see-reference-title"));
+        dialog.setHeaderText(I18n.t("AppInfoEditorPanel.enter-a-reference"));
+        dialog.setContentText(I18n.t("AppInfoEditorPanel.reference-label"));
+        dialog.getEditor().setPromptText(I18n.t("AppInfoEditorPanel.reference-prompt"));
 
         // Add autocomplete to the dialog's text field
         TextField dialogField = dialog.getEditor();

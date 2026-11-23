@@ -322,7 +322,7 @@ public final class SchemaOverviewView extends VBox {
         String value = targetNamespaceField.getText() == null ? "" : targetNamespaceField.getText().trim();
         String current = schema.getTargetNamespace() == null ? "" : schema.getTargetNamespace();
         if (!value.equals(current)) {
-            run("Target Namespace", null, new ChangeSchemaPropertyCommand(context, schema,
+            run(I18n.t("SchemaOverviewView.target-namespace-title"), null, new ChangeSchemaPropertyCommand(context, schema,
                     ChangeSchemaPropertyCommand.Property.TARGET_NAMESPACE, value));
         }
     }
@@ -345,7 +345,7 @@ public final class SchemaOverviewView extends VBox {
         String current = property == ChangeSchemaPropertyCommand.Property.ELEMENT_FORM_DEFAULT
                 ? schema.getElementFormDefault() : schema.getAttributeFormDefault();
         if (!combo.getValue().equals(current == null ? "unqualified" : current)) {
-            run("Form Default", null, new ChangeSchemaPropertyCommand(context, schema, property, combo.getValue()));
+            run(I18n.t("SchemaOverviewView.form-default"), null, new ChangeSchemaPropertyCommand(context, schema, property, combo.getValue()));
         }
     }
 
@@ -411,7 +411,7 @@ public final class SchemaOverviewView extends VBox {
         }
         String name = kind.isNamed() ? SchemaLayoutRules.uniqueName(schema, kind, kind.defaultName()) : null;
         AddGlobalComponentCommand command = new AddGlobalComponentCommand(schema, kind, name, index);
-        if (run("Add " + kind.label(), SchemaLayoutRules.addComponent(schema, kind, name), command)
+        if (run(I18n.t("SchemaOverviewView.add-kind", kind.label()), SchemaLayoutRules.addComponent(schema, kind, name), command)
                 && command.getAdded() != null) {
             selectAndEditName(command.getAdded());
             return command.getAdded();
@@ -427,7 +427,7 @@ public final class SchemaOverviewView extends VBox {
         SchemaReferenceDialog.ask(window(), kind, host.documentPath()).ifPresent(answer -> {
             AddSchemaReferenceCommand command = new AddSchemaReferenceCommand(context, schema, kind,
                     answer.namespace(), answer.location());
-            if (run("Add xs:" + kind.name().toLowerCase(Locale.ROOT), null, command) && command.getCreated() != null) {
+            if (run(I18n.t("SchemaOverviewView.add-kind", "xs:" + kind.name().toLowerCase(Locale.ROOT)), null, command) && command.getCreated() != null) {
                 select(command.getCreated());
                 host.selectionChanged(command.getCreated());
             }
@@ -498,14 +498,16 @@ public final class SchemaOverviewView extends VBox {
                 usages += RenameGlobalComponentCommand.countReferences(node);
             }
         }
-        if (usages > 0 && !EditRuleDialogs.confirm(window(), "Delete",
-                "The selection is still referenced",
-                usages + " reference" + (usages == 1 ? "" : "s") + " in this schema will point to nothing. "
-                        + "Delete anyway?", "Delete")) {
+        if (usages > 0 && !EditRuleDialogs.confirm(window(), I18n.t("SchemaOverviewView.delete"),
+                I18n.t("SchemaOverviewView.the-selection-is-still-referenced"),
+                I18n.t(usages == 1 ? "SchemaOverviewView.reference-will-point-to-nothing"
+                        : "SchemaOverviewView.references-will-point-to-nothing", usages),
+                I18n.t("SchemaOverviewView.delete"))) {
             return;
         }
-        String description = nodes.size() == 1 ? "Delete " + OverviewRows.kind(nodes.getFirst()) + " '"
-                + OverviewRows.name(nodes.getFirst()) + "'" : "Delete " + nodes.size() + " components";
+        String description = nodes.size() == 1
+                ? I18n.t("SchemaOverviewView.delete-kind-name", OverviewRows.kind(nodes.getFirst()), OverviewRows.name(nodes.getFirst()))
+                : I18n.t("SchemaOverviewView.delete-components", nodes.size());
         int index = componentTable.getSelectionModel().getSelectedIndex();
         if (run(description, null, new DeleteNodesCommand(nodes, description)) && !rows.isEmpty()) {
             componentTable.getSelectionModel().select(Math.min(Math.max(index, 0), rows.size() - 1));
@@ -574,7 +576,8 @@ public final class SchemaOverviewView extends VBox {
     private static String detailsText(XsdNode node) {
         String origin = OverviewRows.origin(node);
         String details = OverviewRows.details(node);
-        return origin == null ? details : details.isEmpty() ? "from " + origin : details + " · from " + origin;
+        return origin == null ? details : details.isEmpty() ? I18n.t("SchemaOverviewView.from-origin", origin)
+                : details + " · " + I18n.t("SchemaOverviewView.from-origin", origin);
     }
 
     private TableRow<XsdNode> createRow() {
@@ -727,15 +730,15 @@ public final class SchemaOverviewView extends VBox {
             update = answer.get();
         }
         RenameGlobalComponentCommand command = new RenameGlobalComponentCommand(node, newName, update);
-        run("Rename", command.check(), command);
+        run(I18n.t("SchemaOverviewView.rename-2"), command.check(), command);
     }
 
     private Optional<Boolean> askUpdateReferences(XsdNode node, int references) {
         if (referenceUpdateResponder != null) {
             return referenceUpdateResponder.apply(node, references);
         }
-        ButtonType update = new ButtonType("Rename and Update", ButtonBar.ButtonData.YES);
-        ButtonType only = new ButtonType("Rename Only", ButtonBar.ButtonData.NO);
+        ButtonType update = new ButtonType(I18n.t("SchemaOverviewView.rename-and-update"), ButtonBar.ButtonData.YES);
+        ButtonType only = new ButtonType(I18n.t("SchemaOverviewView.rename-only"), ButtonBar.ButtonData.NO);
         Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createAlert(Alert.AlertType.CONFIRMATION);
         alert.getButtonTypes().setAll(update, only, ButtonType.CANCEL);
         alert.setTitle(I18n.t("SchemaOverviewView.rename-2"));
@@ -764,7 +767,7 @@ public final class SchemaOverviewView extends VBox {
             updated.add(new XsdDocumentation(text.strip(), first != null ? first.getLang() : null,
                     first != null ? first.getSource() : null));
         }
-        run("Annotation", null, new ChangeDocumentationsCommand(context, node, updated));
+        run(I18n.t("SchemaOverviewView.annotation"), null, new ChangeDocumentationsCommand(context, node, updated));
     }
 
     // ------------------------------------------------------------------ detail tabs

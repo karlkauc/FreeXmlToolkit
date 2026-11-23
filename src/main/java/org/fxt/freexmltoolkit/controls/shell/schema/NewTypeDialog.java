@@ -128,8 +128,8 @@ public class NewTypeDialog extends Dialog<NewTypeDialog.NewType> {
 
     private void updateHint() {
         hintLabel.setText(selectedKind() == Kind.COMPLEX
-                ? "Starts with an empty sequence: add child elements and attributes in the type editor."
-                : "Starts as a restriction of xs:string: set the base type and facets in the type editor.");
+                ? I18n.t("NewTypeDialog.starts-with-an-empty-sequence")
+                : I18n.t("NewTypeDialog.starts-as-a-restriction-of-xs-string"));
     }
 
     private String suggestion(Kind kind) {

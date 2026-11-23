@@ -88,12 +88,14 @@ public class BreakpointsView extends VBox {
                 if (unreached) {
                     text.getStyleClass().add("fxt-bp-unreached");
                 }
-                text.setText((unreached ? "⚠ " : "") + "line " + bp.lineNumber()
-                        + (bp.hasCondition() ? "   if  " + bp.condition() : "")
+                text.setText((unreached ? "⚠ " : "") + I18n.t("BreakpointsView.row-line", String.valueOf(bp.lineNumber()))
+                        + (bp.hasCondition() ? "   " + I18n.t("BreakpointsView.row-if", bp.condition()) : "")
                         + (bp.hit().isSet() ? "   ·  " + bp.hit().describe() : "")
-                        + (bp.isLogpoint() ? "   ·  log \"" + bp.logMessage() + "\"" + (bp.suspend() ? "" : " (no pause)") : "")
-                        + (hits > 0 ? "   ·  " + hits + (hits == 1 ? " hit" : " hits") : "")
-                        + (unreached ? "   ·  not reached in the last run" : ""));
+                        + (bp.isLogpoint() ? "   ·  " + I18n.t(bp.suspend() ? "BreakpointsView.row-log"
+                                : "BreakpointsView.row-log-no-pause", bp.logMessage()) : "")
+                        + (hits > 0 ? "   ·  " + I18n.t(hits == 1 ? "BreakpointsView.row-hit" : "BreakpointsView.row-hits",
+                                String.valueOf(hits)) : "")
+                        + (unreached ? "   ·  " + I18n.t("BreakpointsView.row-not-reached") : ""));
                 setTooltip(unreached ? new javafx.scene.control.Tooltip(
                         I18n.t("BreakpointsView.the-last-run-never-reached")) : null);
                 setGraphic(box);
@@ -117,14 +119,14 @@ public class BreakpointsView extends VBox {
             }
         });
 
-        Button remove = DebugToolbar.action("Remove", "bi-dash-lg",
-                "Remove the selected breakpoint (Delete)");
+        Button remove = DebugToolbar.action(I18n.t("BreakpointsView.remove"), "bi-dash-lg",
+                I18n.t("BreakpointsView.remove-the-selected-breakpoint"));
         remove.setOnAction(e -> removeSelected());
-        Button condition = DebugToolbar.action("Edit…", "bi-sliders",
-                "Condition and hit count of the selected breakpoint");
+        Button condition = DebugToolbar.action(I18n.t("BreakpointsView.edit"), "bi-sliders",
+                I18n.t("BreakpointsView.condition-and-hit-count"));
         condition.setOnAction(e -> editSelected());
-        Button clear = DebugToolbar.action("Clear all", "bi-trash",
-                "Remove every breakpoint of the session");
+        Button clear = DebugToolbar.action(I18n.t("BreakpointsView.clear-all"), "bi-trash",
+                I18n.t("BreakpointsView.remove-every-breakpoint"));
         clear.setOnAction(e -> {
             session.clearBreakpoints();
             refresh();
@@ -132,8 +134,8 @@ public class BreakpointsView extends VBox {
         });
 
         javafx.scene.control.MenuButton breakOn = breakOnMenu();
-        Button symbol = DebugToolbar.action("Template…", "bi-braces-asterisk",
-                "Pause whenever a template rule, named template, function or mode is entered — at any line");
+        Button symbol = DebugToolbar.action(I18n.t("BreakpointsView.template"), "bi-braces-asterisk",
+                I18n.t("BreakpointsView.pause-whenever-a-template"));
         symbol.setOnAction(e -> addSymbolBreakpoint());
         HBox toolbar = new HBox(remove, condition, symbol, clear, breakOn);
         toolbar.getStyleClass().add("fxt-debug-toolbar");
@@ -228,9 +230,9 @@ public class BreakpointsView extends VBox {
     /** Asks for the error-code list (current text → new text, empty = all); replaceable for tests. */
     private java.util.function.Function<String, java.util.Optional<String>> errorCodesPrompt = current -> {
         javafx.scene.control.TextInputDialog dialog = org.fxt.freexmltoolkit.util.DialogHelper.createTextInputDialog(current);
-        dialog.setTitle("Break on Error Codes");
-        dialog.setHeaderText("Pause only on these dynamic errors");
-        dialog.setContentText("Error codes (comma-separated, XTDE* for a prefix; empty = every error):");
+        dialog.setTitle(I18n.t("BreakpointsView.break-on-error-codes"));
+        dialog.setHeaderText(I18n.t("BreakpointsView.pause-only-on-these-errors"));
+        dialog.setContentText(I18n.t("BreakpointsView.error-codes-prompt"));
         if (getScene() != null && getScene().getWindow() != null) {
             dialog.initOwner(getScene().getWindow());
         }
@@ -261,7 +263,8 @@ public class BreakpointsView extends VBox {
 
     private void updateErrorCodesText() {
         java.util.List<String> codes = session.getBreakOnErrorCodes();
-        errorCodesItem.setText(codes.isEmpty() ? "Only error codes… (all)" : "Only error codes: " + String.join(", ", codes));
+        errorCodesItem.setText(codes.isEmpty() ? I18n.t("BreakpointsView.only-error-codes-all")
+                : I18n.t("BreakpointsView.only-error-codes", String.join(", ", codes)));
     }
 
     /** The "Only error codes" menu item (tests). */
@@ -275,11 +278,11 @@ public class BreakpointsView extends VBox {
      * {@code xsl:message}. The choices are saved and applied to every session.
      */
     private javafx.scene.control.MenuButton breakOnMenu() {
-        javafx.scene.control.CheckMenuItem errors = breakOnItem("Dynamic errors", BREAK_ON_ERRORS_KEY, true,
+        javafx.scene.control.CheckMenuItem errors = breakOnItem(I18n.t("BreakpointsView.dynamic-errors"), BREAK_ON_ERRORS_KEY, true,
                 session::setBreakOnErrors);
         javafx.scene.control.CheckMenuItem terminate = breakOnItem("xsl:message terminate=\"yes\"",
                 BREAK_ON_TERMINATE_KEY, true, session::setBreakOnTerminate);
-        javafx.scene.control.CheckMenuItem messages = breakOnItem("Every xsl:message", BREAK_ON_MESSAGES_KEY, false,
+        javafx.scene.control.CheckMenuItem messages = breakOnItem(I18n.t("BreakpointsView.every-xsl-message"), BREAK_ON_MESSAGES_KEY, false,
                 session::setBreakOnMessages);
         org.fxt.freexmltoolkit.controls.icons.IconifyIcon icon =
                 new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-exclamation-octagon");
@@ -299,7 +302,7 @@ public class BreakpointsView extends VBox {
         errorCodesItem.setOnAction(e -> editErrorCodes());
         errorCodesItem.disableProperty().bind(errors.selectedProperty().not());
         updateErrorCodesText();
-        javafx.scene.control.MenuButton menu = new javafx.scene.control.MenuButton("Break on", icon,
+        javafx.scene.control.MenuButton menu = new javafx.scene.control.MenuButton(I18n.t("BreakpointsView.break-on"), icon,
                 errors, errorCodesItem, terminate, messages);
         menu.getStyleClass().addAll("fxt-sp-action", "fxt-output-action");
         menu.setTooltip(new javafx.scene.control.Tooltip(
@@ -374,7 +377,7 @@ public class BreakpointsView extends VBox {
     /** @return the file header: the file name and how many breakpoints it has. */
     private String fileHeader(String filePath) {
         long count = list.getItems().stream().filter(b -> b.filePath().equals(filePath)).count();
-        return (filePath.isEmpty() ? "(this stylesheet)" : shortName(filePath)) + "  (" + count + ")";
+        return (filePath.isEmpty() ? I18n.t("BreakpointsView.this-stylesheet-parenthesized") : shortName(filePath)) + "  (" + count + ")";
     }
 
     /** Row menu: per-file enable / disable / remove, and Export / Import of all breakpoints. */
@@ -394,10 +397,10 @@ public class BreakpointsView extends VBox {
         menu.setOnShowing(e -> {
             Breakpoint bp = list.getSelectionModel().getSelectedItem();
             boolean none = bp == null;
-            String file = none ? "" : (bp.filePath().isEmpty() ? "this stylesheet" : shortName(bp.filePath()));
-            enableFile.setText(none ? "Enable All in File" : "Enable All in " + file);
-            disableFile.setText(none ? "Disable All in File" : "Disable All in " + file);
-            removeFile.setText(none ? "Remove All in File" : "Remove All in " + file);
+            String file = none ? "" : (bp.filePath().isEmpty() ? I18n.t("BreakpointsView.this-stylesheet") : shortName(bp.filePath()));
+            enableFile.setText(none ? I18n.t("BreakpointsView.enable-all-in-file") : I18n.t("BreakpointsView.enable-all-in", file));
+            disableFile.setText(none ? I18n.t("BreakpointsView.disable-all-in-file") : I18n.t("BreakpointsView.disable-all-in", file));
+            removeFile.setText(none ? I18n.t("BreakpointsView.remove-all-in-file") : I18n.t("BreakpointsView.remove-all-in", file));
             enableFile.setDisable(none);
             disableFile.setDisable(none);
             removeFile.setDisable(none);
@@ -468,7 +471,7 @@ public class BreakpointsView extends VBox {
     }
 
     private void exportWithChooser() {
-        javafx.stage.FileChooser chooser = breakpointFileChooser("Export Breakpoints");
+        javafx.stage.FileChooser chooser = breakpointFileChooser(I18n.t("BreakpointsView.export-breakpoints-title"));
         chooser.setInitialFileName("breakpoints.txt");
         java.io.File file = chooser.showSaveDialog(getScene() == null ? null : getScene().getWindow());
         if (file == null) {
@@ -484,7 +487,7 @@ public class BreakpointsView extends VBox {
     }
 
     private void importWithChooser() {
-        java.io.File file = breakpointFileChooser("Import Breakpoints")
+        java.io.File file = breakpointFileChooser(I18n.t("BreakpointsView.import-breakpoints-title"))
                 .showOpenDialog(getScene() == null ? null : getScene().getWindow());
         if (file == null) {
             return;
@@ -500,14 +503,14 @@ public class BreakpointsView extends VBox {
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
         chooser.setTitle(title);
         chooser.getExtensionFilters().addAll(
-                new javafx.stage.FileChooser.ExtensionFilter("Breakpoint files (*.txt)", "*.txt"),
-                new javafx.stage.FileChooser.ExtensionFilter("All files", "*.*"));
+                new javafx.stage.FileChooser.ExtensionFilter(I18n.t("BreakpointsView.breakpoint-files"), "*.txt"),
+                new javafx.stage.FileChooser.ExtensionFilter(I18n.t("BreakpointsView.all-files"), "*.*"));
         return chooser;
     }
 
     private void showError(String message) {
         javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
-                javafx.scene.control.Alert.AlertType.ERROR, "Breakpoints", "Breakpoints", message);
+                javafx.scene.control.Alert.AlertType.ERROR, I18n.t("BreakpointsView.title"), I18n.t("BreakpointsView.title"), message);
         if (getScene() != null) {
             alert.initOwner(getScene().getWindow());
         }
@@ -548,7 +551,8 @@ public class BreakpointsView extends VBox {
         if (bp == null) {
             return;
         }
-        String where = (bp.filePath().isEmpty() ? "" : shortName(bp.filePath()) + ", ") + "line " + bp.lineNumber();
+        String line = I18n.t("BreakpointsView.row-line", String.valueOf(bp.lineNumber()));
+        String where = bp.filePath().isEmpty() ? line : shortName(bp.filePath()) + ", " + line;
         propertiesPrompt.ask(getScene() == null ? null : getScene().getWindow(), where,
                         org.fxt.freexmltoolkit.debugger.ui.BreakpointPropertiesDialog.Settings.of(bp),
                         session.getState() == DebugSession.State.IDLE ? -1 : session.hitCount(bp))

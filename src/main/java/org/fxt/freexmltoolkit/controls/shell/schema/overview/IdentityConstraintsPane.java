@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.schema.overview;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -174,8 +176,8 @@ final class IdentityConstraintsPane extends VBox {
         if (name != null && !newName.equals(constraint.getName())) {
             for (XsdIdentityConstraint other : allConstraints()) {
                 if (other != constraint && newName.equals(other.getName())) {
-                    overview.run("Rename Constraint", EditCheck.blocked(
-                            "The schema already has an identity constraint named '" + newName + "'."), null);
+                    overview.run(I18n.t("IdentityConstraintsPane.rename-constraint"), EditCheck.blocked(
+                            I18n.t("IdentityConstraintsPane.constraint-name-exists", newName)), null);
                     constraintTable.refresh();
                     return;
                 }
@@ -187,7 +189,7 @@ final class IdentityConstraintsPane extends VBox {
                 selector != null ? selector : constraint.getSelector() != null ? constraint.getSelector().getXpath() : null,
                 fieldList,
                 refer != null ? refer : constraint instanceof XsdKeyRef keyRef ? keyRef.getRefer() : null);
-        overview.run("Edit Identity Constraint", command.check(), command);
+        overview.run(I18n.t("IdentityConstraintsPane.edit-identity-constraint"), command.check(), command);
     }
 
     @FXML
@@ -213,8 +215,8 @@ final class IdentityConstraintsPane extends VBox {
         if (kind == AddIdentityConstraintCommand.Kind.KEYREF) {
             List<String> targets = referable();
             if (targets.isEmpty()) {
-                overview.run("Add Keyref", EditCheck.blocked(
-                        "A keyref refers to a key or unique constraint. Add one of those first."), null);
+                overview.run(I18n.t("IdentityConstraintsPane.add-keyref"), EditCheck.blocked(
+                        I18n.t("IdentityConstraintsPane.keyref-needs-a-key")), null);
                 return;
             }
             refer = targets.getFirst();
@@ -226,7 +228,7 @@ final class IdentityConstraintsPane extends VBox {
         });
         AddIdentityConstraintCommand command = new AddIdentityConstraintCommand(overview.getContext(), element,
                 kind, name, ".//*", List.of("@id"), refer);
-        if (overview.run("Add Identity Constraint", null, command) && command.getCreated() != null) {
+        if (overview.run(I18n.t("IdentityConstraintsPane.add-identity-constraint"), null, command) && command.getCreated() != null) {
             constraintTable.getSelectionModel().select(command.getCreated());
             constraintTable.edit(constraintTable.getItems().indexOf(command.getCreated()), selectorColumn);
         }
@@ -236,7 +238,7 @@ final class IdentityConstraintsPane extends VBox {
     public void onDelete() {
         XsdIdentityConstraint selected = constraintTable.getSelectionModel().getSelectedItem();
         if (selected != null && editable) {
-            overview.run("Delete Identity Constraint", null, new DeleteNodeCommand(selected));
+            overview.run(I18n.t("IdentityConstraintsPane.delete-identity-constraint"), null, new DeleteNodeCommand(selected));
         }
     }
 

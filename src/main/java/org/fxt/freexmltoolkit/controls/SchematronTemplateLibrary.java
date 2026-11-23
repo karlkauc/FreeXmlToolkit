@@ -62,11 +62,23 @@ public class SchematronTemplateLibrary extends VBox {
         FxmlViews.load(this, "/pages/views/SchematronTemplateLibrary.fxml");
 
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-        categoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
+        categoryColumn.setCellValueFactory(cell ->
+                new javafx.beans.property.ReadOnlyStringWrapper(categoryLabel(cell.getValue().getCategory())));
         descColumn.setCellValueFactory(new PropertyValueFactory<>("description"));
         templatesTable.setItems(filteredTemplates);
 
         // Filter by category (wired after the initial value so it does not count as a user choice)
+        categoryComboBox.setConverter(new javafx.util.StringConverter<>() {
+            @Override
+            public String toString(String category) {
+                return categoryLabel(category);
+            }
+
+            @Override
+            public String fromString(String label) {
+                return label;
+            }
+        });
         categoryComboBox.setValue("All Categories");
         categoryComboBox.setOnAction(e -> filterTemplates());
 
@@ -99,103 +111,103 @@ public class SchematronTemplateLibrary extends VBox {
 
         // Business Rules Templates
         allTemplates.add(new TemplateItem(
-                "Mandatory Field Check",
+                I18n.t("SchematronTemplateLibrary.template-mandatory-field-check"),
                 "Business Rules",
-                "Ensures required fields are present and non-empty",
+                I18n.t("SchematronTemplateLibrary.template-mandatory-field-check-desc"),
                 createMandatoryFieldTemplate()
         ));
 
         allTemplates.add(new TemplateItem(
-                "Conditional Field Check",
+                I18n.t("SchematronTemplateLibrary.template-conditional-field-check"),
                 "Business Rules",
-                "Validates fields based on conditions",
+                I18n.t("SchematronTemplateLibrary.template-conditional-field-check-desc"),
                 createConditionalFieldTemplate()
         ));
 
         allTemplates.add(new TemplateItem(
-                "Enumeration Validation",
+                I18n.t("SchematronTemplateLibrary.template-enumeration-validation"),
                 "Data Validation",
-                "Validates field values against allowed list",
+                I18n.t("SchematronTemplateLibrary.template-enumeration-validation-desc"),
                 createEnumerationTemplate()
         ));
 
         allTemplates.add(new TemplateItem(
-                "Date Range Validation",
+                I18n.t("SchematronTemplateLibrary.template-date-range-validation"),
                 "Data Validation",
-                "Validates dates within acceptable ranges",
+                I18n.t("SchematronTemplateLibrary.template-date-range-validation-desc"),
                 createDateRangeTemplate()
         ));
 
         allTemplates.add(new TemplateItem(
-                "Numeric Range Check",
+                I18n.t("SchematronTemplateLibrary.template-numeric-range-check"),
                 "Data Validation",
-                "Validates numeric values within min/max bounds",
+                I18n.t("SchematronTemplateLibrary.template-numeric-range-check-desc"),
                 createNumericRangeTemplate()
         ));
 
         allTemplates.add(new TemplateItem(
-                "Cross-Reference Validation",
+                I18n.t("SchematronTemplateLibrary.template-cross-reference-validation"),
                 "Cross-References",
-                "Validates references between elements",
+                I18n.t("SchematronTemplateLibrary.template-cross-reference-validation-desc"),
                 createCrossReferenceTemplate()
         ));
 
         allTemplates.add(new TemplateItem(
-                "ID Uniqueness Check",
+                I18n.t("SchematronTemplateLibrary.template-id-uniqueness-check"),
                 "Structure Validation",
-                "Ensures ID attributes are unique",
+                I18n.t("SchematronTemplateLibrary.template-id-uniqueness-check-desc"),
                 createIdUniquenessTemplate()
         ));
 
         allTemplates.add(new TemplateItem(
-                "Element Order Validation",
+                I18n.t("SchematronTemplateLibrary.template-element-order-validation"),
                 "Structure Validation",
-                "Validates correct element ordering",
+                I18n.t("SchematronTemplateLibrary.template-element-order-validation-desc"),
                 createElementOrderTemplate()
         ));
 
         // Financial Templates
         allTemplates.add(new TemplateItem(
-                "Currency Code Validation",
+                I18n.t("SchematronTemplateLibrary.template-currency-code-validation"),
                 "Financial",
-                "Validates ISO currency codes",
+                I18n.t("SchematronTemplateLibrary.template-currency-code-validation-desc"),
                 createCurrencyCodeTemplate()
         ));
 
         allTemplates.add(new TemplateItem(
-                "Amount Precision Check",
+                I18n.t("SchematronTemplateLibrary.template-amount-precision-check"),
                 "Financial",
-                "Validates decimal precision for amounts",
+                I18n.t("SchematronTemplateLibrary.template-amount-precision-check-desc"),
                 createAmountPrecisionTemplate()
         ));
 
         // Healthcare Templates
         allTemplates.add(new TemplateItem(
-                "Patient ID Format",
+                I18n.t("SchematronTemplateLibrary.template-patient-id-format"),
                 "Healthcare",
-                "Validates patient identifier formats",
+                I18n.t("SchematronTemplateLibrary.template-patient-id-format-desc"),
                 createPatientIdTemplate()
         ));
 
         allTemplates.add(new TemplateItem(
-                "Medical Code Validation",
+                I18n.t("SchematronTemplateLibrary.template-medical-code-validation"),
                 "Healthcare",
-                "Validates medical coding systems",
+                I18n.t("SchematronTemplateLibrary.template-medical-code-validation-desc"),
                 createMedicalCodeTemplate()
         ));
 
         // Government Templates
         allTemplates.add(new TemplateItem(
-                "Tax ID Validation",
+                I18n.t("SchematronTemplateLibrary.template-tax-id-validation"),
                 "Government",
-                "Validates tax identification numbers",
+                I18n.t("SchematronTemplateLibrary.template-tax-id-validation-desc"),
                 createTaxIdTemplate()
         ));
 
         allTemplates.add(new TemplateItem(
-                "Legal Entity Validation",
+                I18n.t("SchematronTemplateLibrary.template-legal-entity-validation"),
                 "Government",
-                "Validates legal entity identifiers",
+                I18n.t("SchematronTemplateLibrary.template-legal-entity-validation-desc"),
                 createLegalEntityTemplate()
         ));
 
@@ -266,6 +278,28 @@ public class SchematronTemplateLibrary extends VBox {
                 }
             });
         }
+    }
+
+    /**
+     * The displayed label of a category; the category values themselves stay the English names
+     * the FXML combo box lists (and the filter compares).
+     */
+    static String categoryLabel(String category) {
+        if (category == null) {
+            return "";
+        }
+        return switch (category) {
+            case "All Categories" -> I18n.t("SchematronTemplateLibrary.category-all");
+            case "Business Rules" -> I18n.t("SchematronTemplateLibrary.category-business-rules");
+            case "Data Validation" -> I18n.t("SchematronTemplateLibrary.category-data-validation");
+            case "Structure Validation" -> I18n.t("SchematronTemplateLibrary.category-structure-validation");
+            case "Cross-References" -> I18n.t("SchematronTemplateLibrary.category-cross-references");
+            case "Financial" -> I18n.t("SchematronTemplateLibrary.category-financial");
+            case "Healthcare" -> I18n.t("SchematronTemplateLibrary.category-healthcare");
+            case "Government" -> I18n.t("SchematronTemplateLibrary.category-government");
+            case "Custom" -> I18n.t("SchematronTemplateLibrary.category-custom");
+            default -> category;
+        };
     }
 
     /**
@@ -565,7 +599,7 @@ public class SchematronTemplateLibrary extends VBox {
             setTitle(I18n.t("SchematronTemplateLibrary.customize-template"));
             setHeaderText(I18n.t("SchematronTemplateLibrary.customize", template.getName()));
 
-            ButtonType insertButtonType = new ButtonType("Insert", ButtonBar.ButtonData.OK_DONE);
+            ButtonType insertButtonType = new ButtonType(I18n.t("SchematronTemplateLibrary.insert-button"), ButtonBar.ButtonData.OK_DONE);
             getDialogPane().getButtonTypes().addAll(insertButtonType, ButtonType.CANCEL);
 
             VBox content = new VBox(10);
@@ -580,7 +614,7 @@ public class SchematronTemplateLibrary extends VBox {
             templateArea.setPrefColumnCount(60);
             templateArea.getStyleClass().add("fxt-mono-text");
 
-            Label helpLabel = new Label("Placeholders: {CONTEXT}, {FIELD_NAME}, {CONDITION}, etc.");
+            Label helpLabel = new Label(I18n.t("SchematronTemplateLibrary.placeholders-help"));
             helpLabel.setStyle("-fx-text-fill: #666;");
             helpLabel.getStyleClass().add("fxt-text-sm");
 

@@ -110,7 +110,8 @@ public class FolderCompareView extends VBox {
 
     private static String statusText(Entry entry) {
         return entry.status() == Status.DIFFERENT && entry.xmlDifferences() > 0
-                ? "Different (" + entry.xmlDifferences() + (entry.xmlDifferences() == 1 ? " difference)" : " differences)")
+                ? (entry.xmlDifferences() == 1 ? I18n.t("FolderCompareView.different-one-difference")
+                        : I18n.t("FolderCompareView.different-differences", entry.xmlDifferences()))
                 : entry.status().label();
     }
 
@@ -136,7 +137,7 @@ public class FolderCompareView extends VBox {
 
     @FXML
     public void onChangeLeft() {
-        chooseFolder("Left folder", left).ifPresent(folder -> {
+        chooseFolder(I18n.t("FolderCompareView.left-folder"), left).ifPresent(folder -> {
             left = folder;
             updatePaths();
             onCompare();
@@ -145,7 +146,7 @@ public class FolderCompareView extends VBox {
 
     @FXML
     public void onChangeRight() {
-        chooseFolder("Right folder", right).ifPresent(folder -> {
+        chooseFolder(I18n.t("FolderCompareView.right-folder"), right).ifPresent(folder -> {
             right = folder;
             updatePaths();
             onCompare();
@@ -217,15 +218,12 @@ public class FolderCompareView extends VBox {
     static String summaryText(FolderComparison.Result result) {
         int files = result.entries().size();
         if (files == 0) {
-            return "Both folders are empty.";
+            return I18n.t("FolderCompareView.both-folders-are-empty");
         }
-        String text = files + (files == 1 ? " file: " : " files: ")
-                + result.count(Status.IDENTICAL) + " identical, "
-                + result.count(Status.EQUIVALENT) + " equivalent, "
-                + result.count(Status.DIFFERENT) + " different, "
-                + result.count(Status.ONLY_LEFT) + " only left, "
-                + result.count(Status.ONLY_RIGHT) + " only right";
-        return result.same() ? text + " - the folders match." : text;
+        String text = I18n.t(files == 1 ? "FolderCompareView.summary-one-file" : "FolderCompareView.summary-files",
+                files, result.count(Status.IDENTICAL), result.count(Status.EQUIVALENT),
+                result.count(Status.DIFFERENT), result.count(Status.ONLY_LEFT), result.count(Status.ONLY_RIGHT));
+        return result.same() ? I18n.t("FolderCompareView.the-folders-match", text) : text;
     }
 
     private void open(Entry entry) {

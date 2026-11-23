@@ -279,6 +279,25 @@ public class SimpleTypesListView extends BorderPane {
         sortCombo = new ComboBox<>();
         sortCombo.getItems().addAll("Name", "Base Type", "Usage Count");
         sortCombo.setValue("Name");
+        sortCombo.setConverter(new javafx.util.StringConverter<>() {
+            @Override
+            public String toString(String sortBy) {
+                if (sortBy == null) {
+                    return "";
+                }
+                return switch (sortBy) {
+                    case "Name" -> I18n.t("SimpleTypesListView.sort-name");
+                    case "Base Type" -> I18n.t("SimpleTypesListView.sort-base-type");
+                    case "Usage Count" -> I18n.t("SimpleTypesListView.sort-usage-count");
+                    default -> sortBy;
+                };
+            }
+
+            @Override
+            public String fromString(String label) {
+                return label;
+            }
+        });
 
         // Wire up sort
         sortCombo.valueProperty().addListener((obs, oldVal, newVal) -> {
@@ -390,7 +409,7 @@ public class SimpleTypesListView extends BorderPane {
         previewArea.setPrefRowCount(8);
         previewArea.setEditable(false);
         previewArea.setStyle("-fx-font-family: monospace;");
-        previewArea.setText("<!-- Select a SimpleType to see XSD preview -->");
+        previewArea.setText(I18n.t("SimpleTypesListView.preview-placeholder"));
 
         panel.getChildren().addAll(title, previewArea);
 
@@ -665,7 +684,7 @@ public class SimpleTypesListView extends BorderPane {
 
         // Show confirmation dialog
         Alert confirmAlert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
-                Alert.AlertType.CONFIRMATION, "Confirm Delete", "Delete SimpleType: " + simpleType.getName(), "Are you sure you want to delete this SimpleType?\nThis action cannot be undone.");
+                Alert.AlertType.CONFIRMATION, I18n.t("SimpleTypesListView.confirm-delete"), I18n.t("SimpleTypesListView.delete-simple-type", simpleType.getName()), I18n.t("SimpleTypesListView.delete-confirm-text"));
 
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {

@@ -33,9 +33,9 @@ public final class DebugConfigurationDialog extends Dialog<DebugConfigurationDia
     /** The edited configuration and whether to start debugging with it. */
     public record Result(DebugLaunchConfig config, boolean debug) { }
 
-    static final ButtonType DEBUG = new ButtonType("Debug", ButtonBar.ButtonData.OK_DONE);
-    static final ButtonType SAVE = new ButtonType("Save", ButtonBar.ButtonData.APPLY);
-    private static final String AUTO = "Automatic (xsl:output)";
+    static final ButtonType DEBUG = new ButtonType(I18n.t("DebugConfigurationDialog.debug-button"), ButtonBar.ButtonData.OK_DONE);
+    static final ButtonType SAVE = new ButtonType(I18n.t("DebugConfigurationDialog.save"), ButtonBar.ButtonData.APPLY);
+    private static final String AUTO = I18n.t("DebugConfigurationDialog.automatic-xsl-output");
 
     @FXML private ToggleGroup inputGroup;
     @FXML private RadioButton runTargetRadio;
@@ -89,8 +89,8 @@ public final class DebugConfigurationDialog extends Dialog<DebugConfigurationDia
     public void onBrowse() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle(I18n.t("DebugConfigurationDialog.input-xml"));
-        chooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XML files", "*.xml"),
-                new FileChooser.ExtensionFilter("All files", "*.*"));
+        chooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter(I18n.t("DebugConfigurationDialog.xml-files"), "*.xml"),
+                new FileChooser.ExtensionFilter(I18n.t("DebugConfigurationDialog.all-files"), "*.*"));
         String current = fileField.getText();
         if (current != null && !current.isBlank() && new File(current).getParentFile() != null
                 && new File(current).getParentFile().isDirectory()) {

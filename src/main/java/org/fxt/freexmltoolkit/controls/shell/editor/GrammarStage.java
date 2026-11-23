@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.grammar.DeclaredGrammar;
 import org.fxt.freexmltoolkit.service.grammar.DtdValidator;
 import org.fxt.freexmltoolkit.service.grammar.GrammarKind;
@@ -52,9 +53,8 @@ final class GrammarStage {
             return problems("RELAX NG", RelaxNgValidator.validate(xml, systemId, schema.toFile()));
         } catch (IOException e) {
             List<ValidationProblem> result = wellFormed(xml);
-            result.add(0, new ValidationProblem("RELAX NG", "warning", 0, "The declared RELAX NG schema "
-                    + grammar.systemId() + " is not available (" + e.getMessage()
-                    + "); the document was checked for well-formedness only."));
+            result.add(0, new ValidationProblem("RELAX NG", "warning", 0, I18n.t("GrammarStage.relax-ng-not-available",
+                    grammar.systemId(), e.getMessage())));
             return result;
         }
     }
@@ -67,7 +67,7 @@ final class GrammarStage {
             String reason = found.stream().filter(p -> p.message().startsWith("Cannot load the DTD"))
                     .map(GrammarProblem::message).findFirst().orElse("");
             result.add(0, new ValidationProblem("DTD", "warning", 0,
-                    reason + " — the document was checked for well-formedness only."));
+                    I18n.t("GrammarStage.dtd-checked-for-well-formedness", reason)));
             return result;
         }
         return problems("DTD", found);
@@ -92,7 +92,7 @@ final class GrammarStage {
                     || p.systemId().endsWith(".rnc") || p.systemId().endsWith(".mod") || p.systemId().endsWith(".ent"));
             // A problem inside the grammar file has no line in the document
             result.add(new ValidationProblem(source, severity, inGrammar ? 0 : p.line(),
-                    inGrammar ? p.message() + " (" + p.systemId().replaceFirst(".*/", "") + ", line " + p.line() + ")"
+                    inGrammar ? I18n.t("GrammarStage.message-in-grammar-file", p.message(), p.systemId().replaceFirst(".*/", ""), p.line())
                             : p.message()).withColumn(inGrammar ? 0 : p.column()));
         }
         return result;

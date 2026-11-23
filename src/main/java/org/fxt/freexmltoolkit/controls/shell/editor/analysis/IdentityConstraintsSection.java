@@ -110,7 +110,7 @@ final class IdentityConstraintsSection extends VBox {
         addTypeChip(ConstraintType.UNIQUE, r.uniques().size(), "unique");
         addTypeChip(ConstraintType.ASSERT, r.asserts().size(), "assert");
         if (typeChips.getChildren().isEmpty()) {
-            typeChips.getChildren().add(AnalysisSupport.chip("No constraints", "neutral"));
+            typeChips.getChildren().add(AnalysisSupport.chip(I18n.t("IdentityConstraintsSection.no-constraints"), "neutral"));
         }
 
         statusChips.getChildren().clear();
@@ -121,7 +121,7 @@ final class IdentityConstraintsSection extends VBox {
             addStatusChip(ValidationStatus.WARNING, r.warningCount(), "warning");
         }
         if (r.errorCount() == 0 && r.warningCount() == 0 && r.totalCount() > 0) {
-            Label ok = AnalysisSupport.chip("All valid", "ok");
+            Label ok = AnalysisSupport.chip(I18n.t("IdentityConstraintsSection.all-valid"), "ok");
             ok.setGraphic(AnalysisSupport.statusIcon(ValidationStatus.VALID, 12));
             ok.setGraphicTextGap(5);
             statusChips.getChildren().add(ok);
@@ -257,15 +257,15 @@ final class IdentityConstraintsSection extends VBox {
                     editorHost.revealSchemaNodeByXPath(parentNode.getXPath());
                 }
             });
-            details.getChildren().add(detailRow("Parent element", parent));
+            details.getChildren().add(detailRow(I18n.t("IdentityConstraintsSection.parentColumn.text"), parent));
         }
         if (info.isAssert()) {
-            details.getChildren().add(detailRow("Test", mono(info.testExpression())));
+            details.getChildren().add(detailRow(I18n.t("IdentityConstraintsSection.test"), mono(info.testExpression())));
         } else {
-            details.getChildren().add(detailRow("Selector", mono(info.selectorXPath())));
+            details.getChildren().add(detailRow(I18n.t("IdentityConstraintsSection.selectorColumn.text"), mono(info.selectorXPath())));
             List<String> fields = info.fieldXPaths() == null ? List.of() : info.fieldXPaths();
             for (int i = 0; i < fields.size(); i++) {
-                details.getChildren().add(detailRow(i == 0 ? "Fields" : "", mono(fields.get(i))));
+                details.getChildren().add(detailRow(i == 0 ? I18n.t("IdentityConstraintsSection.fieldsColumn.text") : "", mono(fields.get(i))));
             }
             if (info.type() == ConstraintType.KEYREF && info.referTo() != null && !info.referTo().isBlank()) {
                 IdentityConstraintInfo target = constraints.stream()
@@ -281,11 +281,11 @@ final class IdentityConstraintsSection extends VBox {
                         table.getSelectionModel().select(target);
                         table.scrollTo(target);
                     });
-                    details.getChildren().add(detailRow("Refers to", link));
+                    details.getChildren().add(detailRow(I18n.t("IdentityConstraintsSection.refers-to"), link));
                 } else {
                     Label missing = mono(info.referTo());
                     missing.getStyleClass().add("fxt-analysis-sev-error");
-                    details.getChildren().add(detailRow("Refers to", missing));
+                    details.getChildren().add(detailRow(I18n.t("IdentityConstraintsSection.refers-to"), missing));
                 }
             }
         }

@@ -1356,7 +1356,7 @@ final class EditorTab extends Tab {
             if (!yaml.isValid()) {
                 var problem = yaml.problem();
                 throw new IllegalArgumentException(problem.line() > 0
-                        ? "Line " + problem.line() + ", column " + problem.column() + ": " + problem.message()
+                        ? I18n.t("EditorTab.line-column-message", problem.line(), problem.column(), problem.message())
                         : problem.message());
             }
             ctx.loadDocumentFromString(yaml.json().toString());
@@ -2031,7 +2031,7 @@ final class EditorTab extends Tab {
 
     boolean addElement(XsdNode parent, String name) {
         if (parent == null || name == null || name.isBlank()
-                || !permits("Add Element", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.addElement(parent))) {
+                || !permits(I18n.t("EditorTab.add-element"), org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.addElement(parent))) {
             return false;
         }
         return executeAndApply(
@@ -2047,7 +2047,7 @@ final class EditorTab extends Tab {
                           String name) {
         ensureModelParsed();
         if (editorContext == null || editorContext.getSchema() == null || kind == null
-                || !permits("New Type", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules
+                || !permits(I18n.t("EditorTab.new-type"), org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules
                 .addGlobalType(editorContext.getSchema(), name))) {
             return false;
         }
@@ -2082,7 +2082,7 @@ final class EditorTab extends Tab {
 
     boolean addContainerElement(XsdNode parent, String name) {
         if (parent == null || name == null || name.isBlank()
-                || !permits("Add Container Element", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.addElement(parent))) {
+                || !permits(I18n.t("EditorTab.add-container-element"), org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.addElement(parent))) {
             return false;
         }
         return executeAndApply(
@@ -2108,7 +2108,7 @@ final class EditorTab extends Tab {
 
     boolean addElement(XsdNode parent, org.fxt.freexmltoolkit.controls.v2.editor.commands.NewElementSpec spec) {
         if (parent == null || spec == null
-                || !permits("Add Element", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.newElement(parent, spec))) {
+                || !permits(I18n.t("EditorTab.add-element"), org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.newElement(parent, spec))) {
             return false;
         }
         return executeAndApply(org.fxt.freexmltoolkit.controls.v2.editor.commands.AddElementCommand.of(parent, spec));
@@ -2116,7 +2116,7 @@ final class EditorTab extends Tab {
 
     boolean addAttribute(XsdNode parent, org.fxt.freexmltoolkit.controls.v2.editor.commands.NewAttributeSpec spec) {
         if (parent == null || spec == null
-                || !permits("Add Attribute", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.newAttribute(parent, spec))) {
+                || !permits(I18n.t("EditorTab.add-attribute"), org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.newAttribute(parent, spec))) {
             return false;
         }
         return executeAndApply(org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAttributeCommand.of(parent, spec));
@@ -2124,7 +2124,7 @@ final class EditorTab extends Tab {
 
     boolean addAttribute(XsdNode parent, String name) {
         if (parent == null || name == null || name.isBlank()
-                || !permits("Add Attribute", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.addAttribute(parent))) {
+                || !permits(I18n.t("EditorTab.add-attribute"), org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.addAttribute(parent))) {
             return false;
         }
         return executeAndApply(
@@ -2148,7 +2148,7 @@ final class EditorTab extends Tab {
         if (!(node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element)) {
             return false;
         }
-        var resolved = org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.resolve(ruleWindow(), "Add " + capitalize(kind),
+        var resolved = org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.resolve(ruleWindow(), I18n.t("EditorTab.add-kind", capitalize(kind)),
                 org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.addCompositor(element, kind));
         if (resolved.isEmpty()) {
             return false;
@@ -2191,7 +2191,7 @@ final class EditorTab extends Tab {
     /** Pastes the shell clipboard's node under {@code target} (cut originals are removed). */
     boolean pasteNode(XsdNode target) {
         if (target == null || !clipboard.hasContent()
-                || !permits("Paste", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.paste(target, clipboard.getClipboardNode()))) {
+                || !permits(I18n.t("EditorTab.paste"), org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.paste(target, clipboard.getClipboardNode()))) {
             return false;
         }
         return executeAndApply(
@@ -2218,7 +2218,7 @@ final class EditorTab extends Tab {
             return false;
         }
         String type = newType.trim();
-        var resolved = org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.resolve(ruleWindow(), "Change Type",
+        var resolved = org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.resolve(ruleWindow(), I18n.t("EditorTab.change-type"),
                 org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.changeType(node, type));
         return resolved.isPresent() && executeAndApply(resolved.get()
                 ? org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeTypeCommand.replacingInlineType(editorContext, node, type)
@@ -2306,7 +2306,7 @@ final class EditorTab extends Tab {
     }
 
     boolean changeRef(XsdNode node, String ref) {
-        if (editorContext == null || node == null || !permits("Change Reference", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.changeRef(node, ref))) {
+        if (editorContext == null || node == null || !permits(I18n.t("EditorTab.change-reference"), org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.changeRef(node, ref))) {
             return false;
         }
         return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeRefCommand(

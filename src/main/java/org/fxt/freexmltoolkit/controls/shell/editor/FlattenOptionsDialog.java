@@ -144,16 +144,16 @@ public class FlattenOptionsDialog extends Dialog<FlattenOptionsDialog.Request> {
         }
         Path output = outputFile();
         if (output == null || output.getFileName() == null) {
-            return "'" + text + "' is not a valid file path.";
+            return I18n.t("FlattenOptionsDialog.not-a-valid-file-path", text);
         }
         if (Files.isDirectory(output)) {
-            return "Enter a file name, not a folder.";
+            return I18n.t("FlattenOptionsDialog.enter-a-file-name-not");
         }
         if (output.getParent() == null || !Files.isDirectory(output.getParent())) {
-            return "The folder " + output.getParent() + " does not exist.";
+            return I18n.t("FlattenOptionsDialog.the-folder-does-not-exist", output.getParent());
         }
         if (sourceFile != null && output.equals(sourceFile.toAbsolutePath().normalize())) {
-            return "Choose another file: the original schema must not be overwritten.";
+            return I18n.t("FlattenOptionsDialog.choose-another-file-the-original");
         }
         return null;
     }
@@ -167,8 +167,9 @@ public class FlattenOptionsDialog extends Dialog<FlattenOptionsDialog.Request> {
             return overwriteConfirmer.test(output);
         }
         return EditRuleDialogs.confirm(getDialogPane().getScene() != null ? getDialogPane().getScene().getWindow() : null,
-                "Flatten Schema", "The file already exists",
-                output.getFileName() + " already exists in " + output.getParent() + ". Overwrite it?", "Overwrite");
+                I18n.t("FlattenOptionsDialog.flatten-schema"), I18n.t("FlattenOptionsDialog.the-file-already-exists"),
+                I18n.t("FlattenOptionsDialog.already-exists-in-overwrite", output.getFileName(), output.getParent()),
+                I18n.t("FlattenOptionsDialog.overwrite"));
     }
 
     @FXML
@@ -176,8 +177,8 @@ public class FlattenOptionsDialog extends Dialog<FlattenOptionsDialog.Request> {
         FileChooser chooser = new FileChooser();
         chooser.setTitle(I18n.t("FlattenOptionsDialog.save-flattened-schema"));
         chooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("XML Schema (*.xsd)", "*.xsd"),
-                new FileChooser.ExtensionFilter("All files", "*.*"));
+                new FileChooser.ExtensionFilter(I18n.t("FlattenOptionsDialog.xml-schema-xsd"), "*.xsd"),
+                new FileChooser.ExtensionFilter(I18n.t("FlattenOptionsDialog.all-files"), "*.*"));
         Path current = outputFile();
         if (current == null && sourceFile != null) {
             current = defaultOutput(sourceFile);

@@ -39,18 +39,18 @@ public class SchematronCheckResultView extends VBox {
         summary.getStyleClass().add("fxt-side-panel-title");
         summary.setText(summaryFor(issues));
 
-        Button exportCsv = exportButton("Export CSV", "bi-filetype-csv", "csv", "CSV", SchematronResultExport::toCsv);
-        Button exportJson = exportButton("Export JSON", "bi-filetype-json", "json", "JSON", SchematronResultExport::toJson);
+        Button exportCsv = exportButton(I18n.t("SchematronCheckResultView.export-csv"), "bi-filetype-csv", "csv", "CSV", SchematronResultExport::toCsv);
+        Button exportJson = exportButton(I18n.t("SchematronCheckResultView.export-json"), "bi-filetype-json", "json", "JSON", SchematronResultExport::toJson);
         boolean hasIssues = !this.issues.isEmpty();
         exportCsv.setDisable(!hasIssues);
         exportJson.setDisable(!hasIssues);
         HBox toolbar = new HBox(8, exportCsv, exportJson);
 
-        table.getColumns().add(column("Severity", e -> e.severity().name(), 90));
-        table.getColumns().add(column("Type", e -> e.type().name(), 120));
-        table.getColumns().add(column("Line", e -> Integer.toString(e.line()), 60));
-        table.getColumns().add(column("Col", e -> Integer.toString(e.column()), 50));
-        TableColumn<SchematronError, String> message = column("Message", SchematronError::message, -1);
+        table.getColumns().add(column(I18n.t("SchematronCheckResultView.severity"), e -> e.severity().name(), 90));
+        table.getColumns().add(column(I18n.t("SchematronCheckResultView.type"), e -> e.type().name(), 120));
+        table.getColumns().add(column(I18n.t("SchematronCheckResultView.line"), e -> Integer.toString(e.line()), 60));
+        table.getColumns().add(column(I18n.t("SchematronCheckResultView.col"), e -> Integer.toString(e.column()), 50));
+        TableColumn<SchematronError, String> message = column(I18n.t("SchematronCheckResultView.message"), SchematronError::message, -1);
         table.getColumns().add(message);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         table.setPlaceholder(new Label(I18n.t("SchematronCheckResultView.no-issues-found")));
@@ -77,7 +77,7 @@ public class SchematronCheckResultView extends VBox {
         chooser.setTitle(I18n.t("SchematronCheckResultView.export-schematron-results-as", filterName));
         chooser.setInitialFileName("schematron-results." + extension);
         chooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter(filterName + " File (*." + extension + ")", "*." + extension));
+                new FileChooser.ExtensionFilter(I18n.t("SchematronCheckResultView.file-filter", filterName, extension), "*." + extension));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file == null) {
             return;
@@ -105,14 +105,14 @@ public class SchematronCheckResultView extends VBox {
 
     private static String summaryFor(List<SchematronError> issues) {
         if (issues == null || issues.isEmpty()) {
-            return "No issues found.";
+            return I18n.t("SchematronCheckResultView.no-issues-found");
         }
         long errors = issues.stream().filter(i -> i.severity() == ErrorSeverity.ERROR).count();
         long warnings = issues.stream().filter(i -> i.severity() == ErrorSeverity.WARNING).count();
         long infos = issues.stream().filter(i -> i.severity() == ErrorSeverity.INFO).count();
-        return errors + " error" + (errors == 1 ? "" : "s")
-                + " · " + warnings + " warning" + (warnings == 1 ? "" : "s")
-                + " · " + infos + " info";
+        return I18n.t(errors == 1 ? "SchematronCheckResultView.errors-one" : "SchematronCheckResultView.errors", String.valueOf(errors))
+                + " · " + I18n.t(warnings == 1 ? "SchematronCheckResultView.warnings-one" : "SchematronCheckResultView.warnings", String.valueOf(warnings))
+                + " · " + I18n.t("SchematronCheckResultView.infos", String.valueOf(infos));
     }
 
     /** @return the number of issues shown (for tests/observers). */

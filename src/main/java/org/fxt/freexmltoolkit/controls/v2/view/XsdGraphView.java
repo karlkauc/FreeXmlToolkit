@@ -1919,7 +1919,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             logger.debug("Cannot move node: no node selected");
             return;
         }
-        if (blockedByTypeFrame(selected, "Move")) {
+        if (blockedByTypeFrame(selected, I18n.t("XsdGraphView.action-move"))) {
             return;
         }
 
@@ -1954,7 +1954,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             logger.debug("Cannot move node: no node selected");
             return;
         }
-        if (blockedByTypeFrame(selected, "Move")) {
+        if (blockedByTypeFrame(selected, I18n.t("XsdGraphView.action-move"))) {
             return;
         }
 
@@ -2007,7 +2007,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             logger.debug("Cannot cut: no node selected");
             return;
         }
-        if (blockedByTypeFrame(selected, "Cut")) {
+        if (blockedByTypeFrame(selected, I18n.t("XsdGraphView.action-cut"))) {
             return;
         }
 
@@ -2038,7 +2038,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             logger.debug("Cannot paste: no target node selected");
             return;
         }
-        if (blockedByTypeFrame(selected, selected.contentLockingFrame(), "Paste")) {
+        if (blockedByTypeFrame(selected, selected.contentLockingFrame(), I18n.t("XsdGraphView.action-paste"))) {
             return;
         }
 
@@ -2048,7 +2048,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
                     targetParent, editorContext.getClipboard().getClipboardNode());
             if (check.isBlocked()) {
                 org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.showBlocked(
-                        getScene() == null ? null : getScene().getWindow(), "Paste", check);
+                        getScene() == null ? null : getScene().getWindow(), I18n.t("XsdGraphView.action-paste"), check);
                 return;
             }
             PasteNodeCommand command = new PasteNodeCommand(editorContext.getClipboard(), targetParent);
@@ -2072,7 +2072,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             logger.debug("Cannot delete: no node selected");
             return;
         }
-        if (blockedByTypeFrame(selected, "Delete")) {
+        if (blockedByTypeFrame(selected, I18n.t("XsdGraphView.action-delete"))) {
             return;
         }
 
@@ -2341,17 +2341,17 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
     /** Runs the planned drop as a command, after the rule / shared-type dialogs. */
     private void performDrop(XsdDropPlanner.Plan plan, VisualNode source, VisualNode target) {
         javafx.stage.Window owner = getScene() != null ? getScene().getWindow() : null;
-        String title = plan.copy() ? "Copy Node" : "Move Node";
+        String title = plan.copy() ? I18n.t("XsdGraphView.copy-node") : I18n.t("XsdGraphView.move-node");
         if (plan.isBlocked()) {
             org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.showBlocked(owner, title, plan.check());
             return;
         }
         java.util.List<String> shared = dropPlanner().sharedComponents(plan);
         if (!shared.isEmpty() && !org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.confirm(owner, title,
-                "This changes a shared definition",
-                "Dropping here changes the " + String.join(" and the ", shared)
-                        + ". Every declaration that uses it will change too.",
-                plan.copy() ? "Copy anyway" : "Move anyway")) {
+                I18n.t("XsdGraphView.shared-definition-header"),
+                I18n.t("XsdGraphView.dropping-changes-shared",
+                        String.join(I18n.t("XsdGraphView.shared-joiner"), shared)),
+                plan.copy() ? I18n.t("XsdGraphView.copy-anyway") : I18n.t("XsdGraphView.move-anyway"))) {
             return;
         }
         if (plan.position() == XsdDropPlanner.Position.INTO && target != null) {

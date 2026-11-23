@@ -117,6 +117,17 @@ public class SchematronDocumentationGenerator extends VBox {
         formatComboBox = new ComboBox<>();
         formatComboBox.getItems().addAll("HTML", "Markdown", "Plain Text");
         formatComboBox.setValue("HTML");
+        formatComboBox.setConverter(new javafx.util.StringConverter<>() {
+            @Override
+            public String toString(String format) {
+                return "Plain Text".equals(format) ? I18n.t("SchematronDocumentationGenerator.format-plain-text") : format;
+            }
+
+            @Override
+            public String fromString(String label) {
+                return label;
+            }
+        });
 
         // Generation controls
         generateButton = new Button(I18n.t("SchematronDocumentationGenerator.generate-documentation"));
@@ -150,16 +161,16 @@ public class SchematronDocumentationGenerator extends VBox {
         headerLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
 
         // File section
-        VBox fileSection = createSection("Source File", createFileControls());
+        VBox fileSection = createSection(I18n.t("SchematronDocumentationGenerator.section-source-file"), createFileControls());
 
         // Options section
-        VBox optionsSection = createSection("Generation Options", createOptionsControls());
+        VBox optionsSection = createSection(I18n.t("SchematronDocumentationGenerator.section-generation-options"), createOptionsControls());
 
         // Generation section
-        VBox generationSection = createSection("Generate Documentation", createGenerationControls());
+        VBox generationSection = createSection(I18n.t("SchematronDocumentationGenerator.section-generate-documentation"), createGenerationControls());
 
         // Preview section
-        VBox previewSection = createSection("Documentation Preview", createPreviewControls());
+        VBox previewSection = createSection(I18n.t("SchematronDocumentationGenerator.section-documentation-preview"), createPreviewControls());
 
         // Add all sections
         this.getChildren().addAll(
@@ -290,8 +301,8 @@ public class SchematronDocumentationGenerator extends VBox {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle(I18n.t("SchematronDocumentationGenerator.select-schematron-file"));
         fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Schematron files", "*.sch", "*.schematron"),
-                new FileChooser.ExtensionFilter("All Files", "*.*")
+                new FileChooser.ExtensionFilter(I18n.t("SchematronDocumentationGenerator.schematron-files"), "*.sch", "*.schematron"),
+                new FileChooser.ExtensionFilter(I18n.t("SchematronDocumentationGenerator.all-files"), "*.*")
         );
 
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(fileChooser, this.getScene().getWindow());
@@ -307,7 +318,7 @@ public class SchematronDocumentationGenerator extends VBox {
      */
     private void generateDocumentation() {
         if (currentSchematronFile == null || !currentSchematronFile.exists()) {
-            showAlert("File Error", "Please select a valid Schematron file");
+            showAlert(I18n.t("SchematronDocumentationGenerator.file-error"), I18n.t("SchematronDocumentationGenerator.select-valid-schematron"));
             return;
         }
 
@@ -806,7 +817,7 @@ public class SchematronDocumentationGenerator extends VBox {
      */
     private void exportDocumentation() {
         if (generatedDocumentation == null) {
-            showAlert("Export Error", "No documentation to export. Generate documentation first.");
+            showAlert(I18n.t("SchematronDocumentationGenerator.export-error"), I18n.t("SchematronDocumentationGenerator.nothing-to-export"));
             return;
         }
 
@@ -819,25 +830,25 @@ public class SchematronDocumentationGenerator extends VBox {
         switch (selectedFormat) {
             case HTML -> {
                 extension = "*.html";
-                description = "HTML files";
+                description = I18n.t("SchematronDocumentationGenerator.html-files");
             }
             case MARKDOWN -> {
                 extension = "*.md";
-                description = "Markdown files";
+                description = I18n.t("SchematronDocumentationGenerator.markdown-files");
             }
             case PLAIN_TEXT -> {
                 extension = "*.txt";
-                description = "Text files";
+                description = I18n.t("SchematronDocumentationGenerator.text-files");
             }
             default -> {
                 extension = "*.txt";
-                description = "Text files";
+                description = I18n.t("SchematronDocumentationGenerator.text-files");
             }
         }
 
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter(description, extension),
-                new FileChooser.ExtensionFilter("All Files", "*.*")
+                new FileChooser.ExtensionFilter(I18n.t("SchematronDocumentationGenerator.all-files"), "*.*")
         );
 
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(fileChooser, this.getScene().getWindow());

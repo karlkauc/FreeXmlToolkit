@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -37,10 +39,9 @@ import org.fxt.freexmltoolkit.domain.XsdBuiltinTypeCatalog.Category;
  */
 public final class TypeChoices {
 
-    static final String SIMPLE_GROUP = "Simple types";
-    static final String COMPLEX_GROUP = "Complex types";
-    static final String UNDECLARED_NAMESPACE_NOTE =
-            "Namespace not declared in this schema – add an xmlns prefix for it before referencing the type.";
+    static final String SIMPLE_GROUP = I18n.t("TypeChoices.simple-types");
+    static final String COMPLEX_GROUP = I18n.t("TypeChoices.complex-types");
+    static final String UNDECLARED_NAMESPACE_NOTE = I18n.t("TypeChoices.namespace-not-declared");
 
     private static final int MAX_DOC_LENGTH = 400;
     private static final int MAX_ENUMS = 6;
@@ -202,7 +203,7 @@ public final class TypeChoices {
         String qualified = type.qualified(xsPrefix);
         Supplier<TypeDetails> details = () -> new TypeDetails(
                 qualified,
-                "Built-in type · " + category.displayName() + (type.listType() ? " · list" : ""),
+                I18n.t(type.listType() ? "TypeChoices.built-in-list-type" : "TypeChoices.built-in-type", category.displayName()),
                 type.baseType() == null ? null : XsdBuiltinTypeCatalog.find(type.baseType())
                         .map(b -> b.qualified(xsPrefix)).orElse(type.baseType()),
                 type.baseType() == null ? null : type.listType() ? "list" : "restriction",
@@ -217,10 +218,10 @@ public final class TypeChoices {
 
     private static String builtinNote(BuiltinType type) {
         if (type.limitedSupport()) {
-            return "XSD 1.1 only · not supported by Xerces (the validator used by this application)";
+            return I18n.t("TypeChoices.xsd11-only-not-supported");
         }
         if (type.xsd11Only()) {
-            return "XSD 1.1 only";
+            return I18n.t("TypeChoices.xsd11-only");
         }
         return null;
     }
@@ -238,7 +239,7 @@ public final class TypeChoices {
     private static String summaryOf(XsdNode node, Kind kind, XsdSchema root) {
         var derivation = SchemaDerivation.of(node, root).orElse(null);
         if (derivation != null) {
-            return derivation.method() + " of " + derivation.base();
+            return I18n.t("TypeChoices.method-of-base", derivation.method(), derivation.base());
         }
         if (kind == Kind.COMPLEX && node instanceof XsdComplexType ct) {
             String content = contentModel(ct);
@@ -254,25 +255,25 @@ public final class TypeChoices {
         List<String> facts = new ArrayList<>();
         if (node instanceof XsdComplexType ct) {
             if (ct.isAbstract()) {
-                facts.add("abstract – only derived types can be used in instances");
+                facts.add(I18n.t("TypeChoices.abstract-fact"));
             }
             if (ct.isMixed()) {
-                facts.add("mixed content (text and child elements)");
+                facts.add(I18n.t("TypeChoices.mixed-content-fact"));
             }
             String content = contentModel(ct);
             if (content != null) {
-                facts.add("Content: " + content);
+                facts.add(I18n.t("TypeChoices.content-fact", content));
             }
             int attributes = countAttributes(ct);
             if (attributes > 0) {
-                facts.add(attributes == 1 ? "1 attribute" : attributes + " attributes");
+                facts.add(attributes == 1 ? I18n.t("TypeChoices.one-attribute") : I18n.t("TypeChoices.attributes", attributes));
             }
         }
         facts.addAll(facetFacts(SchemaFacets.collect(node)));
         String note = undeclaredNamespace ? UNDECLARED_NAMESPACE_NOTE : null;
         return new TypeDetails(
                 qualified,
-                kind == Kind.SIMPLE ? "Simple type" : "Complex type",
+                kind == Kind.SIMPLE ? I18n.t("TypeChoices.simple-type") : I18n.t("TypeChoices.complex-type"),
                 derivation == null ? null : derivation.base(),
                 derivation == null ? null : derivation.method(),
                 documentationOf(node),
@@ -284,7 +285,7 @@ public final class TypeChoices {
 
     private static String contentModel(XsdComplexType ct) {
         if (ct.getSimpleContent() != null) {
-            return "simple content";
+            return I18n.t("TypeChoices.simple-content");
         }
         if (ct.getSequence() != null) {
             return "sequence";
@@ -296,9 +297,9 @@ public final class TypeChoices {
             return "all";
         }
         if (ct.getComplexContent() != null) {
-            return "complex content";
+            return I18n.t("TypeChoices.complex-content");
         }
-        return countAttributes(ct) > 0 ? "attributes only" : "empty";
+        return countAttributes(ct) > 0 ? I18n.t("TypeChoices.attributes-only") : I18n.t("TypeChoices.empty");
     }
 
     private static int countAttributes(XsdNode node) {
@@ -324,12 +325,11 @@ public final class TypeChoices {
             }
         }
         if (!enums.isEmpty()) {
-            StringBuilder sb = new StringBuilder("Enumeration: ");
-            sb.append(String.join(", ", enums.subList(0, Math.min(MAX_ENUMS, enums.size()))));
+            String values = String.join(", ", enums.subList(0, Math.min(MAX_ENUMS, enums.size())));
             if (enums.size() > MAX_ENUMS) {
-                sb.append(", +").append(enums.size() - MAX_ENUMS).append(" more");
+                values += ", " + I18n.t("TypeChoices.more", enums.size() - MAX_ENUMS);
             }
-            facts.add(sb.toString());
+            facts.add(I18n.t("TypeChoices.enumeration-fact", values));
         }
         for (XsdFacet facet : facets) {
             if (facet.getFacetType() != XsdFacetType.ENUMERATION && facet.getFacetType() != null) {
@@ -383,14 +383,14 @@ public final class TypeChoices {
         XsdSchema owner = owningSchema(node);
         boolean imported = owner != null && root != null && owner != root;
         if (file == null) {
-            return imported ? "Imported schema" : node.isFromInclude() ? "Included schema" : null;
+            return imported ? I18n.t("TypeChoices.imported-schema") : node.isFromInclude() ? I18n.t("TypeChoices.included-schema") : null;
         }
         if (root != null && !imported && !node.isFromInclude()
                 && (root.getMainSchemaPath() == null || file.equals(root.getMainSchemaPath()))) {
             return null;
         }
         String name = file.getFileName() == null ? file.toString() : file.getFileName().toString();
-        return (imported ? "Imported from " : "Included from ") + name;
+        return I18n.t(imported ? "TypeChoices.imported-from" : "TypeChoices.included-from", name);
     }
 
     /** @return the {@link XsdSchema} the node hangs under, or {@code null} for a detached node. */

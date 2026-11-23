@@ -161,15 +161,15 @@ public class BindSchemaDialog extends Dialog<BindSchemaDialog.Request> {
         boolean noScenario = (scenarioChoice.getValue() == null || scenarioChoice.getValue().isBlank())
                 && !hasVersions();
         if (filesField.getText() == null || filesField.getText().isBlank()) {
-            problem = "Enter the files (a path or pattern).";
+            problem = I18n.t("BindSchemaDialog.enter-the-files-a-path");
         } else if (!FxtProject.isValidPattern(filesField.getText().strip())) {
-            problem = "The pattern is not valid.";
+            problem = I18n.t("BindSchemaDialog.the-pattern-is-not-valid");
         } else if (!schemaField.getText().isBlank() && (schema == null || !Files.isRegularFile(schema))) {
-            problem = "The schema file does not exist.";
+            problem = I18n.t("BindSchemaDialog.the-schema-file-does-not");
         } else if (!schematronField.getText().isBlank() && (schematron == null || !Files.isRegularFile(schematron))) {
-            problem = "The Schematron file does not exist.";
+            problem = I18n.t("BindSchemaDialog.the-schematron-file-does-not");
         } else if (schemaField.getText().isBlank() && schematronField.getText().isBlank() && noScenario) {
-            problem = "Choose a schema, a Schematron or a scenario.";
+            problem = I18n.t("BindSchemaDialog.choose-a-schema-a-schematron");
         }
         boolean show = problem != null && !(schemaField.getText().isBlank() && schematronField.getText().isBlank()
                 && noScenario);
@@ -228,7 +228,7 @@ public class BindSchemaDialog extends Dialog<BindSchemaDialog.Request> {
     @FXML
     public void onBrowseSchema() {
         browse(schemaField, I18n.t("BindSchemaDialog.schema"),
-                new FileChooser.ExtensionFilter("Schema (XSD, DTD, RELAX NG, JSON Schema)",
+                new FileChooser.ExtensionFilter(I18n.t("BindSchemaDialog.schema-xsd-dtd-relax-ng"),
                         "*.xsd", "*.dtd", "*.rng", "*.rnc", "*.json"));
     }
 

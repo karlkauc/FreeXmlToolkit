@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.v2.view;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -120,19 +121,19 @@ public final class XsdDropPlanner {
             return null;
         }
         if (target.isDescendantOf(dragged)) {
-            return blocked(dragged, target, position, copy, "A node cannot be dropped into itself.");
+            return blocked(dragged, target, position, copy, I18n.t("XsdDropPlanner.cannot-drop-into-itself"));
         }
         if (!copy && !inEditedSchema(dragged)) {
             return blocked(dragged, target, position, copy,
-                    "'" + label(dragged) + "' belongs to an imported schema and cannot be moved here.");
+                    I18n.t("XsdDropPlanner.imported-cannot-move", label(dragged)));
         }
         if (!inEditedSchema(target)) {
             return blocked(dragged, target, position, copy,
-                    "'" + label(target) + "' belongs to an imported schema, which cannot be edited here.");
+                    I18n.t("XsdDropPlanner.imported-cannot-edit", label(target)));
         }
         if (!isParticle(dragged) && !isAttributeKind(dragged)) {
             return blocked(dragged, target, position, copy,
-                    "Only elements, compositors, group references and attributes can be dragged.");
+                    I18n.t("XsdDropPlanner.only-these-can-be-dragged"));
         }
 
         XsdNode parent;
@@ -143,13 +144,13 @@ public final class XsdDropPlanner {
                 EditCheck reason = isAttributeKind(dragged)
                         ? XsdEditRules.addAttribute(target) : XsdEditRules.addElement(target);
                 return blocked(dragged, target, position, copy, reason.isBlocked() ? reason.reason()
-                        : "'" + label(dragged) + "' cannot be dropped into '" + label(target) + "'.");
+                        : I18n.t("XsdDropPlanner.cannot-drop-into", label(dragged), label(target)));
             }
             index = parent.getChildren().size();
         } else {
             parent = target.getParent();
             if (parent == null) {
-                return blocked(dragged, target, position, copy, "Nothing can be placed next to the schema root.");
+                return blocked(dragged, target, position, copy, I18n.t("XsdDropPlanner.nothing-next-to-root"));
             }
             String sibling = siblingConflict(dragged, target, parent);
             if (sibling != null) {
@@ -159,12 +160,11 @@ public final class XsdDropPlanner {
         }
 
         if (dragged.getParent() instanceof XsdSchema && !(parent instanceof XsdSchema) && !copy) {
-            return blocked(dragged, target, position, copy, "A global declaration cannot be moved into a "
-                    + "content model; add a reference to it instead.");
+            return blocked(dragged, target, position, copy, I18n.t("XsdDropPlanner.global-into-content-model"));
         }
         if (parent instanceof XsdSchema && !(dragged.getParent() instanceof XsdSchema)) {
             return blocked(dragged, target, position, copy,
-                    "A local declaration cannot be moved to the top level of the schema.");
+                    I18n.t("XsdDropPlanner.local-to-top-level"));
         }
 
         if (!copy && dragged.getParent() == parent) {
@@ -207,8 +207,9 @@ public final class XsdDropPlanner {
         for (XsdNode owner : owners) {
             int uses = graph.usageCount(SchemaReferenceGraph.keyOf(owner));
             if (uses > 1) {
-                String kind = owner instanceof XsdComplexType ? "type" : "group";
-                shared.add(kind + " '" + owner.getName() + "' (used " + uses + " times)");
+                shared.add(owner instanceof XsdComplexType
+                        ? I18n.t("XsdDropPlanner.shared-type", owner.getName(), String.valueOf(uses))
+                        : I18n.t("XsdDropPlanner.shared-group", owner.getName(), String.valueOf(uses)));
             }
         }
         return shared;
@@ -269,12 +270,12 @@ public final class XsdDropPlanner {
             boolean container = parent instanceof XsdComplexType || parent instanceof XsdExtension
                     || parent instanceof XsdRestriction || parent instanceof XsdAttributeGroup;
             return container && isAttributeKind(target) ? null
-                    : "An attribute can only be placed next to another attribute.";
+                    : I18n.t("XsdDropPlanner.attribute-next-to-attribute");
         }
         if (isCompositor(parent) || parent instanceof XsdSchema && dragged.getParent() instanceof XsdSchema) {
-            return isAttributeKind(target) ? "An element cannot be placed among attributes." : null;
+            return isAttributeKind(target) ? I18n.t("XsdDropPlanner.element-among-attributes") : null;
         }
-        return "'" + label(dragged) + "' cannot be placed next to '" + label(target) + "'.";
+        return I18n.t("XsdDropPlanner.cannot-place-next-to", label(dragged), label(target));
     }
 
     private boolean inEditedSchema(XsdNode node) {

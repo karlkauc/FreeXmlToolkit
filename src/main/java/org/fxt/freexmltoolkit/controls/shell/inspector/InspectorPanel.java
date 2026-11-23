@@ -63,7 +63,8 @@ import org.fxt.freexmltoolkit.util.MarkdownSupport;
 public class InspectorPanel extends VBox {
 
     private static final String PLACEHOLDER = "—";
-    private static final String NO_SCHEMA_DOC = "No documentation in the schema";
+    private static final String NO_SCHEMA_DOC = I18n.t("InspectorPanel.no-documentation-in-the-schema");
+    private static final String STANDALONE_OMIT = I18n.t("InspectorPanel.standalone-omit");
 
     private final EditorHost editorHost;
     private final XPathCalculator xpathCalculator = new XPathCalculator();
@@ -379,8 +380,8 @@ public class InspectorPanel extends VBox {
         if (active) {
             favoriteButton.getStyleClass().add("fxt-inspector-star-active");
         }
-        favoriteTooltip.setText(file == null ? "Save the file to add it to Favorites"
-                : active ? "Remove this file from Favorites" : "Add this file to Favorites");
+        favoriteTooltip.setText(file == null ? I18n.t("InspectorPanel.save-the-file-to-add-it-to-favorites")
+                : active ? I18n.t("InspectorPanel.remove-this-file-from-favorites") : I18n.t("InspectorPanel.favoriteTooltip.text"));
     }
 
     /** The star: adds the active file to Favorites, or removes it when it already is one. */
@@ -532,7 +533,7 @@ public class InspectorPanel extends VBox {
         commitOnEnterAndBlur(piTargetField, this::commitPi);
         commitOnEnterAndBlur(piDataField, this::commitPi);
 
-        declStandaloneCombo.getItems().setAll("(omit)", "yes", "no");
+        declStandaloneCombo.getItems().setAll(STANDALONE_OMIT, "yes", "no");
         commitOnEnterAndBlur(declVersionField, this::commitDeclaration);
         commitOnEnterAndBlur(declEncodingField, this::commitDeclaration);
         declStandaloneCombo.valueProperty().addListener((o, was, isNow) -> commitDeclaration());
@@ -825,10 +826,10 @@ public class InspectorPanel extends VBox {
         javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createAlert(
                 javafx.scene.control.Alert.AlertType.CONFIRMATION);
         alert.setTitle(I18n.t("InspectorPanel.change-a-shared-schema-component"));
-        alert.setHeaderText(kind + " \"" + component.getName() + "\" is used in " + uses + " places");
+        alert.setHeaderText(I18n.t("InspectorPanel.component-is-used-in-places", kind, component.getName(), uses));
         alert.setContentText(I18n.t("InspectorPanel.the-change-is-made-in", xmlDeclEdit.decl().schemaFileName()));
         javafx.scene.control.ButtonType change = new javafx.scene.control.ButtonType(
-                "Change " + component.getName(), javafx.scene.control.ButtonBar.ButtonData.OK_DONE);
+                I18n.t("InspectorPanel.change-component", component.getName()), javafx.scene.control.ButtonBar.ButtonData.OK_DONE);
         alert.getButtonTypes().setAll(change, javafx.scene.control.ButtonType.CANCEL);
         if (getScene() != null && getScene().getWindow() != null) {
             alert.initOwner(getScene().getWindow());
@@ -1042,7 +1043,7 @@ public class InspectorPanel extends VBox {
      */
     private void updateNameDisplay() {
         boolean editable = nameField.isEditable();
-        nameField.setPromptText(editable ? "(unnamed)" : "");
+        nameField.setPromptText(editable ? I18n.t("InspectorPanel.unnamed") : "");
         show(nameField, editable);
         show(nodeHeaderName, !editable);
     }
@@ -1087,11 +1088,11 @@ public class InspectorPanel extends VBox {
         showXsdSections(false);
 
         if (node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment comment) {
-            populateContent("Comment", "Comment", comment.getText());
+            populateContent(I18n.t("InspectorPanel.comment"), I18n.t("InspectorPanel.comment"), comment.getText());
         } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlCData cdata) {
             populateContent("CDATA", "CDATA", cdata.getText());
         } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText text) {
-            populateContent("Text", "Text", text.getText());
+            populateContent(I18n.t("InspectorPanel.text-node"), I18n.t("InspectorPanel.text-node"), text.getText());
         } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstruction pi) {
             setHeader(pi.getTarget(), I18n.t("InspectorPanel.processing-instruction"));
             kindValue.setText(I18n.t("InspectorPanel.processing-instruction"));
@@ -1103,7 +1104,7 @@ public class InspectorPanel extends VBox {
             kindValue.setText(I18n.t("InspectorPanel.document"));
             declVersionField.setText(doc.getVersion() == null ? "" : doc.getVersion());
             declEncodingField.setText(doc.getEncoding() == null ? "" : doc.getEncoding());
-            declStandaloneCombo.setValue(doc.getStandalone() == null ? "(omit)"
+            declStandaloneCombo.setValue(doc.getStandalone() == null ? STANDALONE_OMIT
                     : (doc.getStandalone() ? "yes" : "no"));
             show(declarationSection, true);
         } else {
@@ -1129,7 +1130,7 @@ public class InspectorPanel extends VBox {
         nameField.setEditable(false);
         nameField.setText("");
         contentArea.setEditable(true);
-        populateContent("Comment", "Comment", comment.getContent());
+        populateContent(I18n.t("InspectorPanel.comment"), I18n.t("InspectorPanel.comment"), comment.getContent());
         nodeIcon.setIconLiteral("bi-chat-left-text");
         showDepth(info.depth());
         show(typeFacetsSection, false);
@@ -1177,8 +1178,8 @@ public class InspectorPanel extends VBox {
         // A reference takes its type from the referenced declaration (XsdEditRules.changeType)
         boolean typeFromRef = (isElement || isAttribute)
                 && org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.changeType(node, "xs:string").isBlocked();
-        typePicker.setPromptText(typeFromRef ? "(from the referenced declaration)"
-                : PLACEHOLDER.equals(info.type()) ? "(anonymous type)" : "");
+        typePicker.setPromptText(typeFromRef ? I18n.t("InspectorPanel.from-the-referenced-declaration")
+                : PLACEHOLDER.equals(info.type()) ? I18n.t("InspectorPanel.anonymous-type") : "");
         typePicker.setDisable(typeFromRef);
         showRow(typeRow, isElement || isAttribute);
 
@@ -1301,10 +1302,10 @@ public class InspectorPanel extends VBox {
             return target;
         }
         if (!local) {
-            return target == null ? "(no namespace)" : target;
+            return target == null ? I18n.t("InspectorPanel.no-namespace") : target;
         }
         String effective = form != null && !form.isBlank() ? form : formDefault;
-        return target != null && "qualified".equals(effective) ? target : "(no namespace)";
+        return target != null && "qualified".equals(effective) ? target : I18n.t("InspectorPanel.no-namespace");
     }
 
     /**
@@ -1320,7 +1321,7 @@ public class InspectorPanel extends VBox {
         if (!inheritedOnly) {
             return;
         }
-        String type = typeName == null || PLACEHOLDER.equals(typeName) ? "the referenced type" : typeName;
+        String type = typeName == null || PLACEHOLDER.equals(typeName) ? I18n.t("InspectorPanel.the-referenced-type") : typeName;
         XsdNode typeNode = findNamedType(typeName);
         facetHint.setText(I18n.t("InspectorPanel.facets-come-from", type, (typeNode != null ? " – click to edit them there." : ".")));
         facetHint.getStyleClass().remove("fxt-inspector-hint-link");
@@ -1438,7 +1439,7 @@ public class InspectorPanel extends VBox {
             finalField.setText(ct.getFinal() == null ? "" : ct.getFinal());
             mixedCheck.setSelected(ct.isMixed());
         } else if (isSimpleType) {
-            finalField.setText(((org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType) node).isFinal() ? "(set)" : "");
+            finalField.setText(((org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType) node).isFinal() ? I18n.t("InspectorPanel.final-set") : "");
         }
         finalField.setEditable(isComplexType);
         showRow(finalRow, isComplexType || isSimpleType);
@@ -1523,21 +1524,21 @@ public class InspectorPanel extends VBox {
         }
         var attr = editorHost.resolveActiveXmlAttributeInfo(xpath, localName(name)).orElse(null);
         if (attr == null) {
-            return new InspectorKeyValueList.Entry<>(name, name, value, false, "not declared in the schema",
-                    "undeclared", List.of());
+            return new InspectorKeyValueList.Entry<>(name, name, value, false, I18n.t("InspectorPanel.not-declared-in-the-schema"),
+                    I18n.t("InspectorPanel.undeclared"), List.of());
         }
         String type = attr.typeName() == null || attr.typeName().isBlank() ? "" : attr.typeName();
         String badge = (type + (attr.isRequired() ? " *" : "")).trim();
         List<String> notes = new ArrayList<>();
-        notes.add(attr.isRequired() ? "required" : "optional");
+        notes.add(attr.isRequired() ? I18n.t("InspectorPanel.note-required") : I18n.t("InspectorPanel.note-optional"));
         if (!type.isEmpty()) {
-            notes.add("type " + type);
+            notes.add(I18n.t("InspectorPanel.note-type", type));
         }
         if (attr.defaultValue() != null && !attr.defaultValue().isBlank()) {
-            notes.add("default " + attr.defaultValue());
+            notes.add(I18n.t("InspectorPanel.note-default", attr.defaultValue()));
         }
         if (attr.fixedValue() != null && !attr.fixedValue().isBlank()) {
-            notes.add("fixed " + attr.fixedValue());
+            notes.add(I18n.t("InspectorPanel.note-fixed", attr.fixedValue()));
         }
         if (attr.documentation() != null && !attr.documentation().isBlank()) {
             notes.add(htmlToPlainText(attr.documentation()).trim());
@@ -1565,8 +1566,10 @@ public class InspectorPanel extends VBox {
             if (required) {
                 chip.getStyleClass().add("fxt-inspector-chip-required");
             }
-            chip.setTooltip(new javafx.scene.control.Tooltip((required ? "Required" : "Optional")
-                    + " attribute – click to add it" + (initial.isEmpty() ? "" : " with \"" + initial + "\"")));
+            chip.setTooltip(new javafx.scene.control.Tooltip(initial.isEmpty()
+                    ? I18n.t(required ? "InspectorPanel.required-attribute-click" : "InspectorPanel.optional-attribute-click")
+                    : I18n.t(required ? "InspectorPanel.required-attribute-click-with" : "InspectorPanel.optional-attribute-click-with",
+                            initial)));
             chip.setOnAction(e -> editorHost.setActiveXmlAttribute(local, initial));
             missingAttrPane.getChildren().add(chip);
         }
@@ -1586,9 +1589,9 @@ public class InspectorPanel extends VBox {
         boolean hasPrefix = prefix != null && !prefix.isBlank();
         boolean hasUri = uri != null && !uri.isBlank();
         if (hasUri) {
-            return hasPrefix ? prefix + " → " + uri : uri + " (default)";
+            return hasPrefix ? prefix + " → " + uri : I18n.t("InspectorPanel.namespace-default", uri);
         }
-        return hasPrefix ? prefix + " → (unbound)" : "(no namespace)";
+        return hasPrefix ? I18n.t("InspectorPanel.namespace-unbound", prefix) : I18n.t("InspectorPanel.no-namespace");
     }
 
     /** The read-only schema facts of a schema-bound XML element (see {@link #populateXmlNode}). */
@@ -1617,11 +1620,11 @@ public class InspectorPanel extends VBox {
         List<InspectorKeyValueList.Entry<XsdFacet>> facets = new ArrayList<>();
         if (info.facets() != null) {
             info.facets().forEach((name, value) ->
-                    facets.add(new InspectorKeyValueList.Entry<>(null, name, value, true, "defined by the schema")));
+                    facets.add(new InspectorKeyValueList.Entry<>(null, name, value, true, I18n.t("InspectorPanel.defined-by-the-schema"))));
         }
         if (info.enumerationValues() != null) {
             for (String value : info.enumerationValues()) {
-                facets.add(new InspectorKeyValueList.Entry<>(null, "enumeration", value, true, "defined by the schema"));
+                facets.add(new InspectorKeyValueList.Entry<>(null, "enumeration", value, true, I18n.t("InspectorPanel.defined-by-the-schema")));
             }
         }
         facetList.setItems(facets);
@@ -1674,13 +1677,13 @@ public class InspectorPanel extends VBox {
                     result.errorMessage() == null, result.errorMessage()));
         }
         fillChips(exampleValuesPane, examplesBox, editorHost.resolveExampleValues(xpath),
-                "Set as the element's text", editorHost::setActiveXmlElementText, null);
+                I18n.t("InspectorPanel.set-as-the-element-text"), editorHost::setActiveXmlElementText, null);
         fillChips(validChildrenPane, validChildrenBox, editorHost.resolveValidChildren(xpath),
-                "Add as a child element", editorHost::addActiveXmlChildElement,
-                leaf ? null : "None");
+                I18n.t("InspectorPanel.add-as-a-child-element"), editorHost::addActiveXmlChildElement,
+                leaf ? null : I18n.t("InspectorPanel.none"));
         if (el.getParent() instanceof XmlElement parent) {
             String parentType = editorHost.resolveActiveXmlElementInfo(xmlXPath(parent))
-                    .map(i -> i.typeName()).filter(t -> t != null && !t.isBlank()).orElse("element");
+                    .map(i -> i.typeName()).filter(t -> t != null && !t.isBlank()).orElse(I18n.t("InspectorPanel.element-fallback"));
             showUsedIn(List.of(new UsedInEntry(parent.getName(), parentType, XmlNodeIcons.icon(parent), null)));
         }
         if (declaration != null && declaration.editable()) {
@@ -1696,18 +1699,17 @@ public class InspectorPanel extends VBox {
         }
         var located = declaration.located();
         XsdNode decl = located.declaration();
-        StringBuilder text = new StringBuilder("Declared in ").append(declaration.schemaFileName())
-                .append(" · ").append(located.global() ? "global " : "local ")
-                .append(XsdNodeLabels.kindLabel(decl.getNodeType()));
+        StringBuilder text = new StringBuilder(I18n.t(located.global() ? "InspectorPanel.declared-in-global"
+                : "InspectorPanel.declared-in-local", declaration.schemaFileName(), XsdNodeLabels.kindLabel(decl.getNodeType())));
         if (located.particle() != decl) {
-            text.append(" (via ref)");
+            text.append(" (").append(I18n.t("InspectorPanel.via-ref")).append(")");
         }
         if (located.namedType() != null) {
-            text.append(" · type ").append(located.namedType().getName());
+            text.append(" · ").append(I18n.t("InspectorPanel.note-type", located.namedType().getName()));
         }
-        text.append(declaration.editable()
-                ? ". Changes below are made in the schema."
-                : ". " + declaration.readOnlyReason());
+        text.append(". ").append(declaration.editable()
+                ? I18n.t("InspectorPanel.changes-below-are-made-in-the-schema")
+                : declaration.readOnlyReason());
         declarationInfo.setText(text.toString());
         show(declarationBox, true);
     }
@@ -1804,11 +1806,11 @@ public class InspectorPanel extends VBox {
     private void showDocTags(String since, String deprecated) {
         List<String> parts = new ArrayList<>();
         if (since != null && !since.isBlank()) {
-            parts.add("Since " + since.trim());
+            parts.add(I18n.t("InspectorPanel.since", since.trim()));
         }
         boolean isDeprecated = deprecated != null && !deprecated.isBlank();
         if (isDeprecated) {
-            parts.add("Deprecated: " + deprecated.trim());
+            parts.add(I18n.t("InspectorPanel.deprecated", deprecated.trim()));
         }
         xmlDocTagsValue.setText(String.join(" · ", parts));
         xmlDocTagsValue.getStyleClass().remove("fxt-inspector-doc-deprecated");
@@ -1833,7 +1835,7 @@ public class InspectorPanel extends VBox {
         valueCheckBox.getStyleClass().removeAll("fxt-inspector-check-ok", "fxt-inspector-check-warn");
         valueCheckBox.getStyleClass().add(ok ? "fxt-inspector-check-ok" : "fxt-inspector-check-warn");
         valueCheckIcon.setIconLiteral(ok ? "bi-check-circle-fill" : "bi-exclamation-triangle-fill");
-        valueCheckText.setText(ok ? "Value matches the schema facets" : message);
+        valueCheckText.setText(ok ? I18n.t("InspectorPanel.value-matches-the-schema-facets") : message);
         show(valueCheckBox, true);
     }
 
@@ -2188,7 +2190,7 @@ public class InspectorPanel extends VBox {
         for (XsdFacet facet : facets) {
             boolean readOnly = inheritedFacets.contains(facet);
             rows.add(new InspectorKeyValueList.Entry<>(facet, facet.getFacetType().getXmlName(), facet.getValue(),
-                    readOnly, readOnly ? "inherited from the referenced named type" : null));
+                    readOnly, readOnly ? I18n.t("InspectorPanel.inherited-from-the-referenced-named-type") : null));
         }
         facetList.setItems(rows);
     }

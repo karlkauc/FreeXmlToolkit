@@ -191,7 +191,7 @@ public class QueryConsole extends Region {
         // Make explicit which document the query runs against (always the active editor tab).
         target.textProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
                 () -> editorHost.getActiveDocument()
-                        .map(d -> "→ " + d.getDisplayName()).orElse("→ no document"),
+                        .map(d -> "→ " + d.getDisplayName()).orElse(I18n.t("QueryConsole.no-target")),
                 editorHost.activeTabProperty()));
 
         modeGroup.selectedToggleProperty().addListener((obs, oldT, newT) -> {
@@ -210,7 +210,7 @@ public class QueryConsole extends Region {
 
         inputStack.getChildren().addAll(xpathField, xqueryArea);
         xpathField.setPlaceholder(xpathPlaceholder);
-        xqueryArea.setPlaceholder(placeholder("XQuery script, e.g. for $i in //item return string($i/@id)"));
+        xqueryArea.setPlaceholder(placeholder(I18n.t("QueryConsole.xquery-placeholder")));
         xpathField.getStyleClass().addAll("fxt-xpath-field", "fxt-query-input");
         xpathField.setWrapText(true);
         xpathField.setPrefHeight(96);
@@ -322,8 +322,8 @@ public class QueryConsole extends Region {
 
     /** Fills the Examples menu with the built-in XQuery examples (formerly in the Transform panel). */
     private void fillExamplesMenu() {
-        String[][] examples = {{"Simple", "simple"}, {"FLWOR", "flwor"}, {"HTML report", "html"},
-                {"Data-quality check", "dq"}};
+        String[][] examples = {{I18n.t("QueryConsole.example-simple"), "simple"}, {"FLWOR", "flwor"},
+                {I18n.t("QueryConsole.example-html"), "html"}, {I18n.t("QueryConsole.example-dq"), "dq"}};
         for (String[] example : examples) {
             MenuItem item = new MenuItem(example[0], snippetIcon(true));
             item.setOnAction(e -> {
@@ -407,10 +407,10 @@ public class QueryConsole extends Region {
     private void updateModeTexts() {
         String mode = modeName();
         runButton.setText(I18n.t("QueryConsole.run", mode));
-        runHint.setText(mode + " mode · Ctrl+Enter runs the query · Enter adds a line");
+        runHint.setText(I18n.t("QueryConsole.mode-hint", mode));
         xpathPlaceholder.setText(isJsonActive()
-                ? "JSONPath expression, e.g. $.items[0].id"
-                : "XPath expression, e.g. //item[@id = '1']");
+                ? I18n.t("QueryConsole.jsonpath-placeholder")
+                : I18n.t("QueryConsole.xpath-placeholder"));
     }
 
     private static Label placeholder(String text) {
@@ -428,9 +428,9 @@ public class QueryConsole extends Region {
         if (noDoc) {
             // Only hint when nothing has been shown yet — never clobber a real result.
             if (resultsArea.getText() == null || resultsArea.getText().isBlank()) {
-                setResultsText("No document open.");
+                setResultsText(I18n.t("QueryConsole.no-document"));
             }
-        } else if ("No document open.".equals(resultsArea.getText())) {
+        } else if (I18n.t("QueryConsole.no-document").equals(resultsArea.getText())) {
             // A document is now open — clear the stale startup hint.
             setResultsText("");
         }
@@ -555,7 +555,7 @@ public class QueryConsole extends Region {
      */
     private void runXPath() {
         if (editorHost.getActiveDocument().isEmpty()) {
-            setResultsText("No document open.");
+            setResultsText(I18n.t("QueryConsole.no-document"));
             return;
         }
         String content = editorHost.getActiveText().orElse("");
@@ -567,7 +567,7 @@ public class QueryConsole extends Region {
         boolean yaml = isYamlActive();
         var version = xpathVersion();
         String baseUri = activeBaseUri();
-        setResultsText("Running…");
+        setResultsText(I18n.t("QueryConsole.running"));
         hits.clear();
         String revision = editorHost.activeRevisionKey();
         final int gen = ++runGeneration;
@@ -807,7 +807,7 @@ public class QueryConsole extends Region {
      */
     private void runXQuery() {
         if (editorHost.getActiveDocument().isEmpty()) {
-            setResultsText("No document open.");
+            setResultsText(I18n.t("QueryConsole.no-document"));
             return;
         }
         String xquery = xqueryArea.getText();
@@ -826,7 +826,7 @@ public class QueryConsole extends Region {
             setResultsText("ERROR: " + I18n.t("QueryConsole.variables.missing", String.join(", ", missing)));
             return;
         }
-        setResultsText("Running…");
+        setResultsText(I18n.t("QueryConsole.running"));
         hits.clear();
         String revision = editorHost.activeRevisionKey();
         final int gen = ++runGeneration;
@@ -1002,8 +1002,8 @@ public class QueryConsole extends Region {
             return;
         }
         statsLabel.setText(result != null && result.startsWith("ERROR")
-                ? elapsedMs + " ms · error"
-                : elapsedMs + " ms · " + (result == null ? 0 : result.length()) + " chars");
+                ? I18n.t("QueryConsole.stats-error", String.valueOf(elapsedMs))
+                : I18n.t("QueryConsole.stats", String.valueOf(elapsedMs), String.valueOf(result == null ? 0 : result.length())));
     }
 
     /** @return the RESULTS header statistics text (for tests/observers). */
@@ -1028,15 +1028,15 @@ public class QueryConsole extends Region {
     public void saveResults() {
         String text = resultsArea.getText();
         if (text == null || text.isBlank()) {
-            setResultsText("Run a query first — there is nothing to save.");
+            setResultsText(I18n.t("QueryConsole.nothing-to-save"));
             return;
         }
         FileChooser chooser = new FileChooser();
         chooser.setTitle(I18n.t("QueryConsole.save-results"));
         chooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Text (*.txt)", "*.txt"),
+                new FileChooser.ExtensionFilter(I18n.t("QueryConsole.filter-text"), "*.txt"),
                 new FileChooser.ExtensionFilter("XML (*.xml)", "*.xml"),
-                new FileChooser.ExtensionFilter("All Files (*.*)", "*.*"));
+                new FileChooser.ExtensionFilter(I18n.t("QueryConsole.filter-all"), "*.*"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getScene() == null ? null : getScene().getWindow());
         if (file != null && saveResultsToFile(file)) {
             ExportResult.saved(getScene() == null ? null : getScene().getWindow(), I18n.t("QueryConsole.what"), file);
@@ -1056,7 +1056,7 @@ public class QueryConsole extends Region {
             Files.writeString(file.toPath(), text, StandardCharsets.UTF_8);
             return true;
         } catch (Exception e) {
-            setResultsText("Could not save results: " + e.getMessage());
+            setResultsText(I18n.t("QueryConsole.save-failed", e.getMessage()));
             return false;
         }
     }
@@ -1211,13 +1211,13 @@ public class QueryConsole extends Region {
     public void saveSnippet() {
         String expression = currentExpression();
         if (expression == null || expression.isBlank()) {
-            setResultsText("Enter a query to save.");
+            setResultsText(I18n.t("QueryConsole.enter-query"));
             return;
         }
         TextInputDialog dialog = DialogHelper.createTextInputDialog("");
-        dialog.setTitle("Save Snippet");
+        dialog.setTitle(I18n.t("QueryConsole.save-snippet"));
         dialog.setHeaderText(dialog.getTitle());
-        dialog.setContentText("Snippet name:");
+        dialog.setContentText(I18n.t("QueryConsole.snippet-name"));
         dialog.showAndWait().ifPresent(name -> {
             if (name.isBlank()) {
                 return;
@@ -1239,7 +1239,8 @@ public class QueryConsole extends Region {
         File saved = isXQueryMode()
                 ? favorites.saveXQueryQuery(name, xqueryArea.getText())
                 : favorites.saveXPathQuery(name, xpathField.getText());
-        setResultsText(saved != null ? "Saved snippet: " + saved.getName() : "Could not save snippet.");
+        setResultsText(saved != null ? I18n.t("QueryConsole.snippet-saved", saved.getName())
+                : I18n.t("QueryConsole.snippet-save-failed"));
         return saved;
     }
 
@@ -1261,17 +1262,17 @@ public class QueryConsole extends Region {
      */
     boolean deleteSnippetForTest(File file) {
         boolean deleted = FavoritesService.getInstance().deleteQuery(file);
-        setResultsText(deleted ? "Deleted snippet: " + file.getName()
-                : "Could not delete snippet: " + file.getName());
+        setResultsText(deleted ? I18n.t("QueryConsole.snippet-deleted", file.getName())
+                : I18n.t("QueryConsole.snippet-delete-failed", file.getName()));
         return deleted;
     }
 
     /** Prompts for a new name (prefilled with the current one) and renames the snippet file. */
     private void renameSnippet(File file, boolean xquery) {
         TextInputDialog dialog = DialogHelper.createTextInputDialog(snippetDisplayName(file, xquery));
-        dialog.setTitle("Rename Snippet");
+        dialog.setTitle(I18n.t("QueryConsole.rename-snippet"));
         dialog.setHeaderText(dialog.getTitle());
-        dialog.setContentText("New name:");
+        dialog.setContentText(I18n.t("QueryConsole.new-name"));
         dialog.showAndWait().ifPresent(name -> {
             if (!name.isBlank()) {
                 renameSnippetForTest(file, name.trim());
@@ -1292,12 +1293,12 @@ public class QueryConsole extends Region {
         File target = new File(file.getParentFile(),
                 FavoritesService.sanitizeQueryFileName(newName, extension));
         if (target.exists() && !target.equals(file)) {
-            setResultsText("A snippet named '" + target.getName() + "' already exists.");
+            setResultsText(I18n.t("QueryConsole.snippet-exists", target.getName()));
             return null;
         }
         File renamed = FavoritesService.getInstance().renameQuery(file, newName);
-        setResultsText(renamed != null ? "Renamed snippet to: " + renamed.getName()
-                : "Could not rename snippet: " + file.getName());
+        setResultsText(renamed != null ? I18n.t("QueryConsole.snippet-renamed", renamed.getName())
+                : I18n.t("QueryConsole.snippet-rename-failed", file.getName()));
         return renamed;
     }
 
@@ -1305,8 +1306,7 @@ public class QueryConsole extends Region {
     private void overwriteSnippet(File file, boolean xquery) {
         String expression = xquery ? xqueryArea.getText() : xpathField.getText();
         if (expression == null || expression.isBlank()) {
-            setResultsText("The " + (xquery ? "XQuery" : "XPath")
-                    + " input is empty — nothing to overwrite with.");
+            setResultsText(I18n.t("QueryConsole.input-empty", xquery ? "XQuery" : "XPath"));
             return;
         }
         if (DialogHelper.showConfirmation(I18n.t("QueryConsole.overwrite-snippet"),
@@ -1328,16 +1328,15 @@ public class QueryConsole extends Region {
     File overwriteSnippetForTest(File file, boolean xquery) {
         String expression = xquery ? xqueryArea.getText() : xpathField.getText();
         if (expression == null || expression.isBlank()) {
-            setResultsText("The " + (xquery ? "XQuery" : "XPath")
-                    + " input is empty — nothing to overwrite with.");
+            setResultsText(I18n.t("QueryConsole.input-empty", xquery ? "XQuery" : "XPath"));
             return null;
         }
         String name = snippetDisplayName(file, xquery);
         FavoritesService favorites = FavoritesService.getInstance();
         File saved = xquery ? favorites.saveXQueryQuery(name, expression)
                 : favorites.saveXPathQuery(name, expression);
-        setResultsText(saved != null ? "Overwrote snippet: " + saved.getName()
-                : "Could not overwrite snippet.");
+        setResultsText(saved != null ? I18n.t("QueryConsole.snippet-overwritten", saved.getName())
+                : I18n.t("QueryConsole.snippet-overwrite-failed"));
         return saved;
     }
 
@@ -1494,7 +1493,7 @@ public class QueryConsole extends Region {
                 setText(xpathField, content);
             }
         } catch (Exception e) {
-            setResultsText("Could not load snippet: " + e.getMessage());
+            setResultsText(I18n.t("QueryConsole.snippet-load-failed", e.getMessage()));
         }
     }
 

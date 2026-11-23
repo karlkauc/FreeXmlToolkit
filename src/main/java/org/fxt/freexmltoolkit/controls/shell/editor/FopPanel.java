@@ -72,7 +72,7 @@ public class FopPanel extends VBox {
 
         xmlFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XML,
-                "XML favorites", this::pickXml);
+                I18n.t("FopPanel.xml-favorites"), this::pickXml);
         xmlRow.addExtras(xmlFavoritesMenu);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xmlRow,
                 org.fxt.freexmltoolkit.service.DragDropService.XML_EXTENSIONS, this::pickXml);
@@ -81,7 +81,7 @@ public class FopPanel extends VBox {
 
         xslFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XSLT,
-                "XSLT favorites", this::pickXsl);
+                I18n.t("FopPanel.xslt-favorites"), this::pickXsl);
         xslRow.addExtras(xslFavoritesMenu);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xslRow,
                 org.fxt.freexmltoolkit.service.DragDropService.XSLT_EXTENSIONS, this::pickXsl);
@@ -289,7 +289,8 @@ public class FopPanel extends VBox {
         showFoButton.setDisable(false);
         messagesButton.setDisable(false);
         messagesButton.setText(lastResult.hasNotes()
-                ? "Messages & events (" + lastResult.messages().size() + ")" : "Messages & events");
+                ? I18n.t("FopPanel.messages-and-events-count", lastResult.messages().size())
+                : I18n.t("FopPanel.messagesButton.text"));
         renderFoButton.setDisable(false);
         PanelStatus.info(status, I18n.t("FopPanel.debug-run-finished-fo-in", result.getExecutionTime()));
     }
@@ -340,7 +341,7 @@ public class FopPanel extends VBox {
                     // fop_pdf already carries the failure; the dialog must not report it a second time.
                     PanelStatus.failure(status, I18n.t("FopPanel.pdf-generation-failed"), I18n.t("FopPanel.pdf-generation-failed-2"),
                             I18n.t("FopPanel.fop-rejected-the-fo-document"), PanelStatus.strip(outcome.asText()), false);
-                    editorHost.transformOutputPanel().showMessages("PDF / FOP · rendering failed",
+                    editorHost.transformOutputPanel().showMessages(I18n.t("FopPanel.pdf-fop-rendering-failed"),
                             PanelStatus.strip(outcome.asText()) + "\n\n" + lastResult.notesText());
                 }
             });
@@ -362,9 +363,11 @@ public class FopPanel extends VBox {
         if (lastResult == null) {
             return;
         }
-        String title = "PDF / FOP · " + lastResult.messages().size() + " message"
-                + (lastResult.messages().size() == 1 ? "" : "s") + " · " + lastResult.events().size()
-                + " FOP event" + (lastResult.events().size() == 1 ? "" : "s");
+        String messages = lastResult.messages().size() == 1 ? I18n.t("FopPanel.one-message")
+                : I18n.t("FopPanel.messages-count", lastResult.messages().size());
+        String events = lastResult.events().size() == 1 ? I18n.t("FopPanel.one-fop-event")
+                : I18n.t("FopPanel.fop-events-count", lastResult.events().size());
+        String title = I18n.t("FopPanel.messages-title", messages, events);
         editorHost.transformOutputPanel().showMessages(title, lastResult.notesText());
     }
 
@@ -457,11 +460,11 @@ public class FopPanel extends VBox {
                 renderFoButton.setDisable(outcome.foXml() == null);
                 messagesButton.setDisable(false);
                 messagesButton.setText(outcome.hasNotes()
-                        ? "Messages & events (" + (outcome.messages().size() + outcome.events().size()) + ")"
-                        : "Messages & events");
+                        ? I18n.t("FopPanel.messages-and-events-count", outcome.messages().size() + outcome.events().size())
+                        : I18n.t("FopPanel.messagesButton.text"));
                 if (outcome.ok()) {
                     long warnings = outcome.warningCount();
-                    PanelStatus.success(status, I18n.t("FopPanel.generated-2", pdfOutput.getName(), (showStats ? " · " + elapsedMs + " ms" : ""), (warnings > 0 ? " · " + warnings + " FOP warning" + (warnings == 1 ? "" : "s") : "")));
+                    PanelStatus.success(status, I18n.t("FopPanel.generated-2", pdfOutput.getName(), (showStats ? " · " + elapsedMs + " ms" : ""), (warnings > 0 ? " · " + (warnings == 1 ? I18n.t("FopPanel.one-fop-warning") : I18n.t("FopPanel.fop-warnings-count", warnings)) : "")));
                     lastPdf = pdfOutput;
                     openButton.setDisable(false);
                     previewButton.setDisable(false);
@@ -473,7 +476,7 @@ public class FopPanel extends VBox {
                             I18n.t("FopPanel.check-that-the-xml-and"),
                             PanelStatus.strip(result), false);
                     // The details (stylesheet error with its location, FOP's reason) go to OUTPUT.
-                    editorHost.transformOutputPanel().showMessages("PDF / FOP · generation failed",
+                    editorHost.transformOutputPanel().showMessages(I18n.t("FopPanel.pdf-fop-generation-failed"),
                             PanelStatus.strip(result) + "\n\n" + outcome.notesText());
                 }
             });
@@ -552,7 +555,8 @@ public class FopPanel extends VBox {
         }
         var active = editorHost.getActiveDocument();
         xmlRow.showName(active.map(OpenDocument::getDisplayName).orElse(null),
-                active.map(d -> d.getPath() != null ? d.getPath().toString() + " (active document)" : "Active document (unsaved)")
+                active.map(d -> d.getPath() != null ? I18n.t("FopPanel.active-document-path", d.getPath().toString())
+                                : I18n.t("FopPanel.active-document-unsaved"))
                         .orElse(null));
     }
 
