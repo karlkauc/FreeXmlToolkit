@@ -72,6 +72,8 @@ public final class StartTagLayout {
      * text the document was just parsed from. Start tags and elements are paired in document order;
      * at the first tag whose name differs from its element's (an entity that expanded into
      * elements, say) the pairing stops and the remaining elements keep the plain layout.
+     * <p>
+     * The document type declaration is taken over as written too ({@link XmlDocument#setDoctype}).
      */
     public static void capture(XmlDocument document, CharSequence text) {
         if (document == null || text == null) {
@@ -80,7 +82,12 @@ public final class StartTagLayout {
         Deque<XmlNode> pending = new ArrayDeque<>();
         pushReversed(pending, document.getChildren());
         Scanner scanner = new Scanner(text);
+        boolean first = true;
         while (scanner.nextStartTag()) {
+            if (first) {
+                first = false;
+                takeDoctype(document, scanner);
+            }
             XmlElement element = nextElement(pending);
             if (element == null || !element.getQualifiedName().equals(scanner.tagName)) {
                 return;
@@ -89,6 +96,31 @@ public final class StartTagLayout {
                 element.setStartTagLayout(new StartTagLayout(scanner.attributeNames.toArray(String[]::new),
                         scanner.whitespace.toArray(String[]::new), scanner.beforeClose, scanner.lineIndent));
             }
+        }
+        if (first) {
+            takeDoctype(document, scanner);
+        }
+    }
+
+    /**
+     * Gives {@code document} the document type declaration of {@code prolog}, the start of the text
+     * it was parsed from (a stream's first bytes). Taken only when the prolog reaches the root's
+     * start tag, so a cut-off declaration is never kept.
+     */
+    public static void captureDoctype(XmlDocument document, CharSequence prolog) {
+        if (document == null || prolog == null) {
+            return;
+        }
+        Scanner scanner = new Scanner(prolog);
+        if (scanner.nextStartTag()) {
+            takeDoctype(document, scanner);
+        }
+    }
+
+    /** The doctype as the source text has it (the DOM parser's is rebuilt from its parts). */
+    private static void takeDoctype(XmlDocument document, Scanner scanner) {
+        if (scanner.doctype != null) {
+            document.setDoctype(scanner.doctype, scanner.doctypePosition);
         }
     }
 
@@ -111,7 +143,7 @@ public final class StartTagLayout {
         }
     }
 
-    /** Finds the start tags of a text in order, skipping comments, CDATA, instructions and the DOCTYPE. */
+    /** Finds the start tags of a text in order, skipping comments, CDATA, instructions and the DOCTYPE (kept as text). */
     private static final class Scanner {
 
         private final CharSequence text;
@@ -124,6 +156,12 @@ public final class StartTagLayout {
         String beforeClose;
         String lineIndent;
         boolean irregular;
+        /** The {@code <!DOCTYPE …>} before the first start tag, as written, or null. */
+        String doctype;
+        /** How many comments and processing instructions came before {@link #doctype}. */
+        int doctypePosition;
+        private int prologNodes;
+        private boolean inProlog = true;
 
         Scanner(CharSequence text) {
             this.text = text;
@@ -137,16 +175,26 @@ public final class StartTagLayout {
                     continue;
                 }
                 if (startsWith("<!--")) {
+                    prologNodes++;
                     skipPast("-->");
                 } else if (startsWith("<![CDATA[")) {
                     skipPast("]]>");
                 } else if (startsWith("<?")) {
+                    if (!isXmlDeclaration()) {
+                        prologNodes++;
+                    }
                     skipPast("?>");
                 } else if (startsWith("<!")) {
+                    int start = pos;
                     skipDeclaration();
+                    if (inProlog && doctype == null && startsWith(start, "<!DOCTYPE")) {
+                        doctype = text.subSequence(start, pos).toString();
+                        doctypePosition = prologNodes;
+                    }
                 } else if (startsWith("</")) {
                     skipPast(">");
                 } else {
+                    inProlog = false;
                     return readStartTag();
                 }
             }
@@ -232,12 +280,22 @@ public final class StartTagLayout {
             }
         }
 
+        /** {@code <?xml version=…?>}, not an instruction such as {@code <?xml-stylesheet …?>} */
+        private boolean isXmlDeclaration() {
+            return startsWith("<?xml") && pos + 5 < length
+                    && (isWhitespace(text.charAt(pos + 5)) || text.charAt(pos + 5) == '?');
+        }
+
         private boolean startsWith(String prefix) {
-            if (pos + prefix.length() > length) {
+            return startsWith(pos, prefix);
+        }
+
+        private boolean startsWith(int at, String prefix) {
+            if (at + prefix.length() > length) {
                 return false;
             }
             for (int i = 0; i < prefix.length(); i++) {
-                if (text.charAt(pos + i) != prefix.charAt(i)) {
+                if (text.charAt(at + i) != prefix.charAt(i)) {
                     return false;
                 }
             }

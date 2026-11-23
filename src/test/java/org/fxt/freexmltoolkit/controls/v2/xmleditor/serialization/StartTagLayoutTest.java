@@ -2,7 +2,6 @@ package org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -52,12 +51,38 @@ class StartTagLayoutTest {
         assertEquals(xml, parse(xml).serialize(0, 4));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "<!DOCTYPE root [\n  <!ELEMENT root ANY>\n  <!ATTLIST root a CDATA #IMPLIED>\n  <!-- <fake> -->\n]>\n"
+                    + "<root a=\"1\"\n      b=\"2\"/>\n",
+            "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\"\n"
+                    + "  \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n<html/>\n",
+            "<!-- before -->\n<?xml-stylesheet href=\"a.xsl\"?>\n<!DOCTYPE root>\n<!-- after -->\n<root/>\n",
+    })
+    void theDoctypeIsKeptAsWritten(String body) {
+        String xml = HEAD + body;
+        assertEquals(xml, parse(xml).serialize(0, 4));
+        assertEquals(xml, new XmlParser().parse(xml).serialize(0, 4), "DOM parser");
+    }
+
     @Test
-    void anInternalDtdSubsetIsSkipped() {
-        // the model does not keep the DOCTYPE itself; the tags inside it must not be taken for elements
-        String xml = HEAD + "<!DOCTYPE root [\n  <!ELEMENT root ANY>\n  <!ATTLIST root a CDATA #IMPLIED>\n]>\n"
-                + "<root a=\"1\"\n      b=\"2\"/>\n";
-        assertTrue(parse(xml).serialize(0, 4).endsWith("<root a=\"1\"\n      b=\"2\"/>\n"));
+    void anEditKeepsTheDoctypeAndALineRecorderCountsItsLines() {
+        String xml = HEAD + "<!DOCTYPE order [\n  <!ELEMENT order ANY>\n]>\n<order id=\"1\">\n    <item/>\n</order>\n";
+        XmlDocument doc = parse(xml);
+        doc.getRootElement().setAttribute("id", "2");
+        LineRecorder lines = new LineRecorder();
+        assertEquals(xml.replace("id=\"1\"", "id=\"2\""), doc.serialize(4, lines));
+        lines.apply();
+        assertEquals(5, doc.getRootElement().getSourceLineNumber());
+        assertEquals(xml, ((XmlDocument) parse(xml).deepCopy(null)).serialize(0, 4), "a copy keeps it");
+    }
+
+    @Test
+    void aStreamParseKeepsTheDoctypeToo() throws Exception {
+        String xml = HEAD + "<!DOCTYPE root SYSTEM \"root.dtd\">\n<root/>\n";
+        XmlDocument doc = new StreamingXmlParser().parse(
+                new java.io.ByteArrayInputStream(xml.getBytes(java.nio.charset.StandardCharsets.UTF_8)), null);
+        assertEquals(xml, doc.serialize(0, 4));
     }
 
     @Test

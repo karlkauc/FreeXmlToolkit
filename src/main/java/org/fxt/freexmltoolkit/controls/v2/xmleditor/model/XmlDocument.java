@@ -54,6 +54,15 @@ public class XmlDocument extends XmlNode {
     private Boolean standalone;
 
     /**
+     * The document type declaration as it was written ({@code <!DOCTYPE …>}, internal subset
+     * included), or {@code null}. Kept as text: the model has no node for it.
+     */
+    private String doctype;
+
+    /** How many document children (comments, instructions) come before the {@link #doctype}. */
+    private int doctypePosition;
+
+    /**
      * Document children (root element, processing instructions, comments).
      */
     private final List<XmlNode> children = new ArrayList<>();
@@ -75,6 +84,8 @@ public class XmlDocument extends XmlNode {
         this.version = original.version;
         this.encoding = original.encoding;
         this.standalone = original.standalone;
+        this.doctype = original.doctype;
+        this.doctypePosition = original.doctypePosition;
         // Children copied by deepCopy() method
     }
 
@@ -141,6 +152,34 @@ public class XmlDocument extends XmlNode {
         Boolean oldStandalone = this.standalone;
         this.standalone = standalone;
         firePropertyChange("standalone", oldStandalone, standalone);
+    }
+
+    /**
+     * @return the document type declaration as written ({@code <!DOCTYPE …>}), or {@code null}
+     */
+    public String getDoctype() {
+        return doctype;
+    }
+
+    /**
+     * @return how many document children (comments, processing instructions) precede the doctype
+     */
+    public int getDoctypePosition() {
+        return doctypePosition;
+    }
+
+    /**
+     * Sets the document type declaration. Fires a "doctype" property change event.
+     *
+     * @param doctype  the declaration as written ({@code <!DOCTYPE …>}), or {@code null} for none
+     * @param position how many document children (comments, processing instructions) precede it;
+     *                 it is always written before the root element
+     */
+    public void setDoctype(String doctype, int position) {
+        String old = this.doctype;
+        this.doctype = doctype;
+        this.doctypePosition = Math.max(0, position);
+        firePropertyChange("doctype", old, doctype);
     }
 
     // ==================== Children Management ====================
@@ -338,16 +377,39 @@ public class XmlDocument extends XmlNode {
         }
         sb.append("?>\n");
 
-        // Serialize all children
-        for (XmlNode child : children) {
+        // Serialize all children; the doctype goes at its place, at the latest before the root element
+        int doctypeAt = doctypeIndex();
+        for (int i = 0; i < children.size(); i++) {
+            if (i == doctypeAt) {
+                sb.append(doctype).append('\n');
+            }
+            XmlNode child = children.get(i);
             child.serializeTo(sb, 0, indentSize, lines);
             if (child.getNodeType() != XmlNodeType.TEXT) {
                 sb.append("\n");
             }
         }
 
+        if (doctypeAt == children.size()) {
+            sb.append(doctype).append('\n');
+        }
+
         lastSerializedLength = sb.length();
         return sb.toString();
+    }
+
+    /** @return the child index the doctype is written before, or -1 without a doctype */
+    private int doctypeIndex() {
+        if (doctype == null) {
+            return -1;
+        }
+        int at = Math.min(doctypePosition, children.size());
+        for (int i = 0; i < at; i++) {
+            if (children.get(i) instanceof XmlElement) {
+                return i;
+            }
+        }
+        return at;
     }
 
     @Override

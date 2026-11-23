@@ -22,6 +22,7 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
+import org.w3c.dom.DocumentType;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -179,6 +180,11 @@ public class XmlParser {
         NodeList children = domDoc.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node domNode = children.item(i);
+            if (domNode instanceof DocumentType type) {
+                // parse(String) replaces it with the source text (StartTagLayout.capture)
+                xmlDoc.setDoctype(doctypeText(type), xmlDoc.getChildCount());
+                continue;
+            }
             XmlNode xmlNode = convertDomNodeToModel(domNode);
             if (xmlNode != null) {
                 if (xmlNode instanceof XmlElement) {
@@ -190,6 +196,21 @@ public class XmlParser {
         }
 
         return xmlDoc;
+    }
+
+    /** Rebuilds a {@code <!DOCTYPE …>} from its DOM node (the source text is not available here). */
+    private static String doctypeText(DocumentType type) {
+        StringBuilder sb = new StringBuilder("<!DOCTYPE ").append(type.getName());
+        if (type.getPublicId() != null) {
+            sb.append(" PUBLIC \"").append(type.getPublicId()).append("\" \"")
+                    .append(type.getSystemId() == null ? "" : type.getSystemId()).append('"');
+        } else if (type.getSystemId() != null) {
+            sb.append(" SYSTEM \"").append(type.getSystemId()).append('"');
+        }
+        if (type.getInternalSubset() != null && !type.getInternalSubset().isBlank()) {
+            sb.append(" [").append(type.getInternalSubset()).append(']');
+        }
+        return sb.append('>').toString();
     }
 
     /**

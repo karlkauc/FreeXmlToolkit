@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -101,11 +102,34 @@ public class StreamingXmlParser {
         try {
             XMLInputFactory factory = SecureXmlFactory.createSecureXMLInputFactory();
             factory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, namespaceAware);
-            XMLStreamReader streamReader = factory.createXMLStreamReader(systemId, is);
-            return parseFromStream(streamReader);
+            // The secure reader reports no DTD event: the doctype is read from the stream's start
+            BufferedInputStream in = new BufferedInputStream(is, PROLOG_BYTES);
+            in.mark(PROLOG_BYTES);
+            byte[] prolog = in.readNBytes(PROLOG_BYTES);
+            in.reset();
+            XMLStreamReader streamReader = factory.createXMLStreamReader(systemId, in);
+            XmlDocument document = parseFromStream(streamReader);
+            org.fxt.freexmltoolkit.controls.v2.xmleditor.model.StartTagLayout.captureDoctype(document,
+                    decode(prolog, document.getEncoding()));
+            return document;
+        } catch (IOException e) {
+            throw new XmlParser.XmlParseException("Failed to read XML from stream", e);
         } catch (XMLStreamException e) {
             throw new XmlParser.XmlParseException("Failed to parse XML from stream", e);
         }
+    }
+
+    /** The doctype is looked for in this many bytes at the start of a stream. */
+    private static final int PROLOG_BYTES = 64 * 1024;
+
+    private static String decode(byte[] bytes, String encoding) {
+        java.nio.charset.Charset charset;
+        try {
+            charset = encoding == null ? java.nio.charset.StandardCharsets.UTF_8 : java.nio.charset.Charset.forName(encoding);
+        } catch (IllegalArgumentException e) {
+            charset = java.nio.charset.StandardCharsets.UTF_8;
+        }
+        return new String(bytes, charset);
     }
 
     private static final int MAX_SHARED_LENGTH = 32;
@@ -260,6 +284,7 @@ public class StreamingXmlParser {
                             currentState.element.addChild(pi);
                         }
                         break;
+
                     default:
                         break;
                 }
