@@ -302,3 +302,13 @@ XSLT documents are also **checked while you type**: a pause compiles the stylesh
 its includes and imports), wavy-underlines the errors in the text and lists them - and the warnings - in the
 **PROBLEMS** panel (source *XSLT*; an error in a module names the module). Stylesheets over 2 MB are not checked;
 the setting `xslt.liveCheck=false` turns it off.
+
+## See also
+
+- [Run a transformation](../guides/transform-query/run-xslt.md) - the steps from stylesheet to result, parameters, batch runs
+- [Debugger](../guides/transform-query/debug.md) and [Profile a transformation](../guides/transform-query/profile.md)
+- [Test with XSpec](../guides/transform-query/xspec.md) - test suites for stylesheets
+- [XProc pipelines](../guides/transform-query/xproc.md) - run `.xpl` pipelines
+- [External XSLT processors](../guides/transform-query/external-processors.md)
+- [XSLT and XQuery examples](../guides/transform-query/examples.md) - patterns to copy
+- [Projects & scenarios](../guides/projects.md) - keep a transformation with its input and output

@@ -51,13 +51,13 @@ Release highlights of the 2.x versions. The current release is on [What's new](w
   URL…**, **Compare files…**, **Spreadsheet Converter…** and **Generate XSD from XML files…**.
   Compare and Generate XSD use the files selected in the workspace tree (two selected files are
   compared with each other); the tree's context menu adds **Compare Selected Files** and
-  **Generate XSD from Selected**. See [Unified Shell](workspace.md#explorer-panel).
+  **Generate XSD from Selected**. See [Explorer panel](workspace.md#explorer-panel).
 - **Query Console:** a close button (**✕**) at the top right, and the **XPath | XQuery** mode is
   a clear switch; the active mode is also named on the **Run** button (*Run XPath* / *Run
   XQuery*) and in the hint below the input. See [Query Console](../guides/transform-query/query-console.md#query-console).
 - **Side panels** are collapsed and re-opened only with the editor toolbar's toggle buttons
   (or Ctrl+L / Ctrl+Shift+P), and collapsing one no longer changes the width of the other. See
-  [Unified Shell](../get-started/workspace-tour.md#collapsing-the-side-panels).
+  [Collapsing the side panels](../get-started/workspace-tour.md#collapsing-the-side-panels).
 - **Fixes:** the grid's scroll bars can be dragged when the content is less than twice the
   height of the view; in the XSD documentation, nested compositor symbols are centred over
   their children.

@@ -8,7 +8,7 @@ number of unused types and - when unused components drag further components alon
 of the unreachable set; **Refresh** re-runs the analysis, and opening the tool again while the
 tab is already open re-analyzes the active document instead of adding a second tab.
 
-![Schema analysis in the Unified Shell](../../img/unified-shell-schema-statistics.png)
+![Schema analysis](../../img/unified-shell-schema-statistics.png)
 *The Schema Analysis tool tab with its five sub-tabs, opened from the Schema activity*
 
 Every finding is a link into the schema: selecting a row, an unused type, a usage location or

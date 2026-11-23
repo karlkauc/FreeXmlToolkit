@@ -49,7 +49,8 @@ Configure the proxy under **Settings → Network & Security → HTTP PROXY**: *S
 authentication (user and password, or the Windows account via NTLM/Kerberos). **Test Connection**
 checks an address with the values shown. Every connection of the application uses these
 settings - schema and catalog downloads, updates, FundsXML, telemetry, JSON Schema `$ref`s,
-XProc and HTML previews. See [Settings](settings.md).
+XProc and HTML previews. See [Updates and network access](../administer/updates-and-network.md#network)
+for every option and [Settings](settings.md).
 
 ### Can I use FreeXmlToolkit offline?
 
@@ -136,7 +137,8 @@ disable both centrally - see [Privacy & Telemetry](../administer/privacy-telemet
 **Help → Check for Updates…** (on macOS in the application menu) looks for a newer version;
 the update check at startup can be switched off under **Settings → Network & Security →
 UPDATES**. Installations from Scoop or Homebrew are updated with the package manager - see
-[Installation](../get-started/install.md#updates).
+[Installation](../get-started/install.md#updates). What happens on each platform when an
+update is installed: [Updates and network access](../administer/updates-and-network.md#updates).
 
 ### Which version am I running, and what changed?
 
@@ -145,7 +147,7 @@ the highlights of every release.
 
 ### Where did the XSD Editor / XSLT Viewer / … tabs go?
 
-The former per-tool tabs were replaced by the Unified Shell - see
+The former per-tool tabs were replaced by the single workspace window - see
 [Where the former tabs went](#where-the-former-tabs-went).
 
 ### Ctrl+Shift+F no longer formats my document
@@ -155,12 +157,12 @@ is now **Shift+Alt+F**. See [Keyboard Shortcuts](keyboard-shortcuts.md).
 
 ## Where the former tabs went
 
-The Unified Shell consolidates what used to be separate sidebar tabs. The earlier
+The single workspace window consolidates what used to be separate sidebar tabs. The earlier
 standalone editors - XSD Editor, XSD Validation, JSON Editor, XSLT Viewer, Schematron,
 Schema Generator, Digital Signatures and FOP/PDF - have been **retired** and their
-functionality now lives in the shell:
+functionality now lives in the workspace:
 
-| Former tab | Now in the shell |
+| Former tab | Now in the workspace |
 |------------|------------------|
 | XSD Editor / Tools | Open an `.xsd`: Text/Tree/Graphic views + inspector; **Schema** activity (Type Library panel) for type editing, documentation, flatten and schema analysis |
 | XSD Validation | **Validation** activity (single + batch, XSD & Schematron) |

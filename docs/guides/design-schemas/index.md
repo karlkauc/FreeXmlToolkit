@@ -13,6 +13,7 @@ the same undo history, whichever view you make it in.
 | Edit the source, and schema properties from any view | [Text view](text-view.md) |
 | Statistics, unused types, quality checks, identity constraints | [Schema analysis](analysis.md) |
 | HTML, Word or PDF documentation of a schema | [Generate schema documentation](documentation.md) |
+| A first draft of a schema from an XML document | [Generate a schema from XML](generate-from-xml.md) |
 | A sample document from a schema | [Generate sample XML](sample-xml.md), [with profiles](sample-xml-profiles.md) |
 | One standalone file from a schema with includes | [Flatten a schema](flatten.md) |
 | Namespace mappings, catalogs and the schema cache | [Schema Library](schema-library.md) |

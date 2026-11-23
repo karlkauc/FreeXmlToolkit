@@ -16,8 +16,8 @@ FreeXmlToolkit includes a full-featured JSON Editor that supports:
     `.jsonc` file. Only `.json` is offered for operating-system file associations
     (`.jsonc`/`.json5` have no MIME type in the shared databases).
 
-![JSON in the Unified Shell](../img/unified-shell-json-tree.png)
-***The Tree view of a JSON document in the Unified Shell***
+![The Tree view of a JSON document](../img/unified-shell-json-tree.png)
+***The Tree view of a JSON document***
 
 ![JSON in the grid view](../img/unified-shell-json-grid.png)
 ***The same document in the Graphic (grid) view - the grid the shell also uses for XML***
@@ -328,9 +328,9 @@ change back. Validation markers of the grid point at the YAML lines.
 
 ## Toolbar
 
-JSON files use the shell's single-row editor toolbar. Related
+JSON files use the single-row editor toolbar. Related
 actions sit in **split buttons** with a visible **▾** arrow menu; see
-[Unified Shell - Toolbar](../reference/workspace.md#toolbar) for the full reference.
+[Workspace - Toolbar](../reference/workspace.md#toolbar) for the full reference.
 
 With a JSON file active, the relevant actions are:
 

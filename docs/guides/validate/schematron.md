@@ -29,9 +29,9 @@ While XSD schemas check the structure of your XML (which elements can appear whe
 
 ## Toolbar
 
-Schematron files use the shell's single-row editor toolbar.
+Schematron files use the single-row editor toolbar.
 Related actions sit in **split buttons** with a visible **▾** arrow menu; see
-[Unified Shell - Toolbar](../../reference/workspace.md#toolbar) for the full reference.
+[Workspace - Toolbar](../../reference/workspace.md#toolbar) for the full reference.
 
 With a `.sch` file active, the relevant actions are:
 
@@ -46,7 +46,7 @@ With a `.sch` file active, the relevant actions are:
 | **Query Console** | Ctrl+Shift+X | Toggle the bottom XPath/XQuery console — the place to try out rule expressions |
 
 Rule templates, the tester, the visual builder, and **Check Rules** are reached through the
-**Validation activity panel** (see [Schematron Tools in the Unified Shell](#schematron-tools-in-the-unified-shell)).
+**Validation activity panel** (see [Schematron Tools in the Validation Panel](#schematron-tools-in-the-validation-panel)).
 
 ---
 
@@ -76,7 +76,7 @@ expression before putting it into a rule. See
 
 ---
 
-## Schematron Tools in the Unified Shell
+## Schematron Tools in the Validation Panel
 
 The **Validation** activity panel offers the Schematron tools as labelled rows in two
 collapsible sections at the top of the panel (both open at first - click a header to collapse it). Each tool

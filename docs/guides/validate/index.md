@@ -8,8 +8,10 @@ panel shows what is bound and lets you change it.
 |------|------|
 | Validate one document against an XSD, step by step | [XSD validation](xsd.md) |
 | Validate every file of a folder, export the findings | [Folders and export](folders.md) |
+| Validate against a DTD or a RELAX NG schema (`.rng`, `.rnc`) | [DTD and RELAX NG](dtd-relaxng.md) |
 | Write and run business rules | [Schematron](schematron.md), [Schematron Quick Fixes](schematron-quick-fixes.md) |
 | Read, filter and fix findings | [Working with problems](problems.md) |
+| Check the LEIs and ISINs of a document against GLEIF, ESMA FIRDS and OpenFIGI (**Check Identifiers Online**) | [Online identifier lookup](../../industry/identifier-lookup.md) |
 | Bind schemas to files by pattern, validate a whole project | [Projects & scenarios](../projects.md) |
 | Which schema languages are supported | [Schema support](../../reference/schema-support.md) |
 

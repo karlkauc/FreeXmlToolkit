@@ -1,4 +1,14 @@
-# Documentation
+---
+description: User documentation of FreeXmlToolkit, the free desktop application for XML, XSD, XSLT, XQuery, Schematron and JSON - download, first steps, guides, command line and reference.
+---
+
+# FreeXmlToolkit – your complete XML workstation
+
+Edit, validate, transform, debug and document XML, XSD, XSLT, XQuery, Schematron, JSON and YAML in one
+desktop application – with a graphical XSD editor, an XSLT / XQuery / Schematron debugger, PDF output,
+signatures, a command line and plugins for financial and regulatory formats.
+[Everything it can do](get-started/features.md) · [How it compares](reference/comparison.md) ·
+[What's new](reference/whats-new.md)
 
 <a id="download"></a>
 <div class="fxt-download">
@@ -10,7 +20,7 @@
       <ul class="fxt-download-card__alts">
         <li><a data-fxt-asset="win-msi" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">MSI package</a> – for silent / Group Policy deployment<span class="fxt-asset-size"></span></li>
         <li><a data-fxt-asset="win-zip" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Portable ZIP</a> – no installation, extract and run<span class="fxt-asset-size"></span></li>
-        <li><a href="installation/#install-with-a-package-manager">Scoop</a> – <code>scoop install karlkauc/freexmltoolkit</code></li>
+        <li><a href="get-started/install/#install-with-a-package-manager">Scoop</a> – <code>scoop install karlkauc/freexmltoolkit</code></li>
       </ul>
     </div>
     <div class="fxt-download-card" data-fxt-platform="macos">
@@ -20,7 +30,7 @@
         <li><a data-fxt-asset="mac-x64-dmg" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Intel .dmg</a> – for Intel-based Macs<span class="fxt-asset-size"></span></li>
         <li><a data-fxt-asset="mac-arm64-pkg" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">.pkg installer</a> (Apple Silicon) · <a data-fxt-asset="mac-x64-pkg" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">.pkg</a> (Intel)</li>
         <li><a data-fxt-asset="mac-arm64-zip" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Portable ZIP</a> (Apple Silicon) · <a data-fxt-asset="mac-x64-zip" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Portable ZIP</a> (Intel)</li>
-        <li><a href="installation/#install-with-a-package-manager">Homebrew</a> – <code>brew install --cask karlkauc/tap/freexmltoolkit</code></li>
+        <li><a href="get-started/install/#install-with-a-package-manager">Homebrew</a> – <code>brew install --cask karlkauc/tap/freexmltoolkit</code></li>
       </ul>
     </div>
     <div class="fxt-download-card" data-fxt-platform="linux">
@@ -36,6 +46,10 @@
   <p class="fxt-download__meta">Product website: <a href="https://freexmltoolkit.org/">freexmltoolkit.org</a> · Latest release: <strong class="fxt-release-version">see GitHub</strong><span class="fxt-release-date"></span> · <a href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">All downloads and release notes on GitHub</a> · Licensed under Apache 2.0 · <a href="https://github.com/karlkauc/FreeXmlToolkit">Source code</a> · <a href="https://github.com/sponsors/karlkauc">&#9829; Sponsor</a></p>
 </div>
 
+## At a glance
+
+![A tour of FreeXmlToolkit: XSD diagram, XML grid, XSLT debugger, validation, PDF and more](img/feature-tour.webp){ .no-lightbox }
+
 ## Where to start
 
 <div class="grid cards" markdown>
@@ -48,9 +62,13 @@
 
     Guides by task: edit XML and JSON, design schemas, validate, compare, sign.
 
--   **[Transform and debug](reference/transform-panel.md)**
+-   **[Design schemas](guides/design-schemas/index.md)**
 
-    XSLT, XQuery, XPath and XProc, with a debugger and a profiler.
+    The graphical XSD editor, schema analysis, documentation, sample XML and the Schema Library.
+
+-   **[Transform and debug](guides/transform-query/index.md)**
+
+    XSLT, XQuery, XPath and XProc, with a debugger, a profiler and XSpec tests.
 
 -   **[Check a regulatory or industry file](industry/index.md)**
 
@@ -63,6 +81,10 @@
 -   **[Roll out and review](administer/index.md)**
 
     Silent installation, policies, offline operation, privacy and the threat model.
+
+-   **[Extend](extend/index.md)**
+
+    Write your own plugin: activities, validators, menu items and element descriptions.
 
 </div>
 

@@ -1,10 +1,16 @@
 # Accessibility
 
 This page documents the accessibility audit of FreeXmlToolkit: what was checked, what was fixed,
-and what is still open. The audit was made with version 2.10 (November 2026). Its automated checks
-(names for screen readers, tab order, text contrast) are part of the test suite; they were last run
-against the development version after 3.4.0 on 22 November 2026 and pass. The checks made by hand,
-with screen readers and a keyboard walk-through, date from version 2.10. The reference is **WCAG 2.1 level AA**, the
+and what is still open. It has two parts of different age:
+
+- The **automated checks** (names for screen readers, tab order, text contrast) are tests in the
+  test suite (`AccessibilityAuditTest`, `ContrastTest`). They run with every build, so they hold for
+  the current version: a release is not built while one of them fails.
+- The **review by hand** (keyboard walk-through, focus indication, the drawn views) was made once,
+  with version 2.10, and has not been repeated since. Views added after 2.10 are covered by the
+  automated checks only.
+
+The reference is **WCAG 2.1 level AA**, the
 standard that EN 301 549 applies to the user interface of desktop software.
 
 ## Summary
@@ -25,8 +31,8 @@ The automated checks run with the test suite, so the results stay true for later
 ## How it was checked
 
 1. **Automated audit of the user interface** (`AccessibilityAuditTest`). The test opens the shell,
-   visits every activity (Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library,
-   PDF / FOP, Signature, FundsXML, Settings), opens an XML document in the Text, Tree and Grid views,
+   visits every activity (Explorer, Search, Favorites, Bookmarks, Validation, Transform, Schema,
+   Schema Library, PDF / FOP, Sign & Encrypt, the activities of the enabled plugins, Settings), opens an XML document in the Text, Tree and Grid views,
    and walks the scene graph. It reports:
     - buttons without a name: no text and no accessible text (a tooltip alone is not announced);
     - input fields without a label: no accessible text, no associated label (`Label.labelFor`) and
@@ -39,7 +45,7 @@ The automated checks run with the test suite, so the results stay true for later
 2. **Contrast of the design tokens** (`ContrastTest`). The test computes the WCAG contrast ratio of
    every text colour on the backgrounds it is used on, in the light and the dark theme, and requires
    4.5:1.
-3. **Review** of the keyboard paths (menu bar, shortcuts, focus indication) and of the views that
+3. **Review by hand** (version 2.10) of the keyboard paths (menu bar, shortcuts, focus indication) and of the views that
    are drawn rather than built from controls.
 
 The audit did **not** include a session with a screen reader user or manual testing with NVDA or

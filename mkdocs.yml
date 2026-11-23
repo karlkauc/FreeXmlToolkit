@@ -219,6 +219,7 @@ nav:
       - Types: guides/design-schemas/types.md
       - Text view: guides/design-schemas/text-view.md
       - Schema analysis: guides/design-schemas/analysis.md
+      - Generate a schema from XML: guides/design-schemas/generate-from-xml.md
       - Schema documentation: guides/design-schemas/documentation.md
       - Sample XML: guides/design-schemas/sample-xml.md
       - Sample XML with profiles: guides/design-schemas/sample-xml-profiles.md
@@ -231,6 +232,7 @@ nav:
       - Working with problems: guides/validate/problems.md
       - Schematron: guides/validate/schematron.md
       - Schematron Quick Fixes: guides/validate/schematron-quick-fixes.md
+      - DTD and RELAX NG: guides/validate/dtd-relaxng.md
     - Transform & query:
       - guides/transform-query/index.md
       - Run a transformation: guides/transform-query/run-xslt.md
@@ -274,6 +276,7 @@ nav:
   - Administer:
     - administer/index.md
     - Policies and silent installation: administer/policies.md
+    - Updates and network access: administer/updates-and-network.md
     - Operation without internet: administer/offline.md
     - Security features: administer/security-features.md
     - Threat model: administer/threat-model.md

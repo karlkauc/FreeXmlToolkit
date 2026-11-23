@@ -6,21 +6,21 @@ through that layout, the view modes and the editor tabs.
 
 ## Overview
 
-The Unified Shell is the single workspace for everything FreeXmlToolkit does. Instead of
+The application window is a single workspace for everything FreeXmlToolkit does. Instead of
 switching between separate editor pages, you open files as tabs in the central **editor
 host** and reach every tool through the **activity bar** on the left. You can work with an
 XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the same time.
 
-![Unified Shell overview](../img/unified-shell-overview.png#only-light)
-![Unified Shell overview](../img/unified-shell-overview-dark.png#only-dark)
-*The Unified Shell: activity bar (left), Explorer side panel, editor host with an XML file
+![The workspace](../img/unified-shell-overview.png#only-light)
+![The workspace](../img/unified-shell-overview-dark.png#only-dark)
+*The workspace: activity bar (left), Explorer side panel, editor host with an XML file
 (Text/Tree/Graphic view toggle), the Properties inspector (right) and the status bar.*
 
 ### Layout
 
 | Area | Purpose |
 |------|---------|
-| **Activity bar** (far left) | Switch tools / side panels: Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library (its label wraps onto two lines), PDF/FOP, Sign & Encrypt, Settings - plus a **FundsXML** activity when the optional [FundsXML extension](../industry/fundsxml.md) is enabled (see [FundsXML Panel](../industry/fundsxml.md)). **Always visible** - it cannot be collapsed. (**Settings**, **Schema Library** and **Sign & Encrypt** open as a full page in the editor area - see [Settings Page](../reference/settings.md#settings-page), [Schema Library Page](../guides/design-schemas/schema-library.md#schema-library-page) and [Sign & Encrypt Page](../guides/sign-encrypt/index.md). Help is not an activity - it is the **Help** menu, see [Help Menu & About](../reference/workspace.md#help-menu-about).) |
+| **Activity bar** (far left) | Switch tools / side panels: Explorer, Search, Favorites, [Bookmarks](../guides/edit-xml/bookmarks.md), Validation, Transform, Schema, Schema Library (its label wraps onto two lines), PDF / FOP, Sign & Encrypt and, at the bottom, Settings. Every [industry plugin](../industry/index.md) you switch on adds an activity of its own before Settings - FundsXML, ISO 20022, ebInterface, FinDatEx, XBRL, PK-Meldewesen, KAG-Meldewesen, ESMA Reporting (see [Manage extensions](../industry/manage-extensions.md)). **Always visible** - it cannot be collapsed. (**Settings**, **Schema Library** and **Sign & Encrypt** open as a full page in the editor area - see [Settings Page](../reference/settings.md#settings-page), [Schema Library Page](../guides/design-schemas/schema-library.md#schema-library-page) and [Sign & Encrypt Page](../guides/sign-encrypt/index.md). Help is not an activity - it is the **Help** menu, see [Help Menu & About](../reference/workspace.md#help-menu-about).) |
 | **Menu bar** (very top) | **File / Edit / View / Tools / Help** - every action of the toolbar, the Activity Bar and the keyboard shortcuts in one place (see [Menu Bar](../reference/workspace.md#menu-bar)). On macOS it is the system menu bar at the top of the screen. |
 | **Header bar** (top) | The breadcrumb (application / active file), a centered **search pill** (*"Run XPath / XQuery…"*, shortcut **Ctrl+K**) that opens the bottom [Query Console](../guides/transform-query/query-console.md#query-console) when clicked, the **star** button ([Favorites quick access](../reference/workspace.md#favorites-quick-access) - every favorite, from any activity or page), the **?** button (opens the [Help menu](../reference/workspace.md#help-menu-about) as a popup - same as **F1**) and the Theme button. |
 | **Side panel** | The panel for the selected activity (e.g. the Transform panel, the Validation panel). **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). |
@@ -117,7 +117,7 @@ passed validation a green check. Both layers switch with the light/dark theme:
 
 ## Getting Started
 
-1. The Unified Shell opens automatically on startup.
+1. The workspace opens on startup.
 2. Use the **Explorer** activity (or **File → Open**) to open files; **File → New** (Ctrl+N) opens the guided [New File dialog](../guides/edit-xml/working-with-files.md#new-file-dialog) to create a new file from a template or schema. You can also **drag & drop** files from your file manager anywhere onto the window - every [supported file type](../guides/edit-xml/working-with-files.md#supported-file-types) (XML, XSD, XSLT, XProc, XQuery, XPath, Schematron, JSON, HTML) opens as a new tab; other files are ignored.
 3. Files open as tabs in the editor host - switch tabs by clicking their headers (drag a header to reorder, right-click it for [tab actions](#editor-tabs)), and switch view modes (Text / Tree / Graphic - plus **Preview** for HTML files) with the segmented view switch.
 

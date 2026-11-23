@@ -3,7 +3,7 @@
 !!! note
     Signing, signature validation (including detailed and PKIX
     trust/chain/revocation/timestamp validation) and self-signed certificate creation
-    live on the **Sign & Encrypt** page of the Unified Shell. Click **Sign & Encrypt** in the
+    live on the **Sign & Encrypt** page. Click **Sign & Encrypt** in the
     activity bar to open it as a tab in the main editor area. The same page encrypts and decrypts
     XML - see [XML Encryption](encryption.md). On the command line: `fxt-cli sign` and
     `fxt-cli verify` ([Command Line](../../automate/cli-sign.md#sign)).
@@ -19,13 +19,13 @@ This tool lets you digitally sign XML documents and verify signatures. A digital
 
 ## Overview
 
-![Signature activity in the Unified Shell](../../img/unified-shell-signature.png#only-light)
-![Signature activity in the Unified Shell](../../img/unified-shell-signature-dark.png#only-dark)
+![The Sign & Encrypt page](../../img/unified-shell-signature.png#only-light)
+![The Sign & Encrypt page](../../img/unified-shell-signature-dark.png#only-dark)
 *Signing, validation and certificate creation live on the Signature page (screenshot may show an older layout)*
 
 ### What Can You Do?
 
-In the [Unified Shell](../../get-started/workspace-tour.md), click **Sign & Encrypt** in the activity bar. The
+Click **Sign & Encrypt** in the [activity bar](../../get-started/workspace-tour.md). The
 page opens as a tab in the main editor area, and the side panel on the left lists the actions in
 order of use (Encrypt, Decrypt and Inspect Encryption are described in [XML Encryption](encryption.md)). Click an action to show it on the page; the current action is
 highlighted, and the status message of the previously selected action is cleared:

@@ -15,14 +15,15 @@ FreeXmlToolkit is a free desktop application for working with XML files. It help
 - **Validate XML** against XSD schemas, DTDs and RELAX NG schemas to check for errors
 - **Validate JSON** against JSON Schemas, auto-detected from the document's `$schema` member
 - **Transform XML** into other formats (HTML, PDF, Text)
-- **Sign XML documents** with digital certificates
+- **Sign and encrypt XML documents** with certificates, keys or passwords
 - **Create business rules** with Schematron validation
 - **Generate documentation** from your XSD schemas
-- **Compare and merge** XML files by structure, compare folders, convert XML ↔ JSON ↔ YAML
+- **Compare and merge** XML files by structure, compare folders
+- **Convert** XML ↔ JSON ↔ YAML and XML ↔ Excel / CSV
 - **Open huge files** (gigabytes) in the [Large File Viewer](../guides/edit-xml/large-files.md)
 - **Automate** with the [command line](../automate/command-line.md) (`fxt-cli`) and [projects](../guides/projects.md)
 - **Work with AI** - an optional [AI assistant](../guides/ai-assistant.md) that checks every answer, and an [MCP server](../automate/mcp-server.md) for AI agents
-- **Extend** it with [plugins](../industry/manage-extensions.md) — industry plugins for ISO 20022, ebInterface, FinDatEx and XBRL included
+- **Extend** it with [plugins](../industry/manage-extensions.md) — the industry plugins FundsXML, ISO 20022, ebInterface, FinDatEx, XBRL, PK-Meldewesen, KAG-Meldewesen and ESMA Reporting are included
 - **Work in English or German**, [accessible](../reference/accessibility.md), centrally [administrable](../administer/policies.md)
 
 ### Supported Standards
@@ -65,8 +66,11 @@ Edit your XML files with professional tools:
 | **Grid View** | Edit XML like a spreadsheet in the Graphic view: repeating elements as tables, opened cells, entry helpers, copy/paste with Excel |
 | **Properties Inspector** | View and edit the selected node - and its schema declaration - in every view |
 | **Query Console** | Run XPath 3.1, XQuery 3.1 and JSONPath against the open document (Ctrl+K); **Ask AI** writes the query from a question |
+| **Templates and Favorites** | Insert prepared snippets; keep the files you use often one click away |
+| **Bookmarks** | Mark lines, name and number them, and jump back with a shortcut - they follow your edits and are kept per file |
+| **Large File Viewer** | Open files of several gigabytes: text, structure, statistics, validation, and editing a window of the file in the grid |
 
-Learn more: [XML Editor Guide](../guides/edit-xml/index.md) | [Grid View](../guides/edit-xml/grid.md)
+Learn more: [XML Editor Guide](../guides/edit-xml/index.md) | [Grid View](../guides/edit-xml/grid.md) | [Templates](../guides/edit-xml/templates.md) | [Favorites](../guides/edit-xml/favorites.md) | [Bookmarks](../guides/edit-xml/bookmarks.md) | [Large files](../guides/edit-xml/large-files.md)
 
 ### JSON Editor
 
@@ -90,14 +94,15 @@ Work with XML Schema files:
 | Feature | What It Does |
 |---------|--------------|
 | **Visual Schema Viewer** | See your schema as an interactive diagram |
-| **Documentation Generator** | Create HTML documentation from schemas |
+| **Documentation Generator** | Create documentation from a schema as an HTML site, a Word document or a PDF; the HTML site includes the data dictionary as an Excel file |
+| **Schema from XML** | Get a first draft of an XSD from a sample XML document |
 | **Sample XML Generator** | Generate valid sample XML files with customizable rules |
 | **Profiled Generation** | Control values per element, save profiles, batch generate |
 | **Schema Flattening** | Combine multiple schema files into one standalone schema, optionally reduced for validation servers |
 | **Schema Analysis** | Statistics, a type library with one-click removal of unused components, quality checks, identity-constraint and XPath validation - exportable as CSV, JSON, HTML, PDF or Excel |
 | **Schema Library & XML Catalogs** | Map namespaces to schema files, register OASIS `catalog.xml` files, and manage the cache of downloaded schemas - documents without a schema reference bind automatically |
 
-Learn more: [XSD Tools Guide](../guides/design-schemas/index.md) | [Profiled XML Generation](../guides/design-schemas/sample-xml-profiles.md) | [XSD Validation](../guides/validate/xsd.md) | [Schema Library](../guides/design-schemas/schema-library.md)
+Learn more: [XSD Tools Guide](../guides/design-schemas/index.md) | [Schema Documentation](../guides/design-schemas/documentation.md) | [Generate a Schema from XML](../guides/design-schemas/generate-from-xml.md) | [Profiled XML Generation](../guides/design-schemas/sample-xml-profiles.md) | [XSD Validation](../guides/validate/xsd.md) | [Schema Library](../guides/design-schemas/schema-library.md)
 
 ### XSLT Transformation
 
@@ -110,11 +115,15 @@ Convert XML into other formats:
 | **Rendered HTML Results** | Open an HTML result as an editor tab showing the rendered page (Preview view) |
 | **Modern XSLT Support** | Uses the latest XSLT 3.0 standard |
 | **Interactive Debugger** | Debug XSLT, XQuery and Schematron: conditional breakpoints, logpoints, stepping, variables, watches, call stack and coverage |
-| **Multi-File Batch Processing** | Process multiple XML files with one XQuery using `collection()` |
+| **Multi-File Batch Processing** | **Batch Transform** runs one XSLT stylesheet or one XQuery over many XML files, each file on its own, and saves all results to a folder |
+| **Profiler** | See where the time of an XSLT or XQuery run goes: hot spots, call tree, flame graph, time per line |
+| **XSpec Tests** | Run XSpec test suites for your stylesheets |
+| **Language Versions** | Run against XSLT 1.0 / 2.0, XPath 1.0 - 3.0 or XQuery 1.0 / 3.0 instead of the latest version (expert mode) |
+| **External XSLT Processors** | Run a transformation with Saxon HE 13, xsltproc, RaptorXML or another processor installed on your computer |
 | **XProc 3.0 Pipelines** | Run multi-step processing pipelines (`.xpl`) with the built-in XML Calabash engine |
 | **Generate a Stylesheet with AI** | Describe the output with a target sample; the AI assistant writes the XSLT, which is run and compared before you see it |
 
-Learn more: [Transform Panel](../reference/transform-panel.md) | [XSLT Developer](../guides/transform-query/run-xslt.md) | [Debugger](../guides/transform-query/debug.md) | [XProc Pipelines](../guides/transform-query/xproc.md)
+Learn more: [Transform & Query](../guides/transform-query/index.md) | [Transform Panel](../reference/transform-panel.md) | [Run a Transformation](../guides/transform-query/run-xslt.md) | [Debugger](../guides/transform-query/debug.md) | [Profiler](../guides/transform-query/profile.md) | [XSpec](../guides/transform-query/xspec.md) | [XProc Pipelines](../guides/transform-query/xproc.md) | [External Processors](../guides/transform-query/external-processors.md) | [Language Versions](../reference/standards-versions.md)
 
 ### PDF Generation
 
@@ -128,17 +137,40 @@ Create professional PDF documents:
 
 Learn more: [PDF Generation Guide](../guides/publish-pdf.md)
 
-### Digital Signatures
+### Digital Signatures and Encryption
 
-Sign and verify XML documents:
+Sign, verify, encrypt and decrypt XML documents:
 
 | Feature | What It Does |
 |---------|--------------|
 | **Create Certificates** | Generate your own signing certificates |
 | **Sign Documents** | Add digital signatures to XML files |
 | **Verify Signatures** | Check if signed documents are valid |
+| **Encrypt and Decrypt** | W3C XML Encryption 1.1 for an element, its content, a whole document or any file - for certificates, public keys, shared keys or passwords, and for several recipients at once |
 
-Learn more: [Digital Signatures Guide](../guides/sign-encrypt/signatures.md)
+Learn more: [Digital Signatures Guide](../guides/sign-encrypt/signatures.md) | [XML Encryption](../guides/sign-encrypt/encryption.md)
+
+### Compare, Merge and Convert
+
+| Feature | What It Does |
+|---------|--------------|
+| **Compare Files** | Two files side by side as text, with merge arrows; XML also by structure, ignoring formatting, with ignore rules and a numeric tolerance |
+| **Compare Folders** | See which files of two folders differ, and open each pair in the comparison |
+| **Three-Way Merge** | Merge two versions with the version both came from; conflicts are marked like in Git |
+| **XML ↔ JSON ↔ YAML** | Convert the open document into one of the other formats |
+| **XML ↔ Excel / CSV** | Export XML as one row per node or one row per record, edit it in a spreadsheet, and import it again |
+
+Learn more: [Compare and Merge](../guides/compare-merge.md) | [Convert Formats](../guides/convert.md)
+
+### Projects and Automation
+
+| Feature | What It Does |
+|---------|--------------|
+| **Projects** | A `.fxtproj` file names the folders of a piece of work, binds schemas, Schematron rules and scenarios to files by pattern, and lists the catalogs |
+| **Scenarios** | Saved transformations (XSLT, XQuery, XProc, PDF) with input, parameters and output; with an expected result a scenario is a regression check |
+| **Command Line** | `fxt-cli` validates, transforms, queries, compares, merges, converts, signs, encrypts and renders PDF - for scripts and CI |
+
+Learn more: [Projects & Scenarios](../guides/projects.md) | [Command Line](../automate/command-line.md) | [CI Recipes](../automate/ci-recipes.md)
 
 ### Appearance
 
@@ -166,6 +198,25 @@ Define custom business rules:
 | **Explain / Fix with AI** | Let the AI assistant explain a validation problem or propose a fix that is checked against the schema and the rules |
 
 Learn more: [Schematron Guide](../guides/validate/schematron.md) | [Quick Fixes](../guides/validate/schematron-quick-fixes.md)
+
+### Industry Plugins (Optional)
+
+Eight plugins for industry formats are built in and **off by default**. Each one adds an activity with checks, reports and helpers for its format:
+
+| Plugin | For |
+|---|---|
+| [FundsXML](../industry/fundsxml.md) | Fund data exchange (see below) |
+| [ISO 20022 Payments (SEPA)](../industry/iso20022.md) | Payment messages: schemas, control sums, EPC SEPA rules |
+| [ebInterface](../industry/ebinterface.md) | Austrian e-invoices |
+| [FinDatEx Templates](../industry/findatex.md) | EMT, EET, EPT and TPT files |
+| [XBRL](../industry/xbrl.md) | XBRL validation with your Arelle installation |
+| [PK-Meldewesen](../industry/pk-meldewesen.md) | FMA reports of Austrian pension funds |
+| [KAG-Meldewesen](../industry/kag-meldewesen.md) | FMA reports of management companies (AIFMD, derivatives) |
+| [ESMA Reporting](../industry/esma-reporting.md) | EMIR, SFTR and MiFIR reports |
+
+For every format, **Check Identifiers Online** looks up the LEIs of a document at GLEIF and its ISINs at ESMA FIRDS and OpenFIGI - only when you ask for it.
+
+Learn more: [Industry Standards](../industry/index.md) | [Online Identifier Lookup](../industry/identifier-lookup.md) | [Manage Extensions](../industry/manage-extensions.md)
 
 ### FundsXML Extension (Optional)
 

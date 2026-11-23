@@ -11,7 +11,7 @@ Named types are the building blocks of a schema. The **Type Library** lists them
 The Schema activity's side panel is your type library: it lists the active schema's
 top-level declarations so you can browse, find, and open every type in the schema.
 
-![Type Library in the Unified Shell](../../img/unified-shell-type-library.png)
+![Type Library](../../img/unified-shell-type-library.png)
 *The Schema activity's Type Library, with the schema diagram in the editor host*
 
 

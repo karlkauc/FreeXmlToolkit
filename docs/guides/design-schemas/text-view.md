@@ -2,8 +2,8 @@
 
 The Text View provides raw XSD source code editing.
 
-![XSD Text view in the Unified Shell](../../img/unified-shell-schema-text.png)
-*The XSD in the Unified Shell's Text view (Schema activity panel on the left, inspector on the right)*
+![XSD Text view](../../img/unified-shell-schema-text.png)
+*The XSD in the Text view (Schema activity panel on the left, inspector on the right)*
 
 ## Before you start
 

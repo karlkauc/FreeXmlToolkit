@@ -51,16 +51,20 @@ loaded, every contribution type, threads, translations, building, testing and de
 
 ## Built-in plugins
 
-| Plugin | On by default | |
+| Plugin | Switched on after installation | |
 |---|---|---|
-| FundsXML | yes (its activity appears once the extension is enabled) | [FundsXML extension](fundsxml.md) |
+| FundsXML | no - tick it in **Settings → Extensions → INSTALLED EXTENSIONS** (applies at once) | [FundsXML extension](fundsxml.md) |
 | ISO 20022 Payments (SEPA) | no | [ISO 20022 Payments](iso20022.md) |
 | ebInterface (Austrian e-invoice) | no | [ebInterface](ebinterface.md) |
 | FinDatEx Templates (EMT, EET, EPT, TPT) | no | [FinDatEx Templates](findatex.md) |
 | XBRL (with Arelle) | no | [XBRL](xbrl.md) |
-| PK-Meldewesen (FMA pension fund reports) | yes (its activity appears once the extension is enabled) | [PK-Meldewesen](pk-meldewesen.md) |
+| PK-Meldewesen (FMA pension fund reports) | no - tick it in **Settings → Extensions → INSTALLED EXTENSIONS** (applies at once) | [PK-Meldewesen](pk-meldewesen.md) |
 | KAG-Meldewesen (FMA reports of management companies) | no | [KAG-Meldewesen](kag-meldewesen.md) |
 | ESMA Reporting (EMIR, SFTR and MiFIR reports) | no | [ESMA Reporting](esma-reporting.md) |
+
+All eight are off after installation. FundsXML and PK-Meldewesen are always loaded and have a switch of
+their own (`fundsxml.enabled`, `pk.enabled`), so switching them on or off applies at once; the other six
+are loaded or skipped at the next start (`plugin.<id>.enabled`).
 
 A plugin can say it is off until the user switches it on (`enabledByDefault()`); while it is off,
 `recognises(content)` is still asked when a document is opened, and a plugin that answers `true` is offered once
@@ -74,7 +78,7 @@ Plugins have no update channel of their own. What keeps each part current:
 
 | Part | How it stays current |
 |---|---|
-| Built-in plugins (FundsXML, ISO 20022, ebInterface, FinDatEx, XBRL, PK-Meldewesen) and their data (FinDatEx field definitions, ISO 20022 schemas, the bundled FMA taxonomy) | With the application: **Help → Check for Updates…** or the automatic update check, see [Installation](../get-started/install.md#updates) |
+| Built-in plugins (FundsXML, ISO 20022, ebInterface, FinDatEx, XBRL, PK-Meldewesen, KAG-Meldewesen, ESMA Reporting) and their data (FinDatEx field definitions, ISO 20022 schemas, the bundled FMA taxonomy) | With the application: **Help → Check for Updates…** or the automatic update check, see [Installation](../get-started/install.md#updates) |
 | FundsXML schemas, samples, Schematron rules and snippets | In addition, the FundsXML plugin checks GitHub once a day and installs a new release in the background, see [FundsXML Extensions](fundsxml.md#automatic-update-checks) (`fundsxml.update.check.enabled=false` turns it off) |
 | Plugins from the plugins folder (`.jar`) | By hand: put the new jar into the folder, remove the old one, restart. **Settings → Extensions → INSTALLED EXTENSIONS** shows the version that is loaded. |
 | FMA taxonomies (PK-Meldewesen) | Imported from the FMA's ZIP in the PK-Meldewesen panel, see [PK-Meldewesen](pk-meldewesen.md#newer-taxonomies) |

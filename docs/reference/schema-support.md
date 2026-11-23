@@ -86,7 +86,8 @@ Documents can be validated against a **DTD** or a **RELAX NG** schema (XML synta
 syntax `.rnc`). Validation is exact (Xerces for DTDs, Jing for RELAX NG); IntelliSense, the grid's
 entry helpers and the Properties inspector use an XML Schema translated from the grammar (Trang),
 which for some RELAX NG constructs is an approximation. There is no graphical editor, diagram or
-documentation generator for these languages.
+documentation generator for these languages. For a walk-through with an example see
+[DTD and RELAX NG](../guides/validate/dtd-relaxng.md) in the guides.
 
 **Which grammar is used**, when no XSD is bound:
 

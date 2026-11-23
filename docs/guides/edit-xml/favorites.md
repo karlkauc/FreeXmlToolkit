@@ -39,9 +39,9 @@ The favorites system helps you quickly access the files you use most often. Save
 | **Descriptions** | Add notes about what each file is for |
 | **File Icons** | Quickly see file types at a glance |
 
-### Grouped by Folder or File Type (Unified Shell)
+### Grouped by Folder or File Type
 
-The **Favorites panel** in the Unified Shell (star icon in the activity bar, or
+The **Favorites panel** (star icon in the activity bar, or
 **Ctrl+Shift+D**) groups your favorites **by folder** as soon as at least one favorite has
 been moved into a folder; favorites without a folder are listed under **Uncategorized** at
 the end. While no folder is in use, the panel groups **by file type** instead - for example

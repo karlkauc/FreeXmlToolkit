@@ -2,8 +2,8 @@
 
 The Graphic View lets you explore and edit your schemas visually.
 
-![XSD Graphic view in the Unified Shell](../../img/unified-shell-schema-graphic.png)
-*An XSD open in the Unified Shell's Graphic view, with the Schema activity panel on the left*
+![XSD Graphic view](../../img/unified-shell-schema-graphic.png)
+*An XSD open in the Graphic view, with the Schema activity panel on the left*
 
 ## Before you start
 

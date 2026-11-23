@@ -22,7 +22,7 @@ Without any rules (all rows left on **Auto**) the dialog produces exactly what t
 
 ## Opening the Dialog
 
-1. Open your XSD in the [Unified Shell](../../get-started/workspace-tour.md) so it is the active document. A new, never-saved schema works too -- the current editor text is used. For a schema file with unsaved changes you are asked first whether to save them (see step 3).
+1. Open your XSD so it is the active document. A new, never-saved schema works too -- the current editor text is used. For a schema file with unsaved changes you are asked first whether to save them (see step 3).
 2. Open the **Schema** activity in the activity bar.
 3. In the panel's **TOOLS** section (at the top of the panel - click its header to expand it if it is collapsed), click **Sample XML with Options…** (the sliders icon), which opens the **Generate Sample XML (Advanced)** dialog. If the schema has unsaved changes, you are first asked *"Save changes to <file> first?"* - **Save and Continue**, **Use Saved Version** (generate from the file as last saved) or **Cancel**.
 

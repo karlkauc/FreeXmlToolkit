@@ -13,6 +13,10 @@ settings you can lock, what the application sends over the network and how it is
 
     What works offline and how to provide schemas and updates inside a closed network.
 
+-   **[Updates and network access](updates-and-network.md)**
+
+    How the application updates itself per platform, and the proxy settings every connection uses.
+
 -   **[Security features](security-features.md)**
 
     Protections against XXE, SSRF and unsafe stylesheets, and how to configure them.

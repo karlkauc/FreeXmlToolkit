@@ -29,8 +29,7 @@ XML Data + XSL-FO Stylesheet = PDF Document
 
 ## The PDF / FOP Panel
 
-In the [Unified Shell](../get-started/workspace-tour.md), open the **PDF / FOP** activity from the activity
-bar. The panel is organized into these sections plus the primary action:
+Open the **PDF / FOP** activity from the [activity bar](../get-started/workspace-tour.md). The panel is organized into these sections plus the primary action:
 
 | Section | Contents |
 |---------|----------|

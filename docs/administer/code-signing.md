@@ -38,7 +38,7 @@ FreeXmlToolkit connects to other systems only for the following purposes:
 - **Anonymous usage statistics and error reports** — on by default and can be switched off
   in *Settings → Privacy → USAGE STATISTICS*. Nothing is sent before the one-time notice was shown after the
   first start. No file contents, file names, paths or personal data are transmitted. Details:
-  [Privacy & Anonymous Telemetry](https://karlkauc.github.io/FreeXmlToolkit/telemetry/).
+  [Privacy & Anonymous Telemetry](privacy-telemetry.md).
 - **Update check** — asks the GitHub Releases API for the latest version at startup (switch off
   with *Check for updates on startup* in the settings). Updates are only downloaded and
   installed when the user confirms them.

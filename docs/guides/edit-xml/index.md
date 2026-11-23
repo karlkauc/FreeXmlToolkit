@@ -62,7 +62,7 @@ The text editor provides:
 
 For XML documents (and XSLT / Schematron), the **Graphic** view shows the editable grid.
 
-![XML Grid view in the Unified Shell](../../img/unified-shell-xml-grid.png)
+![XML Grid view](../../img/unified-shell-xml-grid.png)
 *An XML document in the Graphic view (grid editing)*
 
 1. Open an XML file and switch to the **Graphic** view with the view switch
@@ -152,15 +152,9 @@ Click **Format** or use `Shift+Alt+F` to format your XML with proper indentation
 
 ## Schema Generator
 
-With the XML document active, open the editor toolbar's **Schema ▾** menu (click the small
-arrow next to the **Schema** button) and choose **Generate XSD from XML** (or **Generate XSD
-from XML Files…** for several files) to generate an XSD schema from your XML. Both entries are
-also in the menu bar's **Tools** menu; **Generate XSD from XML Files…** works there even without
-an open document, because it asks for its files itself:
-
-- Analyze XML structure
-- Generate matching XSD schema
-- Customize type detection
+**Tools → Generate XSD from XML** writes a first draft of an XSD from the active XML document;
+**Generate XSD from XML Files…** starts from several files - see
+[Generate a schema from XML](../design-schemas/generate-from-xml.md).
 
 ## XML/Excel/CSV converter {#xmlexcelcsv-converter}
 

@@ -15,7 +15,7 @@ the template is used.
 ## Overview
 
 ![Templates overview](../../img/templates-overview.png)
-*Templates in the Unified Shell: the Insert Template dialog and the TEMPLATES settings card*
+*Templates: the Insert Template dialog and the TEMPLATES settings card*
 
 Templates let you keep document structures you type again and again - a SOAP envelope, a
 Maven POM, a CDATA section, a Schematron rule - and drop them into the editor with a few clicks.

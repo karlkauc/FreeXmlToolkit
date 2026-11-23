@@ -7,8 +7,27 @@ build pipelines, and the MCP server that gives AI agents the same engines as too
 
 -   **[Command line (fxt-cli)](command-line.md)**
 
-    Validate, transform, query, compare, convert, sign and encrypt from a shell. Every command with
-    its options and exit codes, and how to use it in a CI pipeline.
+    Validate, transform, query, compare, convert, sign and encrypt from a shell. The overview with
+    installation, exit codes and the list of commands; the options are on the four pages below.
+
+-   **[Validate and query](cli-validate.md)**
+
+    `validate`, `query`, `lei` and `isin`: check files and folders, write reports, run XPath,
+    XQuery and JSONPath.
+
+-   **[Transform and publish](cli-transform.md)**
+
+    `transform`, `scenario`, `xspec`, `fop` and `xsd-doc`: run stylesheets, queries, pipelines and
+    tests, render PDF, generate schema documentation.
+
+-   **[Compare, merge, convert](cli-compare.md)**
+
+    `compare`, `merge` and `convert`: structural XML comparison, three-way merge, XML, JSON and YAML
+    into one another.
+
+-   **[Sign and encrypt](cli-sign.md)**
+
+    `sign`, `verify`, `encrypt` and `decrypt`.
 
 -   **[CI recipes](ci-recipes.md)**
 

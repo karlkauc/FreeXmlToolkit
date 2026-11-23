@@ -1,6 +1,6 @@
 # Keyboard Shortcuts
 
-All shortcuts of the Unified Shell in one place. The same list is available in the application
+All keyboard shortcuts in one place. The same list is available in the application
 under **Help → Keyboard Shortcuts**, and every menu item shows its shortcut next to it.
 
 !!! tip "macOS"

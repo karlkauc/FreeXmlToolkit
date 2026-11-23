@@ -10,11 +10,11 @@ FreeXmlToolkit is free and needs no registration. All files are published on the
 2. **Install** it:
     - **Windows:** run the `.exe` installer (no administrator rights required) or the `.msi`; the portable `.zip` only needs to be extracted
     - **macOS:** open the `.dmg` and drag FreeXmlToolkit to *Applications*, or run the `.pkg` installer
-    - **Linux:** `sudo dpkg -i freexmltoolkit-*.deb` (Debian/Ubuntu) or `sudo rpm -i freexmltoolkit-*.rpm` (Fedora/RHEL/openSUSE); the portable `.zip` only needs to be extracted
+    - **Linux:** `sudo apt install ./freexmltoolkit-*.deb` (Debian/Ubuntu; installs missing dependencies too) or `sudo rpm -i freexmltoolkit-*.rpm` (Fedora/RHEL/openSUSE); the portable `.zip` only needs to be extracted
 3. **Launch** FreeXmlToolkit from your applications menu (portable: run `FreeXmlToolkit` / `FreeXmlToolkit.exe` in the extracted folder)
 
 On first start the app opens on the **Welcome** page - continue with
-[Your First Steps](first-steps.md) or the [Unified Shell](workspace-tour.md) guide.
+[Your First Steps](first-steps.md) or the [Tour of the workspace](workspace-tour.md).
 
 ## Download Formats
 
@@ -43,7 +43,7 @@ The macOS packages are signed with an Apple Developer ID and notarized by Apple,
 
 | Format | Architecture | Description |
 |--------|--------------|-------------|
-| `.deb` | x64 | **Debian Package** - For Ubuntu, Debian, Linux Mint. Install with `sudo dpkg -i` or double-click. |
+| `.deb` | x64 | **Debian Package** - For Ubuntu, Debian, Linux Mint. Install with `sudo apt install ./<file>.deb` or double-click. |
 | `.rpm` | x64 | **RPM Package** - For Fedora, Red Hat, openSUSE. Install with `sudo rpm -i` or `dnf install`. |
 | `.zip` | x64 | **Portable** - No installation needed. Extract and run. Works on any Linux distribution. |
 

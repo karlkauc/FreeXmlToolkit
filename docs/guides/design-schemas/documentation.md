@@ -16,6 +16,13 @@ Create professional documentation from your XSD file automatically.
 | **HTML** | Interactive web documentation with navigation |
 | **Word** | Microsoft Word (.docx) document               |
 | **PDF**  | PDF document using Apache FOP                 |
+| **Excel** | The data dictionary as a workbook (`dataDictionary.xlsx`) - written together with the HTML output, not a format of its own |
+
+The **HTML** output also contains an Excel workbook, `dataDictionary.xlsx`, in the output folder:
+the data dictionary as a table with one row per element and attribute path (XPath, name, type,
+cardinality, documentation, restrictions, sample data). It has a **Schema Info** sheet and one
+sheet per documentation language; the **Download Excel** button on the HTML Data Dictionary page
+opens it. There is no separate Excel format to choose, and PDF and Word do not write the workbook.
 
 ## How to Generate Documentation
 

@@ -38,7 +38,7 @@ bar works in every view mode, for every XML-family document type and for JSON do
 
 Ctrl+F searches the **active document**. To search - and replace -
 across **all files of a folder**, by plain text or by an XPath expression, use the
-**Search** activity in the Unified Shell: press **Ctrl+Shift+F** (Find in Files) or
+**Search** activity: press **Ctrl+Shift+F** (Find in Files) or
 **Ctrl+Shift+H** (Replace in Files), or click the magnifying-glass icon in the activity
 bar. See the [Search Panel](search-in-files.md) guide.
 
