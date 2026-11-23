@@ -1,15 +1,23 @@
 """Builds docs/img/feature-tour.webp: an animated slideshow of the main features for the README and
 the documentation's home page, made from the screenshots in docs/img/ (xvfb-run ./gradlew
 docScreenshots). Each slide shows one screenshot with a caption band (app logo, feature, short
-description, progress dots), held for HOLD_MS and cross-faded into the next one; it loops.
-Usage: python3 scripts/make-feature-tour.py [output-file]. Needs Pillow with WebP support."""
-import sys
+description, progress dots), held for HOLD_MS; it loops.
+Usage: python3 scripts/make-feature-tour.py [output-file] [--width N] [--quality N] [--fade]. Needs
+Pillow with WebP support. The website's smaller copy:
+    python3 scripts/make-feature-tour.py website/assets/img/tour.webp --width 960 --quality 72"""
+import argparse
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent.parent
 IMG = ROOT / "docs" / "img"
-OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else IMG / "feature-tour.webp"
+_ap = argparse.ArgumentParser()
+_ap.add_argument("out", nargs="?", default=str(IMG / "feature-tour.webp"))
+_ap.add_argument("--width", type=int, default=1280)
+_ap.add_argument("--quality", type=int, default=80)
+_ap.add_argument("--fade", action="store_true", help="cross-fade between the slides (about four times the size)")
+ARGS = _ap.parse_args()
+OUT = Path(ARGS.out)
 FONTS = ROOT / "src" / "main" / "resources" / "css" / "fonts"
 
 # (screenshot, title, description) - the order of the tour
@@ -26,18 +34,26 @@ SLIDES = [
      "Offers only what the schema allows at the caret"),
     ("xml-editor-schematron.png", "Validation",
      "XSD 1.1, Schematron with Quick Fixes, JSON Schema, DTD and RELAX NG"),
+    ("problems-grouped.png", "Problems you can act on",
+     "Grouped by object, rule or category - with search and Excel export"),
     ("xslt-debugger-paused.png", "XSLT, XQuery and Schematron debugger",
      "Breakpoints, stepping, variables, watches, call stack and coverage"),
     ("xslt-developer-overview.png", "Transformations",
      "XSLT 3.0 and XQuery 3.1 with Saxon, live preview and a profiler"),
     ("unified-shell-query-console.png", "Query Console",
      "Ad-hoc XPath, XQuery and JSONPath against the open document"),
+    ("profile-flame-graph.png", "Profiler",
+     "Time per template and function, call tree and flame graph - for XSLT and XQuery"),
     ("ai-assistant-proposal.png", "Optional AI assistant",
      "A model of your choice - every answer checked before you see it; MCP server for agents"),
     ("fop-pdf-preview.png", "PDF with Apache FOP",
      "XSL-FO to PDF with in-app preview and PDF/A output"),
     ("unified-shell-schema-statistics.png", "Schema analysis and documentation",
      "Quality checks, statistics, and HTML, Word or PDF documentation"),
+    ("compare-xml.png", "Compare and merge",
+     "XML compared by structure, folder comparison and three-way merge"),
+    ("large-file-structure.png", "Large files",
+     "Files of several gigabytes: structure, records, statistics, validation"),
     ("unified-shell-json-grid.png", "JSON editing",
      "Text, tree and grid views, JSON Schema, conversion to XML and YAML"),
     ("unified-shell-signature.png", "XML digital signatures",
@@ -46,13 +62,13 @@ SLIDES = [
      "A modern interface in English and German"),
 ]
 
-WIDTH = 1280
+WIDTH = ARGS.width
 SHOT_H = round(WIDTH * 1000 / 1680)   # the screenshots are 1680 x 1000 (some a few pixels taller)
 BAND_H = 64
 HOLD_MS = 3000
-FADE_FRAMES = 3
+FADE_FRAMES = 3 if ARGS.fade else 0
 FADE_MS = 70
-QUALITY = 80
+QUALITY = ARGS.quality
 
 NAVY, PRIMARY, WHITE, MUTED = (0x2a, 0x28, 0x4c), (0x13, 0x73, 0xd9), (255, 255, 255), (0xc9, 0xd6, 0xe8)
 

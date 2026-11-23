@@ -57,6 +57,9 @@ Replacements are applied safely:
 
 ## Find by XPath
 
+![Search panel with the matches of an XPath in six files](../../img/search-in-files.png)
+*Eight matches of an XPath in six files of a folder, with the selected match shown in the editor*
+
 Find & replace by XPath in a document or across a folder. For queries against the open
 document, use the [Query Console](../transform-query/query-console.md#query-console) (Ctrl+K).
 

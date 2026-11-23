@@ -10,6 +10,9 @@ application ([Install](install.md)); the example files come with it.
 
 ## 1. Open the example
 
+![The Welcome page with the Open an Example card](../img/first-steps-welcome.png)
+*The Welcome page of a new installation with **Open an Example***
+
 1. Start FreeXmlToolkit. It opens on the **Welcome** page.
 2. Click **Open an Example**.
 
@@ -25,6 +28,9 @@ folder and opens `order.xml`, a small purchase order:
 If you have edited these files before, your versions are kept.
 
 ## 2. Validate, break and repair
+
+![The example with an invalid quantity and two problems below the editor](../img/first-steps-validate.png)
+*A quantity of `two` instead of a number: the problem is marked in line 24 and explained in the Problems panel*
 
 1. Press **F8**. The document is valid.
 2. In the first `<item>`, change `quantity="2"` to `quantity="two"`.
@@ -54,6 +60,9 @@ the schema has for the selected node.
 More: [Edit XML](../guides/edit-xml/index.md), [Grid view](../guides/edit-xml/grid.md).
 
 ## 4. Transform it
+
+![The Transform panel with the rendered result below the editor](../img/first-steps-transform.png)
+*The order transformed to HTML, shown in the OUTPUT panel*
 
 1. Choose **Tools → Transform with XSLT…**.
 2. Pick `order-summary.xslt` from the example folder.

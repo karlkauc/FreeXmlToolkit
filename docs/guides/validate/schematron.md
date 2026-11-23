@@ -82,6 +82,9 @@ expression before putting it into a rule. See
 
 ## Schematron Tools in the Validation Panel
 
+![Schematron results in the Problems panel below the document](../../img/schematron-problems.png)
+*Schematron results below the document: errors, warnings and hints, each with the line it belongs to*
+
 The **Validation** activity panel offers the Schematron tools as labelled rows in two
 collapsible sections at the top of the panel (both open at first - click a header to collapse it). Each tool
 opens as a closable tool tab in the editor area:

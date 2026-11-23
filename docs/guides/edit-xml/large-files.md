@@ -46,6 +46,9 @@ instead of a line number. A match that spans two such rows is not found.
 
 ## Structure (XML)
 
+![Large File Viewer, Structure tab: tree on the left, records as a table on the right](../../img/large-file-structure.png)
+*The children of the selected element as a table, loaded a page at a time*
+
 The **Structure** tab shows the elements without reading the whole file:
 
 - **Tree** (left): the root element; expanding an element lists its children, 1,000 at a time.
@@ -134,6 +137,9 @@ Notes on writing:
   line names it.
 
 ## Statistics (XML)
+
+![Large File Viewer, Statistics tab with counts per element](../../img/large-file-statistics.png)
+*Counts, occurrences per parent, attributes and a sample value for every element*
 
 **Scan** reads the whole file once and lists every element path (names from the root, without
 positions, such as `/orders/order/item`):

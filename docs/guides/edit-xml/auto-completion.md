@@ -25,6 +25,9 @@ catalog that needs no schema at all.
 
 ### 1. Smart Element Suggestions
 
+![The completion list at the caret, with the elements the schema allows here](../../img/xml-editor-intellisense.png)
+*The list holds only what the schema allows at the caret*
+
 - **Context-Aware**: Shows only valid child elements for your current location
 - **Position-Aware**: Inside an `xs:sequence` only the elements that may follow the
   siblings already present are offered - an element that has reached its `maxOccurs` (or an

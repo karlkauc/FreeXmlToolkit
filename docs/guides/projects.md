@@ -93,6 +93,12 @@ The Explorer's tooltip on a file says what the project assigns to it.
 
 ## Project Settings
 
+![Project settings, Bindings tab](../img/project-settings.png)
+***Bindings**: which schema, Schematron and scenario belong to which files*
+
+![Project settings, Scenarios tab](../img/project-settings-scenarios.png)
+***Scenarios**: stylesheet, input, output and the expected result*
+
 **File → Project → Project Settings…** (also in the Explorer's context menu) edits the project
 without touching the JSON:
 
@@ -147,6 +153,9 @@ below OPTIONS & TOOLS.
 - The **trash button** removes the chosen scenario from the project.
 
 ### Regression checks
+
+![Transform panel after a scenario check that found differences](../img/project-scenario-check.png)
+*A check that found four differences from the expected result; **Differences** opens them, **Accept** takes the new result*
 
 A scenario with an **expected result** can be checked: it runs as usual, and its result is
 compared with the expected file ("golden file"). XML results are compared by structure, like

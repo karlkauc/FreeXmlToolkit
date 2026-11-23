@@ -34,6 +34,9 @@ target; **Decrypt…** (shown when the document contains `EncryptedData`) opens 
 
 ## Encrypt
 
+![The Encrypt action with four recipients](../../img/encrypt-recipients.png)
+*Encrypting a whole document for two certificates, a shared key and a password*
+
 1. **What to encrypt**
     - **Whole document** - the document element with everything in it.
     - **Element at the caret** - the element the editor's caret was in.
@@ -88,6 +91,9 @@ is decrypted to its original bytes, which you save where you like.
 other locations are refused.
 
 ## Inspect Encryption
+
+![Report of Inspect Encryption for a file with three keys](../../img/encrypt-inspect.png)
+*The report of an encrypted file: what is encrypted, with which algorithm, and for whom*
 
 Lists every EncryptedData with its location, type, algorithm, cipher data and the ways to its key:
 EncryptedKeys with method and recipient, KeyName, certificate reference (issuer and serial,

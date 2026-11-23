@@ -7,6 +7,12 @@ description: Profile an XSLT stylesheet or an XQuery: time per template and func
 Every run shows compact statistics in the OUTPUT panel's status line:
 `Transformed · N ms · M chars` — the **execution time** and the **output size**.
 
+![Profile of a stylesheet: time and calls per template and function](../../img/profile-table.png)
+***Hot Spots**: calls, own time and total time of every template rule and function*
+
+![Flame graph of the same profile](../../img/profile-flame-graph.png)
+***Flame Graph**: the width of a bar is its total time*
+
 For a deeper look, enable **Profile run** in the Transform panel's **OPTIONS & TOOLS** section: the next
 transformation runs under the XSLT profiler and opens a **Profile: <stylesheet>** tab that shows
 where the time goes.

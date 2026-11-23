@@ -69,6 +69,9 @@ its line in the XML, so a click navigates straight to the offending element.
 
 ## Large lists: categories, search, grouping, export
 
+![The Problems panel with 72 problems grouped by rule](../../img/problems-grouped.png)
+*72 problems of one document, grouped by rule: each group shows how often the rule was broken*
+
 A check of a large report can give hundreds of thousands of findings - one per occurrence. The header has the tools to
 work them off:
 

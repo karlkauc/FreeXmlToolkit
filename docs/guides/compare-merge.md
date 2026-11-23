@@ -8,6 +8,9 @@ description: Compare XML by structure, compare folders and merge three versions 
 with another file, side by side, and lets you merge the differences. XML documents can also be
 compared by structure ([Comparing as XML](#comparing-as-xml)).
 
+![Two price lists compared as text, with changed lines marked](../img/compare-text.png)
+*Two versions of a price list in the Text mode: changed lines and the changed parts inside them are marked*
+
 1. Choose **Tools → Compare with File…** and pick a file to compare against the current document.
 2. A new tab opens titled `Compare: <left> ↔ <right>` with synchronized scrolling and live re-diff.
 3. Changed lines are highlighted, with intra-line word-level coloring.
@@ -29,6 +32,9 @@ The diff recomputes automatically about 300 ms after you stop typing.
 - Two files to compare; for a three-way merge also the version both were derived from.
 
 ## Comparing as XML
+
+![The same two price lists compared as XML, with a table of seven differences](../img/compare-xml.png)
+*The XML mode lists every difference with its node, both values and its location*
 
 When both sides are XML, the **XML** button in the toolbar compares the documents by structure
 instead of by lines (**Text** switches back). Indentation, line breaks, the order of attributes,
@@ -78,6 +84,9 @@ The XML mode only compares. To take changes over, switch back to **Text** and us
 
 ## Comparing folders
 
+![Folder comparison with the status of every file](../img/compare-folders.png)
+*Two folders: identical, equivalent and different files, and files that exist on one side only*
+
 **Tools → Compare Folders…** asks for a left and a right folder and compares them file by file,
 including subfolders (hidden folders such as `.git` are skipped). A tab lists the files that
 differ:
@@ -100,6 +109,9 @@ view's **Data** mode.
 On the command line: [`fxt-cli compare`](../automate/cli-compare.md#compare).
 
 ## Merging three files
+
+![Three-way merge with one conflict marked in the text](../img/merge-three-way.png)
+*A merge with one conflict left, marked the way Git marks it*
 
 When two people changed the same file, **Tools → Merge Files…** combines both versions with their
 common ancestor (a three-way merge, as in Git). Choose the **Base** (the version both started

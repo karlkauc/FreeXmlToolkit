@@ -99,6 +99,9 @@ To start a new test file, choose **File → New…**, type **XML**, and one of t
 
 ## Read the result
 
+![Result of an XSpec run with one failed expectation](../../img/xspec-result.png)
+*Five tests, one failed: the expected and the actual result of the failed expectation are shown below*
+
 The result opens in a tab named **XSpec: price.xspec**. Running the same file again reuses its
 tab.
 

@@ -23,6 +23,9 @@ document's formatting**.
 
 ## Using quick fixes
 
+![The quick fix menu at a line with a Schematron problem](../../img/schematron-quick-fix.png)
+*The light bulb at line 26 offers the fixes the rule defines*
+
 Bind a Schematron to your XML document as usual (Validation panel → SCHEMATRON
 source row, or the Explorer's one-click validation bar). After validation,
 problems that carry fixes can be corrected from three places:
