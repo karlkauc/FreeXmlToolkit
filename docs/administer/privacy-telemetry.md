@@ -57,7 +57,8 @@ A failed **XSD generation** (`xsd_generate`) carries the exception class in `err
 refused because of its rate limit and the release page answered instead, the successful check carries
 `meta.via=page`. Registering or removing **file associations** (`file_associations`, Settings → Files & Cache)
 names the operation in `meta.op` (`register`/`unregister`) and a failure's fixed reason in `meta.reason`:
-`failed` (status `error`), `policy_blocked` (an administrator policy disabled registry editing) or
+`failed` (status `error`; on macOS more precisely `script_failed` when the helper script could not run, or
+`handler_refused_<OSStatus>` with the code Launch Services answered, e.g. `handler_refused_-54`), `policy_blocked` (an administrator policy disabled registry editing) or
 `unsupported` (no installed launcher; both status `unsupported`), `no_types` (status `invalid_input`).
 
 Every feature action records *why* it failed the same way: the processor's error code or the

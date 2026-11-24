@@ -79,6 +79,15 @@ class MacAssociationStrategyTest {
         assertFalse(result.success());
         assertTrue(result.errors().getFirst().contains(".xml"));
         assertTrue(result.errors().getFirst().contains("-54"));
+        assertEquals("handler_refused_-54", result.failureKind(), "the OSStatus reaches the usage statistics");
+    }
+
+    @Test
+    void aScriptThatCannotRunIsReportedAsSuch() {
+        runner.responder = command -> new CommandRunner.CommandResult(1, "", "execution error");
+        FileAssociationResult result = strategy.register(List.of(XML), List.of(XML));
+        assertFalse(result.success());
+        assertEquals(FileAssociationResult.SCRIPT_FAILED, result.failureKind());
     }
 
     @Test

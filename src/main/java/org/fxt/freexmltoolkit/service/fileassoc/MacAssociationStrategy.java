@@ -133,10 +133,11 @@ public class MacAssociationStrategy implements AssociationStrategy {
                 targets.put(ext, BUNDLE_ID);
             }
         }
-        List<String> errors = setHandlers(targets, true);
-        if (!errors.isEmpty()) {
+        SetOutcome outcome = setHandlers(targets, true);
+        if (!outcome.errors().isEmpty()) {
             return FileAssociationResult.failure(
-                    "Could not set FreeXmlToolkit as default for all types — see details.", errors);
+                    "Could not set FreeXmlToolkit as default for all types — see details.", outcome.errors(),
+                    outcome.failureKind());
         }
         return FileAssociationResult.ok("FreeXmlToolkit is now the default application for the selected file types.");
     }
@@ -155,10 +156,11 @@ public class MacAssociationStrategy implements AssociationStrategy {
                 }
             }
         }
-        List<String> errors = targets.isEmpty() ? List.of() : setHandlers(targets, false);
-        if (!errors.isEmpty()) {
+        SetOutcome outcome = targets.isEmpty() ? new SetOutcome(List.of(), null) : setHandlers(targets, false);
+        if (!outcome.errors().isEmpty()) {
             return FileAssociationResult.failure(
-                    "Could not restore the previous default application for all types — see details.", errors);
+                    "Could not restore the previous default application for all types — see details.",
+                    outcome.errors(), outcome.failureKind());
         }
         // Forget restored handlers
         targets.keySet().forEach(ext -> store.set(PREVIOUS_HANDLER_KEY_PREFIX + ext, ""));
@@ -201,11 +203,19 @@ public class MacAssociationStrategy implements AssociationStrategy {
     }
 
     /**
-     * Runs the set-handler script for the given ext→bundleId map; records previous
-     * handlers when {@code recordPrevious} is set. Returns per-extension errors.
+     * Per-extension errors and the fixed failure kind for usage statistics: {@code script_failed}
+     * when the script could not run, else {@code handler_refused_<OSStatus>} of the first refusal.
      */
-    private List<String> setHandlers(Map<String, String> targets, boolean recordPrevious) {
+    record SetOutcome(List<String> errors, String failureKind) {
+    }
+
+    /**
+     * Runs the set-handler script for the given ext→bundleId map; records previous
+     * handlers when {@code recordPrevious} is set.
+     */
+    private SetOutcome setHandlers(Map<String, String> targets, boolean recordPrevious) {
         List<String> errors = new ArrayList<>();
+        String failureKind = null;
         try {
             Path script = writeScript(buildSetHandlerScript());
             try {
@@ -222,10 +232,13 @@ public class MacAssociationStrategy implements AssociationStrategy {
                 }
                 if (!result.success()) {
                     errors.add("osascript failed: " + result.stderr().trim());
-                    return errors;
+                    return new SetOutcome(errors, FileAssociationResult.SCRIPT_FAILED);
                 }
                 for (HandlerChange change : parseSetHandlerOutput(result.stdout())) {
                     if (!change.success()) {
+                        if (failureKind == null) {
+                            failureKind = FileAssociationResult.HANDLER_REFUSED_PREFIX + change.status();
+                        }
                         errors.add("Could not set default for ." + change.extension()
                                 + " (Launch Services status " + change.status() + ")");
                     } else if (recordPrevious && !change.previousHandler().isBlank()
@@ -238,8 +251,9 @@ public class MacAssociationStrategy implements AssociationStrategy {
             }
         } catch (IOException e) {
             errors.add("Could not run osascript: " + e.getMessage());
+            return new SetOutcome(errors, FileAssociationResult.SCRIPT_FAILED);
         }
-        return errors;
+        return new SetOutcome(errors, errors.isEmpty() ? null : failureKind);
     }
 
     private void forceLaunchServicesRegistration() {

@@ -11,14 +11,19 @@ import java.util.List;
  *                             complete the default-app selection (Windows only)
  * @param errors               per-extension error details (empty on full success)
  * @param failureKind          fixed identifier of a failure for usage statistics (never text from the
- *                             system): {@link #FAILED}, {@link #POLICY_BLOCKED}, {@link #UNSUPPORTED},
- *                             {@link #NO_TYPES}; {@code null} on success
+ *                             system): {@link #FAILED}, {@link #SCRIPT_FAILED},
+ *                             {@link #HANDLER_REFUSED_PREFIX} + OSStatus, {@link #POLICY_BLOCKED},
+ *                             {@link #UNSUPPORTED}, {@link #NO_TYPES}; {@code null} on success
  */
 public record FileAssociationResult(boolean success, String message,
                                     boolean systemSettingsOpened, List<String> errors, String failureKind) {
 
     /** A system command failed for another reason. */
     public static final String FAILED = "failed";
+    /** macOS: the JXA script could not run ({@code osascript} failed, also after re-registering the bundle). */
+    public static final String SCRIPT_FAILED = "script_failed";
+    /** macOS: Launch Services refused a handler; the kind is this prefix plus the OSStatus, e.g. {@code handler_refused_-54}. */
+    public static final String HANDLER_REFUSED_PREFIX = "handler_refused_";
     /** The system refused by an administrator policy (e.g. registry editing disabled on Windows). */
     public static final String POLICY_BLOCKED = "policy_blocked";
     /** No native launcher (IDE / build directory run). */
