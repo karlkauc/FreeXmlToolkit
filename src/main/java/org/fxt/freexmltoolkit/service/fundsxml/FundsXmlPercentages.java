@@ -85,7 +85,7 @@ public final class FundsXmlPercentages {
 
     /** Per portfolio with positions: the node, its owner's currency and net asset value on the portfolio's date. */
     private static final String PORTFOLIOS = """
-            for $p in //Portfolio[Positions/Position]
+            for $p in //Portfolios/Portfolio[Positions/Position]
             let $ccy := local:owner-ccy($p)
             return map {
               'portfolio': $p,
@@ -101,7 +101,7 @@ public final class FundsXmlPercentages {
     }
 
     /**
-     * Plans the {@code TotalPercentage} of every position of {@code //Portfolio/Positions/Position}.
+     * Plans the {@code TotalPercentage} of every position of {@code //Portfolios/Portfolio/Positions/Position}.
      *
      * @throws IOException when the document is not well-formed
      */

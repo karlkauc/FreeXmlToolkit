@@ -40,6 +40,27 @@ class FundsXmlDataQualityTest {
     }
 
     @Test
+    @DisplayName("template blocks are not taken for funds or portfolio positions")
+    void regulatoryTemplatesAreIgnored() throws Exception {
+        // an EMT has a CostsAndChargesExAnte/Fund, a TPT a Portfolio/Positions/Position: neither is a fund or a position
+        String templates = """
+                  <RegulatoryReportings>
+                    <DirectReporting><EMT_V4_2><FinancialInstrument><CostsAndChargesExAnte>
+                      <Fund><OngoingCosts>0.0158</OngoingCosts></Fund>
+                    </CostsAndChargesExAnte></FinancialInstrument></EMT_V4_2></DirectReporting>
+                    <IndirectReporting><TripartiteTemplateSolvencyII_V7><Portfolio>
+                      <ShareClass><SharePrice>128.41</SharePrice><TotalNumberOfShares>1000</TotalNumberOfShares></ShareClass>
+                      <Positions><Position><InstrumentCIC>US31</InstrumentCIC>
+                        <Valuation><MarketValuePC>-5</MarketValuePC><PositionWeight>0.5</PositionWeight></Valuation>
+                      </Position></Positions>
+                    </Portfolio></TripartiteTemplateSolvencyII_V7></IndirectReporting>
+                  </RegulatoryReportings>
+                </FundsXML4>""";
+        String xml = fixture().replace("</FundsXML4>", templates);
+        assertEquals(Map.of(), findings(xml));
+    }
+
+    @Test
     @DisplayName("a consistent document passes every check")
     void cleanDocument() throws Exception {
         String xml = fixture();
