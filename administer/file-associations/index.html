@@ -4781,6 +4781,11 @@ default choice is protected by the operating system. FreeXmlToolkit therefore:</
 <h3 id="macos">macOS<a class="headerlink" href="#macos" title="Permanent link">¶</a></h3>
 <p>The default handler is set directly through Launch Services (the same mechanism as
 Finder's <em>Get Info → Open with → Change All…</em>) — silent and per user.</p>
+<p>The application bundle declares the system types <code>public.xml</code> and <code>public.json</code> as document
+types it can edit (rank <em>Alternate</em>: offered in "Open with", never taking over without your
+choice), and imports types for <code>.xsd</code>, <code>.xsl</code>/<code>.xslt</code> and <code>.sch</code>/<code>.schematron</code> that build on
+<code>public.xml</code>. You can check them with
+<code>plutil -p /Applications/FreeXmlToolkit.app/Contents/Info.plist</code>.</p>
 <p><strong>Unregister</strong> restores the previous default application where one was recorded. If no
 previous handler is known, use Finder's <em>Change All…</em> to pick another application —
 macOS offers no way to "clear" a default.</p>
