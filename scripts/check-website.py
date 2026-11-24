@@ -3,6 +3,7 @@
 
 - every page has lang, <title>, a meta description and a canonical link;
 - every internal link, image, stylesheet and script points to an existing file;
+- links to the tutorial videos (the videos/ folder of the server) point to a file in build/website-videos/;
 - links into the documentation (the docs/ folder of the server, built from docs/ by MkDocs) point to an
   existing page in docs/;
 - header and footer are the same on every page of a language (apart from the relative path prefix,
@@ -22,6 +23,8 @@ DOCS = ROOT / "docs"
 DOCS_URL = "https://freexmltoolkit.org/docs/"
 LANGUAGES = ["de"]  # folders below the root that hold the pages in another language
 DOCS_DIR = SITE / "docs"  # only on the server: scripts/upload-website.py --docs puts the MkDocs build there
+VIDEOS_DIR = SITE / "videos"  # only on the server: scripts/upload-website.py --videos puts build/website-videos there
+VIDEOS_BUILD = ROOT / "build" / "website-videos"  # made by scripts/website-videos.py
 
 
 class Page(html.parser.HTMLParser):
@@ -118,6 +121,10 @@ def main():
             if target == DOCS_DIR or DOCS_DIR in target.parents:
                 if not docs_page_exists(target.relative_to(DOCS_DIR).as_posix()):
                     problems.append(f"{rel}: documentation page not found: {ref}")
+                continue
+            if VIDEOS_DIR in target.parents:
+                if not (VIDEOS_BUILD / target.relative_to(VIDEOS_DIR)).exists():
+                    problems.append(f"{rel}: video file not in build/website-videos (run scripts/website-videos.py): {ref}")
                 continue
             if target.is_dir():
                 target = target / "index.html"

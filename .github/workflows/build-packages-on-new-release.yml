@@ -10,6 +10,8 @@ on:
 
 jobs:
   build:
+    # media-* releases only hold files for the website (tutorial videos, scripts/website-videos.py): no packages
+    if: github.event_name != 'release' || !startsWith(github.event.release.tag_name, 'media-')
     # Definiere eine Build-Matrix für alle jpackage Kombinationen
     strategy:
       # Ein fehlgeschlagenes Paket (z. B. Notarisierungs-Timeout) soll die übrigen nicht abbrechen
@@ -282,7 +284,7 @@ jobs:
   # Software Bill of Materials (CycloneDX 1.6) der ausgelieferten Bibliotheken (Runtime-Classpath),
   # als JSON und XML am Release; landet damit auch in SHA256SUMS.txt.
   sbom:
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' && !startsWith(github.event.release.tag_name, 'media-')
     # Ein Fehler hier soll Prüfsummen und Paketmanager nicht aufhalten
     continue-on-error: true
     runs-on: ubuntu-latest

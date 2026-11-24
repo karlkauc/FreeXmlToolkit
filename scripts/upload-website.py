@@ -10,6 +10,7 @@ Usage:
     python3 scripts/upload-website.py --dir /www --dry-run
     python3 scripts/upload-website.py --dir /www
     python3 scripts/upload-website.py --dir /www --docs [--dry-run]    the documentation, to <dir>/docs
+    python3 scripts/upload-website.py --dir /www --videos [--dry-run]  the tutorial videos, to <dir>/videos
 
 Uploads only files whose size differs from the server copy (or all with --all). Never deletes anything.
 Runs scripts/check-website.py first and stops when it reports a problem.
@@ -18,6 +19,9 @@ Runs scripts/check-website.py first and stops when it reports a problem.
 temporary folder and uploads that to the docs/ folder of the website instead of website/ itself.
 The website links to it with relative links, so upload the documentation before the website when
 pages were added.
+
+--videos uploads build/website-videos/ (made by scripts/website-videos.py: subtitles, chapters, posters) to the
+videos/ folder of the website. Upload it before the page that plays them.
 """
 import argparse
 import ftplib
@@ -139,6 +143,8 @@ def main():
     ap.add_argument("--insecure", action="store_true", help="plain FTP without TLS (only if the server has no TLS)")
     ap.add_argument("--docs", action="store_true",
                     help="build the MkDocs documentation and upload it to <dir>/docs instead of the website")
+    ap.add_argument("--videos", action="store_true",
+                    help="upload build/website-videos (subtitles and posters, scripts/website-videos.py) to <dir>/videos instead of the website")
     args = ap.parse_args()
 
     source, target, build = SITE, args.dir, None
@@ -151,6 +157,10 @@ def main():
             if subprocess.run(["mkdocs", "build", "--strict", "-q", "-d", build.name], cwd=ROOT).returncode != 0:
                 sys.exit("mkdocs build failed; nothing uploaded")
             source, target = pathlib.Path(build.name), args.dir.rstrip("/") + "/docs"
+        elif args.videos:
+            source, target = ROOT / "build" / "website-videos", args.dir.rstrip("/") + "/videos"
+            if not any(source.glob("*.vtt")):
+                sys.exit("build/website-videos is empty; run scripts/website-videos.py first")
         elif subprocess.run([sys.executable, str(ROOT / "scripts" / "check-website.py")]).returncode != 0:
             sys.exit("check-website.py reported problems; nothing uploaded")
 

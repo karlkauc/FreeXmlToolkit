@@ -326,3 +326,38 @@ a.shot:hover { border-color: var(--link); }
 .faq details > p, .faq details > ul { margin: 16px 0; font-size: 17px; line-height: 1.6; }
 .faq details > ul { padding-left: 1.2em; }
 .gallery .shot img { aspect-ratio: 1680 / 1000; object-fit: cover; object-position: top left; }
+
+/* ---------- videos page: one player, the series as lists (assets/js/videos.js) ---------- */
+.muted { color: var(--muted); }
+.video-player-section .wrap { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+@media (max-width: 900px) { .video-player-section .wrap { grid-template-columns: minmax(0, 1fr); gap: 20px; } }
+.video-stage { background: var(--navy-deep); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+.video-stage video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #000; }
+.video-stage video p { color: var(--on-navy); padding: 24px; }
+.video-now { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.video-now h2 { font-size: clamp(22px, 2.4vw, 26px); }
+.video-desc { color: var(--muted); font-size: 15px; margin: 0; }
+.video-chapters { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; font-size: 15px; }
+.video-chapters a { display: flex; gap: 10px; padding: 6px 8px; border-radius: 8px; text-decoration: none; color: var(--ink); }
+.video-chapters a:hover { background: var(--tint); }
+.video-chapters span { font-family: var(--mono); font-size: 13px; color: var(--muted); min-width: 3.6em; padding-top: 2px; }
+.video-now-chapters { border-top: 1px solid var(--line); padding-top: 12px; }
+.video-list { list-style: none; margin: 0; padding: 0; display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 28px 24px; counter-reset: film; }
+.video-item { display: flex; flex-direction: column; gap: 8px; min-width: 0; counter-increment: film; }
+.js .video-item .video-chapters { display: none; }   /* without JavaScript the chapters link into the MP4 */
+.video-open { display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: var(--ink); }
+.video-thumb { position: relative; display: block; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--card); }
+.video-thumb img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; }
+.video-thumb::after { content: ""; position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px;
+  border-radius: 50%; background: rgba(42, 40, 76, 0.82) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M8 5v14l11-7z'/%3E%3C/svg%3E") center / 26px no-repeat;
+  opacity: 0; transition: opacity 0.15s; }
+.video-open:hover .video-thumb, .video-item[aria-current] .video-thumb { border-color: var(--link); }
+.video-open:hover .video-thumb::after, .video-open:focus-visible .video-thumb::after { opacity: 1; }
+.video-length { position: absolute; right: 8px; bottom: 8px; padding: 2px 7px; border-radius: 6px; background: rgba(20, 19, 42, 0.86);
+  color: #fff; font: 500 13px/1.4 var(--mono); }
+.video-title { font-weight: 600; font-size: 17px; line-height: 1.35; }
+.video-title::before { content: counter(film) ". "; color: var(--muted); font-weight: 500; }
+.video-open:hover .video-title { color: var(--link); }
+.video-item[aria-current] .video-title { color: var(--link); }
+.video-item[aria-current] .video-thumb { outline: 3px solid var(--link); outline-offset: 2px; }

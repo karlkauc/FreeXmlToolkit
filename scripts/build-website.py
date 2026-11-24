@@ -41,6 +41,7 @@ GITHUB = "https://github.com/karlkauc/FreeXmlToolkit"
 # (key, target below the language root or the site root, label per language)
 NAV = [
     ("features", "{{home}}features/", {"en": "Features", "de": "Funktionen"}),
+    ("videos", "{{home}}videos/", {"en": "Videos", "de": "Videos"}),
     ("industries", "{{home}}industries/", {"en": "Industries", "de": "Branchen"}),
     ("enterprise", "{{home}}enterprise/", {"en": "Enterprise", "de": "Unternehmen"}),
     ("ai", "{{home}}ai/", {"en": "AI", "de": "KI"}),
@@ -57,7 +58,8 @@ CHROME = {
         "footer": [
             ("Product", [("{{home}}features/", "Features"), ("{{home}}industries/", "Industries"),
                          ("{{home}}enterprise/", "Enterprise"), ("{{home}}ai/", "AI &amp; automation"),
-                         ("{{home}}compare/", "Compare"), ("{{home}}screenshots/", "Screenshots")]),
+                         ("{{home}}compare/", "Compare"), ("{{home}}screenshots/", "Screenshots"),
+                         ("{{home}}videos/", "Videos")]),
             ("Project", [("{{home}}news/", "News"), ("{{home}}about/", "About"), (SPONSOR, "Sponsor"),
                          (GITHUB, "GitHub")]),
             ("Help", [("{{root}}docs/", "Documentation"), ("{{home}}faq/", "FAQ"),
@@ -76,7 +78,8 @@ CHROME = {
         "footer": [
             ("Produkt", [("{{home}}features/", "Funktionen"), ("{{home}}industries/", "Branchen"),
                          ("{{home}}enterprise/", "Unternehmen"), ("{{home}}ai/", "KI &amp; Automatisierung"),
-                         ("{{home}}compare/", "Vergleich"), ("{{home}}screenshots/", "Screenshots")]),
+                         ("{{home}}compare/", "Vergleich"), ("{{home}}screenshots/", "Screenshots"),
+                         ("{{home}}videos/", "Videos")]),
             ("Projekt", [("{{home}}news/", "Neuigkeiten"), ("{{home}}about/", "Über das Projekt"),
                          (SPONSOR, "Sponsern"), (GITHUB, "GitHub")]),
             ("Hilfe", [("{{root}}docs/", "Dokumentation (englisch)"), ("{{home}}faq/", "Fragen und Antworten"),
@@ -322,7 +325,7 @@ def main():
 
 SITEMAP_ORDER = ["", "features/", "features/editing/", "features/schemas/", "features/validation/",
                  "features/transform/", "features/publish-security/", "features/compare-convert/",
-                 "features/projects-cli/", "screenshots/", "industries/", "enterprise/", "ai/", "compare/", "download/", "faq/", "news/", "about/",
+                 "features/projects-cli/", "screenshots/", "videos/", "industries/", "enterprise/", "ai/", "compare/", "download/", "faq/", "news/", "about/",
                  "imprint/", "privacy/"]
 
 if __name__ == "__main__":

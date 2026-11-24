@@ -38,12 +38,16 @@ Options -Indexes
   ExpiresByType image/png "access plus 30 days"
   ExpiresByType image/x-icon "access plus 30 days"
   ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType video/mp4 "access plus 30 days"
+  ExpiresByType text/vtt "access plus 1 day"
 </IfModule>
 
 <IfModule mod_mime.c>
   AddType font/woff2 .woff2
   AddType image/webp .webp
   AddType image/x-icon .ico
+  AddType video/mp4 .mp4
+  AddType text/vtt .vtt
   AddType image/svg+xml .svg
   AddType application/manifest+json .webmanifest
 </IfModule>
