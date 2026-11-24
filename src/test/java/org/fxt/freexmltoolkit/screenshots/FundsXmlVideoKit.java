@@ -170,4 +170,22 @@ final class FundsXmlVideoKit {
         });
         return found[0];
     }
+
+    /** The first element named {@code name} below {@code from} (depth first). */
+    static org.fxt.freexmltoolkit.controls.v2.model.XsdNode namedElement(org.fxt.freexmltoolkit.controls.v2.model.XsdNode from,
+            String name) {
+        var stack = new java.util.ArrayDeque<org.fxt.freexmltoolkit.controls.v2.model.XsdNode>();
+        stack.push(from);
+        while (!stack.isEmpty()) {
+            var n = stack.pop();
+            if (n instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement && name.equals(n.getName())) {
+                return n;
+            }
+            var children = n.getChildren();
+            for (int i = children.size() - 1; i >= 0; i--) {
+                stack.push(children.get(i));
+            }
+        }
+        throw new IllegalStateException("No element " + name);
+    }
 }

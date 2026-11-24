@@ -1,0 +1,29 @@
+{
+  "_comment": "FundsXML for business: the standard for business readers, mostly slides. 'next' names the series the last film's closing card points to; 'planned' gives titles of films not made yet.",
+  "id": "fundsxml-business",
+  "title": {
+    "en": "FundsXML for business"
+  },
+  "next": "fundsxml-developers",
+  "videos": [
+    "biz-why",
+    "biz-content",
+    "biz-regulatory",
+    "biz-quality",
+    "biz-project"
+  ],
+  "planned": {
+    "biz-content": {
+      "en": "What a FundsXML delivery contains"
+    },
+    "biz-regulatory": {
+      "en": "Regulatory reporting with FundsXML"
+    },
+    "biz-quality": {
+      "en": "Trust in the data: quality and control"
+    },
+    "biz-project": {
+      "en": "Introducing FundsXML: a project from A to Z"
+    }
+  }
+}

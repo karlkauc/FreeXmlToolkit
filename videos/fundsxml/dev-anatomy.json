@@ -1,0 +1,206 @@
+{
+  "_comment": "Developers series, film 2: slides and a run in FreeXmlToolkit (FundsXmlDevAnatomyDocVideo).",
+  "id": "dev-anatomy",
+  "scenario": "FundsXmlDevAnatomyDocVideo",
+  "link": "fundsxml.org",
+  "title": {
+    "en": "Anatomy of a delivery: structure and ControlData"
+  },
+  "description": {
+    "en": "How a FundsXML document is built: the root element FundsXML4, its main blocks (ControlData, Funds, AssetMasterData, Documents, RegulatoryReportings, CountrySpecificData), and ControlData in detail: document ID, timestamps, schema version, content date, data supplier, and the data operations INITIAL, AMEND and DELETE with related document IDs. With common pitfalls. Includes turning a delivery into a correction in FreeXmlToolkit."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "In this film you take a FundsXML delivery apart: its main blocks, and its control data, the envelope of every delivery. It takes about five minutes."
+      }
+    },
+    {
+      "id": "root",
+      "chapter": {
+        "en": "The main blocks"
+      },
+      "say": {
+        "en": "Here is a real FundsXML delivery: the month-end portfolio of a mixed fund. Every document starts with the root element FundsXML4. It has no namespace, and it names its schema, FundsXML4.xsd."
+      }
+    },
+    {
+      "id": "fold",
+      "say": {
+        "en": "Fold the document to its main parts, and its structure becomes clear. This file has three blocks. ControlData describes the delivery itself. Funds holds the funds, with their static data, prices and portfolios. And AssetMasterData describes every security that the portfolios hold."
+      }
+    },
+    {
+      "id": "blocks",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.06,
+          0.16,
+          0.28,
+          0.4,
+          0.5,
+          0.6,
+          0.72,
+          0.84
+        ],
+        "en": {
+          "title": "The blocks of a FundsXML document",
+          "items": [
+            {
+              "head": "ControlData",
+              "text": "The envelope: who, when, which version. Required.",
+              "tag": "required"
+            },
+            {
+              "head": "Funds",
+              "text": "Funds, sub-funds, share classes, prices, portfolios."
+            },
+            {
+              "head": "AssetMasterData",
+              "text": "Every security once, referenced by the positions."
+            },
+            {
+              "head": "Company data",
+              "text": "Figures of the management company itself."
+            },
+            {
+              "head": "Documents",
+              "text": "Prospectuses, KIDs, factsheets, annual reports."
+            },
+            {
+              "head": "RegulatoryReportings",
+              "text": "EMT, EPT, EET, TPT and more."
+            },
+            {
+              "head": "CountrySpecificData",
+              "text": "National reporting, for example Austria and Germany."
+            },
+            {
+              "head": "Signature",
+              "text": "An optional digital signature of the whole file."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "These are the blocks at the top level. ControlData is the only one that is required. Funds and AssetMasterData carry the classic fund data. A block for the management company holds figures of the company itself, such as its assets under management. Documents links fund documents, such as key information documents or annual reports. RegulatoryReportings carries the European templates. CountrySpecificData holds national reporting. And an optional signature lets the receiver check who sent the file, and that nothing was changed. A delivery contains only the blocks it needs: a price feed has funds but no portfolio, and a pure template delivery may have little more than its regulatory block."
+      }
+    },
+    {
+      "id": "control",
+      "chapter": {
+        "en": "ControlData"
+      },
+      "say": {
+        "en": "Now the envelope, ControlData. The unique document ID identifies this delivery; it must be unique for each data supplier. Document generated is the time stamp when the file was written. Version names the FundsXML version it was written for. And content date is the business date of the data, here the first of October. Do not confuse the two dates: the content date is what the data refers to, not when it was produced."
+      }
+    },
+    {
+      "id": "supplier",
+      "say": {
+        "en": "The data supplier says who sent the file: the country of the sending system, a short name, the full name, and the type of supplier, here an asset manager."
+      }
+    },
+    {
+      "id": "operation",
+      "say": {
+        "en": "The last field is the data operation. Initial is a first, complete delivery. A click into it, and the Properties panel shows the schema's own explanation: amend updates or corrects data that was already delivered, and delete removes it."
+      }
+    },
+    {
+      "id": "chain",
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.08,
+          0.35,
+          0.65
+        ],
+        "en": {
+          "title": "Deliveries form a chain",
+          "items": [
+            {
+              "head": "INITIAL",
+              "text": "Document FUND_0001: the first, complete delivery."
+            },
+            {
+              "head": "AMEND",
+              "text": "Document FUND_0002, related to FUND_0001: a correction."
+            },
+            {
+              "head": "DELETE",
+              "text": "Document FUND_0003, related to FUND_0001: removes the data."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "In practice, deliveries form a chain. The first one is initial. A correction is a new file, with its own unique document ID, the operation amend, and the ID of the delivery it corrects in related document IDs. Delete works the same way, and always names the documents it refers to. So the receiver can follow every change, from the first delivery to the latest one."
+      }
+    },
+    {
+      "id": "amend",
+      "say": {
+        "en": "Let us turn this delivery into a correction. The document gets a new ID, file two. The operation becomes amend. And related document IDs name the delivery it corrects, file one. Press F8 to validate: the file is still valid, and the receiver now knows exactly which earlier delivery this one replaces."
+      }
+    },
+    {
+      "id": "pitfalls",
+      "chapter": {
+        "en": "Common pitfalls"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.1,
+          0.32,
+          0.55,
+          0.76
+        ],
+        "en": {
+          "title": "Common pitfalls in ControlData",
+          "items": [
+            {
+              "head": "Reused document IDs",
+              "text": "The receiver may drop the file as a duplicate."
+            },
+            {
+              "head": "Two dates mixed up",
+              "text": "Content date is the business date, not the time of writing."
+            },
+            {
+              "head": "Wrong version",
+              "text": "The Version field should match the schema the file was checked against."
+            },
+            {
+              "head": "Corrections without a reference",
+              "text": "AMEND and DELETE should name their related documents."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Some common pitfalls. Reusing a document ID: the receiver may drop the file as a duplicate. Mixing up the two dates, so data is booked on the wrong day. A version that does not match the schema that the file was checked against. And corrections without related document IDs, which leave the receiver guessing."
+      }
+    },
+    {
+      "id": "modules",
+      "chapter": {
+        "en": "The whole schema"
+      },
+      "say": {
+        "en": "This file uses only a part of the standard. Open the schema in the graphic view: here are all blocks at the top level. Regulatory reportings is opened: it splits into direct reporting, and indirect reporting with the templates for partners, such as the Tripartite Template in its versions, and PRIIPs data. Every block can be explored like this, down to the last element, with the documentation of each one in the Properties panel."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was the anatomy of a delivery. In the next film, you look at funds, share classes and the net asset value. Thanks for watching."
+      }
+    }
+  ]
+}

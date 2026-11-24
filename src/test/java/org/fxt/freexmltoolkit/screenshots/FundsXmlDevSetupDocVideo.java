@@ -15,18 +15,18 @@ import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 
 /**
- * The screen part of the FundsXML tutorial video "Set up FreeXmlToolkit for FundsXML" (storyboard
- * {@code videos/fundsxml/fundsxml-extension.json}): the extension is off, a FundsXML document offers
- * it in the hint bar, the status-bar mark and the FundsXML activity appear, the panel's tools, and the
- * data-quality report. The content cache is filled beforehand, so turning the extension on downloads
- * nothing.
+ * The screen part of "Set up FreeXmlToolkit for FundsXML", film 1 of "FundsXML for developers"
+ * (storyboard {@code videos/fundsxml/dev-setup.json}): the extension is off, a FundsXML document offers
+ * it in the hint bar, the status-bar mark and the FundsXML activity appear, the panel's tools, the
+ * Properties panel with the schema's documentation of an element, and the Welcome page's FundsXML row.
+ * The content cache is filled beforehand, so turning the extension on downloads nothing.
  *
  * <pre>{@code
- * python3 scripts/make-video.py fundsxml-extension --set fundsxml --lang en
+ * python3 scripts/make-video.py dev-setup --set fundsxml --lang en
  * }</pre>
  */
 @ExtendWith(ApplicationExtension.class)
-class FundsXmlExtensionDocVideo {
+class FundsXmlDevSetupDocVideo {
 
     private final DocShell doc = new DocShell("video");
 
@@ -47,7 +47,7 @@ class FundsXmlExtensionDocVideo {
     void record() throws Exception {
         doc.boot();
         EditorHost host = doc.host();
-        Path folder = FundsXmlVideoFiles.folder("fundsxml-extension");
+        Path folder = FundsXmlVideoFiles.folder("dev-setup");
         doc.settle(1500);
 
         // turning the extension on registers the cached examples as templates in release/examples/templates
@@ -56,6 +56,7 @@ class FundsXmlExtensionDocVideo {
         java.util.Set<Path> before = listTemplates(templates);
 
         DocVideoRecorder video = new DocVideoRecorder(doc);
+        FundsXmlVideoKit kit = new FundsXmlVideoKit(doc, video);
         video.start();
         try {
             video.scene("open", () -> {
@@ -120,25 +121,41 @@ class FundsXmlExtensionDocVideo {
                 video.moveTo(doc.<Node>find("#fundsxml-examples-folder"));
             });
 
-            video.scene("dq", () -> {
-                Bounds button = video.screenBounds(doc.find("#fundsxml-dq"));
-                video.zoom(new BoundingBox(button.getMinX() - 20, button.getMinY() - 60, 520, 160));
-                video.spoken(0.1);
-                video.click(doc.<Node>find("#fundsxml-dq"));
-                doc.waitUntilFx(60, () -> host.getActiveDocument()
-                        .map(d -> d.getDisplayName().endsWith("-dq.html")).orElse(false));
-                video.pause(1500);
+            video.scene("inspector", () -> {
                 video.zoomOut();
-                video.spoken(0.5);
-                Bounds editor = video.screenBounds(doc.find("#editorHost"));
-                video.zoom(new BoundingBox(editor.getMinX(), editor.getMinY(), editor.getWidth() * 0.8, editor.getHeight() * 0.7));
-                video.spoken(1);
+                kit.scrollTo(kit.lineOf(kit.offset("<AssetType>EQ</AssetType>")) - 8);
+                video.spoken(0.12);
+                kit.clickInto("<AssetType>EQ</AssetType>", 0);
+                video.pause(900);
+                video.zoom(doc.<Node>find("#inspectorWrapper"));
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
+            video.scene("schema-file", () -> {
+                video.spoken(0.12);
+                video.click(doc.<Node>find("#fundsxml-open-schema"));
+                doc.waitUntilFx(120, () -> host.getActiveText().map(t -> t.contains("vc:minVersion")).orElse(false));
+                video.pause(1500);
+                video.spoken(0.3);
+                String xsd11 = I18n.t("UnifiedShellView.xsd-version-schema", "1.1");
+                Node badge = doc.fx(() -> doc.stage().getScene().getRoot().lookupAll(".label").stream()
+                        .filter(n -> n instanceof javafx.scene.control.Label l && xsd11.equals(l.getText()) && n.isVisible())
+                        .findFirst().orElseThrow());
+                Bounds b = video.screenBounds(badge);
+                video.zoom(new BoundingBox(b.getMinX() - 300, b.getMinY() - 140, 760, 180));
+                video.spoken(0.6);
+                video.zoomOut();
+                kit.scrollTo(kit.lineOf(kit.offset("<xs:documentation xml:lang=\"en\"")) - 3);
+                int line = kit.lineOf(kit.offset("<xs:documentation xml:lang=\"en\""));
+                video.zoom(kit.lines(line - 3, line + 4));
+                video.spoken(0.97);
                 video.zoomOut();
             });
 
             video.scene("welcome", () -> {
                 video.spoken(0.1);
-                // the generated report counts as unsaved: remove the tabs without the save question
+                // remove the tabs without a save question
                 doc.onFx(() -> {
                     if (doc.shell().lookup(".fxt-editor-tabpane") instanceof javafx.scene.control.TabPane tabs) {
                         tabs.getTabs().clear();

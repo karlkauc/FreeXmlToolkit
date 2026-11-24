@@ -20,49 +20,56 @@ Keep this table up to date when a video is added or re-recorded. The order is al
 `all-videos-de.mp4` with a chapter per video, one subtitle file and an `.m3u` playlist of the single
 films, all copied to `FXT-Videos` as well.
 
-## FundsXML basics (`videos/fundsxml/`)
+## FundsXML (`videos/fundsxml/`)
 
-A set of its own that explains the FundsXML standard with FreeXmlToolkit, English only for now; its
-films are copied to `FXT-Videos/fundsxml/`. The example documents are in
-`src/test/resources/fundsxml/video/` (copies of github.com/fundsxml/examples with a local schema
-location and correct ISIN/LEI check digits); the schema comes from `../fundsxml_schema`
-(`FundsXmlVideoFiles.java`); the steps the scenarios share are in `FundsXmlVideoKit.java`.
+A set of its own that explains the FundsXML standard, English only for now, in two series; its films
+are copied to `FXT-Videos/fundsxml/`. The example documents are in `src/test/resources/fundsxml/video/`
+(copies of github.com/fundsxml/examples with a local schema location and correct ISIN/LEI check
+digits); the schema comes from `../fundsxml_schema` (`FundsXmlVideoFiles.java`); the steps the
+scenarios share are in `FundsXmlVideoKit.java`.
 
 The title and closing cards are in the FundsXML look (`videos/fundsxml/theme.json`, logo and Manrope in
-`videos/fundsxml/brand/`, after https://branding.status20.net/): the title card names the episode,
-the closing card lists the series with the next film, the links and a disclaimer; the upload text gets
-the same links and disclaimer. A set without `theme.json` keeps the FreeXmlToolkit cards.
+`videos/fundsxml/brand/`, after https://branding.status20.net/): the title card names the episode and
+its series, the closing card lists the series with the next film, the links and a disclaimer; the
+upload text gets the same links and disclaimer. A set without `theme.json` keeps the FreeXmlToolkit cards.
 
-```bash
-python3 scripts/make-video.py fundsxml-validate --set fundsxml --lang en
-python3 scripts/make-video.py --series --set fundsxml --lang en
-```
+A set may hold several series (`series-<name>.json`, each with an `id`); a series names the one its
+last film points to with `"next"`. Slides are drawn, not recorded:
 
-| # | Id | Title | Status |
-|---|----|-------|--------|
-| 1 | `fundsxml-what-is` | What is FundsXML? | recorded |
-| 2 | `fundsxml-extension` | Set up FreeXmlToolkit for FundsXML | recorded |
-| 3 | `fundsxml-fund-shareclass` | Funds, share classes and NAV | recorded |
-| 4 | `fundsxml-portfolio` | Portfolio positions and asset master data | recorded |
-| 5 | `fundsxml-validate` | Valid XML is not correct data: schema and data-quality checks | recorded |
-
-### Overview: `fundsxml-explained` (stand-alone, about 10 min)
-
-"FundsXML explained: one language for fund data" is for business readers: what the standard is for,
-what it covers, who uses it, quality, how a project runs. It is not in `series.json`
-(`"standalone": true`); its closing card points to the series instead. Most of it is **slides**, with
-two short runs in FreeXmlToolkit (`FundsXmlExplainedDocVideo.java`):
-
-- A scene with `"slide"` is not recorded: `make-video.py` draws it in the set's theme (needs `theme.json`).
+- A scene with `"slide"` is drawn by `make-video.py` in the set's theme (needs `theme.json`).
 - Layouts: `statement` (headline, sub), `bullets`, `tiles` (items with head, text, optional tag),
   `steps` (a numbered chain), and `hub` (actors around a centre; `"mode": "mesh"` joins all with all).
 - `"builds"` gives, per part, the share of the narration at which it fades in (missing ones: at once).
-- Recorded scenes between two slides form one run of the screen recording. A storyboard without slides
-  is cut exactly as before.
+- Recorded scenes between two slides form one run of the screen recording; a storyboard of slides
+  only is not recorded. A storyboard without slides is cut exactly as before.
 
 ```bash
-python3 scripts/make-video.py fundsxml-explained --set fundsxml --lang en
+python3 scripts/make-video.py biz-why --set fundsxml --lang en
+python3 scripts/make-video.py --series fundsxml-business --set fundsxml --lang en
 ```
+
+**FundsXML for business** (`series-business.json`): for business readers, mostly slides, 5–8 min.
+
+| # | Id | Title | Status |
+|---|----|-------|--------|
+| 1 | `biz-why` | Why fund data needs a standard | recorded |
+| 2 | `biz-content` | What a FundsXML delivery contains | planned |
+| 3 | `biz-regulatory` | Regulatory reporting with FundsXML | planned |
+| 4 | `biz-quality` | Trust in the data: quality and control | planned |
+| 5 | `biz-project` | Introducing FundsXML: a project from A to Z | planned |
+
+**FundsXML for developers** (`series-developers.json`): in a real file with FreeXmlToolkit, 3–6 min.
+
+| # | Id | Title | Status |
+|---|----|-------|--------|
+| 1 | `dev-setup` | Set up FreeXmlToolkit for FundsXML | recorded (`FundsXmlDevSetupDocVideo`) |
+| 2 | `dev-anatomy` | Anatomy of a delivery: structure and ControlData | recorded (`FundsXmlDevAnatomyDocVideo`) |
+| 3 | `dev-funds` | Funds, share classes and NAV | planned |
+| 4 | `dev-portfolio` | Portfolios and asset master data | planned |
+| 5 | `dev-transactions` | Transactions and investor flows | planned |
+| 6 | `dev-regulatory` | Regulatory templates in XML | planned |
+| 7 | `dev-validate` | Validate and check data quality | planned |
+| 8 | `dev-query` | Query, transform and integrate | planned |
 
 Files over 19 MiB are copied to `FXT-Videos` as a zip cut into 19 MiB parts (`<name>.zip.001`, …),
 because the folder is copied over WebDAV, which takes files below 20 MB (20,000,000 bytes) only.

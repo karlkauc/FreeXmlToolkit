@@ -1,0 +1,43 @@
+{
+  "_comment": "FundsXML for developers: the standard in a real file, with FreeXmlToolkit. 'planned' gives titles of films not made yet.",
+  "id": "fundsxml-developers",
+  "title": {
+    "en": "FundsXML for developers"
+  },
+  "videos": [
+    "dev-setup",
+    "dev-anatomy",
+    "dev-funds",
+    "dev-portfolio",
+    "dev-transactions",
+    "dev-regulatory",
+    "dev-validate",
+    "dev-query"
+  ],
+  "planned": {
+    "dev-setup": {
+      "en": "Set up FreeXmlToolkit for FundsXML"
+    },
+    "dev-anatomy": {
+      "en": "Anatomy of a delivery: structure and ControlData"
+    },
+    "dev-funds": {
+      "en": "Funds, share classes and NAV"
+    },
+    "dev-portfolio": {
+      "en": "Portfolios and asset master data"
+    },
+    "dev-transactions": {
+      "en": "Transactions and investor flows"
+    },
+    "dev-regulatory": {
+      "en": "Regulatory templates in XML"
+    },
+    "dev-validate": {
+      "en": "Validate and check data quality"
+    },
+    "dev-query": {
+      "en": "Query, transform and integrate"
+    }
+  }
+}

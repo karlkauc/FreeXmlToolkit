@@ -41,6 +41,22 @@
     "NAVs": "N A Vs",
     "ISO": "I S O",
     "FIX": "fix",
-    "openfunds": "open funds"
+    "openfunds": "open funds",
+    "FinDatEx": "fin dat ex",
+    "BVI": "B V I",
+    "EFT": "E F T",
+    "ESAP": "E sap",
+    "AMEND": "amend",
+    "DELETE": "delete",
+    "XSD": "X S D",
+    "XML": "X M L",
+    "RegulatoryReportings": "regulatory reportings",
+    "CountrySpecificData": "country specific data",
+    "RelatedDocumentIDs": "related document I Ds",
+    "UniqueDocumentID": "unique document I D",
+    "DocumentGenerated": "document generated",
+    "Solvency II": "Solvency two",
+    "MiFID II": "miffid two",
+    "F8": "F 8"
   }
 }

@@ -1,0 +1,177 @@
+{
+  "_comment": "Developers series, film 1: slides and a run in FreeXmlToolkit (FundsXmlDevSetupDocVideo).",
+  "id": "dev-setup",
+  "scenario": "FundsXmlDevSetupDocVideo",
+  "link": "fundsxml.org",
+  "title": {
+    "en": "Set up FreeXmlToolkit for FundsXML"
+  },
+  "description": {
+    "en": "Set up a free working environment for FundsXML: turn on the FundsXML extension of FreeXmlToolkit, choose the schema version, get to know the FundsXML panel and its tools, read the schema's documentation of any element, open the schema itself, and start from an official example file. Also: why FundsXML needs an XSD 1.1 validator, and the two forms in which the schema is published. With an overview of other tools: command line validators, IDEs and the online documentation."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "In this film you set up a free working environment for FundsXML: the schema, the example files, and an editor that knows the standard. It takes about four minutes."
+      }
+    },
+    {
+      "id": "schema",
+      "chapter": {
+        "en": "The schema"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.05,
+          0.3,
+          0.52,
+          0.75
+        ],
+        "en": {
+          "title": "The FundsXML schema",
+          "items": [
+            {
+              "head": "Open source",
+              "text": "github.com/fundsxml/schema, under the MIT licence."
+            },
+            {
+              "head": "One flat file",
+              "text": "FundsXML4.xsd contains everything: validate against this one."
+            },
+            {
+              "head": "Or modules",
+              "text": "One file per area, for reading and development."
+            },
+            {
+              "head": "XSD 1.1",
+              "text": "Assertions and conditional rules: use Saxon, Xerces or FreeXmlToolkit, not xmllint."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Everything starts with the schema. It is published on GitHub under the MIT licence, in two forms. One flat file, FundsXML4.xsd, contains everything, and is the one to validate against. The modular form splits it into one file per area, which is easier to read and to change. The schema uses XSD version one point one, with assertions and conditional rules. So you need a validator that supports it, such as Saxon, Xerces, or the editor in this film; older tools like xmllint do not."
+      }
+    },
+    {
+      "id": "open",
+      "chapter": {
+        "en": "Turn the extension on"
+      },
+      "say": {
+        "en": "FreeXmlToolkit is a free XML editor, and it has a FundsXML extension. It is off at first. Open a FundsXML file, and a bar above the editor offers to turn it on."
+      }
+    },
+    {
+      "id": "enable",
+      "say": {
+        "en": "Click Enable the FundsXML extension. FreeXmlToolkit fetches the official FundsXML schemas and example files from GitHub, and keeps them up to date. You can turn the extension off again at any time in the settings."
+      }
+    },
+    {
+      "id": "mark",
+      "say": {
+        "en": "Two things change right away. The status bar shows a green FundsXML mark: the document was recognised as FundsXML. And the activity bar on the left has a new FundsXML button."
+      }
+    },
+    {
+      "id": "panel",
+      "chapter": {
+        "en": "The FundsXML panel"
+      },
+      "say": {
+        "en": "Click it to open the FundsXML panel. At the top, you choose the schema version, here four point two point eleven, the current release. Every check in the panel uses this version."
+      }
+    },
+    {
+      "id": "tools",
+      "say": {
+        "en": "Below are the tools for the open document: validate it against the FundsXML schema, run the data-quality checks, look up its identifiers online, and helpers for the grid view and for percentages. Later films in this series use each of them."
+      }
+    },
+    {
+      "id": "more",
+      "say": {
+        "en": "Further down, the identifier checker for ISIN and LEI codes, and links to the schema, its documentation, and the folder with the example files."
+      }
+    },
+    {
+      "id": "inspector",
+      "chapter": {
+        "en": "The schema explains itself"
+      },
+      "say": {
+        "en": "Now the most useful help while you work. Click into any element, here the asset type of a security. The Properties panel shows what the schema says about it: its data type, the allowed codes, its place in the document, and its documentation. The FundsXML schema documents every element, in English and in German, so the answer is always one click away."
+      }
+    },
+    {
+      "id": "schema-file",
+      "chapter": {
+        "en": "The schema itself"
+      },
+      "say": {
+        "en": "You can also read the schema itself. In the FundsXML panel, click Open Schema in Editor. The flat schema opens next to your document. The status bar shows it right away: an XSD one point one schema, so it needs an XSD one point one validator. Below, every element and type comes with its documentation, in English, German and more languages. Search it with Control F, or switch to the graphic view to see the structure as a diagram."
+      }
+    },
+    {
+      "id": "welcome",
+      "chapter": {
+        "en": "Start from an example"
+      },
+      "say": {
+        "en": "One more place. Close all documents, and the Welcome page shows a FundsXML row: open an example, open the schema, or browse all example files. Click Open Example, and you start with a real FundsXML document, ready to explore."
+      }
+    },
+    {
+      "id": "toolbox",
+      "chapter": {
+        "en": "Other tools"
+      },
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.08,
+          0.3,
+          0.52,
+          0.74
+        ],
+        "en": {
+          "title": "Your FundsXML toolbox",
+          "items": [
+            {
+              "head": "FreeXmlToolkit",
+              "text": "Edit, validate, check data quality, query, transform.",
+              "tag": "free"
+            },
+            {
+              "head": "Command line",
+              "text": "Saxon or Xerces validate files in scripts and pipelines.",
+              "tag": "XSD 1.1"
+            },
+            {
+              "head": "Your IDE",
+              "text": "IntelliJ, VS Code or Eclipse: completion from the schema."
+            },
+            {
+              "head": "Online documentation",
+              "text": "Every element of the schema, browsable on the web."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "FreeXmlToolkit is not the only tool. On the command line, Saxon or Xerces validate files in scripts and build pipelines; both support XSD one point one. Your development environment, such as IntelliJ, VS Code or Eclipse, offers code completion from the schema. And the online documentation shows every element of the schema in the browser. Use whatever fits your work: the files are the same everywhere."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "Your environment is ready. In the next film, you take a FundsXML delivery apart, starting with its control data. Thanks for watching."
+      }
+    }
+  ]
+}

@@ -5,15 +5,17 @@ all generated - nobody records, speaks or edits.
     python3 scripts/make-video.py validate-xml --lang de          # all three steps
     python3 scripts/make-video.py validate-xml --lang en --steps compose
     python3 scripts/make-video.py --series --lang de                # all films of videos/series.json in one
-    python3 scripts/make-video.py fundsxml-validate --set fundsxml  # a storyboard of videos/fundsxml/
+    python3 scripts/make-video.py --series fundsxml-business --set fundsxml   # one series of a set
+    python3 scripts/make-video.py dev-setup --set fundsxml         # a storyboard of videos/fundsxml/
 
-A set is a series of its own in a sub-folder of videos/ (storyboards, series.json, an optional
+A set is a sub-folder of videos/ with films of their own (storyboards, one or more series files
+series.json / series-<name>.json, a series may name the one that follows it with "next"; an optional
 pronunciation.json that adds to the shared one); its films are copied to a sub-folder of the same
 name. A storyboard may name its own card kicker ("kicker") and closing link ("link") instead of the
 FreeXmlToolkit documentation. In a set with a theme.json, a scene with "slide" is drawn, not recorded
 (layouts statement, bullets, tiles, steps, hub; see draw_slide); the recorded scenes between slides
 become runs of the one screen recording. A storyboard with "standalone": true is not an episode of
-the set's series; its closing card points to the series.
+a series; its closing card points to the series it names with "series".
 
 Steps:
   tts      speaks every scene with Piper (a local model, no cloud service) and writes timing.json;
@@ -210,12 +212,37 @@ def load_theme():
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def series_specs():
+    """The set's series files (series.json, series-<name>.json), each a dict with its "_path"."""
+    out = []
+    for path in sorted(BOARDS.glob("series*.json")):
+        spec = json.loads(path.read_text(encoding="utf-8"))
+        spec["_path"] = path
+        out.append(spec)
+    return out
+
+
+def series_of(board):
+    """The series that lists the storyboard; for one that is in none, the one it names with "series"
+    (or the set's only series)."""
+    specs = series_specs()
+    for spec in specs:
+        if board["id"] in spec["videos"]:
+            return spec
+    named = board.get("series")
+    return next((s for s in specs if s["id"] == named), specs[0] if len(specs) == 1 else None)
+
+
+def spec_by_id(spec_id):
+    return next((s for s in series_specs() if s["id"] == spec_id), None)
+
+
 def place_in_series(board):
-    """(episode number, number of episodes, the next storyboard or None) - from the set's series.json."""
-    path = BOARDS / "series.json"
-    if not path.exists():
+    """(episode number, number of episodes, the next storyboard or None) - from the board's series."""
+    spec = series_of(board)
+    if not spec:
         return None, None, None
-    ids = json.loads(path.read_text(encoding="utf-8"))["videos"]
+    ids = spec["videos"]
     if board["id"] not in ids:
         return None, len(ids), None
     i = ids.index(board["id"])
@@ -295,12 +322,10 @@ def brand_intro(path, theme, lang, board, series_title):
     img.save(path)
 
 
-def series_titles(lang):
-    """[(storyboard id, title)] of the set's series.json, planned films by their title in "planned"."""
-    path = BOARDS / "series.json"
-    if not path.exists():
+def series_titles(lang, spec):
+    """[(storyboard id, title)] of a series, planned films by their title in "planned"."""
+    if not spec:
         return []
-    spec = json.loads(path.read_text(encoding="utf-8"))
     out = []
     for vid in spec["videos"]:
         board = BOARDS / f"{vid}.json"
@@ -318,9 +343,15 @@ def brand_outro(path, theme, lang, board, series_title):
     d.text((160, 225), t["thanks"], font=b.font(80, True), fill=b.c["heading"])
     b.accent(img, 160, 335, 260)
     # left column: the series, this film marked, the next one named
-    episodes = series_titles(lang)
+    spec = series_of(board)
+    continuing = board.get("standalone")
+    if spec and spec["videos"] and spec["videos"][-1] == board["id"] and spec.get("next"):
+        # the last film of a series points to the series that follows it
+        spec, continuing = spec_by_id(spec["next"]) or spec, True
+        series_title = spec["title"].get(lang)
+    episodes = series_titles(lang, spec)
     if episodes:
-        heading = t.get("series_continue", t["series"]) if board.get("standalone") else t["series"]
+        heading = t.get("series_continue", t["series"]) if continuing else t["series"]
         d.text((160, 395), heading + (f": {series_title}" if series_title else ""), font=b.font(34, True),
                fill=b.c["accent"])
         ids = [vid for vid, _ in episodes]
@@ -616,8 +647,8 @@ def compose(board, lang, work, out):
     link = board.get("link") or DOCS_URL + board.get("docs", "")
     theme = load_theme()
     if theme:
-        series_path = BOARDS / "series.json"
-        series_title = json.loads(series_path.read_text(encoding="utf-8"))["title"].get(lang) if series_path.exists() else None
+        spec = series_of(board)
+        series_title = spec["title"].get(lang) if spec else None
         brand_intro(work / "intro.png", theme, lang, board, series_title)
         brand_outro(work / "outro.png", theme, lang, board, series_title)
         outro_len = max(outro_len, theme.get("outro_min", 0))   # time to read the closing card
@@ -818,11 +849,10 @@ def seconds_of(path):
     return float(out.strip())
 
 
-def series(lang):
-    """Joins the finished films of videos/series.json, in its order, into one film with a chapter per
-    video (build/videos/all-videos-<lang>.mp4, .srt, .txt) and writes an .m3u playlist of the single
+def series(lang, spec):
+    """Joins the finished films of a series file, in its order, into one film with a chapter per
+    video (build/videos/<series id>-<lang>.mp4, .srt, .txt) and writes an .m3u playlist of the single
     films. The films share their encoding, so the picture is joined without encoding it again."""
-    spec = json.loads((BOARDS / "series.json").read_text(encoding="utf-8"))
     films, boards = [], []
     for vid in spec["videos"]:
         film = ROOT / "build" / "videos" / f"{vid}-{lang}.mp4"
@@ -885,7 +915,8 @@ def main():
     ap.add_argument("storyboard", nargs="?", help="id of videos/<id>.json")
     ap.add_argument("--lang", default="en", choices=sorted(VOICES))
     ap.add_argument("--steps", default="tts,record,compose", help="comma list of tts, record, compose")
-    ap.add_argument("--series", action="store_true", help="join the films of videos/series.json into one")
+    ap.add_argument("--series", nargs="?", const="*", metavar="ID",
+                    help="join the films of a series into one (its id; without one: every series of the set)")
     ap.add_argument("--set", help="a series of its own in videos/<set>/ (e.g. fundsxml)")
     args = ap.parse_args()
     global BOARDS, SET
@@ -894,7 +925,11 @@ def main():
         if not BOARDS.is_dir():
             ap.error(f"no folder {BOARDS}")
     if args.series:
-        series(args.lang)
+        specs = series_specs() if args.series == "*" else [spec_by_id(args.series)]
+        if not specs or None in specs:
+            ap.error(f"no series {args.series} in {BOARDS}")
+        for spec in specs:
+            series(args.lang, spec)
         return
     if not args.storyboard:
         ap.error("a storyboard id or --series is needed")
