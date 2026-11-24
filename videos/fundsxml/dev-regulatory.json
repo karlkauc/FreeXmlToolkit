@@ -1,0 +1,250 @@
+{
+  "_comment": "Developers series, film 6: slides and a run in FreeXmlToolkit (FundsXmlDevRegulatoryDocVideo), on the example Mixed-Fund_Regulatory.xml.",
+  "id": "dev-regulatory",
+  "scenario": "FundsXmlDevRegulatoryDocVideo",
+  "link": "fundsxml.org",
+  "title": {
+    "en": "Regulatory templates in XML"
+  },
+  "description": {
+    "en": "How the FinDatEx templates sit in a FundsXML file: RegulatoryReportings with DirectReporting and IndirectReporting, an EMT V4.3 block (data set information, general information, target market, ex-ante costs) and a TPT V8 block for Solvency II (portfolio data, positions with CIC codes and valuations), template versions as their own elements, and how country-specific data and custom attributes extend the standard."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "In this film you look inside the regulatory part of a FundsXML file: an EMT block for distributors, and a TPT block for insurers. It takes about five minutes."
+      }
+    },
+    {
+      "id": "tree",
+      "chapter": {
+        "en": "The regulatory block"
+      },
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.1,
+          0.4,
+          0.7
+        ],
+        "en": {
+          "title": "RegulatoryReportings",
+          "items": [
+            {
+              "head": "DirectReporting",
+              "text": "EMT, EET, EFT, KIIDs, PRIIPs KIDs, EMIR."
+            },
+            {
+              "head": "IndirectReporting",
+              "text": "TPT for Solvency II, PRIIPs data (EPT)."
+            },
+            {
+              "head": "One element per version",
+              "text": "e.g. EMT_V4_3, TripartiteTemplateSolvencyII_V8."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "All regulatory data sits in one block at the top level: RegulatoryReportings. It splits into two branches. Direct reporting holds templates that describe the fund or share class itself, such as EMT and EET. Indirect reporting holds data that others use for their own reporting, such as the TPT for insurers and PRIIPs data. Each template version is an element of its own."
+      }
+    },
+    {
+      "id": "block",
+      "say": {
+        "en": "Here it is in the file, after the asset master data. Regulatory reportings, then direct reporting, and inside it the element EMT V four three: the European MiFID Template in version four point three."
+      }
+    },
+    {
+      "id": "emt-info",
+      "chapter": {
+        "en": "EMT"
+      },
+      "say": {
+        "en": "An EMT block describes one financial instrument, here the euro share class. Data set information names the template version, the producer and which parts are reported. General information identifies the share class by its ISIN, and gives its name, its currency, and whether it distributes."
+      }
+    },
+    {
+      "id": "emt-target",
+      "say": {
+        "en": "The target market follows the MiFID categories: which investor types the fund is meant for, their knowledge and experience, their ability to bear losses, the risk indicator, here four, and the client objectives: capital growth, with a recommended holding period of seven years."
+      }
+    },
+    {
+      "id": "emt-costs",
+      "say": {
+        "en": "And the ex-ante costs: ongoing costs, management fee, transaction costs and incidental costs, given as decimal fractions of the net asset value. Zero point zero one eight means one point eight percent."
+      }
+    },
+    {
+      "id": "tpt",
+      "chapter": {
+        "en": "TPT"
+      },
+      "say": {
+        "en": "Below, in indirect reporting, the Tripartite Template in version eight. At portfolio level: the TPT version, the portfolio's identifier, its name and currency, its net asset value, the valuation date and the reporting date."
+      }
+    },
+    {
+      "id": "tpt-position",
+      "say": {
+        "en": "Then the positions. Each one starts with its CIC code, the Complementary Identification Code: four characters for the country of quotation and the kind of instrument. U S three one is a listed equity quoted in the United States. Then the instrument code and name, and the valuation: quantity, market values in quotation and portfolio currency, and the weight. Credit risk data names the issuer."
+      }
+    },
+    {
+      "id": "tpt-bond",
+      "say": {
+        "en": "The second position is the German government bond. Its CIC code is D E one one: a government bond quoted in Germany. For bonds, the template adds the interest rate data: coupon type and rate, coupon frequency, the maturity date, and a credit quality step. That is the information an insurer needs for its interest rate and spread risk."
+      }
+    },
+    {
+      "id": "others",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.08,
+          0.3,
+          0.52,
+          0.74
+        ],
+        "en": {
+          "title": "The other templates, the same way",
+          "items": [
+            {
+              "head": "EET",
+              "text": "Sustainability data, under DirectReporting."
+            },
+            {
+              "head": "EPT",
+              "text": "PRIIPs data, under IndirectReporting."
+            },
+            {
+              "head": "EFT",
+              "text": "Feedback from distributors, under DirectReporting."
+            },
+            {
+              "head": "Older versions",
+              "text": "Remain available for a transition period."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "The other templates work the same way. The EET for sustainability data and the EFT for feedback from distributors sit in direct reporting. The PRIIPs data of the EPT sits in indirect reporting. Each has its own element per version, and older versions remain in the schema for a transition period, so sender and receiver can move to a new version when both are ready."
+      }
+    },
+    {
+      "id": "conventions",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.06,
+          0.3,
+          0.55,
+          0.78
+        ],
+        "en": {
+          "title": "Template conventions",
+          "items": [
+            {
+              "head": "Flags",
+              "text": "Y and N, sometimes more letters."
+            },
+            {
+              "head": "Percentages",
+              "text": "Often decimal fractions: 1 = 100 %."
+            },
+            {
+              "head": "Numbered codes",
+              "text": "e.g. identifier type 1 = ISIN."
+            },
+            {
+              "head": "Check each field",
+              "text": "The template's documentation, not the core's habits."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Templates follow their own conventions, and they differ from the core of FundsXML. Flags are single letters, Y and N. Percentages are often decimal fractions, where one stands for one hundred percent. And many fields are numbered codes from the template's own lists, for example code one for an ISIN as the identifier type. Read the template's documentation for each field, and do not assume the conventions of the core."
+      }
+    },
+    {
+      "id": "neutral",
+      "chapter": {
+        "en": "Core and templates"
+      },
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.1,
+          0.45,
+          0.8
+        ],
+        "en": {
+          "title": "Core data and template views",
+          "items": [
+            {
+              "head": "Core",
+              "text": "Funds, share classes, positions, assets: neutral."
+            },
+            {
+              "head": "Converter",
+              "text": "Derives template fields from the core."
+            },
+            {
+              "head": "Template block",
+              "text": "The view a regulation asks for: EMT, TPT …"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "One thing is worth knowing. Much of what the templates ask for also exists in the core of FundsXML: identifiers, values, issuers and dates. The core describes funds and assets neutrally; a template block is a view of that data in the form a regulation asks for. Converters can fill a template from the core data, so the same fact is not maintained twice."
+      }
+    },
+    {
+      "id": "extend",
+      "chapter": {
+        "en": "Extensions"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.1,
+          0.4,
+          0.7
+        ],
+        "en": {
+          "title": "Extending FundsXML",
+          "items": [
+            {
+              "head": "CountrySpecificData",
+              "text": "National reporting, for example Austria and Germany."
+            },
+            {
+              "head": "CustomAttributes",
+              "text": "Extra fields between partners, schema-safe."
+            },
+            {
+              "head": "Sparingly",
+              "text": "Agree on them in writing; propose common needs for the standard."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "And when you need more? Country-specific data carries national reporting at the top level and in several blocks, for example for Austria and Germany. Custom attributes let partners exchange extra fields in a defined way, without breaking the schema. Use them sparingly, and agree on them in writing."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was the regulatory part of a FundsXML file. In the next film, you validate a delivery and check its data quality. Thanks for watching."
+      }
+    }
+  ]
+}

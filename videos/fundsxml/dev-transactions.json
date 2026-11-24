@@ -1,0 +1,200 @@
+{
+  "_comment": "Developers series, film 5: slides and a run in FreeXmlToolkit (FundsXmlDevTransactionsDocVideo), on the example Mixed-Fund_Transactions.xml.",
+  "id": "dev-transactions",
+  "scenario": "FundsXmlDevTransactionsDocVideo",
+  "link": "fundsxml.org",
+  "title": {
+    "en": "Transactions and investor flows"
+  },
+  "description": {
+    "en": "How FundsXML records what moved in a fund: subscriptions and redemptions of investors (Flows on the share class), distributions (Distributions), income from the portfolio (Earnings) and the portfolio's own trades (Transactions), with reporting periods, dates, amounts in several currencies and the links to the assets. Also: how switches are reported, and what the core schema leaves to other standards."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "In this film you see how FundsXML records what moved in a fund: money from investors, payments to investors, income from the portfolio, and the fund's own trades. It takes about four minutes."
+      }
+    },
+    {
+      "id": "where",
+      "chapter": {
+        "en": "Where they live"
+      },
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.1,
+          0.32,
+          0.54,
+          0.76
+        ],
+        "en": {
+          "title": "Four kinds, four places",
+          "items": [
+            {
+              "head": "Flows",
+              "text": "Subscriptions and redemptions.",
+              "tag": "ShareClass"
+            },
+            {
+              "head": "Distributions",
+              "text": "Payments to investors.",
+              "tag": "ShareClass"
+            },
+            {
+              "head": "Earnings",
+              "text": "Income from holdings, e.g. dividends.",
+              "tag": "Portfolio"
+            },
+            {
+              "head": "Transactions",
+              "text": "The fund's own buys and sells.",
+              "tag": "Portfolio"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Transactions do not live in one place. Each kind sits where it belongs. Subscriptions and redemptions of investors are flows of a share class. Distributions to investors also belong to the share class. Income from the portfolio, such as dividends, belongs to the portfolio. And so do the fund's own trades, the buys and sells of securities."
+      }
+    },
+    {
+      "id": "flows",
+      "chapter": {
+        "en": "Investor flows"
+      },
+      "say": {
+        "en": "Here are the flows of the dollar share class. The container names its reporting period, from the first to the thirtieth of September. The first flow is a subscription: transaction type S U B, with trade date, accounting date and settlement date, three thousand five hundred units, and the total value, in the share class currency and in the fund currency. Optional fields say through which channel and from which country the money came."
+      }
+    },
+    {
+      "id": "red",
+      "say": {
+        "en": "The second flow is a redemption, transaction type R E D: one thousand two hundred units, paid out to an institutional investor."
+      }
+    },
+    {
+      "id": "switch",
+      "slide": {
+        "layout": "statement",
+        "builds": [
+          0,
+          0.45
+        ],
+        "en": {
+          "headline": "A switch is a redemption plus a subscription.",
+          "sub": "The schema does not link the two flows. Agree with your partner how to mark them, for example in the transaction subtype."
+        }
+      },
+      "say": {
+        "en": "And switches? When an investor moves from one share class to another, the flows show a redemption in the first class and a subscription in the second. The schema has no element that links the two. If your partner needs the link, agree on how to mark it, for example in the free-text subtype of both flows."
+      }
+    },
+    {
+      "id": "distribution",
+      "chapter": {
+        "en": "Distributions and income"
+      },
+      "say": {
+        "en": "The euro share class paid a distribution. Its status is official. Then come its dates: announcement, record date, ex-date and payment date. And the amounts, gross and net, both in total and per share: one euro fifty per share."
+      }
+    },
+    {
+      "id": "earnings",
+      "say": {
+        "en": "Income from the portfolio is recorded in Earnings, again with a period. This one is a dividend from Apple. The asset unique ID links it to the security, just like a position. The entry value is in the fund currency, and the dividend block holds the details in dollars: the amount per share, gross, withholding tax and net."
+      }
+    },
+    {
+      "id": "trades",
+      "chapter": {
+        "en": "Portfolio trades"
+      },
+      "say": {
+        "en": "Finally, the fund's own trades, in Transactions. A buy of ten thousand Apple shares at two hundred dollars, with trade date and value date, the market value in dollars and in euro, the exchange rate, and the trading venue. Below it, a sale of ASML shares. Every trade points to its asset through the asset unique ID."
+      }
+    },
+    {
+      "id": "tips",
+      "chapter": {
+        "en": "Reading tips"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.06,
+          0.3,
+          0.55,
+          0.78
+        ],
+        "en": {
+          "title": "Tips for reading transactions",
+          "items": [
+            {
+              "head": "Mind the period",
+              "text": "from and to: which days the data covers."
+            },
+            {
+              "head": "Read the action code",
+              "text": "C create, M modify, D delete."
+            },
+            {
+              "head": "Two currencies",
+              "text": "Share class or quotation currency, and fund currency."
+            },
+            {
+              "head": "Follow the links",
+              "text": "AssetUniqueID points to the asset, like a position."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "A few tips for reading transactions. Use the period of each container: from and to say which days the data covers, so you know whether a day without flows really had none. Read the action code: C creates an entry, and later deliveries can modify or delete it. Expect two currencies: the share class or quotation currency, and the fund currency. And follow the links: earnings and trades point to their assets, exactly like positions."
+      }
+    },
+    {
+      "id": "scope",
+      "chapter": {
+        "en": "What it does not cover"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.1,
+          0.4,
+          0.7
+        ],
+        "en": {
+          "title": "Record, not instruction",
+          "items": [
+            {
+              "head": "FundsXML",
+              "text": "Reports what happened in a period: flows, income, trades."
+            },
+            {
+              "head": "Operational messages",
+              "text": "Orders, cut-offs and settlement: for example ISO 20022."
+            },
+            {
+              "head": "Together",
+              "text": "The order flow runs on messages; the reporting on FundsXML."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "What does the core schema not cover? Orders and their execution, cut-off times and settlement instructions belong to the operational messages of standards such as ISO 20022. FundsXML reports what has happened, for a period: it is the record, not the instruction."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was transactions and investor flows. In the next film, you look at the regulatory templates inside a FundsXML file. Thanks for watching."
+      }
+    }
+  ]
+}

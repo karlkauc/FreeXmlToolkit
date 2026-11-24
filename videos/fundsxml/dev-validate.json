@@ -1,0 +1,298 @@
+{
+  "_comment": "Developers series, film 7: slides and a run in FreeXmlToolkit (FundsXmlDevValidateDocVideo).",
+  "id": "dev-validate",
+  "scenario": "FundsXmlDevValidateDocVideo",
+  "link": "fundsxml.org",
+  "title": {
+    "en": "Validate and check data quality"
+  },
+  "description": {
+    "en": "Validate a FundsXML delivery in two stages: against the XSD 1.1 schema, reading and fixing its error messages, and against business rules with the FundsXML data-quality checks of FreeXmlToolkit. With the data-quality report, a catalogue of typical schema errors, Schematron rules, and validation on the command line and in build pipelines."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "In this film you check a FundsXML delivery in two stages: against the schema, and against the rules of the business. And you learn to read the typical error messages. It takes about six minutes."
+      }
+    },
+    {
+      "id": "stages",
+      "chapter": {
+        "en": "Two stages"
+      },
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.1,
+          0.55
+        ],
+        "en": {
+          "title": "Validation in two stages",
+          "items": [
+            {
+              "head": "1 · Schema",
+              "text": "Structure, data types, code lists, links. XSD 1.1."
+            },
+            {
+              "head": "2 · Business rules",
+              "text": "Sums, check digits, dates, consistency. Schematron or built-in checks."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Validation runs in two stages. Stage one is the schema: structure, data types, code lists and links. It is fast, standard, and every tool can do it, as long as it supports XSD one point one. Stage two are business rules: sums, check digits, dates and consistency. They are written in a rule language such as Schematron, or built into tools. A file should pass both stages before it is sent."
+      }
+    },
+    {
+      "id": "delivery",
+      "chapter": {
+        "en": "Stage one: the schema"
+      },
+      "say": {
+        "en": "A fund administrator has sent this file: the month-end portfolio of an equity fund. The root element is FundsXML4, and the first lines name the schema, FundsXML4.xsd. So FreeXmlToolkit can validate it right away."
+      }
+    },
+    {
+      "id": "validate",
+      "say": {
+        "en": "Press F8. The schema checks the structure and the data types of every element. The Problems panel below the editor lists an error."
+      }
+    },
+    {
+      "id": "jump",
+      "say": {
+        "en": "Click the problem. The caret jumps to the market value of the first position. An amount must be a decimal number, but someone has written it out in words."
+      }
+    },
+    {
+      "id": "repair",
+      "say": {
+        "en": "Type the number instead, nine million three hundred seventy-five thousand, and press F8 again. The error is gone. What is left are hints, in blue: the derivatives in this portfolio could also report their exposure. Hints are suggestions, not mistakes."
+      }
+    },
+    {
+      "id": "catalogue",
+      "chapter": {
+        "en": "Reading error messages"
+      },
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.08,
+          0.3,
+          0.52,
+          0.74
+        ],
+        "en": {
+          "title": "Typical schema errors",
+          "items": [
+            {
+              "head": "cvc-complex-type.2.4",
+              "text": "Element missing, unexpected or in the wrong order.",
+              "tag": "structure"
+            },
+            {
+              "head": "cvc-datatype-valid",
+              "text": "A value of the wrong type, e.g. text in an amount.",
+              "tag": "type"
+            },
+            {
+              "head": "cvc-enumeration-valid",
+              "text": "A code that is not in its list.",
+              "tag": "codes"
+            },
+            {
+              "head": "cvc-id / IDREF",
+              "text": "A link to an asset that does not exist.",
+              "tag": "links"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Schema errors come in a few typical forms, and their codes help. Complex type two point four means an element is missing, unexpected, or in the wrong order; the message lists what was expected instead. Datatype errors mean a value has the wrong type, like the amount in words you just saw. Enumeration errors mean a code is not in its list. And an IDREF error means a position points to a security that does not exist."
+      }
+    },
+    {
+      "id": "message",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.38,
+          0.68
+        ],
+        "en": {
+          "title": "Reading a message",
+          "items": [
+            {
+              "head": "Where",
+              "text": "Line, column and element."
+            },
+            {
+              "head": "What was expected",
+              "text": "The elements or values the schema allows there."
+            },
+            {
+              "head": "First things first",
+              "text": "One mistake can cause several messages below."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "A message tells you more than its code. It names the line and the column, and the element where the check failed. Often it lists what the schema expected instead, for example the names of the elements that may come next. Read that list first: it usually points directly to a missing element or a wrong order. And fix the first error first, because one mistake can cause several messages further down."
+      }
+    },
+    {
+      "id": "second",
+      "chapter": {
+        "en": "Stage two: business rules"
+      },
+      "say": {
+        "en": "Now a second delivery of the same fund. It passes the schema without a single error. Every element is in its place, every number is a number."
+      }
+    },
+    {
+      "id": "weights",
+      "say": {
+        "en": "But the Problems panel shows two warnings. They come from the FundsXML data-quality checks: the weights of the positions add up to one hundred and twenty percent."
+      }
+    },
+    {
+      "id": "fix",
+      "say": {
+        "en": "Click the warning about the first position. It claims twenty-eight point three three percent, but its value is only eight point three three percent of the fund's net asset value. Correct the weight and validate again. Both warnings are gone."
+      }
+    },
+    {
+      "id": "checks",
+      "say": {
+        "en": "The green FundsXML mark in the status bar shows that the document was recognised. With it come more than fifty checks: ISIN and LEI check digits, currency codes, dates, position values against the net asset value, and many more. A schema tells you whether a file is well formed. These checks tell you whether its data can be right."
+      }
+    },
+    {
+      "id": "severity",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.1,
+          0.38,
+          0.66
+        ],
+        "en": {
+          "title": "Three levels",
+          "items": [
+            {
+              "head": "Error",
+              "text": "The data cannot be right.",
+              "tag": "stop"
+            },
+            {
+              "head": "Warning",
+              "text": "The data is probably wrong.",
+              "tag": "look"
+            },
+            {
+              "head": "Info",
+              "text": "A hint, not a mistake.",
+              "tag": "optional"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "The checks have three levels. An error means the data cannot be right, for example a wrong check digit. A warning means it is probably wrong, like weights far above one hundred percent. And an info is a hint, for example that derivatives could also report their exposure. Agree with your partners which levels stop a delivery: usually errors always, and warnings after a look."
+      }
+    },
+    {
+      "id": "report",
+      "say": {
+        "en": "For a full overview, use the report. In the FundsXML panel, click Run Data Quality Checks. A report opens next to the document: every check, whether it passed, and what it found. Save it with the delivery, or send it to your partner, so both sides talk about the same findings."
+      }
+    },
+    {
+      "id": "schematron",
+      "chapter": {
+        "en": "Rules of your own"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.38,
+          0.68
+        ],
+        "en": {
+          "title": "Rules of your own",
+          "items": [
+            {
+              "head": "Built-in checks",
+              "text": "XQuery, open as snippets in the Query Console."
+            },
+            {
+              "head": "Schematron",
+              "text": "The standard rule language for XML: readable and testable."
+            },
+            {
+              "head": "Your rules",
+              "text": "Partner requirements, tolerances, house rules, with quick fixes."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "The checks in FreeXmlToolkit are queries in XQuery, and you can open each of them as a snippet in the Query Console. For rules of your own, Schematron is the standard language: rules on XML, readable and testable, and they run in tools, scripts and pipelines alike. Add the fields a particular partner requires, or your house tolerances. FreeXmlToolkit runs Schematron too, and offers the quick fixes a Schematron file defines, so a common error is corrected with one click."
+      }
+    },
+    {
+      "id": "automate",
+      "chapter": {
+        "en": "Automate it"
+      },
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.08,
+          0.32,
+          0.56,
+          0.8
+        ],
+        "en": {
+          "title": "Validation in the pipeline",
+          "items": [
+            {
+              "head": "Schema",
+              "text": "Saxon or Xerces, XSD 1.1."
+            },
+            {
+              "head": "Rules",
+              "text": "Schematron, the same rules everywhere."
+            },
+            {
+              "head": "Gate",
+              "text": "Stop the delivery when a check fails."
+            },
+            {
+              "head": "Test files",
+              "text": "Good and bad examples, run with every change."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Finally, automate it. On the command line, Saxon or Xerces validate files against the schema; both support XSD one point one. Run the schema check and your Schematron rules in every build and before every delivery, and stop the pipeline when a check fails. Keep a folder of test files, good and bad ones, and run them with every change of your mapping or of the standard."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was validation in two stages. In the next film, you query a FundsXML file, transform it, and see how it fits into a system landscape. Thanks for watching."
+      }
+    }
+  ]
+}

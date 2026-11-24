@@ -28,7 +28,8 @@ Steps:
            closing card, narration, subtitles. Output: build/videos/<id>-<lang>.mp4, .srt and .txt
            (title, description and chapters for the upload). The three files are also copied to
            $FXT_VIDEO_COPY_TO, or to a folder FXT-Videos next to the repository if it exists; a file
-           over 19 MiB ($FXT_VIDEO_SPLIT_MB; below a WebDAV limit of 20 MB) goes there as a split zip of 19 MiB parts.
+           over 10 MiB ($FXT_VIDEO_SPLIT_MB; a WebDAV share takes 20 MB at most) goes there as a split zip
+           (<name>.zip + .z01, …) of 10 MiB parts. In a set, the copies start with the film's number ("02-…").
 
 Needs ffmpeg, xvfb-run and Pillow. Piper and the voices are installed on first use into
 ~/.cache/fxt-video (venv + voices, about 115 MB per voice). The words in videos/pronunciation.json
@@ -57,7 +58,7 @@ SUBTITLE_LANG = {"de": "deu", "en": "eng"}
 DOCS_URL = "freexmltoolkit.org/docs/"
 W, H, FPS = 1920, 1080, 30
 PRIMARY = (19, 115, 217)
-SPLIT_MB = int(os.environ.get("FXT_VIDEO_SPLIT_MB", "19"))   # larger files go as split zips; 19 MiB < 20,000,000 bytes
+SPLIT_MB = int(os.environ.get("FXT_VIDEO_SPLIT_MB", "10"))   # larger files go as split zips of 10 MiB parts
 
 LEAD = 0.5          # silence before the narration on a card
 INTRO_TAIL = 0.7
@@ -800,42 +801,62 @@ def compose(board, lang, work, out):
         lines += ["", f"https://{link}", "", texts["ai"]]
     out.with_suffix(".txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"wrote {out} ({total:.0f} s), {srt.name}, {out.with_suffix('.txt').name}")
-    publish(out)
+    publish(out, board["id"])
 
 
-def publish(out):
+def film_number(film_id):
+    """The film's place across the set's series, in the order of their files (series-business.json
+    before series-developers.json): 1 for the first film of the first series, and so on; None for a
+    film in no series."""
+    n = 0
+    for spec in series_specs():
+        if film_id in spec["videos"]:
+            return n + spec["videos"].index(film_id) + 1
+        n += len(spec["videos"])
+    return None
+
+
+def publish(out, film_id=None):
     """Copies the film, its subtitles and its upload text to the folder the films are collected in:
-    FXT_VIDEO_COPY_TO, else a folder FXT-Videos next to the repository when there is one."""
+    FXT_VIDEO_COPY_TO, else a folder FXT-Videos next to the repository when there is one. In a set,
+    the copies start with the film's number across the series ("02-biz-content-en.mp4"), so a file
+    list shows them in the order they are meant to be watched."""
     target = copy_target()
     if target is None:
         return
     target.mkdir(parents=True, exist_ok=True)
+    number = film_number(film_id) if SET and film_id else None
     for suffix in (".mp4", ".srt", ".txt"):
-        copy_file(out.with_suffix(suffix), target)
+        source = out.with_suffix(suffix)
+        copy_file(source, target, f"{number:02}-{source.name}" if number else source.name)
     print(f"copied to {target}")
 
 
-def copy_file(source, target):
-    """Copies a file into the collection folder; one larger than SPLIT_MB (a WebDAV share takes no
-    more) goes there as a zip archive (stored, not compressed) cut into parts of SPLIT_MB:
-    <name>.zip.001, .002, … - 7-Zip opens the first part directly, or join them with
-    `cat <name>.zip.0* > <name>.zip` (Windows: `copy /b <name>.zip.001+<name>.zip.002 <name>.zip`)."""
-    for stale in [target / source.name, *target.glob(source.name + ".zip.[0-9][0-9][0-9]")]:
+def copy_file(source, target, name=None):
+    """Copies a file into the collection folder as `name`; one larger than SPLIT_MB (a WebDAV share
+    takes no more) goes there as a split zip archive (stored, not compressed) in the standard format
+    of Info-ZIP: <name>.zip with <name>.z01, .z02, … of SPLIT_MB each. 7-Zip, WinRAR and unzip open
+    it from the .zip file, with all parts in the same folder."""
+    name = name or source.name
+    for stale in [target / name, target / (name + ".zip"), *target.glob(name + ".z[0-9][0-9]"),
+                  *target.glob(name + ".zip.[0-9][0-9][0-9]")]:
         stale.unlink(missing_ok=True)
     limit = SPLIT_MB * 1024 * 1024
     if source.stat().st_size <= limit:
-        shutil.copy2(source, target)
+        shutil.copy2(source, target / name)
         return
-    archive = ROOT / "build" / "videos" / (source.name + ".zip")
-    with zipfile.ZipFile(archive, "w", zipfile.ZIP_STORED, allowZip64=True) as z:
-        z.write(source, source.name)
-    with archive.open("rb") as whole:
-        part = 0
-        while chunk := whole.read(limit):
-            part += 1
-            (target / f"{source.name}.zip.{part:03}").write_bytes(chunk)
-    archive.unlink()
-    print(f"  {source.name} is larger than {SPLIT_MB} MB: copied as {part} zip parts")
+    staging = ROOT / "build" / "videos" / "split"
+    shutil.rmtree(staging, ignore_errors=True)
+    staging.mkdir(parents=True)
+    linked = staging / name
+    os.link(source, linked) if source.stat().st_dev == staging.stat().st_dev else shutil.copy2(source, linked)
+    run(["zip", "-q", "-0", "-s", f"{SPLIT_MB}m", "-j", staging / (name + ".zip"), linked])
+    linked.unlink()
+    parts = sorted(staging.iterdir())
+    for part in parts:
+        shutil.move(str(part), target / part.name)
+    shutil.rmtree(staging, ignore_errors=True)
+    print(f"  {name} is larger than {SPLIT_MB} MB: copied as a split zip of {len(parts)} parts")
 
 
 def copy_target():

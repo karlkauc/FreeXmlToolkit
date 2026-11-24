@@ -29,11 +29,11 @@ final class FundsXmlVideoFiles {
     private FundsXmlVideoFiles() {
     }
 
-    /** A new work folder with all example documents, {@code FundsXML4.xsd} and the signature schema it imports. */
+    /** A new work folder with all example documents and stylesheets, {@code FundsXML4.xsd} and the signature schema it imports. */
     static Path folder(String name) throws IOException {
         Path folder = DocFiles.work(name);
         try (Stream<Path> files = Files.list(EXAMPLES)) {
-            for (Path file : files.filter(f -> f.toString().endsWith(".xml")).toList()) {
+            for (Path file : files.filter(f -> f.toString().endsWith(".xml") || f.toString().endsWith(".xslt")).toList()) {
                 Files.copy(file, folder.resolve(file.getFileName()));
             }
         }

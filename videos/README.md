@@ -55,8 +55,8 @@ python3 scripts/make-video.py --series fundsxml-business --set fundsxml --lang e
 | 1 | `biz-why` | Why fund data needs a standard | recorded |
 | 2 | `biz-content` | What a FundsXML delivery contains | recorded (`FundsXmlBizContentDocVideo`) |
 | 3 | `biz-regulatory` | Regulatory reporting with FundsXML | recorded |
-| 4 | `biz-quality` | Trust in the data: quality and control | planned |
-| 5 | `biz-project` | Introducing FundsXML: a project from A to Z | planned |
+| 4 | `biz-quality` | Trust in the data: quality and control | recorded (`FundsXmlBizQualityDocVideo`) |
+| 5 | `biz-project` | Introducing FundsXML: a project from A to Z | recorded |
 
 **FundsXML for developers** (`series-developers.json`): in a real file with FreeXmlToolkit, 3–6 min.
 
@@ -66,13 +66,18 @@ python3 scripts/make-video.py --series fundsxml-business --set fundsxml --lang e
 | 2 | `dev-anatomy` | Anatomy of a delivery: structure and ControlData | recorded (`FundsXmlDevAnatomyDocVideo`) |
 | 3 | `dev-funds` | Funds, share classes and NAV | recorded (`FundsXmlDevFundsDocVideo`) |
 | 4 | `dev-portfolio` | Portfolios and asset master data | recorded (`FundsXmlDevPortfolioDocVideo`) |
-| 5 | `dev-transactions` | Transactions and investor flows | planned |
-| 6 | `dev-regulatory` | Regulatory templates in XML | planned |
-| 7 | `dev-validate` | Validate and check data quality | planned |
-| 8 | `dev-query` | Query, transform and integrate | planned |
+| 5 | `dev-transactions` | Transactions and investor flows | recorded (`FundsXmlDevTransactionsDocVideo`) |
+| 6 | `dev-regulatory` | Regulatory templates in XML | recorded (`FundsXmlDevRegulatoryDocVideo`) |
+| 7 | `dev-validate` | Validate and check data quality | recorded (`FundsXmlDevValidateDocVideo`) |
+| 8 | `dev-query` | Query, transform and integrate | recorded (`FundsXmlDevQueryDocVideo`) |
 
-Files over 19 MiB are copied to `FXT-Videos` as a zip cut into 19 MiB parts (`<name>.zip.001`, …),
-because the folder is copied over WebDAV, which takes files below 20 MB (20,000,000 bytes) only.
+Files over 10 MiB are copied to `FXT-Videos` as a split zip in the standard Info-ZIP format
+(`<name>.zip` with `<name>.z01`, … of 10 MiB each; open the `.zip` with 7-Zip, WinRAR or unzip, all
+parts in one folder), because the folder is copied over WebDAV, which takes files below 20 MB only. In
+a set, the copies start with the film's number across its series in watching order (`01-biz-why-en.mp4`,
+`06-dev-setup-en.mp4`), so a file list shows them in order. The example documents for transactions and
+regulatory templates (`Mixed-Fund_Transactions.xml`, `Mixed-Fund_Regulatory.xml`) were written for these
+films and validated against the schema; `positions_csv.xslt` comes from github.com/fundsxml/examples.
 
 ## How a video is made
 

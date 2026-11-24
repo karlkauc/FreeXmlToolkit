@@ -1,0 +1,310 @@
+{
+  "_comment": "Developers series, film 8: slides and a run in FreeXmlToolkit (FundsXmlDevQueryDocVideo). The last film of the series.",
+  "id": "dev-query",
+  "scenario": "FundsXmlDevQueryDocVideo",
+  "link": "fundsxml.org",
+  "title": {
+    "en": "Query, transform and integrate"
+  },
+  "description": {
+    "en": "Work with the data in a FundsXML file: XPath paths without a namespace, the ready-made FundsXML queries in the Query Console of FreeXmlToolkit (the ten largest positions as a table), an XSLT stylesheet that turns the positions into CSV, strategies for large files, and how FundsXML fits into a system landscape of databases, data warehouses and scheduled deliveries."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "In this film you get the data out of a FundsXML file: you query it, you transform it, and you see how it fits into a system landscape. It takes about five minutes."
+      }
+    },
+    {
+      "id": "paths",
+      "chapter": {
+        "en": "Paths and queries"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.38,
+          0.68
+        ],
+        "en": {
+          "title": "Paths into a FundsXML file",
+          "items": [
+            {
+              "head": "No namespace",
+              "text": "/FundsXML4/Funds/Fund/FundDynamicData/Portfolios/Portfolio"
+            },
+            {
+              "head": "Join by UniqueID",
+              "text": "Position/UniqueID = Asset/UniqueID"
+            },
+            {
+              "head": "Three languages",
+              "text": "XPath selects, XQuery builds results, XSLT transforms."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Every value in a FundsXML file has a clear path. FundsXML has no XML namespace, so the paths are short: FundsXML4, Funds, Fund, and so on down to the value. Positions and assets are joined through their UniqueID. With XPath you select values, with XQuery you build new results from them, and with XSLT you turn a whole file into another format."
+      }
+    },
+    {
+      "id": "query",
+      "say": {
+        "en": "Let us ask the file a question. Press Control K for the Query Console. In the Snippets menu, the FundsXML extension offers ready-made queries. Choose Top 10 positions, load it into the console, and run it."
+      }
+    },
+    {
+      "id": "results",
+      "say": {
+        "en": "Click Table to see the result as a list: the ten largest positions, each with the name from the master data, its value and its weight. The query is written in XQuery, so you can open it, adapt it, and save it as a snippet of your own."
+      }
+    },
+    {
+      "id": "more-queries",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.1,
+          0.35,
+          0.6,
+          0.82
+        ],
+        "en": {
+          "title": "Ready-made queries",
+          "items": [
+            {
+              "head": "Top holdings",
+              "text": "The largest positions with names and weights."
+            },
+            {
+              "head": "By asset type",
+              "text": "Values and weights per kind of instrument."
+            },
+            {
+              "head": "Fund summary",
+              "text": "NAV, share classes and key figures."
+            },
+            {
+              "head": "Look-through",
+              "text": "Holdings of target funds, expanded."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "More ready-made queries come with the extension and with the public examples: values aggregated by asset type, a summary of each fund, and a look-through that expands holdings of other funds. Use them as a starting point for your own reports and checks."
+      }
+    },
+    {
+      "id": "transform",
+      "chapter": {
+        "en": "Transform"
+      },
+      "say": {
+        "en": "Now transform the file. In the Transform panel, the stylesheet positions to CSV from the public examples is selected, and the FundsXML file is the input. Click Run. The result is a CSV file with one row per position: the fund, the instrument, its identifiers, quantity, price and value, joined with the master data. Ready for a spreadsheet or a database. The stylesheet picks the one instrument block of each position generically, so the same columns work for shares, bonds and fund units alike. The same stylesheet runs on the command line with Saxon, so the export can be part of a scheduled job."
+      }
+    },
+    {
+      "id": "large",
+      "chapter": {
+        "en": "Into your systems"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.38,
+          0.68
+        ],
+        "en": {
+          "title": "Reading strategies",
+          "items": [
+            {
+              "head": "In memory",
+              "text": "DOM or a data binding: simple, fine for most files."
+            },
+            {
+              "head": "Streaming",
+              "text": "StAX, SAX or streaming XSLT for very large deliveries."
+            },
+            {
+              "head": "Data binding",
+              "text": "Classes generated from the schema, for Java, C# and more."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "What about large files? A full delivery with many funds and thousands of positions can reach hundreds of megabytes. Loading it all into memory is simple, and fine for most files. For very large ones, read it as a stream, element by element, with StAX, SAX or streaming XSLT, and process one fund or one position at a time."
+      }
+    },
+    {
+      "id": "code",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.1,
+          0.35,
+          0.6,
+          0.82
+        ],
+        "en": {
+          "title": "Classes from the schema",
+          "items": [
+            {
+              "head": "Java",
+              "text": "JAXB, from the XSD."
+            },
+            {
+              "head": "Python",
+              "text": "xsdata or xmlschema."
+            },
+            {
+              "head": "C#",
+              "text": "The .NET XML schema tools."
+            },
+            {
+              "head": "Once per version",
+              "text": "Kept apart from business code."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Many teams prefer to work with classes. Generate them from the schema: JAXB for Java, xsdata for Python, or the XML schema tools of dot net for C sharp. The generated code reads and writes valid documents, and the compiler helps you with every field. Because the schema is large, generate only once per version, and keep the classes apart from your own business code."
+      }
+    },
+    {
+      "id": "database",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.08,
+          0.3,
+          0.52,
+          0.74
+        ],
+        "en": {
+          "title": "FundsXML in a database",
+          "items": [
+            {
+              "head": "Delivery",
+              "text": "One row per file: document ID, content date, sender, operation."
+            },
+            {
+              "head": "Fund and share class",
+              "text": "Keyed by LEI and ISIN, with their dates."
+            },
+            {
+              "head": "Position",
+              "text": "Fund, date, UniqueID, value, weight."
+            },
+            {
+              "head": "Asset",
+              "text": "UniqueID and identifiers, described once per delivery."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Most receivers load FundsXML into a database. The structure of the file suggests the tables. One row per delivery, with its document ID, content date, sender and operation, so corrections can be traced. Funds and share classes, keyed by LEI and ISIN. Positions, keyed by fund, date and UniqueID. And assets, described once per delivery and joined to the positions. Keep the original file as well: it is the evidence of what was delivered."
+      }
+    },
+    {
+      "id": "landscape",
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.08,
+          0.3,
+          0.52,
+          0.74
+        ],
+        "en": {
+          "title": "FundsXML in the system landscape",
+          "items": [
+            {
+              "head": "Source systems",
+              "text": "Fund accounting, data warehouse."
+            },
+            {
+              "head": "Produce and check",
+              "text": "FundsXML, schema and rules."
+            },
+            {
+              "head": "Send on schedule",
+              "text": "SFTP, API, platforms."
+            },
+            {
+              "head": "Receive and load",
+              "text": "Check, then into the database."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "In a system landscape, FundsXML usually sits at the edge. Outgoing, data comes from the fund accounting and the data warehouse, is turned into FundsXML, checked, and sent on a schedule. Incoming, files are collected, checked, and loaded into a database, from where reports and other systems read them. The same checks and the same test files serve both directions."
+      }
+    },
+    {
+      "id": "wrap",
+      "chapter": {
+        "en": "Summary"
+      },
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.06,
+          0.22,
+          0.38,
+          0.54,
+          0.7,
+          0.86
+        ],
+        "en": {
+          "title": "What you have seen",
+          "items": [
+            {
+              "head": "Setup",
+              "text": "Schema, examples, editor."
+            },
+            {
+              "head": "Anatomy",
+              "text": "Blocks and ControlData."
+            },
+            {
+              "head": "Fund data",
+              "text": "Funds, share classes, NAV, portfolios."
+            },
+            {
+              "head": "Flows and templates",
+              "text": "Transactions, EMT, TPT."
+            },
+            {
+              "head": "Quality",
+              "text": "Schema and business rules."
+            },
+            {
+              "head": "Use the data",
+              "text": "Query, transform, integrate."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "That brings the series together. You set up the tools, took a delivery apart, read funds, share classes and portfolios, saw transactions and regulatory templates, validated a file in two stages, and got the data out again. The schema, the examples and the documentation are free, so you can start with your own data today."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was the last film of the series for developers. Thanks for watching, and good luck with your own FundsXML project."
+      }
+    }
+  ]
+}

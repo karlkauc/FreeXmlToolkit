@@ -1,0 +1,409 @@
+{
+  "_comment": "Business series, film 4: slides and a short run in FreeXmlToolkit (FundsXmlBizQualityDocVideo).",
+  "id": "biz-quality",
+  "scenario": "FundsXmlBizQualityDocVideo",
+  "link": "fundsxml.org",
+  "title": {
+    "en": "Trust in the data: quality and control"
+  },
+  "description": {
+    "en": "How the quality of fund data is secured with FundsXML: why a valid file is not yet correct data, the three levels readable, valid and plausible, what the schema checks and what business rules check, check digits of identifiers, checks on both sides, corrections and versions, and a data-quality report in FreeXmlToolkit."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "Fund data is only useful if it can be trusted. In this film you see how FundsXML helps to secure the quality of fund data, and why a valid file is not yet correct data."
+      }
+    },
+    {
+      "id": "cost",
+      "chapter": {
+        "en": "Why quality matters"
+      },
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.08,
+          0.3,
+          0.52,
+          0.74
+        ],
+        "en": {
+          "title": "What wrong data costs",
+          "items": [
+            {
+              "head": "Wrong prices",
+              "text": "Reach investors and platforms."
+            },
+            {
+              "head": "Wrong weights",
+              "text": "Distort risk figures and capital requirements."
+            },
+            {
+              "head": "Wrong costs",
+              "text": "End up in client reports."
+            },
+            {
+              "head": "Wrong identifiers",
+              "text": "Attach data to the wrong fund."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Wrong fund data is expensive. A wrong price reaches investors and platforms. A wrong weight distorts the risk figures of an insurer. A wrong cost figure ends up in a client report, and a wrong identifier attaches data to the wrong fund. Every error found late costs more: it has to be explained, corrected, and delivered again, often to many receivers at once."
+      }
+    },
+    {
+      "id": "levels",
+      "chapter": {
+        "en": "Three levels"
+      },
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.12,
+          0.4,
+          0.68
+        ],
+        "en": {
+          "title": "Three levels of quality",
+          "items": [
+            {
+              "head": "Readable",
+              "text": "A well-formed XML file that any system can open."
+            },
+            {
+              "head": "Valid",
+              "text": "It fits the schema: fields, data types and codes."
+            },
+            {
+              "head": "Plausible",
+              "text": "Business rules hold: sums, check digits, dates."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "FundsXML checks quality on three levels. First, the file must be readable: well-formed XML that any system can open. Second, it must be valid: it fits the FundsXML schema, with the right fields, data types and codes. Third, it must be plausible: business rules hold, for example portfolio weights add up, and identifiers have correct check digits. Each level catches different errors."
+      }
+    },
+    {
+      "id": "schema",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.06,
+          0.3,
+          0.54,
+          0.77
+        ],
+        "en": {
+          "title": "What the schema checks",
+          "items": [
+            {
+              "head": "Structure",
+              "text": "Every field in its place, required fields present."
+            },
+            {
+              "head": "Data types",
+              "text": "Dates are dates, amounts are numbers."
+            },
+            {
+              "head": "Codes",
+              "text": "Currencies, countries, asset types from fixed lists."
+            },
+            {
+              "head": "Links",
+              "text": "Every position points to a described security."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "What does the schema check? Every field in its place, and every required field present. Every value of the right type: a date is a date, an amount is a number. Codes from fixed lists, such as currencies, countries and asset types. And links inside the file: every position must point to a security that is described. All of this is checked automatically, in a second, by any standard tool."
+      }
+    },
+    {
+      "id": "valid",
+      "slide": {
+        "layout": "statement",
+        "builds": [
+          0,
+          0.4
+        ],
+        "en": {
+          "headline": "Valid is not the same as correct.",
+          "sub": "The schema checks the form. Business rules check whether the data can be right."
+        }
+      },
+      "say": {
+        "en": "But a valid file can still be wrong. The schema cannot know that the weights of a portfolio should add up to about one hundred percent. It does not see that a price times the number of shares should match the value of the share class. And it does not notice a valuation date in the future. For that, you need business rules."
+      }
+    },
+    {
+      "id": "rules",
+      "chapter": {
+        "en": "Business rules"
+      },
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.06,
+          0.26,
+          0.46,
+          0.66,
+          0.84
+        ],
+        "en": {
+          "title": "Typical business rules",
+          "items": [
+            {
+              "head": "Weights",
+              "text": "Positions add up to about 100 percent."
+            },
+            {
+              "head": "Values",
+              "text": "Positions match the net asset value."
+            },
+            {
+              "head": "Check digits",
+              "text": "ISIN and LEI are correct."
+            },
+            {
+              "head": "Dates",
+              "text": "No valuation in the future."
+            },
+            {
+              "head": "Currencies",
+              "text": "Consistent between position, security and fund."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Typical business rules for fund data: the weights of all positions add up to the whole fund. Position values match the net asset value. Identifiers like ISIN and LEI have correct check digits. Dates fit together: no valuation in the future, no price before the launch of a fund. And currencies are consistent, between a position, its security and the fund."
+      }
+    },
+    {
+      "id": "digits",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.1,
+          0.4,
+          0.7
+        ],
+        "en": {
+          "title": "Check digits",
+          "items": [
+            {
+              "head": "ISIN",
+              "text": "The last digit is calculated from the eleven before it."
+            },
+            {
+              "head": "LEI",
+              "text": "The last two digits check the eighteen before them."
+            },
+            {
+              "head": "Typing errors found at once",
+              "text": "No lookup needed, no partner to ask."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Check digits deserve a special mention. The last digit of an ISIN, and the last two of an LEI, are calculated from the others. So a single typing error, or two swapped digits, is found at once, without asking anyone. It is the cheapest check there is, and it prevents data from being attached to the wrong fund or company."
+      }
+    },
+    {
+      "id": "sources",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.1,
+          0.38,
+          0.66
+        ],
+        "en": {
+          "title": "Where the rules come from",
+          "items": [
+            {
+              "head": "The schema",
+              "text": "Published with every FundsXML version: binding for everyone."
+            },
+            {
+              "head": "Common quality rules",
+              "text": "Open rule sets, for example in Schematron, and checks built into tools."
+            },
+            {
+              "head": "Your agreements",
+              "text": "Extra rules you agree with each partner: fields, codes, tolerances."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Where do these rules come from? The schema is published with every FundsXML version, and it is binding for everyone. On top of it, there are common quality rules, published openly, for example in Schematron, a standard language for such rules, and built into tools. And then there are your own agreements with each partner: which optional fields must be filled, which codes are used, and which tolerances apply. Write them down, and check them automatically too."
+      }
+    },
+    {
+      "id": "demo-dq",
+      "chapter": {
+        "en": "In practice"
+      },
+      "say": {
+        "en": "Tools do these checks for you. Here is a FundsXML delivery in FreeXmlToolkit. One click in the FundsXML panel runs more than fifty data-quality checks on the open file."
+      }
+    },
+    {
+      "id": "demo-report",
+      "say": {
+        "en": "The report lists every check, and whether it passed or found something to look at. A receiver can run the same checks, so both sides talk about the same findings, with the same words. Run it before every delivery, and keep the reports: they show how the quality develops over time."
+      }
+    },
+    {
+      "id": "both",
+      "chapter": {
+        "en": "Checks on both sides"
+      },
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.08,
+          0.32,
+          0.56,
+          0.8
+        ],
+        "en": {
+          "title": "Quality as a process",
+          "items": [
+            {
+              "head": "Sender checks",
+              "text": "Schema and rules, before sending."
+            },
+            {
+              "head": "Receiver checks",
+              "text": "Again, before loading."
+            },
+            {
+              "head": "Fast feedback",
+              "text": "Findings go back with a clear description."
+            },
+            {
+              "head": "Test files",
+              "text": "Good and bad examples for every change."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Checks belong on both sides. The sender checks every file before it leaves the house: against the schema, and against the business rules. The receiver checks it again before loading it into its systems. Errors found by the receiver go back to the sender quickly, with a clear description. And both sides keep a set of test files, good and bad, that every change is tested against."
+      }
+    },
+    {
+      "id": "corrections",
+      "chapter": {
+        "en": "Corrections"
+      },
+      "slide": {
+        "layout": "statement",
+        "builds": [
+          0,
+          0.4
+        ],
+        "en": {
+          "headline": "Corrections leave a trace.",
+          "sub": "An amendment is a delivery of its own that names the one it corrects. Nothing is overwritten silently."
+        }
+      },
+      "say": {
+        "en": "And when something was wrong after all? FundsXML has a clean way to correct it. A correction is a new delivery of its own, marked as an amendment, that names the delivery it corrects. Nothing is overwritten silently. The receiver can see what changed, and when, and an auditor can follow the whole history later."
+      }
+    },
+    {
+      "id": "measure",
+      "chapter": {
+        "en": "Measuring quality"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.06,
+          0.3,
+          0.54,
+          0.77
+        ],
+        "en": {
+          "title": "Measuring quality",
+          "items": [
+            {
+              "head": "First-time right",
+              "text": "Deliveries that pass all checks at once."
+            },
+            {
+              "head": "Findings per check",
+              "text": "Which problems keep coming back."
+            },
+            {
+              "head": "Corrections",
+              "text": "How many, and how fast."
+            },
+            {
+              "head": "Shared figures",
+              "text": "Facts instead of feelings, with every partner."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Quality can be measured. Count the deliveries that passed all checks the first time. Count the findings per check, and watch which ones keep coming back. Track the corrections, and how long it takes from a finding to a corrected delivery. Share these figures with your partners: they turn a feeling about bad data into facts you can improve."
+      }
+    },
+    {
+      "id": "gains",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.06,
+          0.3,
+          0.54,
+          0.77
+        ],
+        "en": {
+          "title": "What it brings",
+          "items": [
+            {
+              "head": "Errors found early",
+              "text": "At the source, where they are cheapest to fix."
+            },
+            {
+              "head": "Reliable data",
+              "text": "From every fund house, checked the same way."
+            },
+            {
+              "head": "Shorter disputes",
+              "text": "Both sides use the same checks and words."
+            },
+            {
+              "head": "Measurable quality",
+              "text": "Delivery by delivery, over time."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "The result is trust. Errors are found where they are cheapest to fix: at the source. Receivers can rely on data from many fund houses. Disputes become shorter, because both sides use the same checks. And data quality can be measured over time, delivery by delivery."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was quality and control with FundsXML. In the next film, you see how a FundsXML project runs, from the first idea to daily operation. Thanks for watching."
+      }
+    }
+  ]
+}

@@ -1,0 +1,661 @@
+{
+  "_comment": "Business series, film 5. Slides only (no recording). The last film of the series: its closing card points to the developers series.",
+  "id": "biz-project",
+  "link": "fundsxml.org",
+  "title": {
+    "en": "Introducing FundsXML: a project from A to Z"
+  },
+  "description": {
+    "en": "How a FundsXML project runs, from the first idea to daily operation: scope, mapping, prototype and pilot, testing, go-live and operations; the roles involved, typical pitfalls, what is available free of charge, how versions and the standard evolve, and how to take part."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "You want to introduce FundsXML, as a sender or as a receiver of fund data. In this film you see how such a project runs, from the first idea to daily operation, and what helps along the way."
+      }
+    },
+    {
+      "id": "case",
+      "chapter": {
+        "en": "Why start"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.06,
+          0.3,
+          0.54,
+          0.77
+        ],
+        "en": {
+          "title": "The business case",
+          "items": [
+            {
+              "head": "Fewer interfaces",
+              "text": "One format for many partners instead of one per partner."
+            },
+            {
+              "head": "Partners ask for it",
+              "text": "Distributors, platforms and insurers expect standard data."
+            },
+            {
+              "head": "Regulation built in",
+              "text": "New templates arrive through the standard."
+            },
+            {
+              "head": "Better quality",
+              "text": "Automatic checks before data leaves the house."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Why start at all? The business case usually rests on four points. Fewer interfaces: one format for many partners instead of one per partner. Partners ask for it: distributors, platforms and insurers increasingly expect standard data. Regulation is built in: new templates arrive through the standard, not through new projects. And quality improves, because every file is checked automatically before it leaves the house."
+      }
+    },
+    {
+      "id": "phases",
+      "chapter": {
+        "en": "The six phases"
+      },
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.08,
+          0.22,
+          0.38,
+          0.54,
+          0.7,
+          0.85
+        ],
+        "en": {
+          "title": "A FundsXML project in six phases",
+          "items": [
+            {
+              "head": "Prepare",
+              "text": "Goal, scope, partners."
+            },
+            {
+              "head": "Map",
+              "text": "Your data to FundsXML."
+            },
+            {
+              "head": "Pilot",
+              "text": "Prototype with real data."
+            },
+            {
+              "head": "Test",
+              "text": "Schema, rules, partners."
+            },
+            {
+              "head": "Go live",
+              "text": "Production deliveries."
+            },
+            {
+              "head": "Operate",
+              "text": "Monitor and update."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "A FundsXML project runs in six phases. Preparation sets the goal and the scope. Mapping connects your own data to the standard. A prototype and a pilot prove that it works with real data. Testing makes it robust. Go-live moves it into production. And operations keep it running, release after release. Let us go through them one by one."
+      }
+    },
+    {
+      "id": "prepare",
+      "chapter": {
+        "en": "Preparation and mapping"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.06,
+          0.3,
+          0.54,
+          0.77
+        ],
+        "en": {
+          "title": "Preparation: the right questions",
+          "items": [
+            {
+              "head": "Which partners?",
+              "text": "Who asks for FundsXML, and who could join later."
+            },
+            {
+              "head": "Which data?",
+              "text": "Prices, portfolios, master data, templates."
+            },
+            {
+              "head": "Which version and rhythm?",
+              "text": "Daily, monthly, quarterly, on change."
+            },
+            {
+              "head": "Written down",
+              "text": "An agreed scope protects the project."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Preparation starts with the question why. Which partners ask for FundsXML, and which data do they need: prices, portfolios, regulatory templates? Which version of the standard do they expect, and how often? Collect these requirements first, and agree on them in writing. A clear scope is the best protection against a project that never ends."
+      }
+    },
+    {
+      "id": "mapping",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.08,
+          0.32,
+          0.56,
+          0.8
+        ],
+        "en": {
+          "title": "Mapping: the heart of the project",
+          "items": [
+            {
+              "head": "Source",
+              "text": "Where the data lives in your systems."
+            },
+            {
+              "head": "Target",
+              "text": "Where it goes in FundsXML."
+            },
+            {
+              "head": "Conversion",
+              "text": "Internal codes to standard code lists."
+            },
+            {
+              "head": "Gaps",
+              "text": "Data that does not exist yet."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Mapping is usually the biggest step. For every field you deliver, you decide where it comes from in your own systems, and where it goes in FundsXML. Some fields map one to one. Others need a conversion, for example from internal codes to the standard's code lists. And some data may not exist yet at all. A mapping table, reviewed by business and IT together, is the heart of the project."
+      }
+    },
+    {
+      "id": "pilot",
+      "chapter": {
+        "en": "Pilot and tests"
+      },
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.08,
+          0.32,
+          0.56,
+          0.8
+        ],
+        "en": {
+          "title": "From prototype to pilot",
+          "items": [
+            {
+              "head": "Start from examples",
+              "text": "The public sample files, not an empty page."
+            },
+            {
+              "head": "One fund",
+              "text": "A first real delivery."
+            },
+            {
+              "head": "Check it",
+              "text": "Schema and business rules."
+            },
+            {
+              "head": "One partner",
+              "text": "Real data, quick feedback."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Then build a prototype, and start from the public example files instead of an empty page. Produce a first real delivery for one fund, check it against the schema and the business rules, and send it to one partner. A pilot with real data and one friendly partner shows quickly where the mapping is still wrong, long before the full roll-out."
+      }
+    },
+    {
+      "id": "test",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.38,
+          0.68
+        ],
+        "en": {
+          "title": "Testing",
+          "items": [
+            {
+              "head": "Good and bad data",
+              "text": "Both must be handled correctly."
+            },
+            {
+              "head": "Special cases",
+              "text": "New share classes, liquidations, corrections."
+            },
+            {
+              "head": "End to end",
+              "text": "Until every partner confirms the load."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Testing makes the solution robust. Test the files against the schema and your business rules, with good data and with deliberately bad data. Test the special cases: a new share class, a fund in liquidation, a correction. And test end to end with your partners, until they confirm that they can load the data. Keep all test files: they are your safety net for every later change."
+      }
+    },
+    {
+      "id": "agreement",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.08,
+          0.3,
+          0.52,
+          0.74
+        ],
+        "en": {
+          "title": "What to agree with each partner",
+          "items": [
+            {
+              "head": "Scope and version",
+              "text": "Which data, which FundsXML and template versions."
+            },
+            {
+              "head": "Rhythm and timing",
+              "text": "Delivery days, cut-off times, corrections."
+            },
+            {
+              "head": "Channel",
+              "text": "How files travel: SFTP, API, platform."
+            },
+            {
+              "head": "Contacts",
+              "text": "Who to call when a delivery fails."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Agree a few things with every partner, in writing. The scope and the version: which data, and which versions of FundsXML and of the templates. The rhythm and the timing: on which days files arrive, until what time, and how corrections are sent. The channel: how files travel, for example by secure file transfer, through an API or through a platform. And the contacts: who to call when a delivery fails."
+      }
+    },
+    {
+      "id": "golive",
+      "chapter": {
+        "en": "Go-live and operations"
+      },
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.08,
+          0.32,
+          0.56,
+          0.8
+        ],
+        "en": {
+          "title": "Go-live and operations",
+          "items": [
+            {
+              "head": "Automate",
+              "text": "Produce, check and send without manual steps."
+            },
+            {
+              "head": "Monitor",
+              "text": "Alerts for failed checks and late files."
+            },
+            {
+              "head": "Extend",
+              "text": "New partners and funds."
+            },
+            {
+              "head": "Update",
+              "text": "New versions, at least once a year."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Go-live moves the deliveries into production. Automate them: the files are produced, checked and sent without manual steps. Monitor every delivery, and alert someone when a check fails or a file is late. Then the project becomes operations: new partners, new funds, and new versions of the standard and the templates. Plan for at least one update a year."
+      }
+    },
+    {
+      "id": "receiver",
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.08,
+          0.32,
+          0.56,
+          0.8
+        ],
+        "en": {
+          "title": "If you receive FundsXML",
+          "items": [
+            {
+              "head": "Accept",
+              "text": "Collect files from all senders in one place."
+            },
+            {
+              "head": "Check",
+              "text": "Schema and business rules, before loading."
+            },
+            {
+              "head": "Load",
+              "text": "One import for all fund houses."
+            },
+            {
+              "head": "Report back",
+              "text": "Clear findings to the sender."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "If you are on the receiving side, the project looks similar, but the focus differs. Collect the files from all senders in one place. Check every file before loading it, against the schema and your business rules. Build one import that serves all fund houses, because they all use the same structure. And report findings back to the sender quickly, with a clear description, so the next delivery is better."
+      }
+    },
+    {
+      "id": "roles",
+      "chapter": {
+        "en": "Roles and pitfalls"
+      },
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.08,
+          0.3,
+          0.52,
+          0.74
+        ],
+        "en": {
+          "title": "Who is involved",
+          "items": [
+            {
+              "head": "Business",
+              "text": "Knows what the data means."
+            },
+            {
+              "head": "IT",
+              "text": "Builds and runs the interfaces."
+            },
+            {
+              "head": "Operations",
+              "text": "Watches the daily deliveries."
+            },
+            {
+              "head": "Partners",
+              "text": "Test and confirm."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Who needs to be involved? The business side knows what the data means and what partners expect. IT builds and runs the interfaces. Operations watches the daily deliveries. And the partners themselves test and confirm. Projects go best when business and IT own the mapping together, from the first day."
+      }
+    },
+    {
+      "id": "pitfalls",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.06,
+          0.3,
+          0.54,
+          0.77
+        ],
+        "en": {
+          "title": "Typical pitfalls",
+          "items": [
+            {
+              "head": "Too big at once",
+              "text": "All data, all partners, one go-live."
+            },
+            {
+              "head": "IT only",
+              "text": "The meaning of the data gets lost."
+            },
+            {
+              "head": "Schema only",
+              "text": "Business rules are not checked."
+            },
+            {
+              "head": "No plan for change",
+              "text": "New versions arrive every year."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Some pitfalls are typical. Starting too big, with all data and all partners at once. Treating it as an IT-only project, so the meaning of the data gets lost. Checking only against the schema, and not against business rules. And forgetting that the standard and the templates change, so nobody plans for the next version."
+      }
+    },
+    {
+      "id": "firststeps",
+      "chapter": {
+        "en": "First steps"
+      },
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.08,
+          0.32,
+          0.56,
+          0.8
+        ],
+        "en": {
+          "title": "Your first steps",
+          "items": [
+            {
+              "head": "Ask",
+              "text": "Which data and versions your partners expect."
+            },
+            {
+              "head": "Look",
+              "text": "Schema and examples in a free tool."
+            },
+            {
+              "head": "Sketch",
+              "text": "One fund, one area: a first mapping."
+            },
+            {
+              "head": "Find",
+              "text": "One partner for a pilot."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "What can you do next week? Ask your main partners which FundsXML data and versions they expect. Download the schema and the example files, and open them with a free tool. Pick one fund and one data area, and sketch the mapping with your business and IT colleagues. And find one partner for a pilot. Four small steps, and your project has started."
+      }
+    },
+    {
+      "id": "free",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.12,
+          0.35,
+          0.58,
+          0.8
+        ],
+        "en": {
+          "title": "Free to use, from day one",
+          "items": [
+            {
+              "head": "The schema",
+              "text": "github.com/fundsxml/schema"
+            },
+            {
+              "head": "Example files",
+              "text": "github.com/fundsxml/examples"
+            },
+            {
+              "head": "Documentation",
+              "text": "fundsxml.org"
+            },
+            {
+              "head": "Tools",
+              "text": "FreeXmlToolkit and other XML tools"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Everything you need to start is free. The schema and the example files are on GitHub. The documentation is on fundsxml dot org. And free tools, such as FreeXmlToolkit, open, check and explore FundsXML files."
+      },
+      "chapter": {
+        "en": "What helps"
+      }
+    },
+    {
+      "id": "tips",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.06,
+          0.3,
+          0.54,
+          0.76
+        ],
+        "en": {
+          "title": "Tips from practice",
+          "items": [
+            {
+              "head": "Start small",
+              "text": "One data area, one partner, then extend."
+            },
+            {
+              "head": "Agree on the details",
+              "text": "Which optional fields, which codes, which delivery times."
+            },
+            {
+              "head": "Check on both sides",
+              "text": "The sender validates before sending, the receiver before loading."
+            },
+            {
+              "head": "Keep test files",
+              "text": "Good and bad examples that every change is tested against."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "A few tips from practice. Start small: one data area and one partner, then extend. Agree on the details: which optional fields you fill, which codes you use, and when the data arrives. Check on both sides: the sender validates before sending, and the receiver before loading. And keep a set of test files, good ones and bad ones, so that every change can be tested against them."
+      }
+    },
+    {
+      "id": "versions",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.06,
+          0.3,
+          0.56,
+          0.78
+        ],
+        "en": {
+          "title": "Versions and compatibility",
+          "items": [
+            {
+              "head": "Every file names its version",
+              "text": "In its control data, next to the sender and the date."
+            },
+            {
+              "head": "New releases mostly add",
+              "text": "New elements are usually optional, so existing files stay valid."
+            },
+            {
+              "head": "Partners agree on a version",
+              "text": "And move to a newer one when they are ready."
+            },
+            {
+              "head": "Every change is documented",
+              "text": "In the changelog that comes with the schema."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "How do new versions fit in? Every file names the version it was written for, in its control data. New releases mostly add elements, and these are usually optional, so existing files stay valid. Partners agree on the version they exchange, and move on when they are ready. And every change is documented in the changelog that comes with the schema."
+      },
+      "chapter": {
+        "en": "A living standard"
+      }
+    },
+    {
+      "id": "living",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.05,
+          0.38,
+          0.68
+        ],
+        "en": {
+          "title": "A living standard",
+          "items": [
+            {
+              "head": "Regular releases",
+              "text": "New versions follow new regulation and market needs."
+            },
+            {
+              "head": "Practitioners decide",
+              "text": "Changes are discussed and agreed by people who use the standard."
+            },
+            {
+              "head": "Your voice counts",
+              "text": "Report issues and propose changes on GitHub."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "FundsXML is a living standard. New versions follow new regulation and the needs of the market. Changes are discussed and agreed by the people who use the standard every day: asset managers, administrators, banks and service providers. And your voice counts: you can report issues and propose changes on GitHub, and every proposal is discussed in the open."
+      }
+    },
+    {
+      "id": "future",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.1,
+          0.4,
+          0.7
+        ],
+        "en": {
+          "title": "What comes next",
+          "items": [
+            {
+              "head": "APIs",
+              "text": "Fund data through interfaces, not only as files."
+            },
+            {
+              "head": "New regulation",
+              "text": "New templates, added to the standard."
+            },
+            {
+              "head": "New tools",
+              "text": "Help with mapping, checking and analysis."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "And the standard keeps moving. Data is increasingly exchanged through interfaces and APIs, not only as files, and FundsXML documents fit well into that world. New regulation will bring new templates. And new tools, including AI-based ones, help with mapping, checking and analysing fund data. A clean, standard structure is the best starting point for all of it."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was a FundsXML project from A to Z, and the end of the series for business readers. If you want to see the standard in a real file, continue with the series for developers. Thanks for watching."
+      }
+    }
+  ]
+}
