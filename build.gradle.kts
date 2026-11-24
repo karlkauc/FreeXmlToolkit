@@ -85,9 +85,17 @@ val saxon13: Configuration = configurations.create("saxon13") {
     isCanBeConsumed = false
 }
 
+// The jars SaxonInstaller downloads (ARTIFACTS, versions + SHA-256 pinned there) are the jars the tests
+// run: their coordinates are read from its Maven paths, so the two cannot drift apart and Dependabot
+// (which would bump only this side) never sees them.
+val saxonInstallerArtifacts: List<String> = Regex(""""([\w./-]+)/([\w.-]+)/([\w.-]+)/[\w.-]+\.jar"""")
+    .findAll(file("src/main/java/org/fxt/freexmltoolkit/service/xsltproc/SaxonInstaller.java").readText())
+    .map { m -> "${m.groupValues[1].replace('/', '.')}:${m.groupValues[2]}:${m.groupValues[3]}" }
+    .toList()
+    .also { require(it.size >= 2) { "SaxonInstaller.ARTIFACTS not found: $it" } }
+
 dependencies {
-    saxon13("net.sf.saxon:Saxon-HE:13.1")
-    saxon13("org.xmlresolver:xmlresolver:6.1.0")
+    saxonInstallerArtifacts.forEach { saxon13(it) }
 
     // Pinned to 12.10: XML Calabash 3 (also 3.1.0) is compiled against Saxon 12.10 internals
     // (Saxon 13 support: codeberg.org/xmlcalabash/xmlcalabash3/issues/717). Move to 13.x once Calabash

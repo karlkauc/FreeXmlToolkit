@@ -124,7 +124,8 @@ is an external processor — `SaxonInstaller` (Saxon-HE 13.1 + xmlresolver 6.1.0
 preset `SAXON_HE`; the Java presets run `JavaRuntime.executable()` (`${java.home}/bin/java`) before the PATH
 (`XsltProcessorPreset.findProgram`). The jlink runtime keeps `bin/java` (no `--strip-native-commands`, other
 programs deleted). Settings card button "Add Saxon HE 13.1" (`onAddSaxon`, hooks `setDownloadHooks`). Tests get
-the jars from the Gradle configuration `saxon13` (never on a class path) as `fxt.test.saxon13.classpath`.
+the jars from the Gradle configuration `saxon13` (never on a class path) as `fxt.test.saxon13.classpath`; its
+coordinates are read from `SaxonInstaller.ARTIFACTS` by `build.gradle.kts` (one source, invisible to Dependabot).
 
 ## XML Signatures and Encryption
 

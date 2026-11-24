@@ -16,6 +16,10 @@ updates:
       # Pinned in build.gradle.kts: XML Calabash 3 is compiled against Saxon 12.10 internals.
       - dependency-name: "net.sf.saxon:Saxon-HE"
         update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      # ph-schematron 11 imports Saxon 13.1 through its parent POM (platform), which clashes
+      # with the Saxon 12.10 pin above. Move together with Saxon once Calabash supports 13.
+      - dependency-name: "com.helger.schematron:*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
