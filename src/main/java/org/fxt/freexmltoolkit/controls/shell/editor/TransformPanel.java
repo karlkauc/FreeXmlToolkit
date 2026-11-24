@@ -92,6 +92,12 @@ public class TransformPanel extends VBox {
     /** A stylesheet poll is running on a worker (the watch timer never stacks them). */
     private final java.util.concurrent.atomic.AtomicBoolean xsltPollRunning =
             new java.util.concurrent.atomic.AtomicBoolean();
+    /**
+     * Number of the latest transform run: runs overlap (an automatic run on choosing the stylesheet
+     * or input, live preview, the Transform button) and finish in any order, so only the latest one
+     * may show its result.
+     */
+    private final java.util.concurrent.atomic.AtomicLong latestRun = new java.util.concurrent.atomic.AtomicLong();
     /** A fixed input file overriding the active editor as the transform source, if set. */
     private File inputOverride;
     /** An open editor tab chosen as the input (instead of following the active editor), or {@code null}. */
@@ -2016,6 +2022,7 @@ public class TransformPanel extends VBox {
         // A transform is a single opaque call; cancellation frees the UI and abandons
         // the result (best-effort interrupt) — it may not stop Saxon mid-transform.
         java.util.concurrent.atomic.AtomicBoolean abandoned = new java.util.concurrent.atomic.AtomicBoolean(false);
+        long run = latestRun.incrementAndGet();
         java.util.concurrent.Future<?>[] task = new java.util.concurrent.Future<?>[1];
         transformButton.setDisable(true);
         progress.beginIndeterminate(() -> {
@@ -2038,7 +2045,7 @@ public class TransformPanel extends VBox {
                     xmlInput = Files.readString(inputFile.toPath(), StandardCharsets.UTF_8);
                 } catch (Exception e) {
                     Platform.runLater(() -> {
-                        if (!abandoned.get()) {
+                        if (!abandoned.get() && run == latestRun.get()) {
                             progress.finish();
                             transformButton.setDisable(false);
                             out.showFailure(I18n.t("TransformPanel.could-not-read-input-file", e.getMessage()));
@@ -2130,6 +2137,9 @@ public class TransformPanel extends VBox {
             Platform.runLater(() -> {
                 if (abandoned.get()) {
                     return; // user cancelled — ignore the result
+                }
+                if (run != latestRun.get()) {
+                    return; // a later run owns the output and the progress bar
                 }
                 progress.finish();
                 transformButton.setDisable(false);

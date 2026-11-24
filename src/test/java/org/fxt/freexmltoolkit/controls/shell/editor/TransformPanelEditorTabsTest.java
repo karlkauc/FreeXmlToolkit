@@ -127,6 +127,31 @@ class TransformPanelEditorTabsTest {
     }
 
     @Test
+    void onlyTheLatestOfOverlappingRunsShowsItsResult(@TempDir Path tmp) throws Exception {
+        OpenDocument second = open(tmp, "second.xml", "<greeting>Second</greeting>");
+        // a large input file: its run starts first and finishes well after the small one
+        Path big = tmp.resolve("big.xml");
+        Files.writeString(big, "<greeting>" + "<i>x</i>".repeat(1_000_000) + "</greeting>");
+        Path xslt = tmp.resolve("t.xslt");
+        Files.writeString(xslt, XSLT.replace("<xsl:value-of select=\".\"/>",
+                "<xsl:value-of select=\"if (*) then 'Big' else .\"/>"));
+        fx(() -> {
+            panel.setXsltFile(xslt.toFile());
+            panel.setInputOverride(big.toFile());
+            panel.transform();
+            panel.useInputDocument(second);
+            panel.transform();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> panel.getOutputText().contains("<out>Second</out>")));
+        Thread.sleep(3000); // the large run has finished by now
+        WaitForAsyncUtils.waitForFxEvents();
+        String output = WaitForAsyncUtils.waitForAsyncFx(2000, panel::getOutputText);
+        assertTrue(output.contains("<out>Second</out>"), output);
+    }
+
+    @Test
     void theChangeMenusListTheOpenTabs(@TempDir Path tmp) throws Exception {
         open(tmp, "doc.xml", "<a/>");
         open(tmp, "one.xslt", XSLT);
