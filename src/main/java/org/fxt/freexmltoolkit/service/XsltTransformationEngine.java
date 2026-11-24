@@ -2184,11 +2184,17 @@ public class XsltTransformationEngine {
     }
 
     /** The transformation raised a dynamic error. */
-    private static XsltTransformationResult runtimeFailure(SaxonApiException e) {
+    static XsltTransformationResult runtimeFailure(SaxonApiException e) {
         String code = localCode(e.getErrorCode());
-        return XsltTransformationResult.error("Transformation failed" + at(e.getLineNumber(), -1)
-                + bracket(code) + ": " + e.getMessage(), code, XsltTransformationResult.PHASE_RUNTIME,
-                e.getLineNumber());
+        XsltTransformationResult result = XsltTransformationResult.error("Transformation failed"
+                + at(e.getLineNumber(), -1) + bracket(code) + ": " + e.getMessage(), code,
+                XsltTransformationResult.PHASE_RUNTIME, e.getLineNumber());
+        if (code == null) {
+            // no processor code: keep the exception so TransformRunner.failureOf can find a code
+            // deeper in the chain or report its stack signature (telemetry saw only "error")
+            result.setCause(e);
+        }
+        return result;
     }
 
     private static String at(XmlProcessingError error) {

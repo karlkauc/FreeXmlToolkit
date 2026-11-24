@@ -118,4 +118,29 @@ class XsltTransformationEngineErrorReportingTest {
         assertNull(result.getErrorCode());
         assertNull(result.getErrorPhase());
     }
+
+    @Test
+    void aRuntimeFailureWithoutCodeKeepsItsException() {
+        var e = new net.sf.saxon.s9api.SaxonApiException("boom");
+        XsltTransformationResult result = XsltTransformationEngine.runtimeFailure(e);
+
+        assertFalse(result.isSuccess());
+        assertEquals(XsltTransformationResult.PHASE_RUNTIME, result.getErrorPhase());
+        assertNull(result.getErrorCode());
+        assertSame(e, result.getCause(), "telemetry needs the exception when there is no code");
+        var failure = org.fxt.freexmltoolkit.controls.shell.editor.TransformRunner.failureOf(result);
+        assertNotNull(failure.signature(), "classified by its stack signature, not as an anonymous error");
+    }
+
+    @Test
+    void aRuntimeFailureWithCodeIsClassifiedByTheCode() {
+        XsltTransformationResult result = transform(XML, stylesheet("    <xsl:value-of select=\"error()\"/>"));
+
+        assertFalse(result.isSuccess());
+        assertEquals(XsltTransformationResult.PHASE_RUNTIME, result.getErrorPhase());
+        assertEquals("FOER0000", result.getErrorCode());
+        assertNull(result.getCause());
+        assertEquals("FOER0000",
+                org.fxt.freexmltoolkit.controls.shell.editor.TransformRunner.failureOf(result).errorCode());
+    }
 }
