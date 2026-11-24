@@ -426,7 +426,7 @@ def draw_slide(path, theme, lang, slide, shown):
             head, body = (item, "") if isinstance(item, str) else (item["head"], item.get("text", ""))
             blocks.append((head, wrap(d, body, text_f, W - 560) if body else []))
         heights = [58 + 46 * len(body) for _, body in blocks]
-        gap = min(56, max(24, (bottom - top - sum(heights)) / max(1, len(blocks))))
+        gap = min(90, max(24, (bottom - top - sum(heights)) / max(1, len(blocks))))
         y = top + 10
         for i, ((head, body), h) in enumerate(zip(blocks, heights)):
             if i in shown:
