@@ -76,6 +76,8 @@ final class EditorTab extends Tab {
     private boolean dirtyTrackingAttached;
     /** True while the file is being (re)read; the external-change check skips the tab. */
     boolean loading;
+    /** {@code meta.source} of the next {@code file_open} report ({@code os} for files from the system). */
+    String openSource = org.fxt.freexmltoolkit.service.telemetry.UsageEvents.SOURCE_FILE;
     /** Writes in flight ({@link EditorFileSync#writeAsync}); the external-change check skips the tab meanwhile. */
     int saving;
     /** The last write started for this tab: the next one waits for it, so writes land in order. */

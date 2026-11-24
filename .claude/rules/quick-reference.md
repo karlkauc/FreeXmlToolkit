@@ -174,6 +174,7 @@ class MyUITest {
 | Flaky TestFX assertion | Asserting a sibling effect of the same `runLater` pulse | `waitFor`/poll the combined condition |
 | Wrong code in search results | Stale `.claude/worktrees/*` copies | Ignore worktree paths |
 | macOS notarization rejects "binary is not signed" in a jar | A dependency ships a native library inside its jar; `jpackage --mac-sign` does not sign jar contents | `scripts/sign-macos-jar-natives.sh` signs `*.dylib`/`*.jnilib` before jpackage (see `scripts/README.md`) |
+| macOS "Open with" lists the app unreliably / "Change All…" fails | jpackage's `--file-associations` export own UTIs for `.xml`/`.json` (conforming to `public.data`); macOS always uses `public.xml`/`public.json` and ignores them | Document types live in `release/macos/Info.plist` (jpackage `--resource-dir`, `DEPLOY_*` placeholders substituted): system types claimed, own types imported on `public.xml`; no `--file-associations` on macOS. `MacInfoPlistTest` |
 | macOS app-image build breaks | jpackage app root is `FreeXmlToolkit.app` (not `FreeXmlToolkit/`); the bundle must not be modified after codesign | Ship extras next to the bundle (see build.gradle.kts doLast) |
 
 ---

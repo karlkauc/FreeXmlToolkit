@@ -33,6 +33,8 @@ public final class UsageEvents {
     public static final String SOURCE_URL = "url";
     public static final String SOURCE_NEW = "new";
     public static final String SOURCE_GENERATED = "generated";
+    /** A file the operating system handed over: "Open with", double-click, Dock drop, command line, second instance. */
+    public static final String SOURCE_OS = "os";
 
     /** {@code meta.result} values for {@link #updateCheck}. */
     public static final String UPDATE_UP_TO_DATE = "up_to_date";

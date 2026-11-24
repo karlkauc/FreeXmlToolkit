@@ -41,6 +41,12 @@ default choice is protected by the operating system. FreeXmlToolkit therefore:
 The default handler is set directly through Launch Services (the same mechanism as
 Finder's *Get Info → Open with → Change All…*) — silent and per user.
 
+The application bundle declares the system types `public.xml` and `public.json` as document
+types it can edit (rank *Alternate*: offered in "Open with", never taking over without your
+choice), and imports types for `.xsd`, `.xsl`/`.xslt` and `.sch`/`.schematron` that build on
+`public.xml`. You can check them with
+`plutil -p /Applications/FreeXmlToolkit.app/Contents/Info.plist`.
+
 **Unregister** restores the previous default application where one was recorded. If no
 previous handler is known, use Finder's *Change All…* to pick another application —
 macOS offers no way to "clear" a default.

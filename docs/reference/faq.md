@@ -124,7 +124,8 @@ other application data. **Settings → Reset to Defaults…** restores the defau
 
 ### Where are the log files?
 
-**Settings → Files & Cache → LOG FILES → Open log folder** opens the folder; the card also
+In the folder `.freeXmlToolkit/logs` in your home folder (`fxt.log`, older ones packed as
+`.log.gz`). **Settings → Files & Cache → LOG FILES → Open log folder** opens it; the card also
 shows how many log files there are and how much space they use. Old logs are deleted
 automatically (by default after 14 days or above 100 MB).
 

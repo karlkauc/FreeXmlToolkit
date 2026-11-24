@@ -40,9 +40,15 @@ public final class StartupFileOpener {
         for (Path file : files) {
             if (Files.isRegularFile(file)) {
                 pending.add(file.toAbsolutePath());
+            } else if (file.isAbsolute()) {
+                // a path the system handed over (macOS open event, second instance): worth seeing in the log
+                logger.warn("Not opening {}: no regular file (missing, or no permission to read it)", file);
             } else {
                 logger.debug("Ignoring startup argument that is no regular file: {}", file);
             }
+        }
+        if (consumer == null && !pending.isEmpty()) {
+            logger.info("{} file(s) to open once the editor is ready", pending.size());
         }
         drain();
     }

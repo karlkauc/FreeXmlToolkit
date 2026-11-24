@@ -35,9 +35,11 @@ public final class MacOpenFilesHandler {
     }
 
     /**
-     * Installs the handler on macOS; does nothing elsewhere. Must run on the JavaFX
-     * application thread after the toolkit has started (e.g. in {@code Application.start}).
-     * Never throws: without it, files opened from Finder are just not loaded.
+     * Installs the handler on macOS; does nothing elsewhere or when it is installed already. Must run on
+     * the JavaFX application thread after the toolkit has started, as early as possible: Glass keeps the
+     * files the application was launched with only until the application became active, and replays
+     * them to a newly set handler (see {@code FxtGui.init}). Never throws: without it, files opened from
+     * Finder are just not loaded.
      */
     public static void install() {
         if (!System.getProperty("os.name", "").toLowerCase().contains("mac")) {
@@ -45,11 +47,19 @@ public final class MacOpenFilesHandler {
         }
         try {
             Application app = Application.GetApplication();
+            if (isInstalled(app.getEventHandler())) {
+                return;
+            }
             app.setEventHandler(new DelegatingHandler(app.getEventHandler(), StartupFileOpener::enqueue));
             logger.info("macOS open-files handler installed");
         } catch (Exception | LinkageError e) {
             logger.warn("Could not install the macOS open-files handler: {}", e.toString());
         }
+    }
+
+    /** @return whether {@code current} is this class's handler already (no second wrapper). Pure. */
+    static boolean isInstalled(Application.EventHandler current) {
+        return current instanceof DelegatingHandler;
     }
 
     /**
@@ -80,6 +90,8 @@ public final class MacOpenFilesHandler {
 
         private final Application.EventHandler delegate;
         private final Consumer<List<Path>> onOpenFiles;
+        /** Logs the first activation once: files reported after it are no longer replayed by Glass. */
+        private boolean activationLogged;
 
         DelegatingHandler(Application.EventHandler delegate, Consumer<List<Path>> onOpenFiles) {
             this.delegate = delegate != null ? delegate : new Application.EventHandler();
@@ -113,6 +125,10 @@ public final class MacOpenFilesHandler {
 
         @Override
         public void handleDidBecomeActiveAction(Application app, long time) {
+            if (!activationLogged) {
+                activationLogged = true;
+                logger.info("macOS application became active");
+            }
             delegate.handleDidBecomeActiveAction(app, time);
         }
 

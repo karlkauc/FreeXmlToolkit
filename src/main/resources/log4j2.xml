@@ -18,6 +18,12 @@
   -->
 
 <Configuration status="INFO">
+    <!-- An absolute folder: a packaged application started from Finder or a Start-menu shortcut runs in
+         "/" or its read-only installation folder, where a relative "logs" folder cannot be created.
+         Development runs set -Dfxt.log.dir=logs (build.gradle.kts). -->
+    <Properties>
+        <Property name="logDir">${sys:fxt.log.dir:-${sys:user.home}/.freeXmlToolkit/logs}</Property>
+    </Properties>
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%highlight{[%-5level]} [%thread][%class][%line] %d{yyyy-MM-dd HH:mm:ss} - %msg%n"
@@ -28,8 +34,8 @@
              "*-fxt.log" files) older than 14 days, or beyond 100 MB in total, are deleted
              automatically on every rollover. The app also cleans this folder at startup with the
              limits from Settings → Log Files (LogCleanupService). -->
-        <RollingFile name="MyFile" fileName="logs/fxt.log"
-                     filePattern="logs/fxt-%d{yyyy-MM-dd}-%i.log.gz"
+        <RollingFile name="MyFile" fileName="${logDir}/fxt.log"
+                     filePattern="${logDir}/fxt-%d{yyyy-MM-dd}-%i.log.gz"
                      immediateFlush="true" createOnDemand="true">
             <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
             <Policies>
@@ -38,7 +44,7 @@
                 <SizeBasedTriggeringPolicy size="10 MB"/>
             </Policies>
             <DefaultRolloverStrategy fileIndex="nomax">
-                <Delete basePath="logs" maxDepth="1">
+                <Delete basePath="${logDir}" maxDepth="1">
                     <IfFileName glob="{fxt-*.log.gz,*-fxt.log}">
                         <IfAny>
                             <IfLastModified age="P14D"/>
@@ -52,8 +58,27 @@
     <Loggers>
         <Root level="WARN">
             <AppenderRef ref="Console" level="WARN"/>
-            <!-- <appender-ref ref="MyFile" level="DEBUG"/> -->
+            <!-- warnings and errors stay readable after the fact (Settings > Files & Cache > LOG FILES) -->
+            <AppenderRef ref="MyFile" level="WARN"/>
         </Root>
+        <!-- How files reach the editor at startup ("Open with", Dock drops, command line, a second
+             instance, a relaunch): a few lines per start, needed to tell where a file got lost -->
+        <Logger name="org.fxt.freexmltoolkit.app.MacOpenFilesHandler" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="MyFile"/>
+        </Logger>
+        <Logger name="org.fxt.freexmltoolkit.util.StartupFileOpener" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="MyFile"/>
+        </Logger>
+        <Logger name="org.fxt.freexmltoolkit.app.SingleInstance" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="MyFile"/>
+        </Logger>
+        <Logger name="org.fxt.freexmltoolkit.app.MemoryLimit" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="MyFile"/>
+        </Logger>
         <Logger name="org.apache.poi" level="INFO" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>

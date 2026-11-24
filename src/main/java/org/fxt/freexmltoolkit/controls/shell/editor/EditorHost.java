@@ -1207,6 +1207,7 @@ public class EditorHost extends BorderPane {
     private final java.util.Set<Path> sniffing = new java.util.HashSet<>();
 
     private void openFile(Path path, boolean select, EditorFileType contentType) {
+        boolean fromSystem = handedOver.remove(path);
         for (Tab tab : tabPane.getTabs()) {
             if (tab instanceof EditorTab et && path.equals(et.document.getPath())) {
                 if (select) {
@@ -1230,8 +1231,23 @@ public class EditorHost extends BorderPane {
         debugSupport.installInputNodeBreakpointMenu(tab);
         // Wire "Go to Definition": open the bound XSD and reveal the element (no-op for non-XML views).
         tab.view.setGoToDefinitionHandler(schemaLookup::goToDefinition);
+        if (fromSystem) {
+            tab.openSource = org.fxt.freexmltoolkit.service.telemetry.UsageEvents.SOURCE_OS;
+        }
         fileSync.loadAsync(tab, path);
     }
+
+    /**
+     * Opens a file the operating system handed over ("Open with", double-click, Dock drop, command
+     * line, a second instance): like {@link #openFile(Path)}, reported with {@code meta.source=os}.
+     */
+    public void openFileFromSystem(Path path) {
+        handedOver.add(path);
+        openFile(path);
+    }
+
+    /** Paths of {@link #openFileFromSystem} whose tab is not created yet (an unknown extension is sniffed first). */
+    private final java.util.Set<Path> handedOver = new java.util.HashSet<>();
 
     /** Convenience overload of {@link #openFile(Path)} for {@link File} call sites. */
     public void openFile(File file) {

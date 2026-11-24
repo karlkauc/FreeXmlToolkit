@@ -264,8 +264,10 @@ final class EditorFileSync {
             tab.document.setDiskStamp(stamp);
             tab.loading = false;
             tab.attachDirtyTracking();
+            String openSource = tab.openSource;
+            tab.openSource = UsageEvents.SOURCE_FILE; // a later reload is no hand-over
             UsageEvents.fileOpened(tab.document.getFileType().docKind(), fileSize,
-                    UsageEvents.SOURCE_FILE, openStart, elementCount, encoding.charset().name(),
+                    openSource, openStart, elementCount, encoding.charset().name(),
                     org.fxt.freexmltoolkit.service.telemetry.FileExtensions.telemetryValue(
                             path.getFileName() == null ? null : path.getFileName().toString()),
                     contentKind(tab.document));

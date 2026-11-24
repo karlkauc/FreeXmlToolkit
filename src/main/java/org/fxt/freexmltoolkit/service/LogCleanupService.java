@@ -56,7 +56,8 @@ public final class LogCleanupService {
 
     /**
      * The folder the file appenders write to (absolute), taken from the running logging configuration so an
-     * external {@code log4j2.xml} is honoured; {@code logs} under the working directory if none is found.
+     * external {@code log4j2.xml} is honoured; else the configuration's default ({@code fxt.log.dir}, or
+     * {@code ~/.freeXmlToolkit/logs}).
      */
     public static Path logDirectory() {
         for (Path active : activeLogFiles()) {
@@ -64,7 +65,10 @@ public final class LogCleanupService {
                 return active.getParent();
             }
         }
-        return Path.of("logs").toAbsolutePath().normalize();
+        String configured = System.getProperty("fxt.log.dir");
+        Path folder = configured != null && !configured.isBlank() ? Path.of(configured)
+                : Path.of(System.getProperty("user.home"), ".freeXmlToolkit", "logs");
+        return folder.toAbsolutePath().normalize();
     }
 
     /** @return the files the logging system currently writes (absolute, normalized) */

@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.app;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Method;
@@ -71,6 +72,15 @@ class MacOpenFilesHandlerTest {
         handler.handlePreferencesChanged(Map.of());
 
         assertEquals(List.of("quit", "preferences"), delegate.calls);
+    }
+
+    @Test
+    void aSecondInstallDoesNotWrapAgain() {
+        // FxtGui.init installs early; MemoryLimit may have installed before in the same JVM
+        assertTrue(MacOpenFilesHandler.isInstalled(
+                new MacOpenFilesHandler.DelegatingHandler(new RecordingHandler(), files -> { })));
+        assertFalse(MacOpenFilesHandler.isInstalled(new RecordingHandler()));
+        assertFalse(MacOpenFilesHandler.isInstalled(null));
     }
 
     @Test

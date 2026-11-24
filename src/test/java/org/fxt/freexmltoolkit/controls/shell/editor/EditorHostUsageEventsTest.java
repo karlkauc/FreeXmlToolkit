@@ -69,6 +69,25 @@ class EditorHostUsageEventsTest {
     }
 
     @Test
+    void aFileTheSystemHandedOverIsReportedAsSuch(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("handed-over.xml");
+        Path sniffed = tmp.resolve("handed-over.gpx"); // unknown extension: its first bytes are read first
+        Files.writeString(xml, "<a/>");
+        Files.writeString(sniffed, "<gpx/>");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.openFileFromSystem(xml);
+            host.openFileFromSystem(sniffed);
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> telemetry.events("file_open").size() == 2);
+
+        for (TelemetryEvent e : telemetry.events("file_open")) {
+            assertEquals("os", e.meta().get("source"), e.toJson().toString());
+        }
+    }
+
+    @Test
     void newDocumentAndSaveAreRecorded(@TempDir Path tmp) throws Exception {
         Path target = tmp.resolve("out.xml");
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {

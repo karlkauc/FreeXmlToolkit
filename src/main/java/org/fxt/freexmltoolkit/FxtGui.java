@@ -169,6 +169,9 @@ public class FxtGui extends Application {
     @Override
     public void init() throws Exception {
         super.init();
+        // macOS delivers "Open With" / Dock drops as Apple events to Glass, not to AWT. First thing:
+        // Glass keeps the launch files only until the application became active (MacOpenFilesHandler).
+        Platform.runLater(org.fxt.freexmltoolkit.app.MacOpenFilesHandler::install);
 
         // Log (with stack trace) and anonymously report every uncaught exception. Installed
         // first so that failures during the remaining startup are captured too.
@@ -348,8 +351,6 @@ public class FxtGui extends Application {
         // Names for screen readers: icon-only buttons after their tooltip, fields after their label
         org.fxt.freexmltoolkit.controls.shell.AccessibleNames.installGlobally();
         org.fxt.freexmltoolkit.controls.shell.DialogTheming.installGlobally();
-        // macOS delivers "Open With" / Dock drops as Apple events to Glass, not to AWT.
-        org.fxt.freexmltoolkit.app.MacOpenFilesHandler.install();
         if (singleInstance != null) {
             // A later launch forwarded its files (opened via StartupFileOpener): show this window.
             singleInstance.setActivationHandler(() -> Platform.runLater(() -> {
@@ -432,7 +433,7 @@ public class FxtGui extends Application {
                     // Shell is up — route queued open-file events (macOS Apple events)
                     // and command-line arguments (double-clicked files on Windows/Linux
                     // arrive as plain program args) into the editor.
-                    StartupFileOpener.setConsumer(shellController.getShellView()::openFile);
+                    StartupFileOpener.setConsumer(shellController.getShellView()::openFileFromSystem);
                     StartupFileOpener.enqueueRawArgs(getParameters().getRaw());
 
                     // One-time, non-blocking telemetry notice (nothing is sent before it was shown).

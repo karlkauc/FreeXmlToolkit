@@ -346,6 +346,8 @@ tasks {
         // Max heap per run, e.g. `./gradlew run -Pheap=12g`; without it the JVM default
         // (a quarter of the physical memory) applies.
         (findProperty("heap") as String?)?.let { maxHeapSize = it }
+        // Dev runs log into the project's logs/ folder (log4j2.xml defaults to ~/.freeXmlToolkit/logs)
+        systemProperty("fxt.log.dir", layout.projectDirectory.dir("logs").asFile.absolutePath)
         // Dev runs report meta.channel=dev even when they carry a real version number
         // (TelemetryServiceImpl.channel), so they never count as release usage.
         systemProperty("fxt.telemetry.channel", "dev")
@@ -1252,11 +1254,14 @@ $WINDOWS_UPGRADE_UUID
 """ + project.layout.buildDirectory.dir("jpackage-resources/windows").get().asFile
             // The bundle identifier is set for the app-image too: MacAssociationStrategy
             // addresses the app by it, and it is part of the code signature.
+            // Info.plist from release/macos (document types claiming public.xml / public.json, see the file)
             platform == "macos" -> """
 --mac-package-identifier
 org.fxt.freexmltoolkit
 --mac-package-name
-FreeXmlToolkit""" + if (macSigningEnabled) """
+FreeXmlToolkit
+--resource-dir
+""" + project.layout.buildDirectory.dir("jpackage-resources/macos").get().asFile + if (macSigningEnabled) """
 --mac-sign
 --mac-signing-key-user-name
 "$macSigningIdentity"
@@ -1285,6 +1290,12 @@ https://freexmltoolkit.org
             if (platform == "windows" && packageType != "app-image") {
                 prepareWindowsInstallerResources(toolchainJavaHome, project.projectDir,
                     project.layout.buildDirectory.dir("jpackage-resources/windows").get().asFile)
+            }
+            if (platform == "macos") {
+                val macResources = project.layout.buildDirectory.dir("jpackage-resources/macos").get().asFile
+                macResources.mkdirs()
+                project.projectDir.resolve("release/macos/Info.plist")
+                    .copyTo(macResources.resolve("Info.plist"), overwrite = true)
             }
             copy {
                 from(configurations.runtimeClasspath.get())
@@ -1342,13 +1353,13 @@ https://freexmltoolkit.org
             val destDir = project.layout.buildDirectory.dir("dist/$platform-$arch-$packageType").get().asFile.absolutePath
 
             // File associations: registers the app as "Open with" candidate at install
-            // time (Windows MSI registry, macOS CFBundleDocumentTypes, Linux mime/.desktop).
-            // Windows/Linux app-images get no association artifacts from jpackage, so the
-            // flags are only useful for installers — and for the macOS app-image, whose
-            // Info.plist does receive CFBundleDocumentTypes.
+            // time (Windows MSI registry, Linux mime/.desktop). Windows/Linux app-images get no
+            // association artifacts from jpackage, so the flags are only useful for installers.
+            // macOS declares its document types in release/macos/Info.plist instead: jpackage's
+            // flags export own UTIs for .xml/.json that macOS ignores (those are public.xml/json).
             val faDir = project.projectDir.resolve("release/file-associations")
             val faExtensions = listOf("xml", "xsd", "xsl", "xslt", "sch", "schematron", "json")
-            val faArgs = if (packageType != "app-image" || platform == "macos") {
+            val faArgs = if (packageType != "app-image" && platform != "macos") {
                 faExtensions.joinToString("\n") { "--file-associations\n${faDir.resolve("fa-$it.properties").absolutePath}" }
             } else {
                 ""

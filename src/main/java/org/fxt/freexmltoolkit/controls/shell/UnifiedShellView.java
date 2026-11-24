@@ -2589,6 +2589,13 @@ public class UnifiedShellView extends BorderPane {
         }
     }
 
+    /** Opens a file the operating system handed over (reported as {@code meta.source=os}). */
+    public void openFileFromSystem(java.nio.file.Path path) {
+        if (path != null) {
+            editorHost.openFileFromSystem(path);
+        }
+    }
+
     /** {@link File} convenience overload of {@link #openFile(java.nio.file.Path)}. */
     public void openFile(java.io.File file) {
         if (file != null) {
