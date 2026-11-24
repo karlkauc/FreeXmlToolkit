@@ -104,9 +104,12 @@ class TypeLibraryPanelTest {
             ((TextField) panel.lookup("#schema-filter")).setText("asset");
             return null;
         });
-        // the filter is debounced: wait for the narrowed lists
-        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS,
-                () -> list("schema-complex-list").getItems().size() == 1);
+        // the filter is debounced: wait for all narrowed lists, read on the FX thread (refresh() sets
+        // them one after the other, so the complex list alone can be narrowed before the others)
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> list("schema-complex-list").getItems().size() == 1
+                        && list("schema-elements-list").getItems().isEmpty()
+                        && list("schema-simple-list").getItems().isEmpty()));
 
         assertEquals(0, list("schema-elements-list").getItems().size());
         assertEquals(1, list("schema-complex-list").getItems().size());

@@ -75,14 +75,16 @@ class InspectorTreeSelectionTest {
             return null;
         });
 
-        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
-                () -> "UniqueDocumentID".equals(inspector.getNodeNameText()));
-        assertEquals("UniqueDocumentID", inspector.getNodeNameText());
+        // wait for the name AND the type, read on the FX thread: the inspector fills its fields one
+        // after the other, so the name alone can show while the type field is still empty
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> "UniqueDocumentID".equals(inspector.getNodeNameText())
+                        && "xs:string".equals(inspector.getTypeText())));
+        String xpath = WaitForAsyncUtils.waitForAsyncFx(2000, inspector::getXPathText);
         // The inspector shows the XSD schema XPath (mirrors XsdNode.getXPath()).
-        assertTrue(inspector.getXPathText().startsWith("/xs:schema/"), inspector.getXPathText());
-        assertTrue(inspector.getXPathText().endsWith("xs:element[@name='UniqueDocumentID']"),
-                inspector.getXPathText());
-        assertEquals("xs:string", inspector.getTypeText());
+        assertTrue(xpath.startsWith("/xs:schema/"), xpath);
+        assertTrue(xpath.endsWith("xs:element[@name='UniqueDocumentID']"), xpath);
+        assertEquals("xs:string", WaitForAsyncUtils.waitForAsyncFx(2000, inspector::getTypeText));
     }
 
     private XsdNode find(XsdNode node, String name) {

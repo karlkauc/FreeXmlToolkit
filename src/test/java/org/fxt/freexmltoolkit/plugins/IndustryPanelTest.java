@@ -190,9 +190,12 @@ class IndustryPanelTest {
                 withLei.onGleifLookup();
                 return null;
             });
-            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
-                    () -> withLei.gleifResultForTesting().contains("Global Legal Entity Identifier Foundation"));
-            assertTrue(withLei.gleifResultForTesting().contains("Registration ISSUED, entity ACTIVE"), withLei.gleifResultForTesting());
+            // read on the FX thread: the result box's children are added there (an off-thread read
+            // iterated them while they changed, ConcurrentModificationException)
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(5000,
+                    () -> withLei.gleifResultForTesting().contains("Global Legal Entity Identifier Foundation")));
+            String gleifResult = WaitForAsyncUtils.waitForAsyncFx(5000, withLei::gleifResultForTesting);
+            assertTrue(gleifResult.contains("Registration ISSUED, entity ACTIVE"), gleifResult);
 
             // every LEI of the document: GLEIF findings join the PROBLEMS panel
             WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.openGeneratedDocument(
