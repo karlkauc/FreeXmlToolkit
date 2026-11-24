@@ -4,7 +4,7 @@
 The films are made by scripts/make-video.py into build/videos/<id>-<lang>.mp4 (+ .srt subtitles,
 + .txt upload text with the chapter list). This script
 
-- copies every single film of the series below into build/website-videos-mp4/, moving the MP4 index
+- copies every single film of the series below (only the FreeXmlToolkit tutorials) into build/website-videos-mp4/, moving the MP4 index
   to the front when it is not there yet. The films are assets of the GitHub release "media-videos"
   (the web space of freexmltoolkit.org is too small for them); the page plays them from there,
 - writes into build/website-videos/ (gitignored; the server folder /videos/, next to the page)
@@ -12,7 +12,7 @@ The films are made by scripts/make-video.py into build/videos/<id>-<lang>.mp4 (+
   (<id>-<lang>.webp, 1280 px wide),
 - writes the page sources website-src/en/videos/index.html and website-src/de/videos/index.html.
 
-The joined series films (all-videos, fundsxml-*) are not published; the page plays a series in order.
+The joined series film (all-videos) is not published; the page plays a series in order.
 A film missing in build/videos/ is left out of the page.
 
 Publish (films and side files first: the page links to them):
@@ -51,16 +51,15 @@ SRC = ROOT / "website-src"
 BASE_URL = "https://freexmltoolkit.org/"
 
 # series file, folder of its storyboards
+# Only the FreeXmlToolkit tutorials are published; the FundsXML series (videos/fundsxml/) stays off the website.
 SERIES = [
     (ROOT / "videos" / "series.json", ROOT / "videos"),
-    (ROOT / "videos" / "fundsxml" / "series-business.json", ROOT / "videos" / "fundsxml"),
-    (ROOT / "videos" / "fundsxml" / "series-developers.json", ROOT / "videos" / "fundsxml"),
 ]
 
 TEXT = {
     "en": {
         "title": "Videos – FreeXmlToolkit",
-        "description": "Short tutorial films of FreeXmlToolkit and the FundsXML series: the workspace, validation, "
+        "description": "Short tutorial films of FreeXmlToolkit: the workspace, validation, "
                        "the XML grid, the XSD diagram, the XSLT debugger, Schematron quick fixes and projects.",
         "eyebrow": "Videos",
         "h1": "Watch it in action",
@@ -78,7 +77,7 @@ TEXT = {
     },
     "de": {
         "title": "Videos – FreeXmlToolkit",
-        "description": "Kurze Lernvideos zu FreeXmlToolkit und die FundsXML-Reihe: Arbeitsbereich, Validierung, "
+        "description": "Kurze Lernvideos zu FreeXmlToolkit: Arbeitsbereich, Validierung, "
                        "XML-Raster, XSD-Diagramm, XSLT-Debugger, Schematron-Schnellkorrekturen und Projekte.",
         "eyebrow": "Videos",
         "h1": "In Aktion sehen",
@@ -328,10 +327,22 @@ def page(series, lang):
     return "\n".join(o) + "\n"
 
 
+def prune(series):
+    """Deletes local files of films that are no longer on the page (the server and the release keep theirs)."""
+    names = {f["name"] for s in series for film in s["films"] for f in film["files"].values()}
+    for folder in (OUT, RELEASE):
+        for path in folder.iterdir():
+            stem = path.name.split(".")[0].removesuffix("-chapters")
+            if stem not in names:
+                print(f"no longer published, deleted: {path.relative_to(ROOT)}")
+                path.unlink()
+
+
 def main():
     if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
         sys.exit("ffmpeg and ffprobe are needed")
     series = collect()
+    prune(series)
     for lang in ("en", "de"):
         target = SRC / lang / "videos" / "index.html"
         target.parent.mkdir(parents=True, exist_ok=True)

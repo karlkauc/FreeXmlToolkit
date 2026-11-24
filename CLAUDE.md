@@ -610,8 +610,8 @@ controls; controls outside the tab order need an entry in `KEYBOARD_ALTERNATIVES
 `freexmltoolkit.org/docs/` (`mkdocs.yml` `site_url`; `docs/.htaccess` relaxes the site's CSP for the MkDocs theme;
 the GitHub Pages copy redirects there from `docs/overrides/main.html`). Upload: `scripts/upload-website.py --dir /www
 --docs` (documentation), then without `--docs` (website); FTPS, password from `~/.netrc`.
-Videos page `/videos/`: `scripts/website-videos.py` copies the single films of the series (`videos/series.json`,
-`videos/fundsxml/series-*.json`) from `build/videos/`: MP4s into `build/website-videos-mp4/` → assets of the GitHub
+Videos page `/videos/`: `scripts/website-videos.py` copies the single films of the tutorial series (`videos/series.json`
+only; the FundsXML films are not published) from `build/videos/`: MP4s into `build/website-videos-mp4/` → assets of the GitHub
 pre-release `media-videos` (the web space is too small; never "latest"; the package workflow skips `media-*` tags),
 WebVTT subtitles + chapters and WebP posters into `build/website-videos/` → the server's `videos/` folder via
 `upload-website.py --videos`; it also writes `website-src/{en,de}/videos/index.html` (never edit those by hand). Player:
