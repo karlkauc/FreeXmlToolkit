@@ -1,5 +1,5 @@
 {
-  "_comment": "Developers series, film 6: slides and a run in FreeXmlToolkit (FundsXmlDevRegulatoryDocVideo), on the example Mixed-Fund_Regulatory.xml.",
+  "_comment": "Developers series, film 6: slides and a run in FreeXmlToolkit (FundsXmlDevRegulatoryDocVideo), on the realistic example Multi-Asset-Derivatives-Fund_2025-10.xml.",
   "id": "dev-regulatory",
   "scenario": "FundsXmlDevRegulatoryDocVideo",
   "link": "fundsxml.org",
@@ -54,7 +54,7 @@
     {
       "id": "block",
       "say": {
-        "en": "Here it is in the file, after the asset master data. Regulatory reportings, then direct reporting, and inside it the element EMT V four three: the European MiFID Template in version four point three."
+        "en": "Here it is in the file, after the asset master data. Regulatory reportings, then direct reporting, and inside it the element EMT V four two: the European MiFID Template in version four point two. This example file is written for FundsXML four point two point nine; newer schema versions add EMT four point three as an element of its own."
       }
     },
     {
@@ -63,19 +63,19 @@
         "en": "EMT"
       },
       "say": {
-        "en": "An EMT block describes one financial instrument, here the euro share class. Data set information names the template version, the producer and which parts are reported. General information identifies the share class by its ISIN, and gives its name, its currency, and whether it distributes."
+        "en": "An EMT block describes one financial instrument, here the euro retail class; the file has one for each share class. Data set information names the template version, the producer and which parts are reported. General information identifies the share class by its ISIN, and gives its name, its currency, and whether it distributes."
       }
     },
     {
       "id": "emt-target",
       "say": {
-        "en": "The target market follows the MiFID categories: which investor types the fund is meant for, their knowledge and experience, their ability to bear losses, the risk indicator, here four, and the client objectives: capital growth, with a recommended holding period of seven years."
+        "en": "The target market follows the MiFID categories: which investor types the fund is meant for, their knowledge and experience, their ability to bear losses, the risk indicator, here three, and the client objectives: capital growth, with a recommended holding period of five years."
       }
     },
     {
       "id": "emt-costs",
       "say": {
-        "en": "And the ex-ante costs: ongoing costs, management fee, transaction costs and incidental costs, given as decimal fractions of the net asset value. Zero point zero one eight means one point eight percent."
+        "en": "And the ex-ante costs: ongoing costs, management fee, transaction costs and incidental costs, given as decimal fractions of the net asset value. Zero point zero one five eight means one point five eight percent."
       }
     },
     {
@@ -84,19 +84,19 @@
         "en": "TPT"
       },
       "say": {
-        "en": "Below, in indirect reporting, the Tripartite Template in version eight. At portfolio level: the TPT version, the portfolio's identifier, its name and currency, its net asset value, the valuation date and the reporting date."
+        "en": "Below, in indirect reporting, the Tripartite Template in version seven. At portfolio level: the TPT version, the identifier of the share class, its name and currency, the fund's total net assets, the valuation date and the reporting date."
       }
     },
     {
       "id": "tpt-position",
       "say": {
-        "en": "Then the positions. Each one starts with its CIC code, the Complementary Identification Code: four characters for the country of quotation and the kind of instrument. U S three one is a listed equity quoted in the United States. Then the instrument code and name, and the valuation: quantity, market values in quotation and portfolio currency, and the weight. Credit risk data names the issuer."
+        "en": "Then the positions. Each one starts with its CIC code, the Complementary Identification Code: four characters for the country of quotation and the kind of instrument. U S three one is a listed equity quoted in the United States, here the same fictional share we met in the portfolio. Then the instrument code and name, and the valuation: quantity, market values in quotation and portfolio currency, and the weight. Credit risk data names the issuer, its country and its economic sector."
       }
     },
     {
       "id": "tpt-bond",
       "say": {
-        "en": "The second position is the German government bond. Its CIC code is D E one one: a government bond quoted in Germany. For bonds, the template adds the interest rate data: coupon type and rate, coupon frequency, the maturity date, and a credit quality step. That is the information an insurer needs for its interest rate and spread risk."
+        "en": "Further down is a government bond. Its CIC code is D E one one: a government bond quoted in Germany. For bonds, the template adds the interest rate data: rate type, coupon rate and frequency, and the redemption with its maturity date. Together with the modified duration below, that is the information an insurer needs for its interest rate and spread risk."
       }
     },
     {

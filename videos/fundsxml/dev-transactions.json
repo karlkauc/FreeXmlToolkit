@@ -1,5 +1,5 @@
 {
-  "_comment": "Developers series, film 5: slides and a run in FreeXmlToolkit (FundsXmlDevTransactionsDocVideo), on the example Mixed-Fund_Transactions.xml.",
+  "_comment": "Developers series, film 5: slides and a run in FreeXmlToolkit (FundsXmlDevTransactionsDocVideo), on the realistic example Global-Equity-Fund_2025-10.xml.",
   "id": "dev-transactions",
   "scenario": "FundsXmlDevTransactionsDocVideo",
   "link": "fundsxml.org",
@@ -66,13 +66,13 @@
         "en": "Investor flows"
       },
       "say": {
-        "en": "Here are the flows of the dollar share class. The container names its reporting period, from the first to the thirtieth of September. The first flow is a subscription: transaction type S U B, with trade date, accounting date and settlement date, three thousand five hundred units, and the total value, in the share class currency and in the fund currency. Optional fields say through which channel and from which country the money came."
+        "en": "Here are the flows of the dollar share class of a fictional global equity fund. The container names its reporting period, the month of October. The first flow is a subscription: transaction type S U B, with trade date, accounting date and settlement date, one thousand ninety-five units, and the total value in the share class currency. Optional fields can add the value in the fund currency, the sales channel and the investor's country."
       }
     },
     {
       "id": "red",
       "say": {
-        "en": "The second flow is a redemption, transaction type R E D: one thousand two hundred units, paid out to an institutional investor."
+        "en": "The third flow is a redemption, transaction type R E D: two thousand one hundred eighty-nine units, paid out of the fund."
       }
     },
     {
@@ -98,13 +98,13 @@
         "en": "Distributions and income"
       },
       "say": {
-        "en": "The euro share class paid a distribution. Its status is official. Then come its dates: announcement, record date, ex-date and payment date. And the amounts, gross and net, both in total and per share: one euro fifty per share."
+        "en": "The institutional euro class distributes its income. Its distribution is official. Then come its dates: announcement, record date, ex-date and payment date, and the payment currency. And the amounts per share: eighteen euro forty gross, and thirteen euro thirty-four net, after tax."
       }
     },
     {
       "id": "earnings",
       "say": {
-        "en": "Income from the portfolio is recorded in Earnings, again with a period. This one is a dividend from Apple. The asset unique ID links it to the security, just like a position. The entry value is in the fund currency, and the dividend block holds the details in dollars: the amount per share, gross, withholding tax and net."
+        "en": "Income from the portfolio is recorded in Earnings, again with a period. This one is a dividend from Valemont Materials, a fictional American company. The asset unique ID links it to the security, just like a position. The entry value is given in dollars and in the fund currency, with the exchange rate. And the dividend block holds the details in dollars: the amount per share, gross, net, and fifteen percent withholding tax."
       }
     },
     {
@@ -113,7 +113,7 @@
         "en": "Portfolio trades"
       },
       "say": {
-        "en": "Finally, the fund's own trades, in Transactions. A buy of ten thousand Apple shares at two hundred dollars, with trade date and value date, the market value in dollars and in euro, the exchange rate, and the trading venue. Below it, a sale of ASML shares. Every trade points to its asset through the asset unique ID."
+        "en": "Finally, the fund's own trades, in Transactions, for the same period. Here is a buy: two thousand three hundred eleven shares of a fictional American company, with trade date, value date and number of units. Then the price, the market value in dollars and in euro, the settlement amount, the exchange rate and the expenses. And the broker as counterparty, with its LEI, and the trading venue, the New York Stock Exchange. Further up, a sale of a French share, settled in euro. Every trade points to its asset through the asset unique ID."
       }
     },
     {

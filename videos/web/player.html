@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FundsXML Training Videos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #f6f8fb; font-family: Inter, system-ui, sans-serif; color: #1f2937; }
+  .page { max-width: 1180px; margin: 0 auto; padding: 32px 16px 48px; }
+  .page h1 { font-size: 2rem; margin: 0 0 8px; }
+  .page > p { margin: 0 0 24px; color: #4b5563; max-width: 760px; line-height: 1.55; }
+</style>
+</head>
+<body>
+<div class="page">
+<h1>FundsXML Training Videos</h1>
+<p>Two short series about FundsXML, the open standard for fund data exchange: one for business readers, one for developers and data teams. All examples use fictional funds and synthetic identifiers.</p>
+<!-- widget -->
+<div class="fx-vid" id="fx-vid">
+<style>
+.fx-vid { --fxv-blue: #4A90E2; --fxv-blue-dark: #357ABD; --fxv-ink: #1f2937; --fxv-muted: #6b7280; --fxv-line: #e5e7eb;
+  --fxv-card: #ffffff; --fxv-soft: #f1f5fb; font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--fxv-ink); line-height: 1.5; }
+.fx-vid *, .fx-vid *::before, .fx-vid *::after { box-sizing: border-box; }
+.fx-vid .fxv-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 20px; }
+.fx-vid .fxv-tab { font: inherit; font-weight: 600; font-size: 15px; padding: 10px 18px; border-radius: 999px;
+  border: 1px solid var(--fxv-line); background: var(--fxv-card); color: var(--fxv-ink); cursor: pointer; }
+.fx-vid .fxv-tab[aria-selected="true"] { background: var(--fxv-blue); border-color: var(--fxv-blue); color: #fff; }
+.fx-vid .fxv-tab:focus-visible, .fx-vid .fxv-card:focus-visible, .fx-vid .fxv-chap:focus-visible { outline: 3px solid #9cc3f0; outline-offset: 2px; }
+.fx-vid .fxv-stage { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.fx-vid .fxv-player { background: #0b1220; border-radius: 16px; overflow: hidden; aspect-ratio: 16 / 9; }
+.fx-vid video { width: 100%; height: 100%; display: block; background: #0b1220; }
+.fx-vid .fxv-info { background: var(--fxv-card); border: 1px solid var(--fxv-line); border-radius: 16px; padding: 18px 20px; }
+.fx-vid .fxv-kicker { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--fxv-blue-dark); margin: 0 0 4px; }
+.fx-vid .fxv-title { font-size: 20px; font-weight: 700; margin: 0 0 8px; line-height: 1.3; }
+.fx-vid .fxv-desc { font-size: 14px; color: var(--fxv-muted); margin: 0 0 14px; }
+.fx-vid .fxv-chaps { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--fxv-line); max-height: 300px; overflow: auto; }
+.fx-vid .fxv-chap { width: 100%; display: flex; gap: 12px; padding: 8px 4px; border: 0; border-bottom: 1px solid var(--fxv-line);
+  background: none; font: inherit; font-size: 14px; color: var(--fxv-ink); text-align: left; cursor: pointer; }
+.fx-vid .fxv-chap:hover { background: var(--fxv-soft); }
+.fx-vid .fxv-chap.is-now { color: var(--fxv-blue-dark); font-weight: 600; }
+.fx-vid .fxv-chap time { color: var(--fxv-muted); font-variant-numeric: tabular-nums; min-width: 42px; }
+.fx-vid .fxv-list-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 28px 0 12px; }
+.fx-vid .fxv-list-head h3 { margin: 0; font-size: 18px; }
+.fx-vid .fxv-full { font-size: 14px; color: var(--fxv-blue-dark); font-weight: 600; text-decoration: none; }
+.fx-vid .fxv-full:hover { text-decoration: underline; }
+.fx-vid .fxv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.fx-vid .fxv-card { display: flex; flex-direction: column; text-align: left; padding: 0; border: 1px solid var(--fxv-line);
+  border-radius: 14px; overflow: hidden; background: var(--fxv-card); font: inherit; color: inherit; cursor: pointer;
+  transition: border-color .15s, box-shadow .15s; }
+.fx-vid .fxv-card:hover { border-color: var(--fxv-blue); box-shadow: 0 4px 16px rgba(74, 144, 226, .15); }
+.fx-vid .fxv-card[aria-current="true"] { border-color: var(--fxv-blue); box-shadow: 0 0 0 2px var(--fxv-blue); }
+.fx-vid .fxv-card img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #0b1220; }
+.fx-vid .fxv-card-body { padding: 10px 12px 12px; }
+.fx-vid .fxv-meta { font-size: 12px; color: var(--fxv-muted); display: flex; justify-content: space-between; }
+.fx-vid .fxv-card-title { font-size: 15px; font-weight: 600; margin-top: 2px; line-height: 1.35; }
+.fx-vid .fxv-note { font-size: 12px; color: var(--fxv-muted); margin: 24px 0 0; }
+@media (max-width: 820px) { .fx-vid .fxv-stage { grid-template-columns: minmax(0, 1fr); } .fx-vid .fxv-chaps { max-height: none; } }
+@media (max-width: 560px) { .fx-vid .fxv-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .fx-vid .fxv-card-title { font-size: 13px; } .fx-vid .fxv-card-body { padding: 8px 10px 10px; } }
+</style>
+<div class="fxv-tabs" role="tablist" aria-label="Series"></div>
+<div class="fxv-stage">
+  <div class="fxv-player"><video controls preload="metadata" playsinline crossorigin="anonymous"></video></div>
+  <div class="fxv-info" aria-live="polite">
+    <p class="fxv-kicker"></p>
+    <h2 class="fxv-title"></h2>
+    <p class="fxv-desc"></p>
+    <ul class="fxv-chaps" aria-label="Chapters"></ul>
+  </div>
+</div>
+<div class="fxv-list-head"><h3></h3><a class="fxv-full" href="#" target="_blank" rel="noopener"></a></div>
+<div class="fxv-grid"></div>
+<p class="fxv-note"></p>
+<script>
+(function () {
+  var DATA = /*VIDEOS*/null;
+  var BASE = /*BASE*/'';
+  var root = document.getElementById('fx-vid');
+  if (!root || !DATA) return;
+  var $ = function (s) { return root.querySelector(s); };
+  var video = $('video'), tabs = $('.fxv-tabs'), grid = $('.fxv-grid'), chaps = $('.fxv-chaps');
+  var current = null, currentSeries = null;
+  function url(p) { return BASE + p; }
+  function clock(t) { t = Math.round(t); var m = Math.floor(t / 60), s = t % 60; return m + ':' + (s < 10 ? '0' : '') + s; }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function find(id) {
+    for (var i = 0; i < DATA.series.length; i++) for (var j = 0; j < DATA.series[i].films.length; j++)
+      if (DATA.series[i].films[j].id === id) return { series: DATA.series[i], film: DATA.series[i].films[j] };
+    return null;
+  }
+  function showSeries(series) {
+    currentSeries = series;
+    Array.prototype.forEach.call(tabs.children, function (b) { b.setAttribute('aria-selected', String(b.dataset.id === series.id)); });
+    $('.fxv-list-head h3').textContent = series.title + ' · ' + series.films.length + ' films';
+    var full = $('.fxv-full');
+    if (series.full) { full.hidden = false; full.href = series.full.url; full.textContent = 'Download the whole series (' + clock(series.full.duration) + ')'; }
+    else full.hidden = true;
+    grid.textContent = '';
+    series.films.forEach(function (f, i) {
+      var b = el('button', 'fxv-card'); b.type = 'button'; b.dataset.id = f.id;
+      var img = el('img'); img.src = url(f.poster); img.alt = ''; img.loading = 'lazy'; b.appendChild(img);
+      var body = el('span', 'fxv-card-body');
+      var meta = el('span', 'fxv-meta'); meta.appendChild(el('span', null, 'Film ' + (i + 1))); meta.appendChild(el('span', null, clock(f.duration)));
+      body.appendChild(meta); body.appendChild(el('span', 'fxv-card-title', f.title)); b.appendChild(body);
+      b.addEventListener('click', function () { play(f.id, true); });
+      grid.appendChild(b);
+    });
+    markCard();
+  }
+  function markCard() { Array.prototype.forEach.call(grid.children, function (c) { c.setAttribute('aria-current', String(!!current && c.dataset.id === current.id)); }); }
+  function play(id, autoplay) {
+    var hit = find(id); if (!hit) return;
+    if (hit.series !== currentSeries) showSeries(hit.series);
+    current = hit.film;
+    video.textContent = '';
+    video.poster = url(current.poster);
+    video.src = url(current.mp4);
+    var sub = el('track'); sub.kind = 'subtitles'; sub.label = 'English'; sub.srclang = DATA.lang; sub.src = url(current.subtitles); video.appendChild(sub);
+    var ch = el('track'); ch.kind = 'chapters'; ch.label = 'Chapters'; ch.srclang = DATA.lang; ch.src = url(current.chapters_vtt); video.appendChild(ch);
+    var pos = hit.series.films.indexOf(current) + 1;
+    $('.fxv-kicker').textContent = hit.series.title + ' · film ' + pos + ' of ' + hit.series.films.length;
+    $('.fxv-title').textContent = current.title;
+    $('.fxv-desc').textContent = current.description;
+    chaps.textContent = '';
+    current.chapters.forEach(function (c) {
+      var li = el('li'), b = el('button', 'fxv-chap'); b.type = 'button'; b.dataset.t = c.t;
+      var t = el('time', null, clock(c.t)); b.appendChild(t); b.appendChild(el('span', null, c.title));
+      b.addEventListener('click', function () { video.currentTime = c.t; video.play(); });
+      li.appendChild(b); chaps.appendChild(li);
+    });
+    markCard();
+    if (history.replaceState) history.replaceState(null, '', '#' + current.id);
+    if (autoplay) { video.play().catch(function () {}); root.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  }
+  video.addEventListener('timeupdate', function () {
+    var t = video.currentTime, btns = chaps.querySelectorAll('.fxv-chap'), now = -1;
+    for (var i = 0; i < btns.length; i++) if (+btns[i].dataset.t <= t + 0.2) now = i;
+    for (var k = 0; k < btns.length; k++) btns[k].classList.toggle('is-now', k === now);
+  });
+  video.addEventListener('ended', function () {
+    var films = currentSeries.films, i = films.indexOf(current);
+    if (i >= 0 && i + 1 < films.length) play(films[i + 1].id, true);
+  });
+  DATA.series.forEach(function (s, i) {
+    var b = el('button', 'fxv-tab', s.title); b.type = 'button'; b.setAttribute('role', 'tab'); b.dataset.id = s.id;
+    b.addEventListener('click', function () { showSeries(s); play(s.films[0].id, false); });
+    tabs.appendChild(b);
+  });
+  $('.fxv-note').textContent = DATA.disclaimer.replace(/^Disclaimer:\s*/, 'Note: ');
+  var start = location.hash.slice(1);
+  play(find(start) ? start : DATA.series[0].films[0].id, false);
+})();
+</script>
+</div>
+<!-- /widget -->
+</div>
+</body>
+</html>

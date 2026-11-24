@@ -23,13 +23,13 @@
         "en": "The main blocks"
       },
       "say": {
-        "en": "Here is a real FundsXML delivery: the month-end portfolio of a mixed fund. Every document starts with the root element FundsXML4. It has no namespace, and it names its schema, FundsXML4.xsd."
+        "en": "Here is a realistic FundsXML delivery: the month-end data of a fictional multi-asset fund, from the public example files. Every document starts with the root element FundsXML4. It has no namespace, and it names its schema, FundsXML4.xsd."
       }
     },
     {
       "id": "fold",
       "say": {
-        "en": "Fold the document to its main parts, and its structure becomes clear. This file has three blocks. ControlData describes the delivery itself. Funds holds the funds, with their static data, prices and portfolios. And AssetMasterData describes every security that the portfolios hold."
+        "en": "Fold the document to its main parts, and its structure becomes clear. This file has four blocks. ControlData describes the delivery itself. Funds holds the funds, with their static data, prices and portfolios. AssetMasterData describes every security that the portfolios hold. And RegulatoryReportings carries templates for partners, here an EMT and a Tripartite Template."
       }
     },
     {
@@ -95,7 +95,7 @@
         "en": "ControlData"
       },
       "say": {
-        "en": "Now the envelope, ControlData. The unique document ID identifies this delivery; it must be unique for each data supplier. Document generated is the time stamp when the file was written. Version names the FundsXML version it was written for. And content date is the business date of the data, here the first of October. Do not confuse the two dates: the content date is what the data refers to, not when it was produced."
+        "en": "Now the envelope, ControlData. The unique document ID identifies this delivery; it must be unique for each data supplier. Document generated is the time stamp when the file was written. Version names the FundsXML version it was written for. And content date is the business date of the data, here the thirty-first of October. Do not confuse the two dates: the content date is what the data refers to, not when it was produced."
       }
     },
     {
@@ -144,7 +144,7 @@
     {
       "id": "amend",
       "say": {
-        "en": "Let us turn this delivery into a correction. The document gets a new ID, file two. The operation becomes amend. And related document IDs name the delivery it corrects, file one. Press F8 to validate: the file is still valid, and the receiver now knows exactly which earlier delivery this one replaces."
+        "en": "Let us turn this delivery into a correction. The document gets a new ID: the old one with a suffix for the first correction. The operation becomes amend. And related document IDs name the delivery it corrects, by its original ID. Press F8 to validate: the file is still valid, and the receiver now knows exactly which earlier delivery this one replaces."
       }
     },
     {

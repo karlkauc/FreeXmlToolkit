@@ -28,7 +28,8 @@ import org.testfx.framework.junit5.Start;
 @ExtendWith(ApplicationExtension.class)
 class FundsXmlBizContentDocVideo {
 
-    private static final String NAV = "<Amount ccy=\"EUR\">112500000</Amount>";
+    private static final String NAV = "<Amount ccy=\"EUR\">278791093.07</Amount>";
+    static final String FILE = "Multi-Asset-Derivatives-Fund_2025-10.xml";
 
     private final DocShell doc = new DocShell("video");
 
@@ -46,7 +47,7 @@ class FundsXmlBizContentDocVideo {
     void record() throws Exception {
         UnifiedShellView shell = doc.boot();
         Path folder = FundsXmlVideoFiles.folder("biz-content");
-        doc.open(folder.resolve("Mixed-Fund_Positions.xml"), "<AssetMasterData>");
+        doc.open(folder.resolve(FILE), "<AssetMasterData>");
         // the extension registers its queries at the application's start, which the test shell skips; the
         // film shows the analysis queries only (the "DQ:" checks would push them off the screen)
         var repository = org.fxt.freexmltoolkit.service.XPathSnippetRepository.getInstance();
@@ -65,26 +66,29 @@ class FundsXmlBizContentDocVideo {
             // ----- a real file
             video.scene("demo-open", () -> {
                 video.spoken(0.25);
-                video.zoom(kit.lines(1, 16));
+                video.zoom(kit.lines(1, kit.line("</ControlData>")));
                 video.spoken(0.7);
-                video.zoom(kit.lines(17, 30));
+                video.zoom(kit.lines(kit.line("<Funds>"), kit.line("<FundStaticData>")));
             });
 
             video.scene("demo-parts", () -> {
                 video.zoomOut();
                 // from the bottom up: a fold changes nothing above it
-                kit.fold(kit.lineOf(kit.offset("<AssetMasterData>")));
-                kit.fold(kit.lineOf(kit.offset("<Funds>")));
-                kit.fold(4);
+                kit.fold(kit.line("<RegulatoryReportings>"));
+                kit.fold(kit.line("<AssetMasterData>"));
+                kit.fold(kit.line("<Funds>"));
+                kit.fold(kit.line("<ControlData>"));
                 video.moveTo(1300, 760); // away from the text: no hover tooltip
                 video.pause(400);
                 video.zoom(kit.lines(1, kit.lineOf(kit.offset("</FundsXML4>"))));
                 video.spoken(0.3);
-                video.zoom(kit.lines(4, 4));
-                video.spoken(0.5);
-                video.zoom(kit.lines(kit.lineOf(kit.offset("<Funds>")), kit.lineOf(kit.offset("<Funds>"))));
-                video.spoken(0.72);
-                video.zoom(kit.lines(kit.lineOf(kit.offset("<AssetMasterData>")), kit.lineOf(kit.offset("<AssetMasterData>"))));
+                video.zoom(kit.lines(kit.line("<ControlData>"), kit.line("<ControlData>")));
+                video.spoken(0.45);
+                video.zoom(kit.lines(kit.line("<Funds>"), kit.line("<Funds>")));
+                video.spoken(0.65);
+                video.zoom(kit.lines(kit.line("<AssetMasterData>"), kit.line("<AssetMasterData>")));
+                video.spoken(0.82);
+                video.zoom(kit.lines(kit.line("<RegulatoryReportings>"), kit.line("<RegulatoryReportings>")));
             });
 
             video.scene("demo-read", () -> {

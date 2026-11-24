@@ -31,8 +31,9 @@ import org.testfx.framework.junit5.Start;
 @ExtendWith(ApplicationExtension.class)
 class FundsXmlDevValidateDocVideo {
 
-    private static final String XSD_ERROR = "Mixed-Fund_Positions_xsd-error.xml";
-    private static final String WEIGHTS = "Mixed-Fund_Positions_weights.xml";
+    private static final String XSD_ERROR = "Global-Equity-Fund_2025-10_xsd-error.xml";
+    private static final String WORDS = "2.5 million";
+    private static final String WEIGHTS = "Global-Equity-Fund_2025-10_weights.xml";
 
     private final DocShell doc = new DocShell("video");
 
@@ -52,7 +53,7 @@ class FundsXmlDevValidateDocVideo {
         EditorHost host = doc.host();
         // before the film starts: the first delivery is open
         Path folder = FundsXmlVideoFiles.folder("dev-validate");
-        doc.open(folder.resolve(XSD_ERROR), "NINE-MILLION");
+        doc.open(folder.resolve(XSD_ERROR), WORDS);
         doc.settle(1500);
 
         DocVideoRecorder video = new DocVideoRecorder(doc);
@@ -78,17 +79,17 @@ class FundsXmlDevValidateDocVideo {
             video.scene("jump", () -> {
                 video.zoomOut();
                 video.spoken(0.1);
-                video.click(problemRow("NINE-MILLION"));
+                video.click(problemRow(WORDS));
                 video.pause(600);
-                video.zoom(lineAround(host, "<Amount ccy=\"EUR\">NINE-MILLION</Amount>"));
+                video.zoom(lineAround(host, "<Amount ccy=\"EUR\">" + WORDS + "</Amount>"));
             });
 
             video.scene("repair", () -> {
-                String snippet = "NINE-MILLION";
+                String snippet = WORDS;
                 int at = host.getActiveText().orElseThrow().indexOf(snippet);
                 Bounds value = charBounds(at, at + snippet.length());
                 video.click(value.getMaxX(), value.getCenterY());
-                video.retype(at, snippet.length(), "9375000");
+                video.retype(at, snippet.length(), "2517995.74");
                 video.spoken(0.6);
                 video.zoomOut();
                 video.key(KeyCode.F8, "F8");
@@ -100,7 +101,7 @@ class FundsXmlDevValidateDocVideo {
             });
 
             video.scene("second", () -> {
-                doc.open(folder.resolve(WEIGHTS), "<TotalPercentage>28.33</TotalPercentage>");
+                doc.open(folder.resolve(WEIGHTS), "<TotalPercentage>20.4182</TotalPercentage>");
                 // F8 goes to the focused editor: a click into the text first
                 Bounds root = textBounds(host, "<FundsXML4 ");
                 video.click(root.getMaxX() + 40, root.getCenterY());
@@ -117,15 +118,15 @@ class FundsXmlDevValidateDocVideo {
             video.scene("fix", () -> {
                 video.zoomOut();
                 video.spoken(0.08);
-                video.click(problemRow("28.33"));
+                video.click(problemRow("20.4182"));
                 video.pause(600);
-                video.zoom(lineAround(host, "<TotalPercentage>28.33</TotalPercentage>"));
+                video.zoom(lineAround(host, "<TotalPercentage>20.4182</TotalPercentage>"));
                 video.spoken(0.6);
-                String snippet = "28.33";
-                int at = host.getActiveText().orElseThrow().indexOf("<TotalPercentage>28.33<") + "<TotalPercentage>".length();
+                String snippet = "20.4182";
+                int at = host.getActiveText().orElseThrow().indexOf("<TotalPercentage>20.4182<") + "<TotalPercentage>".length();
                 Bounds value = charBounds(at, at + snippet.length());
                 video.click(value.getMaxX(), value.getCenterY());
-                video.retype(at, snippet.length(), "8.33");
+                video.retype(at, snippet.length(), "0.4182");
                 video.spoken(0.8);
                 video.zoomOut();
                 video.key(KeyCode.F8, "F8");

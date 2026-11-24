@@ -24,8 +24,12 @@ import org.testfx.framework.junit5.Start;
 @ExtendWith(ApplicationExtension.class)
 class FundsXmlDevFundsDocVideo {
 
-    private static final String ISIN = "AT0000A2QM74";
-    private static final String LEI = "529900T8BM49AURSDO55";
+    private static final String ISIN = "ATXMPLF03016";
+    /** The ISIN typed into the checker: the class on the screen before it. */
+    private static final String CHECKED = "ATXMPLF03024";
+    private static final String LEI = "XMPL00FNDMULTI000170";
+    private static final String NAV = "<Amount ccy=\"EUR\">278791093.07</Amount>";
+    private static final String USD_TNA = "<Amount ccy=\"USD\" isShareClassCcy=\"true\">61201893.49</Amount>";
 
     private final DocShell doc = new DocShell("video");
 
@@ -43,7 +47,7 @@ class FundsXmlDevFundsDocVideo {
     void record() throws Exception {
         doc.boot();
         Path folder = FundsXmlVideoFiles.folder("dev-funds");
-        doc.open(folder.resolve("Mixed-Fund_Positions.xml"), "<AssetMasterData>");
+        doc.open(folder.resolve(FundsXmlBizContentDocVideo.FILE), "<AssetMasterData>");
         doc.settle(1500);
 
         DocVideoRecorder video = new DocVideoRecorder(doc);
@@ -51,12 +55,13 @@ class FundsXmlDevFundsDocVideo {
         video.start();
         try {
             video.scene("fund", () -> {
-                kit.scrollTo(12);
-                video.zoom(kit.lines(17, 26));
+                int fund = kit.line("<Fund>");
+                kit.scrollTo(fund - 4);
+                video.zoom(kit.lines(fund, kit.line("<SingleFundFlag>")));
                 video.spoken(0.3);
-                video.zoom(kit.textBounds("<LEI>529900T8BM49AURSDO55</LEI>"));
+                video.zoom(kit.textBounds("<LEI>" + LEI + "</LEI>"));
                 video.spoken(0.7);
-                video.zoom(kit.lines(22, 25));
+                video.zoom(kit.lines(kit.line("<Names>", fund), kit.line("<Currency>", fund)));
             });
 
             video.scene("flag", () -> {
@@ -65,53 +70,69 @@ class FundsXmlDevFundsDocVideo {
             });
 
             video.scene("static", () -> {
-                video.zoom(kit.lines(27, 36));
-                video.spoken(0.5);
-                video.zoom(kit.lines(30, 34));
+                int stat = kit.line("<FundStaticData>");
+                video.zoom(kit.lines(stat, stat + 9));
+                video.spoken(0.45);
+                video.zoomOut();
+                int costs = kit.line("<OngoingCosts>");
+                kit.scrollTo(costs - 4);
+                video.zoom(kit.lines(costs, costs + 6));
             });
 
             video.scene("nav", () -> {
-                kit.scrollTo(20);
-                video.zoom(kit.lines(37, 46));
+                video.zoomOut();
+                int dyn = kit.line("<FundDynamicData>");
+                kit.scrollTo(dyn - 4);
+                video.zoom(kit.lines(dyn, dyn + 10));
                 video.spoken(0.35);
-                video.zoom(kit.textBounds("<Amount ccy=\"EUR\">112500000</Amount>"));
+                video.zoom(kit.textBounds(NAV));
                 video.spoken(0.75);
-                video.zoom(kit.textBounds("ccy=\"EUR\">112500000"));
+                video.zoom(kit.textBounds("ccy=\"EUR\">278791093.07"));
             });
 
             video.scene("shareclass", () -> {
                 video.zoomOut();
-                int first = kit.lineOf(kit.offset("<SingleFund>"));
-                kit.scrollTo(first);
-                video.zoom(kit.lines(first, first + 16));
-                video.spoken(0.25);
-                video.zoom(kit.lines(first + 3, first + 9));
-                video.spoken(0.5);
-                video.zoom(kit.lines(first + 10, first + 18));
+                int first = kit.line("<ISIN>" + ISIN + "</ISIN>");
+                kit.scrollTo(first - 4);
+                video.zoom(kit.lines(first - 2, first + 11));
+                video.spoken(0.22);
+                video.zoom(kit.lines(first - 2, first + 4));
+                video.spoken(0.38);
+                video.zoom(kit.lines(first + 5, first + 10));
+                video.spoken(0.52);
+                video.zoomOut();
+                int price = kit.line("<NavDate>2025-10-31</NavDate>", first);
+                kit.scrollTo(price - 8);
+                video.zoom(kit.lines(price - 2, price + 5));
                 video.spoken(0.8);
-                video.zoom(kit.lines(first + 19, first + 28));
+                video.zoom(kit.textBounds("<NavPrice>128.41</NavPrice>", price));
             });
 
             video.scene("currencies", () -> {
-                int line = kit.lineOf(kit.offset("<Amount ccy=\"EUR\">78937500</Amount>"));
-                video.zoom(kit.lines(line - 1, line + 2));
-                video.spoken(0.5);
-                video.zoom(kit.textBounds("<Amount ccy=\"USD\">85722000</Amount>"));
+                video.zoomOut();
+                int line = kit.line(USD_TNA);
+                kit.scrollTo(line - 10);
+                video.zoom(kit.lines(line - 1, line + 3));
+                video.spoken(0.3);
+                video.zoom(kit.textBounds(USD_TNA));
+                video.spoken(0.55);
+                video.zoom(kit.textBounds("<Amount ccy=\"EUR\" isFundCcy=\"true\">52970307.68</Amount>"));
+                video.spoken(0.72);
+                video.zoom(kit.lines(line - 1, line + 3));
             });
 
             video.scene("second", () -> {
                 video.zoomOut();
-                int second = kit.lineOf(kit.offset("<ISIN>AT0000A2QM66</ISIN>"));
-                kit.scrollTo(second - 3);
-                video.zoom(kit.lines(second - 2, second + 24));
-                video.spoken(0.25);
-                video.zoom(kit.lines(second - 2, second + 4));
-                video.spoken(0.4);
-                video.zoom(kit.textBounds("<NavPrice>134.25</NavPrice>"));
-                video.spoken(0.6);
-                int first = kit.lineOf(kit.offset("<ISIN>AT0000A2QM74</ISIN>"));
-                kit.scrollTo(first - 3);
-                video.zoom(kit.lines(first - 2, second + 6)); // both classes: what fits on the screen
+                int second = kit.line("<ISIN>" + CHECKED + "</ISIN>");
+                kit.scrollTo(second - 4);
+                video.zoom(kit.lines(second - 2, second + 10));
+                video.spoken(0.3);
+                video.zoomOut();
+                int price = kit.line("<NavDate>2025-10-31</NavDate>", second);
+                kit.scrollTo(price - 8);
+                video.zoom(kit.textBounds("<NavPrice>1186.05</NavPrice>", price));
+                video.spoken(0.55);
+                video.zoomOut();
                 video.spoken(0.97);
             });
 
@@ -125,13 +146,13 @@ class FundsXmlDevFundsDocVideo {
                 video.zoom(checkerRegion(video, field));
                 video.click(field);
                 video.spoken(0.35);
-                video.typeIntoFocused(ISIN);
+                video.typeIntoFocused(CHECKED);
                 video.pause(600);
             });
 
             video.scene("typo", () -> {
                 video.spoken(0.1);
-                video.typeIntoFocused(ISIN.substring(0, ISIN.length() - 1) + "5");
+                video.typeIntoFocused(CHECKED.substring(0, CHECKED.length() - 1) + "5");
                 video.pause(600);
                 video.spoken(0.9);
             });

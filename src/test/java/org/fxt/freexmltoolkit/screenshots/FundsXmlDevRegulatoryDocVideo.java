@@ -13,7 +13,7 @@ import org.testfx.framework.junit5.Start;
 /**
  * The screen part of "Regulatory templates in XML", film 6 of "FundsXML for developers" (storyboard
  * {@code videos/fundsxml/dev-regulatory.json}): the RegulatoryReportings block of
- * Mixed-Fund_Regulatory.xml with an EMT V4.3 entry and a TPT V8 portfolio.
+ * the realistic multi-asset example with an EMT V4.2 per share class and a TPT V7 portfolio.
  *
  * <pre>{@code
  * python3 scripts/make-video.py dev-regulatory --set fundsxml --lang en
@@ -21,6 +21,9 @@ import org.testfx.framework.junit5.Start;
  */
 @ExtendWith(ApplicationExtension.class)
 class FundsXmlDevRegulatoryDocVideo {
+
+    private static final String EQUITY_CIC = "<InstrumentCIC>US31</InstrumentCIC>";
+    private static final String BOND_CIC = "<InstrumentCIC>DE11</InstrumentCIC>";
 
     private final DocShell doc = new DocShell("video");
 
@@ -38,7 +41,7 @@ class FundsXmlDevRegulatoryDocVideo {
     void record() throws Exception {
         doc.boot();
         Path folder = FundsXmlVideoFiles.folder("dev-regulatory");
-        doc.open(folder.resolve("Mixed-Fund_Regulatory.xml"), "<RegulatoryReportings>");
+        doc.open(folder.resolve(FundsXmlBizContentDocVideo.FILE), "<RegulatoryReportings>");
         doc.settle(1500);
 
         DocVideoRecorder video = new DocVideoRecorder(doc);
@@ -80,12 +83,12 @@ class FundsXmlDevRegulatoryDocVideo {
                 int at = show(kit, "<CostsAndChargesExAnte>");
                 video.zoom(kit.lines(at, at + 8));
                 video.spoken(0.7);
-                video.zoom(kit.textBounds("<OngoingCosts>0.0180</OngoingCosts>"));
+                video.zoom(kit.textBounds("<OngoingCosts>0.0158</OngoingCosts>"));
             });
 
             video.scene("tpt", () -> {
                 video.zoomOut();
-                int at = show(kit, "<TripartiteTemplateSolvencyII_V8>");
+                int at = show(kit, "<TripartiteTemplateSolvencyII_V7>");
                 video.zoom(kit.lines(at, at + 18));
                 video.spoken(0.3);
                 video.zoom(kit.lines(at + 2, at + 12));
@@ -93,28 +96,28 @@ class FundsXmlDevRegulatoryDocVideo {
 
             video.scene("tpt-position", () -> {
                 video.zoomOut();
-                int at = show(kit, "<CICCodeOfTheInstrument>US31</CICCodeOfTheInstrument>");
-                video.zoom(kit.lines(at - 1, at + 26));
+                int at = show(kit, EQUITY_CIC);
+                video.zoom(kit.lines(at - 1, kit.line("</CreditRiskData>", at)));
                 video.spoken(0.1);
-                video.zoom(kit.textBounds("<CICCodeOfTheInstrument>US31</CICCodeOfTheInstrument>"));
+                video.zoom(kit.textBounds(EQUITY_CIC));
                 video.spoken(0.45);
-                video.zoom(kit.lines(at + 2, at + 6));
+                video.zoom(kit.lines(kit.line("<InstrumentCode>", at), kit.line("<InstrumentName>", at)));
                 video.spoken(0.6);
-                video.zoom(kit.lines(at + 6, at + 18));
+                video.zoom(kit.lines(kit.line("<Valuation>", at), kit.line("</Valuation>", at)));
                 video.spoken(0.85);
-                video.zoom(kit.lines(at + 18, at + 24));
+                video.zoom(kit.lines(kit.line("<CreditRiskData>", at), kit.line("</CreditRiskData>", at)));
                 video.spoken(0.97);
                 video.zoomOut();
             });
 
             video.scene("tpt-bond", () -> {
-                int at = show(kit, "<CICCodeOfTheInstrument>DE11</CICCodeOfTheInstrument>");
-                video.zoom(kit.lines(at - 1, at + 28));
+                int at = show(kit, BOND_CIC);
+                video.zoom(kit.lines(at - 1, kit.line("</InterestRateInstrumentCharacteristics>", at)));
                 video.spoken(0.12);
-                video.zoom(kit.textBounds("<CICCodeOfTheInstrument>DE11</CICCodeOfTheInstrument>"));
+                video.zoom(kit.textBounds(BOND_CIC));
                 video.spoken(0.35);
-                int rate = kit.lineOf(kit.offset("<InterestRateInstrumentCharacteristics>"));
-                video.zoom(kit.lines(rate, rate + 9));
+                int rate = kit.line("<InterestRateInstrumentCharacteristics>", at);
+                video.zoom(kit.lines(rate, kit.line("</InterestRateInstrumentCharacteristics>", at)));
                 video.spoken(0.97);
                 video.zoomOut();
             });
@@ -125,7 +128,7 @@ class FundsXmlDevRegulatoryDocVideo {
 
     /** Scrolls so that {@code snippet}'s line is near the top and returns that line. */
     private static int show(FundsXmlVideoKit kit, String snippet) {
-        int line = kit.lineOf(kit.offset(snippet));
+        int line = kit.line(snippet);
         kit.scrollTo(Math.max(1, line - 2));
         return line;
     }

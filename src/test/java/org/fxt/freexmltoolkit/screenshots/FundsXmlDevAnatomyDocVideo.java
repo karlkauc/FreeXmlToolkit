@@ -29,7 +29,8 @@ import org.testfx.framework.junit5.Start;
 @ExtendWith(ApplicationExtension.class)
 class FundsXmlDevAnatomyDocVideo {
 
-    private static final String EXAMPLE = "Mixed-Fund_Positions.xml";
+    private static final String EXAMPLE = FundsXmlBizContentDocVideo.FILE;
+    private static final String DOCUMENT_ID = "EXAMPLE-MULTI-ASSET-DERIVATIVES-FUND-2025-10";
 
     private final DocShell doc = new DocShell("video");
 
@@ -68,18 +69,21 @@ class FundsXmlDevAnatomyDocVideo {
             video.scene("fold", () -> {
                 video.zoomOut();
                 // from the bottom up: a fold changes nothing above it
-                kit.fold(kit.lineOf(kit.offset("<AssetMasterData>")));
-                kit.fold(kit.lineOf(kit.offset("<Funds>")));
-                kit.fold(4);
+                kit.fold(kit.line("<RegulatoryReportings>"));
+                kit.fold(kit.line("<AssetMasterData>"));
+                kit.fold(kit.line("<Funds>"));
+                kit.fold(kit.line("<ControlData>"));
                 video.moveTo(1300, 760); // away from the text: no hover tooltip
                 video.pause(400);
                 video.zoom(kit.lines(1, kit.lineOf(kit.offset("</FundsXML4>"))));
                 video.spoken(0.3);
-                video.zoom(kit.lines(4, 4));
-                video.spoken(0.5);
-                video.zoom(kit.lines(kit.lineOf(kit.offset("<Funds>")), kit.lineOf(kit.offset("<Funds>"))));
-                video.spoken(0.75);
-                video.zoom(kit.lines(kit.lineOf(kit.offset("<AssetMasterData>")), kit.lineOf(kit.offset("<AssetMasterData>"))));
+                video.zoom(kit.lines(kit.line("<ControlData>"), kit.line("<ControlData>")));
+                video.spoken(0.45);
+                video.zoom(kit.lines(kit.line("<Funds>"), kit.line("<Funds>")));
+                video.spoken(0.65);
+                video.zoom(kit.lines(kit.line("<AssetMasterData>"), kit.line("<AssetMasterData>")));
+                video.spoken(0.82);
+                video.zoom(kit.lines(kit.line("<RegulatoryReportings>"), kit.line("<RegulatoryReportings>")));
             });
 
             // ----- ControlData
@@ -87,25 +91,26 @@ class FundsXmlDevAnatomyDocVideo {
                 video.zoomOut();
                 kit.unfoldAll();
                 kit.scrollTo(1);
-                video.zoom(kit.lines(4, 15));
+                int id = kit.line("<UniqueDocumentID>");
+                video.zoom(kit.lines(kit.line("<ControlData>"), kit.line("</ControlData>")));
                 video.spoken(0.12);
-                video.zoom(kit.lines(5, 5));
+                video.zoom(kit.lines(id, id));
                 video.spoken(0.32);
-                video.zoom(kit.lines(6, 6));
+                video.zoom(kit.lines(kit.line("<DocumentGenerated>"), kit.line("<DocumentGenerated>")));
                 video.spoken(0.45);
-                video.zoom(kit.lines(7, 7));
+                video.zoom(kit.lines(kit.line("<Version>"), kit.line("<Version>")));
                 video.spoken(0.58);
-                video.zoom(kit.lines(8, 8));
+                video.zoom(kit.lines(kit.line("<ContentDate>"), kit.line("<ContentDate>")));
                 video.spoken(0.75);
-                video.zoom(kit.lines(5, 8));
+                video.zoom(kit.lines(id, kit.line("<ContentDate>")));
             });
 
             video.scene("supplier", () -> {
-                video.zoom(kit.lines(9, 14));
+                video.zoom(kit.lines(kit.line("<DataSupplier>"), kit.line("</DataSupplier>")));
             });
 
             video.scene("operation", () -> {
-                video.zoom(kit.lines(13, 16));
+                video.zoom(kit.lines(kit.line("</DataSupplier>") - 1, kit.line("</ControlData>")));
                 video.spoken(0.3);
                 video.zoomOut();
                 kit.clickInto("<DataOperation>INITIAL</DataOperation>", 0);
@@ -118,12 +123,12 @@ class FundsXmlDevAnatomyDocVideo {
             // ----- a correction
             video.scene("amend", () -> {
                 kit.scrollTo(1);
-                video.zoom(kit.lines(4, 19));
+                video.zoom(kit.lines(kit.line("<ControlData>"), kit.line("</ControlData>") + 3));
                 video.spoken(0.12);
-                int id = kit.offset("FUNDSXML_FILE_1") + "FUNDSXML_FILE_".length();
-                Bounds idChar = kit.chars(id, id + 1);
+                int id = kit.offset(DOCUMENT_ID) + DOCUMENT_ID.length();
+                Bounds idChar = kit.chars(id - 1, id);
                 video.click(idChar.getMaxX(), idChar.getCenterY());
-                video.retype(id, 1, "2");
+                video.retype(id, 0, "-C1");
                 video.spoken(0.3);
                 int op = kit.offset("INITIAL</DataOperation>");
                 Bounds opChars = kit.chars(op, op + 7);
@@ -131,7 +136,7 @@ class FundsXmlDevAnatomyDocVideo {
                 video.retype(op, "INITIAL".length(), "AMEND");
                 video.spoken(0.48);
                 int after = kit.offset("</DataOperation>") + "</DataOperation>".length();
-                String related = "\n      <RelatedDocumentIDs>\n         <RelatedDocumentID>FUNDSXML_FILE_1</RelatedDocumentID>\n      </RelatedDocumentIDs>";
+                String related = "\n      <RelatedDocumentIDs>\n         <RelatedDocumentID>" + DOCUMENT_ID + "</RelatedDocumentID>\n      </RelatedDocumentIDs>";
                 doc.onFx(() -> host.replaceActiveTextRegion(after, after, related));
                 video.pause(800);
                 video.spoken(0.66);
@@ -139,7 +144,7 @@ class FundsXmlDevAnatomyDocVideo {
                 video.key(javafx.scene.input.KeyCode.F8, "F8");
                 video.pause(4000);
                 doc.waitUntilFx(60, () -> !kit.hasErrorsOrWarnings());
-                video.zoom(kit.lines(4, 19));
+                video.zoom(kit.lines(kit.line("<ControlData>"), kit.line("</ControlData>")));
                 video.spoken(0.97);
                 video.zoomOut();
             });

@@ -15,8 +15,10 @@ import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys;
  * schema in a work folder, and the FundsXML extension switched on. Nothing is downloaded while a film
  * is recorded.
  *
- * <p>The documents are copies of the official examples (github.com/fundsxml/examples, Apache-2.0)
- * with a local schema location and correct ISIN and LEI check digits. The schema is the current
+ * <p>The documents are copies of the realistic samples of the official examples
+ * (github.com/fundsxml/examples, {@code FundsXML_Files/4.2.9/realistic}, Apache-2.0): fictional funds with
+ * synthetic identifiers, with the schema location changed to the local {@code FundsXML4.xsd}. The
+ * {@code _xsd-error} and {@code _weights} variants differ from their original in one value. The schema is the current
  * release from the FundsXML schema repository next to this one ({@code ../fundsxml_schema}, or the
  * folder in {@code -Dfxt.video.fundsxml.schema}); without it, the older test copy
  * {@code src/test/resources/FundsXML4.xsd} (4.2.9) is used.
@@ -43,8 +45,12 @@ final class FundsXmlVideoFiles {
         return folder;
     }
 
-    /** Switches the FundsXML extension on (its data-quality checks run with every validation). */
-    static void enableExtension() {
+    /**
+     * Switches the FundsXML extension on (its data-quality checks run with every validation), with the
+     * content cache filled, so the FundsXML panel shows the active schema version.
+     */
+    static void enableExtension() throws IOException {
+        seedCache();
         ServiceRegistry.get(PropertiesService.class).set(FundsXmlPropertyKeys.ENABLED, "true");
     }
 

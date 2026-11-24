@@ -71,7 +71,7 @@
         "en": "Static and dynamic data"
       },
       "say": {
-        "en": "FundStaticData holds what rarely changes. Here, the inception date, and the ongoing costs of one point eight percent, with the date they were published."
+        "en": "FundStaticData holds what rarely changes. Here, the domicile, Austria, the legal structure, UCITS, and the inception date. Further down follow the companies and managers, and the ongoing charges of one point five eight percent, with the date they were published."
       }
     },
     {
@@ -108,7 +108,7 @@
     {
       "id": "nav",
       "say": {
-        "en": "FundDynamicData holds what changes with every valuation. Total asset values list one entry per date. This one is for the first of October; its nature is official, as opposed to an estimate. The total net asset value is one hundred twelve point five million. And every amount carries its currency, in the attribute ccy."
+        "en": "FundDynamicData holds what changes with every valuation. Total asset values list one entry per date. This one is for the thirty-first of October; its nature is official, as opposed to an estimate. The total net asset value is about two hundred seventy-nine million. And every amount carries its currency, in the attribute ccy."
       }
     },
     {
@@ -125,7 +125,7 @@
           "items": [
             {
               "head": "Number plus currency",
-              "text": "<Amount ccy=\"EUR\">112500000</Amount>"
+              "text": "<Amount ccy=\"EUR\">278791093.07</Amount>"
             },
             {
               "head": "Several currencies at once",
@@ -148,19 +148,19 @@
         "en": "Share classes"
       },
       "say": {
-        "en": "Further down are the share classes. The first one has its own ISIN, a name, and its currency, the US dollar. Its price has an action code C, for create, a NAV date, the price currency, the nature official, and the NAV price: one hundred forty-two dollars and eighty-seven cents."
+        "en": "Further down are the share classes. The first one has its own ISIN, a name, and its currency, euro. Its type says retail and accumulating. Its prices are a daily history, one entry per business day: an action code C, for create, a NAV date, the price currency, the nature official, and the NAV price. On the thirty-first of October: one hundred twenty-eight euro and forty-one cents."
       }
     },
     {
       "id": "currencies",
       "say": {
-        "en": "The share class has its own total net asset value, given twice: in the fund currency, euro, and in the share class currency, dollar. And six hundred thousand shares are outstanding. Multiply them by the price, and you get the dollar amount."
+        "en": "Now the dollar class, hedged against the euro. It gives its total net asset value twice: in its own currency, dollar, marked isShareClassCcy, and in the fund currency, euro, marked isFundCcy. About four hundred sixty-five thousand shares are outstanding. Multiply them by the price, and you get the dollar amount."
       }
     },
     {
       "id": "second",
       "say": {
-        "en": "The second share class is the euro class of the same fund. It has its own ISIN, its own name and its own price, in euro. Compare the two: the same fund, the same portfolio, but different currencies, different prices, and a different number of shares. That is exactly what share classes are for."
+        "en": "The second share class is for institutional investors, in euro as well. It has its own ISIN, its own name, and a much higher price: one thousand one hundred eighty-six euro. This fund has four share classes: retail and institutional in euro, and two retail classes hedged into Swiss francs and dollars. The same fund, the same portfolio, but different currencies, prices, fees and numbers of shares. That is exactly what share classes are for."
       }
     },
     {
@@ -269,7 +269,7 @@
     {
       "id": "checker",
       "say": {
-        "en": "Is the ISIN of this share class correct? Open the FundsXML panel, and type it into the identifier checker. The checker knows the structure and the check digit of ISINs and LEIs. This one is valid. The letters A T in front stand for Austria."
+        "en": "Is the ISIN of this share class correct? Open the FundsXML panel, and type it into the identifier checker. The checker knows the structure and the check digit of ISINs and LEIs. This one is valid. The letters A T in front stand for Austria; X M P L marks it as an example code."
       }
     },
     {
@@ -281,7 +281,7 @@
     {
       "id": "lei",
       "say": {
-        "en": "The same works for LEIs. Paste the LEI of the fund, and the checker confirms its two check digits. For a whole document, the button Check Identifiers Online looks up all its codes in the public registers."
+        "en": "The same works for LEIs. Paste the LEI of the fund, and the checker confirms its two check digits. For a whole document, the button Check Identifiers Online looks up all its codes in the public registers. The codes of the example files are made up; FreeXmlToolkit recognises them by the X M P L marker and does not look them up."
       }
     },
     {

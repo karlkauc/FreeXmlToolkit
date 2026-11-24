@@ -32,7 +32,7 @@
         "en": "A position"
       },
       "say": {
-        "en": "Each position starts with a UniqueID, and identifiers like the ISIN. Then come its currency, its total value in the fund currency, and its weight: eight point three three percent of the net asset value. The last block depends on the kind of instrument. For a share, it holds the number of units and the price."
+        "en": "Each position starts with a UniqueID, and identifiers like the ISIN. Then come its currency, here the US dollar, its total value in the fund currency, and its weight: one point two one percent of the net asset value. For a position in a foreign currency, the exchange rate used is given as well. The last block depends on the kind of instrument. For a share, it holds the number of units, the price in dollars, and the market value in both currencies."
       }
     },
     {
@@ -78,7 +78,7 @@
         "en": "Master data"
       },
       "say": {
-        "en": "What a security is, is not repeated in every position. The UniqueID points to the asset master data further down. There, asset ID_001 is described once: Apple, a share from the United States, with the LEI of its issuer. If several funds or portfolios hold the same share, its master data still appears only once."
+        "en": "What a security is, is not repeated in every position. The UniqueID points to the asset master data further down. There, asset ID_0002 is described once: Driftwood Engineering, a fictional share from the United States, listed in New York, with the LEI of its issuer. If several funds or portfolios hold the same share, its master data still appears only once."
       }
     },
     {
@@ -120,19 +120,19 @@
     {
       "id": "bond",
       "say": {
-        "en": "Now a bond, from the position to its asset. The position holds a nominal of six point two million euro, and a price of one hundred point eight percent. Nominal times price gives the value of six point two five million. On the asset side, the bond is described once: a German government bond, with its issuer and the issuer's LEI, the maturity date in August twenty thirty-two, and a fixed coupon of one point seven percent."
+        "en": "Now a bond, from the position to its asset. The position holds a nominal of six point two million euro, at a price of one hundred five point three six percent. Nominal times price gives the market value, and the interest accrued since the last coupon is added on top. On the asset side, the bond is described once: a government bond of a fictional state, with its issuer and the issuer's LEI, the maturity date in October twenty forty-five, and a fixed coupon of three point seven five percent."
       }
     },
     {
       "id": "fundunit",
       "say": {
-        "en": "And a fund unit. The position holds two hundred thousand shares at fifty euro. The asset is of type S C, a share class of another fund, with the management company of that fund as its issuer. This is the starting point for look-through: the target fund can be delivered in the same file, with its own portfolio."
+        "en": "And a fund unit, here an exchange-traded fund. The position holds about forty-one thousand shares at eighty-three euro eighty. The asset is of type S C, a share class of another fund, with the management company of that fund as its issuer. This is the starting point for look-through: the target fund can be delivered in the same file, with its own portfolio."
       }
     },
     {
       "id": "fxforward",
       "say": {
-        "en": "Here is a currency forward. On the asset side: buy five million euro, sell five point four million dollars, maturity at the end of December, and the counterparty with its LEI. On the position side, the total value is the forward's current market value, which can also be negative."
+        "en": "Here is a currency forward. On the asset side: buy about twenty-one million dollars, sell about eighteen million euro, at an agreed rate, with maturity in December, and the counterparty with its LEI. On the position side, the total value is the forward's current market value, which can also be negative."
       }
     },
     {
@@ -158,7 +158,7 @@
             },
             {
               "head": "A valid XML name",
-              "text": "Must not start with a digit, for example ID_001."
+              "text": "Must not start with a digit, for example ID_0002."
             },
             {
               "head": "Keep it stable",

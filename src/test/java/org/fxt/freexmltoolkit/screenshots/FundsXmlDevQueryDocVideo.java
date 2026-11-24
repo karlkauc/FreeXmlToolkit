@@ -46,7 +46,7 @@ class FundsXmlDevQueryDocVideo {
     void record() throws Exception {
         UnifiedShellView shell = doc.boot();
         Path folder = FundsXmlVideoFiles.folder("dev-query");
-        Path xml = folder.resolve("Mixed-Fund_Positions.xml");
+        Path xml = folder.resolve(FundsXmlBizContentDocVideo.FILE);
         doc.open(xml, "<AssetMasterData>");
         // the extension registers its queries at the application's start, which the test shell skips; the
         // film shows the analysis queries only (the 55 "DQ:" checks would push them off the screen)

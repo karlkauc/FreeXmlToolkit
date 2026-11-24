@@ -52,7 +52,7 @@
         "en": "Stage one: the schema"
       },
       "say": {
-        "en": "A fund administrator has sent this file: the month-end portfolio of an equity fund. The root element is FundsXML4, and the first lines name the schema, FundsXML4.xsd. So FreeXmlToolkit can validate it right away."
+        "en": "A fund administrator has sent this file: the month-end data of a fictional global equity fund. The root element is FundsXML4, and the first lines name the schema, FundsXML4.xsd. So FreeXmlToolkit can validate it right away."
       }
     },
     {
@@ -70,7 +70,7 @@
     {
       "id": "repair",
       "say": {
-        "en": "Type the number instead, nine million three hundred seventy-five thousand, and press F8 again. The error is gone. What is left are hints, in blue: the derivatives in this portfolio could also report their exposure. Hints are suggestions, not mistakes."
+        "en": "Type the exact number instead, and press F8 again. The error is gone. What is left are hints, in blue: the derivatives in this portfolio could also report their exposure. Hints are suggestions, not mistakes."
       }
     },
     {
@@ -165,7 +165,7 @@
     {
       "id": "fix",
       "say": {
-        "en": "Click the warning about the first position. It claims twenty-eight point three three percent, but its value is only eight point three three percent of the fund's net asset value. Correct the weight and validate again. Both warnings are gone."
+        "en": "Click the warning about the first position. It claims twenty point four percent, but its value is only zero point four percent of the fund's net asset value. Correct the weight and validate again. Both warnings are gone."
       }
     },
     {

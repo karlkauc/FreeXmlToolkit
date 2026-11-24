@@ -43,7 +43,7 @@ class FundsXmlBizQualityDocVideo {
         doc.boot();
         EditorHost host = doc.host();
         Path folder = FundsXmlVideoFiles.folder("biz-quality");
-        doc.open(folder.resolve("Mixed-Fund_Positions.xml"), "<AssetMasterData>");
+        doc.open(folder.resolve(FundsXmlBizContentDocVideo.FILE), "<AssetMasterData>");
         doc.settle(1500);
 
         DocVideoRecorder video = new DocVideoRecorder(doc);

@@ -61,7 +61,7 @@ class FundsXmlDevSetupDocVideo {
         try {
             video.scene("open", () -> {
                 video.spoken(0.55);
-                doc.onFx(() -> host.openFile(folder.resolve("Mixed-Fund_Positions.xml")));
+                doc.onFx(() -> host.openFile(folder.resolve(FundsXmlBizContentDocVideo.FILE)));
                 doc.waitUntilFx(30, () -> doc.find("#fundsxml-hint") != null && doc.<Node>find("#fundsxml-hint").isVisible());
                 video.pause(800);
                 video.zoom(hintRegion(video));

@@ -277,19 +277,19 @@
         "en": "A real file"
       },
       "say": {
-        "en": "Let us look at a real file. This is one of the public FundsXML example files, opened in FreeXmlToolkit, a free XML editor. It describes one fund on one reporting date."
+        "en": "Let us look at a real file. This is one of the realistic FundsXML example files, opened in FreeXmlToolkit, a free XML editor. It describes a fictional multi-asset fund at the end of October, with made-up but consistent data: hundreds of securities, four share classes, a month of transactions."
       }
     },
     {
       "id": "demo-parts",
       "say": {
-        "en": "Folded, the structure is easy to see. Control data is the envelope. Funds holds the fund, with its prices and its portfolio. And asset master data describes every security once."
+        "en": "Folded, the structure is easy to see. Control data is the envelope. Funds holds the fund, with its prices and its portfolio. Asset master data describes every security once. And regulatory reportings carry the templates for distributors and insurers."
       }
     },
     {
       "id": "demo-read",
       "say": {
-        "en": "Every value has a clear name. Here is the fund's total net asset value, one hundred twelve and a half million euro. A machine can process it, and a person can still read it."
+        "en": "Every value has a clear name. Here is the fund's total net asset value, about two hundred seventy-nine million euro. A machine can process it, and a person can still read it."
       }
     },
     {

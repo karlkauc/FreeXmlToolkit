@@ -49,6 +49,26 @@ final class FundsXmlVideoKit {
         return offset(snippet, 0);
     }
 
+    /** The 1-based line of the first {@code snippet} in the active text. */
+    int line(String snippet) {
+        return lineOf(offset(snippet));
+    }
+
+    /** The 1-based line of the first {@code snippet} at or after line {@code fromLine}. */
+    int line(String snippet, int fromLine) {
+        return lineOf(offset(snippet, lineStart(fromLine)));
+    }
+
+    /** The offset where line {@code line} (1-based) starts. */
+    int lineStart(int line) {
+        String t = text();
+        int at = 0;
+        for (int l = 1; l < line && at >= 0; l++) {
+            at = t.indexOf('\n', at) + 1;
+        }
+        return Math.max(0, at);
+    }
+
     /** The 1-based line of an offset. */
     int lineOf(int offset) {
         String t = text();
@@ -64,6 +84,12 @@ final class FundsXmlVideoKit {
     /** The screen region of {@code snippet} (it must be on the screen). */
     Bounds textBounds(String snippet) {
         int at = offset(snippet);
+        return chars(at, at + snippet.length());
+    }
+
+    /** The screen region of the first {@code snippet} at or after line {@code fromLine} (it must be on the screen). */
+    Bounds textBounds(String snippet, int fromLine) {
+        int at = offset(snippet, lineStart(fromLine));
         return chars(at, at + snippet.length());
     }
 

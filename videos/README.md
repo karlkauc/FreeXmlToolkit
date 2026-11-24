@@ -23,10 +23,12 @@ films, all copied to `FXT-Videos` as well.
 ## FundsXML (`videos/fundsxml/`)
 
 A set of its own that explains the FundsXML standard, English only for now, in two series; its films
-are copied to `FXT-Videos/fundsxml/`. The example documents are in `src/test/resources/fundsxml/video/`
-(copies of github.com/fundsxml/examples with a local schema location and correct ISIN/LEI check
-digits); the schema comes from `../fundsxml_schema` (`FundsXmlVideoFiles.java`); the steps the
-scenarios share are in `FundsXmlVideoKit.java`.
+are copied to `FXT-Videos/fundsxml/`. The example documents are in `src/test/resources/fundsxml/video/`:
+copies of the fictional *realistic* samples of github.com/fundsxml/examples
+(`FundsXML_Files/4.2.9/realistic`, made by its `make_realistic.py`) with a local schema location, and two
+variants with one wrong value for the validation film. The schema comes from `../fundsxml_schema`
+(`FundsXmlVideoFiles.java`); the steps the scenarios share are in `FundsXmlVideoKit.java`; scenarios find
+their places by element or value (`kit.line("<Bond>", from)`), never by fixed line numbers.
 
 The title and closing cards are in the FundsXML look (`videos/fundsxml/theme.json`, logo and Manrope in
 `videos/fundsxml/brand/`, after https://branding.status20.net/): the title card names the episode and
@@ -75,9 +77,14 @@ Files over 10 MiB are copied to `FXT-Videos` as a split zip in the standard Info
 (`<name>.zip` with `<name>.z01`, … of 10 MiB each; open the `.zip` with 7-Zip, WinRAR or unzip, all
 parts in one folder), because the folder is copied over WebDAV, which takes files below 20 MB only. In
 a set, the copies start with the film's number across its series in watching order (`01-biz-why-en.mp4`,
-`06-dev-setup-en.mp4`), so a file list shows them in order. The example documents for transactions and
-regulatory templates (`Mixed-Fund_Transactions.xml`, `Mixed-Fund_Regulatory.xml`) were written for these
-films and validated against the schema; `positions_csv.xslt` comes from github.com/fundsxml/examples.
+`06-dev-setup-en.mp4`), so a file list shows them in order. `positions_csv.xslt` comes from
+github.com/fundsxml/examples.
+
+**Publishing.** `python3 scripts/publish-videos.py --set fundsxml --out ../../fundsxml-videos` writes the
+contents of the GitHub Pages repository github.com/fundsxml/videos (served at https://fundsxml.github.io/videos/):
+the films with `+faststart`, WebVTT subtitles and chapters, posters, `videos.json`, the player page `index.html`
+and `wp-widget.html`, the same player as one HTML block for the draft page "FundsXML Training Videos" on
+fundsxml.org. The player is `videos/web/player.html`; the full series films go to the repository's release.
 
 ## How a video is made
 
