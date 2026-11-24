@@ -103,6 +103,8 @@ def main():
                     help="where the Pages site is served (for the WordPress block)")
     ap.add_argument("--repo", default="fundsxml/videos")
     ap.add_argument("--release", default="v1")
+    ap.add_argument("--partial", action="store_true", help="skip films that are not made yet (and empty series)")
+    ap.add_argument("--films", nargs="+", help="publish only these films (with --partial: an early release)")
     args = ap.parse_args()
 
     mv = make_video()
@@ -121,7 +123,11 @@ def main():
         for film_id in spec["videos"]:
             board = json.loads((mv.BOARDS / f"{film_id}.json").read_text(encoding="utf-8"))
             mp4 = BUILD / f"{film_id}-{lang}.mp4"
+            if args.films and film_id not in args.films:
+                continue
             if not mp4.exists():
+                if args.partial:
+                    continue
                 sys.exit(f"missing {mp4}: make the film first")
             name = f"{mv.film_number(film_id):02d}-{film_id}"
             faststart(mp4, out / lang / f"{name}.mp4")
@@ -138,13 +144,14 @@ def main():
                 "chapters_vtt": f"{lang}/{name}-chapters.vtt", "poster": f"posters/{name}.jpg"})
             print("film", name)
         full = BUILD / f"{spec['id']}-{lang}.mp4"
-        if full.exists():
+        if full.exists() and not args.films:
             faststart(full, out / "release" / full.name)
             shutil.copy2(BUILD / f"{spec['id']}-{lang}.srt", out / "release" / f"{spec['id']}-{lang}.srt")
             series["full"] = {"title": f"{spec['title'][lang]} (all films)", "duration": round(duration(full), 1),
                               "url": f"https://github.com/{args.repo}/releases/download/{args.release}/{full.name}"}
             print("full film", full.name)
-        manifest["series"].append(series)
+        if series["films"]:
+            manifest["series"].append(series)
 
     (out / "videos.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     template = TEMPLATE.read_text(encoding="utf-8")

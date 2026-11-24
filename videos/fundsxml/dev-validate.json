@@ -70,7 +70,7 @@
     {
       "id": "repair",
       "say": {
-        "en": "Type the exact number instead, and press F8 again. The error is gone. What is left are hints, in blue: the derivatives in this portfolio could also report their exposure. Hints are suggestions, not mistakes."
+        "en": "Type the exact number instead, and press F8 again. The error is gone, and the document is valid. Other deliveries may also show hints, in blue: suggestions for data that could be added. Hints are suggestions, not mistakes."
       }
     },
     {

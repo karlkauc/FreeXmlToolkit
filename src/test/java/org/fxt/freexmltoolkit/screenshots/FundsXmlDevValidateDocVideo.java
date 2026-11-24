@@ -163,7 +163,7 @@ class FundsXmlDevValidateDocVideo {
         }
     }
 
-    /** Whether the active document has problems other than hints (the example's derivatives get hints). */
+    /** Whether the active document has problems other than hints. */
     private static boolean hasErrorsOrWarnings(EditorHost host) {
         return host.getActiveProblems().stream().anyMatch(p -> "error".equalsIgnoreCase(p.severity())
                 || "warning".equalsIgnoreCase(p.severity()) || "fatal".equalsIgnoreCase(p.severity()));
