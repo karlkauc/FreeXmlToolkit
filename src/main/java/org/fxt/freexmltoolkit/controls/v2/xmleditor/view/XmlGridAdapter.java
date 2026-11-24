@@ -1010,16 +1010,38 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
      * The positional XPath of the row's node; attribute rows add {@code /@name}, text,
      * comment, CDATA and PI rows add {@code /#<child index>} under their parent's path.
      */
+    /** Set while {@link #withStableKeyCache} runs. */
+    private org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath.Cache keyCache;
+
+    @Override
+    public void withStableKeyCache(Runnable work) {
+        if (keyCache != null) {
+            work.run();
+            return;
+        }
+        keyCache = new org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath.Cache();
+        try {
+            work.run();
+        } finally {
+            keyCache = null;
+        }
+    }
+
+    private String positional(XmlNode node) {
+        return keyCache != null ? keyCache.positional(node)
+                : org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath.positional(node);
+    }
+
     @Override
     public String stableKey(FlatRow row) {
         Object node = row.getModelNode();
         if (node instanceof XmlElement element) {
-            String path = org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath.positional(element);
+            String path = positional(element);
             return row.getType() == FlatRow.RowType.ATTRIBUTE ? path + "/@" + row.getLabel() : path;
         }
         if (node instanceof XmlNode xmlNode) {
             XmlNode parent = xmlNode.getParent();
-            String parentPath = org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath.positional(parent);
+            String parentPath = positional(parent);
             int index = parent instanceof XmlElement pe ? pe.indexOf(xmlNode)
                     : parent instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument doc
                     ? doc.getChildren().indexOf(xmlNode) : -1;

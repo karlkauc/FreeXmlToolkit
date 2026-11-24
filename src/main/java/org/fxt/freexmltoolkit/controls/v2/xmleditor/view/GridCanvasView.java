@@ -500,6 +500,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     int rebuildCount;
 
     void rebuildTree() {
+        // every row's key is worked out (state capture, restore): one sibling pass per parent
+        adapter.withStableKeyCache(this::rebuildTreeNow);
+    }
+
+    private void rebuildTreeNow() {
         rebuildCount++;
         captureLiveState();
 
@@ -3562,6 +3567,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      */
     /** Writes what the rows show now - expand state at any depth, open cells, selection - into the view state. */
     private void captureLiveState() {
+        adapter.withStableKeyCache(this::captureLiveStateNow);
+    }
+
+    private void captureLiveStateNow() {
         if (selectedRow != null) {
             viewState.setSelectedKey(stateKey(selectedRow, keyOf(selectedRow)));
         }
@@ -3661,17 +3670,20 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         rows = applyFilters(rows, cellAnchor(rows));
         GridBlock grid = new GridBlock(rows, row, column);
         adapter.attachTables(rows, this::markLayoutDirty);
-        for (FlatRow inner : rows) {
-            if (inner.isExpandable()) {
-                Boolean expanded = viewState.expandedState(stateKey(inner, keyOf(inner)));
-                if (expanded != null) {
-                    inner.setExpanded(expanded);
+        List<FlatRow> cellRows = rows;
+        adapter.withStableKeyCache(() -> {
+            for (FlatRow inner : cellRows) {
+                if (inner.isExpandable()) {
+                    Boolean expanded = viewState.expandedState(stateKey(inner, keyOf(inner)));
+                    if (expanded != null) {
+                        inner.setExpanded(expanded);
+                    }
+                }
+                if (inner.hasRepeatingTable()) {
+                    inner.whenRepeatingTableReady(nested -> configureTable(nested, inner));
                 }
             }
-            if (inner.hasRepeatingTable()) {
-                inner.whenRepeatingTableReady(nested -> configureTable(nested, inner));
-            }
-        }
+        });
         FlatRow.applyVisibility(rows);
         return grid;
     }

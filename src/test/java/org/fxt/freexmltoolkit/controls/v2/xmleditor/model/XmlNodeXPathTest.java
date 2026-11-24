@@ -1,6 +1,10 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -81,5 +85,59 @@ class XmlNodeXPathTest {
     void documentAndNullYieldRoot() {
         assertEquals("/", XmlNodeXPath.positional(null));
         assertEquals("/", XmlNodeXPath.positional(new XmlDocument()));
+    }
+
+    @Test
+    void theCacheGivesWhatPositionalGives() {
+        XmlDocument doc = new XmlDocument();
+        XmlElement root = new XmlElement("root");
+        doc.addChild(root);
+        List<XmlNode> nodes = new ArrayList<>();
+        nodes.add(root);
+        for (int i = 0; i < 5; i++) {
+            XmlElement record = new XmlElement(i % 3 == 0 ? "other" : "record");
+            root.addChild(record);
+            nodes.add(record);
+            XmlElement single = new XmlElement("name");
+            record.addChild(single);
+            nodes.add(single);
+            for (int j = 0; j < 3; j++) {
+                XmlElement value = new XmlElement("value");
+                record.addChild(value);
+                nodes.add(value);
+            }
+            XmlText text = new XmlText("t" + i);
+            record.addChild(text);
+            nodes.add(text);
+        }
+        nodes.add(null);
+        nodes.add(doc);
+
+        XmlNodeXPath.Cache cache = new XmlNodeXPath.Cache();
+        for (XmlNode node : nodes) {
+            assertEquals(XmlNodeXPath.positional(node), cache.positional(node), String.valueOf(node));
+        }
+    }
+
+    @Test
+    void theCacheKeysManySameNameSiblingsInLinearTime() {
+        XmlDocument doc = new XmlDocument();
+        XmlElement root = new XmlElement("root");
+        doc.addChild(root);
+        List<XmlElement> records = new ArrayList<>();
+        for (int i = 0; i < 200_000; i++) {
+            XmlElement record = new XmlElement("record");
+            root.addChild(record);
+            records.add(record);
+        }
+        long start = System.nanoTime();
+        XmlNodeXPath.Cache cache = new XmlNodeXPath.Cache();
+        for (XmlElement record : records) {
+            cache.positional(record);
+        }
+        long ms = (System.nanoTime() - start) / 1_000_000;
+        // uncached: 200,000² / 2 sibling visits = minutes (seen as a 139 s UI stall)
+        assertTrue(ms < 5_000, ms + " ms");
+        assertEquals("/root/record[200000]", cache.positional(records.get(199_999)));
     }
 }

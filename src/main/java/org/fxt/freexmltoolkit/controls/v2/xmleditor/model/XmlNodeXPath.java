@@ -1,6 +1,10 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.model;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Builds a positional XPath for a node of the XML-instance model.
@@ -78,5 +82,76 @@ public final class XmlNodeXPath {
         }
 
         return sameNameCount > 1 ? "/" + name + "[" + position + "]" : "/" + name;
+    }
+
+    /**
+     * {@link #positional} for many nodes of a model that does not change meanwhile: the steps of
+     * all children of a parent come from one pass over them, and ancestor paths are reused. Without
+     * it, the paths of n same-name siblings cost n²/2 sibling visits (a grid of 200,000 records
+     * spent minutes on its row keys). Gives exactly what {@link #positional} gives; drop it after a
+     * change to the model.
+     */
+    public static final class Cache {
+        private final Map<XmlNode, String> prefixes = new IdentityHashMap<>();
+        private final Map<XmlNode, Map<XmlElement, String>> stepsByParent = new IdentityHashMap<>();
+
+        /** @see XmlNodeXPath#positional(XmlNode) */
+        public String positional(XmlNode node) {
+            String prefix = prefix(node);
+            return prefix.isEmpty() ? "/" : prefix;
+        }
+
+        /** The element steps from the root down to {@code node}, "" for none (iterative: no deep recursion). */
+        private String prefix(XmlNode node) {
+            List<XmlNode> chain = new ArrayList<>();
+            String known = "";
+            for (XmlNode current = node; current != null && !(current instanceof XmlDocument);
+                 current = current.getParent()) {
+                String cached = prefixes.get(current);
+                if (cached != null) {
+                    known = cached;
+                    break;
+                }
+                chain.add(current);
+            }
+            for (int i = chain.size() - 1; i >= 0; i--) {
+                XmlNode current = chain.get(i);
+                if (current instanceof XmlElement element) {
+                    known = known + stepOf(element);
+                }
+                prefixes.put(current, known);
+            }
+            return known;
+        }
+
+        private String stepOf(XmlElement element) {
+            XmlNode parent = element.getParent();
+            List<XmlNode> siblings = parent instanceof XmlElement parentElement ? parentElement.getChildren()
+                    : parent instanceof XmlDocument parentDocument ? parentDocument.getChildren() : null;
+            if (siblings == null) {
+                return "/" + element.getName();
+            }
+            String step = stepsByParent.computeIfAbsent(parent, p -> steps(siblings)).get(element);
+            return step != null ? step : step(element); // not among its parent's children (being removed)
+        }
+
+        private static Map<XmlElement, String> steps(List<XmlNode> siblings) {
+            Map<String, Integer> totals = new HashMap<>();
+            for (XmlNode sibling : siblings) {
+                if (sibling instanceof XmlElement element) {
+                    totals.merge(element.getName(), 1, Integer::sum);
+                }
+            }
+            Map<String, Integer> seen = new HashMap<>();
+            Map<XmlElement, String> steps = new IdentityHashMap<>();
+            for (XmlNode sibling : siblings) {
+                if (sibling instanceof XmlElement element) {
+                    String name = element.getName();
+                    int position = seen.merge(name, 1, Integer::sum);
+                    steps.put(element, totals.get(name) > 1 ? "/" + name + "[" + position + "]" : "/" + name);
+                }
+            }
+            return steps;
+        }
     }
 }

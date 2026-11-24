@@ -103,6 +103,17 @@ public interface GridModelAdapter<N> {
     }
 
     /**
+     * Runs {@code work}, during which the model does not change, so {@link #stableKey} may reuse
+     * what it worked out for one row for the next (keys of all rows in one pass per parent instead
+     * of one per row). Nested calls share the outer one's cache.
+     *
+     * @param work the key-heavy work (rebuild, state capture)
+     */
+    default void withStableKeyCache(Runnable work) {
+        work.run();
+    }
+
+    /**
      * @param row a row
      * @return the labels of the node types the row can be converted to (click the
      *         type icon), in menu order; empty when the row's type cannot change
