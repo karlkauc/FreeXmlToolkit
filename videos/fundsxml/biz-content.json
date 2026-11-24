@@ -1,0 +1,447 @@
+{
+  "_comment": "Business series, film 2: slides and a short run in FreeXmlToolkit (FundsXmlBizContentDocVideo).",
+  "id": "biz-content",
+  "scenario": "FundsXmlBizContentDocVideo",
+  "link": "fundsxml.org",
+  "title": {
+    "en": "What a FundsXML delivery contains"
+  },
+  "description": {
+    "en": "What a FundsXML delivery carries, in business terms: fund and share class master data, net asset values and prices, portfolios and holdings, transactions and distributions, documents, country modules and regulatory data. Why static and dynamic data are kept apart, typical kinds of deliveries, and a look into a real file, including a ready-made query for the largest holdings."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "What does a FundsXML delivery actually contain? In this film you get to know the areas of the standard, in business terms, and you look into a real file. No knowledge of XML is needed."
+      }
+    },
+    {
+      "id": "map",
+      "chapter": {
+        "en": "The map"
+      },
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.1,
+          0.22,
+          0.36,
+          0.52,
+          0.66,
+          0.8
+        ],
+        "en": {
+          "title": "The sections of a delivery",
+          "items": [
+            {
+              "head": "Envelope",
+              "text": "Sender, date and version of the delivery."
+            },
+            {
+              "head": "Funds",
+              "text": "Funds, sub-funds and share classes."
+            },
+            {
+              "head": "Prices & NAV",
+              "text": "Net asset values, prices, fund volumes."
+            },
+            {
+              "head": "Portfolios",
+              "text": "What each fund holds, position by position."
+            },
+            {
+              "head": "Securities",
+              "text": "Master data of every instrument, described once."
+            },
+            {
+              "head": "More",
+              "text": "Transactions, documents, country and regulatory data."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "A FundsXML delivery is like a well-organised folder with fixed sections. The envelope says who sent it, when, and for which date. The funds section describes the funds and their share classes, their prices and their portfolios. The securities section describes every instrument the funds hold. And further sections carry transactions, documents, national data and regulatory templates. Each delivery uses only the sections it needs."
+      }
+    },
+    {
+      "id": "static",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.1,
+          0.4,
+          0.72
+        ],
+        "en": {
+          "title": "Static and dynamic data",
+          "items": [
+            {
+              "head": "Static data",
+              "text": "Names, identifiers, launch date, legal form, fees: changes rarely."
+            },
+            {
+              "head": "Dynamic data",
+              "text": "NAV, prices, fund volume, portfolio: changes with every valuation."
+            },
+            {
+              "head": "Why it matters",
+              "text": "Master data is loaded once, the figures arrive on every reporting date."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "One principle runs through the whole standard: static and dynamic data are kept apart. Static data changes rarely: the name of a fund, its launch date, its legal form, its share classes and their identifiers. Dynamic data changes with every valuation: the net asset value, the prices, the fund volume and the portfolio. Receivers load the static data once and update it when it changes, while the dynamic data arrives every day, week or month."
+      }
+    },
+    {
+      "id": "funds",
+      "chapter": {
+        "en": "The areas"
+      },
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.1,
+          0.35,
+          0.6
+        ],
+        "en": {
+          "title": "Funds, sub-funds and share classes",
+          "items": [
+            {
+              "head": "Umbrella fund",
+              "text": "The legal frame, for example a SICAV."
+            },
+            {
+              "head": "Sub-fund",
+              "text": "Its own strategy, portfolio and net asset value."
+            },
+            {
+              "head": "Share class",
+              "text": "What investors buy: own ISIN, currency, fees and price."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Let us go through the areas. First, the fund itself. A FundsXML file can describe a single fund, or an umbrella fund with many sub-funds. Each fund or sub-fund has share classes: the units that investors actually buy. Share classes of the same fund can differ in currency, in fees, in the minimum investment, and in whether income is paid out or reinvested. Each one has its own ISIN, and its own price."
+      }
+    },
+    {
+      "id": "prices",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.1,
+          0.35,
+          0.6,
+          0.8
+        ],
+        "en": {
+          "title": "Prices and net asset values",
+          "items": [
+            {
+              "head": "Total net assets",
+              "text": "The value of the whole fund on the valuation date."
+            },
+            {
+              "head": "Price per unit",
+              "text": "The NAV per share, for each share class."
+            },
+            {
+              "head": "Units outstanding",
+              "text": "How many shares of each class exist."
+            },
+            {
+              "head": "Any currency",
+              "text": "Every amount names its currency, several at once if needed."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Second, prices and the net asset value. For every valuation date, the delivery carries the total net assets of the fund, and for each share class the price per unit and the number of units outstanding. Every amount carries its currency, and an amount can be given in several currencies at once, for example in the fund currency and in the currency of the share class. So nobody has to convert it again."
+      }
+    },
+    {
+      "id": "holdings",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.1,
+          0.38,
+          0.68
+        ],
+        "en": {
+          "title": "Portfolios and securities",
+          "items": [
+            {
+              "head": "Positions",
+              "text": "How much, what it is worth, what weight in the fund."
+            },
+            {
+              "head": "Securities, described once",
+              "text": "Name, issuer, identifiers and type, referenced by the positions."
+            },
+            {
+              "head": "All asset classes",
+              "text": "Shares, bonds, fund units, derivatives, deposits, accounts."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Third, the portfolio: what the fund holds on the valuation date. Each position says how much the fund holds of an instrument, what it is worth, and what weight it has in the fund. The description of the instrument itself, its name, its issuer, its type, sits in a separate securities section, and the positions only refer to it. Shares, bonds, fund units, derivatives, deposits and accounts are all covered."
+      }
+    },
+    {
+      "id": "codes",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.32,
+          0.55,
+          0.76
+        ],
+        "en": {
+          "title": "Common codes, not free text",
+          "items": [
+            {
+              "head": "ISIN",
+              "text": "Identifies securities and share classes."
+            },
+            {
+              "head": "LEI",
+              "text": "Identifies companies: the fund, the manager, the issuer."
+            },
+            {
+              "head": "ISO codes",
+              "text": "For currencies and countries."
+            },
+            {
+              "head": "Fixed lists",
+              "text": "For asset types, cost types, fund types and many more."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "FundsXML relies on common codes instead of free text. An ISIN identifies a security or a share class. An LEI identifies a company: the fund, the asset manager or an issuer. Currencies and countries use their ISO codes. And fixed lists describe asset types, cost types or fund types. So every receiver interprets a value in exactly the same way, without guessing."
+      }
+    },
+    {
+      "id": "more",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.1,
+          0.35,
+          0.58,
+          0.8
+        ],
+        "en": {
+          "title": "More areas",
+          "items": [
+            {
+              "head": "Transactions",
+              "text": "Subscriptions, redemptions, distributions, income."
+            },
+            {
+              "head": "Documents",
+              "text": "Prospectus, KID, factsheet, annual report."
+            },
+            {
+              "head": "Country modules",
+              "text": "National reporting, for example Austria and Germany."
+            },
+            {
+              "head": "Regulatory data",
+              "text": "The European templates: EMT, EPT, EET, TPT.",
+              "tag": "next film"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "And there is more. Transactions record what moved: subscriptions and redemptions of investors, distributions, and income from the portfolio. Documents link prospectuses, key information documents, factsheets and annual reports. Country modules add national reporting, for example for Austria and Germany. And the regulatory section carries the European templates for distributors and insurers; the next film is about those."
+      }
+    },
+    {
+      "id": "demo-open",
+      "chapter": {
+        "en": "A real file"
+      },
+      "say": {
+        "en": "Let us look at a real file. This is one of the public FundsXML example files, opened in FreeXmlToolkit, a free XML editor. It describes one fund on one reporting date."
+      }
+    },
+    {
+      "id": "demo-parts",
+      "say": {
+        "en": "Folded, the structure is easy to see. Control data is the envelope. Funds holds the fund, with its prices and its portfolio. And asset master data describes every security once."
+      }
+    },
+    {
+      "id": "demo-read",
+      "say": {
+        "en": "Every value has a clear name. Here is the fund's total net asset value, one hundred twelve and a half million euro. A machine can process it, and a person can still read it."
+      }
+    },
+    {
+      "id": "demo-query",
+      "say": {
+        "en": "A delivery is also a source for analysis. The Query Console of FreeXmlToolkit comes with ready-made FundsXML queries. This one lists the ten largest positions of the fund."
+      }
+    },
+    {
+      "id": "demo-table",
+      "say": {
+        "en": "Shown as a table: each position with its name, its market value and its weight in the fund. The same query works on any FundsXML file, from any fund house."
+      }
+    },
+    {
+      "id": "kinds",
+      "chapter": {
+        "en": "Kinds of deliveries"
+      },
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.08,
+          0.3,
+          0.52,
+          0.74
+        ],
+        "en": {
+          "title": "Typical deliveries",
+          "items": [
+            {
+              "head": "Daily prices",
+              "text": "NAVs and prices of all share classes.",
+              "tag": "daily"
+            },
+            {
+              "head": "Month-end",
+              "text": "Prices plus the full portfolio.",
+              "tag": "monthly"
+            },
+            {
+              "head": "Master data",
+              "text": "New share classes, changed fees or names.",
+              "tag": "on change"
+            },
+            {
+              "head": "Regulatory",
+              "text": "Templates for distributors and insurers.",
+              "tag": "regular"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Not every delivery carries everything. A daily price feed carries prices and net asset values, and little else. A month-end delivery adds the full portfolio. A master data update carries new share classes or changed fees. And a regulatory delivery carries one or more templates for distributors or insurers. All of them use the same standard, so a receiver needs only one way to read them."
+      }
+    },
+    {
+      "id": "dates",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.06,
+          0.32,
+          0.58,
+          0.8
+        ],
+        "en": {
+          "title": "Dates, versions and corrections",
+          "items": [
+            {
+              "head": "Content date",
+              "text": "The business date the data refers to, for example the month-end."
+            },
+            {
+              "head": "Valuation dates",
+              "text": "Each price and each portfolio carries its own NAV date."
+            },
+            {
+              "head": "Corrections",
+              "text": "A correction is a new delivery that names the one it replaces."
+            },
+            {
+              "head": "A clear history",
+              "text": "Receivers can follow every change from the first delivery on."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Two more things matter in daily business: dates and corrections. Every delivery names its content date, the business date the data refers to, for example the month-end. And every price and every portfolio carries its own valuation date, so a file can even hold several days. When data was wrong, the sender does not silently send a new file. A correction is a delivery of its own, marked as a correction, and it names the delivery it replaces. So the receiver can follow every change, from the first delivery to the latest one."
+      }
+    },
+    {
+      "id": "who",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.06,
+          0.28,
+          0.5,
+          0.72
+        ],
+        "en": {
+          "title": "Who needs which part",
+          "items": [
+            {
+              "head": "Distributors and platforms",
+              "text": "Prices, share classes, costs, target market."
+            },
+            {
+              "head": "Insurers",
+              "text": "The full portfolio with master data, for look-through."
+            },
+            {
+              "head": "Data vendors",
+              "text": "Master data and prices of many fund houses."
+            },
+            {
+              "head": "Supervisors and central banks",
+              "text": "Fund volumes, holdings and national data."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Who needs which part? Distributors and fund platforms need the share classes, their prices, their costs and their target markets. Insurers need the full portfolio with the master data of every position, so they can look through to the real holdings. Data vendors collect master data and prices from many fund houses and pass them on. And supervisors and central banks receive fund volumes, holdings and the national data their country asks for."
+      }
+    },
+    {
+      "id": "onefile",
+      "slide": {
+        "layout": "statement",
+        "builds": [
+          0,
+          0.4
+        ],
+        "en": {
+          "headline": "One file, many receivers.",
+          "sub": "The distributor takes prices and costs, the insurer the portfolio, the data vendor the master data."
+        }
+      },
+      "say": {
+        "en": "And this is the key idea once more: one file, many receivers. The distributor takes the prices and costs, the insurer the portfolio, the data vendor the master data. Each one takes the part it needs, from the same delivery."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was what a FundsXML delivery contains. In the next film, you see how FundsXML carries regulatory data. Thanks for watching."
+      }
+    }
+  ]
+}

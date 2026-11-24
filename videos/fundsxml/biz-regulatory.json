@@ -1,0 +1,484 @@
+{
+  "_comment": "Business series, film 3. Slides only (no recording).",
+  "id": "biz-regulatory",
+  "link": "fundsxml.org",
+  "title": {
+    "en": "Regulatory reporting with FundsXML"
+  },
+  "description": {
+    "en": "How FundsXML carries the European regulatory templates: why regulation needs structured fund data, the roles of FinDatEx and FundsXML, the templates EMT (MiFID II), EPT (PRIIPs), EET (SFDR and ESG), TPT (Solvency II look-through) and EFT (feedback from distributors), who sends what to whom, template versions, national reporting and the European Single Access Point."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "Regulation is the biggest driver of fund data today. In this film you see which regulatory data travels between fund houses, distributors and insurers, and how FundsXML carries it."
+      }
+    },
+    {
+      "id": "why",
+      "chapter": {
+        "en": "Why regulation needs data"
+      },
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.08,
+          0.3,
+          0.52,
+          0.74
+        ],
+        "en": {
+          "title": "Four rules, one need: structured data",
+          "items": [
+            {
+              "head": "MiFID II",
+              "text": "Target market and costs for distributors."
+            },
+            {
+              "head": "PRIIPs",
+              "text": "Key information documents for retail investors."
+            },
+            {
+              "head": "SFDR",
+              "text": "Sustainability information on every fund."
+            },
+            {
+              "head": "Solvency II",
+              "text": "Insurers look through to the real holdings."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Over the last decade, a series of European rules has changed the fund industry. MiFID two asks distributors to know the target market and the costs of every fund they sell. PRIIPs requires a key information document for retail investors. The SFDR asks for sustainability information. And Solvency two asks insurance companies to look through to the real holdings of the funds they own. Each of these rules needs data from the fund house, in large amounts, regularly, and on time. Without a common format, every fund house would have to deliver this data in a different layout to every partner."
+      }
+    },
+    {
+      "id": "findatex",
+      "chapter": {
+        "en": "Templates and FundsXML"
+      },
+      "slide": {
+        "layout": "statement",
+        "builds": [
+          0,
+          0.5
+        ],
+        "en": {
+          "headline": "FinDatEx says what. FundsXML says how.",
+          "sub": "FinDatEx defines the templates and their fields. FundsXML carries them, checked against a schema, together with all other fund data."
+        }
+      },
+      "say": {
+        "en": "The industry answered with common templates. They are defined by FinDatEx, a joint body of the European associations of fund managers, insurers, banks and distributors. A template defines which fields are exchanged and what each field means. FundsXML carries these templates. The division of work is clear: FinDatEx decides what is exchanged, and FundsXML decides how it travels, together with all other fund data, in one checked file. FinDatEx publishes each template as a list of fields with their definitions; FundsXML turns each version into a structure that a computer can check."
+      }
+    },
+    {
+      "id": "emt",
+      "chapter": {
+        "en": "The templates"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.06,
+          0.35,
+          0.68
+        ],
+        "en": {
+          "title": "EMT: European MiFID Template",
+          "items": [
+            {
+              "head": "From fund house to distributor",
+              "text": "For every share class that is sold to clients."
+            },
+            {
+              "head": "Target market",
+              "text": "Investor type, knowledge, loss bearing, risk and horizon."
+            },
+            {
+              "head": "Costs and charges",
+              "text": "Ongoing, transaction, entry and exit costs, ex ante and ex post."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "The European MiFID Template, EMT, is the most widely used. The fund house sends it to distributors and platforms. It describes the target market of each share class: which investors the fund is meant for, their knowledge and experience, their ability to bear losses, and their investment horizon. And it carries the costs: ongoing charges, transaction costs and entry and exit fees, so that the distributor can show investors what they really pay."
+      }
+    },
+    {
+      "id": "emt-use",
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.08,
+          0.32,
+          0.56,
+          0.8
+        ],
+        "en": {
+          "title": "How a distributor uses the EMT",
+          "items": [
+            {
+              "head": "Receive",
+              "text": "EMT data for every share class on offer."
+            },
+            {
+              "head": "Match",
+              "text": "Client profile against the target market."
+            },
+            {
+              "head": "Disclose",
+              "text": "Costs shown to the client before the sale."
+            },
+            {
+              "head": "Report",
+              "text": "Costs reported after the year, ex post."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "How does a distributor use it? It receives EMT data for every share class it offers. Before a sale, it matches the client's profile against the target market of the fund. It shows the client the expected costs, before the client invests. And once a year, it reports the costs the client actually paid. Every step relies on data from the fund house, in a form that the distributor's systems can read automatically."
+      }
+    },
+    {
+      "id": "ept",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.38,
+          0.68
+        ],
+        "en": {
+          "title": "EPT: European PRIIPs Template",
+          "items": [
+            {
+              "head": "Risk indicator",
+              "text": "The summary risk indicator, from 1 to 7."
+            },
+            {
+              "head": "Performance scenarios",
+              "text": "From stress to favourable, over the holding period."
+            },
+            {
+              "head": "Costs",
+              "text": "The cost figures in the form PRIIPs requires."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "The European PRIIPs Template, EPT, carries the data behind the key information document. The summary risk indicator, on a scale from one to seven. The performance scenarios, from stress to favourable. And the cost figures in the form PRIIPs requires. Whoever produces the key information document, the fund house or a service provider, works from this data. Because the key information document must be kept up to date, the data behind it travels again whenever a figure changes, and the receiver always knows from the file which version of the template it follows."
+      }
+    },
+    {
+      "id": "eet",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.06,
+          0.3,
+          0.55,
+          0.8
+        ],
+        "en": {
+          "title": "EET: European ESG Template",
+          "items": [
+            {
+              "head": "SFDR classification",
+              "text": "Article 6, 8 or 9 product."
+            },
+            {
+              "head": "EU taxonomy",
+              "text": "The share of environmentally sustainable investments."
+            },
+            {
+              "head": "Principal adverse impacts",
+              "text": "How negative effects are considered."
+            },
+            {
+              "head": "Large, mostly optional",
+              "text": "Several hundred fields; the minimum is compact."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "The European ESG Template, EET, carries sustainability data. Is the fund an article six, eight or nine product under the SFDR? How much of it is aligned with the EU taxonomy? And how does it consider the principal adverse impacts on environment and society? The EET is by far the largest template, with several hundred fields, most of them optional. Distributors need it to match funds with the sustainability preferences of their clients. Data vendors often collect EET files from many fund houses and offer them to distributors in one place; because the structure is the same everywhere, this works without manual rework."
+      }
+    },
+    {
+      "id": "tpt",
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.08,
+          0.32,
+          0.56,
+          0.8
+        ],
+        "en": {
+          "title": "TPT: look-through for insurers",
+          "items": [
+            {
+              "head": "Fund portfolio",
+              "text": "Every position, with its master data."
+            },
+            {
+              "head": "TPT fields",
+              "text": "Classification, value, issuer, risk figures."
+            },
+            {
+              "head": "Insurer",
+              "text": "Collects the files of all its funds."
+            },
+            {
+              "head": "Solvency II",
+              "text": "Capital requirement on the real holdings."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "The Tripartite Template, TPT, serves insurance companies. Under Solvency two, an insurer must calculate its capital requirement on the real holdings of the funds it owns. So the fund house delivers the full portfolio, position by position, with the data an insurer needs: a classification of each instrument, the so-called CIC code, its value, its issuer, and many risk figures. Insurers collect these files from every fund house, often each quarter, and load them all the same way."
+      }
+    },
+    {
+      "id": "eft",
+      "slide": {
+        "layout": "statement",
+        "builds": [
+          0,
+          0.45
+        ],
+        "en": {
+          "headline": "EFT: the way back.",
+          "sub": "Distributors report to the fund house how a fund was sold, and to whom."
+        }
+      },
+      "say": {
+        "en": "Most data flows from the fund house outwards. The European Feedback Template, EFT, goes the other way: distributors report back to the fund house how a fund was sold, for example to which types of clients and whether outside the target market. So the fund house can check whether its products reach the investors they were made for. It closes the loop between the two sides of the distribution chain."
+      }
+    },
+    {
+      "id": "flows",
+      "chapter": {
+        "en": "Who sends what"
+      },
+      "slide": {
+        "layout": "hub",
+        "mode": "hub",
+        "builds": [
+          0,
+          0.35
+        ],
+        "en": {
+          "title": "Who sends what to whom",
+          "centre": "Fund house",
+          "items": [
+            "Distributors · EMT EET EPT",
+            "Platforms · EMT EET",
+            "Insurers · TPT",
+            "Data vendors · all templates",
+            "Feedback · EFT from distributors",
+            "Regulators · national data"
+          ]
+        }
+      },
+      "say": {
+        "en": "Here is the whole picture. The fund house sends EMT, EET and EPT data to distributors and platforms, and TPT data to insurers. Data vendors often collect and pass on the same templates. Distributors send EFT feedback back. And because all of it travels in FundsXML, one delivery can carry several templates together with the fund's prices and portfolio."
+      }
+    },
+    {
+      "id": "versions",
+      "chapter": {
+        "en": "Versions and change"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.38,
+          0.68
+        ],
+        "en": {
+          "title": "When templates change",
+          "items": [
+            {
+              "head": "Every version has its own place",
+              "text": "Old and new versions can be used side by side."
+            },
+            {
+              "head": "Partners agree on a version",
+              "text": "And move on when both are ready."
+            },
+            {
+              "head": "Built in once",
+              "text": "A new version reaches all partners through the standard."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Templates change over time, as the rules change. Each template version gets its own place in the FundsXML schema, so an old version and a new one can be used side by side during a transition. Sender and receiver agree on the version they exchange, and move on when both are ready. And when a new version is published, it is built into the standard once, and not into every interface of every partner."
+      }
+    },
+    {
+      "id": "rhythm",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.08,
+          0.3,
+          0.52,
+          0.74
+        ],
+        "en": {
+          "title": "Each template has its own rhythm",
+          "items": [
+            {
+              "head": "EMT",
+              "text": "When costs or target market change, and at least once a year."
+            },
+            {
+              "head": "EET",
+              "text": "When sustainability data changes, for example with periodic reports."
+            },
+            {
+              "head": "EPT",
+              "text": "When the key information document is updated."
+            },
+            {
+              "head": "TPT",
+              "text": "For every reporting date the insurer needs, often quarterly."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Each template also has its own rhythm. EMT data is updated when costs or the target market change, and at least once a year. EET data follows changes in sustainability data, for example with the periodic reports. EPT data follows the updates of the key information document. And TPT data is needed for every reporting date of the insurer, often each quarter. Sender and receiver agree on these dates, so the data arrives when it is needed."
+      }
+    },
+    {
+      "id": "national",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.1,
+          0.4,
+          0.7
+        ],
+        "en": {
+          "title": "National reporting and ESAP",
+          "items": [
+            {
+              "head": "Country modules",
+              "text": "Data that only one country asks for."
+            },
+            {
+              "head": "Examples",
+              "text": "Central bank statistics, investor tax data in Austria and Germany."
+            },
+            {
+              "head": "ESAP",
+              "text": "The European Single Access Point for public disclosures."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Beyond the European templates, FundsXML also serves national reporting. Country modules carry data that only one country asks for, for example statistics for a national central bank, or tax data for investors in Austria or Germany. And as the European Single Access Point, ESAP, is being set up, fund documents and disclosures will become available in one place across the EU; structured data like FundsXML makes such reporting easier to produce."
+      }
+    },
+    {
+      "id": "practice",
+      "chapter": {
+        "en": "In practice"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.06,
+          0.3,
+          0.54,
+          0.77
+        ],
+        "en": {
+          "title": "Tips from practice",
+          "items": [
+            {
+              "head": "Know your receivers",
+              "text": "Which templates, which versions, which dates."
+            },
+            {
+              "head": "Fill the mandatory fields first",
+              "text": "Then the optional ones your receivers really use."
+            },
+            {
+              "head": "Check before sending",
+              "text": "Schema and business rules, every time."
+            },
+            {
+              "head": "Keep the history",
+              "text": "Corrections as AMEND deliveries, never silent overwrites."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "A few tips from practice. Know your receivers: which templates, which versions, and which dates each one needs. Fill the mandatory fields first, and then the optional ones that your receivers really use. Check every file before it leaves the house, against the schema and the business rules. And keep the history: send corrections as amend deliveries that refer to the original, instead of silently overwriting data."
+      }
+    },
+    {
+      "id": "benefits",
+      "chapter": {
+        "en": "What it brings"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.06,
+          0.3,
+          0.55,
+          0.78
+        ],
+        "en": {
+          "title": "What it brings",
+          "items": [
+            {
+              "head": "Produce once",
+              "text": "One format for all distributors and insurers."
+            },
+            {
+              "head": "Load the same way",
+              "text": "Data from every fund house in one structure."
+            },
+            {
+              "head": "Check before sending",
+              "text": "Schema and business rules catch errors early."
+            },
+            {
+              "head": "Ready for the next rule",
+              "text": "New requirements are added to the standard once."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "What does this mean in practice? A fund house produces its regulatory data once, in one format, and serves every distributor and insurer from it. Receivers load the data of all fund houses the same way. Every file can be checked automatically before it is sent. And when the next rule arrives, the industry adds it to the standard once."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was regulatory reporting with FundsXML. In the next film, you see how the quality of fund data is checked. Thanks for watching."
+      }
+    }
+  ]
+}

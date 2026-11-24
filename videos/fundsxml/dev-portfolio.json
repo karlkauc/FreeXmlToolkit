@@ -1,0 +1,262 @@
+{
+  "_comment": "Developers series, film 4: slides and a run in FreeXmlToolkit (FundsXmlDevPortfolioDocVideo).",
+  "id": "dev-portfolio",
+  "scenario": "FundsXmlDevPortfolioDocVideo",
+  "link": "fundsxml.org",
+  "title": {
+    "en": "Portfolios and asset master data"
+  },
+  "description": {
+    "en": "The portfolio part of a FundsXML document: positions with their value and weight, the instrument-specific block (equities, bonds, fund units, options, FX forwards, cash), the link from a position to its asset in AssetMasterData through UniqueID (xs:ID and xs:IDREF), a broken link found by the schema, portfolio breakdowns, and how fund-of-fund look-through is modelled."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "In this film you read the portfolio of a fund, follow a position to its master data, and see how the schema protects that link. It takes about six minutes."
+      }
+    },
+    {
+      "id": "portfolio",
+      "chapter": {
+        "en": "The portfolio"
+      },
+      "say": {
+        "en": "The portfolio is part of the fund's dynamic data. Portfolios can hold several portfolios, each with a NAV date, the valuation day, and a list of positions."
+      }
+    },
+    {
+      "id": "position",
+      "chapter": {
+        "en": "A position"
+      },
+      "say": {
+        "en": "Each position starts with a UniqueID, and identifiers like the ISIN. Then come its currency, its total value in the fund currency, and its weight: eight point three three percent of the net asset value. The last block depends on the kind of instrument. For a share, it holds the number of units and the price."
+      }
+    },
+    {
+      "id": "shape",
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.1,
+          0.4,
+          0.7
+        ],
+        "en": {
+          "title": "The shape of a position",
+          "items": [
+            {
+              "head": "Common head",
+              "text": "UniqueID, identifiers, currency, TotalValue, TotalPercentage."
+            },
+            {
+              "head": "One instrument block",
+              "text": "Equity, Bond, ShareClass, Option, FXForward, Account, …"
+            },
+            {
+              "head": "Quantity inside",
+              "text": "Units, Nominal, Shares or Contracts."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Every position has the same shape. A common head: the link to the asset, its value in the fund currency, and its weight. Then exactly one block for the kind of instrument, chosen from about twenty: equity, bond, fund units, options, futures, currency forwards, swaps, deposits, accounts and more. The quantity sits inside that block: units for a share, a nominal for a bond, contracts for an option."
+      }
+    },
+    {
+      "id": "kinds",
+      "say": {
+        "en": "A bond has a nominal value and a price in percent instead. A fund unit holds a number of shares. An option holds contracts. And cash, here call money, needs hardly more than its value."
+      }
+    },
+    {
+      "id": "link",
+      "chapter": {
+        "en": "Master data"
+      },
+      "say": {
+        "en": "What a security is, is not repeated in every position. The UniqueID points to the asset master data further down. There, asset ID_001 is described once: Apple, a share from the United States, with the LEI of its issuer. If several funds or portfolios hold the same share, its master data still appears only once."
+      }
+    },
+    {
+      "id": "asset",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.08,
+          0.3,
+          0.52,
+          0.74
+        ],
+        "en": {
+          "title": "An asset in AssetMasterData",
+          "items": [
+            {
+              "head": "UniqueID",
+              "text": "The anchor the positions point to."
+            },
+            {
+              "head": "Identifiers and name",
+              "text": "ISIN, other codes, the official name."
+            },
+            {
+              "head": "Currency and AssetType",
+              "text": "A two-letter code: EQ, BO, SC, OP, FX, AC …"
+            },
+            {
+              "head": "AssetDetails",
+              "text": "One block for the kind: issuer, coupon, strike, counterparty …"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "An asset has its own fixed shape. The UniqueID is the anchor. Then come its identifiers and its name, its currency, and the asset type, a two-letter code: E Q for equity, B O for bond, S C for a fund's share class, O P for an option, F X for a currency forward, and so on. Asset details hold what is specific to the kind: the issuer of a share, the coupon of a bond, the strike of an option, or the counterparty of a forward."
+      }
+    },
+    {
+      "id": "bond",
+      "say": {
+        "en": "Now a bond, from the position to its asset. The position holds a nominal of six point two million euro, and a price of one hundred point eight percent. Nominal times price gives the value of six point two five million. On the asset side, the bond is described once: a German government bond, with its issuer and the issuer's LEI, the maturity date in August twenty thirty-two, and a fixed coupon of one point seven percent."
+      }
+    },
+    {
+      "id": "fundunit",
+      "say": {
+        "en": "And a fund unit. The position holds two hundred thousand shares at fifty euro. The asset is of type S C, a share class of another fund, with the management company of that fund as its issuer. This is the starting point for look-through: the target fund can be delivered in the same file, with its own portfolio."
+      }
+    },
+    {
+      "id": "fxforward",
+      "say": {
+        "en": "Here is a currency forward. On the asset side: buy five million euro, sell five point four million dollars, maturity at the end of December, and the counterparty with its LEI. On the position side, the total value is the forward's current market value, which can also be negative."
+      }
+    },
+    {
+      "id": "idref",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.35,
+          0.62,
+          0.85
+        ],
+        "en": {
+          "title": "UniqueID: ID and IDREF",
+          "items": [
+            {
+              "head": "Asset: xs:ID",
+              "text": "Unique in the whole document."
+            },
+            {
+              "head": "Position: xs:IDREF",
+              "text": "Must point to an existing asset."
+            },
+            {
+              "head": "A valid XML name",
+              "text": "Must not start with a digit, for example ID_001."
+            },
+            {
+              "head": "Keep it stable",
+              "text": "The same asset keeps its ID across deliveries."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Technically, this is a link the XML parser itself checks. On the asset, UniqueID is declared as an ID: it must be unique in the whole document. On the position, it is an ID reference: it must point to an existing ID. The value must be a valid XML name, so it must not start with a digit. A good habit is a stable value: the same asset keeps the same ID from one delivery to the next."
+      }
+    },
+    {
+      "id": "break",
+      "chapter": {
+        "en": "A broken link"
+      },
+      "say": {
+        "en": "The schema protects this link. Change the UniqueID of the first position to an asset that does not exist, and press F8. The schema reports that there is no asset with this ID."
+      }
+    },
+    {
+      "id": "repair",
+      "say": {
+        "en": "Set the ID back, validate again, and the document is in order."
+      }
+    },
+    {
+      "id": "breakdowns",
+      "chapter": {
+        "en": "Breakdowns and look-through"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.1,
+          0.4,
+          0.7
+        ],
+        "en": {
+          "title": "Portfolio breakdowns",
+          "items": [
+            {
+              "head": "Pre-calculated weights",
+              "text": "By country, currency, sector, asset class."
+            },
+            {
+              "head": "Several dimensions",
+              "text": "Combined and nested, for example country by currency."
+            },
+            {
+              "head": "Allow for rounding",
+              "text": "Small differences to the sum of positions are normal."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "A portfolio can also carry breakdowns: the fund's weights by country, currency, sector or asset class, already calculated by the sender. A breakdown can combine several dimensions, for example country and currency, and can be nested. The receiver can use them as they are, and should allow for small rounding differences. Breakdowns are useful for receivers who only need an overview, such as a factsheet, and do not want to aggregate every position themselves."
+      }
+    },
+    {
+      "id": "lookthrough",
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.1,
+          0.38,
+          0.66
+        ],
+        "en": {
+          "title": "Look-through for funds of funds",
+          "items": [
+            {
+              "head": "Position in a fund",
+              "text": "Kind ShareClass, pointing to the target fund."
+            },
+            {
+              "head": "Target fund",
+              "text": "Its own Fund block, with its own portfolio."
+            },
+            {
+              "head": "PositionsDecomposed",
+              "text": "Fund holdings replaced by the scaled-down underlying positions."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "And funds that hold other funds? A position of the kind ShareClass points to the target fund. The target fund can be delivered in the same file, as a fund of its own, with its own portfolio. And a portfolio can also carry decomposed positions, where fund holdings are replaced by the scaled-down positions of the target funds. That is how look-through works in FundsXML: through the fund hierarchy, not through extra fields on each position."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was the portfolio and its master data. In the next film, you see how transactions and investor flows are recorded. Thanks for watching."
+      }
+    }
+  ]
+}

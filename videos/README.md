@@ -53,8 +53,8 @@ python3 scripts/make-video.py --series fundsxml-business --set fundsxml --lang e
 | # | Id | Title | Status |
 |---|----|-------|--------|
 | 1 | `biz-why` | Why fund data needs a standard | recorded |
-| 2 | `biz-content` | What a FundsXML delivery contains | planned |
-| 3 | `biz-regulatory` | Regulatory reporting with FundsXML | planned |
+| 2 | `biz-content` | What a FundsXML delivery contains | recorded (`FundsXmlBizContentDocVideo`) |
+| 3 | `biz-regulatory` | Regulatory reporting with FundsXML | recorded |
 | 4 | `biz-quality` | Trust in the data: quality and control | planned |
 | 5 | `biz-project` | Introducing FundsXML: a project from A to Z | planned |
 
@@ -64,8 +64,8 @@ python3 scripts/make-video.py --series fundsxml-business --set fundsxml --lang e
 |---|----|-------|--------|
 | 1 | `dev-setup` | Set up FreeXmlToolkit for FundsXML | recorded (`FundsXmlDevSetupDocVideo`) |
 | 2 | `dev-anatomy` | Anatomy of a delivery: structure and ControlData | recorded (`FundsXmlDevAnatomyDocVideo`) |
-| 3 | `dev-funds` | Funds, share classes and NAV | planned |
-| 4 | `dev-portfolio` | Portfolios and asset master data | planned |
+| 3 | `dev-funds` | Funds, share classes and NAV | recorded (`FundsXmlDevFundsDocVideo`) |
+| 4 | `dev-portfolio` | Portfolios and asset master data | recorded (`FundsXmlDevPortfolioDocVideo`) |
 | 5 | `dev-transactions` | Transactions and investor flows | planned |
 | 6 | `dev-regulatory` | Regulatory templates in XML | planned |
 | 7 | `dev-validate` | Validate and check data quality | planned |

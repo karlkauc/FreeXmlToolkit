@@ -1,0 +1,334 @@
+{
+  "_comment": "Developers series, film 3: slides and a run in FreeXmlToolkit (FundsXmlDevFundsDocVideo).",
+  "id": "dev-funds",
+  "scenario": "FundsXmlDevFundsDocVideo",
+  "link": "fundsxml.org",
+  "title": {
+    "en": "Funds, share classes and NAV"
+  },
+  "description": {
+    "en": "The fund part of a FundsXML document: fund identifiers and names, SingleFundFlag with single funds and umbrellas, FundStaticData and FundDynamicData, the total net asset value, share classes with prices, shares outstanding and amounts in several currencies (AmountType with ccy), action codes, and checking ISIN and LEI check digits in FreeXmlToolkit."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "In this film you read the fund part of a FundsXML document: the fund, its net asset value and its share classes, and you check an identifier. It takes about six minutes."
+      }
+    },
+    {
+      "id": "fund",
+      "chapter": {
+        "en": "The fund"
+      },
+      "say": {
+        "en": "Below Funds comes the fund itself. It is identified by its LEI, the global Legal Entity Identifier. It has an official name, and a fund currency, here euro. The fund currency matters: the fund's total values are given in it, and the positions of its portfolio are valued in it."
+      }
+    },
+    {
+      "id": "flag",
+      "say": {
+        "en": "The SingleFundFlag decides the structure below. True means a single fund, whose share classes follow directly. False means an umbrella fund, which contains subfunds, and each subfund has its own share classes."
+      }
+    },
+    {
+      "id": "structure",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.1,
+          0.4,
+          0.72
+        ],
+        "en": {
+          "title": "Single fund or umbrella",
+          "items": [
+            {
+              "head": "SingleFundFlag = true",
+              "text": "Fund → SingleFund → ShareClasses.",
+              "tag": "single fund"
+            },
+            {
+              "head": "SingleFundFlag = false",
+              "text": "Fund → Subfunds → Subfund → ShareClasses.",
+              "tag": "umbrella"
+            },
+            {
+              "head": "Same building blocks",
+              "text": "Static data, dynamic data, portfolio and share classes on each level."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Here are the two shapes side by side. A single fund has one portfolio and a list of share classes below SingleFund. An umbrella, for example a SICAV, lists its subfunds below Subfunds. Each subfund has its own static and dynamic data, its own portfolio and its own share classes. The building blocks are the same in both shapes, so code that reads a share class works for both."
+      }
+    },
+    {
+      "id": "static",
+      "chapter": {
+        "en": "Static and dynamic data"
+      },
+      "say": {
+        "en": "FundStaticData holds what rarely changes. Here, the inception date, and the ongoing costs of one point eight percent, with the date they were published."
+      }
+    },
+    {
+      "id": "staticmore",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.1,
+          0.4,
+          0.7
+        ],
+        "en": {
+          "title": "More static data",
+          "items": [
+            {
+              "head": "Legal data",
+              "text": "Legal form, domicile, management company."
+            },
+            {
+              "head": "People and benchmarks",
+              "text": "Fund managers, benchmarks, classification."
+            },
+            {
+              "head": "Mostly optional",
+              "text": "Fill what your receivers need, and agree on it."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Static data can hold much more: the fund's legal data and domicile, its managers, its benchmarks, its classification, and its costs. Most of it is optional. A delivery fills what its receivers need, and sender and receiver agree on that in advance."
+      }
+    },
+    {
+      "id": "nav",
+      "say": {
+        "en": "FundDynamicData holds what changes with every valuation. Total asset values list one entry per date. This one is for the first of October; its nature is official, as opposed to an estimate. The total net asset value is one hundred twelve point five million. And every amount carries its currency, in the attribute ccy."
+      }
+    },
+    {
+      "id": "amounts",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.38,
+          0.68
+        ],
+        "en": {
+          "title": "Amounts in FundsXML",
+          "items": [
+            {
+              "head": "Number plus currency",
+              "text": "<Amount ccy=\"EUR\">112500000</Amount>"
+            },
+            {
+              "head": "Several currencies at once",
+              "text": "One Amount per currency, side by side."
+            },
+            {
+              "head": "Flags",
+              "text": "isFundCcy and isShareClassCcy mark the reference amounts."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "This pattern is used everywhere in FundsXML. An amount is a number with its currency in the attribute ccy. The same amount may appear several times, once per currency. And optional flags mark which one is in the fund currency, and which one in the share class currency. So a receiver never has to guess the currency, or convert a value again."
+      }
+    },
+    {
+      "id": "shareclass",
+      "chapter": {
+        "en": "Share classes"
+      },
+      "say": {
+        "en": "Further down are the share classes. The first one has its own ISIN, a name, and its currency, the US dollar. Its price has an action code C, for create, a NAV date, the price currency, the nature official, and the NAV price: one hundred forty-two dollars and eighty-seven cents."
+      }
+    },
+    {
+      "id": "currencies",
+      "say": {
+        "en": "The share class has its own total net asset value, given twice: in the fund currency, euro, and in the share class currency, dollar. And six hundred thousand shares are outstanding. Multiply them by the price, and you get the dollar amount."
+      }
+    },
+    {
+      "id": "second",
+      "say": {
+        "en": "The second share class is the euro class of the same fund. It has its own ISIN, its own name and its own price, in euro. Compare the two: the same fund, the same portfolio, but different currencies, different prices, and a different number of shares. That is exactly what share classes are for."
+      }
+    },
+    {
+      "id": "classmore",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.08,
+          0.3,
+          0.52,
+          0.74
+        ],
+        "en": {
+          "title": "More share class data",
+          "items": [
+            {
+              "head": "Income and hedging",
+              "text": "Distributing or accumulating; currency hedged or not."
+            },
+            {
+              "head": "Investing",
+              "text": "Minimum investments, subscription and redemption rules."
+            },
+            {
+              "head": "Registration and fees",
+              "text": "Countries of registration, costs, fees."
+            },
+            {
+              "head": "Action codes",
+              "text": "C create, M modify, D delete."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "A share class can carry much more: whether it distributes or accumulates income, whether it is currency hedged, minimum investments, the countries where it is registered, its fees, and performance figures. Action codes create, modify or delete entries, so a delivery can also update data that a receiver already has."
+      }
+    },
+    {
+      "id": "names",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.38,
+          0.68
+        ],
+        "en": {
+          "title": "Names and languages",
+          "items": [
+            {
+              "head": "Official name",
+              "text": "The legal name, as in the prospectus."
+            },
+            {
+              "head": "More names",
+              "text": "Short names and marketing names where needed."
+            },
+            {
+              "head": "Several languages",
+              "text": "Texts can be given in several languages side by side."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Names deserve a word, too. Every fund and every share class has an official name, the legal name from the prospectus. Short names and marketing names can follow where a receiver needs them. And texts can be given in several languages side by side, so one delivery can serve receivers in different countries. Do not build your keys on names, though: names change, identifiers stay."
+      }
+    },
+    {
+      "id": "identifiers",
+      "chapter": {
+        "en": "Identifiers"
+      },
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.1,
+          0.4,
+          0.7
+        ],
+        "en": {
+          "title": "Identifiers",
+          "items": [
+            {
+              "head": "ISIN",
+              "text": "12 characters: country, national code, check digit.",
+              "tag": "share classes, securities"
+            },
+            {
+              "head": "LEI",
+              "text": "20 characters, the last two are check digits.",
+              "tag": "companies"
+            },
+            {
+              "head": "Other codes",
+              "text": "National and vendor codes, side by side."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Identifiers are the key to every match between systems. Share classes and securities use ISINs. Companies, such as the fund, the management company or an issuer, use LEIs. National codes and vendor codes can be given as well. Both ISIN and LEI end in check digits, so a typing error can be found without asking anyone."
+      }
+    },
+    {
+      "id": "checker",
+      "say": {
+        "en": "Is the ISIN of this share class correct? Open the FundsXML panel, and type it into the identifier checker. The checker knows the structure and the check digit of ISINs and LEIs. This one is valid. The letters A T in front stand for Austria."
+      }
+    },
+    {
+      "id": "typo",
+      "say": {
+        "en": "Change a single digit, and the check digit no longer fits. Typing errors like this are caught before the data goes anywhere."
+      }
+    },
+    {
+      "id": "lei",
+      "say": {
+        "en": "The same works for LEIs. Paste the LEI of the fund, and the checker confirms its two check digits. For a whole document, the button Check Identifiers Online looks up all its codes in the public registers."
+      }
+    },
+    {
+      "id": "tips",
+      "chapter": {
+        "en": "Reading tips"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.06,
+          0.3,
+          0.54,
+          0.77
+        ],
+        "en": {
+          "title": "Tips for reading fund data",
+          "items": [
+            {
+              "head": "Read both shapes",
+              "text": "Single funds and umbrellas, decided by SingleFundFlag."
+            },
+            {
+              "head": "Use each entry's own date",
+              "text": "NavDate belongs to each value; ContentDate is only the default."
+            },
+            {
+              "head": "Always read ccy",
+              "text": "Never assume the currency of an amount."
+            },
+            {
+              "head": "Expect lists",
+              "text": "Several dates, prices and names may appear side by side."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "A few tips for code that reads fund data. Read both shapes: single funds and umbrellas, decided by the SingleFundFlag. Use the date of each entry: every price and total value has its own NAV date, and the content date of the delivery is only the default. Always read the currency attribute, and never assume it. And expect lists: several dates, several prices, and names in several languages can appear side by side."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was the fund part of a delivery. In the next film, you read the portfolio and the asset master data. Thanks for watching."
+      }
+    }
+  ]
+}

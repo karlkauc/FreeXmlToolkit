@@ -636,6 +636,10 @@ def compose(board, lang, work, out):
     runs = screen_runs(board)
     events = json.loads((work / "events.json").read_text())["events"] if runs else []
     starts = {e["id"]: e["t"] for e in events if e["type"] == "scene-start"}
+    recorded = [s["id"] for r in runs for s in r]
+    if runs and sorted(recorded, key=lambda i: starts.get(i, -1)) != recorded:
+        sys.exit("the scenario plays the recorded scenes in another order than the storyboard: "
+                 + ", ".join(sorted(recorded, key=lambda i: starts.get(i, -1))))
     finish = {e["id"]: e["t"] for e in events if e["type"] == "scene-end"}
     cards = [s for s in board["scenes"] if "card" in s]
     intro = next(s for s in cards if s["card"] == "title")
