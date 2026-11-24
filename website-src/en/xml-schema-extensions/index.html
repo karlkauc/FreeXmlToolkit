@@ -1,0 +1,23 @@
+title: XML Schema extensions – FreeXmlToolkit
+description: The FreeXmlToolkit namespaces used inside xs:appinfo - example values and the origin of flattened components.
+
+<main id="main">
+<section class="page-head"><div class="wrap"><div class="eyebrow">Namespace</div><h1 class="page-title">XML Schema extensions</h1></div></section>
+<section class="section"><div class="wrap prose">
+<p>This address is an XML namespace name. FreeXmlToolkit writes a few elements of its own into <code>xs:appinfo</code> of a schema, and these namespaces identify them. Nothing is loaded from here: a namespace name only has to be unique.</p>
+<h2>http://freexmltoolkit.org/xml-schema-extensions</h2>
+<p><code>fxt:exampleValues</code> holds example values of an element or attribute. The toolkit shows them in the generated documentation (&ldquo;Sample Data&rdquo;), offers them in the editor's auto-completion and uses them when it generates sample XML.</p>
+<pre><code>&lt;xs:appinfo&gt;
+  &lt;fxt:exampleValues xmlns:fxt="http://freexmltoolkit.org/xml-schema-extensions"&gt;
+    &lt;fxt:example value="TRX-0815"/&gt;
+  &lt;/fxt:exampleValues&gt;
+&lt;/xs:appinfo&gt;</code></pre>
+<p>The Altova form <code>altova:exampleValues</code> (namespace <code>http://www.altova.com/xml-schema-extensions</code>) is read as well.</p>
+<h2 id="flattening">http://freexmltoolkit.org/schema/flattening</h2>
+<p><code>fxt:sourceFile</code> records which included file a component came from when a schema made of several files is flattened into one.</p>
+<h2>Other schema processors</h2>
+<p>Validators ignore the content of <code>xs:appinfo</code>, so these elements change nothing about how a schema validates.</p>
+<p>All tags the toolkit reads from schema annotations: <a href="{{root}}docs/reference/xsddoc-tags/">XSD documentation tags</a>.</p>
+</div></section>
+
+</main>

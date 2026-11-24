@@ -11,7 +11,11 @@ Options -Indexes
   RewriteCond %{HTTP_HOST} ^www\. [NC]
   RewriteRule ^ https://freexmltoolkit.org%{REQUEST_URI} [R=301,L]
   # the old page names of the prototype
-  RewriteRule ^(features|industries|enterprise|ai|compare|download|news|about|imprint|privacy)$ /$1/ [R=301,L]
+  RewriteRule ^(features|industries|enterprise|ai|compare|download|news|about|imprint|privacy|xml-schema-extensions|de/xml-schema-extensions)$ /$1/ [R=301,L]
+  # namespace names the application writes into schemas (xs:appinfo) - explained on one page
+  RewriteRule ^schema/flattening/?$ /xml-schema-extensions/#flattening [R=301,NE,L]
+  # some browsers ask for the documentation's icon at the site root
+  RewriteRule ^img/favicon\.svg$ /docs/img/favicon.svg [R=301,L]
 </IfModule>
 
 <IfModule mod_headers.c>
@@ -32,12 +36,14 @@ Options -Indexes
   ExpiresByType image/webp "access plus 30 days"
   ExpiresByType image/svg+xml "access plus 30 days"
   ExpiresByType image/png "access plus 30 days"
+  ExpiresByType image/x-icon "access plus 30 days"
   ExpiresByType font/woff2 "access plus 1 year"
 </IfModule>
 
 <IfModule mod_mime.c>
   AddType font/woff2 .woff2
   AddType image/webp .webp
+  AddType image/x-icon .ico
   AddType image/svg+xml .svg
   AddType application/manifest+json .webmanifest
 </IfModule>

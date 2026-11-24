@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>XML Schema extensions – FreeXmlToolkit</title>
+<meta name="description" content="The FreeXmlToolkit namespaces used inside xs:appinfo - example values and the origin of flattened components.">
+<link rel="canonical" href="https://freexmltoolkit.org/xml-schema-extensions/">
+<link rel="alternate" hreflang="en" href="https://freexmltoolkit.org/xml-schema-extensions/">
+<link rel="alternate" hreflang="de" href="https://freexmltoolkit.org/de/xml-schema-extensions/">
+<link rel="alternate" hreflang="x-default" href="https://freexmltoolkit.org/xml-schema-extensions/">
+<meta name="theme-color" content="#2a284c">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FreeXmlToolkit">
+<meta property="og:title" content="XML Schema extensions – FreeXmlToolkit">
+<meta property="og:description" content="The FreeXmlToolkit namespaces used inside xs:appinfo - example values and the origin of flattened components.">
+<meta property="og:url" content="https://freexmltoolkit.org/xml-schema-extensions/">
+<meta property="og:image" content="https://freexmltoolkit.org/assets/brand/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../assets/brand/app-icon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/brand/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../assets/brand/apple-touch-icon.png">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script src="../assets/js/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="wrap">
+<a class="brand" href="../" aria-label="FreeXmlToolkit home"><img src="../assets/brand/lockup-horizontal-on-dark.svg" alt="" width="181" height="30"></a>
+<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+<nav class="site-nav" id="site-nav" aria-label="Main"><a href="../features/">Features</a><a href="../industries/">Industries</a><a href="../enterprise/">Enterprise</a><a href="../ai/">AI</a><a href="../compare/">Compare</a><a href="../docs/">Docs</a><a class="lang" href="../de/xml-schema-extensions/" hreflang="de" lang="de">Deutsch</a><a class="btn" href="../download/">Download</a></nav>
+</div>
+</header>
+<main id="main">
+<section class="page-head"><div class="wrap"><div class="eyebrow">Namespace</div><h1 class="page-title">XML Schema extensions</h1></div></section>
+<section class="section"><div class="wrap prose">
+<p>This address is an XML namespace name. FreeXmlToolkit writes a few elements of its own into <code>xs:appinfo</code> of a schema, and these namespaces identify them. Nothing is loaded from here: a namespace name only has to be unique.</p>
+<h2>http://freexmltoolkit.org/xml-schema-extensions</h2>
+<p><code>fxt:exampleValues</code> holds example values of an element or attribute. The toolkit shows them in the generated documentation (&ldquo;Sample Data&rdquo;), offers them in the editor's auto-completion and uses them when it generates sample XML.</p>
+<pre><code>&lt;xs:appinfo&gt;
+  &lt;fxt:exampleValues xmlns:fxt="http://freexmltoolkit.org/xml-schema-extensions"&gt;
+    &lt;fxt:example value="TRX-0815"/&gt;
+  &lt;/fxt:exampleValues&gt;
+&lt;/xs:appinfo&gt;</code></pre>
+<p>The Altova form <code>altova:exampleValues</code> (namespace <code>http://www.altova.com/xml-schema-extensions</code>) is read as well.</p>
+<h2 id="flattening">http://freexmltoolkit.org/schema/flattening</h2>
+<p><code>fxt:sourceFile</code> records which included file a component came from when a schema made of several files is flattened into one.</p>
+<h2>Other schema processors</h2>
+<p>Validators ignore the content of <code>xs:appinfo</code>, so these elements change nothing about how a schema validates.</p>
+<p>All tags the toolkit reads from schema annotations: <a href="../docs/reference/xsddoc-tags/">XSD documentation tags</a>.</p>
+</div></section>
+
+</main>
+<footer class="site-footer on-navy">
+<div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand"><img src="../assets/brand/lockup-horizontal-on-dark.svg" alt="FreeXmlToolkit" width="181" height="30"><p>Free and open source under Apache 2.0.</p></div>
+<div><h2>Product</h2><ul><li><a href="../features/">Features</a></li><li><a href="../industries/">Industries</a></li><li><a href="../enterprise/">Enterprise</a></li><li><a href="../ai/">AI &amp; automation</a></li><li><a href="../compare/">Compare</a></li><li><a href="../screenshots/">Screenshots</a></li></ul></div>
+<div><h2>Project</h2><ul><li><a href="../news/">News</a></li><li><a href="../about/">About</a></li><li><a href="https://github.com/sponsors/karlkauc">Sponsor</a></li><li><a href="https://github.com/karlkauc/FreeXmlToolkit">GitHub</a></li></ul></div>
+<div><h2>Help</h2><ul><li><a href="../docs/">Documentation</a></li><li><a href="../faq/">FAQ</a></li><li><a href="../docs/reference/faq/">Troubleshooting</a></li><li><a href="https://github.com/karlkauc/FreeXmlToolkit/issues/new/choose">Report a problem</a></li></ul></div>
+<div><h2>Legal</h2><ul><li><a href="../imprint/">Imprint</a></li><li><a href="../privacy/">Privacy</a></li><li><a href="../docs/reference/licenses/">Licenses</a></li></ul></div>
+</div>
+<div class="foot-bottom"><span>© 2024–2026 Karl Kauc</span><span>Product names are trademarks of their owners.</span></div>
+</div>
+</footer>
+</body>
+</html>

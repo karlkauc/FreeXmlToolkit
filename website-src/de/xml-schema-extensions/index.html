@@ -1,0 +1,23 @@
+title: XML-Schema-Erweiterungen – FreeXmlToolkit
+description: Die Namensräume von FreeXmlToolkit in xs:appinfo - Beispielwerte und die Herkunft zusammengeführter Komponenten.
+
+<main id="main">
+<section class="page-head"><div class="wrap"><div class="eyebrow">Namensraum</div><h1 class="page-title">XML-Schema-Erweiterungen</h1></div></section>
+<section class="section"><div class="wrap prose">
+<p>Diese Adresse ist der Name eines XML-Namensraums. FreeXmlToolkit schreibt einige eigene Elemente in <code>xs:appinfo</code> eines Schemas, und diese Namensräume kennzeichnen sie. Von hier wird nichts geladen: Der Name eines Namensraums muss nur eindeutig sein.</p>
+<h2>http://freexmltoolkit.org/xml-schema-extensions</h2>
+<p><code>fxt:exampleValues</code> enthält Beispielwerte eines Elements oder Attributs. Das Toolkit zeigt sie in der erzeugten Dokumentation („Sample Data“), bietet sie in der Autovervollständigung des Editors an und verwendet sie beim Erzeugen von Beispiel-XML.</p>
+<pre><code>&lt;xs:appinfo&gt;
+  &lt;fxt:exampleValues xmlns:fxt="http://freexmltoolkit.org/xml-schema-extensions"&gt;
+    &lt;fxt:example value="TRX-0815"/&gt;
+  &lt;/fxt:exampleValues&gt;
+&lt;/xs:appinfo&gt;</code></pre>
+<p>Die Altova-Form <code>altova:exampleValues</code> (Namensraum <code>http://www.altova.com/xml-schema-extensions</code>) wird ebenfalls gelesen.</p>
+<h2 id="flattening">http://freexmltoolkit.org/schema/flattening</h2>
+<p><code>fxt:sourceFile</code> hält fest, aus welcher eingebundenen Datei eine Komponente stammt, wenn ein Schema aus mehreren Dateien zu einer zusammengeführt wird.</p>
+<h2>Andere Schema-Prozessoren</h2>
+<p>Validatoren ignorieren den Inhalt von <code>xs:appinfo</code>, diese Elemente ändern also nichts daran, wie ein Schema validiert.</p>
+<p>Alle Angaben, die das Toolkit aus Schema-Anmerkungen liest: <a href="{{root}}docs/reference/xsddoc-tags/">XSD documentation tags</a> (englisch).</p>
+</div></section>
+
+</main>
