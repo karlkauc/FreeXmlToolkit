@@ -825,11 +825,16 @@ def publish(out, film_id=None):
     if target is None:
         return
     target.mkdir(parents=True, exist_ok=True)
-    number = film_number(film_id) if SET and film_id else None
     for suffix in (".mp4", ".srt", ".txt"):
         source = out.with_suffix(suffix)
-        copy_file(source, target, f"{number:02}-{source.name}" if number else source.name)
+        copy_file(source, target, copy_name(source, film_id))
     print(f"copied to {target}")
+
+
+def copy_name(source, film_id):
+    """The name a film's file gets in the collection folder: in a set, with its number in front."""
+    number = film_number(film_id) if SET and film_id else None
+    return f"{number:02}-{source.name}" if number else source.name
 
 
 def copy_file(source, target, name=None):
@@ -927,7 +932,8 @@ def series(lang, spec):
     out.with_suffix(".txt").write_text("\n".join([spec["title"][lang], "", *chapters]) + "\n", encoding="utf-8")
     playlist = ROOT / "build" / "videos" / f"{spec['id']}-{lang}.m3u"
     playlist.write_text("#EXTM3U\n" + "".join(
-        f"#EXTINF:{int(seconds_of(f))},{b['title'][lang]}\n{f.name}\n" for f, b in zip(films, boards)), encoding="utf-8")
+        f"#EXTINF:{int(seconds_of(f))},{b['title'][lang]}\n{copy_name(f, b['id'])}\n" for f, b in zip(films, boards)),
+        encoding="utf-8")
     print(f"wrote {out} ({start / 60:.1f} min, {len(films)} films), {playlist.name}")
     publish(out)
     target = copy_target()
