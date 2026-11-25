@@ -157,7 +157,13 @@ class PublishPdfDocVideo {
             });
 
             video.scene("generate", () -> {
-                video.click(doc.<Node>find("#fop-generate"));
+                // the button asks for the target in the system's save dialog, which the recording cannot drive:
+                // point at the button and generate into a file of the example folder
+                video.moveTo(doc.<Node>find("#fop-generate"));
+                video.pause(400);
+                FopPanel fop = doc.findType(FopPanel.class);
+                java.io.File pdf = xml.resolveSibling("invoice.pdf").toFile();
+                doc.onFx(() -> fop.generateTo(pdf));
                 video.pause(1500);
                 try {
                     doc.waitUntilFx(90, () -> {
