@@ -610,7 +610,7 @@ controls; controls outside the tab order need an entry in `KEYBOARD_ALTERNATIVES
 `scripts/check-website.py` checks links, both languages and the chrome. The documentation is published at
 `freexmltoolkit.org/docs/` (`mkdocs.yml` `site_url`; `docs/.htaccess` relaxes the site's CSP for the MkDocs theme;
 the GitHub Pages copy redirects there from `docs/overrides/main.html`). Upload: `scripts/upload-website.py --dir /www
---docs` (documentation), then without `--docs` (website); FTPS, password from `~/.netrc`.
+--docs` (documentation), then without `--docs` (website); FTPS, password from `~/.netrc`; or `--rsync user@host:/var/www/freexmltoolkit.org` for an own Apache server (VHost `scripts/hosting/apache-freexmltoolkit.org.conf`, `AllowOverride All` - the free web space ignores `.htaccess`).
 Videos page `/videos/`: `scripts/website-videos.py` copies the single films of the tutorial series (`videos/series.json`
 only; the FundsXML films are not published) from `build/videos/`: MP4s into `build/website-videos-mp4/` → assets of the GitHub
 pre-release `media-videos` (the web space is too small; never "latest"; the package workflow skips `media-*` tags),

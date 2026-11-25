@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Uploads website/ to the web space of freexmltoolkit.org over FTPS (explicit TLS).
+"""Uploads website/ to the web space of freexmltoolkit.org over FTPS (explicit TLS), or with rsync over SSH.
 
 The password is read from ~/.netrc (never from the command line or the repository):
 
@@ -11,6 +11,12 @@ Usage:
     python3 scripts/upload-website.py --dir /www
     python3 scripts/upload-website.py --dir /www --docs [--dry-run]    the documentation, to <dir>/docs
     python3 scripts/upload-website.py --dir /www --videos [--dry-run]  the tutorial videos, to <dir>/videos
+
+With --rsync USER@HOST:/var/www/freexmltoolkit.org the files go to an own server instead (the SSH key is
+the one of your ssh configuration; no password here). --docs, --videos, --dry-run and --all work the same:
+
+    python3 scripts/upload-website.py --rsync fxt@vps:/var/www/freexmltoolkit.org --docs
+    python3 scripts/upload-website.py --rsync fxt@vps:/var/www/freexmltoolkit.org
 
 Uploads only files whose size differs from the server copy (or all with --all). Never deletes anything.
 Runs scripts/check-website.py first and stops when it reports a problem.
@@ -134,10 +140,24 @@ def upload(ftp, source, target, dry_run, everything):
     print(f"{sent} file(s) {'to upload' if dry_run else 'uploaded'}, {skipped} unchanged")
 
 
+def rsync(source, dest, dry_run, everything):
+    """Copies source/ into dest/ over SSH; never deletes (website, docs and videos share one tree)."""
+    cmd = ["rsync", "-rt", "--no-links", "--itemize-changes", "--chmod=D755,F644",
+           "--exclude", ".DS_Store", "--exclude", "._.DS_Store"]
+    if dry_run:
+        cmd.append("--dry-run")
+    if everything:
+        cmd.append("--ignore-times")
+    cmd += [str(source).rstrip("/") + "/", dest.rstrip("/") + "/"]
+    return subprocess.run(cmd).returncode
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--list", nargs="?", const="/", metavar="PATH", help="list the server folder and exit")
     ap.add_argument("--dir", help="server folder that holds the website (the document root)")
+    ap.add_argument("--rsync", metavar="DEST",
+                    help="rsync over SSH to DEST (user@host:/document/root) instead of FTPS")
     ap.add_argument("--dry-run", action="store_true", help="only show what would be uploaded")
     ap.add_argument("--all", action="store_true", help="upload every file, not only changed ones")
     ap.add_argument("--insecure", action="store_true", help="plain FTP without TLS (only if the server has no TLS)")
@@ -147,22 +167,31 @@ def main():
                     help="upload build/website-videos (subtitles and posters, scripts/website-videos.py) to <dir>/videos instead of the website")
     args = ap.parse_args()
 
-    source, target, build = SITE, args.dir, None
+    if args.rsync and (args.dir or args.list is not None):
+        sys.exit("--rsync replaces --dir and --list")
+    source, target, build = SITE, args.rsync or args.dir, None
     if args.list is None:
-        if not args.dir:
-            sys.exit("--dir is required (see --list)")
+        if not target:
+            sys.exit("--dir or --rsync is required (see --list)")
         if args.docs:
             # built before the connection is opened: the server closes an idle control connection
             build = tempfile.TemporaryDirectory(prefix="fxt-docs-")
             if subprocess.run(["mkdocs", "build", "--strict", "-q", "-d", build.name], cwd=ROOT).returncode != 0:
                 sys.exit("mkdocs build failed; nothing uploaded")
-            source, target = pathlib.Path(build.name), args.dir.rstrip("/") + "/docs"
+            source, target = pathlib.Path(build.name), target.rstrip("/") + "/docs"
         elif args.videos:
-            source, target = ROOT / "build" / "website-videos", args.dir.rstrip("/") + "/videos"
+            source, target = ROOT / "build" / "website-videos", target.rstrip("/") + "/videos"
             if not any(source.glob("*.vtt")):
                 sys.exit("build/website-videos is empty; run scripts/website-videos.py first")
         elif subprocess.run([sys.executable, str(ROOT / "scripts" / "check-website.py")]).returncode != 0:
             sys.exit("check-website.py reported problems; nothing uploaded")
+
+    if args.rsync:
+        try:
+            return rsync(source, target, args.dry_run, args.all)
+        finally:
+            if build:
+                build.cleanup()
 
     ftp = connect(args.insecure)
     try:
