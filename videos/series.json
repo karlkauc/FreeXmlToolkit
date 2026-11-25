@@ -23,6 +23,7 @@
     "xsd-analysis",
     "large-files",
     "xspec",
-    "profiler"
+    "profiler",
+    "xproc"
   ]
 }
