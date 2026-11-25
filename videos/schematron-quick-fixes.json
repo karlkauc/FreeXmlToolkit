@@ -7,55 +7,146 @@
     "de": "Probleme mit Schematron-Schnellkorrekturen beheben"
   },
   "description": {
-    "en": "A Schematron can bring its own corrections (SQF). FreeXmlToolkit offers them at the lightbulb in the editor and in the problems list, applies them to the affected text only and validates again.",
-    "de": "Ein Schematron kann seine Korrekturen gleich mitbringen (SQF). FreeXmlToolkit bietet sie an der Glühbirne im Editor und in der Problemliste an, ändert nur die betroffene Stelle und prüft sofort neu."
+    "de": "Schematron-Regeln lesen, ein Dokument dagegen prüfen und die Probleme mit Schnellkorrekturen beheben: über die Glühbirne, die Problemliste und mit Eingabe. Zum Schluss eine eigene Regel mit Korrektur.",
+    "en": "Read Schematron rules, validate a document against them and fix the problems with quick fixes: from the light bulb, the problem list and with input. Finally, a rule of your own with a fix."
   },
   "scenes": [
     {
       "id": "intro",
       "card": "title",
       "say": {
-        "en": "In this video you check a document against Schematron rules, and you correct the problems with the quick fixes the rules bring along.",
-        "de": "In diesem Video prüfen Sie ein Dokument gegen Schematron-Regeln und beheben die Probleme mit den Schnellkorrekturen, die die Regeln mitbringen."
+        "de": "In diesem Video prüfen Sie ein Dokument gegen Schematron-Regeln und beheben die Probleme mit den Schnellkorrekturen, die die Regeln gleich mitbringen. Zum Schluss schreiben Sie eine eigene Regel mit Korrektur.",
+        "en": "In this video you validate a document against Schematron rules and fix the problems with the quick fixes the rules bring along. Finally, you write a rule of your own with a fix."
+      }
+    },
+    {
+      "id": "why",
+      "chapter": {
+        "de": "Wozu Schematron",
+        "en": "Why Schematron"
+      },
+      "say": {
+        "de": "Ein Schema legt die Struktur fest: welche Elemente es gibt und welche Werte erlaubt sind. Viele Regeln kann es aber nicht ausdrücken, zum Beispiel Abhängigkeiten zwischen Werten oder Vorgaben eines Unternehmens. Dafür gibt es Schematron. Die Bücherliste hier ist als XML völlig in Ordnung, verletzt aber einige Hausregeln: Beim ersten Buch fehlt die Kennung, der Autor heißt writer statt author, die ISBN enthält Leerzeichen, und es gibt veraltete und unfertige Elemente. Solche Regeln stehen oft in Fachvorgaben, etwa bei Meldungen an Behörden, und Schematron macht sie prüfbar.",
+        "en": "A schema sets the structure: which elements exist and which values are allowed. But many rules are beyond it, for example dependencies between values or a company's own requirements. That is what Schematron is for. The book list here is perfectly fine as XML, but it breaks a few house rules: the first book has no id, the author is called writer instead of author, the ISBN contains spaces, and there are obsolete and unfinished elements. Rules like these often come from specifications, for reports to authorities for example, and Schematron makes them checkable."
+      }
+    },
+    {
+      "id": "rules",
+      "chapter": {
+        "de": "Die Regeldatei lesen",
+        "en": "Reading the rule file"
+      },
+      "say": {
+        "de": "So sieht die Regeldatei aus. Ein pattern fasst Regeln zusammen. Eine rule nennt mit context, wo sie gilt, hier für jedes Element book. Ein assert beschreibt, was gelten muss, und meldet sonst seinen Text. Ein report meldet, wenn etwas vorkommt, das nicht vorkommen soll, etwa ein veraltetes Element. Die Tests sind XPath-Ausdrücke, also dieselbe Sprache wie in der Abfragekonsole. Ein Dokument kann gleichzeitig gegen ein Schema und ein Schematron geprüft werden: Das Schema sichert die Struktur, das Schematron die Inhalte. Beide ergänzen sich.",
+        "en": "This is what the rule file looks like. A pattern groups rules. A rule names with context where it applies, here for every book element. An assert says what must hold and reports its text otherwise. A report fires when something is present that should not be, an obsolete element for example. The tests are XPath expressions, the same language as in the Query Console. A document can be checked against a schema and a Schematron at the same time: the schema secures the structure, the Schematron the content. They complement each other."
+      }
+    },
+    {
+      "id": "fixes-def",
+      "say": {
+        "de": "Das Besondere an dieser Datei: Die Regeln bringen Korrekturen mit. Das Attribut sqf:fix am assert verweist auf ein sqf:fix-Element weiter unten. Es hat einen Titel, der später in der Auswahl erscheint, eine Beschreibung und eine Aktion, zum Beispiel: Ersetze writer durch author und behalte den Text. Dieses Format heißt Schematron Quick Fix und ist ein offener Standard. Wer Regeln schreibt, kann so gleich mitliefern, wie ein Fehler zu beheben ist, und der Empfänger muss nicht raten.",
+        "en": "What is special about this file: the rules bring fixes along. The sqf:fix attribute on the assert points to an sqf:fix element further down. It has a title that later appears in the choice, a description and an action, for example: replace writer with author and keep the text. This format is called Schematron Quick Fix and is an open standard. Whoever writes the rules can deliver how to fix a mistake along with them, and the recipient does not have to guess."
       }
     },
     {
       "id": "validate",
-      "chapter": { "en": "Validate with Schematron", "de": "Mit Schematron prüfen" },
+      "chapter": {
+        "de": "Schematron wählen und prüfen",
+        "en": "Choosing and validating"
+      },
       "say": {
-        "en": "A small book list is open. In the Validation tool, the rule file quickfix-demo.sch is chosen as the Schematron. F8 validates, and the problems are listed below the editor.",
-        "de": "Eine kleine Bücherliste ist geöffnet. Im Werkzeug Validierung ist die Regeldatei quickfix-demo.sch als Schematron gewählt. F8 prüft, und die Probleme stehen unter dem Editor."
+        "de": "Zurück in der Bücherliste. Im Werkzeug Validierung ist die Regeldatei quickfix-demo.sch als Schematron gewählt. Sie wählen sie mit Ändern oder legen die Datei einfach auf die Zeile. F8 prüft gegen Schema und Schematron zugleich, und die Probleme stehen unter dem Editor. Jede Meldung trägt als Quelle Schematron, und der Tooltip zeigt den Testausdruck und den Pfad des Elements. Die Wahl des Schematrons merkt sich FreeXmlToolkit für das Dokument, beim nächsten Öffnen ist sie wieder da.",
+        "en": "Back in the book list. In the Validation tool, the rule file quickfix-demo.sch is chosen as the Schematron. You choose it with Change or simply drop the file on the row. F8 checks against schema and Schematron at once, and the problems are listed below the editor. Each message has Schematron as its source, and the tooltip shows the test expression and the element's path. FreeXmlToolkit remembers the chosen Schematron for the document, so it is back the next time you open it."
+      }
+    },
+    {
+      "id": "tooltip",
+      "say": {
+        "de": "Fahren Sie mit der Maus über eine Meldung. Der Tooltip zeigt den vollen Text, den Test aus der Regeldatei und den XPath des betroffenen Elements. Ein Klick springt im Editor genau dorthin. Gerade bei langen Dokumenten mit vielen gleichartigen Elementen erkennen Sie so sofort, welches gemeint ist.",
+        "en": "Move the mouse over a message. The tooltip shows the full text, the test from the rule file and the XPath of the affected element. A click jumps exactly there in the editor. Especially in long documents with many elements of the same kind, you see at once which one is meant."
       }
     },
     {
       "id": "bulb",
-      "chapter": { "en": "The lightbulb", "de": "Die Glühbirne" },
+      "chapter": {
+        "de": "Die Glühbirne",
+        "en": "The light bulb"
+      },
       "say": {
-        "en": "A line with problems that can be fixed shows a yellow lightbulb in the margin. A click on it lists the corrections the rules offer. Choose Rename writer to author.",
-        "de": "Eine Zeile mit behebbaren Problemen zeigt am Rand eine gelbe Glühbirne. Ein Klick darauf listet die Korrekturen, die die Regeln anbieten. Wählen Sie: writer in author umbenennen."
+        "de": "Eine Zeile mit behebbaren Problemen zeigt am Rand eine gelbe Glühbirne. Ein Klick darauf listet die Korrekturen, die die Regeln für diese Stelle anbieten, jeweils mit Titel und Beschreibung. Wählen Sie: writer in author umbenennen. Fährt die Maus über einen Eintrag, zeigt ein Tooltip die ausführliche Beschreibung aus der Regeldatei, damit Sie wissen, was die Korrektur genau ändert.",
+        "en": "A line with fixable problems shows a yellow light bulb in the margin. A click on it lists the fixes the rules offer for this place, each with a title and a description. Choose: rename writer to author. Hovering over an entry shows the full description from the rule file in a tooltip, so you know exactly what the fix changes."
       }
     },
     {
       "id": "fixed",
       "say": {
-        "en": "The fix changes only this place, the rest of the document stays as it is. Then the document is validated again, and the problem is gone.",
-        "de": "Die Korrektur ändert nur diese Stelle, der Rest des Dokuments bleibt, wie er ist. Danach wird sofort neu geprüft, und das Problem ist verschwunden."
+        "de": "Die Korrektur ändert nur diese Stelle, Einrückung und Kommentare des übrigen Dokuments bleiben, wie sie sind. Danach wird sofort neu geprüft, und das Problem ist aus der Liste verschwunden. Strg Z nimmt eine Korrektur in einem einzigen Schritt zurück, falls sie doch nicht passt. Bei Dokumenten aus Versionsverwaltungen ist das wichtig: Der Vergleich zeigt danach nur die eine geänderte Zeile.",
+        "en": "The fix changes only this place; indentation and comments in the rest of the document stay as they are. Then it validates again at once, and the problem is gone from the list. Ctrl Z takes a fix back in one single step, in case it does not fit after all. That matters for documents under version control: the diff afterwards shows only the one changed line."
+      }
+    },
+    {
+      "id": "undo",
+      "say": {
+        "de": "Probieren Sie es aus: Strg Z, und writer steht wieder da, samt der Meldung. Strg Y stellt die Korrektur wieder her. Korrekturen sind also gefahrlos, Sie können jede einzeln prüfen und bei Bedarf zurücknehmen, auch nach mehreren weiteren Schritten.",
+        "en": "Try it: Ctrl Z, and writer is back, along with its message. Ctrl Y restores the fix. So fixes are safe: you can check each one and take it back when needed, even after several further steps."
+      }
+    },
+    {
+      "id": "alt-enter",
+      "say": {
+        "de": "Mit der Tastatur geht es schneller: Steht die Schreibmarke in einer Zeile mit Problemen, öffnet Alt Enter dieselbe Auswahl direkt an der Schreibmarke. Manche Probleme haben mehrere Korrekturen zur Wahl. Für die fehlende Zusammenfassung etwa gibt es zwei: ein leeres Element anlegen oder das Buch als nicht zusammengefasst markieren. Die bevorzugte steht oben. Escape schließt die Auswahl, ohne etwas zu ändern.",
+        "en": "With the keyboard it is quicker: when the caret is in a line with problems, Alt Enter opens the same choice right at the caret. Some problems offer several fixes. For the missing summary, for example, there are two: add an empty element, or mark the book as not summarized. The preferred one is at the top. Escape closes the choice without changing anything."
       }
     },
     {
       "id": "list",
-      "chapter": { "en": "From the problems list", "de": "Aus der Problemliste" },
+      "chapter": {
+        "de": "Aus der Problemliste",
+        "en": "From the problem list"
+      },
       "say": {
-        "en": "The problems list offers the fixes too: right-click a problem, then Quick Fix. Here the spaces in the ISBN become dashes.",
-        "de": "Auch die Problemliste bietet die Korrekturen an: Rechtsklick auf ein Problem, dann Schnellkorrektur. Hier werden die Leerzeichen in der ISBN zu Bindestrichen."
+        "de": "Auch die Problemliste bietet die Korrekturen an: Rechtsklick auf ein Problem, dann Schnellkorrektur. Hier werden die Leerzeichen in der ISBN zu Bindestrichen, mit einem regulären Ausdruck aus der Regeldatei. Das ist praktisch, wenn die betroffene Stelle gerade nicht sichtbar ist: Sie müssen nicht erst dorthin springen.",
+        "en": "The problem list offers the fixes too: right-click a problem, then Quick Fix. Here the spaces in the ISBN become dashes, using a regular expression from the rule file. That is handy when the affected place is not in view: you do not have to jump there first."
+      }
+    },
+    {
+      "id": "user-entry",
+      "say": {
+        "de": "Manche Korrekturen brauchen eine Angabe von Ihnen. Fehlt der Verlag, fragt die Korrektur in einem Dialog nach dem Namen, mit einem Vorschlag aus der Regeldatei. Nach OK steht das neue Element an der richtigen Stelle im Buch. So lassen sich auch Werte ergänzen, die das Programm nicht erraten kann. Abbrechen im Dialog lässt das Dokument unverändert.",
+        "en": "Some fixes need input from you. When the publisher is missing, the fix asks for the name in a dialog, with a suggestion from the rule file. After OK, the new element sits in the right place in the book. That way you can also add values the program cannot guess. Cancel in the dialog leaves the document unchanged."
+      }
+    },
+    {
+      "id": "report",
+      "say": {
+        "de": "Bei vielen Dateien hilft der Validierungsbericht im Werkzeug Validierung. Er listet alle Meldungen als Tabelle, mit einer Spalte Beheben, aus der Sie die Korrekturen ebenfalls starten. Hat sich das Dokument seit der letzten Prüfung geändert, weist der Editor darauf hin, dass erst neu geprüft werden muss. Den Bericht können Sie auch speichern und weitergeben, etwa an den Lieferanten der Daten.",
+        "en": "With many problems, the validation report in the Validation tool helps. It lists every message as a table, with a Fix column from which you start the fixes too. When the document has changed since the last check, the editor points out that it must be validated again first. You can save and pass on the report too, for example to whoever supplies the data."
+      }
+    },
+    {
+      "id": "own",
+      "chapter": {
+        "de": "Eine eigene Korrektur schreiben",
+        "en": "Writing a fix of your own"
+      },
+      "say": {
+        "de": "Jetzt eine eigene Regel: Jedes Buch braucht eine Sprache. In der Regeldatei kommt ein assert mit dem Test, dass das Attribut lang vorhanden ist, und eine Korrektur addLanguage. Ihre Aktion ist sqf:add: Sie legt das Attribut lang mit dem Wert de an. Speichern Sie die Regeldatei mit Strg S. Die Autovervollständigung hilft auch in der Regeldatei: Sie kennt die Elemente von Schematron und Schematron Quick Fix. Regeln prüfen im Werkzeug Validierung zeigt Fehler in der Regeldatei selbst.",
+        "en": "Now a rule of your own: every book needs a language. The rule file gets an assert that tests for the lang attribute, and a fix called addLanguage. Its action is sqf:add: it adds the lang attribute with the value de. Save the rule file with Ctrl S. Auto-completion helps in the rule file too: it knows the elements of Schematron and Schematron Quick Fix. Check Rules in the Validation tool shows mistakes in the rule file itself."
+      }
+    },
+    {
+      "id": "own-apply",
+      "say": {
+        "de": "Zurück in der Bücherliste prüft F8 mit der geänderten Regeldatei. Beide Bücher melden jetzt die fehlende Sprache. Die Glühbirne bietet die neue Korrektur an, und ein Klick setzt das Attribut. Neben sqf:add gibt es delete zum Entfernen, replace zum Ersetzen von Elementen und stringReplace für Korrekturen im Text. Die Demo-Datei zeigt alle vier. Dazu kommen Korrekturen mit Eingabe wie beim Verlag und allgemeine Korrekturen, die mehrere Regeln gemeinsam nutzen.",
+        "en": "Back in the book list, F8 validates with the changed rule file. Both books now report the missing language. The light bulb offers the new fix, and one click sets the attribute. Besides sqf:add there are delete to remove, replace to swap elements, and stringReplace for corrections inside text. The demo file shows all four. On top come fixes with input, like the publisher, and general fixes that several rules share."
       }
     },
     {
       "id": "outro",
       "card": "outro",
       "say": {
-        "en": "That were Schematron quick fixes. Every fix is one undo step. The documentation shows how to write fixes of your own.",
-        "de": "Das waren Schematron-Schnellkorrekturen. Jede Korrektur ist ein Schritt, den Rückgängig zurücknimmt. Die Dokumentation zeigt, wie Sie eigene Korrekturen schreiben."
+        "de": "Das waren Schematron-Schnellkorrekturen. Schalten Sie Während der Eingabe validieren ein, dann erscheinen die Glühbirnen schon beim Tippen. Wie Sie Regeln Schritt für Schritt debuggen, zeigt das Video zum Debugger.",
+        "en": "That were Schematron quick fixes. Switch on Validate While Typing, and the light bulbs appear while you type. How to debug rules step by step is shown in the debugger video."
       }
     }
   ]

@@ -3,68 +3,171 @@
   "scenario": "XsltDebugDocVideo",
   "docs": "guides/transform-query/debug/",
   "title": {
-    "en": "Run and debug an XSLT stylesheet",
-    "de": "Ein XSLT-Stylesheet ausführen und debuggen"
+    "en": "Debug an XSLT stylesheet",
+    "de": "Ein XSLT-Stylesheet debuggen"
   },
   "description": {
-    "en": "Run an XSLT stylesheet on an XML file in FreeXmlToolkit, set a breakpoint, step through the transformation, and look at the current node and the variables.",
-    "de": "Ein XSLT-Stylesheet in FreeXmlToolkit auf eine XML-Datei anwenden, einen Haltepunkt setzen, die Transformation Schritt für Schritt verfolgen und den aktuellen Knoten und die Variablen ansehen."
+    "de": "Einem XSLT-Stylesheet bei der Arbeit zusehen: Haltepunkte, Schritte, Variablen, Aufrufliste, Auswerten, bedingte Haltepunkte, Logpoints, Abdeckung und die Ausgabe Schritt für Schritt.",
+    "en": "Watch an XSLT stylesheet at work: breakpoints, steps, variables, call stack, evaluate, conditional breakpoints, logpoints, coverage and the output step by step."
   },
   "scenes": [
     {
       "id": "intro",
       "card": "title",
       "say": {
-        "en": "In this video you run an XSLT stylesheet, and then you watch it work: with a breakpoint, step by step.",
-        "de": "In diesem Video führen Sie ein XSLT-Stylesheet aus und sehen ihm danach bei der Arbeit zu: mit einem Haltepunkt, Schritt für Schritt."
+        "de": "In diesem Video sehen Sie einem XSLT-Stylesheet bei der Arbeit zu. Sie halten es an, gehen Schritt für Schritt weiter, schauen sich Variablen an und lassen es nur dort anhalten, wo es Sie interessiert.",
+        "en": "In this video you watch an XSLT stylesheet at work. You stop it, move on step by step, look at variables, and make it stop only where you are interested."
       }
     },
     {
-      "id": "run",
-      "chapter": { "en": "Run the stylesheet", "de": "Das Stylesheet ausführen" },
+      "id": "why",
+      "chapter": {
+        "de": "Wozu ein Debugger",
+        "en": "Why a debugger"
+      },
       "say": {
-        "en": "In the Transform tool, the input order.xml and the stylesheet order-summary.xslt are chosen. Run Transform starts it, and the result appears below the editor, in the output panel.",
-        "de": "Im Werkzeug Umwandeln sind die Eingabe order.xml und das Stylesheet order-summary.xslt gewählt. Transformation ausführen startet es, und das Ergebnis erscheint unter dem Editor im Bereich Ausgabe."
+        "de": "Ein Stylesheet liefert ein falsches Ergebnis, aber keine Fehlermeldung. Statt zu raten, schauen Sie ihm mit dem Debugger zu. Das Beispiel order-debug.xslt macht aus der Bestellung eine Tabelle. Für jeden Artikel berechnet die Funktion line-total den Betrag, speichert ihn in der Variablen total und schreibt eine Meldung. Die Eingabe ist wieder order.xml, im Werkzeug Umwandeln schon gewählt. Der Debugger nutzt einen eigenen Lauf mit allen Informationen, das normale Ausführen bleibt dadurch so schnell wie immer.",
+        "en": "A stylesheet produces a wrong result, but no error message. Instead of guessing, you watch it with the debugger. The example order-debug.xslt turns the order into a table. For each item, the function line-total computes the amount, stores it in the variable total and writes a message. The input is order.xml again, already chosen in the Transform tool. The debugger uses a run of its own with all the information, so normal runs stay as fast as ever."
       }
     },
     {
       "id": "breakpoint",
-      "chapter": { "en": "Set a breakpoint", "de": "Einen Haltepunkt setzen" },
+      "chapter": {
+        "de": "Haltepunkt und Start",
+        "en": "Breakpoint and start"
+      },
       "say": {
-        "en": "To see what the stylesheet does, open it and set a breakpoint: click the margin next to the line that writes the quantity.",
-        "de": "Um zu sehen, was das Stylesheet tut, öffnen Sie es und setzen einen Haltepunkt: ein Klick in den Rand neben der Zeile, die die Menge schreibt."
+        "de": "Ein Haltepunkt sagt dem Debugger, wo er anhalten soll. Ein Klick in den Rand neben der Zeile setzt ihn, hier dort, wo die Variable total entsteht. Ein roter Punkt erscheint. Ein zweiter Klick entfernt ihn wieder. Haltepunkte bleiben pro Datei gespeichert, auch nach einem Neustart. Ein Haltepunkt mitten in einem mehrzeiligen Starttag gilt für das ganze Element, Sie müssen also nicht die genau richtige Zeile treffen.",
+        "en": "A breakpoint tells the debugger where to stop. A click in the margin next to the line sets it, here where the variable total is created. A red dot appears. A second click removes it again. Breakpoints are saved per file, even across restarts. A breakpoint in the middle of a start tag spanning several lines applies to the whole element, so you do not need to hit exactly the right line."
       }
     },
     {
       "id": "debug",
-      "chapter": { "en": "Debug", "de": "Debuggen" },
       "say": {
-        "en": "Debug starts the same run under the debugger. It stops at the breakpoint: the line is marked, and below you see the current node and the variables.",
-        "de": "Debuggen startet denselben Lauf im Debugger. Er hält am Haltepunkt an: Die Zeile ist markiert, und unten sehen Sie den aktuellen Knoten und die Variablen."
+        "de": "Debuggen startet denselben Lauf wie Transformation ausführen, aber unter Aufsicht. Er hält am Haltepunkt an: Die Zeile ist markiert, und unten öffnet sich der Debug-Bereich. Die Statuszeile nennt die Stelle, an der der Lauf steht. Ist das Stylesheet im Editor geändert, aber noch nicht gespeichert, debuggt der Debugger trotzdem genau den Text, den Sie sehen.",
+        "en": "Debug starts the same run as Run Transform, but under supervision. It stops at the breakpoint: the line is marked, and the debug area opens below. The status line names the place where the run stands. When the stylesheet has unsaved changes in the editor, the debugger still debugs exactly the text you see."
       }
     },
     {
-      "id": "step",
-      "chapter": { "en": "Step through", "de": "Schritt für Schritt" },
+      "id": "pane",
       "say": {
-        "en": "Continue runs to the next stop: the second item. Step Over goes on line by line.",
-        "de": "Weiter läuft bis zum nächsten Halt: dem zweiten Artikel. Überspringen geht Zeile für Zeile weiter."
+        "de": "Links stehen Variablen und Überwachung, rechts Aufrufliste, Meldungen, Haltepunkte und die Ausgabe bisher. Oben sind die Knöpfe zum Weitermachen. Eingabe anzeigen springt in die Eingabedatei und markiert den Knoten, den das Stylesheet gerade bearbeitet, hier den ersten Artikel. Die Aufteilung des Bereichs und die gewählten Reiter merkt sich FreeXmlToolkit für den nächsten Lauf.",
+        "en": "On the left are Variables and Watch, on the right Call Stack, Messages, Breakpoints and the output so far. At the top are the buttons to go on. Show Input jumps to the input file and marks the node the stylesheet is working on, here the first item. FreeXmlToolkit remembers the layout of the area and the chosen tabs for the next run."
       }
     },
     {
-      "id": "finish",
-      "chapter": { "en": "Run to the end", "de": "Zu Ende laufen lassen" },
+      "id": "continue",
+      "chapter": {
+        "de": "Schritt für Schritt",
+        "en": "Step by step"
+      },
       "say": {
-        "en": "Mute skips all breakpoints. Continue runs the transformation to the end, and the output shows the result.",
-        "de": "Stummschalten überspringt alle Haltepunkte. Weiter führt die Transformation zu Ende, und die Ausgabe zeigt das Ergebnis."
+        "de": "Fortsetzen läuft bis zum nächsten Halt. Weil der Haltepunkt in einer Schleife steht, hält der Lauf beim zweiten Artikel wieder an. In den Variablen sehen Sie, dass sich position geändert hat. Geänderte Werte sind hervorgehoben, so fällt auf, was der letzte Schritt bewirkt hat. Die Aufrufliste zeigt zusätzlich, beim wievielten von drei Durchläufen der Schleife Sie gerade sind.",
+        "en": "Continue runs to the next stop. Because the breakpoint sits in a loop, the run stops again at the second item. In Variables you see that position has changed. Changed values are highlighted, so you notice what the last step did. The call stack also shows in which of the loop's three passes you are."
+      }
+    },
+    {
+      "id": "step-over",
+      "say": {
+        "de": "Überspringen geht Zeile für Zeile weiter, ohne in Funktionen oder Templates hineinzugehen. Erst die Meldung, dann die Tabellenzeile. Das ist der übliche Weg, um einem Ablauf genau zu folgen. Ein Schritt geht immer eine ganze Zeile weiter, auch wenn darin mehrere Anweisungen stehen.",
+        "en": "Step Over goes on line by line, without going into functions or templates. First the message, then the table row. That is the usual way to follow a flow closely. A step always moves a whole line, even when the line holds several instructions."
+      }
+    },
+    {
+      "id": "step-into",
+      "say": {
+        "de": "Beim dritten Artikel steht der Lauf wieder an der Variablen total. Hineinspringen geht jetzt in die Funktion line-total hinein, die den Betrag berechnet. Der Editor zeigt die Funktion, und die Aufrufliste wächst um einen Eintrag. In den Variablen steht der Parameter item. Mit Rechtsklick auf Hineinspringen wählen Sie bei mehreren Aufrufen in einer Zeile gezielt, in welchen Sie gehen.",
+        "en": "At the third item, the run stands at the variable total again. Step Into now goes into the function line-total, which computes the amount. The editor shows the function, and the call stack grows by one entry. Variables shows the parameter item. With a right-click on Step Into you choose which call to enter when a line holds several."
+      }
+    },
+    {
+      "id": "step-out",
+      "say": {
+        "de": "Herausspringen führt die Funktion zu Ende und hält wieder in der aufrufenden Zeile. Dazu kommen Anhalten, um einen laufenden Lauf zu unterbrechen, Neu starten und Stoppen. Alle Knöpfe haben Tastenkürzel, der Tooltip eines Knopfs nennt seins.",
+        "en": "Step Out runs the function to its end and stops again in the calling line. On top come Pause to interrupt a running run, Restart and Stop. Every button has a shortcut, and its tooltip names it."
+      }
+    },
+    {
+      "id": "variables",
+      "chapter": {
+        "de": "Den Zustand ansehen",
+        "en": "Inspecting the state"
+      },
+      "say": {
+        "de": "Der Reiter Variablen zeigt den aktuellen Kontextknoten, position und last, die lokalen Variablen wie total und die globalen Parameter wie currency. Knoten lassen sich aufklappen, und ein Klick auf einen Wert öffnet ihn ganz, auch lange Texte. Die Werte stehen außerdem direkt im Editor am Zeilenende, und fährt die Maus über eine Variable, erscheint ihr Wert als Tooltip.",
+        "en": "The Variables tab shows the current context node, position and last, local variables such as total and global parameters such as currency. Nodes can be expanded, and a click on a value opens it in full, long texts too. The values also show right in the editor at the end of the line, and hovering over a variable shows its value as a tooltip."
+      }
+    },
+    {
+      "id": "call-stack",
+      "say": {
+        "de": "Die Aufrufliste zeigt, wie der Lauf hierher gekommen ist: welches Template, welche Schleife, mit dem wievielten Durchlauf. Ein Klick auf einen Eintrag zeigt die Variablen genau dieser Ebene. So verfolgen Sie verschachtelte Aufrufe zurück.",
+        "en": "The call stack shows how the run got here: which template, which loop, and in which pass. A click on an entry shows the variables of exactly that level. That way you trace nested calls back."
+      }
+    },
+    {
+      "id": "evaluate",
+      "say": {
+        "de": "Auswerten öffnet ein Fenster mit dem aktuellen Knoten. Darin rechnen Sie mit XPath, zum Beispiel den Preis mal zwei. Ausdrücke, die Sie öfter brauchen, legen Sie unter Überwachung ab, dann werden sie bei jedem Halt neu berechnet. Ein Ausdruck mit Fehler wird rot markiert, und die Meldung sagt, was nicht stimmt.",
+        "en": "Evaluate opens a window with the current node. In it you compute with XPath, for example the price times two. Expressions you need more often go under Watch, where they are recomputed at every stop. An expression with a mistake is marked red, and the message says what is wrong."
+      }
+    },
+    {
+      "id": "messages",
+      "say": {
+        "de": "Unter Meldungen stehen die Ausgaben von xsl:message, hier eine Zeile pro Artikel mit seinem Betrag. Ein Doppelklick springt zur Zeile, die die Meldung geschrieben hat. Wahlweise hält der Debugger bei jeder Meldung oder bei einem Laufzeitfehler an, genau an der Stelle, die ihn auslöst.",
+        "en": "Messages lists the output of xsl:message, here one line per item with its amount. A double-click jumps to the line that wrote the message. If you like, the debugger stops at every message or at a runtime error, right at the place that causes it."
+      }
+    },
+    {
+      "id": "conditional",
+      "chapter": {
+        "de": "Gezielt anhalten",
+        "en": "Stopping where it matters"
+      },
+      "say": {
+        "de": "Bei vielen Durchläufen wollen Sie nur an einer bestimmten Stelle halten. Rechtsklick auf den Haltepunkt, Haltepunkt-Eigenschaften. Als Bedingung tragen Sie einen XPath-Ausdruck ein, hier eine Menge größer als zwei. Neu starten, und der Lauf hält nur noch beim passenden Artikel. Statt einer Bedingung geht auch eine Trefferzahl, etwa erst beim fünften Durchlauf. Ein Haltepunkt mit Bedingung trägt ein Fragezeichen.",
+        "en": "With many passes you want to stop only at a certain place. Right-click the breakpoint, Breakpoint Properties. As the condition you enter an XPath expression, here a quantity greater than two. Restart, and the run stops only at the matching item. Instead of a condition, a hit count works too, for example only at the fifth pass. A breakpoint with a condition carries a question mark."
+      }
+    },
+    {
+      "id": "logpoint",
+      "say": {
+        "de": "Ein Logpoint hält nicht an, sondern schreibt eine Meldung, ohne dass Sie das Stylesheet ändern. Rechtsklick in den Rand, Logpoint hinzufügen. Teile in geschweiften Klammern sind XPath, hier die Artikelnummer. Die Meldungen erscheinen beim nächsten Lauf unter Meldungen. Ein Logpoint erscheint als blaue Raute im Rand. Bis zum Cursor ausführen mit Strg F10 lässt den Lauf dagegen einmalig bis zur Zeile der Schreibmarke laufen.",
+        "en": "A logpoint does not stop; it writes a message without you changing the stylesheet. Right-click the margin, Add Logpoint. Parts in curly braces are XPath, here the item number. The messages appear under Messages in the next run. A logpoint shows as a blue diamond in the margin. Run to Cursor with Ctrl F10, on the other hand, runs once up to the caret's line."
+      }
+    },
+    {
+      "id": "breakpoints-tab",
+      "say": {
+        "de": "Der Reiter Haltepunkte listet alle Haltepunkte, nach Datei geordnet, mit Bedingung und Trefferzahl. Ein Häkchen schaltet einen Haltepunkt ab, ohne ihn zu löschen. Stummschalten oben überspringt alle auf einmal. Haltepunkte lassen sich auch exportieren und in einem anderen Projekt wieder importieren.",
+        "en": "The Breakpoints tab lists every breakpoint, ordered by file, with condition and hit count. A tick switches a breakpoint off without deleting it. Mute at the top skips all of them at once. Breakpoints can also be exported and imported again in another project."
+      }
+    },
+    {
+      "id": "coverage",
+      "chapter": {
+        "de": "Ausgabe und Abdeckung",
+        "en": "Output and coverage"
+      },
+      "say": {
+        "de": "Abdeckung zeigt nach einem Lauf, welche Zeilen ausgeführt wurden: grün am Rand. Rot markiert Templates, die nie gelaufen sind, hier das Template für Geschenkverpackung. Solcher toter Code ist oft ein Hinweis auf einen falschen Match oder einen Tippfehler. Die Zählung zeigt außerdem, wie oft jede Zeile lief, und Meldungen listet die nie ausgeführten Teile.",
+        "en": "Coverage shows after a run which lines were executed: green in the margin. Red marks templates that never ran, here the template for gift wrapping. Dead code like that often hints at a wrong match or a typo. The count also shows how often each line ran, and Messages lists the parts that never ran."
+      }
+    },
+    {
+      "id": "output",
+      "say": {
+        "de": "Der Reiter Ausgabe zeigt, was das Stylesheet bis jetzt geschrieben hat. Ein Doppelklick auf eine Stelle der Ausgabe springt zur Zeile im Stylesheet, die sie erzeugt hat. Am Ende steht das fertige Ergebnis wie bei einem normalen Lauf im Bereich Ausgabe. Gerade bei HTML sehen Sie so, welche Anweisung welches Stück erzeugt hat.",
+        "en": "The Output tab shows what the stylesheet has written so far. A double-click on a place in the output jumps to the line in the stylesheet that produced it. At the end, the finished result is in the output area, as with a normal run. Especially with HTML, you see which instruction produced which piece."
       }
     },
     {
       "id": "outro",
       "card": "outro",
       "say": {
-        "en": "That was running and debugging XSLT. The documentation shows more: conditional breakpoints, watches, and coverage.",
-        "de": "Das war Ausführen und Debuggen von XSLT. Die Dokumentation zeigt mehr: bedingte Haltepunkte, Überwachungsausdrücke und Abdeckung."
+        "de": "Das war der XSLT-Debugger. Er funktioniert genauso für XQuery und für Schematron-Regeln. Wenn ein Stylesheet nicht falsch, sondern zu langsam ist, hilft der Profiler, dazu gibt es ein eigenes Video.",
+        "en": "That was the XSLT debugger. It works the same way for XQuery and for Schematron rules. When a stylesheet is not wrong but too slow, the profiler helps, and there is a video of its own for that."
       }
     }
   ]

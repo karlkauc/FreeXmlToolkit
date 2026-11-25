@@ -65,6 +65,17 @@ class XsdGraphicDocVideo {
         DocVideoRecorder video = new DocVideoRecorder(doc);
         video.start();
         try {
+            video.scene("why", () -> {
+                video.spoken(0.15);
+                String text = host.getActiveText().orElseThrow();
+                int from = text.indexOf("<xs:complexType name=\"OrderType\">");
+                CodeArea area = doc.findType(CodeArea.class);
+                Bounds start = doc.fx(() -> area.getCharacterBoundsOnScreen(from, from + 1).orElseThrow());
+                video.zoom(new BoundingBox(start.getMinX() - 40, start.getMinY() - 200, 1100, 600));
+                video.spoken(0.7);
+                video.zoomOut();
+            });
+
             video.scene("switch", () -> {
                 video.spoken(0.3);
                 List<Node> modes = viewSwitch(host);
@@ -102,6 +113,23 @@ class XsdGraphicDocVideo {
                 video.spoken(0.8);
                 pointAt(video, "order", "id");
                 pointAt(video, "order", "date");
+            });
+
+            video.scene("cards-more", () -> {
+                video.spoken(0.1);
+                pointAt(video, "order", "items");
+                Bounds button = doc.fx(() -> XsdGraphVideoProbe.expandButton(graph(host),
+                        XsdGraphVideoProbe.card(graph(host), "order", "items")));
+                video.click(button.getCenterX(), button.getCenterY());
+                video.pause(800);
+                video.spoken(0.4);
+                pointAt(video, "order", "items", "item");
+                video.spoken(0.75);
+                pointAt(video, "order", "customer");
+                Bounds card = doc.fx(() -> XsdGraphVideoProbe.bounds(graph(host), XsdGraphVideoProbe.card(graph(host), "order", "customer")));
+                video.click(card.getMinX() + 40, card.getCenterY());
+                video.pause(600);
+                video.zoomOut();
             });
 
             video.scene("frame", () -> {
@@ -185,6 +213,129 @@ class XsdGraphicDocVideo {
                 video.zoomOut();
             });
 
+            video.scene("attribute", () -> {
+                video.zoomOut();
+                VisualNode type = doc.fx(() -> XsdGraphVideoProbe.card(graph(host), "OrderType"));
+                Bounds tb = doc.fx(() -> XsdGraphVideoProbe.bounds(graph(host), type));
+                video.rightClick(tb.getMinX() + 40, tb.getCenterY());
+                video.pause(500);
+                Bounds addB = video.screenBounds(video.menuItem(I18n.t("XsdContextMenuFactory.add")));
+                video.moveTo(addB.getMinX() + 30, addB.getCenterY());
+                video.pause(800);
+                Node attr = video.menuItem(I18n.t("XsdContextMenuFactory.attribute"));
+                Bounds ab = video.screenBounds(attr);
+                // sideways into the submenu first: a slant over other items closes it
+                video.moveTo(ab.getMinX() + 10, addB.getCenterY());
+                video.moveTo(ab.getMinX() + 10, ab.getCenterY());
+                video.click(ab.getCenterX(), ab.getCenterY());
+                doc.waitUntilFx(10, () -> video.activeScene().getRoot().lookup("#new-node-name") != null);
+                video.pause(500);
+                Bounds dialog = doc.fx(() -> {
+                    Node root = video.activeScene().getRoot();
+                    return root.localToScreen(root.getBoundsInLocal());
+                });
+                video.zoom(dialog);
+                video.typeIntoFocused("status");
+                video.spoken(0.35);
+                Node docArea = video.inDialog("#new-node-documentation");
+                video.click(docArea);
+                video.typeIntoFocused(I18n.t("XsdContextMenuFactory.attribute").equals("Attribut")
+                        ? "Bearbeitungsstand der Bestellung" : "Processing state of the order");
+                video.spoken(0.8);
+                Node ok = doc.fx(() -> video.activeScene().getRoot().lookupAll(".button").stream()
+                        .filter(b -> b instanceof Button button && button.isDefaultButton()).findFirst().orElseThrow());
+                video.click(ok);
+                video.pause(1200);
+                video.zoomOut();
+                Node save = doc.fx(() -> doc.stage().getScene().getRoot().lookupAll(".button").stream()
+                        .filter(b -> b instanceof Labeled l && I18n.t("EditorHost.save-to-schema").equals(l.getText())
+                                && b.isVisible() && b.localToScreen(b.getBoundsInLocal()) != null)
+                        .findFirst().orElse(null));
+                if (save != null) {
+                    video.click(save);
+                    video.pause(800);
+                }
+            });
+
+            video.scene("properties", () -> {
+                VisualNode dd = doc.fx(() -> XsdGraphVideoProbe.card(graph(host), "OrderType", "deliveryDate"));
+                if (dd != null) {
+                    Bounds b = doc.fx(() -> XsdGraphVideoProbe.bounds(graph(host), dd));
+                    video.click(b.getMinX() + 40, b.getCenterY());
+                    video.pause(900);
+                }
+                zoomInspector(video);
+                video.spoken(0.6);
+                VisualNode id = doc.fx(() -> XsdGraphVideoProbe.card(graph(host), "OrderType", "id"));
+                if (id != null) {
+                    Bounds b = doc.fx(() -> XsdGraphVideoProbe.bounds(graph(host), id));
+                    video.zoomOut();
+                    video.click(b.getMinX() + 40, b.getCenterY());
+                    video.pause(900);
+                    zoomInspector(video);
+                }
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
+            video.scene("rules", () -> {
+                VisualNode note = doc.fx(() -> XsdGraphVideoProbe.card(graph(host), "OrderType", "note"));
+                if (note != null) {
+                    Bounds b = doc.fx(() -> XsdGraphVideoProbe.bounds(graph(host), note));
+                    video.rightClick(b.getMinX() + 40, b.getCenterY());
+                    video.pause(500);
+                    Node add = video.menuItem(I18n.t("XsdContextMenuFactory.add"));
+                    Bounds addB = video.screenBounds(add);
+                    video.moveTo(addB.getMinX() + 30, addB.getCenterY());
+                    video.pause(800);
+                    video.spoken(0.6);
+                    hidePopups();
+                }
+                video.spoken(0.95);
+            });
+
+            video.scene("overview", () -> {
+                Node schemaTab = doc.fx(() -> doc.stage().getScene().getRoot().lookupAll(".tab").stream()
+                        .filter(t -> t.lookupAll(".tab-label").stream()
+                                .anyMatch(l -> l instanceof Labeled label && label.getText() != null
+                                        && label.getText().endsWith("order.xsd")))
+                        .findFirst().orElseThrow());
+                video.click(schemaTab);
+                video.pause(800);
+                List<Node> modes = viewSwitch(host);
+                video.click(modes.get(modes.size() - 1));
+                video.pause(1800);
+                video.spoken(0.6);
+                Bounds editor = video.screenBounds(doc.find("#editorHost"));
+                video.zoom(new BoundingBox(editor.getMinX(), editor.getMinY(), editor.getWidth(), editor.getHeight() * 0.7));
+                video.spoken(0.95);
+                video.zoomOut();
+                video.click(modes.get(2));
+                video.pause(1200);
+            });
+
+            video.scene("export", () -> {
+                video.click(doc.<Node>find("#menu-file"));
+                video.pause(600);
+                video.click(video.inPopup("#menu-file-export-view"));
+                video.pause(1500);
+                javafx.stage.Window dialog = doc.fx(() -> javafx.stage.Window.getWindows().stream()
+                        .filter(w -> w instanceof javafx.stage.Stage st && st != doc.stage() && st.isShowing())
+                        .reduce((a, b) -> b).orElse(null));
+                if (dialog != null) {
+                    video.zoom(doc.fx(() -> new BoundingBox(dialog.getX(), dialog.getY(), dialog.getWidth(), dialog.getHeight())));
+                }
+                video.spoken(0.9);
+                video.key(KeyCode.ESCAPE, "Esc");
+                doc.onFx(() -> {
+                    if (dialog != null && dialog.isShowing()) {
+                        dialog.hide();
+                    }
+                });
+                hidePopups();
+                video.zoomOut();
+            });
+
             video.scene("text", () -> {
                 video.spoken(0.1);
                 Node schemaTab = doc.fx(() -> doc.stage().getScene().getRoot().lookupAll(".tab").stream()
@@ -207,6 +358,23 @@ class XsdGraphicDocVideo {
         } finally {
             video.stop();
         }
+    }
+
+    /** Zooms onto the Properties panel, or the right part of the window when it is hidden (type editor tabs). */
+    private void zoomInspector(DocVideoRecorder video) {
+        Node inspector = doc.find("#inspectorWrapper");
+        Bounds b = inspector == null ? null : doc.fx(() -> inspector.isVisible() ? inspector.localToScreen(inspector.getBoundsInLocal()) : null);
+        if (b == null) {
+            System.out.println("[video] inspector hidden");
+            b = new BoundingBox(DocVideoRecorder.WIDTH * 0.55, 80, DocVideoRecorder.WIDTH * 0.45, DocVideoRecorder.HEIGHT * 0.6);
+        }
+        video.zoom(b);
+    }
+
+    private void hidePopups() {
+        doc.onFx(() -> javafx.stage.Window.getWindows().stream()
+                .filter(w -> w instanceof javafx.stage.PopupWindow && w.isShowing()).toList()
+                .forEach(javafx.stage.Window::hide));
     }
 
     /** Glides the pointer onto a card. */

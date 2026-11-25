@@ -7,64 +7,143 @@
     "de": "Projekte: Schemas und Szenarien für einen ganzen Ordner"
   },
   "description": {
-    "en": "A FreeXmlToolkit project binds schemas, Schematron rules and transformation scenarios to files by pattern. Open a project, look at its bindings, validate all its files at once and run a scenario.",
-    "de": "Ein FreeXmlToolkit-Projekt bindet Schemas, Schematron-Regeln und Transformationsszenarien über Muster an Dateien. Ein Projekt öffnen, seine Zuordnungen ansehen, alle Dateien auf einmal validieren und ein Szenario ausführen."
+    "de": "Mit einem Projekt Schemas, Schematron-Regeln und Transformationen an ganze Ordner binden: Zuordnungen, Validierung aller Dateien, Szenarien und die Regressionsprüfung mit erwarteten Ergebnissen.",
+    "en": "Use a project to bind schemas, Schematron rules and transformations to whole folders: bindings, validating every file, scenarios and the regression check against expected results."
   },
   "scenes": [
     {
       "id": "intro",
       "card": "title",
       "say": {
-        "en": "In this video you work with a project. It keeps the schemas and transformations of a set of files in one file next to them.",
-        "de": "In diesem Video arbeiten Sie mit einem Projekt. Es hält die Schemas und Transformationen einer Gruppe von Dateien in einer Datei neben ihnen fest."
+        "de": "In diesem Video arbeiten Sie mit einem Projekt. Es hält in einer einzigen Datei fest, welches Schema, welche Regeln und welche Transformationen zu welchen Dateien gehören, für Sie und für Ihr ganzes Team.",
+        "en": "In this video you work with a project. In one single file it records which schema, which rules and which transformations belong to which files, for you and your whole team."
       }
     },
     {
       "id": "explorer",
-      "chapter": { "en": "An open project", "de": "Ein geöffnetes Projekt" },
+      "chapter": {
+        "de": "Wozu Projekte",
+        "en": "Why projects"
+      },
       "say": {
-        "en": "The example project Shop orders is open. The Explorer shows its folders: the orders, the schemas, and the stylesheets.",
-        "de": "Das Beispielprojekt Shop orders ist geöffnet. Der Explorer zeigt seine Ordner: die Bestellungen, die Schemas und die Stylesheets."
+        "de": "Stellen Sie sich einen Ordner mit Bestellungen vor, die alle gegen dasselbe Schema geprüft und mit demselben Stylesheet umgewandelt werden. Ohne Projekt wählen Sie Schema und Stylesheet für jede Datei neu. Das Beispielprojekt Shop orders ist geöffnet. Der Explorer zeigt seine Ordner: die Bestellungen, die Schemas und die Stylesheets. Die Projektdatei shop.fxtproj liegt daneben. Das Projekt hält all das fest, und jede Datei im Ordner weiß damit, wogegen sie geprüft wird und wie sie umgewandelt wird. Neue Bestellungen, die dazukommen, bekommen dieselben Regeln automatisch.",
+        "en": "Picture a folder of orders that are all checked against the same schema and transformed with the same stylesheet. Without a project, you pick schema and stylesheet again for every file. The example project Shop orders is open. The Explorer shows its folders: the orders, the schemas and the stylesheets. The project file shop.fxtproj sits next to them. The project records all of that, and every file in the folder then knows what it is checked against and how it is transformed. New orders that come in get the same rules automatically."
+      }
+    },
+    {
+      "id": "create",
+      "chapter": {
+        "de": "Anlegen und öffnen",
+        "en": "Creating and opening"
+      },
+      "say": {
+        "de": "Ein Projekt legen Sie über Datei, Projekt, Neues Projekt an und geben ihm einen Namen und einen Speicherort. Ein vorhandenes öffnen Sie mit Projekt öffnen oder per Doppelklick auf die Projektdatei im Explorer. Die zuletzt geöffneten Projekte stehen ebenfalls im Menü und auf der Startseite, und beim nächsten Start öffnet FreeXmlToolkit das letzte Projekt wieder. Ein Projekt kann auch nachträglich zu einem vorhandenen Ordner angelegt werden. Ihre Dateien bleiben dabei, wo sie sind, das Projekt verweist nur auf sie.",
+        "en": "You create a project with File, Project, New Project and give it a name and a location. You open an existing one with Open Project or by double-clicking the project file in the Explorer. Recently opened projects are listed in the menu and on the Welcome page too, and at the next start FreeXmlToolkit opens the last project again. A project can also be created later for an existing folder. Your files stay where they are; the project only points to them."
+      }
+    },
+    {
+      "id": "general",
+      "say": {
+        "de": "Datei, Projekt, Projekt-Einstellungen öffnet die Einstellungen. Unter Allgemein stehen der Name und die Ordner des Projekts. Jeder Ordner erscheint im Explorer als eigene Wurzel. Alle Pfade speichert das Projekt relativ zur Projektdatei, deshalb funktioniert es auf jedem Rechner, auf den Sie den Ordner kopieren. Mit Ordner hinzufügen nehmen Sie weitere Ordner auf, zum Beispiel Testdaten oder Lieferungen eines zweiten Partners. Die Reihenfolge bestimmt die Anzeige im Explorer.",
+        "en": "File, Project, Project Settings opens the settings. Under General are the project's name and its folders. Each folder appears in the Explorer as a root of its own. The project stores every path relative to the project file, so it works on any computer you copy the folder to. Add Folder takes in more folders, test data or deliveries of a second partner for example. The order sets how they show in the Explorer."
       }
     },
     {
       "id": "settings",
-      "chapter": { "en": "Bindings", "de": "Zuordnungen" },
+      "chapter": {
+        "de": "Zuordnungen",
+        "en": "Bindings"
+      },
       "say": {
-        "en": "File, Project, Project Settings. A binding says which schema, which Schematron and which scenario belong to which files. Here: every XML file in the folder orders.",
-        "de": "Datei, Projekt, Projekt-Einstellungen. Eine Zuordnung legt fest, welches Schema, welches Schematron und welches Szenario zu welchen Dateien gehören. Hier: alle XML-Dateien im Ordner orders."
+        "de": "Unter Zuordnungen legt eine Zeile fest, welches Schema, welches Schematron und welches Szenario zu welchen Dateien gehören. Die Dateien beschreibt ein Muster: orders Schrägstrich Stern Punkt xml heißt alle XML-Dateien im Ordner orders. Zwei Sterne stehen für beliebig viele Unterordner. Passen mehrere Zeilen, gewinnt die erste, die einen Wert nennt. Eine Zeile muss nicht alles nennen. Sie können etwa nur ein Schematron für alle XML-Dateien festlegen und das Schema einer anderen Zeile überlassen.",
+        "en": "Under Bindings, a row says which schema, which Schematron and which scenario belong to which files. A pattern describes the files: orders slash star dot xml means every XML file in the orders folder. Two stars stand for any number of subfolders. When several rows match, the first one that names a value wins. A row does not have to name everything. You can, for example, set only a Schematron for all XML files and leave the schema to another row."
+      }
+    },
+    {
+      "id": "binding",
+      "say": {
+        "de": "Ein Doppelklick auf eine Zuordnung öffnet sie zum Bearbeiten. Unter dem Muster steht gleich, auf wie viele Dateien des Projekts es passt, hier drei. So sehen Sie vor dem Speichern, ob das Muster stimmt. Eine Zuordnung des Projekts gilt vor der Angabe in der Datei selbst. Statt einer Datei aus dem Projekt kann das Schema auch über die Schema-Bibliothek oder einen Katalog kommen.",
+        "en": "A double-click on a binding opens it for editing. Right below the pattern you see how many files of the project it matches, here three. That way you know before saving whether the pattern is right. A binding of the project takes priority over what the file itself says. Instead of a file from the project, the schema can also come from the Schema Library or a catalog."
+      }
+    },
+    {
+      "id": "tooltip",
+      "say": {
+        "de": "Im Explorer zeigt der Tooltip einer Datei, was für sie gilt: das Projekt, das Schema, das Schematron und das Szenario. Über das Kontextmenü ordnen Sie markierte Dateien direkt zu, validieren sie oder führen ihr Szenario aus. So sehen auch Kolleginnen und Kollegen, die das Projekt zum ersten Mal öffnen, sofort, wie es aufgebaut ist.",
+        "en": "In the Explorer, a file's tooltip shows what applies to it: the project, the schema, the Schematron and the scenario. The context menu binds selected files directly, validates them or runs their scenario. That way colleagues who open the project for the first time see at once how it is set up."
       }
     },
     {
       "id": "open",
-      "chapter": { "en": "Validate a file", "de": "Eine Datei validieren" },
+      "chapter": {
+        "de": "Validieren",
+        "en": "Validating"
+      },
       "say": {
-        "en": "Open an order. The file names no schema, the project binds it. F8 checks it against the schema and the Schematron.",
-        "de": "Öffnen Sie eine Bestellung. Die Datei nennt kein Schema, das Projekt bindet es. F8 prüft sie gegen das Schema und das Schematron."
+        "de": "Öffnen Sie eine Bestellung. Die Datei selbst nennt kein Schema, trotzdem zeigt die Statusleiste order.xsd mit dem Hinweis Projekt: Das Schema kommt aus der Zuordnung. Auch die Autovervollständigung nutzt es. F8 prüft gegen das Schema und das Schematron zugleich. Das funktioniert auch für Dateien, die aus einem anderen System kommen und gar keine Schema-Angabe enthalten, ein häufiger Fall bei Lieferungen von außen.",
+        "en": "Open an order. The file itself names no schema, yet the status bar shows order.xsd with the note project: the schema comes from the binding. Auto-completion uses it too. F8 checks against the schema and the Schematron at once. That also works for files from another system that contain no schema reference at all, a common case with deliveries from outside."
       }
     },
     {
       "id": "all",
-      "chapter": { "en": "Validate the project", "de": "Das Projekt validieren" },
       "say": {
-        "en": "Validate Project checks every file of the project at once. One order has a price below zero.",
-        "de": "Projekt validieren prüft alle Dateien des Projekts auf einmal. Eine Bestellung hat einen Preis unter null."
+        "de": "Datei, Projekt, Projekt validieren prüft alle Dateien des Projekts auf einmal, jede mit ihrer Zuordnung. Das Ergebnis steht im Werkzeug Validierung: Eine Bestellung hat einen Preis unter null, das meldet die Regel aus dem Schematron. Ein Klick auf die Datei zeigt ihre Probleme. Bei vielen Dateien läuft die Prüfung im Hintergrund, und ein Fortschrittsbalken zeigt den Stand. Sie können derweil weiterarbeiten.",
+        "en": "File, Project, Validate Project checks every file of the project at once, each with its binding. The result shows in the Validation tool: one order has a price below zero, reported by the rule from the Schematron. A click on the file shows its problems. With many files the check runs in the background, and a progress bar shows how far it is. You can keep working meanwhile."
+      }
+    },
+    {
+      "id": "scenario-def",
+      "chapter": {
+        "de": "Szenarien",
+        "en": "Scenarios"
+      },
+      "say": {
+        "de": "Ein Szenario ist eine gespeicherte Transformation: Stylesheet, Eingabe, Ausgabe, Methode und Parameter. Die Eingabe Dollar file steht für die gerade gewählte Datei, und die Ausgabe out Schrägstrich Dollar name Punkt html bildet den Namen der Ergebnisdatei aus dem Namen der Eingabe. So passt ein Szenario für alle Bestellungen. Szenarien können XSLT, XQuery oder XProc ausführen und sogar PDF erzeugen, wenn das Stylesheet XSL-FO schreibt.",
+        "en": "A scenario is a saved transformation: stylesheet, input, output, method and parameters. The input dollar file stands for the file at hand, and the output out slash dollar name dot html builds the result file's name from the input's name. That way one scenario fits every order. Scenarios can run XSLT, XQuery or XProc, and even create PDF when the stylesheet writes XSL-FO."
       }
     },
     {
       "id": "scenario",
-      "chapter": { "en": "Run a scenario", "de": "Ein Szenario ausführen" },
       "say": {
-        "en": "In the Transform tool, the scenario bound to the order is ready. Run Scenario applies its stylesheet and writes the result into the folder out.",
-        "de": "Im Werkzeug Umwandeln steht das Szenario bereit, das zur Bestellung gehört. Szenario ausführen wendet sein Stylesheet an und schreibt das Ergebnis in den Ordner out."
+        "de": "Im Werkzeug Umwandeln steht das Szenario bereit, das zur Bestellung gehört. Szenario ausführen wendet sein Stylesheet an und schreibt das Ergebnis in den Ordner out. Das Diskettensymbol speichert die aktuellen Einstellungen des Panels als neues Szenario im Projekt. Im Explorer führt das Kontextmenü dasselbe Szenario für mehrere markierte Dateien auf einmal aus, und eine Zusammenfassung zeigt, wie viele Ergebnisse geschrieben wurden.",
+        "en": "In the Transform tool, the scenario that belongs to the order is ready. Run Scenario applies its stylesheet and writes the result to the out folder. The disk icon saves the panel's current settings as a new scenario in the project. In the Explorer, the context menu runs the same scenario for several selected files at once, and a summary shows how many results were written."
+      }
+    },
+    {
+      "id": "check",
+      "chapter": {
+        "de": "Regressionsprüfung",
+        "en": "Regression check"
+      },
+      "say": {
+        "de": "Szenarien eignen sich auch als Test. Legt ein Szenario ein erwartetes Ergebnis fest, vergleicht Prüfen das neue Ergebnis damit. Hier weicht die Summe ab, weil das Stylesheet inzwischen die Währung mit ausgibt. Das Kreuz zeigt: Das Ergebnis hat sich geändert. Solche Prüfungen sichern ab, dass eine Änderung am Stylesheet nicht unbemerkt andere Ergebnisse liefert.",
+        "en": "Scenarios also work as tests. When a scenario sets an expected result, Check compares the new result with it. Here the total differs, because the stylesheet now prints the currency as well. The cross shows: the result has changed. Checks like this make sure a change to the stylesheet does not quietly produce different results."
+      }
+    },
+    {
+      "id": "differences",
+      "say": {
+        "de": "Unterschiede öffnet beide Fassungen nebeneinander, die Abweichungen sind markiert. So entscheiden Sie, ob die Änderung ein Fehler ist oder gewollt. Ist sie gewollt, übernimmt Übernehmen das neue Ergebnis als erwartetes. Datei, Projekt, Szenarien prüfen testet alle Szenarien des Projekts auf einmal. Für XML-Ergebnisse lassen sich Teile vom Vergleich ausnehmen, etwa ein Zeitstempel, der sich bei jedem Lauf ändert, oder Zahlen mit kleiner Toleranz.",
+        "en": "Differences opens both versions side by side, with the deviations marked. That way you decide whether the change is a mistake or intended. If it is intended, Accept takes the new result as the expected one. File, Project, Check Scenarios tests every scenario of the project at once. For XML results, parts can be left out of the comparison, such as a timestamp that changes on every run, or numbers with a small tolerance."
+      }
+    },
+    {
+      "id": "share",
+      "chapter": {
+        "de": "Teilen",
+        "en": "Sharing"
+      },
+      "say": {
+        "de": "Die Projektdatei ist eine kleine Textdatei im JSON-Format. Legen Sie sie zu Ihren Dateien ins Repository, dann haben alle im Team dieselben Zuordnungen und Szenarien. Auf der Kommandozeile prüft fxt-cli dasselbe Projekt automatisch, zum Beispiel bei jedem Commit, mehr dazu im Video zur Kommandozeile. Kataloge des Projekts, die Adressen von Schemas auf lokale Dateien umleiten, gelten ebenfalls für alle.",
+        "en": "The project file is a small text file in JSON format. Put it into the repository with your files, and everyone on the team has the same bindings and scenarios. On the command line, fxt-cli checks the same project automatically, for example on every commit, more on that in the command line video. The project's catalogs, which redirect schema addresses to local files, apply to everyone too."
       }
     },
     {
       "id": "outro",
       "card": "outro",
       "say": {
-        "en": "That were projects. Commit the project file with your files, and everyone gets the same bindings, in the application and on the command line.",
-        "de": "Das waren Projekte. Legen Sie die Projektdatei zu Ihren Dateien ins Repository, dann haben alle dieselben Zuordnungen, in der Anwendung und auf der Kommandozeile."
+        "de": "Das waren Projekte. Damit sind die Grundlagen komplett. Die Serie Vertiefung zeigt einzelne Werkzeuge im Detail, angefangen mit dem Debugger für XSLT.",
+        "en": "That were projects. With that, the basics are complete. The in-depth series shows single tools in detail, starting with the XSLT debugger."
       }
     }
   ]
