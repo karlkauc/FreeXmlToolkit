@@ -36,7 +36,7 @@ import picocli.CommandLine.Spec;
                 "  # How many positions does the fund have?",
                 "  fxt-cli query -e 'count(//Position)' fund.xml",
                 "",
-                "  # The ISINs of all positions above 10 %, in every XML file of a folder",
+                "  # The ISINs of all positions above 10 %%, in every XML file of a folder",
                 "  fxt-cli query -e '//Position[xs:decimal(TotalPercentage) gt 10]/Identifiers/ISIN/string()' data/",
                 "",
                 "  # An XQuery file with an external variable; a query without input",
