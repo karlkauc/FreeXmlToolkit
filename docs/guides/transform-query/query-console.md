@@ -61,6 +61,8 @@ pane shows the previous run's XML result with syntax highlighting.*
     result. **XML results are
     syntax-highlighted** (tags, attributes, values, comments), and **JSON results** (e.g. from
     JSONPath queries) get JSON highlighting; scalar results and messages stay plain.
+    A result longer than one million characters is shown shortened (cut at a line end, with a note);
+    **Copy** and **Save** still take the whole result.
   - **Copy** - Copy the full result to the clipboard.
   - **Table** - Shows the last XPath or XQuery result as a table in the
     [OUTPUT panel](../../reference/transform-panel.md#the-output-panel-results): each result item is a row, its child elements

@@ -100,6 +100,15 @@ public class QueryConsole extends Region {
     // syntax-highlighted like the main text editor.
     private final CodeArea resultsArea = new PlainTextCodeArea();
 
+    /**
+     * Results longer than this are shown cut at a line end with a note: putting tens of megabytes into the
+     * text area blocks the FX thread for seconds. Copy and Save still take the whole result.
+     */
+    static final int DISPLAY_LIMIT_CHARS = 1_000_000;
+
+    /** The whole result while the area shows a shortened one ({@link #DISPLAY_LIMIT_CHARS}), else {@code null}. */
+    private String fullResult;
+
     /** Per-run statistics ("42 ms · 1234 chars"), shown only when execution statistics are enabled. */
     @FXML private Label statsLabel;
     /** The fn:trace() lines of the last run (a click copies one). */
@@ -1014,7 +1023,7 @@ public class QueryConsole extends Region {
     /** Copies the full results text to the system clipboard. */
     private void copyResults() {
         ClipboardContent content = new ClipboardContent();
-        content.putString(resultsArea.getText() == null ? "" : resultsArea.getText());
+        content.putString(fullResultsText());
         Clipboard.getSystemClipboard().setContent(content);
     }
 
@@ -1026,7 +1035,7 @@ public class QueryConsole extends Region {
      */
     @FXML
     public void saveResults() {
-        String text = resultsArea.getText();
+        String text = fullResultsText();
         if (text == null || text.isBlank()) {
             setResultsText(I18n.t("QueryConsole.nothing-to-save"));
             return;
@@ -1051,7 +1060,7 @@ public class QueryConsole extends Region {
      * @return {@code true} on success, {@code false} when the write failed
      */
     boolean saveResultsToFile(File file) {
-        String text = resultsArea.getText() == null ? "" : resultsArea.getText();
+        String text = fullResultsText();
         try {
             Files.writeString(file.toPath(), text, StandardCharsets.UTF_8);
             return true;
@@ -1059,6 +1068,25 @@ public class QueryConsole extends Region {
             setResultsText(I18n.t("QueryConsole.save-failed", e.getMessage()));
             return false;
         }
+    }
+
+    /** The first {@link #DISPLAY_LIMIT_CHARS} characters of {@code value}, cut at a line end, and a note. */
+    static String shortened(String value) {
+        int cut = value.lastIndexOf('\n', DISPLAY_LIMIT_CHARS);
+        if (cut < DISPLAY_LIMIT_CHARS / 2) {
+            cut = DISPLAY_LIMIT_CHARS;
+        }
+        java.text.NumberFormat numbers = java.text.NumberFormat.getIntegerInstance(I18n.locale());
+        return value.substring(0, cut) + "\n\n" + I18n.t("QueryConsole.results-shortened",
+                numbers.format(cut), numbers.format(value.length()));
+    }
+
+    /** The whole results text: what Copy and Save take, also when the area shows a shortened one. */
+    private String fullResultsText() {
+        if (fullResult != null) {
+            return fullResult;
+        }
+        return resultsArea.getText() == null ? "" : resultsArea.getText();
     }
 
     /**
@@ -1069,6 +1097,11 @@ public class QueryConsole extends Region {
      */
     private void setResultsText(String text) {
         String value = text == null ? "" : text;
+        fullResult = null;
+        if (value.length() > DISPLAY_LIMIT_CHARS) {
+            fullResult = value;
+            value = shortened(value);
+        }
         resultsArea.replaceText(value);
         if (value.isEmpty() || value.length() > ResultHighlighter.HIGHLIGHT_LIMIT_CHARS) {
             return;
@@ -1539,6 +1572,11 @@ public class QueryConsole extends Region {
     /** Test seam: runs the current query (same as the Run button / Enter). */
     void runForTest() {
         run();
+    }
+
+    /** Test seam: shows {@code text} as the result of a run. */
+    void showResultsForTest(String text) {
+        setResultsText(text);
     }
 
     /** Test seam: the current results text. */

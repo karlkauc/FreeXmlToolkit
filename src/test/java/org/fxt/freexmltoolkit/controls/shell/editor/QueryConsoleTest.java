@@ -171,6 +171,36 @@ class QueryConsoleTest {
     }
 
     @Test
+    void aVeryLargeResultIsShortenedButSavedWhole(@TempDir Path tmp) throws Exception {
+        QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
+        StringBuilder big = new StringBuilder();
+        for (int i = 0; big.length() <= QueryConsole.DISPLAY_LIMIT_CHARS + 50_000; i++) {
+            big.append("<item n=\"").append(i).append("\">value ").append(i).append("</item>\n");
+        }
+        String whole = big.toString();
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.showResultsForTest(whole);
+            return null;
+        });
+        String shown = console.getResultsText();
+        assertTrue(shown.length() < whole.length(), "the area shows less than the whole result");
+        assertTrue(shown.contains("Result shortened"), "with a note: " + shown.substring(shown.length() - 200));
+        String body = shown.substring(0, shown.lastIndexOf("\n\n"));
+        assertTrue(whole.startsWith(body) && body.endsWith("</item>"), "cut at a line end");
+
+        Path out = tmp.resolve("result.txt");
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> console.saveResultsToFile(out.toFile())));
+        assertEquals(whole, Files.readString(out), "Save writes the whole result");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.showResultsForTest("<item>small</item>");
+            return null;
+        });
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> console.saveResultsToFile(out.toFile())));
+        assertEquals("<item>small</item>", Files.readString(out), "a later small result replaces the whole one");
+    }
+
+    @Test
     void savingResultsWritesTheResultTextToFile(@TempDir Path tmp) throws Exception {
         Path file = tmp.resolve("doc.xml");
         Files.writeString(file, "<root><item id=\"1\">a</item><item id=\"2\">b</item></root>");
