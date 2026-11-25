@@ -9,9 +9,9 @@ Szenen als Stichpunkte. Daraus entstehen beim Umsetzen Sprechtext (DE + EN), `vi
 - Jedes Thema kommt nur in einem Video ausführlich vor; andere Videos verweisen darauf (→ Nr.).
 
 **Wie die Länge entsteht (gemessen an den ersten neuen Filmen)**
-- Die Stimme spricht etwa **145 Wörter pro Minute**, Pausen eingerechnet. Titel- und Schlusskarte zusammen ≈ 0:20.
+- Die Stimme spricht etwa **160 Wörter pro Minute**, Pausen eingerechnet (gemessen an Nr. 2: 837 Wörter → 5:26). Titel- und Schlusskarte zusammen ≈ 0:20.
 - Die ersten Filme wurden zu kurz (2:30–3:10 statt 4–8 min), weil jeder Stichpunkt nur einen Satz bekam (≈ 15 s).
-- Ab jetzt ist **ein Stichpunkt = eine Szene ≈ 30 s ≈ 70 Wörter** mit drei Teilen:
+- Ab jetzt ist **ein Stichpunkt = eine Szene ≈ 30 s ≈ 80 Wörter** mit drei Teilen:
   **zeigen** (was passiert im Bild) · **erklären** (wozu, was man sieht) · **Tipp oder typischer Fehler**.
 - Faustregel: **2 Stichpunkte pro Minute**. Die Kapitelzeiten in Klammern summieren sich zur Ziel-Laufzeit.
 

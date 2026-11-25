@@ -37,8 +37,8 @@
         "de": "Wie das Schema gefunden wird"
       },
       "say": {
-        "de": "In ihren ersten Zeilen nennt die Bestellung ihr Schema: Das Attribut noNamespaceSchemaLocation zeigt auf order.xsd im selben Ordner. Daran erkennt der Editor, wogegen er prüfen soll, ohne weitere Einstellung. Bei Dokumenten mit Namespace heißt das Attribut schemaLocation und nennt Namespace und Datei als Paar.",
-        "en": "In its first lines the order names its schema: the attribute noNamespaceSchemaLocation points to order.xsd in the same folder. That tells the editor what to validate against, without any setup. For documents with a namespace the attribute is called schemaLocation and names namespace and file as a pair."
+        "de": "In ihren ersten Zeilen nennt die Bestellung ihr Schema: Das Attribut noNamespaceSchemaLocation zeigt auf order.xsd im selben Ordner. Daran erkennt der Editor, wogegen er prüfen soll, ohne weitere Einstellung. Bei Dokumenten mit Namespace heißt das Attribut schemaLocation und nennt Namespace und Datei als Paar. Liegt das Schema im Netz, lädt FreeXmlToolkit es einmal herunter und legt eine lokale Kopie daneben, damit die Prüfung auch ohne Internet funktioniert.",
+        "en": "In its first lines the order names its schema: the attribute noNamespaceSchemaLocation points to order.xsd in the same folder. That tells the editor what to validate against, without any setup. For documents with a namespace the attribute is called schemaLocation and names namespace and file as a pair. When the schema is on the web, FreeXmlToolkit downloads it once and keeps a local copy next to it, so validation also works without internet."
       }
     },
     {
@@ -55,15 +55,15 @@
         "de": "Mit F8 prüfen"
       },
       "say": {
-        "de": "Drücken Sie F8, um zu prüfen. Ein Hinweis unten rechts zeigt das Ergebnis: Das Dokument ist gültig. F8 funktioniert in jeder Ansicht, im Text genauso wie im Baum und im Grid.",
-        "en": "Press F8 to validate. A note in the bottom right corner shows the result: the document is valid. F8 works in every view, in the text just as in the tree and the grid."
+        "de": "Drücken Sie F8, um zu prüfen. Ein Hinweis unten rechts zeigt das Ergebnis: Das Dokument ist gültig. F8 funktioniert in jeder Ansicht, im Text genauso wie im Baum und im Grid. Auch die Statusleiste zeigt das Ergebnis: einen Haken neben dem Namen des Schemas.",
+        "en": "Press F8 to validate. A note in the bottom right corner shows the result: the document is valid. F8 works in every view, in the text just as in the tree and the grid. The status bar shows the result too: a tick next to the schema's name."
       }
     },
     {
       "id": "wellformed",
       "say": {
-        "de": "Zuerst ein Fehler, der nichts mit dem Schema zu tun hat. Löschen Sie die schließende spitze Klammer am Starttag von note. Jetzt ist die Datei nicht einmal mehr wohlgeformt. F8 meldet das sofort mit der genauen Zeile, und ohne wohlgeformtes XML kann kein Schema prüfen. Setzen Sie die Klammer wieder ein.",
-        "en": "First, a mistake that has nothing to do with the schema. Delete the closing angle bracket of the note start tag. Now the file is not even well-formed. F8 reports that at once with the exact line, and without well-formed XML no schema can check anything. Put the bracket back."
+        "de": "Zuerst ein Fehler, der nichts mit dem Schema zu tun hat. Löschen Sie die schließende spitze Klammer am Starttag von note. Jetzt ist die Datei nicht einmal mehr wohlgeformt. F8 meldet das sofort mit der genauen Zeile, und ohne wohlgeformtes XML kann kein Schema prüfen. Setzen Sie die Klammer wieder ein. Solche Fehler entstehen oft beim Kopieren aus anderen Programmen oder wenn ein Element nur halb gelöscht wird.",
+        "en": "First, a mistake that has nothing to do with the schema. Delete the closing angle bracket of the note start tag. Now the file is not even well-formed. F8 reports that at once with the exact line, and without well-formed XML no schema can check anything. Put the bracket back. Mistakes like this often come from copying out of other programs or from an element that was only half deleted."
       }
     },
     {
@@ -84,15 +84,15 @@
         "de": "Das Problem lesen"
       },
       "say": {
-        "de": "Drücken Sie noch einmal F8. Der Bereich Probleme unter dem Editor listet den Fehler auf, und die Zeile bekommt eine rote Markierung. Die Meldung beginnt mit einem Code wie cvc-datatype-valid. Er nennt die verletzte Regel, danach folgen der falsche Wert und der erwartete Typ, hier eine positive ganze Zahl.",
-        "en": "Press F8 again. The Problems panel below the editor lists the error, and the line gets a red mark. The message starts with a code such as cvc-datatype-valid. It names the broken rule, followed by the wrong value and the expected type, here a positive whole number."
+        "de": "Drücken Sie noch einmal F8. Der Bereich Probleme unter dem Editor listet den Fehler auf, und die Zeile bekommt eine rote Markierung. Die Meldung beginnt mit einem Code wie cvc-datatype-valid. Er nennt die verletzte Regel, danach folgen der falsche Wert und der erwartete Typ, hier eine positive ganze Zahl. Fährt die Maus über die Meldung, zeigt ein Tooltip den vollen Text. Wenn Sie den Code nicht kennen, hilft er auch bei der Suche im Internet weiter.",
+        "en": "Press F8 again. The Problems panel below the editor lists the error, and the line gets a red mark. The message starts with a code such as cvc-datatype-valid. It names the broken rule, followed by the wrong value and the expected type, here a positive whole number. Hovering over the message shows the full text in a tooltip. If you do not know the code, it also helps when searching the internet."
       }
     },
     {
       "id": "jump",
       "say": {
-        "de": "Klicken Sie auf das Problem. Die Schreibmarke springt genau an die Stelle, die es verursacht hat, auch in großen Dateien mit tausenden Zeilen.",
-        "en": "Click the problem. The caret jumps exactly to the place that caused it, even in large files with thousands of lines."
+        "de": "Klicken Sie auf das Problem. Die Schreibmarke springt genau an die Stelle, die es verursacht hat, auch in großen Dateien mit tausenden Zeilen. Im Text ist die betroffene Zeile markiert, so finden Sie sie auch nach dem Scrollen wieder.",
+        "en": "Click the problem. The caret jumps exactly to the place that caused it, even in large files with thousands of lines. The affected line is marked in the text, so you find it again after scrolling."
       }
     },
     {
@@ -109,8 +109,8 @@
         "de": "Mehrere Fehler im Griff"
       },
       "say": {
-        "de": "Echte Dateien haben oft mehrere Fehler. Bauen Sie drei auf einmal ein: eine Bestellnummer im falschen Format, einen Ländercode mit drei statt zwei Buchstaben und einen Preis mit drei Nachkommastellen. Jeder verletzt eine andere Regel des Schemas: ein Muster, eine Länge und die Zahl der Nachkommastellen. F8 findet alle drei.",
-        "en": "Real files often have several mistakes. Make three at once: an order number in the wrong format, a country code with three letters instead of two, and a price with three decimals. Each breaks a different rule of the schema: a pattern, a length and the number of decimals. F8 finds all three."
+        "de": "Echte Dateien haben oft mehrere Fehler. Bauen Sie drei auf einmal ein: eine Bestellnummer im falschen Format, einen Ländercode mit drei statt zwei Buchstaben und einen Preis mit drei Nachkommastellen. Jeder verletzt eine andere Regel des Schemas: ein Muster, eine Länge und die Zahl der Nachkommastellen. F8 findet alle drei. Die Reihenfolge in der Liste folgt dem Dokument, von oben nach unten.",
+        "en": "Real files often have several mistakes. Make three at once: an order number in the wrong format, a country code with three letters instead of two, and a price with three decimals. Each breaks a different rule of the schema: a pattern, a length and the number of decimals. F8 finds all three. The order in the list follows the document, from top to bottom."
       }
     },
     {
@@ -123,8 +123,8 @@
     {
       "id": "group",
       "say": {
-        "de": "Gruppieren nach Regel fasst gleichartige Probleme zusammen. Das ist praktisch bei großen Dateien, in denen derselbe Fehler hundertmal vorkommt: Sie sehen jede Regel nur einmal, mit der Zahl ihrer Vorkommen. Export schreibt die Liste als Excel-Datei oder als Text, zum Beispiel für den Kollegen, der die Daten liefert.",
-        "en": "Group by rule puts problems of the same kind together. That is handy for large files where the same mistake appears a hundred times: you see each rule once, with the number of its occurrences. Export writes the list as an Excel file or as text, for example for the colleague who delivers the data."
+        "de": "Gruppieren nach Regel fasst gleichartige Probleme zusammen. Das ist praktisch bei großen Dateien, in denen derselbe Fehler hundertmal vorkommt: Sie sehen jede Regel nur einmal, mit der Zahl ihrer Vorkommen. Export schreibt die Liste als Excel-Datei oder als Text, zum Beispiel für den Kollegen, der die Daten liefert. Gruppieren nach Kategorie trennt Schemafehler von Fehlern aus Schematron oder aus Prüfungen von Erweiterungen.",
+        "en": "Group by rule puts problems of the same kind together. That is handy for large files where the same mistake appears a hundred times: you see each rule once, with the number of its occurrences. Export writes the list as an Excel file or as text, for example for the colleague who delivers the data. Grouping by category separates schema errors from errors coming from Schematron or from checks of extensions."
       }
     },
     {
@@ -137,8 +137,8 @@
     {
       "id": "fix-all",
       "say": {
-        "de": "Ein Klick auf eine Zeile springt jeweils zur Stelle, und Sie beheben einen Fehler nach dem anderen. Im Grid markiert ein Klick sogar die fehlerhafte Zelle. Hier nehmen wir die drei Änderungen mit Strg Z zurück, und F8 meldet wieder ein gültiges Dokument.",
-        "en": "A click on a row jumps to its place each time, and you fix one mistake after the other. In the grid, a click even marks the faulty cell. Here we take the three changes back with Ctrl Z, and F8 reports a valid document again."
+        "de": "Ein Klick auf eine Zeile springt jeweils zur Stelle, und Sie beheben einen Fehler nach dem anderen. Im Grid markiert ein Klick sogar die fehlerhafte Zelle. Hier nehmen wir die drei Änderungen mit Strg Z zurück, und F8 meldet wieder ein gültiges Dokument. Gerade bei vielen Fehlern lohnt es sich, mit dem ersten anzufangen: Ein einziger Strukturfehler kann weitere Meldungen nach sich ziehen, die danach von selbst verschwinden.",
+        "en": "A click on a row jumps to its place each time, and you fix one mistake after the other. In the grid, a click even marks the faulty cell. Here we take the three changes back with Ctrl Z, and F8 reports a valid document again. With many errors it pays to start with the first one: a single structural mistake can cause more messages that disappear on their own afterwards."
       }
     },
     {
@@ -148,8 +148,8 @@
         "de": "Beheben mit der Autovervollständigung"
       },
       "say": {
-        "de": "Fehlt etwas, hilft die Autovervollständigung. Hier fehlt dem ersten Artikel der Preis, und F8 meldet ein fehlendes Pflichtattribut. Ein Leerzeichen im Starttag schlägt genau dieses Attribut vor, denn das Schema kennt die Pflichtfelder. Enter fügt es ein, und Sie tippen nur noch den Wert.",
-        "en": "When something is missing, auto-completion helps. Here the first item has lost its price, and F8 reports a missing required attribute. A space in the start tag suggests exactly that attribute, because the schema knows the required fields. Enter inserts it, and you only type the value."
+        "de": "Fehlt etwas, hilft die Autovervollständigung. Hier fehlt dem ersten Artikel der Preis, und F8 meldet ein fehlendes Pflichtattribut. Ein Leerzeichen im Starttag schlägt genau dieses Attribut vor, denn das Schema kennt die Pflichtfelder. Enter fügt es ein, und Sie tippen nur noch den Wert. Fehlt ein ganzes Element, bietet die spitze Klammer an genau dieser Stelle das fehlende Element an.",
+        "en": "When something is missing, auto-completion helps. Here the first item has lost its price, and F8 reports a missing required attribute. A space in the start tag suggests exactly that attribute, because the schema knows the required fields. Enter inserts it, and you only type the value. When a whole element is missing, the angle bracket offers exactly the missing element at that place."
       }
     },
     {
@@ -159,8 +159,8 @@
         "de": "Ganze Ordner prüfen"
       },
       "say": {
-        "de": "Die Aktivität Validierung zeigt, wogegen geprüft wird: das Schema und, wenn gewählt, ein Schematron mit zusätzlichen Regeln. Beide lassen sich hier ändern oder per Ablegen einer Datei setzen. Oben finden Sie Berichte und Werkzeuge zum Erstellen eigener Regeln.",
-        "en": "The Validation activity shows what the file is checked against: the schema and, when chosen, a Schematron with extra rules. You can change both here or set them by dropping a file. At the top you find reports and tools for writing your own rules."
+        "de": "Die Aktivität Validierung zeigt, wogegen geprüft wird: das Schema und, wenn gewählt, ein Schematron mit zusätzlichen Regeln. Beide lassen sich hier ändern oder per Ablegen einer Datei setzen. Oben finden Sie Berichte und Werkzeuge zum Erstellen eigener Regeln. Der Stern merkt sich ein Schema als Favorit, so wählen Sie es beim nächsten Mal mit einem Klick.",
+        "en": "The Validation activity shows what the file is checked against: the schema and, when chosen, a Schematron with extra rules. You can change both here or set them by dropping a file. At the top you find reports and tools for writing your own rules. The star keeps a schema as a favourite, so next time you pick it with one click."
       }
     },
     {
@@ -173,8 +173,8 @@
     {
       "id": "batch",
       "say": {
-        "de": "Mit Stapel prüfen Sie viele Dateien auf einmal, zum Beispiel einen ganzen Ordner mit Lieferungen. Die Ergebnisliste zeigt jede Datei mit Haken oder Kreuz und der Zahl ihrer Fehler. Ein Klick auf eine fehlerhafte Datei zeigt ihre Probleme, ein Doppelklick öffnet sie. Letzten Stapelbericht öffnen fasst alles in einem Bericht zusammen.",
-        "en": "With Batch you check many files at once, for example a whole folder of deliveries. The results list shows each file with a tick or a cross and its number of errors. A click on a failing file shows its problems, and a double-click opens it. Open Last Batch Report sums it all up in one report."
+        "de": "Mit Stapel prüfen Sie viele Dateien auf einmal, zum Beispiel einen ganzen Ordner mit Lieferungen. Die Ergebnisliste zeigt jede Datei mit Haken oder Kreuz und der Zahl ihrer Fehler. Ein Klick auf eine fehlerhafte Datei zeigt ihre Probleme, ein Doppelklick öffnet sie. Letzten Stapelbericht öffnen fasst alles in einem Bericht zusammen. Mit Probleme nach Excel exportieren erhalten Sie alle Fehler aller Dateien in einer Tabelle, nach Datei und Regel geordnet. Auf der Kommandozeile prüft fxt-cli dieselben Ordner automatisch, zum Beispiel jede Nacht.",
+        "en": "With Batch you check many files at once, for example a whole folder of deliveries. The results list shows each file with a tick or a cross and its number of errors. A click on a failing file shows its problems, and a double-click opens it. Open Last Batch Report sums it all up in one report. Export Problems to Excel gives you every error of every file in one table, sorted by file and rule. On the command line, fxt-cli checks the same folders automatically, every night for example."
       }
     },
     {

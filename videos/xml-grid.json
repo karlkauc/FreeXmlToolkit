@@ -26,8 +26,8 @@
         "de": "Zum Grid wechseln"
       },
       "say": {
-        "de": "Im Text sind wiederholte Daten mühsam zu überblicken. Hier sind es nur drei Artikel, aber bei hunderten verrutscht man leicht in der Zeile, und Werte untereinander zu vergleichen ist kaum möglich. Der Ansichtsumschalter oben rechts wechselt die Ansicht desselben Dokuments. Klicken Sie auf Grafik.",
-        "en": "In the text, repeated data is hard to overview. Here there are only three items, but with hundreds you easily slip into the wrong line, and comparing values with each other is hardly possible. The view switch in the top right corner changes the view of the same document. Click Graphic."
+        "de": "Im Text sind wiederholte Daten mühsam zu überblicken. Hier sind es nur drei Artikel, aber bei hunderten verrutscht man leicht in der Zeile, und Werte untereinander zu vergleichen ist kaum möglich. Der Ansichtsumschalter oben rechts wechselt die Ansicht desselben Dokuments. Klicken Sie auf Grafik. Text und Grid zeigen immer dasselbe Dokument. Sie können also jederzeit wechseln, ohne etwas zu speichern.",
+        "en": "In the text, repeated data is hard to overview. Here there are only three items, but with hundreds you easily slip into the wrong line, and comparing values with each other is hardly possible. The view switch in the top right corner changes the view of the same document. Click Graphic. Text and grid always show the same document, so you can switch at any time without saving anything."
       }
     },
     {
@@ -37,8 +37,8 @@
         "de": "Der Aufbau"
       },
       "say": {
-        "de": "Das Grid zeigt das Dokument als verschachtelte Blöcke. Jedes Element ist eine Zeile: links der Name, rechts der Wert oder, bei Elementen mit Kindern, ein eigener Block. Attribute stehen als eigene Zeilen mit einem kleinen Symbol, und das Symbol vor jedem Wert verrät seinen Typ. Alle aufklappen öffnet jeden Block auf einmal.",
-        "en": "The grid shows the document as nested blocks. Every element is a row: the name on the left, the value on the right or, for elements with children, a block of its own. Attributes are rows of their own with a small icon, and the icon before each value tells its type. Expand All opens every block at once."
+        "de": "Das Grid zeigt das Dokument als verschachtelte Blöcke. Jedes Element ist eine Zeile: links der Name, rechts der Wert oder, bei Elementen mit Kindern, ein eigener Block. Attribute stehen als eigene Zeilen mit einem kleinen Symbol, und das Symbol vor jedem Wert verrät seinen Typ. Alle aufklappen öffnet jeden Block auf einmal. Lange Werte werden gekürzt, der volle Text steht im Tooltip und im Bereich Eigenschaften.",
+        "en": "The grid shows the document as nested blocks. Every element is a row: the name on the left, the value on the right or, for elements with children, a block of its own. Attributes are rows of their own with a small icon, and the icon before each value tells its type. Expand All opens every block at once. Long values are shortened; the full text is in the tooltip and in the Properties panel."
       }
     },
     {
@@ -51,8 +51,8 @@
     {
       "id": "layout",
       "say": {
-        "de": "Die Knöpfe im Kopf vergrößern und verkleinern die Ansicht, Strg und das Mausrad tun dasselbe. Optimale Breiten passt alle Spalten an ihren Inhalt an, und Umbruch zeigt lange Texte über mehrere Zeilen. Die Breite einer Spalte ziehen Sie auch von Hand am Rand des Spaltenkopfs.",
-        "en": "The buttons in the header zoom in and out, and Ctrl with the mouse wheel does the same. Optimal Widths fits every column to its content, and Wrap shows long texts over several lines. You can also drag the width of a column by hand at the edge of its header."
+        "de": "Die Knöpfe im Kopf vergrößern und verkleinern die Ansicht, Strg und das Mausrad tun dasselbe. Optimale Breiten passt alle Spalten an ihren Inhalt an, und Umbruch zeigt lange Texte über mehrere Zeilen. Die Breite einer Spalte ziehen Sie auch von Hand am Rand des Spaltenkopfs. Die gewählten Breiten bleiben erhalten, auch wenn Sie das Dokument bearbeiten.",
+        "en": "The buttons in the header zoom in and out, and Ctrl with the mouse wheel does the same. Optimal Widths fits every column to its content, and Wrap shows long texts over several lines. You can also drag the width of a column by hand at the edge of its header. The widths you choose stay, even while you edit the document."
       }
     },
     {
@@ -62,15 +62,15 @@
         "de": "Wiederholte Elemente als Tabelle"
       },
       "say": {
-        "de": "Wiederholte Elemente werden automatisch zu einer Tabelle. Die drei Artikel der Bestellung sind die Zeilen, ihre Attribute und ihr Text sind die Spalten. Links steht die Zeilennummer. So vergleichen Sie Mengen und Preise auf einen Blick, wie in einer Tabellenkalkulation.",
-        "en": "Repeated elements become a table automatically. The three items of the order are the rows, their attributes and their text are the columns. On the left is the row number. That way you compare quantities and prices at a glance, as in a spreadsheet."
+        "de": "Wiederholte Elemente werden automatisch zu einer Tabelle. Die drei Artikel der Bestellung sind die Zeilen, ihre Attribute und ihr Text sind die Spalten. Links steht die Zeilennummer. So vergleichen Sie Mengen und Preise auf einen Blick, wie in einer Tabellenkalkulation. Hat ein Element sowohl Attribute als auch Text, wird der Text zu einer eigenen Spalte. Fehlt einem Artikel ein Attribut, bleibt seine Zelle einfach leer.",
+        "en": "Repeated elements become a table automatically. The three items of the order are the rows, their attributes and their text are the columns. On the left is the row number. That way you compare quantities and prices at a glance, as in a spreadsheet. When an element has both attributes and text, the text becomes a column of its own. When an item lacks an attribute, its cell simply stays empty."
       }
     },
     {
       "id": "sort",
       "say": {
-        "de": "Ein Klick auf den kleinen Pfeil im Spaltenkopf sortiert die Tabelle, hier nach dem Preis, ein zweiter Klick sortiert absteigend. Achtung: Sortieren ändert wirklich die Reihenfolge im Dokument, nicht nur die Anzeige. Strg Z stellt die alte Reihenfolge wieder her.",
-        "en": "A click on the small arrow in a column header sorts the table, here by price, and a second click sorts descending. Note: sorting really changes the order in the document, not just the display. Ctrl Z brings back the old order."
+        "de": "Ein Klick auf den kleinen Pfeil im Spaltenkopf sortiert die Tabelle, hier nach dem Preis, ein zweiter Klick sortiert absteigend. Achtung: Sortieren ändert wirklich die Reihenfolge im Dokument, nicht nur die Anzeige. Strg Z stellt die alte Reihenfolge wieder her. Für eine reine Ansicht ohne Änderung am Dokument nutzen Sie stattdessen einen Filter, dazu gleich mehr.",
+        "en": "A click on the small arrow in a column header sorts the table, here by price, and a second click sorts descending. Note: sorting really changes the order in the document, not just the display. Ctrl Z brings back the old order. For a pure view without changing the document, use a filter instead, more on that shortly."
       }
     },
     {
@@ -83,8 +83,8 @@
     {
       "id": "list",
       "say": {
-        "de": "Nicht jede Wiederholung passt gut in eine Tabelle, etwa wenn die Elemente sehr unterschiedlich aufgebaut sind. Als Tabelle anzeigen im Rechtsklickmenü schaltet dann auf eine Liste um: Jeder Artikel steht als nummerierter Block untereinander. Ein zweiter Klick zeigt wieder die Tabelle.",
-        "en": "Not every repetition fits a table well, for example when the elements are built very differently. Display as Table in the right-click menu then switches to a list: each item is a numbered block, one below the other. A second click shows the table again."
+        "de": "Nicht jede Wiederholung passt gut in eine Tabelle, etwa wenn die Elemente sehr unterschiedlich aufgebaut sind. Als Tabelle anzeigen im Rechtsklickmenü schaltet dann auf eine Liste um: Jeder Artikel steht als nummerierter Block untereinander. Ein zweiter Klick zeigt wieder die Tabelle. Die Wahl gilt für diese eine Gruppe von Elementen und bleibt erhalten.",
+        "en": "Not every repetition fits a table well, for example when the elements are built very differently. Display as Table in the right-click menu then switches to a list: each item is a numbered block, one below the other. A second click shows the table again. The choice applies to this one group of elements and stays."
       }
     },
     {
@@ -94,15 +94,15 @@
         "de": "Zellen bearbeiten"
       },
       "say": {
-        "de": "Ein Doppelklick öffnet eine Zelle zum Bearbeiten. Das Schema bestimmt das Eingabefeld: Zahlen bekommen ein Zahlenfeld mit Pfeilen, Datumswerte eine Datumsauswahl und feste Werte eine Auswahlliste. Ändern Sie die erste Menge auf fünf und bestätigen Sie mit Enter. Escape bricht ab, und mit den Pfeiltasten wandern Sie von Zelle zu Zelle.",
-        "en": "A double-click opens a cell for editing. The schema decides the input field: numbers get a number field with arrows, dates a date picker and fixed values a choice list. Change the first quantity to five and confirm with Enter. Escape cancels, and the arrow keys move you from cell to cell."
+        "de": "Ein Doppelklick öffnet eine Zelle zum Bearbeiten. Das Schema bestimmt das Eingabefeld: Zahlen bekommen ein Zahlenfeld mit Pfeilen, Datumswerte eine Datumsauswahl und feste Werte eine Auswahlliste. Ändern Sie die erste Menge auf fünf und bestätigen Sie mit Enter. Escape bricht ab, und mit den Pfeiltasten wandern Sie von Zelle zu Zelle. Jede Änderung ist sofort im Dokument, und Strg Z nimmt sie zurück.",
+        "en": "A double-click opens a cell for editing. The schema decides the input field: numbers get a number field with arrows, dates a date picker and fixed values a choice list. Change the first quantity to five and confirm with Enter. Escape cancels, and the arrow keys move you from cell to cell. Every change is in the document at once, and Ctrl Z takes it back."
       }
     },
     {
       "id": "invalid",
       "say": {
-        "de": "Was das Schema nicht erlaubt, merkt das Grid schon beim Tippen. Eine Menge von null ist hier nicht erlaubt: Das Feld bekommt einen roten Rahmen, und der Tooltip nennt den Grund. So landen falsche Werte gar nicht erst im Dokument. Escape verwirft die Eingabe.",
-        "en": "The grid notices what the schema does not allow while you type. A quantity of zero is not allowed here: the field gets a red frame, and the tooltip names the reason. That way wrong values never reach the document. Escape discards the input."
+        "de": "Was das Schema nicht erlaubt, merkt das Grid schon beim Tippen. Eine Menge von null ist hier nicht erlaubt: Das Feld bekommt einen roten Rahmen, und der Tooltip nennt den Grund. So landen falsche Werte gar nicht erst im Dokument. Escape verwirft die Eingabe. Die Regeln kommen aus dem gebundenen Schema. Ohne Schema nimmt das Grid jeden Wert an, und erst F8 zeigt Probleme.",
+        "en": "The grid notices what the schema does not allow while you type. A quantity of zero is not allowed here: the field gets a red frame, and the tooltip names the reason. That way wrong values never reach the document. Escape discards the input. The rules come from the bound schema. Without a schema, the grid accepts any value, and only F8 shows problems."
       }
     },
     {
@@ -112,8 +112,8 @@
         "de": "Zeilen und Spalten"
       },
       "say": {
-        "de": "Der Rechtsklick in die Tabelle bietet unter Tabelle das Einfügen und Löschen von Zeilen und Spalten. Zeile anhängen legt einen neuen Artikel an, mit allen Spalten der Tabelle. Tragen Sie die Artikelnummer ein. Spalte einfügen legt bei jedem Artikel dasselbe neue Attribut an, und Spalte umbenennen ändert es überall auf einmal.",
-        "en": "A right-click in the table offers, under Table, inserting and deleting rows and columns. Append Row adds a new item, with every column of the table. Enter the item number. Insert Column adds the same new attribute to every item, and Rename Column changes it everywhere at once."
+        "de": "Der Rechtsklick in die Tabelle bietet unter Tabelle das Einfügen und Löschen von Zeilen und Spalten. Zeile anhängen legt einen neuen Artikel an, mit allen Spalten der Tabelle. Tragen Sie die Artikelnummer ein. Spalte einfügen legt bei jedem Artikel dasselbe neue Attribut an, und Spalte umbenennen ändert es überall auf einmal. Zeile davor oder danach einfügen setzt den neuen Artikel genau an die gewünschte Stelle, und Zeile löschen entfernt den markierten.",
+        "en": "A right-click in the table offers, under Table, inserting and deleting rows and columns. Append Row adds a new item, with every column of the table. Enter the item number. Insert Column adds the same new attribute to every item, and Rename Column changes it everywhere at once. Insert Row Before or After puts the new item exactly where you want it, and Delete Row removes the selected one."
       }
     },
     {
@@ -126,8 +126,8 @@
     {
       "id": "spreadsheet",
       "say": {
-        "de": "Die Tabelle passt zu Ihrer Tabellenkalkulation. Kopieren legt die markierten Zellen tabulatorgetrennt in die Zwischenablage, und in Excel stehen sie in richtigen Zellen. Umgekehrt übernimmt Einfügen Zeilen aus Excel in die Tabelle und legt dafür neue Artikel an. So pflegen Sie größere Datenmengen bequem außerhalb und holen sie zurück.",
-        "en": "The table fits your spreadsheet. Copy puts the selected cells tab-separated on the clipboard, and in Excel they land in real cells. The other way round, Paste takes rows from Excel into the table and creates new items for them. That way you maintain larger amounts of data comfortably outside and bring them back."
+        "de": "Die Tabelle passt zu Ihrer Tabellenkalkulation. Kopieren legt die markierten Zellen tabulatorgetrennt in die Zwischenablage, und in Excel stehen sie in richtigen Zellen. Umgekehrt übernimmt Einfügen Zeilen aus Excel in die Tabelle und legt dafür neue Artikel an. So pflegen Sie größere Datenmengen bequem außerhalb und holen sie zurück. Markieren Sie mehrere Zellen mit gedrückter Maus oder mit Umschalt und den Pfeiltasten. Strg A markiert die ganze Tabelle.",
+        "en": "The table fits your spreadsheet. Copy puts the selected cells tab-separated on the clipboard, and in Excel they land in real cells. The other way round, Paste takes rows from Excel into the table and creates new items for them. That way you maintain larger amounts of data comfortably outside and bring them back. Select several cells by dragging with the mouse or with Shift and the arrow keys. Ctrl A selects the whole table."
       }
     },
     {
@@ -137,15 +137,15 @@
         "de": "Filter und Formeln"
       },
       "say": {
-        "de": "Filter zeigt nur, was zu einem Ausdruck passt. Der Ausdruck ist XQuery, hier bleiben die Artikel mit einem Preis über zwanzig. Eine Trichterzeile zeigt, dass gefiltert wird, ein Klick auf den Trichter schaltet den Filter aus und ein. Der Filter ändert nur die Ansicht, nicht das Dokument. Filter entfernen zeigt wieder alles.",
-        "en": "Filter shows only what matches an expression. The expression is XQuery, here the items with a price above twenty remain. A funnel row shows that a filter is on, and a click on the funnel switches it off and on. The filter changes only the view, not the document. Remove Filter shows everything again."
+        "de": "Filter zeigt nur, was zu einem Ausdruck passt. Der Ausdruck ist XQuery, hier bleiben die Artikel mit einem Preis über zwanzig. Eine Trichterzeile zeigt, dass gefiltert wird, ein Klick auf den Trichter schaltet den Filter aus und ein. Der Filter ändert nur die Ansicht, nicht das Dokument. Filter entfernen zeigt wieder alles. Filter lassen sich auch auf ganze Teilbäume setzen, und Auf Fokus filtern zeigt nur noch den gewählten Datensatz.",
+        "en": "Filter shows only what matches an expression. The expression is XQuery, here the items with a price above twenty remain. A funnel row shows that a filter is on, and a click on the funnel switches it off and on. The filter changes only the view, not the document. Remove Filter shows everything again. Filters can also be set on whole subtrees, and Filter to Focus shows only the selected record."
       }
     },
     {
       "id": "formula",
       "say": {
-        "de": "Eine Formel rechnet im Grid mit. Formel hinzufügen auf items, Name Summe, Ausdruck: die Summe aus Menge mal Preis. Das Ergebnis steht als eigene Zeile über der Tabelle, und es ändert sich mit jeder Eingabe. Ändern Sie eine Menge, und die Summe folgt sofort. Formeln lassen sich im Dokument speichern und stehen dort als Verarbeitungsanweisung.",
-        "en": "A formula calculates inside the grid. Add Formula on items, name Total, expression: the sum of quantity times price. The result is a row of its own above the table, and it changes with every edit. Change a quantity, and the total follows at once. Formulas can be saved in the document, where they become a processing instruction."
+        "de": "Eine Formel rechnet im Grid mit. Formel hinzufügen auf items, Name Summe, Ausdruck: die Summe aus Menge mal Preis. Das Ergebnis steht als eigene Zeile über der Tabelle, und es ändert sich mit jeder Eingabe. Ändern Sie eine Menge, und die Summe folgt sofort. Formeln lassen sich im Dokument speichern und stehen dort als Verarbeitungsanweisung. Typische Formeln sind Summen, Mittelwerte oder Zählungen, zum Beispiel wie viele Artikel einen bestimmten Preis überschreiten.",
+        "en": "A formula calculates inside the grid. Add Formula on items, name Total, expression: the sum of quantity times price. The result is a row of its own above the table, and it changes with every edit. Change a quantity, and the total follows at once. Formulas can be saved in the document, where they become a processing instruction. Typical formulas are sums, averages or counts, for example how many items exceed a certain price."
       }
     },
     {
@@ -155,8 +155,8 @@
         "en": "Reshape the structure"
       },
       "say": {
-        "de": "Der Schalter Eingabehilfen öffnet rechts eine Seitenleiste. Sie zeigt zum gewählten Element, welche Geschwister und Kinder das Schema erlaubt, und bietet Werte zur Auswahl an. Ein Doppelklick fügt ein Element an der richtigen Stelle ein. Elemente lassen sich außerdem per Ziehen und Ablegen verschieben, eine blaue Linie zeigt das Ziel.",
-        "en": "The Entry Helpers switch opens a side panel on the right. For the selected element it shows which siblings and children the schema allows, and offers values to pick. A double-click inserts an element at the right place. You can also move elements by drag and drop, and a blue line shows the target."
+        "de": "Der Schalter Eingabehilfen öffnet rechts eine Seitenleiste. Sie zeigt zum gewählten Element, welche Geschwister und Kinder das Schema erlaubt, und bietet Werte zur Auswahl an. Ein Doppelklick fügt ein Element an der richtigen Stelle ein. Elemente lassen sich außerdem per Ziehen und Ablegen verschieben, eine blaue Linie zeigt das Ziel. Gerade bei unbekannten Formaten zeigt die Seitenleiste schnell, was an einer Stelle überhaupt erlaubt ist.",
+        "en": "The Entry Helpers switch opens a side panel on the right. For the selected element it shows which siblings and children the schema allows, and offers values to pick. A double-click inserts an element at the right place. You can also move elements by drag and drop, and a blue line shows the target. Especially with unfamiliar formats, the side panel quickly shows what is allowed at a place at all."
       }
     },
     {
@@ -166,8 +166,8 @@
         "de": "Zurück zum Text"
       },
       "say": {
-        "de": "Alle Ansichten teilen sich ein Dokument. Zurück in der Ansicht Text stehen die neue Menge, der neue Artikel und die Formel im Quelltext. Strg Z nimmt jede Änderung auch hier zurück, egal in welcher Ansicht Sie sie gemacht haben.",
-        "en": "All views share one document. Back in the Text view, the new quantity, the new item and the formula are in the source. Ctrl Z takes back every change here too, whichever view you made it in."
+        "de": "Alle Ansichten teilen sich ein Dokument. Zurück in der Ansicht Text stehen die neue Menge, der neue Artikel und die Formel im Quelltext. Strg Z nimmt jede Änderung auch hier zurück, egal in welcher Ansicht Sie sie gemacht haben. Probleme aus der Validierung führen im Grid direkt zur betroffenen Zelle.",
+        "en": "All views share one document. Back in the Text view, the new quantity, the new item and the formula are in the source. Ctrl Z takes back every change here too, whichever view you made it in. Problems from validation lead straight to the affected cell in the grid."
       }
     },
     {

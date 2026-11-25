@@ -97,6 +97,26 @@ class ValidateXmlDocVideo {
                 video.zoomOut();
             });
 
+            video.scene("wellformed", () -> {
+                String text = host.getActiveText().orElseThrow();
+                int at = text.indexOf("<note>") + "<note".length();
+                video.zoom(textBounds(host, "<note>Please deliver before Friday.</note>"));
+                video.spoken(0.2);
+                video.retype(at, 1, "");
+                video.spoken(0.35);
+                video.key(KeyCode.F8, "F8");
+                video.pause(1500);
+                video.zoomOut();
+                video.zoom(problemsArea());
+                video.spoken(0.8);
+                video.zoomOut();
+                video.zoom(textBounds(host, "<note"));
+                video.retype(at, 0, ">");
+                video.key(KeyCode.F8, "F8");
+                doc.waitUntilFx(30, () -> host.getActiveProblems().isEmpty());
+                video.zoomOut();
+            });
+
             video.scene("break", () -> {
                 video.spoken(0.25);
                 int at = host.getActiveText().orElseThrow().indexOf("quantity=\"2\"") + "quantity=\"".length();
@@ -188,6 +208,35 @@ class ValidateXmlDocVideo {
                 keys.hidePopups();
             });
 
+            video.scene("grid-jump", () -> {
+                video.zoomOut();
+                java.util.List<Node> modes = doc.fx(() -> host.getViewSwitch().lookupAll(".fxt-view-seg").stream()
+                        .filter(n -> n.isVisible() && n.isManaged()).toList());
+                video.click(modes.get(2));
+                video.pause(2000);
+                video.spoken(0.3);
+                ListView<?> problems = doc.find("#problems-panel-list");
+                int priceRow = doc.fx(() -> {
+                    for (int i = 0; i < problems.getItems().size(); i++) {
+                        if (String.valueOf(problems.getItems().get(i)).contains("24.905")) {
+                            return i;
+                        }
+                    }
+                    return 0;
+                });
+                Node cell = doc.fx(() -> problems.lookupAll(".list-cell").stream()
+                        .filter(n -> n instanceof javafx.scene.control.ListCell<?> c && c.getIndex() == priceRow)
+                        .findFirst().orElse(null));
+                if (cell != null) {
+                    Bounds cb = video.screenBounds(cell);
+                    video.click(cb.getMinX() + 260, cb.getCenterY());
+                }
+                video.pause(1500);
+                video.spoken(0.9);
+                video.click(modes.get(0));
+                video.pause(800);
+            });
+
             video.scene("fix-all", () -> {
                 ListView<?> problems = doc.find("#problems-panel-list");
                 Bounds list = video.screenBounds(problems);
@@ -248,6 +297,16 @@ class ValidateXmlDocVideo {
                 video.moveTo(doc.<Node>find("#validation-xsd-row"));
                 video.spoken(0.7);
                 video.moveTo(doc.<Node>find("#validation-schematron-row"));
+            });
+
+            video.scene("live", () -> {
+                video.spoken(0.1);
+                video.click(doc.<Node>find("#validation-overflow"));
+                video.pause(900);
+                Node live = video.menuItem(org.fxt.freexmltoolkit.i18n.I18n.t("ValidationPanel.liveValidation.text"));
+                video.moveTo(live);
+                video.spoken(0.6);
+                keys.hidePopups();
             });
 
             video.scene("batch", () -> {

@@ -44,8 +44,8 @@
     {
       "id": "cards",
       "say": {
-        "de": "Das Diagramm zeigt gleich den Inhalt von order. Der Knopf am rechten Rand einer Karte klappt sie auf, hier customer. Jede Karte zeigt den Namen und darunter den Typ. Das kleine Symbol zwischen den Karten steht für eine Sequenz: Die Kinder kommen in genau dieser Reihenfolge. Eine gestrichelte Karte ist optional, wie note. Die Attribute id und date erkennen Sie am At-Zeichen, das Etikett req heißt Pflicht.",
-        "en": "The diagram shows the content of order right away. The button at the right edge of a card expands it, here customer. Each card shows the name and the type below it. The small symbol between the cards stands for a sequence: the children come in exactly this order. A dashed card is optional, like note. You recognise the attributes id and date by the at sign, and the req label means required."
+        "de": "Das Diagramm zeigt gleich den Inhalt von order. Der Knopf am rechten Rand einer Karte klappt sie auf, hier customer. Jede Karte zeigt den Namen und darunter den Typ. Das kleine Symbol zwischen den Karten steht für eine Sequenz: Die Kinder kommen in genau dieser Reihenfolge. Eine gestrichelte Karte ist optional, wie note. Die Attribute id und date erkennen Sie am At-Zeichen, das Etikett req heißt Pflicht. Die Karten zeigen das Schema so, wie ein Dokument später aufgebaut ist: von außen nach innen, von links nach rechts.",
+        "en": "The diagram shows the content of order right away. The button at the right edge of a card expands it, here customer. Each card shows the name and the type below it. The small symbol between the cards stands for a sequence: the children come in exactly this order. A dashed card is optional, like note. You recognise the attributes id and date by the at sign, and the req label means required. The cards show the schema the way a document will be built later: from the outside in, from left to right."
       }
     },
     {
@@ -73,22 +73,22 @@
         "en": "Adding elements and attributes"
       },
       "say": {
-        "de": "Im Typ-Editor lässt sich der Inhalt ändern. Rechtsklick auf die Sequenz, dann Hinzufügen, Element. Der Dialog nimmt gleich alle Eigenschaften auf: den Namen deliveryDate, den Typ xs:date aus der Typauswahl und mindestens null Vorkommen, damit das Element optional ist. Ein Name mit Leerzeichen wird sofort rot markiert, denn er wäre in XML nicht erlaubt. Die Typauswahl zeigt zuerst die eigenen Typen des Schemas und darunter die eingebauten Datentypen wie Text, Zahl und Datum, mit einer Suche. Unter Mehr finden Sie seltener gebrauchte Angaben wie einen Standardwert oder einen festen Wert.",
-        "en": "In the type editor the content can be changed. Right-click the sequence, then Add, Element. The dialog takes every property at once: the name deliveryDate, the type xs:date from the type picker, and a minimum of zero occurrences so that the element is optional. A name with a space is marked red at once, because XML would not allow it. The type picker shows the schema's own types first and the built-in data types such as text, number and date below them, with a search. Under More you find less common settings such as a default or a fixed value."
+        "de": "Im Typ-Editor lässt sich der Inhalt ändern. Rechtsklick auf die Sequenz, dann Hinzufügen, Element. Der Dialog nimmt gleich alle Eigenschaften auf: den Namen deliveryDate, den Typ xs:date aus der Typauswahl und mindestens null Vorkommen, damit das Element optional ist. Ein Name mit Leerzeichen wird sofort rot markiert, denn er wäre in XML nicht erlaubt. Die Typauswahl zeigt zuerst die eigenen Typen des Schemas und darunter die eingebauten Datentypen wie Text, Zahl und Datum, mit einer Suche. Unter Mehr finden Sie seltener gebrauchte Angaben wie einen Standardwert oder einen festen Wert. Die neue Karte wird genau hinter der Stelle eingefügt, an der Sie geklickt haben.",
+        "en": "In the type editor the content can be changed. Right-click the sequence, then Add, Element. The dialog takes every property at once: the name deliveryDate, the type xs:date from the type picker, and a minimum of zero occurrences so that the element is optional. A name with a space is marked red at once, because XML would not allow it. The type picker shows the schema's own types first and the built-in data types such as text, number and date below them, with a search. Under More you find less common settings such as a default or a fixed value. The new card is inserted right after the place you clicked."
       }
     },
     {
       "id": "save",
       "say": {
-        "de": "Nach OK steht die neue Karte im Diagramm, gestrichelt, weil sie optional ist. In Schema speichern überträgt die Änderung aus dem Typ-Editor in das Schema. Erst danach steht sie im Dokument, und Sie können sie noch mit Strg Z zurücknehmen. Der Tab des Schemas zeigt mit einem Punkt, dass es ungespeicherte Änderungen gibt.",
-        "en": "After OK, the new card is in the diagram, dashed because it is optional. Save to Schema carries the change from the type editor into the schema. Only then is it in the document, and you can still take it back with Ctrl Z. The schema's tab shows with a dot that there are unsaved changes."
+        "de": "Nach OK steht die neue Karte im Diagramm, gestrichelt, weil sie optional ist. In Schema speichern überträgt die Änderung aus dem Typ-Editor in das Schema. Erst danach steht sie im Dokument, und Sie können sie noch mit Strg Z zurücknehmen. Der Tab des Schemas zeigt mit einem Punkt, dass es ungespeicherte Änderungen gibt. So können Sie im Typ-Editor in Ruhe ausprobieren und erst übernehmen, wenn alles passt.",
+        "en": "After OK, the new card is in the diagram, dashed because it is optional. Save to Schema carries the change from the type editor into the schema. Only then is it in the document, and you can still take it back with Ctrl Z. The schema's tab shows with a dot that there are unsaved changes. That way you can try things calmly in the type editor and only take them over when everything fits."
       }
     },
     {
       "id": "attribute",
       "say": {
-        "de": "Attribute fügen Sie genauso hinzu: Rechtsklick auf die Karte OrderType, Hinzufügen, Attribut. Hier heißt es status, vom Typ xs:string, und ist optional. Im Feld Dokumentation beschreiben Sie, wofür das Attribut gedacht ist. Diese Beschreibung erscheint später in der Autovervollständigung und in der erzeugten Dokumentation. Pflichtattribute bekommen auf der Karte das Etikett req, optionale nicht.",
-        "en": "You add attributes the same way: right-click the OrderType card, Add, Attribute. Here it is called status, of type xs:string, and optional. In the Documentation field you describe what the attribute is for. That description later shows in auto-completion and in the generated documentation. Required attributes get the req label on their card, optional ones do not."
+        "de": "Attribute fügen Sie genauso hinzu: Rechtsklick auf die Karte OrderType, Hinzufügen, Attribut. Hier heißt es status, vom Typ xs:string, und ist optional. Im Feld Dokumentation beschreiben Sie, wofür das Attribut gedacht ist. Diese Beschreibung erscheint später in der Autovervollständigung und in der erzeugten Dokumentation. Pflichtattribute bekommen auf der Karte das Etikett req, optionale nicht. Attribute eignen sich für kurze Angaben zu einem Element, etwa einen Status oder eine Kennung, während längere Inhalte als Kindelemente besser aufgehoben sind.",
+        "en": "You add attributes the same way: right-click the OrderType card, Add, Attribute. Here it is called status, of type xs:string, and optional. In the Documentation field you describe what the attribute is for. That description later shows in auto-completion and in the generated documentation. Required attributes get the req label on their card, optional ones do not. Attributes suit short facts about an element, such as a status or an identifier, while longer content is better kept in child elements."
       }
     },
     {
@@ -98,8 +98,8 @@
         "en": "Editing properties"
       },
       "say": {
-        "de": "Jede Karte lässt sich auch im Bereich Eigenschaften bearbeiten. Für deliveryDate sehen Sie Typ und Facetten, die Kardinalität und die Dokumentation. Ändern Sie zum Beispiel das maximale Vorkommen, und das Etikett auf der Karte folgt sofort. Bei einem einfachen Typ wie der Bestellnummer stehen hier die Facetten, etwa das Muster PO, Bindestrich und vier Ziffern. Auch Bedingungen wie unique oder key legen Sie hier an, zum Beispiel, dass jede Artikelnummer nur einmal vorkommen darf. Auf Wunsch zeigt das Diagramm diese Bedingungen direkt auf den Karten an.",
-        "en": "Every card can also be edited in the Properties panel. For deliveryDate you see the type and facets, the cardinality and the documentation. Change the maximum occurrence, for example, and the label on the card follows at once. For a simple type such as the order number, the facets show here, like the pattern PO, hyphen and four digits. Constraints such as unique or key are set up here too, for example that every item number may appear only once. If you like, the diagram shows these constraints right on the cards."
+        "de": "Jede Karte lässt sich auch im Bereich Eigenschaften bearbeiten. Für deliveryDate sehen Sie Typ und Facetten, die Kardinalität und die Dokumentation. Ändern Sie zum Beispiel das maximale Vorkommen, und das Etikett auf der Karte folgt sofort. Bei einem einfachen Typ wie der Bestellnummer stehen hier die Facetten, etwa das Muster PO, Bindestrich und vier Ziffern. Auch Bedingungen wie unique oder key legen Sie hier an, zum Beispiel, dass jede Artikelnummer nur einmal vorkommen darf. Auf Wunsch zeigt das Diagramm diese Bedingungen direkt auf den Karten an. Alle Änderungen im Bereich Eigenschaften laufen über denselben Verlauf wie im Diagramm, Strg Z nimmt sie also genauso zurück.",
+        "en": "Every card can also be edited in the Properties panel. For deliveryDate you see the type and facets, the cardinality and the documentation. Change the maximum occurrence, for example, and the label on the card follows at once. For a simple type such as the order number, the facets show here, like the pattern PO, hyphen and four digits. Constraints such as unique or key are set up here too, for example that every item number may appear only once. If you like, the diagram shows these constraints right on the cards. Every change in the Properties panel goes through the same history as in the diagram, so Ctrl Z takes it back just the same."
       }
     },
     {
@@ -120,8 +120,8 @@
         "en": "Overview, export and saving"
       },
       "say": {
-        "de": "Zurück im Tab des Schemas zeigt die Ansicht Übersicht alle globalen Teile als Tabelle: Elemente, Typen, Gruppen und Importe. Hier fügen Sie neue Typen hinzu, sortieren und benennen sie um, und alle Verweise werden mitgeändert. Mehr dazu im Video über Typen. Die unteren Reiter zeigen zum gewählten Teil Details, Attribute, Bedingungen und die Namespaces des Schemas.",
-        "en": "Back in the schema's tab, the Overview view shows all global parts as a table: elements, types, groups and imports. Here you add new types, sort and rename them, and every reference changes along. More on that in the video about types. The lower tabs show details, attributes, constraints and the schema's namespaces for the selected part."
+        "de": "Zurück im Tab des Schemas zeigt die Ansicht Übersicht alle globalen Teile als Tabelle: Elemente, Typen, Gruppen und Importe. Hier fügen Sie neue Typen hinzu, sortieren und benennen sie um, und alle Verweise werden mitgeändert. Mehr dazu im Video über Typen. Die unteren Reiter zeigen zum gewählten Teil Details, Attribute, Bedingungen und die Namespaces des Schemas. Für Schemas mit vielen Typen ist die Übersicht oft der schnellste Weg, etwas zu finden: Die Tabelle lässt sich nach Art und Name sortieren.",
+        "en": "Back in the schema's tab, the Overview view shows all global parts as a table: elements, types, groups and imports. Here you add new types, sort and rename them, and every reference changes along. More on that in the video about types. The lower tabs show details, attributes, constraints and the schema's namespaces for the selected part. For schemas with many types, the Overview is often the quickest way to find something: the table can be sorted by kind and name."
       }
     },
     {
@@ -134,8 +134,8 @@
     {
       "id": "text",
       "say": {
-        "de": "Zurück in der Ansicht Text des Schemas stehen das neue Element und das neue Attribut im Quelltext von OrderType. Strg S speichert die Datei. Jede Änderung lässt sich bis dahin mit Strg Z rückgängig machen.",
-        "en": "Back in the schema's Text view, the new element and the new attribute are in the source of OrderType. Ctrl S saves the file. Until then, every change can be undone with Ctrl Z."
+        "de": "Zurück in der Ansicht Text des Schemas stehen das neue Element und das neue Attribut im Quelltext von OrderType. Strg S speichert die Datei. Jede Änderung lässt sich bis dahin mit Strg Z rückgängig machen. Prüfen Sie danach die Beispielbestellung mit F8 gegen das geänderte Schema: Weil beide neuen Teile optional sind, bleibt sie gültig.",
+        "en": "Back in the schema's Text view, the new element and the new attribute are in the source of OrderType. Ctrl S saves the file. Until then, every change can be undone with Ctrl Z. Then check the example order against the changed schema with F8: because both new parts are optional, it stays valid."
       }
     },
     {
