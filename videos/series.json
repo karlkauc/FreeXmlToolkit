@@ -15,6 +15,7 @@
     "xslt-debug",
     "schematron-quick-fixes",
     "projects",
-    "query-console"
+    "query-console",
+    "schema-library"
   ]
 }
