@@ -26,8 +26,8 @@
         "de": "Die Startseite"
       },
       "say": {
-        "en": "After the start, the middle shows the Welcome page. The cards at the top create a new file, open a file or a whole folder. Below them is what you may want to do, such as validate, transform or compare, each one click away.",
-        "de": "Nach dem Start zeigt die Mitte die Startseite. Die Karten oben legen eine neue Datei an, öffnen eine Datei oder einen ganzen Ordner. Darunter steht, was Sie tun möchten, etwa validieren, umwandeln oder vergleichen, jeweils mit einem Klick."
+        "de": "Nach dem Start zeigt die Mitte die Startseite. Die Karten oben legen eine neue Datei an, öffnen eine Datei, einen ganzen Ordner oder eine Datei von einer Adresse im Internet. Darunter steht, was Sie tun möchten: validieren, umwandeln, vergleichen, ein Schema bearbeiten und mehr. Ein Klick auf eine Aufgabe öffnet gleich das passende Werkzeug. Später stehen hier auch Ihre zuletzt verwendeten Dateien.",
+        "en": "After the start, the middle shows the Welcome page. The cards at the top create a new file, open a file, a whole folder, or a file from an address on the internet. Below them is what you may want to do: validate, transform, compare, edit a schema and more. A click on a task opens the matching tool right away. Later, your recent files show here too."
       }
     },
     {
@@ -51,15 +51,15 @@
         "de": "Die Aktivitätsleiste"
       },
       "say": {
-        "en": "On the far left is the activity bar. Each icon opens a tool in the side panel next to it: the Explorer with your files, Search, Validation, Transform with XSLT, Schema, and creating PDF files.",
-        "de": "Ganz links ist die Aktivitätsleiste. Jedes Symbol öffnet ein Werkzeug in der Seitenleiste daneben: den Explorer mit Ihren Dateien, die Suche, die Validierung, das Umwandeln mit XSLT, das Schema und das Erzeugen von PDF-Dateien."
+        "de": "Ganz links ist die Aktivitätsleiste. Jedes Symbol öffnet ein Werkzeug in der Seitenleiste daneben. Der Explorer zeigt Ihre Dateien. Die Suche findet Text in ganzen Ordnern. Die Validierung prüft gegen Schema und Schematron. Umwandeln führt XSLT und XQuery aus. Schema hilft beim Bearbeiten von XSD, und PDF erzeugt Dokumente mit XSL-FO. Ein farbiger Balken zeigt, welches Werkzeug gerade offen ist.",
+        "en": "On the far left is the activity bar. Each icon opens a tool in the side panel next to it. The Explorer shows your files. Search finds text in whole folders. Validation checks against schema and Schematron. Transform runs XSLT and XQuery. Schema helps with editing XSD, and PDF creates documents with XSL-FO. A coloured bar shows which tool is open."
       }
     },
     {
       "id": "pages",
       "say": {
-        "en": "Some tools need more room. The Schema Library and the Settings open as a page in the middle, and the side panel lists their sections. The order's tab takes you back to the document.",
-        "de": "Einige Werkzeuge brauchen mehr Platz. Die Schema-Bibliothek und die Einstellungen öffnen sich als Seite in der Mitte, und die Seitenleiste listet ihre Abschnitte. Der Tab der Bestellung führt zurück zum Dokument."
+        "de": "Einige Werkzeuge brauchen mehr Platz. Die Schema-Bibliothek und die Einstellungen öffnen sich als Seite in der Mitte, wie ein eigener Tab. Die Seitenleiste listet dann ihre Abschnitte, ein Klick springt dorthin. Der Bereich Eigenschaften blendet sich solange aus. Der Tab der Bestellung führt zurück zum Dokument.",
+        "en": "Some tools need more room. The Schema Library and the Settings open as a page in the middle, like a tab of their own. The side panel then lists their sections, and a click jumps there. The Properties panel hides meanwhile. The order's tab takes you back to the document."
       }
     },
     {
@@ -69,15 +69,15 @@
         "de": "Dateien wiederfinden"
       },
       "say": {
-        "en": "At the top of the Explorer are the open editors. One click switches to a file. Below them a working folder can show as a tree: Open Folder brings it in.",
-        "de": "Im Explorer stehen oben die geöffneten Editoren. Ein Klick wechselt zur Datei. Darunter kann ein Arbeitsordner als Baum stehen: Ordner öffnen holt ihn herein."
+        "de": "Im Explorer stehen oben die Werkzeuge für Dateien und die geöffneten Editoren. Ein Klick wechselt zur Datei, auch wenn viele Tabs offen sind. Darunter kann ein Arbeitsordner als Baum stehen: Ordner öffnen holt ihn herein, und ein Doppelklick öffnet jede Datei darin.",
+        "en": "At the top of the Explorer are the file tools and the open editors. One click switches to a file, even with many tabs open. Below them a working folder can show as a tree: Open Folder brings it in, and a double-click opens any file in it."
       }
     },
     {
       "id": "favorites",
       "say": {
-        "en": "Files you need often become favorites: Ctrl D adds the active file. The Favorites and Recent tabs in the Explorer bring them back with one click, and so does the star at the top of the header.",
-        "de": "Dateien, die Sie oft brauchen, merken Sie sich als Favorit: Strg D fügt die aktive Datei hinzu. Die Reiter Favoriten und Zuletzt verwendet im Explorer bringen sie mit einem Klick zurück, ebenso der Stern oben in der Kopfleiste."
+        "de": "Dateien, die Sie oft brauchen, merken Sie sich als Favorit: Strg D fügt die aktive Datei hinzu. Die Reiter Favoriten und Zuletzt verwendet im Explorer bringen sie mit einem Klick zurück, ebenso der Stern oben in der Kopfleiste, von jedem Werkzeug aus. Favoriten lassen sich in Gruppen ordnen.",
+        "en": "Files you need often become favourites: Ctrl D adds the active file. The Favorites and Recent tabs in the Explorer bring them back with one click, and so does the star at the top of the header, from any tool. Favourites can be sorted into groups."
       }
     },
     {
@@ -87,15 +87,15 @@
         "de": "Tabs und Ansichten"
       },
       "say": {
-        "en": "In the middle, the open files are tabs. A right-click on a tab offers Reload, Close, Save As, copying the path and showing the file in the file manager.",
-        "de": "In der Mitte stehen die geöffneten Dateien als Tabs. Ein Rechtsklick auf einen Tab bietet Neu laden, Schließen, Speichern unter, den Pfad kopieren und die Datei im Dateimanager zeigen."
+        "de": "In der Mitte stehen die geöffneten Dateien als Tabs. Ein Punkt im Tab zeigt ungespeicherte Änderungen. Tabs lassen sich mit der Maus umsortieren, und Strg Tab wechselt zum nächsten. Ein Rechtsklick auf einen Tab bietet Neu laden, Schließen, Speichern unter, den Pfad kopieren und die Datei im Dateimanager zeigen.",
+        "en": "In the middle, the open files are tabs. A dot in a tab shows unsaved changes. You can reorder tabs with the mouse, and Ctrl Tab switches to the next one. A right-click on a tab offers Reload, Close, Save As, copying the path and showing the file in the file manager."
       }
     },
     {
       "id": "views",
       "say": {
-        "en": "The view switch shows the same document as text, as a tree or as a graphic. Your place stays: what you selected in the text is selected in the tree and in the graphic too.",
-        "de": "Der Ansichtsumschalter zeigt dasselbe Dokument als Text, als Baum oder als Grafik. Die Stelle bleibt dabei erhalten: Was Sie im Text gewählt haben, ist auch im Baum und in der Grafik gewählt."
+        "de": "Der Ansichtsumschalter zeigt dasselbe Dokument als Text, als Baum oder als Grafik. Text ist der Quelltext, der Baum zeigt die Struktur, und die Grafik zeigt XML als Tabellen und ein Schema als Diagramm. Die Stelle bleibt dabei erhalten: Was Sie im Text gewählt haben, ist auch im Baum und in der Grafik gewählt. Alle Ansichten teilen sich ein Dokument und einen Verlauf für Rückgängig.",
+        "en": "The view switch shows the same document as text, as a tree or as a graphic. Text is the source, the tree shows the structure, and the graphic shows XML as tables and a schema as a diagram. Your place stays: what you selected in the text is selected in the tree and the graphic too. All views share one document and one undo history."
       }
     },
     {
@@ -105,15 +105,15 @@
         "de": "Eigenschaften und Statusleiste"
       },
       "say": {
-        "en": "On the right is the Properties panel. When the caret is on an element, it shows its attributes and what the schema says about it: the type, the allowed values and the documentation. You can change the values here as well.",
-        "de": "Rechts ist der Bereich Eigenschaften. Steht die Schreibmarke auf einem Element, zeigt er seine Attribute und was das Schema darüber sagt: den Typ, erlaubte Werte und die Dokumentation. Die Werte lassen sich hier auch ändern."
+        "de": "Rechts ist der Bereich Eigenschaften. Steht die Schreibmarke auf einem Element, zeigt er seinen Pfad, seine Attribute und was das Schema darüber sagt: den Typ, erlaubte Werte und die Dokumentation. Die Werte lassen sich hier auch ändern, und die Änderung steht sofort im Text. Der Stern oben merkt sich das Element als Favorit.",
+        "en": "On the right is the Properties panel. When the caret is on an element, it shows its path, its attributes and what the schema says about it: the type, the allowed values and the documentation. You can change the values here as well, and the change shows in the text at once. The star at the top keeps the element as a favourite."
       }
     },
     {
       "id": "status",
       "say": {
-        "en": "At the bottom, the status bar shows the caret position, the file type, the bound schema and the encoding.",
-        "de": "Unten zeigt die Statusleiste die Position der Schreibmarke, den Dateityp, das gebundene Schema und die Kodierung."
+        "de": "Unten zeigt die Statusleiste die Position der Schreibmarke, die Zahl der Zeichen, den Dateityp, das gebundene Schema und die Kodierung. Ein Klick auf das Schema bindet ein anderes. Rechts stehen der Speicher und der Pfad der Datei.",
+        "en": "At the bottom, the status bar shows the caret position, the number of characters, the file type, the bound schema and the encoding. A click on the schema binds another one. On the right are the memory and the file's path."
       }
     },
     {
@@ -123,23 +123,23 @@
         "de": "Menüs und Platz"
       },
       "say": {
-        "en": "At the top is the menu bar with every command. Each entry shows its shortcut. Help, Keyboard Shortcuts lists them all at a glance.",
-        "de": "Oben ist die Menüleiste mit allen Befehlen. Hinter jedem Eintrag steht sein Tastenkürzel. Hilfe, Tastenkürzel zeigt alle auf einen Blick."
+        "de": "Oben ist die Menüleiste mit allen Befehlen: Datei, Bearbeiten, Ansicht, Werkzeuge und Hilfe. Hinter jedem Eintrag steht sein Tastenkürzel, so lernen Sie die Kürzel nebenbei. Hilfe, Tastenkürzel zeigt alle auf einen Blick, nach Bereichen geordnet. F1 öffnet die Dokumentation.",
+        "en": "At the top is the menu bar with every command: File, Edit, View, Tools and Help. Each entry shows its shortcut, so you learn them along the way. Help, Keyboard Shortcuts lists them all at a glance, grouped by area. F1 opens the documentation."
       }
     },
     {
       "id": "room",
       "say": {
-        "en": "The buttons at both ends of the toolbar hide the side panel and the Properties panel, and show them again. That gives the editor more room.",
-        "de": "Die Knöpfe an beiden Enden der Werkzeugleiste blenden die Seitenleiste und den Bereich Eigenschaften aus und wieder ein. So hat der Editor mehr Platz."
+        "de": "Die Knöpfe an beiden Enden der Werkzeugleiste blenden die Seitenleiste und den Bereich Eigenschaften aus und wieder ein. Strg L und Strg Umschalt P tun dasselbe mit der Tastatur. So hat der Editor bei großen Dateien mehr Platz. Die Breite der Bereiche ziehen Sie an ihren Rändern.",
+        "en": "The buttons at both ends of the toolbar hide the side panel and the Properties panel, and show them again. Ctrl L and Ctrl Shift P do the same from the keyboard. That gives the editor more room for large files. You drag the width of the panels at their edges."
       }
     },
     {
       "id": "outro",
       "card": "outro",
       "say": {
-        "en": "That was the tour. The next videos show the work step by step: editing text, validating, the grid, schemas, transformations, Schematron and projects.",
-        "de": "Das war der Rundgang. Die nächsten Videos zeigen die Arbeit Schritt für Schritt: Text bearbeiten, prüfen, das Grid, Schemas, Transformationen, Schematron und Projekte."
+        "de": "Das war der Rundgang. Die nächsten Videos zeigen die Arbeit Schritt für Schritt: Text bearbeiten, prüfen, das Grid, Schemas, Transformationen, Schematron und Projekte. Viel Spaß beim Ausprobieren.",
+        "en": "That was the tour. The next videos show the work step by step: editing text, validating, the grid, schemas, transformations, Schematron and projects. Have fun trying it out."
       }
     }
   ]
