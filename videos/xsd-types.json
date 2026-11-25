@@ -51,8 +51,8 @@
     {
       "id": "rename",
       "say": {
-        "de": "Umbenennen im Kontextmenü ändert den Namen direkt in der Tabelle. Hat der Eintrag Verweise, fragt FreeXmlToolkit, ob sie mit angepasst werden sollen: Wird aus PriceType etwa AmountType, verwenden dann alle Attribute und Elemente, die den Typ nutzen, sofort den neuen Namen. Von Hand müssten Sie jede Stelle einzeln suchen.",
-        "en": "Rename in the context menu changes the name right in the table. When the entry has references, FreeXmlToolkit asks whether to update them too: if PriceType becomes AmountType, every attribute and element using the type then takes the new name at once. By hand you would have to find each place yourself."
+        "de": "Umbenennen im Kontextmenü ändert den Namen direkt in der Tabelle. Hat der Eintrag Verweise, fragt FreeXmlToolkit, ob sie mit angepasst werden sollen: Wird aus PriceType etwa AmountType, verwenden dann alle Attribute und Elemente, die den Typ nutzen, sofort den neuen Namen. Von Hand müssten Sie jede Stelle einzeln suchen. Das gilt für Verweise im eigenen Namespace, und Strg Z nimmt die Umbenennung samt aller angepassten Verweise in einem einzigen Schritt zurück.",
+        "en": "Rename in the context menu changes the name right in the table. When the entry has references, FreeXmlToolkit asks whether to update them too: if PriceType becomes AmountType, every attribute and element using the type then takes the new name at once. By hand you would have to find each place yourself. That applies to references in the schema's own namespace, and Ctrl Z takes back the rename together with all adjusted references in a single step."
       }
     },
     {
@@ -74,6 +74,13 @@
       }
     },
     {
+      "id": "add-facet",
+      "say": {
+        "de": "Facetten fügen Sie im Bereich Eigenschaften hinzu. Für den neuen Typ CurrencyType wählen Sie die Art enumeration, tragen den Wert EUR ein und klicken Hinzufügen, danach dasselbe für USD. Die Auswahl bietet nur Facetten an, die zum Basistyp passen: Für Text gibt es Länge, Muster und Aufzählung, aber keine Ziffern und keine Wertebereiche. So entsteht kein Schema, das sich nicht laden lässt. Facetten, die ein Typ von einem benannten Basistyp erbt, stehen schreibgeschützt daneben.",
+        "en": "You add facets in the Properties area. For the new type CurrencyType, choose the kind enumeration, enter the value EUR and click Add, then the same for USD. The choice only offers facets that fit the base type: for text there are length, pattern and enumeration, but no digits and no value ranges. That way you never create a schema that cannot be loaded. Facets a type inherits from a named base type are listed next to them, read-only."
+      }
+    },
+    {
       "id": "list-union",
       "say": {
         "de": "Neben der Einschränkung gibt es zwei weitere Arten einfacher Typen. Eine Liste erlaubt mehrere Werte, durch Leerzeichen getrennt, und eine Vereinigung erlaubt Werte aus mehreren Typen, zum Beispiel eine Zahl oder das Wort unbekannt.",
@@ -87,8 +94,8 @@
         "en": "Complex types"
       },
       "say": {
-        "de": "Komplexe Typen beschreiben Elemente mit Kindern und Attributen. Im Kontextmenü der Übersicht öffnet Im Typ-Editor öffnen den Typ als eigenen Tab. Oben stehen sein Name und ob er abstrakt ist, darunter sein Inhalt als Diagramm. So bearbeiten Sie den Typ einmal, und die Änderung gilt überall, wo er verwendet wird.",
-        "en": "Complex types describe elements with children and attributes. In the Overview's context menu, Open in Type Editor opens the type as a tab of its own. At the top are its name and whether it is abstract, below it its content as a diagram. That way you edit the type once, and the change applies everywhere it is used."
+        "de": "Komplexe Typen beschreiben Elemente mit Kindern und Attributen. Im Kontextmenü der Übersicht öffnet Im Typ-Editor öffnen den Typ als eigenen Tab. Oben stehen sein Name und ob er abstrakt ist, darunter sein Inhalt als Diagramm. So bearbeiten Sie den Typ einmal, und die Änderung gilt überall, wo er verwendet wird. Im Diagramm des Schemas selbst stehen die Teile eines benannten Typs in einem gestrichelten Rahmen und sind dort schreibgeschützt; ein Doppelklick auf den Titel des Rahmens öffnet ebenfalls den Typ-Editor.",
+        "en": "Complex types describe elements with children and attributes. In the Overview's context menu, Open in Type Editor opens the type as a tab of its own. At the top are its name and whether it is abstract, below it its content as a diagram. That way you edit the type once, and the change applies everywhere it is used. In the schema's own diagram, the parts of a named type sit in a dashed frame and are read-only there; a double-click on the frame's title opens the type editor as well."
       }
     },
     {
@@ -99,21 +106,28 @@
       }
     },
     {
+      "id": "type-library",
+      "say": {
+        "de": "Die Aktivität Schema in der Aktivitätsleiste listet in der Seitenleiste alle globalen Elemente, komplexen und einfachen Typen, mit einem Filterfeld darüber. Der Rechtsklick auf einen Typ bietet Im Baum anzeigen, Typ-Editor öffnen und Verwendung suchen. Verwendung suchen öffnet einen Bericht, der jede Stelle nennt, an der der Typ benutzt wird. So sehen Sie vor einer Änderung, was alles davon betroffen ist.",
+        "en": "The Schema activity in the activity bar lists all global elements, complex and simple types in the side panel, with a filter field above. A right-click on a type offers Reveal in Tree, Open Type Editor and Find Usage. Find Usage opens a report that names every place where the type is used. That way you see before a change what it will affect."
+      }
+    },
+    {
       "id": "namespaces",
       "chapter": {
         "de": "Namespaces und XSD 1.1",
         "en": "Namespaces and XSD 1.1"
       },
       "say": {
-        "de": "Zurück in der Übersicht zeigt der Reiter Namespaces den Ziel-Namespace und alle Präfixe des Schemas. Import und Include binden andere Schemas ein: Include für Dateien mit demselben Namespace, Import für fremde Namespaces. Eingebunden zeigt deren Teile zusätzlich in der Tabelle.",
-        "en": "Back in the Overview, the Namespaces tab shows the target namespace and all prefixes of the schema. Import and Include bring in other schemas: Include for files with the same namespace, Import for foreign namespaces. Included shows their parts in the table as well."
+        "de": "Zurück in der Übersicht zeigt der Reiter Namespaces den Ziel-Namespace und alle Präfixe des Schemas. Import und Include binden andere Schemas ein: Include für Dateien mit demselben Namespace, Import für fremde Namespaces. Eingebunden zeigt deren Teile zusätzlich in der Tabelle. Präfixe lassen sich hier hinzufügen und ändern. Ein Präfix, das im Schema noch verwendet wird, lässt sich nicht entfernen, so bleibt das Schema gültig.",
+        "en": "Back in the Overview, the Namespaces tab shows the target namespace and all prefixes of the schema. Import and Include bring in other schemas: Include for files with the same namespace, Import for foreign namespaces. Included shows their parts in the table as well. Prefixes can be added and changed here. A prefix the schema still uses cannot be removed, so the schema stays valid."
       }
     },
     {
       "id": "xsd11",
       "say": {
-        "de": "XSD 1.1 kann mehr: Assertions prüfen Bedingungen mit XPath, etwa dass ein Lieferdatum nach dem Bestelldatum liegt, und Alternativen wählen den Typ eines Elements abhängig von einem Attribut. Der Reiter Assertions listet sie, und FreeXmlToolkit prüft Dokumente auch gegen XSD 1.1.",
-        "en": "XSD 1.1 can do more: assertions check conditions with XPath, for example that a delivery date comes after the order date, and alternatives choose an element's type depending on an attribute. The Assertions tab lists them, and FreeXmlToolkit validates documents against XSD 1.1 too."
+        "de": "XSD 1.1 kann mehr: Assertions prüfen Bedingungen mit XPath, etwa dass ein Lieferdatum nach dem Bestelldatum liegt, und Alternativen wählen den Typ eines Elements abhängig von einem Attribut. Der Reiter Assertions listet sie, und FreeXmlToolkit prüft Dokumente auch gegen XSD 1.1. Mit Assertion hinzufügen legen Sie direkt im Reiter eine neue Bedingung an.",
+        "en": "XSD 1.1 can do more: assertions check conditions with XPath, for example that a delivery date comes after the order date, and alternatives choose an element's type depending on an attribute. The Assertions tab lists them, and FreeXmlToolkit validates documents against XSD 1.1 too. With Add Assertion you create a new condition right in that tab."
       }
     },
     {

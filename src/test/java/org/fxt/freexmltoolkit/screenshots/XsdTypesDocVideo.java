@@ -158,6 +158,39 @@ class XsdTypesDocVideo {
                 video.zoomOut();
             });
 
+            video.scene("add-facet", () -> {
+                clickRow(video, "CurrencyType");
+                video.pause(1000);
+                Node inspector = doc.find("#inspectorWrapper");
+                if (inspector != null && doc.fx(inspector::isVisible)) {
+                    video.zoom(inspector);
+                }
+                Node combo = doc.find("#inspector-facet-type");
+                Node value = doc.find("#inspector-facet-value");
+                Node add = doc.find("#inspector-facet-add");
+                if (combo instanceof javafx.scene.control.ComboBox<?> box && value != null && add != null
+                        && doc.fx(combo::isVisible)) {
+                    video.click(combo);
+                    video.pause(1500);
+                    video.spoken(0.2);
+                    doc.onFx(() -> {
+                        box.hide();
+                        selectFacet(box, "enumeration");
+                    });
+                    for (String v : new String[] {"EUR", "USD"}) {
+                        video.click(value);
+                        typeInto(video, value, v);
+                        video.pause(300);
+                        video.click(add);
+                        video.pause(900);
+                    }
+                } else {
+                    System.out.println("[video] no facet controls for CurrencyType");
+                }
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
             video.scene("list-union", () -> {
                 clickRow(video, "OrderIdType");
                 video.pause(800);
@@ -181,6 +214,36 @@ class XsdTypesDocVideo {
                 video.zoom(new BoundingBox(editor.getMinX(), editor.getMinY(), editor.getWidth(), editor.getHeight() * 0.7));
                 video.spoken(0.95);
                 video.zoomOut();
+            });
+
+            video.scene("type-library", () -> {
+                video.click(doc.<Node>find("#activity-schema"));
+                video.pause(1500);
+                video.zoom(doc.<Node>find("#leftPanelWrapper"));
+                video.spoken(0.3);
+                Node cell = doc.fx(() -> doc.find("#schema-simple-list") instanceof javafx.scene.Parent list
+                        ? list.lookupAll(".list-cell").stream()
+                                .filter(c -> c instanceof Labeled l && l.getText() != null && l.getText().contains("PriceType"))
+                                .findFirst().orElse(null)
+                        : null);
+                if (cell != null) {
+                    video.click(cell);
+                    video.pause(500);
+                    Bounds b = video.screenBounds(cell);
+                    video.rightClick(b.getMinX() + 40, b.getCenterY());
+                    video.pause(800);
+                    video.spoken(0.5);
+                    video.click(video.menuItem(I18n.t("TypeLibraryPanel.find-usage")));
+                    video.pause(2500);
+                    video.zoomOut();
+                    Bounds editor = video.screenBounds(doc.find("#editorHost"));
+                    video.zoom(new BoundingBox(editor.getMinX(), editor.getMinY(), editor.getWidth() * 0.7, editor.getHeight() * 0.5));
+                } else {
+                    System.out.println("[video] no PriceType in the type library");
+                }
+                video.spoken(0.95);
+                video.zoomOut();
+                video.click(doc.<Node>find("#activity-explorer"));
             });
 
             video.scene("namespaces", () -> {
@@ -263,6 +326,37 @@ class XsdTypesDocVideo {
             video.click(ok);
         } else {
             doc.onFx(dialog::hide);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void selectFacet(javafx.scene.control.ComboBox<?> box, String xmlName) {
+        for (Object item : box.getItems()) {
+            if (item instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType type
+                    && type.getXmlName().equals(xmlName)) {
+                ((javafx.scene.control.ComboBox<Object>) box).setValue(item);
+                return;
+            }
+        }
+        System.out.println("[video] facet not offered: " + xmlName + " in " + box.getItems());
+    }
+
+    /** Types {@code text} into a field one character at a time (the field is filled directly). */
+    private void typeInto(DocVideoRecorder video, Node field, String text) {
+        if (!(field instanceof javafx.scene.control.TextInputControl input)) {
+            return;
+        }
+        doc.onFx(() -> {
+            input.requestFocus();
+            input.clear();
+        });
+        for (int i = 1; i <= text.length(); i++) {
+            String part = text.substring(0, i);
+            doc.onFx(() -> {
+                input.setText(part);
+                input.positionCaret(part.length());
+            });
+            video.pause(90);
         }
     }
 }
