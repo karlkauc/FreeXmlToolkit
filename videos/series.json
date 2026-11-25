@@ -21,6 +21,7 @@
     "convert",
     "xsd-types",
     "xsd-analysis",
-    "large-files"
+    "large-files",
+    "xspec"
   ]
 }
