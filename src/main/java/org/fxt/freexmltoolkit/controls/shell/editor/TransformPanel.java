@@ -642,7 +642,7 @@ public class TransformPanel extends VBox {
             case FAILED -> {
                 out.showTransformResult(result.actual(), OutputFormat.XML, ms);
                 StringBuilder text = new StringBuilder(I18n.t("TransformPanel.check-failed", result.summary(), expected));
-                result.differences().stream().limit(3).forEach(d -> text.append("\n• ").append(d.describe()));
+                result.differences().stream().limit(3).forEach(d -> text.append("\n• ").append(ScenarioCheck.describe(d)));
                 if (result.differences().size() > 3) {
                     text.append("\n…");
                 }

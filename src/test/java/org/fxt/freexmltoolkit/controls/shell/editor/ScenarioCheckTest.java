@@ -126,6 +126,15 @@ class ScenarioCheckTest {
     }
 
     @Test
+    void theDescriptionOfADifferenceReadsLikeTheEnglishOne() {
+        var changed = new org.fxt.freexmltoolkit.service.XmlStructuralDiff.Difference(
+                org.fxt.freexmltoolkit.service.XmlStructuralDiff.Change.CHANGED,
+                org.fxt.freexmltoolkit.service.XmlStructuralDiff.NodeKind.ATTRIBUTE, "id", "/a/@id", "/a/@id",
+                "1", "2", 3, 3, false);
+        assertEquals(changed.describe(), ScenarioCheck.describe(changed), "fxt.locale=en: same text as the CLI");
+    }
+
+    @Test
     void onlyXmlIsComparedByStructure() {
         String html = "<!DOCTYPE HTML>\n<html><head><meta charset=\"UTF-8\"></head><body/></html>\n";
         assertFalse(ScenarioCheck.comparesByStructure(html, html), "HTML that is no XML");

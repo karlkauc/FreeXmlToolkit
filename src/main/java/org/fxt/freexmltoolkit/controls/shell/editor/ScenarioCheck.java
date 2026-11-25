@@ -141,6 +141,31 @@ public final class ScenarioCheck {
         return true;
     }
 
+    /**
+     * One difference in the interface language, for the Transform panel ({@link XmlStructuralDiff.Difference#describe()}
+     * stays English: the command line prints it).
+     */
+    public static String describe(XmlStructuralDiff.Difference d) {
+        String what = switch (d.kind()) {
+            case ELEMENT -> I18n.t("ScenarioCheck.diff.element", d.name());
+            case ATTRIBUTE -> I18n.t("ScenarioCheck.diff.attribute", d.name());
+            case TEXT -> I18n.t("ScenarioCheck.diff.text");
+            case COMMENT -> I18n.t("ScenarioCheck.diff.comment");
+            case PROCESSING_INSTRUCTION -> I18n.t("ScenarioCheck.diff.pi", d.name());
+            case NAMESPACE -> I18n.t("ScenarioCheck.diff.namespace", d.name());
+            case DOCUMENT -> d.name();
+            case MEMBER -> I18n.t("ScenarioCheck.diff.member", d.name());
+            case ITEM -> I18n.t("ScenarioCheck.diff.item", d.name());
+        };
+        return switch (d.change()) {
+            case ADDED -> I18n.t("ScenarioCheck.diff.added", what);
+            case REMOVED -> I18n.t("ScenarioCheck.diff.removed", what);
+            case MOVED -> I18n.t("ScenarioCheck.diff.moved", what);
+            case CHANGED -> I18n.t("ScenarioCheck.diff.changed", what, "\"" + d.leftValue() + "\"",
+                    "\"" + d.rightValue() + "\"");
+        };
+    }
+
     /** Whether the text starts (after whitespace and comments) with an HTML doctype or an {@code html} element. */
     static boolean looksLikeHtml(String text) {
         String t = text.strip();
