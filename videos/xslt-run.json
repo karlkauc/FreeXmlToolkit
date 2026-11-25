@@ -26,8 +26,15 @@
         "de": "Das Werkzeug Umwandeln"
       },
       "say": {
-        "en": "The example order is open, and next to it the stylesheet order-summary.xslt. It turns the order into a small HTML summary. Click Transform in the activity bar.",
-        "de": "Die Beispielbestellung ist geöffnet, daneben das Stylesheet order-summary.xslt. Es macht aus der Bestellung eine kleine HTML-Übersicht. Klicken Sie in der Aktivitätsleiste auf Umwandeln."
+        "de": "Die Beispielbestellung ist geöffnet, daneben das Stylesheet order-summary.xslt. Es macht aus der Bestellung eine kleine HTML-Übersicht mit einer Tabelle der Artikel und der Gesamtsumme. Klicken Sie in der Aktivitätsleiste auf Umwandeln.",
+        "en": "The example order is open, and next to it the stylesheet order-summary.xslt. It turns the order into a small HTML summary with a table of the items and the order total. Click Transform in the activity bar."
+      }
+    },
+    {
+      "id": "concept",
+      "say": {
+        "de": "Kurz zur Idee: Ein XSLT-Stylesheet beschreibt, wie aus einem XML-Dokument etwas Neues entsteht, zum Beispiel HTML, Text oder ein anderes XML. Es besteht aus Templates. Jedes Template sagt, was mit bestimmten Elementen geschieht. Das Werkzeug Umwandeln bringt Stylesheet und Eingabe zusammen und zeigt das Ergebnis.",
+        "en": "A quick word on the idea: an XSLT stylesheet describes how something new comes out of an XML document, for example HTML, text or another XML. It is made of templates. Each template says what happens to certain elements. The Transform tool brings stylesheet and input together and shows the result."
       }
     },
     {
@@ -65,15 +72,15 @@
     {
       "id": "preview",
       "say": {
-        "en": "Text shows the HTML the stylesheet wrote. The header says how long the run took and how many characters it wrote.",
-        "de": "Text zeigt das HTML, das das Stylesheet geschrieben hat. Die Kopfzeile nennt die Dauer des Laufs und die Zahl der Zeichen."
+        "de": "Text zeigt das HTML, das das Stylesheet geschrieben hat, sauber eingerückt. Die Kopfzeile nennt die Dauer des Laufs und die Zahl der Zeichen. So sehen Sie auf einen Blick, ob ein Stylesheet ungewöhnlich lange braucht.",
+        "en": "Text shows the HTML the stylesheet wrote, neatly indented. The header says how long the run took and how many characters it wrote. So you see at a glance when a stylesheet takes unusually long."
       }
     },
     {
       "id": "save",
       "say": {
-        "en": "On the right are the next steps: open the result as a tab, look at it in the browser, or save it as a file.",
-        "de": "Rechts stehen die nächsten Schritte: das Ergebnis als Tab öffnen, im Browser ansehen oder mit Speichern als Datei ablegen."
+        "de": "Rechts stehen die nächsten Schritte: das Ergebnis als Tab öffnen, um es weiter zu bearbeiten, im Browser ansehen oder mit Speichern als Datei ablegen. Schreibt das Stylesheet Meldungen mit xsl:message, erscheinen sie unter dem Ergebnis. Bei einem Fehler nennt die Ausgabe die Zeile, und ein Doppelklick springt dorthin.",
+        "en": "On the right are the next steps: open the result as a tab to keep working on it, look at it in the browser, or save it as a file. When the stylesheet writes messages with xsl:message, they appear below the result. On an error, the output names the line, and a double-click jumps there."
       }
     },
     {
@@ -115,8 +122,8 @@
     {
       "id": "manage",
       "say": {
-        "en": "The gear next to it manages the processors, just as in the settings. One click adds Saxon HE 13, or you set up a program of your own.",
-        "de": "Das Zahnrad daneben verwaltet die Prozessoren, genau wie in den Einstellungen. Mit einem Klick fügen Sie Saxon HE 13 hinzu, oder Sie richten ein eigenes Programm ein."
+        "de": "Das Zahnrad daneben verwaltet die Prozessoren, genau wie in den Einstellungen. Mit einem Klick laden Sie Saxon HE 13 herunter, die neueste Fassung mit einer Vorschau auf XSLT 4.0. Oder Sie richten ein eigenes Programm ein, etwa einen Prozessor, den Ihre Firma vorgibt. Ein Test zeigt gleich, ob er funktioniert.",
+        "en": "The gear next to it manages the processors, just as in the settings. One click downloads Saxon HE 13, the newest version with a preview of XSLT 4.0. Or you set up a program of your own, for example a processor your company requires. A test shows right away whether it works."
       }
     },
     {

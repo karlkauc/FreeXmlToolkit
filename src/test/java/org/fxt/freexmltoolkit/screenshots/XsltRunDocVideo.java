@@ -86,6 +86,18 @@ class XsltRunDocVideo {
                 video.zoomOut();
             });
 
+            video.scene("concept", () -> {
+                video.spoken(0.1);
+                doc.onFx(() -> host.openFile(xslt));
+                doc.waitUntilFx(20, () -> host.getActiveText().orElse("").contains("xsl:stylesheet"));
+                Bounds editor = video.screenBounds(doc.find("#editorHost"));
+                video.zoom(new BoundingBox(editor.getMinX(), editor.getMinY(), editor.getWidth(), editor.getHeight() * 0.8));
+                video.spoken(0.85);
+                video.zoomOut();
+                doc.onFx(() -> host.openFile(xml));
+                doc.waitUntilFx(20, () -> host.getActiveText().orElse("").contains("PO-1042"));
+            });
+
             video.scene("choose", () -> {
                 video.zoom(doc.<Node>find("#leftPanelWrapper"));
                 video.spoken(0.4);
