@@ -168,7 +168,8 @@ dependencies {
     implementation("org.bouncycastle:bcpkix-jdk18on:1.87")
 
     implementation("org.controlsfx:controlsfx:11.2.7")
-    // Native macOS application/window menu (only touched on macOS, see app/MacMenuIntegration)
+    // Native macOS application/window menu (only touched on macOS, see app/MacMenuIntegration).
+    // Also brings JNA (via jfa), which app/MacGlassOpenUrls uses for the macOS open-file events.
     implementation("de.jangassen:nsmenufx:3.1.0") {
         // JavaFX comes from the Liberica Full JDK; keep the library's OpenJFX 11 jars off the classpath
         exclude(group = "org.openjfx")
@@ -1382,6 +1383,9 @@ https://freexmltoolkit.org
                 "-Djava.library.path=${'$'}ROOTDIR/runtime/bin\n" +
                 cliPlatformProps)
             val cliLauncherArg = "--add-launcher\nfxt-cli=${cliLauncherFile.absolutePath}"
+            // macOS: a main class that is no javafx.application.Application, so FxtGui.main runs before the
+            // toolkit starts and can take over Finder's open-document event (see FxtMacLauncher)
+            val guiMainClass = if (platform == "macos") "org.fxt.freexmltoolkit.FxtMacLauncher" else "org.fxt.freexmltoolkit.FxtGui"
 
             argsFile.writeText("""--type
 $packageType
@@ -1394,7 +1398,7 @@ $appName
 --main-jar
 FreeXmlToolkit.jar
 --main-class
-org.fxt.freexmltoolkit.FxtGui
+$guiMainClass
 --app-version
 ${project.version}
 --vendor

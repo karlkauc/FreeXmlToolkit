@@ -32,6 +32,13 @@ the tag-pinning gotcha), invoke the **`release` skill** (`.claude/skills/release
 ## Application Entry Point
 
 **Main Class:** `org.fxt.freexmltoolkit.FxtGui` — extends `javafx.application.Application`, loads `/pages/tab_unified_shell.fxml` (→ `UnifiedShellController` → `UnifiedShellView`), initializes logging, fonts, CSS hot-reloading, platform icons, and `ShellBootstrap` startup tasks.
+The macOS package's jpackage `--main-class` is `FxtMacLauncher` (no `Application` subclass): for an `Application`
+main class the Java launcher starts the toolkit *before* `main`, and AppKit then hands Finder's open-document event
+to Glass at once. JavaFX 25's Glass answers `application:openURLs:` only for an embedded AWT (never `notifyOpenFiles`),
+so `FxtGui.main` replaces that method first via `app/MacGlassOpenUrls` (JNA, Objective-C runtime; file URLs →
+`StartupFileOpener`); `MacOpenFilesHandler` covers JavaFX versions that still call `application:openFiles:`.
+`MacGlassOpenUrlsTest` sends the event to Glass on macOS. A local ad-hoc build launched from Finder first shows a
+Gatekeeper dialog — test file opening with `open file.xml` or a signed build.
 
 ## Command Line (fxt-cli)
 

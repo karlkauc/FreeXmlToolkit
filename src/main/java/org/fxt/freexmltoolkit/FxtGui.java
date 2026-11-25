@@ -169,8 +169,10 @@ public class FxtGui extends Application {
     @Override
     public void init() throws Exception {
         super.init();
-        // macOS delivers "Open With" / Dock drops as Apple events to Glass, not to AWT. First thing:
-        // Glass keeps the launch files only until the application became active (MacOpenFilesHandler).
+        // macOS delivers "Open With" / Dock drops as Apple events to Glass, not to AWT. JavaFX versions
+        // that call application:openFiles: reach MacOpenFilesHandler (Glass keeps the launch files only
+        // until the application became active); JavaFX 25's application:openURLs: is taken over in main()
+        // by MacGlassOpenUrls.
         Platform.runLater(org.fxt.freexmltoolkit.app.MacOpenFilesHandler::install);
 
         // Log (with stack trace) and anonymously report every uncaught exception. Installed
@@ -742,6 +744,9 @@ public class FxtGui extends Application {
             }
             singleInstance = startup.primary();
         }
+        // macOS: files opened from Finder arrive as soon as the toolkit runs its event loop, before
+        // init(); Glass (JavaFX 25) hands them only to AWT, so take them over before the toolkit starts.
+        org.fxt.freexmltoolkit.app.MacGlassOpenUrls.install(StartupFileOpener::enqueue);
         // A maximum heap chosen in Settings > Memory takes a relaunch with that limit.
         if (applyMemoryLimit(args)) {
             System.exit(0);

@@ -67,6 +67,10 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="MyFile"/>
         </Logger>
+        <Logger name="org.fxt.freexmltoolkit.app.MacGlassOpenUrls" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="MyFile"/>
+        </Logger>
         <Logger name="org.fxt.freexmltoolkit.util.StartupFileOpener" level="INFO" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="MyFile"/>
