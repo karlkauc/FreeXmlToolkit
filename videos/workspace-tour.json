@@ -117,6 +117,13 @@
       }
     },
     {
+      "id": "header",
+      "say": {
+        "de": "Über dem Editor liegt die Kopfleiste. Links steht der Pfad der aktiven Datei, so sehen Sie immer, woran Sie gerade arbeiten. In der Mitte öffnet das Feld XPath / XQuery ausführen die Abfragekonsole, auch mit Strg K. Rechts daneben stehen der Stern für die Favoriten, das Fragezeichen für die Hilfe und der Knopf für die Darstellung: ein Klick wechselt zwischen hell und dunkel, und alle Bereiche folgen sofort.",
+        "en": "Above the editor is the header. On the left is the path of the active file, so you always see what you are working on. In the middle, the field Run XPath / XQuery opens the Query Console, also with Ctrl K. To its right are the star for favorites, the question mark for help, and the appearance button: one click switches between light and dark, and every area follows at once."
+      }
+    },
+    {
       "id": "menus",
       "chapter": {
         "en": "Menus and room",

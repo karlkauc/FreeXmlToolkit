@@ -56,6 +56,13 @@
       }
     },
     {
+      "id": "find",
+      "say": {
+        "de": "Bei großen Schemas hilft die Suche. Strg F öffnet sie auch in der Grafik. Gesucht wird in Namen, Dokumentation, Attributen und Facettenwerten. Enter springt zum nächsten Treffer, klappt die Karten auf dem Weg dorthin auf und wählt den Treffer aus, hier price. So finden Sie auch tief verschachtelte Teile, ohne sich durch das Diagramm zu klicken.",
+        "en": "In large schemas, search helps. Ctrl F opens it in the graphic view too. It searches names, documentation, attributes and facet values. Enter jumps to the next match, expands the cards on the way there and selects the match, here price. That way you find deeply nested parts too, without clicking through the diagram."
+      }
+    },
+    {
       "id": "frame",
       "chapter": {
         "de": "Benannte Typen und der Typ-Editor",
@@ -100,6 +107,13 @@
       "say": {
         "de": "Jede Karte lässt sich auch im Bereich Eigenschaften bearbeiten. Für deliveryDate sehen Sie Typ und Facetten, die Kardinalität und die Dokumentation. Ändern Sie zum Beispiel das maximale Vorkommen, und das Etikett auf der Karte folgt sofort. Bei einem einfachen Typ wie der Bestellnummer stehen hier die Facetten, etwa das Muster PO, Bindestrich und vier Ziffern. Auch Bedingungen wie unique oder key legen Sie hier an, zum Beispiel, dass jede Artikelnummer nur einmal vorkommen darf. Auf Wunsch zeigt das Diagramm diese Bedingungen direkt auf den Karten an. Alle Änderungen im Bereich Eigenschaften laufen über denselben Verlauf wie im Diagramm, Strg Z nimmt sie also genauso zurück.",
         "en": "Every card can also be edited in the Properties panel. For deliveryDate you see the type and facets, the cardinality and the documentation. Change the maximum occurrence, for example, and the label on the card follows at once. For a simple type such as the order number, the facets show here, like the pattern PO, hyphen and four digits. Constraints such as unique or key are set up here too, for example that every item number may appear only once. If you like, the diagram shows these constraints right on the cards. Every change in the Properties panel goes through the same history as in the diagram, so Ctrl Z takes it back just the same."
+      }
+    },
+    {
+      "id": "edit-more",
+      "say": {
+        "de": "Weitere Befehle stehen im Kontextmenü jeder Karte: Umbenennen, Duplizieren, Verschieben nach oben oder unten, Knoten kopieren und einfügen, Löschen und XPath kopieren. Hier entsteht mit Duplizieren eine Kopie von deliveryDate direkt darunter. Karten lassen sich auch mit der Maus an eine neue Stelle ziehen, mit gedrückter Strg-Taste wird dabei kopiert. Und wie überall nimmt Strg Z jeden Schritt zurück.",
+        "en": "More commands are in every card's context menu: Rename, Duplicate, Move up or down, Copy and Paste Node, Delete and Copy XPath. Here Duplicate creates a copy of deliveryDate right below it. Cards can also be dragged to a new place with the mouse, and holding Ctrl copies them. And as everywhere, Ctrl Z takes every step back."
       }
     },
     {

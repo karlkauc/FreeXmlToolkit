@@ -195,6 +195,29 @@ class WorkspaceTourDocVideo {
                 video.moveTo(encoding.getCenterX(), encoding.getCenterY());
             });
 
+            video.scene("header", () -> {
+                video.zoomOut();
+                Node crumb = doc.find("#breadcrumb");
+                Bounds b = video.screenBounds(crumb);
+                Bounds stage = video.screenBounds(doc.stage().getScene().getRoot());
+                video.zoom(new BoundingBox(stage.getMinX(), b.getMinY() - 30, stage.getWidth(), 220));
+                video.moveTo(crumb);
+                video.spoken(0.25);
+                video.moveTo(doc.<Node>find("#searchPill"));
+                video.spoken(0.5);
+                video.moveTo(doc.<Node>find("#header-favorites"));
+                video.pause(500);
+                video.moveTo(doc.<Node>find("#header-help"));
+                video.spoken(0.7);
+                Node theme = doc.find("#themeToggleButton");
+                video.click(theme);
+                video.pause(1800);
+                video.zoomOut();
+                video.pause(1200);
+                video.click(theme);
+                video.spoken(0.97);
+            });
+
             video.scene("menus", () -> {
                 video.zoomOut();
                 video.click(doc.<Node>find("#menu-file"));

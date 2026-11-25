@@ -88,6 +88,13 @@
       }
     },
     {
+      "id": "find",
+      "say": {
+        "de": "Auch im Grid sucht Strg F. Tippen Sie einen Teil eines Werts, hier Cookbook, und Enter springt zur passenden Zelle und markiert sie. Ein weiteres Enter geht zum nächsten Treffer, und der Zähler in der Suchleiste zeigt, wie viele es gibt. Bei langen Dokumenten ist das oft der schnellste Weg zu einem bestimmten Datensatz.",
+        "en": "Ctrl F searches in the grid too. Type part of a value, here Cookbook, and Enter jumps to the matching cell and selects it. Another Enter goes to the next match, and the counter in the search bar shows how many there are. In long documents that is often the quickest way to a particular record."
+      }
+    },
+    {
       "id": "edit",
       "chapter": {
         "en": "Edit cells",

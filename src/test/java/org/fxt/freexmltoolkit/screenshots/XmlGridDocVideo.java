@@ -174,6 +174,26 @@ class XmlGridDocVideo {
                 System.out.println("[video] table back: " + doc.fx(() -> { try { GridVideoProbe.table(grid); return true; } catch (RuntimeException e) { return false; } }));
             });
 
+            video.scene("find", () -> {
+                Bounds canvas = doc.fx(() -> GridVideoProbe.canvas(grid));
+                video.click(canvas.getMinX() + 40, canvas.getMinY() + 20);
+                video.pause(300);
+                keys.shortcut(KeyCode.F, false, "F");
+                video.pause(900);
+                Node owner = doc.fx(() -> doc.stage().getScene().getFocusOwner());
+                if (owner instanceof javafx.scene.control.TextInputControl) {
+                    video.typeIntoFocused("Cookbook");
+                    video.spoken(0.35);
+                    video.key(KeyCode.ENTER, "Enter");
+                    video.pause(1500);
+                } else {
+                    System.out.println("[video] no find field in the grid: " + owner);
+                }
+                video.spoken(0.9);
+                video.key(KeyCode.ESCAPE, "Esc");
+                video.pause(400);
+            });
+
             video.scene("edit", () -> {
                 // at once: the cell editor takes a moment to open under the recording's software rendering
                 Bounds cell = doc.fx(() -> GridVideoProbe.cell(grid, 0, "quantity"));

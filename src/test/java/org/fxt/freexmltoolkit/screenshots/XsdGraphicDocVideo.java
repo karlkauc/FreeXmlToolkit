@@ -132,6 +132,25 @@ class XsdGraphicDocVideo {
                 video.zoomOut();
             });
 
+            video.scene("find", () -> {
+                VideoTyping keys = new VideoTyping(doc, video);
+                video.spoken(0.15);
+                keys.shortcut(KeyCode.F, false, "F");
+                video.pause(900);
+                Node owner = doc.fx(() -> doc.stage().getScene().getFocusOwner());
+                if (owner instanceof javafx.scene.control.TextInputControl) {
+                    video.typeIntoFocused("price");
+                    video.spoken(0.45);
+                    video.key(KeyCode.ENTER, "Enter");
+                    video.pause(1500);
+                } else {
+                    System.out.println("[video] no find field in the graphic view: " + owner);
+                }
+                video.spoken(0.9);
+                video.key(KeyCode.ESCAPE, "Esc");
+                video.pause(400);
+            });
+
             video.scene("frame", () -> {
                 video.spoken(0.3);
                 Bounds title = doc.fx(() -> XsdGraphVideoProbe.frameTitle(graph(host), "OrderType"));
@@ -276,6 +295,28 @@ class XsdGraphicDocVideo {
                 }
                 video.spoken(0.95);
                 video.zoomOut();
+            });
+
+            video.scene("edit-more", () -> {
+                VisualNode dd = doc.fx(() -> XsdGraphVideoProbe.card(graph(host), "OrderType", "deliveryDate"));
+                if (dd != null) {
+                    Bounds b = doc.fx(() -> XsdGraphVideoProbe.bounds(graph(host), dd));
+                    video.rightClick(b.getMinX() + 40, b.getCenterY());
+                    video.pause(700);
+                    video.spoken(0.35);
+                    Node duplicate = video.menuItem(I18n.t("XsdContextMenuFactory.duplicate"));
+                    video.click(duplicate);
+                    video.pause(1500);
+                } else {
+                    System.out.println("[video] no deliveryDate card for edit-more");
+                }
+                video.spoken(0.8);
+                Node undo = doc.find("#action-undo");
+                if (undo != null) {
+                    video.click(undo);
+                    video.pause(1000);
+                }
+                video.spoken(0.95);
             });
 
             video.scene("rules", () -> {

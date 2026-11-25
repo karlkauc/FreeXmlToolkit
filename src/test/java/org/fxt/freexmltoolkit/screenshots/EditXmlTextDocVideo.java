@@ -225,6 +225,24 @@ class EditXmlTextDocVideo {
                 video.pause(600);
             });
 
+            video.scene("zoom", () -> {
+                doc.onFx(() -> host.openFile(xml));
+                doc.waitUntilFx(10, () -> host.getActiveText().orElse("").contains("PO-1042"));
+                CodeArea area = area();
+                clickAt(video, area, host.getActiveText().orElseThrow().indexOf("<customer>") + 2);
+                video.spoken(0.1);
+                for (int i = 0; i < 4; i++) {
+                    shortcut(video, KeyCode.ADD, false, "+");
+                    video.pause(500);
+                }
+                video.spoken(0.35);
+                shortcut(video, KeyCode.SUBTRACT, false, "-");
+                video.pause(700);
+                shortcut(video, KeyCode.DIGIT0, false, "0");
+                video.pause(600);
+                video.spoken(0.95);
+            });
+
             video.scene("definition", () -> {
                 CodeArea area = area();
                 int at = host.getActiveText().orElseThrow().indexOf("<customer>") + 3;
@@ -238,6 +256,27 @@ class EditXmlTextDocVideo {
                         .map(d -> d.getDisplayName()).orElse("-")));
                 video.zoomOut();
                 video.spoken(0.95);
+            });
+
+            video.scene("generate-schema", () -> {
+                doc.onFx(() -> host.openFile(xml));
+                doc.waitUntilFx(10, () -> host.getActiveText().orElse("").contains("PO-1042"));
+                video.click(doc.<Node>find("#menu-tools"));
+                video.pause(700);
+                Node item = video.inPopup("#menu-tools-generate-xsd");
+                video.moveTo(item);
+                video.spoken(0.12);
+                video.click(item);
+                try {
+                    doc.waitUntilFx(20, () -> host.getActiveText().orElse("").contains("xs:schema"));
+                } catch (Exception e) {
+                    System.out.println("[video] no generated schema");
+                }
+                video.pause(1200);
+                Bounds editor = video.screenBounds(doc.find("#editorHost"));
+                video.zoom(new BoundingBox(editor.getMinX(), editor.getMinY(), editor.getWidth() * 0.8, editor.getHeight() * 0.75));
+                video.spoken(0.95);
+                video.zoomOut();
             });
 
             video.scene("xpath", () -> {

@@ -92,6 +92,13 @@
       }
     },
     {
+      "id": "zoom",
+      "say": {
+        "de": "Für eine Präsentation oder müde Augen vergrößern Sie die Schrift: Strg Plus macht sie größer, Strg Minus kleiner, und Strg Null stellt die normale Größe wieder her. Mit gedrückter Strg-Taste geht das auch mit dem Mausrad. Schriftart, Grundgröße und Zeilenabstand stellen Sie in den Einstellungen unter Editor ein, und auf Wunsch merkt sich FreeXmlToolkit die gezoomte Größe für alle Editoren.",
+        "en": "For a presentation or tired eyes, enlarge the text: Ctrl Plus makes it bigger, Ctrl Minus smaller, and Ctrl Zero restores the normal size. Holding Ctrl, the mouse wheel does the same. Font, base size and line spacing are set in the settings under Editor, and if you like, FreeXmlToolkit remembers the zoomed size for all editors."
+      }
+    },
+    {
       "id": "definition",
       "chapter": {
         "en": "Navigate",
@@ -100,6 +107,13 @@
       "say": {
         "de": "Mit gedrückter Strg-Taste wird ein Elementname zum Link. Ein Klick springt zu seiner Deklaration im Schema, hier zu customer in order.xsd. Dort sehen Sie, welchen Typ das Element hat und was es enthalten darf. Das Schema öffnet sich als eigener Tab, und Sie kommen über den Tab der Bestellung zurück.",
         "en": "With Ctrl held down, an element name becomes a link. One click jumps to its declaration in the schema, here customer in order.xsd. There you see the element's type and what it may contain. The schema opens as a tab of its own, and the order's tab takes you back."
+      }
+    },
+    {
+      "id": "generate-schema",
+      "say": {
+        "de": "Und wenn es noch gar kein Schema gibt? Werkzeuge, XSD aus XML generieren, schreibt aus dem aktiven Dokument einen ersten Entwurf und öffnet ihn als neuen Tab. Für jeden Wert wählt es den engsten Datentyp, der passt, etwa Zahl, Dezimalzahl oder Datum. Ein Element, das sich wiederholt, darf öfter vorkommen, und ein Attribut, das überall steht, wird Pflicht. Den Entwurf verfeinern Sie dann im Schema-Editor. Aus mehreren Dateien gleichzeitig geht es ebenso.",
+        "en": "And if there is no schema yet? Tools, Generate XSD from XML writes a first draft from the active document and opens it as a new tab. For every value it picks the narrowest data type that fits, such as integer, decimal or date. An element that repeats may occur several times, and an attribute that is always there becomes required. You then refine the draft in the schema editor. It works from several files at once as well."
       }
     },
     {
