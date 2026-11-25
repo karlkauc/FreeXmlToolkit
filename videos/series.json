@@ -17,6 +17,7 @@
     "projects",
     "query-console",
     "schema-library",
-    "compare-merge"
+    "compare-merge",
+    "convert"
   ]
 }
