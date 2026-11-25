@@ -4,6 +4,9 @@
                 xmlns:xs="http://www.w3.org/2001/XMLSchema" exclude-result-prefixes="xs">
     <xsl:output method="html" indent="yes"/>
 
+    <!-- The currency shown with the totals; set it in the Transform panel's PARAMETERS. -->
+    <xsl:param name="currency" as="xs:string" select="'EUR'"/>
+
     <xsl:template match="/order">
         <html>
             <head><title>Order <xsl:value-of select="@id"/></title></head>
@@ -11,7 +14,7 @@
                 <h1>Order <xsl:value-of select="@id"/></h1>
                 <p><xsl:value-of select="customer/name"/>, <xsl:value-of select="@date"/></p>
                 <table border="1" cellpadding="4">
-                    <tr><th>Item</th><th>Quantity</th><th>Price</th><th>Total</th></tr>
+                    <tr><th>Item</th><th>Quantity</th><th>Price</th><th>Total (<xsl:value-of select="$currency"/>)</th></tr>
                     <xsl:for-each select="items/item">
                         <tr>
                             <td><xsl:value-of select="."/></td>
@@ -22,7 +25,8 @@
                     </xsl:for-each>
                 </table>
                 <p><b>Order total: <xsl:value-of
-                        select="format-number(sum(items/item/(xs:decimal(@quantity) * xs:decimal(@price))), '0.00')"/></b></p>
+                        select="format-number(sum(items/item/(xs:decimal(@quantity) * xs:decimal(@price))), '0.00')"/>
+                    <xsl:text> </xsl:text><xsl:value-of select="$currency"/></b></p>
             </body>
         </html>
     </xsl:template>

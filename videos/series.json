@@ -5,5 +5,5 @@
     "en": "FreeXmlToolkit tutorials",
     "de": "FreeXmlToolkit-Lernvideos"
   },
-  "videos": ["workspace-tour", "validate-xml", "xml-grid", "xsd-graphic", "xslt-debug", "schematron-quick-fixes", "projects"]
+  "videos": ["workspace-tour", "validate-xml", "xml-grid", "xsd-graphic", "xslt-run", "xslt-debug", "schematron-quick-fixes", "projects"]
 }

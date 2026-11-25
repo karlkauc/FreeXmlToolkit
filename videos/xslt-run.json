@@ -1,0 +1,131 @@
+{
+  "id": "xslt-run",
+  "scenario": "XsltRunDocVideo",
+  "docs": "guides/transform-query/run-xslt/",
+  "title": {
+    "en": "Run an XSLT stylesheet",
+    "de": "Ein XSLT-Stylesheet ausführen"
+  },
+  "description": {
+    "en": "Choose a stylesheet and an input in the Transform panel, run it, read and save the result, pass a parameter, use the live preview and pick another XSLT processor.",
+    "de": "Im Werkzeug Umwandeln ein Stylesheet und eine Eingabe wählen, ausführen, das Ergebnis lesen und speichern, einen Parameter übergeben, die Live-Vorschau nutzen und einen anderen XSLT-Prozessor wählen."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "In this video you run an XSLT stylesheet on an XML file. You read the result, pass a parameter, and let the result follow your edits.",
+        "de": "In diesem Video wenden Sie ein XSLT-Stylesheet auf eine XML-Datei an. Sie lesen das Ergebnis, übergeben einen Parameter und lassen das Ergebnis Ihren Änderungen folgen."
+      }
+    },
+    {
+      "id": "panel",
+      "chapter": {
+        "en": "The Transform panel",
+        "de": "Das Werkzeug Umwandeln"
+      },
+      "say": {
+        "en": "The example order is open, and next to it the stylesheet order-summary.xslt. It turns the order into a small HTML summary. Click Transform in the activity bar.",
+        "de": "Die Beispielbestellung ist geöffnet, daneben das Stylesheet order-summary.xslt. Es macht aus der Bestellung eine kleine HTML-Übersicht. Klicken Sie in der Aktivitätsleiste auf Umwandeln."
+      }
+    },
+    {
+      "id": "choose",
+      "say": {
+        "en": "Three sections matter: the stylesheet, the input and the output method. Next to Stylesheet, click Change. The menu offers a file, or one of the open tabs. You can also simply drop a file on the row. Choose order-summary.xslt.",
+        "de": "Drei Abschnitte zählen: das Stylesheet, die Eingabe und die Ausgabemethode. Beim Stylesheet klicken Sie auf Ändern. Das Menü bietet eine Datei an oder einen der geöffneten Tabs. Sie können eine Datei auch einfach auf die Zeile ziehen. Wählen Sie order-summary.xslt."
+      }
+    },
+    {
+      "id": "input",
+      "say": {
+        "en": "As its input, the panel takes the document in the active editor, here order.xml. The output method is Automatic: it follows what the stylesheet itself says, here HTML. You can also choose XML, text or JSON yourself, and Indent formats the result so it is easy to read.",
+        "de": "Als Eingabe nimmt das Panel das Dokument im aktiven Editor, hier order.xml. Die Ausgabemethode steht auf Automatisch: Sie folgt der Angabe im Stylesheet, hier HTML. Sie können auch selbst XML, Text oder JSON wählen, und Einrücken formatiert das Ergebnis gut lesbar."
+      }
+    },
+    {
+      "id": "start",
+      "say": {
+        "en": "Under Start you decide where the run begins. Usually that is the templates on the input. For other stylesheets it can be a mode, a named template or a function.",
+        "de": "Unter Start legen Sie fest, wo der Lauf beginnt. Meist sind das die Templates auf der Eingabe. Bei anderen Stylesheets kann es auch ein Modus sein, ein benanntes Template oder eine Funktion."
+      }
+    },
+    {
+      "id": "run",
+      "chapter": {
+        "en": "Run and read the result",
+        "de": "Ausführen und das Ergebnis lesen"
+      },
+      "say": {
+        "en": "Run Transform starts the run. The result appears below the editor, in the output panel. Because it is HTML, the panel shows it right away as a preview: the order as a table, with the total at the bottom.",
+        "de": "Transformation ausführen startet den Lauf. Das Ergebnis erscheint unter dem Editor im Bereich Ausgabe. Weil es HTML ist, zeigt der Bereich es gleich als Vorschau: die Bestellung als Tabelle, darunter die Gesamtsumme."
+      }
+    },
+    {
+      "id": "preview",
+      "say": {
+        "en": "Text shows the HTML the stylesheet wrote. The header says how long the run took and how many characters it wrote.",
+        "de": "Text zeigt das HTML, das das Stylesheet geschrieben hat. Die Kopfzeile nennt die Dauer des Laufs und die Zahl der Zeichen."
+      }
+    },
+    {
+      "id": "save",
+      "say": {
+        "en": "On the right are the next steps: open the result as a tab, look at it in the browser, or save it as a file.",
+        "de": "Rechts stehen die nächsten Schritte: das Ergebnis als Tab öffnen, im Browser ansehen oder mit Speichern als Datei ablegen."
+      }
+    },
+    {
+      "id": "params",
+      "chapter": {
+        "en": "Parameters and live preview",
+        "de": "Parameter und Live-Vorschau"
+      },
+      "say": {
+        "en": "The stylesheet declares a parameter, the currency. The panel reads it from the stylesheet and offers it under Parameters. Enter CHF, and run the transform again. The totals are now in Swiss francs.",
+        "de": "Das Stylesheet erwartet einen Parameter, die Währung. Das Panel liest ihn aus dem Stylesheet und bietet ihn unter Parameter an. Tragen Sie CHF ein und führen Sie die Transformation noch einmal aus. Die Summen stehen jetzt in Franken."
+      }
+    },
+    {
+      "id": "live",
+      "say": {
+        "en": "With Live Preview, under Options and Tools, the transform runs by itself whenever the input changes. In the first item, change the quantity from two to four. A moment later the output shows the new total.",
+        "de": "Mit Live-Vorschau unter Optionen und Werkzeuge läuft die Transformation von selbst, sobald sich die Eingabe ändert. Ändern Sie im ersten Artikel die Menge von zwei auf vier. Einen Augenblick später zeigt die Ausgabe die neue Summe."
+      }
+    },
+    {
+      "id": "switches",
+      "say": {
+        "en": "Two more switches help while you work. Watch stylesheet file runs again as soon as the stylesheet changes on disk. Run automatically starts a run as soon as you drop a stylesheet or an input, or pick one from your favorites.",
+        "de": "Zwei weitere Schalter helfen beim Arbeiten. Stylesheet-Datei beobachten führt neu aus, sobald sich das Stylesheet auf der Festplatte ändert. Automatisch ausführen startet einen Lauf, sobald Sie ein Stylesheet oder eine Eingabe ablegen oder aus den Favoriten wählen."
+      }
+    },
+    {
+      "id": "processor",
+      "chapter": {
+        "en": "Other processors",
+        "de": "Andere Prozessoren"
+      },
+      "say": {
+        "en": "The run uses the bundled Saxon HE. Once an external processor is set up, a Processor line appears under the output method. Here xsltproc is set up, a processor for XSLT 1.0. An external processor serves normal runs; the live preview, the debugger and the profiler always use Saxon HE.",
+        "de": "Ausgeführt wird mit dem mitgelieferten Saxon HE. Ist ein externer Prozessor eingerichtet, erscheint unter der Ausgabemethode die Zeile Prozessor. Hier ist xsltproc eingetragen, ein Prozessor für XSLT 1.0. Ein externer Prozessor gilt für normale Läufe. Live-Vorschau, Debugger und Profiler verwenden immer Saxon HE."
+      }
+    },
+    {
+      "id": "manage",
+      "say": {
+        "en": "The gear next to it manages the processors, just as in the settings. One click adds Saxon HE 13, or you set up a program of your own.",
+        "de": "Das Zahnrad daneben verwaltet die Prozessoren, genau wie in den Einstellungen. Mit einem Klick fügen Sie Saxon HE 13 hinzu, oder Sie richten ein eigenes Programm ein."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was running XSLT. The next video watches a stylesheet at work in the debugger: breakpoints, steps and variables.",
+        "de": "Das war das Ausführen von XSLT. Das nächste Video sieht einem Stylesheet im Debugger bei der Arbeit zu: mit Haltepunkten, Schritten und Variablen."
+      }
+    }
+  ]
+}
