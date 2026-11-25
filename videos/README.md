@@ -29,6 +29,7 @@ The first series, in the order it is meant to be watched. Status: **published** 
 | 21 | `command-line` | Automate with the command line fxt-cli / Automatisieren mit der Kommandozeile fxt-cli | `automate/command-line.md` | published |
 | 23 | `ai-assistant` | AI assistant and MCP server / KI-Assistent und MCP-Server | `guides/ai-assistant.md` | published |
 | 24 | `settings` | Settings and appearance / Einstellungen und Darstellung | `reference/settings.md` | published |
+| 25 | `administration` | Manage FreeXmlToolkit in a company / FreeXmlToolkit im Unternehmen verwalten | `administer/policies.md` | published |
 
 The extended storyboards (keywords, target lengths, two series) are planned in `videos/drehbuecher.md`.
 
