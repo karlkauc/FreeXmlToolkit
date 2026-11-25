@@ -139,6 +139,45 @@ class TypeEditorTabTest {
     }
 
     @Test
+    void ctrlZInTheTypeEditorUndoesAnEditOfItsDiagram(@TempDir Path tmp) throws Exception {
+        Tab complex = openComplex(tmp);
+        org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView graph = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> complex.getContent().lookupAll("*").stream()
+                        .filter(org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView.class::isInstance)
+                        .map(org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView.class::cast)
+                        .findFirst().orElseThrow());
+        var context = graph.getEditorContext();
+        var name = WaitForAsyncUtils.waitForAsyncFx(2000, () -> findByName(context.getSchema(), "name"));
+        var sequence = name.getParent();
+        int before = sequence.getChildren().size();
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> context.getCommandManager().executeCommand(
+                new org.fxt.freexmltoolkit.controls.v2.editor.commands.DuplicateNodeCommand(name)));
+        assertEquals(before + 1, sequence.getChildren().size(), "duplicated");
+
+        javafx.scene.input.KeyEvent ctrlZ = new javafx.scene.input.KeyEvent(javafx.scene.input.KeyEvent.KEY_PRESSED,
+                "", "", javafx.scene.input.KeyCode.Z, false, true, false, true);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            javafx.event.Event.fireEvent(graph, ctrlZ);
+            return null;
+        });
+        assertEquals(before, sequence.getChildren().size(), "Ctrl+Z in the type editor undid the duplicate");
+    }
+
+    private static org.fxt.freexmltoolkit.controls.v2.model.XsdNode findByName(
+            org.fxt.freexmltoolkit.controls.v2.model.XsdNode node, String name) {
+        if (name.equals(node.getName()) && node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement) {
+            return node;
+        }
+        for (var child : node.getChildren()) {
+            var hit = findByName(child, name);
+            if (hit != null) {
+                return hit;
+            }
+        }
+        return null;
+    }
+
+    @Test
     void abstractIsACommandOfTheSchemaThatCanBeUndone(@TempDir Path tmp) throws Exception {
         Tab complex = openComplex(tmp);
         var type = personType();

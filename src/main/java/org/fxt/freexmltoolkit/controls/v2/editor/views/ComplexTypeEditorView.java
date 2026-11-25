@@ -272,6 +272,24 @@ public class ComplexTypeEditorView extends BorderPane {
         }
     }
 
+    /** Undoes the last edit of the diagram. @return whether there was one */
+    public boolean undo() {
+        if (graphView == null || graphView.getEditorContext() == null
+                || !graphView.getEditorContext().getCommandManager().canUndo()) {
+            return false;
+        }
+        return graphView.getEditorContext().getCommandManager().undo();
+    }
+
+    /** Redoes the last undone edit of the diagram. @return whether there was one */
+    public boolean redo() {
+        if (graphView == null || graphView.getEditorContext() == null
+                || !graphView.getEditorContext().getCommandManager().canRedo()) {
+            return false;
+        }
+        return graphView.getEditorContext().getCommandManager().redo();
+    }
+
     /**
      * Sets up keyboard shortcuts for the editor.
      * Phase 6: Keyboard shortcuts implementation
@@ -279,12 +297,24 @@ public class ComplexTypeEditorView extends BorderPane {
     private void setupKeyboardShortcuts() {
         setOnKeyPressed(event -> {
             // Check for Ctrl key combinations
-            if (event.isControlDown()) {
+            if (event.isShortcutDown()) {
                 switch (event.getCode()) {
                     case S:
                         // Ctrl+S: Save
                         save();
                         event.consume();
+                        break;
+                    case Z:
+                        // Ctrl+Z / Ctrl+Shift+Z: the shell's undo only serves document tabs, so the
+                        // type editor undoes the edits of its own diagram here
+                        if (event.isShiftDown() ? redo() : undo()) {
+                            event.consume();
+                        }
+                        break;
+                    case Y:
+                        if (redo()) {
+                            event.consume();
+                        }
                         break;
                     default:
                         break;

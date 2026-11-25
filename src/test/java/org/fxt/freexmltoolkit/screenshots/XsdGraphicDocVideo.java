@@ -311,10 +311,16 @@ class XsdGraphicDocVideo {
                     System.out.println("[video] no deliveryDate card for edit-more");
                 }
                 video.spoken(0.8);
-                Node undo = doc.find("#action-undo");
-                if (undo != null) {
-                    video.click(undo);
-                    video.pause(1000);
+                // the type editor tab has no main toolbar: Ctrl+Z on the diagram, as the narration says
+                VisualNode card = doc.fx(() -> XsdGraphVideoProbe.card(graph(host), "OrderType", "deliveryDate"));
+                if (card != null) {
+                    Bounds b = doc.fx(() -> XsdGraphVideoProbe.bounds(graph(host), card));
+                    video.click(b.getMinX() + 40, b.getCenterY());
+                }
+                new VideoTyping(doc, video).shortcut(KeyCode.Z, false, "Z");
+                video.pause(1200);
+                if (doc.fx(() -> XsdGraphVideoProbe.card(graph(host), "OrderType", "deliveryDate_copy")) != null) {
+                    System.out.println("[video] the copy is still there after Ctrl+Z");
                 }
                 video.spoken(0.95);
             });
