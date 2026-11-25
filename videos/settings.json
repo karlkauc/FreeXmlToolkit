@@ -1,0 +1,103 @@
+{
+  "id": "settings",
+  "scenario": "SettingsDocVideo",
+  "docs": "get-started/workspace-tour/",
+  "title": {
+    "en": "Settings and appearance",
+    "de": "Einstellungen und Darstellung"
+  },
+  "description": {
+    "de": "FreeXmlToolkit an die eigene Arbeitsweise anpassen: Hell und Dunkel, Akzentfarbe, Textgröße, Dichte, hoher Kontrast, Sprache, Editor-Schrift und Syntaxfarben, Netzwerk und Datenschutz.",
+    "en": "Adapt FreeXmlToolkit to the way you work: light and dark, accent colour, text size, density, high contrast, language, editor font and syntax colours, network and privacy."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "de": "In diesem Video passen Sie FreeXmlToolkit an: Farben, Schriften und Größen, das Verhalten des Editors, das Netzwerk und den Datenschutz. Die meisten Einstellungen wirken sofort, ohne Neustart.",
+        "en": "In this video you adapt FreeXmlToolkit: colours, fonts and sizes, the editor's behaviour, the network and privacy. Most settings take effect at once, without a restart."
+      }
+    },
+    {
+      "id": "page",
+      "chapter": {
+        "de": "Die Seite Einstellungen",
+        "en": "The settings page"
+      },
+      "say": {
+        "de": "Die Einstellungen öffnen sich über das Zahnrad unten in der Aktivitätsleiste als eigene Seite. Links listet die Seitenleiste die Gruppen: Darstellung, Editor, Schemas, Dateien, Netzwerk, Datenschutz, Erweiterungen und KI. Das Suchfeld darüber findet eine Einstellung nach ihrem Namen, so müssen Sie nicht lange blättern.",
+        "en": "The settings open as a page of their own from the gear at the bottom of the activity bar. On the left, the side panel lists the groups: appearance, editor, schemas, files, network, privacy, extensions and AI. The search field above finds a setting by its name, so you do not have to scroll for long."
+      }
+    },
+    {
+      "id": "theme",
+      "chapter": {
+        "de": "Darstellung",
+        "en": "Appearance"
+      },
+      "say": {
+        "de": "Die Darstellung kennt Hell, Dunkel und System. Mit System folgt FreeXmlToolkit dem Betriebssystem und wechselt am Abend von selbst. Schneller geht es mit dem Knopf oben rechts in der Kopfleiste, er schaltet zwischen hell und dunkel um.",
+        "en": "Appearance offers Light, Dark and System. With System, FreeXmlToolkit follows the operating system and switches by itself in the evening. Quicker is the button at the top right of the header, which toggles between light and dark."
+      }
+    },
+    {
+      "id": "accent",
+      "say": {
+        "de": "Die Akzentfarbe färbt Knöpfe, Markierungen und Hervorhebungen. Ein Klick auf eine Farbe wirkt sofort, und mit einer eigenen Farbe treffen Sie zum Beispiel das Blau Ihres Unternehmens. FreeXmlToolkit passt die Helligkeit dabei so an, dass Texte gut lesbar bleiben.",
+        "en": "The accent colour tints buttons, selections and highlights. A click on a colour takes effect at once, and with a colour of your own you can match your company's blue, for example. FreeXmlToolkit adjusts the brightness so that texts stay easy to read."
+      }
+    },
+    {
+      "id": "size",
+      "say": {
+        "de": "Textgröße macht die ganze Oberfläche größer oder kleiner, von klein bis sehr groß. Dichte bestimmt, wie viel Platz zwischen den Elementen bleibt: kompakt für viel Inhalt auf einem kleinen Bildschirm, großzügig für mehr Ruhe. Hoher Kontrast verstärkt Texte und Ränder für eine bessere Lesbarkeit.",
+        "en": "Text size makes the whole interface bigger or smaller, from small to extra large. Density decides how much room there is between elements: compact for a lot of content on a small screen, comfortable for more calm. High contrast strengthens texts and borders for better readability."
+      }
+    },
+    {
+      "id": "language",
+      "say": {
+        "de": "Die Sprache der Oberfläche ist Deutsch oder Englisch, standardmäßig die des Betriebssystems. Eine Änderung gilt nach einem Neustart.",
+        "en": "The interface language is German or English, by default that of the operating system. A change applies after a restart."
+      }
+    },
+    {
+      "id": "editor",
+      "chapter": {
+        "de": "Editor",
+        "en": "Editor"
+      },
+      "say": {
+        "de": "Unter Editor wählen Sie Schriftart, Schriftgröße und Zeilenabstand für alle Editoren, mit einer Vorschau. Strg und das Mausrad vergrößern im Editor, und auf Wunsch merkt sich FreeXmlToolkit diese Größe. Die Syntaxfarben lassen sich als fertiges Schema wählen oder für jede Rolle einzeln einstellen, etwa Elemente, Attribute und Kommentare.",
+        "en": "Under Editor you choose font, font size and line spacing for all editors, with a preview. Ctrl and the mouse wheel zoom in the editor, and if you like, FreeXmlToolkit remembers that size. Syntax colours can be picked as a ready-made scheme or set per role, such as elements, attributes and comments."
+      }
+    },
+    {
+      "id": "network",
+      "chapter": {
+        "de": "Netzwerk und Datenschutz",
+        "en": "Network and privacy"
+      },
+      "say": {
+        "de": "Unter Netzwerk stellen Sie einen Proxy ein, falls Ihr Unternehmen einen verwendet, auch mit Anmeldung. Verbindung testen prüft die Einstellungen sofort mit einer Adresse Ihrer Wahl. Hier stehen auch die Zeitlimits für Verbindungen.",
+        "en": "Under Network you set up a proxy if your company uses one, with sign-in too. Test Connection checks the settings right away against an address of your choice. Here you also find the connection timeouts."
+      }
+    },
+    {
+      "id": "privacy",
+      "say": {
+        "de": "Unter Datenschutz entscheiden Sie, ob FreeXmlToolkit anonyme Nutzungsdaten und Fehlerberichte sendet. Was genau gesendet wird, zeigt der Link daneben. Inhalte Ihrer Dokumente werden nie gesendet, und beides lässt sich jederzeit abschalten.",
+        "en": "Under Privacy you decide whether FreeXmlToolkit sends anonymous usage data and error reports. The link next to it shows exactly what is sent. The content of your documents is never sent, and both can be switched off at any time."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "de": "Das waren die Einstellungen. Wie Administratoren Einstellungen für alle vorgeben oder sperren, zeigt das letzte Video der Reihe.",
+        "en": "That was the settings. How administrators preset or lock settings for everyone is shown in the last video of the series."
+      }
+    }
+  ]
+}

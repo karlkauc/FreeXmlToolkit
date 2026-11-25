@@ -1,0 +1,99 @@
+{
+  "id": "profiler",
+  "scenario": "ProfilerDocVideo",
+  "docs": "guides/transform-query/profile/",
+  "title": {
+    "en": "Find slow stylesheets and queries",
+    "de": "Langsame Stylesheets und Abfragen finden"
+  },
+  "description": {
+    "de": "Mit dem Profiler herausfinden, wo ein XSLT-Stylesheet oder eine XQuery ihre Zeit verbringt: Hot Spots, Aufrufbaum, Flammengrafik und teure Zeilen.",
+    "en": "Use the profiler to find out where an XSLT stylesheet or an XQuery spends its time: hot spots, call tree, flame graph and expensive lines."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "de": "In diesem Video finden Sie heraus, warum eine Transformation langsam ist. Der Profiler misst, wie viel Zeit jedes Template und jede Funktion braucht, und zeigt die Stellen, an denen sich eine Verbesserung lohnt.",
+        "en": "In this video you find out why a transformation is slow. The profiler measures how much time each template and each function takes, and shows the places where an improvement pays off."
+      }
+    },
+    {
+      "id": "baseline",
+      "chapter": {
+        "de": "Ein Profiling-Lauf",
+        "en": "A profiling run"
+      },
+      "say": {
+        "de": "Jeder Lauf zeigt in der Statuszeile der Ausgabe die Dauer und die Größe des Ergebnisses. Bei der kleinen Beispielbestellung sind das Millisekunden. Hier läuft dasselbe Stylesheet auf einer Bestellung mit zwanzigtausend Artikeln, und die Dauer steigt deutlich. Doch woran liegt es?",
+        "en": "Every run shows the duration and the size of the result in the output's status line. For the small example order, that is milliseconds. Here the same stylesheet runs on an order with twenty thousand items, and the duration goes up noticeably. But what is the cause?"
+      }
+    },
+    {
+      "id": "run",
+      "say": {
+        "de": "Schalten Sie im Werkzeug Umwandeln unter Optionen und Werkzeuge den Profiling-Lauf ein und führen Sie die Transformation aus. Der Lauf misst jetzt jeden Aufruf mit, und danach öffnet sich ein Tab mit dem Profil. Für XQuery wählen Sie im Menü Ausführen den Eintrag Abfrage profilen.",
+        "en": "In the Transform tool, switch on Profile Run under Options and Tools and run the transformation. The run now measures every call, and afterwards a tab with the profile opens. For XQuery, choose Profile Query in the Run menu."
+      }
+    },
+    {
+      "id": "hotspots",
+      "chapter": {
+        "de": "Das Profil lesen",
+        "en": "Reading the profile"
+      },
+      "say": {
+        "de": "Hotspots listet jedes Template, jedes benannte Template und jede Funktion mit der Zahl der Aufrufe, der eigenen Zeit und der Gesamtzeit. Eigene Zeit ist die Zeit ohne alles, was eine Funktion selbst aufruft. Die Liste ist nach eigener Zeit sortiert: Ganz oben steht, was am meisten kostet.",
+        "en": "Hot Spots lists every template, named template and function with the number of calls, the self time and the total time. Self time is the time without everything a function calls itself. The list is sorted by self time: what costs the most is at the top."
+      }
+    },
+    {
+      "id": "tree",
+      "say": {
+        "de": "Der Aufrufbaum zeigt, wer wen aufgerufen hat, vom ganzen Lauf oben bis zu den einzelnen Funktionen. Der langsamste Weg ist aufgeklappt. So sehen Sie, ob eine Funktion selbst teuer ist oder ob sie nur sehr oft aufgerufen wird.",
+        "en": "The call tree shows who called whom, from the whole run at the top down to single functions. The slowest path is expanded. That way you see whether a function is expensive itself or is just called very often."
+      }
+    },
+    {
+      "id": "flame",
+      "say": {
+        "de": "Der Reiter Flame Graph zeigt denselben Baum als Balken. Die Breite eines Balkens ist seine Gesamtzeit. Breite Balken weit oben sind die Kandidaten zum Verbessern. Ein Klick auf einen Balken vergrößert ihn auf die ganze Breite, Zoom zurücksetzen zeigt wieder alles. Die Grafik lässt sich als Bild exportieren.",
+        "en": "The flame graph shows the same tree as bars. The width of a bar is its total time. Wide bars high up are the candidates for improvement. A click on a bar zooms it to the full width, and Reset Zoom shows everything again. The graph can be exported as an image."
+      }
+    },
+    {
+      "id": "lines",
+      "say": {
+        "de": "Zeilen zeigt die eigene Zeit jeder Zeile im Stylesheet, mit dem Text der Zeile. Ein Doppelklick öffnet das Stylesheet an genau dieser Stelle. So landen Sie direkt bei dem Ausdruck, der die Zeit kostet.",
+        "en": "Lines shows the self time of each line in the stylesheet, with the line's text. A double-click opens the stylesheet at exactly that place. That way you land right at the expression that costs the time."
+      }
+    },
+    {
+      "id": "fix",
+      "chapter": {
+        "de": "Verbessern und neu messen",
+        "en": "Improving and measuring again"
+      },
+      "say": {
+        "de": "Typische Ursachen sind Suchen, die für jeden Datensatz das ganze Dokument durchlaufen, oder Funktionen, die dasselbe immer wieder berechnen. Ein Schlüssel mit xsl:key oder eine Variable außerhalb der Schleife hilft dann oft. Nach der Änderung startet Erneut profilieren einen neuen Lauf, und Sie sehen sofort, ob es schneller geworden ist.",
+        "en": "Typical causes are lookups that go through the whole document for every record, or functions that compute the same thing again and again. A key with xsl:key or a variable outside the loop often helps then. After the change, Profile Again starts a new run, and you see at once whether it got faster."
+      }
+    },
+    {
+      "id": "cli",
+      "say": {
+        "de": "Das Profil lässt sich als JSON oder Text exportieren, um Läufe zu vergleichen. Auf der Kommandozeile misst fxt-cli transform mit der Option profile denselben Lauf, zum Beispiel in einer automatischen Prüfung der Laufzeit.",
+        "en": "The profile can be exported as JSON or text to compare runs. On the command line, fxt-cli transform with the profile option measures the same run, for example in an automatic check of the run time."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "de": "Das war der Profiler. Die absoluten Zeiten sind beim Messen etwas höher als im normalen Lauf, die Verhältnisse stimmen aber, und genau auf die kommt es an.",
+        "en": "That was the profiler. The absolute times are somewhat higher while measuring than in a normal run, but the proportions are right, and they are what matters."
+      }
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+$ fxt-cli validate orders
+orders/order-1045.xml:24:57: error: [XSD] cvc-datatype-valid.1.2.1: 'two' is not a valid value for 'integer'.
+orders/order-1045.xml:24:57: error: [XSD] cvc-attribute.3: The value 'two' of attribute 'quantity' on element 'item' is not valid with respect to its type, 'positiveInteger'.
+3 files, 1 invalid, 2 error(s), 0 warning(s) (508 ms)
+[exit code 1]
+
+$ fxt-cli query -e "count(//item)" orders
+orders/order-1043.xml: 3
+orders/order-1044.xml: 3
+orders/order-1045.xml: 3
+[exit code 0]
+
+$ fxt-cli query -e "sum(//item/(@quantity * @price))" order.xml
+125.3
+[exit code 0]
+
+$ fxt-cli transform -s order-summary.xslt -p currency=CHF -o summary.html order.xml
+[exit code 0]
+
+$ fxt-cli convert --to json order.xml -o order.json
+[exit code 0]
+
+$ fxt-cli compare orders/order-1043.xml orders/order-1044.xml
+orders/order-1043.xml:13: Attribute 'id' changed: "PO-1043" → "PO-1044" (/order[1]/@id)
+1 difference
+[exit code 1]

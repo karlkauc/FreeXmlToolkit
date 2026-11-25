@@ -1,0 +1,96 @@
+{
+  "id": "xproc",
+  "scenario": "XProcDocVideo",
+  "docs": "guides/transform-query/xproc/",
+  "title": {
+    "en": "Run XProc pipelines",
+    "de": "XProc-Pipelines ausführen"
+  },
+  "description": {
+    "de": "Mehrere Verarbeitungsschritte mit XProc 3.0 zu einer Pipeline verbinden und in FreeXmlToolkit ausführen: Aufbau, Eingabe, Ergebnis und die mitgelieferten Beispiele.",
+    "en": "Connect several processing steps into an XProc 3.0 pipeline and run it in FreeXmlToolkit: structure, input, result and the bundled examples."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "de": "In diesem Video verbinden Sie mehrere Schritte zu einer Pipeline: filtern, umwandeln und kennzeichnen, in einer einzigen Datei. XProc ist der Standard dafür, und FreeXmlToolkit führt solche Pipelines direkt aus.",
+        "en": "In this video you connect several steps into a pipeline: filter, transform and stamp, in one single file. XProc is the standard for this, and FreeXmlToolkit runs such pipelines directly."
+      }
+    },
+    {
+      "id": "why",
+      "chapter": {
+        "de": "Was eine Pipeline ist",
+        "en": "What a pipeline is"
+      },
+      "say": {
+        "de": "Oft braucht ein Ergebnis mehrere Schritte: erst prüfen, dann umwandeln, dann zusammenfassen und speichern. Statt jeden Schritt von Hand auszuführen, beschreibt eine XProc-Pipeline den ganzen Ablauf. Sie ist selbst eine XML-Datei mit der Endung xpl, und jeder Schritt gibt sein Ergebnis an den nächsten weiter.",
+        "en": "A result often needs several steps: first validate, then transform, then summarise and save. Instead of running each step by hand, an XProc pipeline describes the whole flow. It is an XML file itself, with the extension xpl, and each step passes its result on to the next."
+      }
+    },
+    {
+      "id": "input",
+      "say": {
+        "de": "Die Eingabe ist eine Liste von Bestellungen, offene und bereits versendete. Ziel ist eine Übersicht nur der offenen Bestellungen, mit ihrer Anzahl und ihrer Summe.",
+        "en": "The input is a list of orders, open ones and ones already shipped. The goal is an overview of only the open orders, with their count and their total."
+      }
+    },
+    {
+      "id": "pipeline",
+      "chapter": {
+        "de": "Eine erste Pipeline",
+        "en": "A first pipeline"
+      },
+      "say": {
+        "de": "Die Pipeline hat drei Schritte. Delete entfernt jede Bestellung, die nicht offen ist. XSLT fasst den Rest mit einem kleinen eingebetteten Stylesheet zusammen. Add-attribute versieht das Ergebnis mit einem Vermerk, woher es stammt. Oben stehen die Ports: source für die Eingabe und result für das Ergebnis.",
+        "en": "The pipeline has three steps. Delete removes every order that is not open. XSLT summarises the rest with a small embedded stylesheet. Add-attribute stamps the result with a note of where it comes from. At the top are the ports: source for the input and result for the output."
+      }
+    },
+    {
+      "id": "run",
+      "chapter": {
+        "de": "Ausführen und lesen",
+        "en": "Running and reading"
+      },
+      "say": {
+        "de": "Machen Sie die Pipeline zum aktiven Tab und wählen Sie in der Werkzeugleiste unter Ausführen den Eintrag Pipeline ausführen. Als Eingabe nimmt FreeXmlToolkit das zuletzt aktive XML-Dokument, hier die Bestellungen. Die Pipeline läuft mit dem Text aus dem Editor, auch mit ungespeicherten Änderungen.",
+        "en": "Make the pipeline the active tab and choose Run Pipeline under Run in the toolbar. As input, FreeXmlToolkit takes the most recently active XML document, here the orders. The pipeline runs with the text from the editor, unsaved changes included."
+      }
+    },
+    {
+      "id": "result",
+      "say": {
+        "de": "Das Ergebnis steht unter dem Editor im Bereich Ausgabe: ein Element open-orders mit der Anzahl zwei, der Summe und den beiden offenen Bestellungen, gekennzeichnet mit seiner Quelle. Läuft etwas schief, steht die Fehlermeldung an derselben Stelle.",
+        "en": "The result is in the output area below the editor: an open-orders element with the count two, the total and the two open orders, stamped with its source. When something goes wrong, the error message appears in the same place."
+      }
+    },
+    {
+      "id": "examples",
+      "chapter": {
+        "de": "Beispiele und Grenzen",
+        "en": "Examples and limits"
+      },
+      "say": {
+        "de": "FreeXmlToolkit bringt eine Reihe von Beispielen mit, von der einfachsten Pipeline bis zu Auswertungen mit Schematron-Bericht oder einer Ausgabe als JSON. Sie liegen im Ordner examples und zeigen typische Muster wie Schleifen über Teile eines Dokuments und Verzweigungen nach Inhalt.",
+        "en": "FreeXmlToolkit comes with a set of examples, from the simplest pipeline to evaluations with a Schematron report or JSON output. They live in the examples folder and show typical patterns such as loops over parts of a document and branches by content."
+      }
+    },
+    {
+      "id": "limits",
+      "say": {
+        "de": "Ausgeführt wird mit XML Calabash, einer vollständigen Umsetzung von XProc 3.0. Einige wenige Schritte sind nicht verfügbar, die Dokumentation listet sie. Auf der Kommandozeile führt fxt-cli dieselben Pipelines aus, als Teil einer automatischen Verarbeitung.",
+        "en": "Execution uses XML Calabash, a complete implementation of XProc 3.0. A few steps are not available, and the documentation lists them. On the command line, fxt-cli runs the same pipelines as part of an automatic process."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "de": "Das war XProc. In Projekten lässt sich eine Pipeline auch als Szenario hinterlegen und mit einem Klick für jede passende Datei ausführen.",
+        "en": "That was XProc. In projects, a pipeline can also be stored as a scenario and run with one click for every matching file."
+      }
+    }
+  ]
+}

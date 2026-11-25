@@ -1,0 +1,114 @@
+{
+  "id": "ai-assistant",
+  "scenario": "AiAssistantDocVideo",
+  "docs": "guides/ai-assistant/",
+  "title": {
+    "en": "AI assistant and MCP server",
+    "de": "KI-Assistent und MCP-Server"
+  },
+  "description": {
+    "de": "Den KI-Assistenten einrichten, festlegen, welche Daten gesendet werden dürfen, Fehler erklären und beheben lassen, Abfragen und Stylesheets erzeugen, und die Werkzeuge über den MCP-Server für KI-Agenten bereitstellen.",
+    "en": "Set up the AI assistant, decide which data may be sent, have errors explained and fixed, generate queries and stylesheets, and offer the tools to AI agents through the MCP server."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "de": "In diesem Video lernen Sie den KI-Assistenten von FreeXmlToolkit kennen und den MCP-Server, mit dem KI-Agenten die Werkzeuge der Anwendung nutzen. Beides ist von Haus aus ausgeschaltet, und Sie bestimmen, welche Daten Ihren Rechner verlassen.",
+        "en": "In this video you get to know FreeXmlToolkit's AI assistant and the MCP server, through which AI agents use the application's tools. Both are switched off by default, and you decide which data leaves your computer."
+      }
+    },
+    {
+      "id": "what",
+      "chapter": {
+        "de": "Was der Assistent kann",
+        "en": "What the assistant does"
+      },
+      "say": {
+        "de": "Der Assistent erklärt Fehlermeldungen, schlägt Korrekturen vor, schreibt XPath- und XQuery-Ausdrücke aus einer Frage in Worten und erzeugt Stylesheets aus einem Beispiel. Jeder Vorschlag wird vor dem Anzeigen geprüft, etwa ob die Korrektur den Fehler wirklich behebt. Übernehmen tun immer Sie selbst, und ein Strg Z macht es rückgängig.",
+        "en": "The assistant explains error messages, proposes fixes, writes XPath and XQuery expressions from a question in words, and generates stylesheets from an example. Every proposal is checked before it is shown, for example whether a fix really removes the error. Applying it is always your decision, and one Ctrl Z undoes it."
+      }
+    },
+    {
+      "id": "enable",
+      "chapter": {
+        "de": "Einrichten",
+        "en": "Setting up"
+      },
+      "say": {
+        "de": "Eingeschaltet wird der Assistent unter Einstellungen, Bereich KI, mit KI-Assistenten verwenden. Erst dann erscheinen die KI-Aktionen in der Anwendung. Ein Administrator kann den Bereich auch ganz entfernen, dann gibt es keine KI-Funktion.",
+        "en": "You switch the assistant on under Settings, AI section, with Use AI assistant. Only then do the AI actions appear in the application. An administrator can also remove the section altogether; then there is no AI function at all."
+      }
+    },
+    {
+      "id": "provider",
+      "say": {
+        "de": "Hinzufügen richtet einen Anbieter ein. Das kann ein Modell auf Ihrem eigenen Rechner sein, etwa über Ollama, oder ein Dienst, bei dem Sie ein Konto haben, wie Anthropic oder ein mit OpenAI kompatibler Dienst. Den Schlüssel speichert FreeXmlToolkit verschlüsselt, oder er kommt aus einer Umgebungsvariablen.",
+        "en": "Add sets up a provider. That can be a model on your own computer, for example through Ollama, or a service you have an account with, such as Anthropic or an OpenAI-compatible service. FreeXmlToolkit stores the key encrypted, or it comes from an environment variable."
+      }
+    },
+    {
+      "id": "data",
+      "chapter": {
+        "de": "Was gesendet wird",
+        "en": "What is sent"
+      },
+      "say": {
+        "de": "Wichtig ist, was gesendet werden darf, getrennt für lokale und entfernte Modelle. Nur Schema sendet Namen, Typen und Dokumentation aus dem Schema, nie Werte aus dem Dokument. Struktur fügt die Gliederung des Dokuments hinzu, und erst Auszüge sendet auch einzelne Werte. Mit Jede Anfrage vor dem Senden anzeigen sehen Sie vor jedem Aufruf genau, was das Modell bekommt.",
+        "en": "What matters is what may be sent, separately for local and remote models. Schema only sends names, types and documentation from the schema, never values from the document. Structure adds the outline of the document, and only Excerpts also sends single values. With Show every request before sending, you see before each call exactly what the model receives."
+      }
+    },
+    {
+      "id": "fix",
+      "chapter": {
+        "de": "Im Alltag",
+        "en": "Day to day"
+      },
+      "say": {
+        "de": "Im Alltag finden Sie die KI-Aktionen dort, wo Sie sie brauchen. Im Problembereich bietet das Kontextmenü einer Meldung Mit KI erklären und Mit KI beheben. Der Vorschlag erscheint im Bereich KI unter dem Editor, zusammen mit dem Prüfbericht, und Übernehmen wendet ihn an, sofern sich das Dokument inzwischen nicht geändert hat.",
+        "en": "Day to day, you find the AI actions where you need them. In the Problems panel, a message's context menu offers Explain with AI and Fix with AI. The proposal appears in the AI area below the editor, together with the check report, and Apply puts it in, provided the document has not changed in the meantime."
+      }
+    },
+    {
+      "id": "query",
+      "say": {
+        "de": "In der Abfragekonsole stellt KI fragen eine Frage in Worten, zum Beispiel: alle Artikel mit einem Preis über zwanzig. Das Modell antwortet mit einem Ausdruck, FreeXmlToolkit führt ihn zur Probe aus und zeigt das Ergebnis, bevor Sie ihn übernehmen.",
+        "en": "In the Query Console, Ask AI takes a question in words, for example: all items with a price above twenty. The model answers with an expression, FreeXmlToolkit runs it as a test and shows the result before you take it over."
+      }
+    },
+    {
+      "id": "stylesheet",
+      "say": {
+        "de": "Im Werkzeug Umwandeln erzeugt Stylesheet generieren ein XSLT aus einem Beispiel des gewünschten Ergebnisses. Das erzeugte Stylesheet wird an der Eingabe ausgeführt und mit dem Beispiel verglichen. Mit Nachfragen verfeinern Sie es Schritt für Schritt, und jede Fassung wird erneut geprüft.",
+        "en": "In the Transform tool, Generate Stylesheet creates an XSLT from an example of the desired result. The generated stylesheet is run on the input and compared with the example. With follow-up questions you refine it step by step, and every version is checked again."
+      }
+    },
+    {
+      "id": "mcp",
+      "chapter": {
+        "de": "Der MCP-Server",
+        "en": "The MCP server"
+      },
+      "say": {
+        "de": "Der MCP-Server geht den umgekehrten Weg: KI-Agenten wie Claude Code nutzen die Werkzeuge von FreeXmlToolkit. fxt-cli mcp startet ihn, und die Liste zeigt die Werkzeuge: validieren, XPath und XQuery, XSLT, XSpec, Gliederungen von Dokumenten und Schemas, Beispiel-XML, Schematron-Prüfung und Vergleich.",
+        "en": "The MCP server goes the other way: AI agents such as Claude Code use FreeXmlToolkit's tools. fxt-cli mcp starts it, and the list shows the tools: validate, XPath and XQuery, XSLT, XSpec, outlines of documents and schemas, sample XML, Schematron check and compare."
+      }
+    },
+    {
+      "id": "mcp-safety",
+      "say": {
+        "de": "Dabei gelten feste Grenzen: Die Werkzeuge lesen nur in den freigegebenen Ordnern, sie schreiben keine Datei, und jeder Aufruf hat ein Zeitlimit. Ein Administrator kann den MCP-Server oder die ganze KI per Richtlinie abschalten.",
+        "en": "Fixed limits apply: the tools read only in the shared folders, they write no file, and every call has a time limit. An administrator can switch off the MCP server or all AI by policy."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "de": "Das waren KI-Assistent und MCP-Server. Die Dokumentation beschreibt, welche Modelle sich für welche Aufgaben eignen, und wie Sie den MCP-Server in Ihrem Agenten einrichten.",
+        "en": "That was the AI assistant and the MCP server. The documentation describes which models suit which tasks, and how to set up the MCP server in your agent."
+      }
+    }
+  ]
+}

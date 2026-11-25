@@ -45,7 +45,8 @@ class ProjectsDocVideo {
               "catalogs": [],
               "scenarios": [
                 { "name": "Order summary", "stylesheet": "stylesheets/order-summary.xsl", "input": "${file}",
-                  "parameters": {}, "outputFormat": "HTML", "output": "out/${name}.html" }
+                  "parameters": {}, "outputFormat": "HTML", "output": "out/${name}.html",
+                  "expected": "expected/${name}.html" }
               ]
             }
             """;
@@ -101,6 +102,11 @@ class ProjectsDocVideo {
                 """);
         Path stylesheets = Files.createDirectories(dir.resolve("stylesheets"));
         Files.copy(DocFiles.gettingStarted("order-summary.xslt"), stylesheets.resolve("order-summary.xsl"));
+        Path expected = Files.createDirectories(dir.resolve("expected"));
+        Files.writeString(expected.resolve("order-1043.html"), """
+                <html><head><title>Order PO-1043</title></head><body><h1>Order PO-1043</h1>
+                <p><b>Order total: 125.30</b></p></body></html>
+                """);
         doc.onFx(() -> ProjectActions.openProject(projectFile));
         doc.settle(2000);
         // without an open document the start page is full width: show the Explorer as a click on it would
@@ -115,30 +121,79 @@ class ProjectsDocVideo {
                 video.spoken(0.9);
             });
 
-            video.scene("settings", () -> {
+            video.scene("create", () -> {
                 video.zoomOut();
                 video.click(doc.<Node>find("#menu-file"));
                 video.pause(500);
-                Bounds s = projectMenuItem(video, "#menu-project-settings");
-                video.click(s.getCenterX(), s.getCenterY());
-                doc.waitUntilFx(10, () -> video.activeScene().getRoot().lookup("#project-settings-tabs") != null);
-                video.pause(600);
-                Node bindings = doc.fx(() -> video.activeScene().getRoot().lookupAll(".tab").stream()
-                        .filter(t -> t.lookupAll(".tab-label").stream().anyMatch(l -> l instanceof Labeled label
-                                && I18n.t("ProjectSettingsDialog.project-settings-bindings.text").equals(label.getText())))
-                        .findFirst().orElseThrow());
-                video.click(bindings);
-                video.pause(500);
-                Bounds dialog = doc.fx(() -> {
-                    Node root = video.activeScene().getRoot();
-                    return root.localToScreen(root.getBoundsInLocal());
-                });
-                video.zoom(dialog);
+                Bounds project = video.screenBounds(video.inPopup("#menu-file-project"));
+                video.moveTo(project.getMinX() + 40, project.getCenterY());
+                video.pause(800);
+                Bounds create = video.screenBounds(video.inPopup("#menu-project-new"));
+                video.moveTo(create.getMinX() + 12, project.getCenterY());
+                video.moveTo(create.getMinX() + 12, create.getCenterY());
+                video.spoken(0.4);
+                Bounds open = video.screenBounds(video.inPopup("#menu-project-open"));
+                video.moveTo(open.getMinX() + 12, open.getCenterY());
+                video.spoken(0.7);
+                Bounds recent = video.screenBounds(video.inPopup("#menu-project-recent"));
+                video.moveTo(recent.getMinX() + 12, recent.getCenterY());
                 video.spoken(0.95);
-                Node cancel = doc.fx(() -> video.activeScene().getRoot().lookupAll(".button").stream()
-                        .filter(b -> b instanceof Button button && button.isCancelButton()).findFirst().orElseThrow());
-                video.click(cancel);
-                video.pause(400);
+                hidePopups();
+            });
+
+            video.scene("general", () -> {
+                openSettings(video);
+                selectTab(video, "ProjectSettingsDialog.project-settings-general.text");
+                video.spoken(0.4);
+                video.moveTo(video.inDialog("#project-settings-folders"));
+                video.spoken(0.75);
+                video.moveTo(video.inDialog("#project-settings-folder-add"));
+            });
+
+            video.scene("settings", () -> {
+                selectTab(video, "ProjectSettingsDialog.project-settings-bindings.text");
+                video.spoken(0.4);
+                video.moveTo(video.inDialog("#project-settings-binding-table"));
+                video.spoken(0.95);
+            });
+
+            video.scene("binding", () -> {
+                Node table = video.inDialog("#project-settings-binding-table");
+                Node row = doc.fx(() -> table.lookupAll(".table-row-cell").stream()
+                        .filter(r -> r instanceof javafx.scene.control.TableRow<?> tr && tr.getIndex() == 0)
+                        .findFirst().orElse(null));
+                if (row != null) {
+                    Bounds r = video.screenBounds(row);
+                    video.doubleClick(r.getMinX() + 80, r.getCenterY());
+                    video.pause(1500);
+                    javafx.stage.Window inner = topWindow();
+                    if (inner != null) {
+                        video.zoom(doc.fx(() -> new BoundingBox(inner.getX(), inner.getY(), inner.getWidth(), inner.getHeight())));
+                    }
+                    video.spoken(0.9);
+                    cancelTopDialog(video);
+                    video.pause(500);
+                }
+                video.spoken(0.97);
+                cancelTopDialog(video);
+                video.zoomOut();
+            });
+
+            video.scene("tooltip", () -> {
+                Node cell = doc.fx(() -> doc.find("#leftPanelWrapper").lookupAll(".tree-cell").stream()
+                        .filter(c -> c instanceof Labeled l && "order-1043.xml".equals(l.getText()))
+                        .findFirst().orElse(null));
+                if (cell != null) {
+                    Bounds c = video.screenBounds(cell);
+                    video.zoom(doc.<Node>find("#leftPanelWrapper"));
+                    video.moveTo(c.getMinX() + 60, c.getCenterY());
+                    video.pause(2500);
+                    video.spoken(0.6);
+                    video.rightClick(c.getMinX() + 60, c.getCenterY());
+                    video.pause(1500);
+                    video.spoken(0.95);
+                    hidePopups();
+                }
                 video.zoomOut();
             });
 
@@ -172,6 +227,20 @@ class ProjectsDocVideo {
                 video.zoom(doc.<Node>find("#leftPanelWrapper"));
             });
 
+            video.scene("scenario-def", () -> {
+                openSettings(video);
+                selectTab(video, "ProjectSettingsDialog.project-settings-scenarios.text");
+                video.spoken(0.5);
+                Node table = doc.fx(() -> video.activeScene().getRoot().lookupAll(".table-view").stream()
+                        .filter(t -> t.localToScreen(t.getBoundsInLocal()) != null && t.isVisible()).findFirst().orElse(null));
+                if (table != null) {
+                    video.moveTo(table);
+                }
+                video.spoken(0.95);
+                cancelTopDialog(video);
+                video.zoomOut();
+            });
+
             video.scene("scenario", () -> {
                 video.zoomOut();
                 video.click(doc.<Node>find("#activity-transform"));
@@ -182,11 +251,119 @@ class ProjectsDocVideo {
                 video.click(doc.<Node>find("#transform-scenario-run"));
                 doc.waitUntilFx(60, () -> Files.exists(dir.resolve("out/order-1043.html")));
                 video.pause(1200);
+                video.spoken(0.75);
+                video.moveTo(doc.<Node>find("#transform-scenario-save"));
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
+            video.scene("check", () -> {
+                Node section = doc.find("#transform-scenario-section");
+                video.zoom(section);
+                video.spoken(0.3);
+                video.click(doc.<Node>find("#transform-scenario-check"));
+                try {
+                    doc.waitUntilFx(60, () -> {
+                        Node actions = doc.stage().getScene().getRoot().lookup("#transform-check-actions");
+                        return actions != null && actions.isVisible();
+                    });
+                } catch (Exception e) {
+                    Node info = doc.stage().getScene().getRoot().lookup("#transform-scenario-info");
+                    System.out.println("[video] no check actions; info: "
+                            + doc.fx(() -> info instanceof Labeled l ? l.getText() : "-"));
+                }
+                video.pause(1500);
+                video.spoken(0.95);
+            });
+
+            video.scene("differences", () -> {
+                Node differences = doc.find("#transform-check-differences");
+                if (differences != null && doc.fx(differences::isVisible)) {
+                    video.click(differences);
+                }
+                video.pause(2500);
+                video.zoomOut();
+                Bounds editor = video.screenBounds(doc.find("#editorHost"));
+                video.zoom(new BoundingBox(editor.getMinX(), editor.getMinY(), editor.getWidth(), editor.getHeight() * 0.7));
+                video.spoken(0.5);
+                video.zoomOut();
+                video.zoom(doc.<Node>find("#transform-scenario-section"));
+                Node accept = doc.find("#transform-check-accept");
+                if (accept != null && doc.fx(accept::isVisible)) {
+                    video.click(accept);
+                }
+                video.pause(1500);
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
+            video.scene("share", () -> {
+                doc.onFx(() -> host.openFile(projectFile));
+                video.pause(2000);
+                Bounds editor = video.screenBounds(doc.find("#editorHost"));
+                video.zoom(new BoundingBox(editor.getMinX(), editor.getMinY(), editor.getWidth() * 0.7, editor.getHeight() * 0.6));
+                video.spoken(0.95);
                 video.zoomOut();
             });
         } finally {
             video.stop();
         }
+    }
+
+    private void openSettings(DocVideoRecorder video) throws Exception {
+        video.click(doc.<Node>find("#menu-file"));
+        video.pause(500);
+        Bounds s = projectMenuItem(video, "#menu-project-settings");
+        video.click(s.getCenterX(), s.getCenterY());
+        doc.waitUntilFx(10, () -> video.activeScene().getRoot().lookup("#project-settings-tabs") != null);
+        video.pause(600);
+        Bounds dialog = doc.fx(() -> {
+            Node root = video.activeScene().getRoot();
+            return root.localToScreen(root.getBoundsInLocal());
+        });
+        video.zoom(dialog);
+    }
+
+    private void selectTab(DocVideoRecorder video, String key) {
+        Node tab = doc.fx(() -> video.activeScene().getRoot().lookupAll(".tab").stream()
+                .filter(t -> t.lookupAll(".tab-label").stream().anyMatch(l -> l instanceof Labeled label
+                        && I18n.t(key).equals(label.getText())))
+                .findFirst().orElseThrow());
+        video.click(tab);
+        video.pause(600);
+    }
+
+    private javafx.stage.Window topWindow() {
+        return doc.fx(() -> javafx.stage.Window.getWindows().stream()
+                .filter(w -> w instanceof javafx.stage.Stage st && st != doc.stage() && st.isShowing())
+                .reduce((a, b) -> b).orElse(null));
+    }
+
+    private void cancelTopDialog(DocVideoRecorder video) {
+        javafx.stage.Window w = topWindow();
+        if (w == null) {
+            return;
+        }
+        Node cancel = doc.fx(() -> w.getScene().getRoot().lookupAll(".button").stream()
+                .filter(b -> b instanceof Button button && button.isCancelButton()).findFirst().orElse(null));
+        if (cancel != null) {
+            video.click(cancel);
+        } else {
+            doc.onFx(w::hide);
+        }
+        video.pause(400);
+    }
+
+    private void hidePopups() {
+        doc.onFx(() -> javafx.stage.Window.getWindows().stream()
+                .filter(w -> w instanceof javafx.stage.PopupWindow && w.isShowing()).toList()
+                .forEach(javafx.stage.Window::hide));
+        // a menu bar menu closed by hiding its popup still counts as showing: close the menus themselves
+        doc.onFx(() -> doc.stage().getScene().getRoot().lookupAll(".menu-bar").forEach(n -> {
+            if (n instanceof javafx.scene.control.MenuBar bar) {
+                bar.getMenus().forEach(javafx.scene.control.Menu::hide);
+            }
+        }));
     }
 
     /**

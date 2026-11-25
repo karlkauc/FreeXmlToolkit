@@ -375,6 +375,12 @@ class XsdGraphicDocVideo {
         doc.onFx(() -> javafx.stage.Window.getWindows().stream()
                 .filter(w -> w instanceof javafx.stage.PopupWindow && w.isShowing()).toList()
                 .forEach(javafx.stage.Window::hide));
+        // a menu bar menu closed by hiding its popup still counts as showing: close the menus themselves
+        doc.onFx(() -> doc.stage().getScene().getRoot().lookupAll(".menu-bar").forEach(n -> {
+            if (n instanceof javafx.scene.control.MenuBar bar) {
+                bar.getMenus().forEach(javafx.scene.control.Menu::hide);
+            }
+        }));
     }
 
     /** Glides the pointer onto a card. */

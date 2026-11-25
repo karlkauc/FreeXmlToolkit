@@ -1,0 +1,114 @@
+{
+  "id": "publish-pdf",
+  "scenario": "PublishPdfDocVideo",
+  "docs": "guides/publish-pdf/",
+  "title": {
+    "en": "Create a PDF with XSL-FO",
+    "de": "PDF mit XSL-FO erzeugen"
+  },
+  "description": {
+    "de": "Aus einer XML-Datei und einem XSL-FO-Stylesheet ein PDF erzeugen: das Werkzeug PDF, Metadaten und Optionen, Vorschau, Meldungen, das FO-Zwischenergebnis und externe FO-Prozessoren.",
+    "en": "Create a PDF from an XML file and an XSL-FO stylesheet: the PDF tool, metadata and options, preview, messages, the FO intermediate result and external FO processors."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "de": "In diesem Video erzeugen Sie aus XML-Daten ein PDF, zum Beispiel eine Rechnung aus einer Bestellung. Das Layout beschreibt ein XSL-FO-Stylesheet, und FreeXmlToolkit macht daraus ein fertiges Dokument zum Drucken oder Versenden.",
+        "en": "In this video you create a PDF from XML data, for example an invoice from an order. An XSL-FO stylesheet describes the layout, and FreeXmlToolkit turns it into a finished document for printing or sending."
+      }
+    },
+    {
+      "id": "how",
+      "chapter": {
+        "de": "Wie es funktioniert",
+        "en": "How it works"
+      },
+      "say": {
+        "de": "So funktioniert es: Ein XSLT-Stylesheet wandelt die Daten nicht in HTML, sondern in XSL-FO um, eine Sprache, die Seiten, Ränder, Absätze und Tabellen beschreibt. Ein FO-Prozessor setzt dieses Ergebnis dann seitengenau als PDF. Mitgeliefert ist Apache FOP, Sie brauchen also nichts weiter zu installieren.",
+        "en": "This is how it works: an XSLT stylesheet turns the data not into HTML but into XSL-FO, a language that describes pages, margins, paragraphs and tables. An FO processor then sets that result as a PDF, page by page. Apache FOP comes with FreeXmlToolkit, so there is nothing else to install."
+      }
+    },
+    {
+      "id": "stylesheet",
+      "say": {
+        "de": "Das Stylesheet invoice-fo.xsl beschreibt eine A4-Seite mit Rändern, eine Überschrift mit der Bestellnummer, eine Tabelle der Artikel und die Summe. Statt HTML-Elementen stehen darin Elemente wie fo:block für einen Absatz und fo:table für eine Tabelle.",
+        "en": "The stylesheet invoice-fo.xsl describes an A4 page with margins, a heading with the order number, a table of the items and the total. Instead of HTML elements, it holds elements such as fo:block for a paragraph and fo:table for a table."
+      }
+    },
+    {
+      "id": "panel",
+      "chapter": {
+        "de": "Das Werkzeug PDF",
+        "en": "The PDF tool"
+      },
+      "say": {
+        "de": "Die Aktivität PDF in der Aktivitätsleiste öffnet das Werkzeug. Oben stehen die XML-Datei und das Stylesheet, beide mit Ändern auszuwählen oder per Ablegen. Darunter tragen Sie Titel, Autor und Thema ein, die als Metadaten im PDF landen und zum Beispiel in den Dokumenteigenschaften eines PDF-Betrachters erscheinen.",
+        "en": "The PDF activity in the activity bar opens the tool. At the top are the XML file and the stylesheet, both chosen with Change or by dropping a file. Below them you enter title, author and subject, which end up as metadata in the PDF and appear, for example, in the document properties of a PDF viewer."
+      }
+    },
+    {
+      "id": "options",
+      "say": {
+        "de": "Unter den Optionen machen Sie aus dem Ergebnis auf Wunsch ein PDF/A, das Archivformat, das viele Behörden und Unternehmen für die Langzeitablage verlangen. Das Seitenformat gibt eine Größe vor, falls das Stylesheet keine festlegt. PDF/A braucht einbettbare Schriften, darauf weist das Werkzeug hin.",
+        "en": "Under options you can make the result a PDF/A, the archive format that many authorities and companies require for long-term storage. The page size sets a size in case the stylesheet does not define one. PDF/A needs embeddable fonts, and the tool points that out."
+      }
+    },
+    {
+      "id": "generate",
+      "chapter": {
+        "de": "Erzeugen und ansehen",
+        "en": "Generating and viewing"
+      },
+      "say": {
+        "de": "PDF generieren startet den Lauf. Er läuft im Hintergrund, und ein Fortschrittsbalken zeigt die Schritte: erst die Umwandlung nach XSL-FO, dann das Setzen der Seiten. Danach zeigt PDF-Vorschau das Ergebnis als eigenen Tab, mit allen Seiten, so wie sie gedruckt werden. Bei einem langen Dokument blättern Sie dort wie in jedem PDF-Betrachter.",
+        "en": "Generate PDF starts the run. It runs in the background, and a progress bar shows the steps: first the transformation to XSL-FO, then setting the pages. Then PDF Preview shows the result as a tab of its own, with every page as it will be printed. For a long document, you page through it like in any PDF viewer."
+      }
+    },
+    {
+      "id": "messages",
+      "say": {
+        "de": "Meldungen und Ereignisse listet, was der FO-Prozessor beim Setzen bemerkt hat. Ist zum Beispiel eine Tabelle breiter als die Seite oder fehlt eine Schrift, erfahren Sie es hier, mit einer verständlichen Beschreibung. PDF öffnen zeigt das Ergebnis im Programm Ihres Systems.",
+        "en": "Messages and Events lists what the FO processor noticed while setting the pages. When a table is wider than the page or a font is missing, for example, you learn about it here, with an understandable description. Open PDF shows the result in your system's program."
+      }
+    },
+    {
+      "id": "show-fo",
+      "chapter": {
+        "de": "Fehler finden",
+        "en": "Finding mistakes"
+      },
+      "say": {
+        "de": "Sieht das Ergebnis nicht aus wie erwartet, hilft ein Blick auf das Zwischenergebnis: Zwischen-FO anzeigen öffnet das erzeugte XSL-FO als Dokument. So sehen Sie, ob der Fehler im Stylesheet liegt oder beim Setzen. Für schwierigere Fälle startet Stylesheet debuggen den Debugger mit genau diesem Stylesheet und dieser Eingabe.",
+        "en": "When the result does not look as expected, a look at the intermediate result helps: Show Intermediate FO opens the generated XSL-FO as a document. That way you see whether the mistake lies in the stylesheet or in the typesetting. For harder cases, Debug Stylesheet starts the debugger with exactly this stylesheet and input."
+      }
+    },
+    {
+      "id": "processors",
+      "chapter": {
+        "de": "Externe Prozessoren und Automatisierung",
+        "en": "External processors and automation"
+      },
+      "say": {
+        "de": "Neben Apache FOP lassen sich externe FO-Prozessoren einrichten, etwa Antenna House oder XEP, die manche Firmen für besonders anspruchsvolle Layouts verwenden. Das Zahnrad neben der Auswahl verwaltet sie, mit einem Test, der zeigt, ob der Prozessor funktioniert.",
+        "en": "Besides Apache FOP, you can set up external FO processors, such as Antenna House or XEP, which some companies use for especially demanding layouts. The gear next to the choice manages them, with a test that shows whether the processor works."
+      }
+    },
+    {
+      "id": "automation",
+      "say": {
+        "de": "Für wiederkehrende Dokumente legen Sie in einem Projekt ein Szenario mit der Ausgabe PDF an, dann entsteht die Rechnung für jede Bestellung mit einem Klick. Auf der Kommandozeile erzeugt fxt-cli fop dasselbe PDF ohne Oberfläche, etwa in einer nächtlichen Verarbeitung.",
+        "en": "For recurring documents, create a scenario with PDF output in a project, and the invoice for every order is one click away. On the command line, fxt-cli fop creates the same PDF without a user interface, in a nightly process for example."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "de": "Das war das Erzeugen von PDF mit XSL-FO. Wie Sie das Stylesheet dahinter Schritt für Schritt debuggen, zeigt das Video zum Debugger.",
+        "en": "That was creating PDF with XSL-FO. How to debug the stylesheet behind it step by step is shown in the debugger video."
+      }
+    }
+  ]
+}

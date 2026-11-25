@@ -1,0 +1,27 @@
+name: XML checks
+on: [push, pull_request]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install fxt-cli
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download --repo karlkauc/FreeXmlToolkit --pattern '*_amd64.deb' --dir /tmp/fxt
+          sudo apt-get install -y /tmp/fxt/*.deb
+          echo "/opt/freexmltoolkit/bin" >> "$GITHUB_PATH"
+
+      - name: Validate XML
+        run: fxt-cli validate --xsd schema/order.xsd -f sarif -r fxt.sarif data/
+
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: fxt.sarif

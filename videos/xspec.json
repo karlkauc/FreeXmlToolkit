@@ -1,0 +1,103 @@
+{
+  "id": "xspec",
+  "scenario": "XSpecDocVideo",
+  "docs": "guides/transform-query/xspec/",
+  "title": {
+    "en": "Test stylesheets with XSpec",
+    "de": "Stylesheets testen mit XSpec"
+  },
+  "description": {
+    "de": "Ein XSLT-Stylesheet mit XSpec testen: Testszenarien schreiben, ausführen, das Ergebnis mit erwartetem und tatsächlichem Wert lesen, einen Fehler beheben und Tests für XQuery und Schematron.",
+    "en": "Test an XSLT stylesheet with XSpec: write test scenarios, run them, read the result with expected and actual values, fix a mistake, and tests for XQuery and Schematron."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "de": "In diesem Video testen Sie ein XSLT-Stylesheet mit XSpec. Tests sichern ab, dass ein Stylesheet auch nach einer Änderung noch das liefert, was es soll, und sie zeigen genau, wo nicht.",
+        "en": "In this video you test an XSLT stylesheet with XSpec. Tests make sure a stylesheet still delivers what it should after a change, and they show exactly where it does not."
+      }
+    },
+    {
+      "id": "why",
+      "chapter": {
+        "de": "Warum testen",
+        "en": "Why test"
+      },
+      "say": {
+        "de": "Stylesheets wachsen mit der Zeit. Eine kleine Änderung an einer Stelle kann an einer ganz anderen etwas kaputt machen, und ohne Tests merkt man das oft erst, wenn ein Empfänger sich beschwert. XSpec ist der verbreitete Standard für Tests von XSLT, XQuery und Schematron, und FreeXmlToolkit bringt ihn mit.",
+        "en": "Stylesheets grow over time. A small change in one place can break something somewhere else, and without tests you often notice only when a recipient complains. XSpec is the widely used standard for testing XSLT, XQuery and Schematron, and FreeXmlToolkit comes with it."
+      }
+    },
+    {
+      "id": "stylesheet",
+      "say": {
+        "de": "Das Stylesheet price.xsl hat eine Funktion, die aus einem Bruttopreis mit zwanzig Prozent Steuer den Nettopreis berechnet, und eine Regel, die aus einem Artikel eine Zeile mit Nettopreis und großgeschriebenem Namen macht. Genau diese beiden Dinge wollen wir testen.",
+        "en": "The stylesheet price.xsl has a function that computes the net price from a gross price including twenty percent tax, and a rule that turns an item into a line with the net price and the name in capitals. Exactly these two things are what we want to test."
+      }
+    },
+    {
+      "id": "tests",
+      "chapter": {
+        "de": "Ein erster Test",
+        "en": "A first test"
+      },
+      "say": {
+        "de": "Die Testdatei price.xspec nennt das Stylesheet und enthält Szenarien. Das erste ruft die Funktion mit einhundertzwanzig auf und erwartet einhundert. Das zweite gibt einen Artikel als Eingabe vor und erwartet die fertige Zeile. Ein drittes Szenario erwartet absichtlich einen falschen Wert, damit wir sehen, wie ein fehlgeschlagener Test aussieht.",
+        "en": "The test file price.xspec names the stylesheet and holds scenarios. The first calls the function with one hundred and twenty and expects one hundred. The second gives an item as input and expects the finished line. A third scenario deliberately expects a wrong value, so we see what a failed test looks like."
+      }
+    },
+    {
+      "id": "new",
+      "say": {
+        "de": "Eine neue Testdatei legen Sie mit Neu an: Dateityp XML und die Vorlage XSpec-Test für XSLT. Speichern Sie sie mit der Endung xspec neben dem Stylesheet. Die Autovervollständigung kennt die Elemente von XSpec und hilft beim Schreiben.",
+        "en": "You create a new test file with New: file type XML and the template XSpec test for XSLT. Save it with the extension xspec next to the stylesheet. Auto-completion knows the XSpec elements and helps with writing."
+      }
+    },
+    {
+      "id": "run",
+      "chapter": {
+        "de": "Ausführen und lesen",
+        "en": "Running and reading"
+      },
+      "say": {
+        "de": "Werkzeuge, XSpec-Tests ausführen startet die Tests der geöffneten Datei, auch mit ungespeicherten Änderungen. Das Ergebnis öffnet sich als eigener Tab. Oben steht die Zusammenfassung: wie viele Tests bestanden haben und wie viele nicht, mit einem grünen Haken oder einem roten Kreuz.",
+        "en": "Tools, Run XSpec Tests starts the tests of the open file, unsaved changes included. The result opens as a tab of its own. At the top is the summary: how many tests passed and how many did not, with a green tick or a red cross."
+      }
+    },
+    {
+      "id": "result",
+      "say": {
+        "de": "Die Tabelle listet jedes Szenario mit seinen Tests. Fehlgeschlagene Szenarien sind aufgeklappt und der erste Fehler ist gewählt. Darunter stehen nebeneinander, was der Test erwartet hat und was das Stylesheet tatsächlich geliefert hat. Hier erwartet der Test einhundertzwei, die Funktion liefert aber einhunderteins.",
+        "en": "The table lists every scenario with its tests. Failed scenarios are expanded, and the first failure is selected. Below it, side by side, is what the test expected and what the stylesheet actually returned. Here the test expects one hundred and two, but the function returns one hundred and one."
+      }
+    },
+    {
+      "id": "fix",
+      "say": {
+        "de": "Ob der Test oder das Stylesheet falsch ist, entscheiden Sie. Hier ist es der Test: Korrigieren Sie den erwarteten Wert und klicken Sie auf Erneut ausführen. Jetzt bestehen alle Tests. HTML-Bericht öffnet den ausführlichen Bericht von XSpec, und JUnit speichert das Ergebnis für Werkzeuge der Softwareentwicklung.",
+        "en": "Whether the test or the stylesheet is wrong is your decision. Here it is the test: correct the expected value and click Run Again. Now every test passes. HTML Report opens XSpec's detailed report, and JUnit saves the result for software development tools."
+      }
+    },
+    {
+      "id": "more",
+      "chapter": {
+        "de": "XQuery, Schematron und Kommandozeile",
+        "en": "XQuery, Schematron and the command line"
+      },
+      "say": {
+        "de": "Genauso testen Sie XQuery-Funktionen und Schematron-Regeln, dafür gibt es eigene Vorlagen. Bei Schematron prüft ein Test, ob eine Regel bei einem bestimmten Dokument anschlägt oder schweigt. Auf der Kommandozeile führt fxt-cli xspec dieselben Tests aus, zum Beispiel bei jedem Commit.",
+        "en": "You test XQuery functions and Schematron rules the same way, with templates of their own. For Schematron, a test checks whether a rule fires on a certain document or stays silent. On the command line, fxt-cli xspec runs the same tests, on every commit for example."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "de": "Das war Testen mit XSpec. Wenn ein Stylesheet nicht falsch, sondern zu langsam ist, hilft der Profiler aus dem nächsten Video.",
+        "en": "That was testing with XSpec. When a stylesheet is not wrong but too slow, the profiler from the next video helps."
+      }
+    }
+  ]
+}

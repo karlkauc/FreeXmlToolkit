@@ -1,0 +1,12 @@
+$ fxt-cli mcp --root . --list-tools
+compare  Compare two XML documents structurally (not as text): every added, removed, changed or moved node with its XPath on both sides, line numbers and values.
+document_outline  Outline an XML document without reading it whole: root element, namespace declarations, declared schema, size, element count, depth, and every distinct element path (/a/b, no positions) with how often it occurs, its attribute names and one sample value.
+sample_xml  Generate a sample XML instance from an XSD, for its first global element: all elements or only the mandatory ones, repeating elements up to max_occurrences, with realistic values (names, dates, amounts matching the types and facets) or placeholders.
+schema_describe  Describe what an XSD declares for one place in an instance document, given as a path of element names from the root (/Order/Item/Price; prefixes and [n] are ignored), or an attribute of that element: type, built-in base type, min/max occurrences, nillable, default/fixed, facets, enumeration values, documentation, allowed child elements (choice alternatives marked) and attributes, and the file it is declared in when that is an included or imported schema.
+schema_outline  Outline an XSD: target namespace, global elements, named types and imports.
+schematron_check  Check a Schematron schema without running it: XML well-formedness, structure (schema, pattern, rule, assert/report), the XPath syntax of every context and test, and common mistakes.
+validate  Validate an XML, JSON or YAML document.
+xpath  Evaluate an XPath expression (3.1 unless xpath_version says otherwise) against an XML document and return the items, one per line: atomic values as text, attributes as name="value", elements serialized as XML.
+xquery  Run an XQuery query (3.1 unless xquery_version says otherwise), with an XML document as the context item when one is given.
+xslt_transform  Run an XSLT stylesheet (1.0, 2.0 or 3.0, Saxon) on an XML document and return the output.
+xspec_run  Run XSpec tests (for an XSLT stylesheet, an XQuery module or a Schematron) and return every scenario and test with label, status (passed, failed, pending) and, for failures, the expected and actual result.

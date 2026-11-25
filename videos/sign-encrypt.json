@@ -1,0 +1,110 @@
+{
+  "id": "sign-encrypt",
+  "scenario": "SignEncryptDocVideo",
+  "docs": "guides/sign-encrypt/",
+  "title": {
+    "en": "Sign and encrypt XML",
+    "de": "XML signieren und verschlüsseln"
+  },
+  "description": {
+    "de": "XML-Dokumente mit XML-Signaturen absichern und mit XML Encryption verschlüsseln: Zertifikate, Signaturarten, Prüfen, Verschlüsseln mit Zertifikat oder Passwort, Entschlüsseln und Untersuchen.",
+    "en": "Secure XML documents with XML signatures and encrypt them with XML Encryption: certificates, signature types, verifying, encrypting with a certificate or a password, decrypting and inspecting."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "de": "In diesem Video sichern Sie XML-Dokumente ab. Eine Signatur beweist, wer ein Dokument erstellt hat und dass es seitdem nicht verändert wurde. Eine Verschlüsselung sorgt dafür, dass nur die richtigen Empfänger es lesen können. Beides nach den Standards des W3C.",
+        "en": "In this video you secure XML documents. A signature proves who created a document and that it has not been changed since. Encryption makes sure only the right recipients can read it. Both follow the W3C standards."
+      }
+    },
+    {
+      "id": "page",
+      "chapter": {
+        "de": "Die Seite",
+        "en": "The page"
+      },
+      "say": {
+        "de": "Die Aktivität Signieren und Verschlüsseln öffnet eine eigene Seite. Links listet die Seitenleiste die Aufgaben: signieren, Signatur prüfen, verschlüsseln, entschlüsseln, untersuchen, ein Zertifikat erstellen und den Expertenmodus. Rechts steht jeweils das passende Formular, das Dokument ist schon das aktive aus dem Editor.",
+        "en": "The Sign and Encrypt activity opens a page of its own. On the left, the side panel lists the tasks: sign, verify a signature, encrypt, decrypt, inspect, create a certificate, and expert mode. On the right is the matching form, with the active document from the editor already chosen."
+      }
+    },
+    {
+      "id": "certificate",
+      "chapter": {
+        "de": "Signieren",
+        "en": "Signing"
+      },
+      "say": {
+        "de": "Zum Signieren brauchen Sie ein Zertifikat mit privatem Schlüssel. Für Tests erstellt FreeXmlToolkit eines selbst: Sie wählen den Schlüsseltyp RSA oder EC, tragen Name und Organisation ein und schützen den Schlüsselspeicher mit einem Passwort. Im Firmeneinsatz nehmen Sie stattdessen das Zertifikat Ihrer Organisation.",
+        "en": "To sign, you need a certificate with a private key. For tests, FreeXmlToolkit creates one itself: you choose the key type RSA or EC, enter name and organisation, and protect the keystore with a password. In a company you use your organisation's certificate instead."
+      }
+    },
+    {
+      "id": "sign",
+      "say": {
+        "de": "Beim Signieren wählen Sie Schlüsselspeicher, Alias und Passwort und dann die Art der Signatur. Eingebettet steckt die Signatur im Dokument selbst, umhüllend steckt das Dokument in der Signatur, und losgelöst liegt die Signatur in einer eigenen Datei. Dazu kommen das Verfahren, etwa RSA, RSA-PSS oder ECDSA, und der Hash-Algorithmus.",
+        "en": "When signing, you choose keystore, alias and password, and then the kind of signature. Enveloped puts the signature inside the document, enveloping puts the document inside the signature, and detached keeps the signature in a file of its own. On top come the method, such as RSA, RSA-PSS or ECDSA, and the hash algorithm."
+      }
+    },
+    {
+      "id": "verify",
+      "say": {
+        "de": "Signatur prüfen kontrolliert, ob die Signatur zum Inhalt passt und von welchem Zertifikat sie stammt. Wird auch nur ein Zeichen im signierten Teil geändert, schlägt die Prüfung fehl, und die Einzelheiten zeigen, warum. Im Expertenmodus prüfen Sie zusätzlich, ob das Zertifikat einem vertrauenswürdigen Aussteller gehört.",
+        "en": "Verify Signature checks whether the signature matches the content and which certificate it comes from. If even one character in the signed part is changed, the check fails, and the details show why. In expert mode you also check whether the certificate belongs to a trusted issuer."
+      }
+    },
+    {
+      "id": "encrypt",
+      "chapter": {
+        "de": "Verschlüsseln",
+        "en": "Encrypting"
+      },
+      "say": {
+        "de": "Verschlüsseln geht für das ganze Dokument, für das Element an der Schreibmarke oder für alle Elemente, die ein XPath-Ausdruck trifft. So können Sie etwa nur die Kundendaten verschlüsseln und den Rest lesbar lassen. Wahlweise wird nur der Inhalt eines Elements verschlüsselt, sein Name bleibt sichtbar.",
+        "en": "Encryption works for the whole document, for the element at the caret, or for every element an XPath expression matches. That way you can encrypt only the customer data, for example, and keep the rest readable. Optionally only the content of an element is encrypted, and its name stays visible."
+      }
+    },
+    {
+      "id": "recipients",
+      "say": {
+        "de": "Empfänger bestimmen, wer entschlüsseln darf. Das kann ein Zertifikat sein, ein Schlüssel aus einem Schlüsselspeicher, eine Schlüsseldatei oder einfach ein Passwort. Mehrere Empfänger gehen gleichzeitig, jeder kann das Dokument dann mit seinem eigenen Schlüssel öffnen. Hier nehmen wir ein Passwort.",
+        "en": "Recipients decide who may decrypt. That can be a certificate, a key from a keystore, a key file, or simply a password. Several recipients work at the same time, and each can then open the document with their own key. Here we use a password."
+      }
+    },
+    {
+      "id": "run-encrypt",
+      "say": {
+        "de": "Verschlüsseln schreibt eine neue Datei neben das Original, mit der Endung encrypted, und öffnet sie. Statt der Bestellung steht darin ein EncryptedData-Element mit unlesbaren Daten und den Angaben, wie entschlüsselt wird. Das Original bleibt unverändert.",
+        "en": "Encrypt writes a new file next to the original, with the extension encrypted, and opens it. Instead of the order, it holds an EncryptedData element with unreadable data and the information on how to decrypt it. The original stays unchanged."
+      }
+    },
+    {
+      "id": "decrypt",
+      "chapter": {
+        "de": "Entschlüsseln und untersuchen",
+        "en": "Decrypting and inspecting"
+      },
+      "say": {
+        "de": "Entschlüsseln braucht den passenden Schlüssel, hier das Passwort. Das Ergebnis ist wieder die lesbare Bestellung. Untersuchen zeigt den Aufbau einer verschlüsselten Datei, also welche Teile verschlüsselt sind, mit welchen Verfahren und für welche Empfänger, ohne etwas zu entschlüsseln.",
+        "en": "Decrypting needs the matching key, here the password. The result is the readable order again. Inspect shows the structure of an encrypted file, meaning which parts are encrypted, with which methods and for which recipients, without decrypting anything."
+      }
+    },
+    {
+      "id": "cli",
+      "say": {
+        "de": "Einzelne Elemente verschlüsseln Sie auch direkt aus dem Editor über das Kontextmenü. Auf der Kommandozeile gibt es dafür sign, verify, encrypt und decrypt, Passwörter kommen dort aus einer Abfrage oder einer Umgebungsvariablen. Administratoren können veraltete Verfahren oder die Verschlüsselung ganz abschalten.",
+        "en": "You also encrypt single elements straight from the editor through the context menu. On the command line there are sign, verify, encrypt and decrypt, with passwords coming from a prompt or an environment variable. Administrators can switch off outdated methods or encryption altogether."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "de": "Das war Signieren und Verschlüsseln. Die Beispiele im Ordner examples zeigen jede Variante mit fertigen Schlüsseln zum Ausprobieren.",
+        "en": "That was signing and encrypting. The examples in the examples folder show every variant with ready-made keys to try out."
+      }
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "id": "large-files",
+  "scenario": "LargeFilesDocVideo",
+  "docs": "guides/edit-xml/large-files/",
+  "title": {
+    "en": "Very large XML files",
+    "de": "Sehr große XML-Dateien"
+  },
+  "description": {
+    "de": "Dateien mit hunderten Megabyte öffnen: Text, Suche, Struktur, einen Teil im Grid bearbeiten, Statistik und Validierung im Strom.",
+    "en": "Open files of hundreds of megabytes: text, search, structure, editing a part in the grid, statistics and streaming validation."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "de": "In diesem Video öffnen Sie eine sehr große XML-Datei, wie sie bei Exporten aus Datenbanken oder bei Meldungen mit vielen tausend Datensätzen entsteht. Der Large File Viewer zeigt sie sofort, ohne sie ganz in den Speicher zu laden.",
+        "en": "In this video you open a very large XML file, like those produced by database exports or by reports with many thousands of records. The Large File Viewer shows it at once, without loading it all into memory."
+      }
+    },
+    {
+      "id": "open",
+      "chapter": {
+        "de": "Öffnen und lesen",
+        "en": "Opening and reading"
+      },
+      "say": {
+        "de": "Öffnen Sie eine Datei ab etwa fünfzig Megabyte, bietet FreeXmlToolkit den Large File Viewer an. Er liest die Datei nur so weit, wie Sie sie gerade ansehen, deshalb ist auch eine Datei mit mehreren Gigabyte nach Sekunden lesbar. Die Kopfzeile nennt Größe und Kodierung, und die Leiste darunter wechselt zwischen Text, Problemen, Struktur, Grafik und Statistik. Der normale Editor würde eine solche Datei zwar auch öffnen, aber Syntaxhervorhebung, Validierung und die Ansichten Baum und Grafik würden sehr lange brauchen.",
+        "en": "When you open a file of roughly fifty megabytes or more, FreeXmlToolkit offers the Large File Viewer. It reads the file only as far as you are looking, so even a file of several gigabytes is readable within seconds. The header names size and encoding, and the bar below switches between Text, Problems, Structure, Graphic and Statistics. The normal editor could open such a file too, but syntax highlighting, validation and the Tree and Graphic views would take a very long time."
+      }
+    },
+    {
+      "id": "text",
+      "say": {
+        "de": "Im Text blättern Sie wie gewohnt, und Gehe zu Zeile springt mitten in die Datei. Die Suche findet Text oder reguläre Ausdrücke und listet die Treffer mit ihrer Zeile. Ein Klick springt hin. Der Viewer schreibt nichts, während Sie lesen und suchen. Die Datei bleibt also unverändert, bis Sie bewusst einen Teil bearbeiten.",
+        "en": "In Text you scroll as usual, and Go to Line jumps into the middle of the file. Search finds text or regular expressions and lists the hits with their line. A click jumps there. The viewer writes nothing while you read and search. The file therefore stays unchanged until you deliberately edit a part."
+      }
+    },
+    {
+      "id": "structure",
+      "chapter": {
+        "de": "Struktur und Teile bearbeiten",
+        "en": "Structure and editing parts"
+      },
+      "say": {
+        "de": "Struktur zeigt den Aufbau der Datei als Baum, seitenweise geladen. Klappen Sie ein Element auf, erscheinen seine Kinder, und die Tabelle rechts listet die Datensätze mit ihren Feldern. Mit einem XPath oder einer Nummer springen Sie direkt zu einem bestimmten Datensatz. Jeder Datensatz zeigt seinen XPath, den Sie kopieren und zum Beispiel in einer Abfrage verwenden können.",
+        "en": "Structure shows the file's layout as a tree, loaded page by page. Expand an element and its children appear, and the table on the right lists the records with their fields. With an XPath or a number you jump straight to a certain record. Every record shows its XPath, which you can copy and use in a query, for example."
+      }
+    },
+    {
+      "id": "export",
+      "say": {
+        "de": "Die Datensätze lassen sich nach CSV oder Excel exportieren, auch hunderttausende. Der Export läuft im Hintergrund und lässt sich abbrechen.",
+        "en": "The records can be exported to CSV or Excel, hundreds of thousands too. The export runs in the background and can be cancelled."
+      }
+    },
+    {
+      "id": "graphic",
+      "say": {
+        "de": "Grafik öffnet einen Ausschnitt der Datei im Grid, etwa die ersten hundert Datensätze. Dort bearbeiten Sie Werte wie gewohnt. Übernehmen schreibt nur diesen Teil zurück in die Datei, der Rest bleibt unberührt. So ändern Sie eine riesige Datei, ohne sie je ganz zu laden. Verwerfen nimmt die Änderungen zurück. Wechseln Sie mit ungespeicherten Änderungen den Ausschnitt oder schließen den Tab, fragt FreeXmlToolkit vorher nach. Ändert ein anderes Programm die Datei inzwischen, weist ein Hinweis darauf hin, und Neu laden liest sie neu ein.",
+        "en": "Graphic opens a part of the file in the grid, for example the first hundred records. There you edit values as usual. Apply writes back only this part into the file, and the rest stays untouched. That way you change a huge file without ever loading it completely. Discard takes the changes back. When you switch the part or close the tab with unsaved changes, FreeXmlToolkit asks first. When another program changes the file meanwhile, a note points it out, and Reload reads it again."
+      }
+    },
+    {
+      "id": "statistics",
+      "chapter": {
+        "de": "Statistik und Validierung",
+        "en": "Statistics and validation"
+      },
+      "say": {
+        "de": "Statistik liest die Datei einmal ganz durch und zählt für jeden Pfad, wie oft er vorkommt und welche Werte er hat, mit kleinstem und größtem Wert. So prüfen Sie schnell, ob eine Lieferung vollständig ist. Auch die Statistik läuft im Hintergrund, und ein Fortschrittsbalken zeigt, wie weit sie ist.",
+        "en": "Statistics reads the file once from start to end and counts, for every path, how often it occurs and which values it has, with the smallest and largest value. That way you quickly check whether a delivery is complete. Statistics runs in the background too, and a progress bar shows how far it is."
+      }
+    },
+    {
+      "id": "validate",
+      "say": {
+        "de": "Validieren prüft die Datei gegen ihr Schema, ebenfalls im Strom, ohne sie ganz zu laden. Die Probleme erscheinen im Reiter Probleme, jedes mit seiner Zeile. Auf der Kommandozeile prüft fxt-cli große Dateien automatisch auf dieselbe Weise. Wahlweise prüft die Validierung nur, ob die Datei wohlgeformt ist, gegen das in der Datei genannte Schema oder gegen ein anderes.",
+        "en": "Validate checks the file against its schema, also as a stream, without loading it completely. The problems appear in the Problems tab, each with its line. On the command line, fxt-cli checks large files the same way automatically. Optionally it checks only whether the file is well-formed, against the schema named in the file, or against another one."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "de": "Das war der Large File Viewer. Damit bleiben auch sehr große Lieferungen handhabbar.",
+        "en": "That was the Large File Viewer. With it, even very large deliveries stay manageable."
+      }
+    }
+  ]
+}

@@ -120,6 +120,11 @@ final class VideoTyping {
         doc.onFx(() -> Window.getWindows().stream()
                 .filter(w -> w instanceof javafx.stage.PopupWindow && w.isShowing()).toList()
                 .forEach(Window::hide));
+        doc.onFx(() -> doc.stage().getScene().getRoot().lookupAll(".menu-bar").forEach(n -> {
+            if (n instanceof javafx.scene.control.MenuBar bar) {
+                bar.getMenus().forEach(javafx.scene.control.Menu::hide);
+            }
+        }));
     }
 
     static boolean shown(Node node) {

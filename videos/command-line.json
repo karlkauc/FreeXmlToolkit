@@ -1,0 +1,96 @@
+{
+  "id": "command-line",
+  "scenario": "CommandLineDocVideo",
+  "docs": "automate/command-line/",
+  "title": {
+    "en": "Automate with the command line fxt-cli",
+    "de": "Automatisieren mit der Kommandozeile fxt-cli"
+  },
+  "description": {
+    "de": "Dieselben Prüfungen und Umwandlungen ohne Oberfläche: fxt-cli validate, query, transform, convert und compare, Exit-Codes, Berichte und ein Rezept für GitHub Actions.",
+    "en": "The same checks and conversions without a user interface: fxt-cli validate, query, transform, convert and compare, exit codes, reports and a recipe for GitHub Actions."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "de": "In diesem Video lernen Sie fxt-cli kennen, die Kommandozeile von FreeXmlToolkit. Sie führt dieselben Prüfungen und Umwandlungen aus wie die Anwendung, nur ohne Oberfläche, und eignet sich damit für Skripte und automatische Abläufe.",
+        "en": "In this video you get to know fxt-cli, the command line of FreeXmlToolkit. It runs the same checks and conversions as the application, only without a user interface, which makes it suitable for scripts and automatic processes."
+      }
+    },
+    {
+      "id": "why",
+      "chapter": {
+        "de": "Warum Kommandozeile",
+        "en": "Why the command line"
+      },
+      "say": {
+        "de": "Was Sie in der Anwendung von Hand prüfen, soll oft regelmäßig und ohne Zutun laufen: jede Nacht, bei jeder neuen Lieferung oder bei jeder Änderung im Repository. Dafür wird fxt-cli mit FreeXmlToolkit installiert. Hilfe zeigt alle Befehle, und jeder Befehl hat eine eigene Hilfe mit Beispielen. Was Sie hier sehen, ist ein echter Mitschnitt aus dem Terminal.",
+        "en": "What you check by hand in the application should often run regularly and on its own: every night, with every new delivery, or with every change in the repository. That is why fxt-cli is installed along with FreeXmlToolkit. Help shows every command, and each command has a help of its own with examples. What you see here is a real recording from the terminal."
+      }
+    },
+    {
+      "id": "validate",
+      "chapter": {
+        "de": "Prüfen",
+        "en": "Validating"
+      },
+      "say": {
+        "de": "fxt-cli validate prüft Dateien oder ganze Ordner gegen ihr Schema, auf Wunsch auch gegen ein Schematron. Hier sind es drei Bestellungen, eine davon mit dem Wort two als Menge. Die Ausgabe nennt jeden Fehler mit Datei, Zeile und Spalte und am Ende eine Zusammenfassung.",
+        "en": "fxt-cli validate checks files or whole folders against their schema, and against a Schematron if you like. Here there are three orders, one of them with the word two as a quantity. The output names each error with file, line and column, and a summary at the end."
+      }
+    },
+    {
+      "id": "exit-codes",
+      "say": {
+        "de": "Wichtig für Skripte ist der Exit-Code: Null heißt alles in Ordnung, eins heißt, es wurden Fehler gefunden. Ein Skript oder eine Pipeline kann darauf reagieren und zum Beispiel die Verarbeitung anhalten. Mit der Option für Berichte schreibt validate die Ergebnisse auch als JUnit, JSON oder SARIF.",
+        "en": "What matters for scripts is the exit code: zero means everything is fine, one means errors were found. A script or a pipeline can react to it and stop processing, for example. With the report option, validate also writes the results as JUnit, JSON or SARIF."
+      }
+    },
+    {
+      "id": "query",
+      "chapter": {
+        "de": "Abfragen und Umwandeln",
+        "en": "Querying and transforming"
+      },
+      "say": {
+        "de": "fxt-cli query wertet einen XPath- oder XQuery-Ausdruck gegen Dateien aus, ähnlich wie grep. Hier zählt es die Artikel in jeder Bestellung eines Ordners und berechnet die Summe einer Bestellung, 125 Komma 3. So lassen sich Kontrollsummen und Stichproben ganz ohne Programmierung automatisieren.",
+        "en": "fxt-cli query evaluates an XPath or XQuery expression against files, much like grep. Here it counts the items in every order of a folder and computes the total of one order, 125.3. That way you automate control sums and spot checks without any programming."
+      }
+    },
+    {
+      "id": "transform",
+      "say": {
+        "de": "fxt-cli transform führt ein XSLT-Stylesheet aus, mit Parametern und einer Ausgabedatei, hier die HTML-Übersicht in Schweizer Franken. Dieselbe Option profile wie im Profiler misst die Laufzeit. fxt-cli convert wandelt zwischen XML, JSON und YAML um, und fxt-cli compare vergleicht zwei Dateien nach ihrer Struktur und meldet jeden Unterschied mit seinem Pfad.",
+        "en": "fxt-cli transform runs an XSLT stylesheet, with parameters and an output file, here the HTML summary in Swiss francs. The profile option, as in the profiler, measures the run time. fxt-cli convert converts between XML, JSON and YAML, and fxt-cli compare compares two files by structure and reports each difference with its path."
+      }
+    },
+    {
+      "id": "projects",
+      "chapter": {
+        "de": "Projekte und CI",
+        "en": "Projects and CI"
+      },
+      "say": {
+        "de": "Mit einem Projekt wird es noch einfacher: fxt-cli validate mit der Option project prüft alle Dateien mit ihren Zuordnungen, und fxt-cli scenario mit der Option check führt die Regressionsprüfung aus. Die Kommandozeile liest dabei keine Einstellungen der Anwendung, das Ergebnis ist also auf jedem Rechner gleich.",
+        "en": "With a project it gets even simpler: fxt-cli validate with the project option checks every file with its bindings, and fxt-cli scenario with the check option runs the regression check. The command line reads no settings of the application, so the result is the same on every computer."
+      }
+    },
+    {
+      "id": "ci",
+      "say": {
+        "de": "In einer CI wie GitHub Actions oder GitLab läuft das bei jeder Änderung. Das Rezept aus der Dokumentation installiert fxt-cli, prüft alle Daten gegen das Schema und lädt den Bericht als SARIF hoch, sodass die Fehler direkt in der Oberfläche von GitHub erscheinen. Ein fehlgeschlagener Lauf kann so verhindern, dass fehlerhafte Daten zusammengeführt werden.",
+        "en": "In CI such as GitHub Actions or GitLab, this runs with every change. The recipe from the documentation installs fxt-cli, checks all data against the schema and uploads the report as SARIF, so the errors appear right in GitHub's interface. A failed run can thus keep faulty data from being merged."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "de": "Das war fxt-cli. Die Dokumentation beschreibt jeden Befehl mit allen Optionen und Beispielen, und mit fxt-cli mcp stellen Sie dieselben Werkzeuge KI-Agenten zur Verfügung.",
+        "en": "That was fxt-cli. The documentation describes every command with all options and examples, and with fxt-cli mcp you offer the same tools to AI agents."
+      }
+    }
+  ]
+}

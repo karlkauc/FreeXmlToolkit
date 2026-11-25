@@ -1,0 +1,110 @@
+{
+  "id": "xsd-analysis",
+  "scenario": "XsdAnalysisDocVideo",
+  "docs": "guides/design-schemas/analysis/",
+  "title": {
+    "en": "XSD: analysis and documentation",
+    "de": "XSD: Analyse und Dokumentation"
+  },
+  "description": {
+    "de": "Ein XML-Schema analysieren: Statistik, Typen, Qualitätsprüfungen, Identitätsbedingungen und XPath-Prüfung, als Bericht speichern, und eine Dokumentation als HTML, PDF oder Word erzeugen.",
+    "en": "Analyse an XML schema: statistics, types, quality checks, identity constraints and XPath checks, save them as a report, and generate documentation as HTML, PDF or Word."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "de": "In diesem Video untersuchen Sie ein XML-Schema: wie groß es ist, wo es Schwächen hat, und wie Sie daraus eine Dokumentation für alle erzeugen, die mit den Daten arbeiten, ohne XSD lesen zu können.",
+        "en": "In this video you examine an XML schema: how big it is, where its weaknesses are, and how you generate documentation for everyone who works with the data without being able to read XSD."
+      }
+    },
+    {
+      "id": "open",
+      "chapter": {
+        "de": "Schema-Analyse",
+        "en": "Schema analysis"
+      },
+      "say": {
+        "de": "Öffnen Sie das Schema und wählen Sie in der Aktivität Schema den Eintrag Schema-Analyse. Die Analyse öffnet sich als eigener Tab und läuft im Hintergrund, auch große Schemas mit vielen Importen blockieren die Arbeit nicht. Mit Aktualisieren läuft sie nach einer Änderung neu. Die Analyse funktioniert genauso für Schemas, die andere einbinden: Sie wertet alle eingebundenen und importierten Dateien mit aus.",
+        "en": "Open the schema and choose Schema Analysis in the Schema activity. The analysis opens as a tab of its own and runs in the background, so even large schemas with many imports do not block your work. Refresh runs it again after a change. The analysis works just the same for schemas that include others: it evaluates every included and imported file too."
+      }
+    },
+    {
+      "id": "statistics",
+      "say": {
+        "de": "Die Statistik zählt, was im Schema steckt: Elemente, Attribute, einfache und komplexe Typen, Gruppen und die größte Verschachtelungstiefe. Sie zeigt auch, welche Typen gar nicht verwendet werden und welche Teile vom Wurzelelement aus nicht erreichbar sind. Das ist ein guter erster Eindruck, wenn Sie ein fremdes Schema übernehmen. Nicht verwendete Typen sind oft Reste früherer Fassungen und lassen sich gefahrlos entfernen.",
+        "en": "Statistics counts what is in the schema: elements, attributes, simple and complex types, groups and the deepest nesting. It also shows which types are not used at all and which parts cannot be reached from the root element. That gives a good first impression when you take over someone else's schema. Unused types are often leftovers from earlier versions and can be removed safely."
+      }
+    },
+    {
+      "id": "types",
+      "say": {
+        "de": "Der Reiter Typen listet alle Typen mit ihrer Art, ihrem Basistyp und wie oft sie verwendet werden. So sehen Sie schnell, welche Typen zentral sind und wo eine Änderung viele Stellen betrifft.",
+        "en": "The Types tab lists every type with its kind, its base type and how often it is used. That way you quickly see which types are central and where a change affects many places."
+      }
+    },
+    {
+      "id": "quality",
+      "chapter": {
+        "de": "Qualität prüfen",
+        "en": "Checking quality"
+      },
+      "say": {
+        "de": "Die Qualitätsprüfungen suchen nach typischen Schwächen: fehlende Dokumentation, Namen, die von den Konventionen abweichen, zu tief verschachtelte Elemente oder Zyklen in den Verweisen. Jede Meldung nennt die Stelle, und ein Klick springt im Schema dorthin. Nicht jede Meldung ist ein Fehler, aber jede ist einen Blick wert. Die Meldungen lassen sich nach Schweregrad und Kategorie ordnen und durchsuchen.",
+        "en": "The quality checks look for typical weaknesses: missing documentation, names that break the conventions, elements nested too deeply, or cycles in the references. Each message names the place, and a click jumps there in the schema. Not every message is an error, but each one is worth a look. The messages can be ordered by severity and category and searched."
+      }
+    },
+    {
+      "id": "constraints",
+      "say": {
+        "de": "Identitätsbedingungen legen fest, dass Werte eindeutig sind oder auf andere verweisen, etwa dass jede Artikelnummer nur einmal vorkommt. Der Reiter listet sie mit Selektor und Feldern, und die XPath-Validierung prüft, ob diese Ausdrücke im Schema überhaupt etwas treffen. Ein Tippfehler im Selektor fällt sonst erst auf, wenn ein Fehler durchrutscht.",
+        "en": "Identity constraints make sure values are unique or refer to others, for example that every item number appears only once. The tab lists them with selector and fields, and XPath validation checks whether these expressions match anything in the schema at all. A typo in a selector would otherwise only show when a mistake slips through."
+      }
+    },
+    {
+      "id": "report",
+      "say": {
+        "de": "Die Ergebnisse lassen sich als Bericht speichern, als HTML zum Ansehen im Browser, als PDF zum Weitergeben, als Excel-Datei zum Weiterarbeiten oder als CSV und JSON für eigene Auswertungen. So halten Sie den Zustand eines Schemas fest, etwa vor und nach einer Überarbeitung. Excel-Berichte haben dasselbe einheitliche Aussehen wie alle Tabellen aus FreeXmlToolkit.",
+        "en": "The results can be saved as a report: as HTML to view in the browser, as PDF to pass on, as an Excel file to keep working with, or as CSV and JSON for your own evaluations. That way you record the state of a schema, before and after a revision for example. Excel reports have the same consistent look as every spreadsheet from FreeXmlToolkit."
+      }
+    },
+    {
+      "id": "docs",
+      "chapter": {
+        "de": "Dokumentation erzeugen",
+        "en": "Generating documentation"
+      },
+      "say": {
+        "de": "Werkzeuge, Dokumentation generieren öffnet eine eigene Seite. Sie wählen das Schema, den Ausgabeort und das Format: HTML mit Navigation und Diagrammen, PDF zum Drucken oder Word zum Weiterbearbeiten. Die Dokumentation zeigt jedes Element mit Typ, Häufigkeit, erlaubten Werten und den Texten aus den Annotationen. Für ein Schema wie FundsXML entstehen so hunderte Seiten, die sonst niemand von Hand pflegen könnte.",
+        "en": "Tools, Generate Documentation opens a page of its own. You choose the schema, the output location and the format: HTML with navigation and diagrams, PDF for printing, or Word for further editing. The documentation shows every element with type, occurrence, allowed values and the texts from the annotations. For a schema like FundsXML, that produces hundreds of pages nobody could maintain by hand."
+      }
+    },
+    {
+      "id": "doc-options",
+      "say": {
+        "de": "Optionen steuern den Inhalt, etwa ob Bedingungen auf den Elementen erscheinen, das Seitenformat bei PDF oder ein Wasserzeichen. Enthält das Schema Dokumentation in mehreren Sprachen, wählen Sie die Sprache. Annotationen in Markdown werden auf Wunsch formatiert dargestellt. Die Erzeugung läuft im Hintergrund, und ein Fortschrittsbalken zeigt, wie weit sie ist. Am Ende öffnet sich das Ergebnis.",
+        "en": "Options control the content, for example whether constraints appear on the elements, the page size for PDF, or a watermark. When the schema holds documentation in several languages, you choose the language. Annotations written in Markdown can be rendered with formatting. Generation runs in the background, and a progress bar shows how far it is. At the end, the result opens."
+      }
+    },
+    {
+      "id": "cleanup",
+      "chapter": {
+        "de": "Aufräumen",
+        "en": "Tidying up"
+      },
+      "say": {
+        "de": "Zum Aufräumen gibt es zwei Werkzeuge: Nicht verwendete entfernen im Reiter Typen löscht, was nirgends verwendet wird, und Schema zusammenführen in der Aktivität Schema bettet eingebundene Dateien in ein einziges Schema ein, praktisch zum Weitergeben. Auf der Kommandozeile erzeugt fxt-cli xsd-doc dieselbe Dokumentation automatisch, zum Beispiel bei jeder neuen Fassung des Schemas.",
+        "en": "For tidying up there are two tools: Remove Unused in the Types tab deletes what is used nowhere, and Flatten Schema in the Schema activity embeds included files into one single schema, handy for passing it on. On the command line, fxt-cli xsd-doc generates the same documentation automatically, for example with every new version of the schema."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "de": "Das waren Analyse und Dokumentation. Damit kennen Sie die Werkzeuge für Schemas von der ersten Karte bis zum fertigen Handbuch.",
+        "en": "That was analysis and documentation. Now you know the tools for schemas, from the first card to the finished manual."
+      }
+    }
+  ]
+}

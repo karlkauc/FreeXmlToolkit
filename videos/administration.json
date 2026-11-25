@@ -1,0 +1,107 @@
+{
+  "id": "administration",
+  "scenario": "AdministrationDocVideo",
+  "docs": "administer/policies/",
+  "title": {
+    "en": "Manage FreeXmlToolkit in a company",
+    "de": "FreeXmlToolkit im Unternehmen verwalten"
+  },
+  "description": {
+    "de": "Für Administratoren: Einstellungen mit policy.properties sperren und mit defaults.properties vorgeben, Funktionen abschalten, still installieren, offline betreiben und Telemetrie für alle abschalten.",
+    "en": "For administrators: lock settings with policy.properties and preset them with defaults.properties, switch features off, install silently, run offline and switch telemetry off for everyone."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "de": "Dieses Video richtet sich an Administratoren, die FreeXmlToolkit auf vielen Rechnern installieren. Sie sehen, wie Sie Einstellungen für alle vorgeben oder sperren, Funktionen abschalten und die Anwendung ohne Zutun der Benutzer verteilen.",
+        "en": "This video is for administrators who install FreeXmlToolkit on many computers. You see how to preset or lock settings for everyone, switch features off, and roll the application out without the users' help."
+      }
+    },
+    {
+      "id": "files",
+      "chapter": {
+        "de": "Richtlinien",
+        "en": "Policies"
+      },
+      "say": {
+        "de": "Dafür gibt es zwei Textdateien in einem Ordner. policy.properties sperrt Einstellungen: Jede Zeile gilt, und der Benutzer kann sie nicht ändern. defaults.properties gibt Werte vor, die gelten, bis der Benutzer sie selbst ändert. Beide haben dasselbe Format, eine Einstellung pro Zeile mit Schlüssel und Wert, und eine Raute leitet einen Kommentar ein.",
+        "en": "There are two text files in one folder for this. policy.properties locks settings: every line applies, and the user cannot change it. defaults.properties presets values that apply until the user changes them. Both have the same format, one setting per line with key and value, and a hash starts a comment."
+      }
+    },
+    {
+      "id": "where",
+      "say": {
+        "de": "Der Ordner ist unter Windows ProgramData FreeXmlToolkit, unter macOS Library Application Support und unter Linux etc freexmltoolkit. Liegen die Dateien woanders, etwa auf einer Netzwerkfreigabe, nennt die Umgebungsvariable FXT_POLICY_FILE den Pfad. Benutzer brauchen nur Leserechte. Die Anwendung liest die Dateien beim Start, die Kommandozeile fxt-cli ebenso.",
+        "en": "The folder is ProgramData FreeXmlToolkit on Windows, Library Application Support on macOS, and etc freexmltoolkit on Linux. If the files are elsewhere, for example on a network share, the environment variable FXT_POLICY_FILE names the path. Users only need read access. The application reads the files at start, and so does the command line fxt-cli."
+      }
+    },
+    {
+      "id": "defaults",
+      "say": {
+        "de": "Typisch für die Vorgaben ist der Proxy des Unternehmens: Adresse, Port und die Ausnahmen, die ohne Proxy erreicht werden. Benutzer, die woanders arbeiten, können es selbst ändern. Auch die Sprache oder ein gemeinsamer Vorlagenordner passen gut hierher.",
+        "en": "A typical default is the company proxy: address, port, and the exceptions reached without the proxy. Users who work elsewhere can change it themselves. The language or a shared template folder also fit well here."
+      }
+    },
+    {
+      "id": "locked",
+      "chapter": {
+        "de": "Gesperrte Einstellungen",
+        "en": "Locked settings"
+      },
+      "say": {
+        "de": "So sieht der Benutzer eine Richtlinie: Oben auf der Seite Einstellungen steht ein Hinweis, dass der Administrator Einstellungen verwaltet, mit dem Pfad der Datei. Gesperrte Einstellungen sind ausgegraut, hier etwa die Akzentfarbe in der Farbe des Unternehmens und die Telemetrie. Entfernen Sie eine Zeile wieder, kommt der frühere Wert des Benutzers zurück.",
+        "en": "This is how the user sees a policy: at the top of the settings page, a notice says that the administrator manages settings, with the path of the file. Locked settings are greyed out, here the accent colour in the company colour and the telemetry. If you remove a line again, the user's earlier value comes back."
+      }
+    },
+    {
+      "id": "features",
+      "chapter": {
+        "de": "Funktionen abschalten",
+        "en": "Switching features off"
+      },
+      "say": {
+        "de": "Manche Schlüssel gibt es nur als Richtlinie, sie schalten ganze Funktionen ab. update allowed gleich false entfernt die Update-Prüfung, neue Versionen kommen dann über Ihre Softwareverteilung. ai allowed gleich false entfernt jede KI-Funktion, in den Einstellungen fehlt dann der ganze Bereich KI. Ebenso lassen sich externe XSLT- und FO-Prozessoren, Plugins aus dem Plugin-Ordner und die Online-Abfragen von LEI und ISIN abschalten.",
+        "en": "Some keys exist only as policies, and they switch off whole features. update allowed equals false removes the update check, and new versions then come through your software distribution. ai allowed equals false removes every AI function, and the whole AI section is then missing from the settings. External XSLT and FO processors, plugins from the plugins folder and the online LEI and ISIN lookups can be switched off the same way."
+      }
+    },
+    {
+      "id": "install",
+      "chapter": {
+        "de": "Installation",
+        "en": "Installation"
+      },
+      "say": {
+        "de": "Installiert wird still mit den üblichen Werkzeugen: unter Windows das MSI mit msiexec und der Option für eine Installation ohne Oberfläche, unter macOS das Paket mit installer, unter Linux das deb- oder rpm-Paket. Die Richtliniendateien verteilen Sie mit demselben Werkzeug, etwa über Gruppenrichtlinien, Intune oder Jamf. Ein Update der Anwendung lässt sie unberührt.",
+        "en": "Installation is silent with the usual tools: on Windows the MSI with msiexec and the option for an installation without user interface, on macOS the package with installer, on Linux the deb or rpm package. You distribute the policy files with the same tool, for example through group policies, Intune or Jamf. An update of the application leaves them untouched."
+      }
+    },
+    {
+      "id": "offline",
+      "say": {
+        "de": "FreeXmlToolkit arbeitet auch ganz ohne Internet. Schemas, die sonst aus dem Netz geladen würden, stellen Sie über die Schemabibliothek oder einen XML-Katalog bereit. Die Dokumentation beschreibt, welche Verbindungen die Anwendung überhaupt aufbaut und wie Sie jede davon abschalten.",
+        "en": "FreeXmlToolkit also works entirely without internet. Schemas that would otherwise be loaded from the web are provided through the Schema Library or an XML catalog. The documentation describes which connections the application makes at all and how to switch off each of them."
+      }
+    },
+    {
+      "id": "security",
+      "chapter": {
+        "de": "Sicherheit",
+        "en": "Security"
+      },
+      "say": {
+        "de": "Zur Sicherheit sind externe Entitäten und Java-Erweiterungen in Stylesheets standardmäßig gesperrt, XProc läuft eingeschränkt, und HTML-Vorschauen führen kein JavaScript aus. Mit einer Richtlinie bleibt das so, auch wenn ein Benutzer es ändern möchte. fxt.telemetry.disabled schaltet die anonyme Telemetrie für alle ab, ohne den Hinweis beim ersten Start.",
+        "en": "For security, external entities and Java extensions in stylesheets are blocked by default, XProc runs restricted, and HTML previews run no JavaScript. With a policy it stays that way, even if a user wants to change it. fxt.telemetry.disabled switches anonymous telemetry off for everyone, without the notice at first start."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "de": "Das war die Verwaltung im Unternehmen, und damit das letzte Video der Reihe. Die Seiten zu Richtlinien, Offline-Betrieb und Sicherheit in der Dokumentation listen jeden Schlüssel mit seinen Werten.",
+        "en": "That was managing FreeXmlToolkit in a company, and with it the last video of the series. The documentation pages on policies, offline operation and security list every key with its values."
+      }
+    }
+  ]
+}
