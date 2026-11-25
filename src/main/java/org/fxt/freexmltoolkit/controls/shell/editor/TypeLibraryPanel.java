@@ -199,12 +199,12 @@ public class TypeLibraryPanel extends VBox {
                         search.error(), false));
                 return;
             }
-            StringBuilder report = new StringBuilder("Usages of type '").append(typeName).append("'\n");
+            StringBuilder report = new StringBuilder(I18n.t("TypeLibraryPanel.usages-title", typeName)).append('\n');
             report.append("=".repeat(report.length() - 1)).append('\n');
             if (usages.isEmpty()) {
-                report.append("\nNo usages found.\n");
+                report.append('\n').append(I18n.t("TypeLibraryPanel.no-usages")).append('\n');
             } else {
-                report.append('\n').append(usages.size()).append(" usage(s):\n\n");
+                report.append('\n').append(I18n.t("TypeLibraryPanel.usage-count", usages.size())).append("\n\n");
                 usages.forEach(u -> report.append("  • ").append(u).append('\n'));
             }
             javafx.application.Platform.runLater(() ->
