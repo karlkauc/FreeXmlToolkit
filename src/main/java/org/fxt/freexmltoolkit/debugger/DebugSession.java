@@ -854,12 +854,12 @@ public class DebugSession implements BreakpointTarget {
     }
 
     public void requestStepOver() {
-        int currentDepth = pausedSnapshot != null ? pausedSnapshot.callStack().size() : 0;
+        int currentDepth = pausedDepth();
         signalResume(StepMode.STEP_OVER, currentDepth, State.RUNNING);
     }
 
     public void requestStepOut() {
-        int currentDepth = pausedSnapshot != null ? pausedSnapshot.callStack().size() : 0;
+        int currentDepth = pausedDepth();
         signalResume(StepMode.STEP_OUT, currentDepth - 1, State.RUNNING);
     }
 
@@ -1052,6 +1052,18 @@ public class DebugSession implements BreakpointTarget {
         }
         rememberPause(systemId, line, depth);
         return block(snapshot, note);
+    }
+
+    /**
+     * The step level of the current pause: the depth the trace listener reported (it leaves out frames
+     * that are no level of their own, such as local variables), else the size of the paused call stack.
+     */
+    private int pausedDepth() {
+        int depth = lastPauseDepth;
+        if (depth != Integer.MAX_VALUE) {
+            return depth;
+        }
+        return pausedSnapshot != null ? pausedSnapshot.callStack().size() : 0;
     }
 
     private void rememberPause(String systemId, int line, int depth) {

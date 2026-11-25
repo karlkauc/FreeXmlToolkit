@@ -467,6 +467,44 @@ class XsltDebuggerIntegrationTest {
     }
 
     @Test
+    void stepOverALocalVariableGoesToTheNextLineAndLazyValuesNeverPause() throws Exception {
+        String xml = "<order><item q=\"2\" p=\"3\"/><item q=\"1\" p=\"5\"/></order>";
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"\n"  // 1
+                + "    xmlns:f=\"urn:f\" exclude-result-prefixes=\"f\">\n"                                // 2
+                + "  <xsl:function name=\"f:total\">\n"                                                  // 3
+                + "    <xsl:param name=\"i\"/>\n"                                                         // 4
+                + "    <xsl:sequence select=\"$i/@q * $i/@p\"/>\n"                                         // 5
+                + "  </xsl:function>\n"                                                                  // 6
+                + "  <xsl:template match=\"/order\"><out>\n"                                              // 7
+                + "    <xsl:for-each select=\"item\">\n"                                                  // 8
+                + "      <xsl:variable name=\"total\" select=\"f:total(.)\"/>\n"                          // 9 BP
+                + "      <xsl:message select=\"'item ' || $total\"/>\n"                                    // 10
+                + "      <row><xsl:value-of select=\"$total\"/></row>\n"                                   // 11
+                + "    </xsl:for-each>\n"
+                + "  </out></xsl:template>\n"
+                + "</xsl:stylesheet>\n";
+        DebugSession session = new DebugSession();
+        session.addBreakpoint(new Breakpoint("", 9, true));
+        java.util.List<Integer> lines = new java.util.concurrent.CopyOnWriteArrayList<>();
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                lines.add(session.getPausedSnapshot().lineNumber());
+                if (lines.size() < 3) {
+                    session.requestStepOver();
+                } else {
+                    session.requestContinue();
+                }
+            }
+        });
+        XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                xml, xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session, m -> { });
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        // the variable's code (f:total, line 5) runs while the snapshot shows $total: no pause there
+        assertEquals(java.util.List.of(9, 10, 11, 9), lines, "Step Over from the variable: " + lines);
+    }
+
+    @Test
     void smartStepIntoRunsToTheChosenCallEvenWhileMuted() throws Exception {
         String xslt = ""
                 + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"\n"   // 1

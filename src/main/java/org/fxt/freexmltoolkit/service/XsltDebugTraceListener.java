@@ -124,6 +124,35 @@ public class XsltDebugTraceListener implements TraceListener {
         this.traceSink = sink;
     }
 
+    /**
+     * Frames on {@link #callStack} that are a step level: all but {@link #isContainer containers}. An
+     * instruction's step depth is one more than the levels below it.
+     */
+    private int stepLevels;
+
+    /**
+     * A local {@code xsl:variable} is a {@code LetExpression} holding the rest of its sequence constructor,
+     * and a {@code Block} holds a sequence constructor: their content is on the level of the frame itself,
+     * so Step Over a variable stops at the next line instead of skipping the rest of the loop body.
+     */
+    /** Nesting of snapshot builds on the transformation thread (see {@link #capture}). */
+    private int capturing;
+
+    /** Runs a snapshot build; instructions it evaluates (lazy variables) never pause. */
+    private <T> T capture(java.util.function.Supplier<T> build) {
+        capturing++;
+        try {
+            return build.get();
+        } finally {
+            capturing--;
+        }
+    }
+
+    private static boolean isContainer(Traceable traceable) {
+        return traceable instanceof net.sf.saxon.expr.LetExpression
+                || traceable instanceof net.sf.saxon.expr.instruct.Block;
+    }
+
     @Override
     public void enter(Traceable traceable, Map<String, Object> properties, XPathContext context) {
         if (properties != null && properties.containsKey("label") && properties.containsKey("value")
@@ -158,7 +187,11 @@ public class XsltDebugTraceListener implements TraceListener {
             // Track call stack
             CallStackEntry entry = new CallStackEntry(description, systemId, lineNumber,
                     frameKind(traceable), traceable, System.nanoTime(), context);
+            int stepDepth = stepLevels + 1;
             callStack.push(entry);
+            if (!isContainer(traceable)) {
+                stepLevels++;
+            }
             if (traceable instanceof TemplateRule rule) {
                 recordTemplateMatch(rule, lineNumber, context);
             }
@@ -179,8 +212,10 @@ public class XsltDebugTraceListener implements TraceListener {
             // work even at instructions with no line info (lineNumber == -1).
             // Breakpoint matching itself requires a real line; that's handled
             // by Breakpoint.matches.
-            if (debugSession != null) {
-                int depth = callStack.size();
+            // Building a snapshot evaluates lazily bound variables, which runs their code under this
+            // listener: those instructions never pause (the run already is paused or deciding to).
+            if (debugSession != null && capturing == 0) {
+                int depth = stepDepth;
                 final XPathContext ctxRef = context;
                 String messageBreak = messageBreak(traceable, context);
                 if (messageBreak == null) {
@@ -189,12 +224,15 @@ public class XsltDebugTraceListener implements TraceListener {
                 if (messageBreak == null) {
                     messageBreak = inputNodeBreak(context);
                 }
-                boolean alive = messageBreak != null
+                // A Block is no line stop of its own: it carries the line of its first instruction, checked next.
+                boolean block = traceable instanceof net.sf.saxon.expr.instruct.Block;
+                boolean alive = messageBreak == null && block ? debugSession.getState() != DebugSession.State.STOPPED
+                        : messageBreak != null
                         ? debugSession.pauseAt(systemId, lineNumber, messageBreak,
-                                () -> buildPausedSnapshot(systemId, lineNumber, ctxRef))
+                                () -> capture(() -> buildPausedSnapshot(systemId, lineNumber, ctxRef)))
                         : debugSession.checkAndPause(systemId, lineNumber, depth,
-                                () -> buildConditionSnapshot(systemId, lineNumber, ctxRef),
-                                () -> buildPausedSnapshot(systemId, lineNumber, ctxRef));
+                                () -> capture(() -> buildConditionSnapshot(systemId, lineNumber, ctxRef)),
+                                () -> capture(() -> buildPausedSnapshot(systemId, lineNumber, ctxRef)));
                 if (!alive) {
                     throw new XsltDebugStopException();
                 }
@@ -330,7 +368,7 @@ public class XsltDebugTraceListener implements TraceListener {
         final String atSystemId = systemId;
         final int atLine = line;
         debugSession.pauseAt(atSystemId, atLine, "error " + code + error.getMessage(),
-                () -> buildPausedSnapshot(atSystemId, atLine, ctx));
+                () -> capture(() -> buildPausedSnapshot(atSystemId, atLine, ctx)));
     }
 
     /**
@@ -346,6 +384,9 @@ public class XsltDebugTraceListener implements TraceListener {
                     debugSession.notifyLeave(callStack.size() - 1);
                 }
                 CallStackEntry entry = callStack.pop();
+                if (!isContainer(entry.traceable()) && stepLevels > 0) {
+                    stepLevels--;
+                }
                 left = entry;
                 attributeOutput(); // the leaving instruction's last output (end tags)
                 for (CallStackEntry outer : callStack) {
@@ -1068,6 +1109,7 @@ public class XsltDebugTraceListener implements TraceListener {
         templateMatches.clear();
         variableValues.clear();
         callStack.clear();
+        stepLevels = 0;
         callStackHistory.clear();
         historyCount = 0;
         templateExecutionTimes.clear();
