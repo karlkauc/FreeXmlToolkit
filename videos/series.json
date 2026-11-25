@@ -25,6 +25,7 @@
     "xspec",
     "profiler",
     "xproc",
-    "command-line"
+    "command-line",
+    "ai-assistant"
   ]
 }
