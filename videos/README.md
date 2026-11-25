@@ -22,6 +22,7 @@ The first series, in the order it is meant to be watched. Status: **published** 
 | 13 | `convert` | Convert XML, JSON, YAML and Excel / XML, JSON, YAML und Excel umwandeln | `guides/convert.md` | published |
 | 14 | `xsd-types` | XSD: overview and types / XSD: Übersicht und Typen | `guides/design-schemas/` | published |
 | 15 | `xsd-analysis` | XSD: analysis and documentation / XSD: Analyse und Dokumentation | `guides/design-schemas/` | published |
+| 17 | `large-files` | Very large XML files / Sehr große XML-Dateien | `guides/edit-xml/large-files.md` | published |
 
 The extended storyboards (keywords, target lengths, two series) are planned in `videos/drehbuecher.md`.
 
