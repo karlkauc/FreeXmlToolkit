@@ -103,10 +103,20 @@ class ProjectsDocVideo {
         Path stylesheets = Files.createDirectories(dir.resolve("stylesheets"));
         Files.copy(DocFiles.gettingStarted("order-summary.xslt"), stylesheets.resolve("order-summary.xsl"));
         Path expected = Files.createDirectories(dir.resolve("expected"));
-        Files.writeString(expected.resolve("order-1043.html"), """
-                <html><head><title>Order PO-1043</title></head><body><h1>Order PO-1043</h1>
-                <p><b>Order total: 125.30</b></p></body></html>
-                """);
+        // the expected result is what the stylesheet wrote before it showed the currency: the real output
+        // without the currency, so the check finds exactly the changed lines
+        {
+            var project = org.fxt.freexmltoolkit.service.project.FxtProject.load(projectFile);
+            var scenario = project.scenarios().get(0);
+            String actual = org.fxt.freexmltoolkit.controls.shell.editor.ScenarioCheck.check(project, scenario,
+                    dir.resolve("orders/order-1043.xml")).actual();
+            if (actual == null) {
+                throw new IllegalStateException("the scenario wrote nothing");
+            }
+            Files.writeString(expected.resolve("order-1043.html"),
+                    actual.replace(" (EUR)", "").replace(" EUR", ""));
+            Files.deleteIfExists(dir.resolve("out/order-1043.html"));
+        }
         doc.onFx(() -> ProjectActions.openProject(projectFile));
         doc.settle(2000);
         // without an open document the start page is full width: show the Explorer as a click on it would
