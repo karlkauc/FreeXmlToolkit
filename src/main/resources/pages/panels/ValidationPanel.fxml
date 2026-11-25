@@ -119,21 +119,21 @@
             </children>
         </HBox>
         <SourceRow fx:id="xsdRow" id="validation-xsd-row" iconLiteral="bi-diagram-3" caption="%ValidationPanel.xsdRow.caption"
-                   emptyText="%ValidationPanel.xsdRow.emptyText" onChange="#onChooseXsd">
+                   emptyText="%ValidationPanel.xsdRow.emptyText" onChangeAction="#onChooseXsd">
             <name>
                 <Label fx:id="xsdName" text="%ValidationPanel.xsdName.text" styleClass="fxt-vp-source-name"/>
             </name>
         </SourceRow>
         <SourceRow fx:id="schematronRow" id="validation-schematron-row" iconLiteral="bi-ui-checks-grid" caption="%ValidationPanel.schematronRow.caption"
                    emptyText="%ValidationPanel.schematronRow.emptyText"
-                   onChange="#onChooseSchematron">
+                   onChangeAction="#onChooseSchematron">
             <name>
                 <Label fx:id="schematronName" text="%ValidationPanel.schematronName.text" styleClass="fxt-vp-source-name"/>
             </name>
         </SourceRow>
         <SourceRow fx:id="jsonSchemaRow" id="validation-json-schema-row" iconLiteral="bi-braces" caption="%ValidationPanel.jsonSchemaRow.caption"
                    emptyText="%ValidationPanel.jsonSchemaRow.emptyText"
-                   onChange="#onChooseJsonSchema">
+                   onChangeAction="#onChooseJsonSchema">
             <name>
                 <Label fx:id="jsonSchemaName" text="%ValidationPanel.jsonSchemaName.text" styleClass="fxt-vp-source-name"/>
             </name>

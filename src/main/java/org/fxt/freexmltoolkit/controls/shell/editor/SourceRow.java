@@ -37,7 +37,7 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
  * {@code fxt-vp-source-row} style class so drag-and-drop feedback is untouched.
  *
  * <p>FXML: {@code <SourceRow iconLiteral="bi-code-slash" caption="XSD"
- * emptyText="No XSD — choose or drop a file" onChange="#onChangeXml">} with the
+ * emptyText="No XSD — choose or drop a file" onChangeAction="#onChangeXml">} with the
  * file-name label in a {@code <name>} element; extras built in code go in via
  * {@link #addExtras(Node...)}.
  *
@@ -56,8 +56,12 @@ public final class SourceRow extends VBox {
     private final Label captionLabel = new Label();
     private final HBox head;
     private final Button change;
-    private final ObjectProperty<EventHandler<ActionEvent>> onChange =
-            new SimpleObjectProperty<>(this, "onChange");
+    /*
+     * Named onChangeAction, not onChange: FXMLLoader reads an attribute "on…Change" as a change
+     * listener on a property, so onChange="#handler" in FXML never set the handler.
+     */
+    private final ObjectProperty<EventHandler<ActionEvent>> onChangeAction =
+            new SimpleObjectProperty<>(this, "onChangeAction");
     private final StringProperty caption = new SimpleStringProperty(this, "caption", "");
     private final StringProperty emptyText = new SimpleStringProperty(this, "emptyText", DEFAULT_EMPTY_TEXT);
     private final Region spacer = new Region();
@@ -93,7 +97,7 @@ public final class SourceRow extends VBox {
         this();
         setIconLiteral(iconLiteral);
         setName(nameLabel);
-        setOnChange(e -> changeAction.run());
+        setOnChangeAction(e -> changeAction.run());
         addExtras(extras);
     }
 
@@ -113,7 +117,7 @@ public final class SourceRow extends VBox {
     }
 
     private void fireChange() {
-        EventHandler<ActionEvent> handler = getOnChange();
+        EventHandler<ActionEvent> handler = getOnChangeAction();
         if (handler != null) {
             handler.handle(new ActionEvent(this, this));
         }
@@ -279,16 +283,16 @@ public final class SourceRow extends VBox {
         }
     }
 
-    /** Invoked when the user clicks "Change" (or an empty slot). */
-    public ObjectProperty<EventHandler<ActionEvent>> onChangeProperty() {
-        return onChange;
+    /** Invoked when the user clicks "Change" (or an empty slot); FXML attribute {@code onChangeAction}. */
+    public ObjectProperty<EventHandler<ActionEvent>> onChangeActionProperty() {
+        return onChangeAction;
     }
 
-    public EventHandler<ActionEvent> getOnChange() {
-        return onChange.get();
+    public EventHandler<ActionEvent> getOnChangeAction() {
+        return onChangeAction.get();
     }
 
-    public void setOnChange(EventHandler<ActionEvent> handler) {
-        onChange.set(handler);
+    public void setOnChangeAction(EventHandler<ActionEvent> handler) {
+        onChangeAction.set(handler);
     }
 }

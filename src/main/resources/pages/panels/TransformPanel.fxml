@@ -191,7 +191,7 @@
                             <children>
                                 <SourceRow fx:id="xsltRow" id="transform-xslt-row" iconLiteral="bi-arrow-repeat"
                                            emptyText="%TransformPanel.xsltRow.emptyText"
-                                           onChange="#onChangeXslt">
+                                           onChangeAction="#onChangeXslt">
                                     <name>
                                         <Label fx:id="xsltName" text="%TransformPanel.xsltName.text"
                                                styleClass="fxt-vp-source-name, fxt-vp-source-none"/>
@@ -204,7 +204,7 @@
                             <children>
                                 <SourceRow fx:id="inputRow" id="transform-input-row" iconLiteral="bi-code-slash"
                                            emptyText="%TransformPanel.inputRow.emptyText"
-                                           onChange="#onChangeInput">
+                                           onChangeAction="#onChangeInput">
                                     <name>
                                         <Label fx:id="inputName" text="%TransformPanel.inputName.text" styleClass="fxt-vp-source-name"/>
                                     </name>

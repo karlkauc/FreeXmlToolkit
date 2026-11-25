@@ -87,7 +87,7 @@
                                 <Label text="%SignatureView.keystore.text" styleClass="fxt-sign-section-label"/>
                                 <SourceRow singleLine="true" fx:id="keystoreRow" id="sig-keystore-row" iconLiteral="bi-file-earmark-lock"
                                            emptyText="%SignatureView.keystoreRow.emptyText"
-                                           onChange="#onChooseKeystore">
+                                           onChangeAction="#onChooseKeystore">
                                     <name>
                                         <Label fx:id="keystoreName" id="sig-keystore-name" text="%SignatureView.keystoreName.text"
                                                styleClass="fxt-vp-source-name, fxt-vp-source-none"/>
@@ -442,7 +442,7 @@
                                 <VBox fx:id="decPemBox" spacing="8" visible="false" managed="false">
                                     <children>
                                         <SourceRow singleLine="true" fx:id="decPemRow" id="dec-pem-row" iconLiteral="bi-key"
-                                                   emptyText="%SignatureView.decPemRow.emptyText" onChange="#onChooseDecryptionKey">
+                                                   emptyText="%SignatureView.decPemRow.emptyText" onChangeAction="#onChooseDecryptionKey">
                                             <name>
                                                 <Label fx:id="decPemName" id="dec-pem-name" text="%SignatureView.decPemName.text"
                                                        styleClass="fxt-vp-source-name, fxt-vp-source-none"/>
@@ -455,7 +455,7 @@
                                 <VBox fx:id="decKeyFileBox" spacing="8" visible="false" managed="false">
                                     <children>
                                         <SourceRow singleLine="true" fx:id="decKeyFileRow" id="dec-keyfile-row" iconLiteral="bi-key"
-                                                   emptyText="%SignatureView.decKeyFileRow.emptyText" onChange="#onChooseDecryptionKeyFile">
+                                                   emptyText="%SignatureView.decKeyFileRow.emptyText" onChangeAction="#onChooseDecryptionKeyFile">
                                             <name>
                                                 <Label fx:id="decKeyFileName" id="dec-keyfile-name" text="%SignatureView.decKeyFileName.text"
                                                        styleClass="fxt-vp-source-name, fxt-vp-source-none"/>
@@ -495,7 +495,7 @@
                             <children>
                                 <Label text="%SignatureView.trust-store.text" styleClass="fxt-sign-section-label"/>
                                 <SourceRow singleLine="true" fx:id="trustRow" id="sig-truststore-row" iconLiteral="bi-key"
-                                           onChange="#chooseTrustStore">
+                                           onChangeAction="#chooseTrustStore">
                                     <name>
                                         <Label fx:id="trustStoreName" id="sig-truststore-name"
                                                text="%SignatureView.trustStoreName.text" styleClass="fxt-vp-source-name"/>

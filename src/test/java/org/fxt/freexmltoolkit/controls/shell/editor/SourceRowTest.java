@@ -39,7 +39,7 @@ class SourceRowTest {
         row.setCaption("XSD");
         row.setEmptyText("No XSD bound — choose or drop a file");
         row.setName(name);
-        row.setOnChange(e -> changes.incrementAndGet());
+        row.setOnChangeAction(e -> changes.incrementAndGet());
         stage.setScene(new Scene(new VBox(row), 260, 120));
         stage.show();
     }
@@ -127,6 +127,46 @@ class SourceRowTest {
         assertNotNull(caption);
         assertFalse(caption.isVisible());
         assertFalse(caption.isManaged());
+    }
+
+    /** Public for FXMLLoader: the controller of {@link #anOnChangeActionHandlerFromFxmlRuns}. */
+    public static final class Controller {
+        int calls;
+
+        public void changed() {
+            calls++;
+        }
+    }
+
+    @Test
+    void anOnChangeActionHandlerFromFxmlRuns() throws Exception {
+        String fxml = "<?import org.fxt.freexmltoolkit.controls.shell.editor.SourceRow?>"
+                + "<SourceRow xmlns:fx=\"http://javafx.com/fxml/1\" onChangeAction=\"#changed\"/>";
+        Controller controller = new Controller();
+        SourceRow loaded = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader();
+            loader.setController(controller);
+            return loader.<SourceRow>load(new java.io.ByteArrayInputStream(
+                    fxml.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        });
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> loaded.changeButton().fire());
+        assertEquals(1, controller.calls, "the FXML handler runs on Change");
+    }
+
+    /** FXMLLoader reads "on…Change" as a property change listener: such an attribute never sets the handler. */
+    @Test
+    void noFxmlUsesAnOnChangeAttribute() throws Exception {
+        java.nio.file.Path pages = java.nio.file.Path.of("src/main/resources/pages");
+        try (var files = java.nio.file.Files.walk(pages)) {
+            var offenders = files.filter(f -> f.toString().endsWith(".fxml")).filter(f -> {
+                try {
+                    return java.util.regex.Pattern.compile("\\sonChange=\"#").matcher(java.nio.file.Files.readString(f)).find();
+                } catch (java.io.IOException e) {
+                    throw new java.io.UncheckedIOException(e);
+                }
+            }).toList();
+            assertTrue(offenders.isEmpty(), "use onChangeAction on SourceRow: " + offenders);
+        }
     }
 
     private static MouseEvent click() {

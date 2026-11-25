@@ -64,7 +64,7 @@
                             <children>
                                 <SourceRow fx:id="xmlRow" id="fop-xml-row" iconLiteral="bi-code-slash" caption="%FopPanel.xmlRow.caption"
                                            emptyText="%FopPanel.xmlRow.emptyText"
-                                           onChange="#onChangeXml">
+                                           onChangeAction="#onChangeXml">
                                     <name>
                                         <Label fx:id="xmlName" id="fop-xml-name" text="%FopPanel.xmlName.text"
                                                styleClass="fxt-vp-source-name"/>
@@ -72,7 +72,7 @@
                                 </SourceRow>
                                 <SourceRow fx:id="xslRow" id="fop-xsl-row" iconLiteral="bi-file-earmark-code" caption="%FopPanel.xslRow.caption"
                                            emptyText="%FopPanel.xslRow.emptyText"
-                                           onChange="#onChooseXsl">
+                                           onChangeAction="#onChooseXsl">
                                     <name>
                                         <Label fx:id="xslName" id="fop-xsl-name" text="%FopPanel.xslName.text"
                                                styleClass="fxt-vp-source-name, fxt-vp-source-none"/>
