@@ -16,6 +16,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.usage.SchemaReferenceGraph.Refe
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.UsageReferenceType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Quality checks that need the whole-schema {@link SchemaReferenceGraph}: unresolved
@@ -48,8 +49,8 @@ final class XsdComponentChecks {
             String what = describeTarget(reference);
             String where = describeReferrer(referrer);
             issues.add(QualityIssue.of(IssueCategory.UNRESOLVED_REFERENCE, IssueSeverity.ERROR,
-                    what + " '" + reference.targetName() + "' referenced by " + where + " is not declared",
-                    "Declare '" + reference.targetName() + "', fix the spelling, or add the namespace prefix of the schema that declares it",
+                    I18n.t("XsdComponentChecks.unresolved", what, reference.targetName(), where),
+                    I18n.t("XsdComponentChecks.unresolved-suggestion", reference.targetName()),
                     List.of(reference.targetName()), referrer));
         }
     }
@@ -58,8 +59,8 @@ final class XsdComponentChecks {
         List<List<ComponentKey>> derivation = graph.derivationCycles();
         for (List<ComponentKey> cycle : derivation) {
             issues.add(QualityIssue.of(IssueCategory.CIRCULAR_REFERENCE, IssueSeverity.ERROR,
-                    "Type derivation cycle: " + chain(cycle),
-                    "A type cannot derive from itself — change the base type of one member of the cycle",
+                    I18n.t("XsdComponentChecks.derivation-cycle", chain(cycle)),
+                    I18n.t("XsdComponentChecks.derivation-cycle-suggestion"),
                     names(cycle), firstNode(cycle)));
         }
         for (List<ComponentKey> cycle : graph.cycles()) {
@@ -67,8 +68,8 @@ final class XsdComponentChecks {
                 continue;
             }
             issues.add(QualityIssue.of(IssueCategory.CIRCULAR_REFERENCE, IssueSeverity.INFO,
-                    "Recursive content model: " + chain(cycle),
-                    "Recursion is legal; make sure at least one step in the cycle is optional (minOccurs=\"0\") so instances can terminate",
+                    I18n.t("XsdComponentChecks.recursive-content", chain(cycle)),
+                    I18n.t("XsdComponentChecks.recursive-content-suggestion"),
                     names(cycle), firstNode(cycle)));
         }
     }
@@ -79,18 +80,19 @@ final class XsdComponentChecks {
         Set<ComponentKey> unreachable = new LinkedHashSet<>(graph.unreachable());
         for (ComponentKey key : unreferenced) {
             Component component = graph.component(key);
-            String origin = component != null && component.fromInclude() ? " (declared in an included file)" : "";
+            boolean included = component != null && component.fromInclude();
             issues.add(QualityIssue.of(IssueCategory.UNUSED_COMPONENT, IssueSeverity.INFO,
-                    key + " is never referenced" + origin,
-                    "Remove it if it is not part of the schema's public contract, or reference it — Types → Remove unused… removes all unreachable components at once",
+                    I18n.t(included ? "XsdComponentChecks.never-referenced-included" : "XsdComponentChecks.never-referenced",
+                            key.label()),
+                    I18n.t("XsdComponentChecks.never-referenced-suggestion"),
                     List.of(key.localName()), component != null ? component.node() : null));
         }
         unreachable.removeAll(unreferenced);
         for (ComponentKey key : unreachable) {
             Component component = graph.component(key);
             issues.add(QualityIssue.of(IssueCategory.UNUSED_COMPONENT, IssueSeverity.INFO,
-                    key + " is only referenced from components that are themselves unused",
-                    "Removing the unused components that reference it makes this one unused too",
+                    I18n.t("XsdComponentChecks.unreachable", key.label()),
+                    I18n.t("XsdComponentChecks.unreachable-suggestion"),
                     List.of(key.localName()), component != null ? component.node() : null));
         }
     }
@@ -102,8 +104,8 @@ final class XsdComponentChecks {
                     || (node.getDocumentations() != null && !node.getDocumentations().isEmpty());
             if (!documented) {
                 issues.add(QualityIssue.of(IssueCategory.MISSING_DOCUMENTATION, IssueSeverity.SUGGESTION,
-                        component.key() + " has no documentation",
-                        "Add an xs:annotation/xs:documentation describing its purpose and allowed values",
+                        I18n.t("XsdComponentChecks.no-documentation", component.key().label()),
+                        I18n.t("XsdComponentChecks.no-documentation-suggestion"),
                         List.of(component.key().localName()), node));
             }
         }
@@ -128,8 +130,8 @@ final class XsdComponentChecks {
                 continue;
             }
             issues.add(QualityIssue.of(IssueCategory.INLINE_CANDIDATE, IssueSeverity.SUGGESTION,
-                    key + " is used only once, by " + describeReferrer(use.referrer()),
-                    "Declare it inline as an anonymous type if no reuse is planned; keep it named if other schemas or future elements should share it",
+                    I18n.t("XsdComponentChecks.used-once", key.label(), describeReferrer(use.referrer())),
+                    I18n.t("XsdComponentChecks.used-once-suggestion"),
                     List.of(key.localName()), component.node()));
         }
     }
@@ -163,25 +165,26 @@ final class XsdComponentChecks {
 
     private static String describeTarget(Reference reference) {
         return switch (reference.type()) {
-            case ELEMENT_REF, SUBSTITUTION_GROUP -> "Element";
-            case ATTRIBUTE_REF -> "Attribute";
-            case GROUP_REF -> "Group";
-            case ATTRIBUTE_GROUP_REF -> "Attribute group";
-            default -> "Type";
+            case ELEMENT_REF, SUBSTITUTION_GROUP -> I18n.t("XsdComponentChecks.target-element");
+            case ATTRIBUTE_REF -> I18n.t("XsdComponentChecks.target-attribute");
+            case GROUP_REF -> I18n.t("XsdComponentChecks.target-group");
+            case ATTRIBUTE_GROUP_REF -> I18n.t("XsdComponentChecks.target-attribute-group");
+            default -> I18n.t("XsdComponentChecks.target-type");
         };
     }
 
     private static String describeReferrer(XsdNode node) {
         if (node == null) {
-            return "an unknown node";
+            return I18n.t("XsdComponentChecks.unknown-node");
         }
         String kind = node.getClass().getSimpleName().replace("Xsd", "").toLowerCase(java.util.Locale.ROOT);
         String name = node.getName();
         if (name == null || name.isBlank()) {
             XsdNode parent = node.getParent();
             String parentName = parent != null && parent.getName() != null ? parent.getName() : null;
-            return parentName != null ? kind + " in '" + parentName + "'" : "an anonymous " + kind;
+            return parentName != null ? I18n.t("XsdComponentChecks.referrer-in", kind, parentName)
+                    : I18n.t("XsdComponentChecks.referrer-anonymous", kind);
         }
-        return kind + " '" + name + "'";
+        return I18n.t("XsdComponentChecks.referrer-named", kind, name);
     }
 }

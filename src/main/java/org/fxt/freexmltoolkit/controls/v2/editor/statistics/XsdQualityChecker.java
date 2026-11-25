@@ -36,6 +36,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSequence;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Checks XSD schema quality including naming conventions, best practices,
@@ -182,8 +183,10 @@ public class XsdQualityChecker {
             return new QualityIssue(
                     IssueCategory.DEPRECATED,
                     IssueSeverity.WARNING,
-                    elementName + " is deprecated" + (deprecationMessage != null ? ": " + deprecationMessage : ""),
-                    alternative != null ? "Use " + alternative + " instead" : null,
+                    deprecationMessage != null
+                            ? I18n.t("XsdQualityChecker.deprecated-with-message", elementName, deprecationMessage)
+                            : I18n.t("XsdQualityChecker.deprecated", elementName),
+                    alternative != null ? I18n.t("XsdQualityChecker.deprecated-suggestion", alternative) : null,
                     List.of(elementName),
                     node,
                     xpath,
@@ -306,18 +309,18 @@ public class XsdQualityChecker {
          */
         public String getScoreDescription() {
             if (score >= 90) {
-                return "Excellent";
+                return I18n.t("XsdQualityChecker.score-excellent");
             }
             if (score >= 75) {
-                return "Good";
+                return I18n.t("XsdQualityChecker.score-good");
             }
             if (score >= 60) {
-                return "Fair";
+                return I18n.t("XsdQualityChecker.score-fair");
             }
             if (score >= 40) {
-                return "Needs Improvement";
+                return I18n.t("XsdQualityChecker.score-needs-improvement");
             }
-            return "Poor";
+            return I18n.t("XsdQualityChecker.score-poor");
         }
     }
 
@@ -560,9 +563,9 @@ public class XsdQualityChecker {
             if (convention != dominant && convention != NamingConvention.UNKNOWN && !elements.isEmpty()) {
                 issues.add(QualityIssue.namingIssue(
                         IssueSeverity.WARNING,
-                        elements.size() + " element(s) use " + convention.getDisplayName() +
-                                " while dominant convention is " + dominant.getDisplayName(),
-                        "Consider renaming to " + dominant.getDisplayName() + " for consistency",
+                        I18n.t("XsdQualityChecker.naming-mixed", elements.size(), convention.getDisplayName(),
+                                dominant.getDisplayName()),
+                        I18n.t("XsdQualityChecker.naming-mixed-suggestion", dominant.getDisplayName()),
                         new ArrayList<>(elements)
                 ));
             }
@@ -618,8 +621,8 @@ public class XsdQualityChecker {
         if (node instanceof XsdAny) {
             issues.add(QualityIssue.bestPracticeIssue(
                     IssueSeverity.INFO,
-                    "xs:any allows arbitrary content",
-                    "Consider defining explicit elements for better validation",
+                    I18n.t("XsdQualityChecker.any"),
+                    I18n.t("XsdQualityChecker.any-suggestion"),
                     List.of(node.getName() != null ? node.getName() : "any"),
                     node
             ));
@@ -628,8 +631,8 @@ public class XsdQualityChecker {
         if (node instanceof XsdAnyAttribute) {
             issues.add(QualityIssue.bestPracticeIssue(
                     IssueSeverity.INFO,
-                    "xs:anyAttribute allows arbitrary attributes",
-                    "Consider defining explicit attributes for better validation",
+                    I18n.t("XsdQualityChecker.any-attribute"),
+                    I18n.t("XsdQualityChecker.any-attribute-suggestion"),
                     List.of(node.getName() != null ? node.getName() : "anyAttribute"),
                     node
             ));
@@ -639,8 +642,8 @@ public class XsdQualityChecker {
         if (node instanceof XsdElement element && element.getMaxOccurs() == -1) { // UNBOUNDED
             issues.add(QualityIssue.bestPracticeIssue(
                     IssueSeverity.INFO,
-                    "Element '" + element.getName() + "' has unbounded maxOccurs",
-                    "Consider setting a reasonable upper limit",
+                    I18n.t("XsdQualityChecker.unbounded", element.getName()),
+                    I18n.t("XsdQualityChecker.unbounded-suggestion"),
                     List.of(element.getName()),
                     element
             ));
@@ -651,9 +654,8 @@ public class XsdQualityChecker {
         if (node instanceof XsdElement element && elementLevel > maxElementNesting) {
             issues.add(QualityIssue.bestPracticeIssue(
                     IssueSeverity.WARNING,
-                    "Element '" + element.getName() + "' is nested " + elementLevel
-                            + " element levels deep (limit " + maxElementNesting + ")",
-                    "Extract the inner content model into a named complex type and reference it",
+                    I18n.t("XsdQualityChecker.deep-nesting", element.getName(), elementLevel, maxElementNesting),
+                    I18n.t("XsdQualityChecker.deep-nesting-suggestion"),
                     List.of(element.getName() != null ? element.getName() : "element"),
                     element
             ));
@@ -666,8 +668,8 @@ public class XsdQualityChecker {
             if (parent instanceof XsdElement element) {
                 issues.add(QualityIssue.bestPracticeIssue(
                         IssueSeverity.SUGGESTION,
-                        "Anonymous complex type in element '" + element.getName() + "'",
-                        "Consider defining as a named global type for reusability",
+                        I18n.t("XsdQualityChecker.anonymous-type", element.getName()),
+                        I18n.t("XsdQualityChecker.anonymous-type-suggestion"),
                         List.of(element.getName()),
                         complexType
                 ));
@@ -742,9 +744,8 @@ public class XsdQualityChecker {
         if (!tooLong.isEmpty()) {
             issues.add(QualityIssue.constraintConflictIssue(
                     IssueSeverity.ERROR,
-                    "Enumeration values exceed maxLength=" + maxLength + " in " + parentName,
-                    "Either increase maxLength to " + findMaxEnumLength(enumerations) +
-                            " or remove the ineffective maxLength constraint",
+                    I18n.t("XsdQualityChecker.enum-too-long", maxLength, parentName),
+                    I18n.t("XsdQualityChecker.enum-too-long-suggestion", findMaxEnumLength(enumerations)),
                     tooLong,
                     restriction
             ));
@@ -753,9 +754,8 @@ public class XsdQualityChecker {
         if (!tooShort.isEmpty()) {
             issues.add(QualityIssue.constraintConflictIssue(
                     IssueSeverity.ERROR,
-                    "Enumeration values shorter than minLength=" + minLength + " in " + parentName,
-                    "Either decrease minLength to " + findMinEnumLength(enumerations) +
-                            " or remove the ineffective minLength constraint",
+                    I18n.t("XsdQualityChecker.enum-too-short", minLength, parentName),
+                    I18n.t("XsdQualityChecker.enum-too-short-suggestion", findMinEnumLength(enumerations)),
                     tooShort,
                     restriction
             ));
@@ -764,8 +764,8 @@ public class XsdQualityChecker {
         if (!wrongLength.isEmpty()) {
             issues.add(QualityIssue.constraintConflictIssue(
                     IssueSeverity.ERROR,
-                    "Enumeration values don't match length=" + exactLength + " in " + parentName,
-                    "Remove the ineffective length constraint",
+                    I18n.t("XsdQualityChecker.enum-wrong-length", exactLength, parentName),
+                    I18n.t("XsdQualityChecker.enum-wrong-length-suggestion"),
                     wrongLength,
                     restriction
             ));
@@ -808,7 +808,7 @@ public class XsdQualityChecker {
         if (parent != null && parent.getName() != null && !parent.getName().isBlank()) {
             return parent.getName();
         }
-        return "unnamed type";
+        return I18n.t("XsdQualityChecker.unnamed-type");
     }
 
     /**
@@ -890,8 +890,8 @@ public class XsdQualityChecker {
                 }
 
                 issues.add(QualityIssue.inconsistentDefinitionIssue(
-                        "Multiple definitions of '" + name + "' with different content (" + bySignature.size() + " variants)",
-                        "Consider unifying the definitions or using different names to clarify intent",
+                        I18n.t("XsdQualityChecker.inconsistent", name, bySignature.size()),
+                        I18n.t("XsdQualityChecker.inconsistent-suggestion"),
                         affected,
                         firstNode,
                         // Only the declarations deviating from the most frequent variant count
@@ -1116,8 +1116,8 @@ public class XsdQualityChecker {
                 affectedWithStructure.addAll(affected);
 
                 issues.add(QualityIssue.duplicateDefinitionIssue(
-                        "Identical structure found in " + uniqueNames.size() + " different definitions: " + String.join(", ", uniqueNames),
-                        "Consider consolidating into a single reusable type to reduce redundancy",
+                        I18n.t("XsdQualityChecker.duplicate-structure", uniqueNames.size(), String.join(", ", uniqueNames)),
+                        I18n.t("XsdQualityChecker.duplicate-structure-suggestion"),
                         affectedWithStructure,
                         firstNode
                 ));
@@ -1234,9 +1234,10 @@ public class XsdQualityChecker {
                 String parentContext = getContainerParentContext(container);
 
                 issues.add(QualityIssue.duplicateElementInContainerIssue(
-                        "Duplicate element '" + elementName + "' in " + containerType + parentContext,
-                        "Remove one of the duplicate element definitions or rename one to create distinct elements. " +
-                                "Duplicate elements in a " + containerType + " cause validation ambiguity.",
+                        parentContext == null
+                                ? I18n.t("XsdQualityChecker.duplicate-element", elementName, containerType)
+                                : I18n.t("XsdQualityChecker.duplicate-element-within", elementName, containerType, parentContext),
+                        I18n.t("XsdQualityChecker.duplicate-element-suggestion", containerType),
                         affected,
                         container,
                         elements.size()
@@ -1247,41 +1248,22 @@ public class XsdQualityChecker {
 
     /**
      * Gets contextual information about the container's parent for better error messages.
+     *
+     * @return the nearest named complexType / element / group above the container
+     *         ("complexType 'X'"), or {@code null} when there is none
      */
     private String getContainerParentContext(XsdNode container) {
-        XsdNode parent = container.getParent();
-        if (parent == null) {
-            return "";
-        }
-
-        StringBuilder context = new StringBuilder();
-        context.append(" within ");
-
         // Traverse up to find meaningful parent context
-        while (parent != null) {
-            if (parent instanceof XsdComplexType complexType) {
-                String name = complexType.getName();
-                if (name != null && !name.isBlank()) {
-                    context.append("complexType '").append(name).append("'");
-                    return context.toString();
-                }
-            } else if (parent instanceof XsdElement element) {
-                String name = element.getName();
-                if (name != null && !name.isBlank()) {
-                    context.append("element '").append(name).append("'");
-                    return context.toString();
-                }
-            } else if (parent instanceof XsdGroup group) {
-                String name = group.getName();
-                if (name != null && !name.isBlank()) {
-                    context.append("group '").append(name).append("'");
-                    return context.toString();
-                }
+        for (XsdNode parent = container.getParent(); parent != null; parent = parent.getParent()) {
+            String kind = parent instanceof XsdComplexType ? "complexType"
+                    : parent instanceof XsdElement ? "element"
+                    : parent instanceof XsdGroup ? "group" : null;
+            String name = parent.getName();
+            if (kind != null && name != null && !name.isBlank()) {
+                return I18n.t("XsdQualityChecker.container-parent", kind, name);
             }
-            parent = parent.getParent();
         }
-
-        return "";
+        return null;
     }
 
     // ========== Readable Structure Generation ==========

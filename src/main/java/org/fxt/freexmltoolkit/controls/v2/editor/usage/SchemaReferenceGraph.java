@@ -30,6 +30,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaReference;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdUnion;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * The reference graph of an XSD schema: every global component (named type, group, attribute
@@ -68,6 +69,11 @@ public final class SchemaReferenceGraph {
             return displayName;
         }
 
+        /** @return the display name in the UI language (English: {@link #getDisplayName()}). */
+        public String label() {
+            return I18n.or("SchemaReferenceGraph.kind." + name(), displayName);
+        }
+
         /** The kinds that can be removed when unused (never global elements/attributes). */
         public static final Set<ComponentKind> REMOVABLE =
                 Collections.unmodifiableSet(EnumSet.of(COMPLEX_TYPE, SIMPLE_TYPE, GROUP, ATTRIBUTE_GROUP));
@@ -86,6 +92,11 @@ public final class SchemaReferenceGraph {
         @Override
         public String toString() {
             return kind.getDisplayName() + " '" + localName + "'";
+        }
+
+        /** @return the user-facing description ("Complex type 'X'") in the UI language; {@link #toString()} stays English. */
+        public String label() {
+            return I18n.t("SchemaReferenceGraph.component", kind.label(), localName);
         }
     }
 

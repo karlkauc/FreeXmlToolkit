@@ -92,12 +92,12 @@ final class QualitySection extends VBox {
 
         severityFilter.getItems().add(ALL);
         for (IssueSeverity s : IssueSeverity.values()) {
-            severityFilter.getItems().add(AnalysisSupport.titleCase(s));
+            severityFilter.getItems().add(severityLabel(s));
         }
         severityFilter.setValue(ALL);
         categoryFilter.getItems().add(ALL);
         for (IssueCategory c : IssueCategory.values()) {
-            categoryFilter.getItems().add(AnalysisSupport.titleCase(c));
+            categoryFilter.getItems().add(categoryLabel(c));
         }
         categoryFilter.setValue(ALL);
         severityFilter.valueProperty().addListener((obs, o, n) -> applyFilter());
@@ -105,7 +105,7 @@ final class QualitySection extends VBox {
         search.textProperty().addListener((obs, o, n) -> applyFilter());
 
         configureSeverityColumn(severityColumn);
-        FxmlColumns.text(categoryColumn, i -> AnalysisSupport.titleCase(i.category()));
+        FxmlColumns.text(categoryColumn, i -> categoryLabel(i.category()));
         FxmlColumns.text(messageColumn, QualityIssue::message);
         configureFileColumn(fileColumn);
         configureLocationColumn(locationColumn);
@@ -161,15 +161,15 @@ final class QualitySection extends VBox {
                         s.name().toLowerCase(Locale.ROOT));
                 chip.setGraphic(AnalysisSupport.severityIcon(s, 12));
                 chip.setGraphicTextGap(5);
-                AnalysisSupport.toggleChip(chip, severityFilter.valueProperty(), AnalysisSupport.titleCase(s), ALL);
+                AnalysisSupport.toggleChip(chip, severityFilter.valueProperty(), severityLabel(s), ALL);
                 severityChips.getChildren().add(chip);
             }
         }
         for (IssueCategory c : IssueCategory.values()) {
             long n = byCategory.getOrDefault(c, 0L);
             if (n > 0) {
-                Label chip = AnalysisSupport.chip(AnalysisSupport.titleCase(c) + " " + n, "neutral");
-                AnalysisSupport.toggleChip(chip, categoryFilter.valueProperty(), AnalysisSupport.titleCase(c), ALL);
+                Label chip = AnalysisSupport.chip(categoryLabel(c) + " " + n, "neutral");
+                AnalysisSupport.toggleChip(chip, categoryFilter.valueProperty(), categoryLabel(c), ALL);
                 categoryChips.getChildren().add(chip);
             }
         }
@@ -209,10 +209,10 @@ final class QualitySection extends VBox {
         String cat = categoryFilter.getValue();
         String text = search.getText() == null ? "" : search.getText().trim().toLowerCase(Locale.ROOT);
         filtered.setPredicate(issue -> {
-            if (sev != null && !ALL.equals(sev) && !sev.equals(AnalysisSupport.titleCase(issue.severity()))) {
+            if (sev != null && !ALL.equals(sev) && !sev.equals(severityLabel(issue.severity()))) {
                 return false;
             }
-            if (cat != null && !ALL.equals(cat) && !cat.equals(AnalysisSupport.titleCase(issue.category()))) {
+            if (cat != null && !ALL.equals(cat) && !cat.equals(categoryLabel(issue.category()))) {
                 return false;
             }
             if (text.isEmpty()) {
@@ -224,6 +224,19 @@ final class QualitySection extends VBox {
                         && issue.affectedElements().stream().anyMatch(a -> contains(a, text)));
         });
         count.setText(AnalysisSupport.countText(filtered.size(), issues.size(), "issue"));
+    }
+
+    /**
+     * The severity as shown in the table, chips and filter box (UI language). The filter compares
+     * these labels, so every place showing a severity must use this method.
+     */
+    static String severityLabel(IssueSeverity severity) {
+        return severity == null ? "" : I18n.or("QualityIssue.severity." + severity.name(), AnalysisSupport.titleCase(severity));
+    }
+
+    /** The category as shown in the table, chips and filter box (UI language); see {@link #severityLabel}. */
+    static String categoryLabel(IssueCategory category) {
+        return category == null ? "" : I18n.or("QualityIssue.category." + category.name(), AnalysisSupport.titleCase(category));
     }
 
     private static boolean contains(String haystack, String needle) {
@@ -242,7 +255,7 @@ final class QualitySection extends VBox {
                     setGraphic(null);
                     return;
                 }
-                setText(AnalysisSupport.titleCase(item));
+                setText(severityLabel(item));
                 setGraphic(AnalysisSupport.severityIcon(item, 14));
                 setGraphicTextGap(6);
                 getStyleClass().add("fxt-analysis-sev-" + item.name().toLowerCase(Locale.ROOT));
