@@ -16,6 +16,7 @@ The first series, in the order it is meant to be watched. Status: **published** 
 | 7 | `xslt-debug` | Run and debug an XSLT stylesheet / Ein XSLT-Stylesheet ausführen und debuggen | `guides/transform-query/run-xslt.md`, `debug.md` | published |
 | 8 | `schematron-quick-fixes` | Correct problems with Schematron quick fixes / Probleme mit Schematron-Schnellkorrekturen beheben | `guides/validate/schematron-quick-fixes.md` | published |
 | 9 | `projects` | Projects: schemas and scenarios for a whole folder / Projekte: Schemas und Szenarien für einen ganzen Ordner | `guides/projects.md` | published |
+| 10 | `query-console` | XPath and XQuery in the Query Console / XPath und XQuery in der Abfragekonsole | `guides/transform-query/query-console.md` | published |
 
 The extended storyboards (keywords, target lengths, two series) are planned in `videos/drehbuecher.md`.
 
