@@ -110,11 +110,12 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
         }
         org.fxt.freexmltoolkit.debugger.Breakpoint bp = session.breakpointAt(filePath, line1Based);
         BreakpointPropertiesDialog.Settings current = bp == null && asLogpoint
-                ? new BreakpointPropertiesDialog.Settings("", null, "line " + line1Based + " reached", false)
+                ? new BreakpointPropertiesDialog.Settings("", null,
+                        org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.line-reached", line1Based), false)
                 : BreakpointPropertiesDialog.Settings.of(bp);
         String file = filePath.isEmpty() ? "" : org.fxt.freexmltoolkit.debugger.SourceLocations.fileName(filePath) + ", ";
         java.util.Optional<BreakpointPropertiesDialog.Settings> answer = propertiesPrompt.ask(owner,
-                file + "line " + line1Based, current, session.hitCount(filePath, line1Based));
+                file + org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.line", line1Based), current, session.hitCount(filePath, line1Based));
         if (answer.isEmpty()) {
             return false;
         }
