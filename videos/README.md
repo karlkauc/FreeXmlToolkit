@@ -8,13 +8,14 @@ The first series, in the order it is meant to be watched. Status: **published** 
 | # | Id | Title (EN / DE) | Docs page | Status |
 |---|----|-----------------|-----------|--------|
 | 1 | `workspace-tour` | A tour of the workspace / Ein Rundgang durch die Arbeitsfläche | `get-started/workspace-tour.md` | published |
-| 2 | `validate-xml` | Validate an XML file against its schema / Eine XML-Datei gegen ihr Schema prüfen | `get-started/first-steps.md` | published (pilot) |
-| 3 | `xml-grid` | The XML grid: edit a document as tables / Das XML-Grid: ein Dokument als Tabellen bearbeiten | `guides/edit-xml/grid.md` | published |
-| 4 | `xsd-graphic` | Edit an XSD schema graphically / Ein XSD-Schema grafisch bearbeiten | `guides/design-schemas/graphic-view.md` | published |
-| 5 | `xslt-run` | Run an XSLT stylesheet / Ein XSLT-Stylesheet ausführen | `guides/transform-query/run-xslt.md` | published |
-| 6 | `xslt-debug` | Run and debug an XSLT stylesheet / Ein XSLT-Stylesheet ausführen und debuggen | `guides/transform-query/run-xslt.md`, `debug.md` | published |
-| 7 | `schematron-quick-fixes` | Correct problems with Schematron quick fixes / Probleme mit Schematron-Schnellkorrekturen beheben | `guides/validate/schematron-quick-fixes.md` | published |
-| 8 | `projects` | Projects: schemas and scenarios for a whole folder / Projekte: Schemas und Szenarien für einen ganzen Ordner | `guides/projects.md` | published |
+| 2 | `edit-xml-text` | Write XML in the text editor / XML im Text-Editor schreiben | `guides/edit-xml/index.md` | published |
+| 3 | `validate-xml` | Validate an XML file against its schema / Eine XML-Datei gegen ihr Schema prüfen | `get-started/first-steps.md` | published (pilot) |
+| 4 | `xml-grid` | The XML grid: edit a document as tables / Das XML-Grid: ein Dokument als Tabellen bearbeiten | `guides/edit-xml/grid.md` | published |
+| 5 | `xsd-graphic` | Edit an XSD schema graphically / Ein XSD-Schema grafisch bearbeiten | `guides/design-schemas/graphic-view.md` | published |
+| 6 | `xslt-run` | Run an XSLT stylesheet / Ein XSLT-Stylesheet ausführen | `guides/transform-query/run-xslt.md` | published |
+| 7 | `xslt-debug` | Run and debug an XSLT stylesheet / Ein XSLT-Stylesheet ausführen und debuggen | `guides/transform-query/run-xslt.md`, `debug.md` | published |
+| 8 | `schematron-quick-fixes` | Correct problems with Schematron quick fixes / Probleme mit Schematron-Schnellkorrekturen beheben | `guides/validate/schematron-quick-fixes.md` | published |
+| 9 | `projects` | Projects: schemas and scenarios for a whole folder / Projekte: Schemas und Szenarien für einen ganzen Ordner | `guides/projects.md` | published |
 
 The extended storyboards (keywords, target lengths, two series) are planned in `videos/drehbuecher.md`.
 

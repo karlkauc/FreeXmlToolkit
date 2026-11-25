@@ -1,0 +1,150 @@
+{
+  "id": "edit-xml-text",
+  "scenario": "EditXmlTextDocVideo",
+  "docs": "guides/edit-xml/",
+  "title": {
+    "en": "Write XML in the text editor",
+    "de": "XML im Text-Editor schreiben"
+  },
+  "description": {
+    "en": "Create a file, let the schema suggest elements and attributes, insert templates, format and fold, jump to definitions and bookmarks, find and replace, and use the tree view.",
+    "de": "Eine Datei anlegen, sich Elemente und Attribute vom Schema vorschlagen lassen, Vorlagen einfügen, formatieren und falten, zu Definitionen und Lesezeichen springen, suchen und ersetzen und die Baumansicht nutzen."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "In this video you write XML in the text editor. The schema suggests what is allowed at each place, and a few tools save you typing and searching.",
+        "de": "In diesem Video schreiben Sie XML im Text-Editor. Das Schema schlägt Ihnen vor, was an jeder Stelle erlaubt ist, und einige Werkzeuge sparen Ihnen Tipparbeit und Suche."
+      }
+    },
+    {
+      "id": "new",
+      "chapter": {
+        "en": "A new file",
+        "de": "Eine neue Datei"
+      },
+      "say": {
+        "en": "Ctrl N creates a new file. The dialog asks for the file type and offers templates. From a schema it can also build a skeleton with every required element. Here we cancel and work with the example order.",
+        "de": "Strg N legt eine neue Datei an. Der Dialog fragt nach dem Dateityp und bietet Vorlagen an. Aus einem Schema kann er auch gleich ein Gerüst mit allen Pflichtelementen erzeugen. Hier brechen wir ab und arbeiten mit der Beispielbestellung."
+      }
+    },
+    {
+      "id": "complete-element",
+      "chapter": {
+        "en": "Auto-completion",
+        "de": "Autovervollständigung"
+      },
+      "say": {
+        "en": "The order names its schema, so the editor knows what is allowed at each place. Put the caret after the last item and type an angle bracket. The list offers only the element item. Enter inserts it.",
+        "de": "Die Bestellung nennt ihr Schema, deshalb weiß der Editor, was an jeder Stelle erlaubt ist. Setzen Sie die Schreibmarke hinter den letzten Artikel und tippen Sie eine spitze Klammer. Die Liste bietet nur das Element item an. Enter fügt es ein."
+      }
+    },
+    {
+      "id": "complete-attributes",
+      "say": {
+        "en": "A space in the start tag suggests the attributes: sku, quantity and price. Pick one, and the caret is already between the quotes. Ctrl Space opens the suggestions by hand at any time.",
+        "de": "Ein Leerzeichen im Starttag schlägt die Attribute vor: sku, quantity und price. Wählen Sie eins aus, und die Schreibmarke steht gleich zwischen den Anführungszeichen. Strg Leertaste öffnet die Vorschläge jederzeit von Hand."
+      }
+    },
+    {
+      "id": "undo",
+      "say": {
+        "en": "Ctrl Z takes back every change, step by step.",
+        "de": "Strg Z nimmt jede Änderung wieder zurück, Schritt für Schritt."
+      }
+    },
+    {
+      "id": "templates",
+      "chapter": {
+        "en": "Templates",
+        "de": "Vorlagen"
+      },
+      "say": {
+        "en": "For pieces you need again and again there are templates. Ctrl T opens the list, with a preview on the right. If a template asks for values, you enter them in the next step, and the finished text lands at the caret. You add your own templates in the settings.",
+        "de": "Für wiederkehrende Bausteine gibt es Vorlagen. Strg T öffnet die Liste. Rechts sehen Sie eine Vorschau. Fragt eine Vorlage nach Werten, tragen Sie sie im nächsten Schritt ein, und der fertige Text steht an der Schreibmarke. Eigene Vorlagen legen Sie in den Einstellungen an."
+      }
+    },
+    {
+      "id": "format",
+      "chapter": {
+        "en": "Format and fold",
+        "de": "Formatieren und falten"
+      },
+      "say": {
+        "en": "Format in the toolbar indents a whole document neatly, even one that arrives on a single line. Minify does the opposite.",
+        "de": "Formatieren in der Werkzeugleiste rückt ein ganzes Dokument sauber ein, auch eines, das in einer einzigen Zeile ankommt. Komprimieren macht das Gegenteil."
+      }
+    },
+    {
+      "id": "fold",
+      "say": {
+        "en": "The small arrows in the margin fold an element. That keeps large files easy to overview. A second click unfolds it again.",
+        "de": "Die kleinen Pfeile am Rand falten ein Element zusammen. So behalten Sie in großen Dateien den Überblick. Ein zweiter Klick klappt es wieder auf."
+      }
+    },
+    {
+      "id": "definition",
+      "chapter": {
+        "en": "Navigate",
+        "de": "Navigieren"
+      },
+      "say": {
+        "en": "With Ctrl held down, an element name becomes a link. One click jumps to its declaration in the schema, here customer in order.xsd.",
+        "de": "Mit gedrückter Strg-Taste wird ein Elementname zum Link. Ein Klick springt zu seiner Deklaration im Schema, hier zu customer in order.xsd."
+      }
+    },
+    {
+      "id": "bookmarks",
+      "say": {
+        "en": "A click left of the line number sets a bookmark. F2 jumps to the next one, Shift F2 to the previous one. The Bookmarks activity lists the bookmarks of all files.",
+        "de": "Ein Klick links neben die Zeilennummer setzt ein Lesezeichen. F2 springt zum nächsten, Umschalt F2 zum vorigen. Die Aktivität Lesezeichen listet alle Lesezeichen aller Dateien."
+      }
+    },
+    {
+      "id": "find",
+      "chapter": {
+        "en": "Find and replace",
+        "de": "Suchen und Ersetzen"
+      },
+      "say": {
+        "en": "Ctrl F opens the search bar above the editor. Every match is highlighted, and Enter jumps to the next one. Search works in the tree and the grid too.",
+        "de": "Strg F öffnet die Suche über dem Editor. Alle Treffer werden markiert, Enter springt zum nächsten. Die Suche funktioniert auch im Baum und im Grid."
+      }
+    },
+    {
+      "id": "replace",
+      "say": {
+        "en": "Ctrl H shows Replace. Here Pocket becomes Compact, all at once with All. Ctrl Z takes that back in one step as well.",
+        "de": "Strg H blendet das Ersetzen ein. Hier wird Pocket durch Compact ersetzt, mit Alle auf einmal. Auch das nimmt Strg Z in einem Schritt zurück."
+      }
+    },
+    {
+      "id": "search-files",
+      "say": {
+        "en": "Ctrl Shift F searches whole folders, in the Search activity. The matches are listed by file, and a click opens the place.",
+        "de": "Strg Umschalt F sucht in ganzen Ordnern, in der Aktivität Suche. Die Treffer stehen nach Datei geordnet, ein Klick öffnet die Stelle."
+      }
+    },
+    {
+      "id": "tree",
+      "chapter": {
+        "en": "The tree view",
+        "de": "Die Baumansicht"
+      },
+      "say": {
+        "en": "The Tree view shows the same file as nodes. A right-click on a node offers add, rename, duplicate and delete. Every change shows in the text right away.",
+        "de": "Die Ansicht Baum zeigt dieselbe Datei als Knoten. Ein Rechtsklick auf einen Knoten bietet Hinzufügen, Umbenennen, Duplizieren und Löschen. Jede Änderung steht sofort auch im Text."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was the text editor. In the next video you validate the file against its schema and fix errors.",
+        "de": "Das war der Text-Editor. Im nächsten Video prüfen Sie die Datei gegen ihr Schema und beheben Fehler."
+      }
+    }
+  ]
+}
