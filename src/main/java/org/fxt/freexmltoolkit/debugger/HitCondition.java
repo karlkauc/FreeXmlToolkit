@@ -75,13 +75,15 @@ public record HitCondition(Mode mode, int target) {
     /** Human-readable form for lists and tooltips ({@code "hit = 3"}, {@code "hit ≥ 3"}, {@code "every 3rd hit"}). */
     public String describe() {
         return switch (mode) {
-            case ALWAYS -> "every hit";
-            case EQUAL -> "hit = " + target;
-            case AT_LEAST -> "hit ≥ " + target;
-            case MULTIPLE_OF -> target == 1 ? "every hit" : "every " + ordinal(target) + " hit";
+            case ALWAYS -> org.fxt.freexmltoolkit.i18n.I18n.t("HitCondition.every-hit");
+            case EQUAL -> org.fxt.freexmltoolkit.i18n.I18n.t("HitCondition.equal", target);
+            case AT_LEAST -> org.fxt.freexmltoolkit.i18n.I18n.t("HitCondition.at-least", target);
+            case MULTIPLE_OF -> target == 1 ? org.fxt.freexmltoolkit.i18n.I18n.t("HitCondition.every-hit")
+                    : org.fxt.freexmltoolkit.i18n.I18n.t("HitCondition.every-nth", ordinal(target));
         };
     }
 
+    /** "3rd" in English, "3." in German: the suffix key is chosen by the English rule, its text is per language. */
     private static String ordinal(int n) {
         int mod100 = n % 100;
         String suffix = mod100 >= 11 && mod100 <= 13 ? "th" : switch (n % 10) {
@@ -90,6 +92,6 @@ public record HitCondition(Mode mode, int target) {
             case 3 -> "rd";
             default -> "th";
         };
-        return n + suffix;
+        return n + org.fxt.freexmltoolkit.i18n.I18n.t("HitCondition.suffix." + suffix);
     }
 }

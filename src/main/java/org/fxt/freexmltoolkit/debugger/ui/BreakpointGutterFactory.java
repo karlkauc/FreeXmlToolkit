@@ -47,8 +47,9 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
     public static final String COVERAGE_EXECUTED_STYLE_CLASS = "coverage-executed";
     /** Coverage: the line is in a template / function the last run never entered (red bar). */
     public static final String COVERAGE_DEAD_STYLE_CLASS = "coverage-dead";
-    private static final String NOT_REACHED =
-            "Not reached in the last run (no traced instruction on this line, or the code did not run)";
+    private static String notReached() {
+        return org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.not-reached");
+    }
     /** Added to the slot of a disabled breakpoint, or of any breakpoint while all are muted. */
     public static final String INACTIVE_STYLE_CLASS = "breakpoint-inactive";
 
@@ -174,10 +175,10 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
             int runs = session.coverageCount(filePath, line);
             if (runs > 0) {
                 box.getStyleClass().add(COVERAGE_EXECUTED_STYLE_CLASS);
-                coverageTip = "Ran " + runs + (runs == 1 ? " time" : " times") + " in the last run";
+                coverageTip = runs == 1 ? org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.ran-once") : org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.ran-times", runs);
             } else if (session.coverageDead(filePath, line)) {
                 box.getStyleClass().add(COVERAGE_DEAD_STYLE_CLASS);
-                coverageTip = "Never ran in the last run: its template / function was not entered";
+                coverageTip = org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.never-ran");
             }
         }
 
@@ -199,9 +200,9 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
             fi.setIconSize(conditional ? 11 : 10);
             SemanticIcon.paint(fi, DesignTokens.ColorToken.DANGER);
             String why = session.isMuted() && (bp == null || bp.enabled())
-                    ? "All breakpoints are muted" : "Breakpoint disabled";
+                    ? org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.all-muted") : org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.disabled");
             Tooltip.install(fi, new Tooltip(why + (conditional ? "\n" + describe(bp, line) : "")
-                    + "\nClick to remove, right-click to enable or edit"));
+                    + "\n" + org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.click-remove-enable")));
             icon = fi;
         } else if (bp != null && bp.isLogpoint()) {
             // Logpoint: a diamond — red when it also pauses, blue when it only logs.
@@ -209,14 +210,14 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
             fi.setIconSize(10);
             SemanticIcon.paint(fi, bp.suspend() ? DesignTokens.ColorToken.DANGER : DesignTokens.ColorToken.INFO);
             Tooltip.install(fi, new Tooltip(describe(bp, line)
-                    + "\nClick to remove the logpoint, right-click to edit it"));
+                    + "\n" + org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.click-remove-logpoint")));
             icon = fi;
         } else if (conditional) {
             IconifyIcon fi = new IconifyIcon("bi-question-circle-fill");
             fi.setIconSize(11);
             SemanticIcon.paint(fi, DesignTokens.ColorToken.DANGER);
             Tooltip.install(fi, new Tooltip(describe(bp, line)
-                    + "\nClick to remove the breakpoint, right-click to edit it"));
+                    + "\n" + org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.click-remove-edit")));
             icon = fi;
         } else if (hasBp) {
             IconifyIcon fi = new IconifyIcon("bi-circle-fill");
@@ -228,9 +229,9 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
             if (unreached) {
                 box.getStyleClass().add(UNREACHED_STYLE_CLASS);
             }
-            Tooltip.install(fi, new Tooltip((unreached ? NOT_REACHED + "\n" : "")
-                    + (hits > 0 ? "Hits in this run: " + hits + "\n" : "")
-                    + "Click to remove breakpoint, right-click for a condition or hit count"));
+            Tooltip.install(fi, new Tooltip((unreached ? notReached() + "\n" : "")
+                    + (hits > 0 ? org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.hits", hits) + "\n" : "")
+                    + org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.click-remove-rules")));
             icon = fi;
         } else {
             Region spacer = new Region();
@@ -239,7 +240,7 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
             spacer.setMaxSize(SLOT_SIZE, SLOT_SIZE);
             if (session != null) {
                 Tooltip.install(box, new Tooltip((coverageTip == null ? "" : coverageTip + "\n")
-                        + "Click to set a breakpoint"));
+                        + org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.click-set")));
             }
             icon = spacer;
         }
@@ -267,26 +268,27 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
     private String describe(org.fxt.freexmltoolkit.debugger.Breakpoint bp, int line) {
         StringBuilder sb = new StringBuilder();
         if (bp.hasCondition()) {
-            sb.append("Condition: ").append(bp.condition());
+            sb.append(org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.condition", bp.condition()));
         }
         if (bp.hit().isSet()) {
             if (sb.length() > 0) {
                 sb.append('\n');
             }
-            sb.append(bp.isLogpoint() ? "On " : "Pause on ").append(bp.hit().describe());
+            sb.append(org.fxt.freexmltoolkit.i18n.I18n.t(bp.isLogpoint() ? "BreakpointGutter.on" : "BreakpointGutter.pause-on", bp.hit().describe()));
         }
         if (bp.isLogpoint()) {
             if (sb.length() > 0) {
                 sb.append('\n');
             }
-            sb.append("Log: ").append(bp.logMessage()).append(bp.suspend() ? "  (and pause)" : "  (no pause)");
+            sb.append(org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.log", bp.logMessage()))
+                    .append(org.fxt.freexmltoolkit.i18n.I18n.t(bp.suspend() ? "BreakpointGutter.and-pause" : "BreakpointGutter.no-pause"));
         }
         int hits = session.hitCount(filePath, line);
         if (hits > 0) {
-            sb.append("\nHits in this run: ").append(hits);
+            sb.append('\n').append(org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.hits", hits));
         }
         if (session.notReachedInLastRun(filePath, line)) {
-            sb.append('\n').append(NOT_REACHED);
+            sb.append('\n').append(notReached());
         }
         return sb.toString();
     }
@@ -297,21 +299,21 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
         boolean hasBp = bp != null || session.hasBreakpoint(filePath, line);
         ContextMenu menu = new ContextMenu();
         if (session.canRunTo()) {
-            MenuItem runTo = new MenuItem("Run to Here", menuIcon("bi-skip-forward-fill", DesignTokens.ColorToken.SUCCESS));
+            MenuItem runTo = new MenuItem(org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.run-to-here"), menuIcon("bi-skip-forward-fill", DesignTokens.ColorToken.SUCCESS));
             runTo.setOnAction(e -> session.runTo(filePath, line));
             menu.getItems().addAll(runTo, new SeparatorMenuItem());
         }
-        MenuItem edit = new MenuItem(hasBp ? "Breakpoint Properties…" : "Add Conditional Breakpoint…",
+        MenuItem edit = new MenuItem(org.fxt.freexmltoolkit.i18n.I18n.t(hasBp ? "BreakpointGutter.properties" : "BreakpointGutter.add-conditional"),
                 menuIcon("bi-sliders", DesignTokens.ColorToken.PRIMARY));
         edit.setOnAction(e -> editBreakpoint(line, menu.getOwnerWindow()));
         menu.getItems().add(edit);
         if (!hasBp) {
-            MenuItem logpoint = new MenuItem("Add Logpoint…", menuIcon("bi-diamond-fill", DesignTokens.ColorToken.INFO));
+            MenuItem logpoint = new MenuItem(org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.add-logpoint"), menuIcon("bi-diamond-fill", DesignTokens.ColorToken.INFO));
             logpoint.setOnAction(e -> editBreakpoint(line, menu.getOwnerWindow(), true));
             menu.getItems().add(logpoint);
         }
         if (bp != null && bp.hasCondition()) {
-            MenuItem clear = new MenuItem("Remove Condition", menuIcon("bi-x-circle", DesignTokens.ColorToken.NEUTRAL));
+            MenuItem clear = new MenuItem(org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.remove-condition"), menuIcon("bi-x-circle", DesignTokens.ColorToken.NEUTRAL));
             clear.setOnAction(e -> {
                 session.setCondition(filePath, line, "");
                 if (refreshCallback != null) refreshCallback.accept(null);
@@ -319,7 +321,7 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
             menu.getItems().add(clear);
         }
         if (bp != null && bp.hit().isSet()) {
-            MenuItem clearHit = new MenuItem("Remove Hit Count Rule", menuIcon("bi-hash", DesignTokens.ColorToken.NEUTRAL));
+            MenuItem clearHit = new MenuItem(org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.remove-hit-rule"), menuIcon("bi-hash", DesignTokens.ColorToken.NEUTRAL));
             clearHit.setOnAction(e -> {
                 session.setHitCondition(filePath, line, null);
                 if (refreshCallback != null) refreshCallback.accept(null);
@@ -327,7 +329,7 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
             menu.getItems().add(clearHit);
         }
         if (bp != null) {
-            MenuItem toggle = new MenuItem(bp.enabled() ? "Disable Breakpoint" : "Enable Breakpoint",
+            MenuItem toggle = new MenuItem(org.fxt.freexmltoolkit.i18n.I18n.t(bp.enabled() ? "BreakpointGutter.disable" : "BreakpointGutter.enable"),
                     menuIcon(bp.enabled() ? "bi-slash-circle" : "bi-circle-fill",
                             bp.enabled() ? DesignTokens.ColorToken.NEUTRAL : DesignTokens.ColorToken.DANGER));
             toggle.setOnAction(e -> {
@@ -337,7 +339,7 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
             menu.getItems().add(toggle);
         }
         if (hasBp) {
-            MenuItem remove = new MenuItem("Remove Breakpoint", menuIcon("bi-trash", DesignTokens.ColorToken.DANGER));
+            MenuItem remove = new MenuItem(org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointGutter.remove"), menuIcon("bi-trash", DesignTokens.ColorToken.DANGER));
             remove.setOnAction(e -> {
                 session.toggleBreakpoint(filePath, line);
                 if (refreshCallback != null) refreshCallback.accept(null);

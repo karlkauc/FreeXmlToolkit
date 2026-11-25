@@ -104,7 +104,7 @@ public final class DiffView extends Tab {
     private final ToggleGroup modeGroup = new ToggleGroup();
     private final ToggleButton textModeButton = new ToggleButton(I18n.t("DiffView.text"));
     private final ToggleButton xmlModeButton = new ToggleButton(I18n.t("DiffView.xml"));
-    private final MenuButton xmlOptionsButton = new MenuButton("XML Options");
+    private final MenuButton xmlOptionsButton = new MenuButton(I18n.t("DiffView.xml-options"));
     private Button allLeftButton;
     private Button allRightButton;
 
@@ -138,9 +138,9 @@ public final class DiffView extends Tab {
 
     /** @return a user-facing explanation for {@link #tooLargeToCompare} */
     public static String tooLargeMessage(long leftChars, long rightChars) {
-        return String.format(java.util.Locale.ROOT,
-                "Together the two documents have %.0f MB; the side-by-side comparison supports up to %d MB.",
-                (leftChars + rightChars) / (1024.0 * 1024.0), MAX_COMPARE_CHARS / (1024 * 1024));
+        return I18n.t("DiffView.too-large",
+                String.format(java.util.Locale.ROOT, "%.0f", (leftChars + rightChars) / (1024.0 * 1024.0)),
+                MAX_COMPARE_CHARS / (1024 * 1024));
     }
 
     /**
@@ -254,30 +254,30 @@ public final class DiffView extends Tab {
     }
 
     private ToolBar buildToolbar() {
-        Button saveLeft = makeButton("Save Left", "bi-floppy", DesignTokens.ColorToken.INFO, "Save left side to original file");
+        Button saveLeft = makeButton(I18n.t("DiffView.save-left"), "bi-floppy", DesignTokens.ColorToken.INFO, I18n.t("DiffView.save-left.tip"));
         saveLeft.setOnAction(e -> doSaveLeft());
 
-        Button saveRight = makeButton("Save Right", "bi-floppy", DesignTokens.ColorToken.INFO, "Save right side to picked file");
+        Button saveRight = makeButton(I18n.t("DiffView.save-right"), "bi-floppy", DesignTokens.ColorToken.INFO, I18n.t("DiffView.save-right.tip"));
         saveRight.setOnAction(e -> doSaveRight());
 
-        Button prev = makeButton("Prev", "bi-arrow-up", DesignTokens.ColorToken.NEUTRAL, "Jump to previous change (Alt+Up)");
+        Button prev = makeButton(I18n.t("DiffView.prev"), "bi-arrow-up", DesignTokens.ColorToken.NEUTRAL, I18n.t("DiffView.prev.tip"));
         prev.setOnAction(e -> navigate(-1));
 
-        Button next = makeButton("Next", "bi-arrow-down", DesignTokens.ColorToken.NEUTRAL, "Jump to next change (Alt+Down)");
+        Button next = makeButton(I18n.t("DiffView.next"), "bi-arrow-down", DesignTokens.ColorToken.NEUTRAL, I18n.t("DiffView.next.tip"));
         next.setOnAction(e -> navigate(1));
 
-        Button allRight = makeButton("All →", "bi-arrow-right", DesignTokens.ColorToken.SUCCESS, "Apply ALL changes left → right");
+        Button allRight = makeButton(I18n.t("DiffView.all-right"), "bi-arrow-right", DesignTokens.ColorToken.SUCCESS, I18n.t("DiffView.all-right.tip"));
         allRightButton = allRight;
         allRight.setOnAction(e -> applyAll(DiffGutter.Direction.LEFT_TO_RIGHT));
 
-        Button allLeft = makeButton("All ←", "bi-arrow-left", DesignTokens.ColorToken.SUCCESS, "Apply ALL changes right → left");
+        Button allLeft = makeButton(I18n.t("DiffView.all-left"), "bi-arrow-left", DesignTokens.ColorToken.SUCCESS, I18n.t("DiffView.all-left.tip"));
         allLeftButton = allLeft;
         allLeft.setOnAction(e -> applyAll(DiffGutter.Direction.RIGHT_TO_LEFT));
 
-        Button recompute = makeButton("Re-compute", "bi-arrow-clockwise", DesignTokens.ColorToken.NEUTRAL, "Recompute diff now");
+        Button recompute = makeButton(I18n.t("DiffView.recompute"), "bi-arrow-clockwise", DesignTokens.ColorToken.NEUTRAL, I18n.t("DiffView.recompute.tip"));
         recompute.setOnAction(e -> recomputeNow());
 
-        Button close = makeButton("Close", "bi-x-circle", DesignTokens.ColorToken.DANGER, "Close diff tab");
+        Button close = makeButton(I18n.t("DiffView.close"), "bi-x-circle", DesignTokens.ColorToken.DANGER, I18n.t("DiffView.close.tip"));
         close.setOnAction(e -> requestClose());
 
         ToolBar tb = new ToolBar(
@@ -374,9 +374,9 @@ public final class DiffView extends Tab {
 
     private void askKeyAttributes() {
         TextInputDialog dialog = DialogHelper.createTextInputDialog(String.join(", ", xmlOptions.keyAttributes()));
-        dialog.setTitle("Key Attributes");
-        dialog.setHeaderText("Attributes that identify an element among siblings of the same name");
-        dialog.setContentText("Attributes (comma-separated, e.g. id, key):");
+        dialog.setTitle(I18n.t("DiffView.key-attributes-title"));
+        dialog.setHeaderText(I18n.t("DiffView.key-attributes-header"));
+        dialog.setContentText(I18n.t("DiffView.key-attributes-content"));
         if (getTabPane() != null && getTabPane().getScene() != null) {
             dialog.initOwner(getTabPane().getScene().getWindow());
         }
@@ -685,7 +685,7 @@ public final class DiffView extends Tab {
                     result = compareStructure(left, right, options);
                 } catch (OutOfMemoryError | RuntimeException e) {
                     logger.warn("XML comparison failed: {}", e.toString());
-                    result = new XmlStructuralDiff.Result(List.of(), "The comparison failed: " + e.getMessage(), null);
+                    result = new XmlStructuralDiff.Result(List.of(), I18n.t("DiffView.comparison-failed", e.getMessage()), null);
                 }
                 XmlStructuralDiff.Result done = result;
                 Platform.runLater(() -> {
@@ -871,7 +871,7 @@ public final class DiffView extends Tab {
     private void handleCloseRequest(Event ev) {
         if (!dirty[0] && !dirty[1]) return;
         Alert alert = DialogHelper.createAlert(Alert.AlertType.CONFIRMATION);
-        alert.setContentText("There are unsaved changes in the diff view.\nClose anyway?");
+        alert.setContentText(I18n.t("DiffView.close-anyway"));
         alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.CANCEL);
         alert.setTitle(I18n.t("DiffView.unsaved-changes"));
         alert.setHeaderText(I18n.t("DiffView.discard-merged-changes"));

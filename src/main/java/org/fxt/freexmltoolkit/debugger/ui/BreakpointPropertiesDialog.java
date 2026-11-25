@@ -72,7 +72,8 @@ public final class BreakpointPropertiesDialog extends Dialog<BreakpointPropertie
     };
 
     private static final List<String> MODES = List.of(
-            "every hit", "exactly the N-th hit", "the N-th hit and later", "every N-th hit");
+            org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointPropertiesDialog.mode.always"), org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointPropertiesDialog.mode.equal"),
+            org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointPropertiesDialog.mode.at-least"), org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointPropertiesDialog.mode.multiple"));
 
     @FXML private TextField conditionField;
     @FXML private ComboBox<String> hitMode;
@@ -88,8 +89,8 @@ public final class BreakpointPropertiesDialog extends Dialog<BreakpointPropertie
      * @param hits     hits of the current run, or -1 when no run is active
      */
     public BreakpointPropertiesDialog(String location, Settings current, int hits) {
-        setTitle("Breakpoint Properties");
-        setHeaderText("Breakpoint at " + location);
+        setTitle(org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointPropertiesDialog.title"));
+        setHeaderText(org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointPropertiesDialog.header", location));
         IconifyIcon icon = new IconifyIcon("bi-sliders");
         icon.setIconSize(32);
         setGraphic(icon);
@@ -109,8 +110,8 @@ public final class BreakpointPropertiesDialog extends Dialog<BreakpointPropertie
         suspendBox.setSelected(settings.suspend());
         // Only a logpoint can run on without pausing.
         suspendBox.disableProperty().bind(logField.textProperty().isEmpty());
-        hitsLabel.setText(hits < 0 ? "Hits are counted while a debug run is active."
-                : "Hits in the current run: " + hits);
+        hitsLabel.setText(hits < 0 ? org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointPropertiesDialog.hits-inactive")
+                : org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointPropertiesDialog.hits", hits));
 
         // Static check while typing; OK stays closed while the condition or message cannot compile.
         conditionField.textProperty().addListener((obs, o, n) -> validate());
@@ -134,11 +135,11 @@ public final class BreakpointPropertiesDialog extends Dialog<BreakpointPropertie
     String validate() {
         String error = org.fxt.freexmltoolkit.debugger.ExpressionCheck.checkXPath(conditionField.getText());
         if (error != null) {
-            error = "Condition: " + error;
+            error = org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointPropertiesDialog.condition-error", error);
         } else {
             error = org.fxt.freexmltoolkit.debugger.ExpressionCheck.checkLogMessage(logField.getText());
             if (error != null) {
-                error = "Log message: " + error;
+                error = org.fxt.freexmltoolkit.i18n.I18n.t("BreakpointPropertiesDialog.log-error", error);
             }
         }
         errorLabel.setText(error == null ? "" : error);
