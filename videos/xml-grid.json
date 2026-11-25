@@ -119,8 +119,8 @@
     {
       "id": "column",
       "say": {
-        "de": "Spalte danach einfügen fragt nach dem Namen der neuen Spalte, hier discount für einen Rabatt. Jeder Artikel bekommt dieses Attribut, zunächst leer, und Sie füllen die Werte direkt in der Tabelle aus. Passt die Spalte nicht zum Schema, zeigt die nächste Prüfung mit F8 das sofort. Hier nehmen wir sie mit Strg Z wieder zurück.",
-        "en": "Insert Column After asks for the name of the new column, here discount. Every item gets this attribute, empty at first, and you fill in the values right in the table. If the column does not fit the schema, the next check with F8 shows it at once. Here we take it back with Ctrl Z."
+        "de": "Spalte danach einfügen fragt nach dem Namen der neuen Spalte. Ein At-Zeichen davor macht sie zu einem Attribut, hier at discount für einen Rabatt, ohne At-Zeichen wird sie zu einem Kindelement. Jeder Artikel bekommt die neue Spalte, zunächst leer, und Sie füllen die Werte direkt in der Tabelle aus. Passt sie nicht zum Schema, zeigt die nächste Prüfung mit F8 das sofort. Hier nehmen wir sie mit Strg Z wieder zurück.",
+        "en": "Insert Column After asks for the name of the new column. An at sign in front makes it an attribute, here at discount, without it the column becomes a child element. Every item gets the new column, empty at first, and you fill in the values right in the table. If it does not fit the schema, the next check with F8 shows it at once. Here we take it back with Ctrl Z."
       }
     },
     {

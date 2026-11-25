@@ -1,0 +1,128 @@
+{
+  "id": "query-console",
+  "scenario": "QueryConsoleDocVideo",
+  "docs": "guides/transform-query/query-console/",
+  "title": {
+    "en": "XPath and XQuery in the Query Console",
+    "de": "XPath und XQuery in der Abfragekonsole"
+  },
+  "description": {
+    "de": "Daten in XML-Dokumenten finden, zählen und auswerten: XPath mit Autovervollständigung und Treffern im Dokument, XQuery mit FLWOR und Tabelle, Fehlermeldungen, Ausführungsplan und gespeicherte Abfragen.",
+    "en": "Find, count and evaluate data in XML documents: XPath with auto-completion and hits in the document, XQuery with FLWOR and a table, error messages, the execution plan and saved queries."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "de": "In diesem Video fragen Sie ein XML-Dokument ab: mit XPath suchen und zählen Sie, mit XQuery bauen Sie ganze Auswertungen. Alles in der Abfragekonsole, ohne ein Programm zu schreiben. XPath ist die Sprache, mit der man Stellen in XML beschreibt, und XQuery baut darauf auf. Beide begegnen Ihnen auch in XSLT und Schematron wieder.",
+        "en": "In this video you query an XML document: with XPath you search and count, with XQuery you build whole evaluations. All in the Query Console, without writing a program. XPath is the language for describing places in XML, and XQuery builds on it. You meet both again in XSLT and Schematron."
+      }
+    },
+    {
+      "id": "open",
+      "chapter": {
+        "de": "Die Konsole öffnen",
+        "en": "Opening the console"
+      },
+      "say": {
+        "de": "Die Abfragekonsole öffnet sich über das Suchfeld in der Kopfleiste oder mit Strg K. Sie erscheint unter dem Editor: oben die Abfrage, darunter das Ergebnis. Die Konsole bleibt offen, während Sie im Dokument arbeiten, so können Sie Abfrage und Daten nebeneinander sehen. Mit dem Kreuz oder Strg Umschalt X blenden Sie sie wieder aus. Die Höhe der Konsole ziehen Sie an ihrem oberen Rand.",
+        "en": "The Query Console opens from the search field in the header or with Ctrl K. It appears below the editor: the query at the top, the result below. The console stays open while you work in the document, so you see query and data side by side. The cross or Ctrl Shift X hides it again. You drag the console's height at its top edge."
+      }
+    },
+    {
+      "id": "target",
+      "say": {
+        "de": "Die Abfrage läuft gegen das Dokument im aktiven Editor, hier die Beispielbestellung. Die Anzeige rechts oben nennt es. Wechseln Sie den Tab, wechselt auch das Ziel der Abfrage. So prüfen Sie denselben Ausdruck schnell an mehreren Dateien. Statt des offenen Dokuments kann die Abfrage auch eine Datei oder einen ganzen Ordner als Eingabe nehmen. Dann läuft sie über alle Dateien und zeigt die Treffer nach Datei geordnet.",
+        "en": "The query runs against the document in the active editor, here the example order. The label at the top right names it. Switch tabs, and the query's target changes along. That way you quickly try the same expression on several files. Instead of the open document, the query can also take a file or a whole folder as input. It then runs over every file and shows the hits ordered by file."
+      }
+    },
+    {
+      "id": "xpath",
+      "chapter": {
+        "de": "XPath",
+        "en": "XPath"
+      },
+      "say": {
+        "de": "Beginnen Sie mit XPath. Tippen Sie Schrägstrich, Schrägstrich, item: alle Artikel, egal wo sie stehen. Ausführen zeigt die Treffer als Liste, mit dem Pfad und dem Inhalt jedes Elements. Die Zahl der Treffer steht darüber. Ein einzelner Schrägstrich am Anfang würde beim Wurzelelement beginnen, zwei Schrägstriche suchen im ganzen Dokument. Mit eckigen Klammern schränken Sie die Treffer ein, zum Beispiel auf Artikel mit einer bestimmten Nummer.",
+        "en": "Start with XPath. Type slash, slash, item: every item, wherever it is. Run shows the hits as a list, with the path and the content of each element. The number of hits is above them. A single slash at the start begins at the root element, two slashes search the whole document. Square brackets narrow the hits down, for example to items with a certain number."
+      }
+    },
+    {
+      "id": "completion",
+      "say": {
+        "de": "Beim Tippen hilft die Autovervollständigung. Nach einer eckigen Klammer und dem At-Zeichen schlägt sie die Attribute vor, die im Dokument vorkommen, hier sku, quantity und price. Auch Funktionen und Achsen werden vorgeschlagen. Ein Ausdruck mit Fehler wird schon beim Tippen markiert. Sie wählen mit den Pfeiltasten und übernehmen mit Enter, Escape schließt die Liste. Die Vorschläge kommen aus dem Dokument selbst, sie passen also immer zu Ihren Daten.",
+        "en": "Auto-completion helps while you type. After a square bracket and the at sign, it suggests the attributes that occur in the document, here sku, quantity and price. Functions and axes are suggested too. An expression with a mistake is marked while you type. You pick with the arrow keys and accept with Enter; Escape closes the list. The suggestions come from the document itself, so they always fit your data."
+      }
+    },
+    {
+      "id": "hits",
+      "say": {
+        "de": "Ein Klick auf einen Treffer springt im Editor genau zu diesem Element und markiert es. Bei großen Dokumenten finden Sie so in Sekunden, was Sie suchen. Alle Treffer lassen sich auch kopieren oder als Datei speichern. Das Ergebnis lässt sich außerdem als neues Dokument öffnen, um damit weiterzuarbeiten.",
+        "en": "A click on a hit jumps exactly to that element in the editor and marks it. In large documents you find what you are looking for in seconds. All hits can also be copied or saved as a file. The result can also be opened as a new document to keep working with it."
+      }
+    },
+    {
+      "id": "functions",
+      "say": {
+        "de": "XPath rechnet auch. Count zählt die Artikel, und Sum bildet die Summe aus Menge mal Preis über alle Artikel, hier 125 Komma 30. Solche Kontrollsummen sind nützlich, um eine Lieferung schnell zu prüfen, ohne eine Tabellenkalkulation zu öffnen. XPath kennt dutzende Funktionen für Text, Zahlen und Datumswerte, etwa contains, round oder current-date. Die Autovervollständigung listet sie mit ihren Parametern.",
+        "en": "XPath calculates too. Count counts the items, and sum adds up quantity times price over all items, here 125.30. Control sums like these are handy to check a delivery quickly, without opening a spreadsheet. XPath knows dozens of functions for text, numbers and dates, such as contains, round or current-date. Auto-completion lists them with their parameters."
+      }
+    },
+    {
+      "id": "error",
+      "say": {
+        "de": "Fehlt eine Klammer, zeigt das Ergebnis eine verständliche Meldung mit der Stelle des Fehlers und oft einem Vorschlag zur Korrektur. Ein Klick auf den Vorschlag übernimmt ihn in die Abfrage. Typische Fehler sind vergessene Anführungszeichen um Text oder ein Präfix ohne Namespace.",
+        "en": "When a bracket is missing, the result shows an understandable message with the position of the mistake, and often a suggestion for the fix. A click on the suggestion takes it into the query. Typical mistakes are missing quotes around text or a prefix without a namespace."
+      }
+    },
+    {
+      "id": "xquery",
+      "chapter": {
+        "de": "XQuery",
+        "en": "XQuery"
+      },
+      "say": {
+        "de": "Für größere Auswertungen schalten Sie auf XQuery. XQuery kann mehrzeilig sein und baut ein eigenes Ergebnis. Hier geht for über alle Artikel, where behält die mit einem Preis über zwanzig, order by sortiert nach dem Preis, und return erzeugt für jeden ein neues Element mit Titel und Betrag. Das Ergebnis ist neues XML, das Sie speichern oder als Dokument öffnen können. XQuery eignet sich damit auch, um aus großen Dateien einen Auszug zu erzeugen.",
+        "en": "For bigger evaluations, switch to XQuery. XQuery can span several lines and builds a result of its own. Here for goes over every item, where keeps those with a price above twenty, order by sorts by price, and return creates a new element with title and amount for each. The result is new XML that you can save or open as a document. That makes XQuery useful for extracting a part of a large file as well."
+      }
+    },
+    {
+      "id": "table",
+      "say": {
+        "de": "Liefert eine Abfrage eine Folge gleichartiger Ergebnisse, zeigt Tabelle sie als Tabelle mit einer Zeile pro Ergebnis. Die Tabelle lässt sich kopieren und direkt in Excel einfügen. Bei einzelnen Werten bleibt die Textansicht übersichtlicher.",
+        "en": "When a query returns a sequence of results of the same kind, Table shows them as a table with one row per result. The table can be copied and pasted straight into Excel. For single values, the text view stays clearer."
+      }
+    },
+    {
+      "id": "plan",
+      "chapter": {
+        "de": "Für Fortgeschrittene",
+        "en": "Advanced"
+      },
+      "say": {
+        "de": "Für Fortgeschrittene: Trace zeigt Zwischenwerte, die die Funktion trace ausgibt, und Variablen setzt externe Variablen der Abfrage. Der Ausführungsplan zeigt, wie Saxon die Abfrage intern auswertet. Das hilft, wenn eine Abfrage auf großen Dateien langsam ist.",
+        "en": "For advanced users: Trace shows intermediate values printed by the trace function, and Variables sets external variables of the query. The execution plan shows how Saxon evaluates the query internally. That helps when a query is slow on large files."
+      }
+    },
+    {
+      "id": "snippets",
+      "chapter": {
+        "de": "Merken und wiederverwenden",
+        "en": "Saving and reusing"
+      },
+      "say": {
+        "de": "Abfragen, die Sie öfter brauchen, speichern Sie mit Speichern unter einem Namen. Snippets listet sie zum Laden, und Beispiele enthält fertige Abfragen zum Ausprobieren. Längere XQuery-Dateien öffnen Sie einfach als Dokument mit der Endung xq und führen sie dort aus, sogar mit dem Debugger.",
+        "en": "Queries you need often are saved under a name with Save. Snippets lists them for loading, and Examples holds ready-made queries to try. Longer XQuery files you simply open as a document with the extension xq and run them there, even with the debugger."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "de": "Das war die Abfragekonsole. Im Expertenmodus der Einstellungen wählen Sie außerdem die Sprachversion, etwa XPath eins Komma null für ältere Systeme.",
+        "en": "That was the Query Console. In the settings' expert mode you can also choose the language version, such as XPath 1.0 for older systems."
+      }
+    }
+  ]
+}
