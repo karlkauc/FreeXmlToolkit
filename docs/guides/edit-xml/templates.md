@@ -73,7 +73,8 @@ Your templates are managed in **Settings** (gear icon at the bottom of the activ
 
 1. In the **TEMPLATES** card, use **Browse…** next to **Templates directory** to choose the folder
    where your templates are kept (leave it empty for the default location,
-   `~/.freeXmlToolkit/templates`, or the bundled `examples/templates` folder when it exists).
+   `~/.freeXmlToolkit/templates`). The first start with an empty setting takes over the templates
+   that earlier versions kept below the installation folder.
 2. The change takes effect right away - no restart needed.
 
 ### Add or change a template

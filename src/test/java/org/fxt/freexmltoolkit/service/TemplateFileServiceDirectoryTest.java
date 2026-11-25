@@ -76,4 +76,41 @@ class TemplateFileServiceDirectoryTest {
         assertFalse(service.setTemplatesDirectory(null));
         assertEquals(before, service.getTemplatesDirectoryPath());
     }
+
+    @Test
+    void withoutAConfiguredFolderTemplatesGoToTheUsersFolder(@TempDir Path home) {
+        Path resolved = TemplateFileService.resolveDirectory(null, home);
+        assertEquals(home.resolve(".freeXmlToolkit/templates"), resolved);
+        assertEquals(resolved, TemplateFileService.resolveDirectory("  ", home));
+    }
+
+    @Test
+    void aConfiguredFolderWins(@TempDir Path home, @TempDir Path shared) {
+        Path configured = shared.resolve("team-templates");
+        assertEquals(configured, TemplateFileService.resolveDirectory(configured.toString(), home));
+        assertTrue(Files.isDirectory(configured), "created when missing");
+    }
+
+    @Test
+    void templatesOfEarlierVersionsAreImportedOnce(@TempDir Path old, @TempDir Path home) throws Exception {
+        Path target = TemplateFileService.defaultDirectory(home);
+        Files.createDirectories(target);
+        Files.writeString(old.resolve("mine.template"), "id=mine");
+        Files.writeString(old.resolve("kept.template"), "id=old");
+        Files.writeString(old.resolve("notes.txt"), "not a template");
+        Files.writeString(target.resolve("kept.template"), "id=new");
+
+        int copied = TemplateFileService.migrateLegacy(List.of(old, old.resolve("missing")), target);
+
+        assertEquals(1, copied);
+        assertEquals("id=mine", Files.readString(target.resolve("mine.template")));
+        assertEquals("id=new", Files.readString(target.resolve("kept.template")), "never overwritten");
+        assertFalse(Files.exists(target.resolve("notes.txt")));
+        assertTrue(Files.exists(target.resolve(TemplateFileService.LEGACY_MARKER)));
+
+        // a template the user deletes afterwards does not come back
+        Files.delete(target.resolve("mine.template"));
+        assertEquals(0, TemplateFileService.migrateLegacy(List.of(old), target));
+        assertFalse(Files.exists(target.resolve("mine.template")));
+    }
 }

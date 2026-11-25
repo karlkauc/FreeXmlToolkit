@@ -15,6 +15,15 @@ running is shown under **Help → About FreeXmlToolkit**.
   `maxOccurs="unbounded"`, a type fits every value seen (`id="1"` is a number, no boolean), children stay in document
   order, and several files are merged into one schema. Every sample is valid against the schema generated from it.
   [Generate a schema from XML](../guides/design-schemas/generate-from-xml.md)
+- **Templates stay out of your document folders.** When Windows opened an XML file with FreeXmlToolkit, the
+  application created a folder `release/examples/templates` next to the file and put its templates there. Templates
+  now always live in `.freeXmlToolkit/templates` in your home folder (or the folder chosen under **Settings →
+  Editor → Templates**); templates saved by earlier versions are taken over once. A `release` folder that appeared
+  next to your files can be deleted - check it for templates of your own first.
+  [Templates](../guides/edit-xml/templates.md#set-the-templates-folder)
+- **"Open With" works on macOS.** Opening an XML or JSON file from Finder (double-click, **Open With**, dropping it
+  on the Dock icon) now opens it in the editor, and **Make Default** no longer fails. The log is written to
+  `.freeXmlToolkit/logs` in your home folder on every system, whatever folder the application was started from.
 - **The documentation moved** to [freexmltoolkit.org/docs](https://freexmltoolkit.org/docs/); old links are
   forwarded. Pages that had no pictures got screenshots.
 

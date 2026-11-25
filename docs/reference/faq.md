@@ -129,6 +129,13 @@ In the folder `.freeXmlToolkit/logs` in your home folder (`fxt.log`, older ones 
 shows how many log files there are and how much space they use. Old logs are deleted
 automatically (by default after 14 days or above 100 MB).
 
+### A folder `release/examples/templates` appeared next to my XML files
+
+Versions up to 3.5.0 created it when Windows opened a file with FreeXmlToolkit (for example after making it the
+default application for `.xml`). Newer versions keep templates in `.freeXmlToolkit/templates` in your home folder
+and no longer write next to your documents. You can delete the folder; if you saved templates of your own while it
+existed, they are in it - copy them to `.freeXmlToolkit/templates` first.
+
 ### How do I switch off the anonymous usage statistics?
 
 Clear **Send anonymous usage statistics** and **Send anonymous error reports** under

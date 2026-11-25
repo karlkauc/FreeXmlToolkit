@@ -32,7 +32,6 @@ public class TemplateFileService {
      * Initializes the templates directory and creates it if it does not exist.
      */
     private TemplateFileService() {
-        // Use release/examples/templates as the templates directory
         this.templatesDirectory = getTemplatesDirectory();
 
         try {
@@ -76,52 +75,120 @@ public class TemplateFileService {
         return instance;
     }
 
+    /** Marker written into the default folder once the templates of earlier versions were imported. */
+    static final String LEGACY_MARKER = ".legacy-imported";
+
     /**
-     * Determines and returns the templates directory path.
-     * Searches for the directory in various possible locations and falls back
-     * to the user home directory if none are found.
+     * Determines the templates directory: the folder configured in the settings (or by the
+     * administrator's policy) when it is usable, otherwise always {@code ~/.freeXmlToolkit/templates}.
+     * Never a folder below the working directory: when the system opens a file with the application,
+     * the working directory is the file's folder, and templates written there end up next to the
+     * user's documents.
      *
      * @return the path to the templates directory
      */
     private Path getTemplatesDirectory() {
-        // Prefer an explicitly configured templates directory, if the user set one.
+        String configured = null;
         try {
-            String configured = PropertiesServiceImpl.getInstance().getTemplatesDirectory();
-            if (configured != null && !configured.isBlank()) {
-                Path configuredPath = Paths.get(configured.trim());
-                if (Files.exists(configuredPath) || tryCreateDirectory(configuredPath)) {
-                    logger.debug("Using configured templates directory: {}", configuredPath);
-                    return configuredPath;
-                }
-                logger.warn("Configured templates directory not usable, falling back: {}", configuredPath);
-            }
+            configured = PropertiesServiceImpl.getInstance().getTemplatesDirectory();
         } catch (Exception e) {
             logger.warn("Failed to read configured templates directory: {}", e.getMessage());
         }
+        Path home = Paths.get(System.getProperty("user.home"));
+        Path directory = resolveDirectory(configured, home);
+        if (directory.equals(defaultDirectory(home))) {
+            tryCreateDirectory(directory);
+            migrateLegacy(legacySources(), directory);
+        }
+        return directory;
+    }
 
-        // Try to find the project root and use release/examples/templates
-        Path currentDir = Paths.get(System.getProperty("user.dir"));
+    /** {@code ~/.freeXmlToolkit/templates} below the given home folder. */
+    static Path defaultDirectory(Path home) {
+        return home.resolve(".freeXmlToolkit").resolve("templates");
+    }
 
-        // Look for the templates directory in various possible locations
-        Path[] possiblePaths = {
-                currentDir.resolve("release/examples/templates"),
-                currentDir.resolve("../release/examples/templates"),
-                currentDir.resolve("templates"),
-                Paths.get(System.getProperty("user.home")).resolve(".freeXmlToolkit/templates")
-        };
+    /**
+     * The templates directory for a configured value: the configured folder when it exists or can be
+     * created, else the default folder below {@code home}.
+     */
+    static Path resolveDirectory(String configured, Path home) {
+        if (configured != null && !configured.isBlank()) {
+            Path configuredPath = Paths.get(configured.trim());
+            if (Files.isDirectory(configuredPath) || tryCreateDirectory(configuredPath)) {
+                return configuredPath;
+            }
+            logger.warn("Configured templates directory not usable, falling back: {}", configuredPath);
+        }
+        return defaultDirectory(home);
+    }
 
-        for (Path path : possiblePaths) {
-            if (Files.exists(path) || tryCreateDirectory(path)) {
-                logger.debug("Using templates directory: {}", path);
-                return path;
+    /**
+     * Where earlier versions kept templates: below the installation folder (the working directory of
+     * a start from the Start menu or the launcher) and below the current working directory.
+     */
+    private static List<Path> legacySources() {
+        List<Path> sources = new ArrayList<>();
+        try {
+            Path appDir = ApplicationLauncherLocator.getApplicationDirectory();
+            sources.add(appDir.resolve("release/examples/templates"));
+            sources.add(appDir.resolve("templates"));
+        } catch (RuntimeException e) {
+            logger.debug("No application directory for the template import: {}", e.toString());
+        }
+        sources.add(Paths.get(System.getProperty("user.dir")).resolve("release/examples/templates"));
+        return sources;
+    }
+
+    /**
+     * Copies the {@code .template} files of earlier versions' folders into {@code target} once:
+     * existing files are never overwritten, and a marker file keeps later starts from bringing back
+     * templates the user deleted. Failures are logged, never thrown.
+     *
+     * @return the number of files copied
+     */
+    static int migrateLegacy(List<Path> sources, Path target) {
+        Path marker = target.resolve(LEGACY_MARKER);
+        if (Files.exists(marker)) {
+            return 0;
+        }
+        int copied = 0;
+        for (Path source : sources) {
+            if (!Files.isDirectory(source) || sameFile(source, target)) {
+                continue;
+            }
+            try (Stream<Path> files = Files.list(source)) {
+                for (Path file : (Iterable<Path>) files.filter(Files::isRegularFile)
+                        .filter(f -> f.getFileName().toString().endsWith(".template"))::iterator) {
+                    Path destination = target.resolve(file.getFileName().toString());
+                    if (!Files.exists(destination)) {
+                        Files.copy(file, destination);
+                        copied++;
+                    }
+                }
+                logger.info("Imported templates from {} into {}", source, target);
+            } catch (IOException | RuntimeException e) {
+                logger.warn("Could not import templates from {}: {}", source, e.toString());
             }
         }
+        try {
+            Files.createDirectories(target);
+            Files.writeString(marker, "Templates of earlier versions were imported once (" + copied + " files).\n");
+        } catch (IOException e) {
+            logger.warn("Could not write {}: {}", marker, e.toString());
+        }
+        if (copied > 0) {
+            logger.info("Imported {} templates of earlier versions into {}", copied, target);
+        }
+        return copied;
+    }
 
-        // Fallback to user home if nothing else works
-        Path fallback = Paths.get(System.getProperty("user.home")).resolve(".freeXmlToolkit/templates");
-        tryCreateDirectory(fallback);
-        logger.warn("Using fallback templates directory: {}", fallback);
-        return fallback;
+    private static boolean sameFile(Path a, Path b) {
+        try {
+            return Files.exists(b) && Files.isSameFile(a, b);
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     /**
@@ -130,7 +197,7 @@ public class TemplateFileService {
      * @param path the path where the directory should be created
      * @return true if the directory was successfully created, false otherwise
      */
-    private boolean tryCreateDirectory(Path path) {
+    private static boolean tryCreateDirectory(Path path) {
         try {
             Files.createDirectories(path);
             return true;
