@@ -64,6 +64,11 @@ class XsltDebugDocVideo {
                     <xsl:sequence select="xs:decimal($item/@quantity) * xs:decimal($item/@price)"/>
                 </xsl:function>
 
+                <xsl:function name="f:format-amount" as="xs:string">
+                    <xsl:param name="amount" as="xs:decimal"/>
+                    <xsl:sequence select="format-number($amount, '0.00') || ' ' || $currency"/>
+                </xsl:function>
+
                 <xsl:template match="/order">
                     <html>
                         <body>
@@ -71,11 +76,11 @@ class XsltDebugDocVideo {
                             <table>
                                 <xsl:for-each select="items/item">
                                     <xsl:variable name="total" select="f:line-total(.)"/>
-                                    <xsl:message select="'item ' || @sku || ': ' || $total"/>
+                                    <xsl:message select="'item ' || @sku || ': ' || f:format-amount($total)"/>
                                     <tr>
                                         <td><xsl:value-of select="."/></td>
                                         <td><xsl:value-of select="@quantity"/></td>
-                                        <td><xsl:value-of select="format-number($total, '0.00') || ' ' || $currency"/></td>
+                                        <td><xsl:value-of select="f:format-amount($total)"/></td>
                                     </tr>
                                 </xsl:for-each>
                             </table>
@@ -193,8 +198,10 @@ class XsltDebugDocVideo {
                 step(video, "#debug-continue");
                 video.spoken(0.3);
                 step(video, "#debug-step-into");
+                video.pause(1000);
+                step(video, "#debug-step-into");
                 video.pause(800);
-                zoomLines(video, host, "<xsl:function", 5);
+                zoomLines(video, host, "<xsl:function name=\"f:format-amount\"", 4);
                 video.spoken(0.7);
                 video.zoomOut();
                 clickTab("#debug-tab-call-stack");
@@ -312,6 +319,8 @@ class XsltDebugDocVideo {
                             .filter(Node::isVisible).toList());
                     if (fields.size() >= 2) {
                         video.click(fields.get(1));
+                        doc.onFx(fields.get(1)::requestFocus);
+                        video.pause(200);
                         video.typeIntoFocused(keys.say("Artikel {@sku}", "item {@sku}"));
                     }
                     video.spoken(0.6);

@@ -26,8 +26,8 @@
         "en": "Why a debugger"
       },
       "say": {
-        "de": "Ein Stylesheet liefert ein falsches Ergebnis, aber keine Fehlermeldung. Statt zu raten, schauen Sie ihm mit dem Debugger zu. Das Beispiel order-debug.xslt macht aus der Bestellung eine Tabelle. Für jeden Artikel berechnet die Funktion line-total den Betrag, speichert ihn in der Variablen total und schreibt eine Meldung. Die Eingabe ist wieder order.xml, im Werkzeug Umwandeln schon gewählt. Der Debugger nutzt einen eigenen Lauf mit allen Informationen, das normale Ausführen bleibt dadurch so schnell wie immer.",
-        "en": "A stylesheet produces a wrong result, but no error message. Instead of guessing, you watch it with the debugger. The example order-debug.xslt turns the order into a table. For each item, the function line-total computes the amount, stores it in the variable total and writes a message. The input is order.xml again, already chosen in the Transform tool. The debugger uses a run of its own with all the information, so normal runs stay as fast as ever."
+        "de": "Ein Stylesheet liefert ein falsches Ergebnis, aber keine Fehlermeldung. Statt zu raten, schauen Sie ihm mit dem Debugger zu. Das Beispiel order-debug.xslt macht aus der Bestellung eine Tabelle. Für jeden Artikel berechnet die Funktion line-total den Betrag und speichert ihn in der Variablen total, die Funktion format-amount formatiert ihn für die Meldung und die Tabelle. Die Eingabe ist wieder order.xml, im Werkzeug Umwandeln schon gewählt. Der Debugger nutzt einen eigenen Lauf mit allen Informationen, das normale Ausführen bleibt dadurch so schnell wie immer.",
+        "en": "A stylesheet produces a wrong result, but no error message. Instead of guessing, you watch it with the debugger. The example order-debug.xslt turns the order into a table. For each item, the function line-total computes the amount and stores it in the variable total, and the function format-amount formats it for the message and the table. The input is order.xml again, already chosen in the Transform tool. The debugger uses a run of its own with all the information, so normal runs stay as fast as ever."
       }
     },
     {
@@ -76,15 +76,15 @@
     {
       "id": "step-into",
       "say": {
-        "de": "Beim dritten Artikel steht der Lauf wieder an der Variablen total. Hineinspringen geht jetzt in die Funktion line-total hinein, die den Betrag berechnet. Der Editor zeigt die Funktion, und die Aufrufliste wächst um einen Eintrag. In den Variablen steht der Parameter item. Mit Rechtsklick auf Hineinspringen wählen Sie bei mehreren Aufrufen in einer Zeile gezielt, in welchen Sie gehen.",
-        "en": "At the third item, the run stands at the variable total again. Step Into now goes into the function line-total, which computes the amount. The editor shows the function, and the call stack grows by one entry. Variables shows the parameter item. With a right-click on Step Into you choose which call to enter when a line holds several."
+        "de": "Beim dritten Artikel steht der Lauf wieder an der Variablen total. Hineinspringen geht zuerst in die Zeile der Meldung und dann in die Funktion format-amount, die die Meldung aufruft. Der Editor zeigt die Funktion, und die Aufrufliste wächst um einen Eintrag. In den Variablen steht der Parameter amount. Mit Rechtsklick auf Hineinspringen wählen Sie bei mehreren Aufrufen in einer Zeile gezielt, in welchen Sie gehen.",
+        "en": "At the third item, the run stands at the variable total again. Step Into first goes to the line of the message, and then into the function format-amount, which the message calls. The editor shows the function, and the call stack grows by one entry. Variables shows the parameter amount. With a right-click on Step Into you choose which call to enter when a line holds several."
       }
     },
     {
       "id": "step-out",
       "say": {
-        "de": "Herausspringen führt die Funktion zu Ende und hält wieder in der aufrufenden Zeile. Dazu kommen Anhalten, um einen laufenden Lauf zu unterbrechen, Neu starten und Stoppen. Alle Knöpfe haben Tastenkürzel, der Tooltip eines Knopfs nennt seins.",
-        "en": "Step Out runs the function to its end and stops again in the calling line. On top come Pause to interrupt a running run, Restart and Stop. Every button has a shortcut, and its tooltip names it."
+        "de": "Herausspringen führt die Funktion zu Ende und hält an der nächsten Zeile nach dem Aufruf. Dazu kommen Anhalten, um einen laufenden Lauf zu unterbrechen, Neu starten und Stoppen. Alle Knöpfe haben Tastenkürzel, der Tooltip eines Knopfs nennt seins.",
+        "en": "Step Out runs the function to its end and stops at the next line after the call. On top come Pause to interrupt a running run, Restart and Stop. Every button has a shortcut, and its tooltip names it."
       }
     },
     {
