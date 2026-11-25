@@ -16,6 +16,7 @@
     "schematron-quick-fixes",
     "projects",
     "query-console",
-    "schema-library"
+    "schema-library",
+    "compare-merge"
   ]
 }

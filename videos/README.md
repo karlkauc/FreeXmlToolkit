@@ -18,6 +18,7 @@ The first series, in the order it is meant to be watched. Status: **published** 
 | 9 | `projects` | Projects: schemas and scenarios for a whole folder / Projekte: Schemas und Szenarien für einen ganzen Ordner | `guides/projects.md` | published |
 | 10 | `query-console` | XPath and XQuery in the Query Console / XPath und XQuery in der Abfragekonsole | `guides/transform-query/query-console.md` | published |
 | 11 | `schema-library` | Find, manage and generate schemas / Schemas finden, verwalten und erzeugen | `guides/design-schemas/schema-library.md` | published |
+| 12 | `compare-merge` | Compare and merge / Vergleichen und Zusammenführen | `guides/compare-merge.md` | published |
 
 The extended storyboards (keywords, target lengths, two series) are planned in `videos/drehbuecher.md`.
 
