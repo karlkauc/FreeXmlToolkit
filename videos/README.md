@@ -9,7 +9,7 @@ The first series, in the order it is meant to be watched. Status: **published** 
 |---|----|-----------------|-----------|--------|
 | 1 | `workspace-tour` | A tour of the workspace / Ein Rundgang durch die Arbeitsfläche | `get-started/workspace-tour.md` | published |
 | 2 | `edit-xml-text` | Write XML in the text editor / XML im Text-Editor schreiben | `guides/edit-xml/index.md` | published |
-| 3 | `validate-xml` | Validate an XML file against its schema / Eine XML-Datei gegen ihr Schema prüfen | `get-started/first-steps.md` | published (pilot) |
+| 3 | `validate-xml` | Validate an XML file against its schema / Eine XML-Datei gegen ihr Schema prüfen | `get-started/first-steps.md` | published |
 | 4 | `xml-grid` | The XML grid: edit a document as tables / Das XML-Grid: ein Dokument als Tabellen bearbeiten | `guides/edit-xml/grid.md` | published |
 | 5 | `xsd-graphic` | Edit an XSD schema graphically / Ein XSD-Schema grafisch bearbeiten | `guides/design-schemas/graphic-view.md` | published |
 | 6 | `xslt-run` | Run an XSLT stylesheet / Ein XSLT-Stylesheet ausführen | `guides/transform-query/run-xslt.md` | published |

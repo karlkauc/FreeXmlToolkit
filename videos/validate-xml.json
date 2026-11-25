@@ -7,34 +7,45 @@
     "de": "Eine XML-Datei gegen ihr Schema prüfen"
   },
   "description": {
-    "en": "Open the bundled example in FreeXmlToolkit, validate it with F8, read a problem and repair it.",
-    "de": "Das mitgelieferte Beispiel in FreeXmlToolkit öffnen, mit F8 prüfen, ein Problem lesen und beheben."
+    "en": "Validate an XML file against its schema: how the schema is found, F8, reading and filtering problems, fixing them with auto-completion, and checking a whole folder at once.",
+    "de": "Eine XML-Datei gegen ihr Schema prüfen: wie das Schema gefunden wird, F8, Probleme lesen und filtern, mit der Autovervollständigung beheben und einen ganzen Ordner auf einmal prüfen."
   },
   "scenes": [
     {
       "id": "intro",
       "card": "title",
       "say": {
-        "en": "In this video you validate an XML file against its schema, and you repair an error. It takes one minute.",
-        "de": "In diesem Video prüfen Sie eine XML-Datei gegen ihr Schema und beheben einen Fehler. Das dauert eine Minute."
+        "en": "In this video you validate an XML file against its schema. You read the problems, fix them, and finally check a whole folder at once.",
+        "de": "In diesem Video prüfen Sie eine XML-Datei gegen ihr Schema. Sie lesen die Probleme, beheben sie und prüfen am Ende einen ganzen Ordner auf einmal."
       }
     },
     {
       "id": "welcome",
       "chapter": {
-        "en": "Open the example",
-        "de": "Das Beispiel öffnen"
+        "en": "What it is about",
+        "de": "Worum es geht"
       },
       "say": {
-        "en": "FreeXmlToolkit opens on the Welcome page. A new installation offers an example there. Click Open an Example.",
-        "de": "FreeXmlToolkit startet mit der Willkommensseite. Eine neue Installation bietet dort ein Beispiel an. Klicken Sie auf Beispiel öffnen."
+        "en": "A schema is like a contract: it says which elements exist, in which order, and which values are allowed. On the Welcome page, open the example, a small purchase order.",
+        "de": "Ein Schema ist wie ein Vertrag: Es legt fest, welche Elemente es gibt, in welcher Reihenfolge, und welche Werte erlaubt sind. Öffnen Sie auf der Startseite das Beispiel, eine kleine Bestellung."
       }
     },
     {
       "id": "document",
+      "chapter": {
+        "en": "How the schema is found",
+        "de": "Wie das Schema gefunden wird"
+      },
       "say": {
-        "en": "The example is a small purchase order. In its first lines it names its schema, order.xsd. So the editor can validate it without any setup.",
-        "de": "Das Beispiel ist eine kleine Bestellung. In den ersten Zeilen nennt sie ihr Schema, order.xsd. Der Editor kann sie deshalb ohne weitere Einstellung prüfen."
+        "en": "In its first lines the order names its schema, order.xsd. That tells the editor what to validate against, without any setup.",
+        "de": "In ihren ersten Zeilen nennt die Bestellung ihr Schema, order.xsd. Daran erkennt der Editor, wogegen er prüfen soll, ohne weitere Einstellung."
+      }
+    },
+    {
+      "id": "status-schema",
+      "say": {
+        "en": "The status bar shows the bound schema. A click on it binds another one. When a file names no schema, the Schema Library looks for one that matches its namespace.",
+        "de": "Die Statusleiste zeigt das gebundene Schema. Ein Klick darauf bindet ein anderes. Nennt eine Datei kein Schema, sucht die Schema-Bibliothek eines passend zu ihrem Namespace."
       }
     },
     {
@@ -79,21 +90,78 @@
     },
     {
       "id": "repair",
+      "say": {
+        "en": "Change the value back to the number two, and press F8 once more. The problem is gone.",
+        "de": "Ändern Sie den Wert zurück auf die Zahl zwei und drücken Sie noch einmal F8. Das Problem ist verschwunden."
+      }
+    },
+    {
+      "id": "several",
       "chapter": {
-        "en": "Repair it",
-        "de": "Den Fehler beheben"
+        "en": "Many problems at a glance",
+        "de": "Mehrere Fehler im Griff"
       },
       "say": {
-        "en": "Change the value back to the number two, and press F8 once more. The problem is gone, and the document is valid again.",
-        "de": "Ändern Sie den Wert zurück auf die Zahl zwei und drücken Sie noch einmal F8. Das Problem ist verschwunden, das Dokument ist wieder gültig."
+        "en": "Now make three mistakes at once: an order number in the wrong format, a country code with three letters and a price with three decimals. F8 finds all three.",
+        "de": "Bauen Sie jetzt drei Fehler auf einmal ein: eine Bestellnummer im falschen Format, einen Ländercode mit drei Buchstaben und einen Preis mit drei Nachkommastellen. F8 findet alle drei."
+      }
+    },
+    {
+      "id": "filter",
+      "say": {
+        "en": "The bar above the list helps when there are many problems. The counters filter by errors, warnings and hints. The search field finds messages by text, here everything about the pattern.",
+        "de": "Die Leiste über der Liste hilft bei vielen Problemen. Die Zähler filtern nach Fehlern, Warnungen und Hinweisen. Das Suchfeld findet Meldungen nach Text, hier alle zum Muster."
+      }
+    },
+    {
+      "id": "group",
+      "say": {
+        "en": "Group by rule puts problems of the same kind together, handy for large files with many identical mistakes. Export writes the list as an Excel file or as text.",
+        "de": "Gruppieren nach Regel fasst gleichartige Probleme zusammen, praktisch bei großen Dateien mit vielen gleichen Fehlern. Export schreibt die Liste als Excel-Datei oder als Text."
+      }
+    },
+    {
+      "id": "fix-all",
+      "say": {
+        "en": "A click on a row jumps to its place each time. Here we take the three changes back with Ctrl Z, and F8 reports a valid document again.",
+        "de": "Ein Klick auf eine Zeile springt jeweils zur Stelle. Hier nehmen wir die drei Änderungen mit Strg Z zurück, und F8 meldet wieder ein gültiges Dokument."
+      }
+    },
+    {
+      "id": "autocomplete",
+      "chapter": {
+        "en": "Fix with auto-completion",
+        "de": "Beheben mit der Autovervollständigung"
+      },
+      "say": {
+        "en": "When something is missing, auto-completion helps. Here the first item has lost its price, and F8 reports a missing required attribute. A space in the start tag suggests exactly that attribute.",
+        "de": "Fehlt etwas, hilft die Autovervollständigung. Hier fehlt dem ersten Artikel der Preis, und F8 meldet ein fehlendes Pflichtattribut. Ein Leerzeichen im Starttag schlägt genau dieses Attribut vor."
+      }
+    },
+    {
+      "id": "panel",
+      "chapter": {
+        "en": "Check whole folders",
+        "de": "Ganze Ordner prüfen"
+      },
+      "say": {
+        "en": "The Validation activity shows what the file is checked against: the schema and, when chosen, a Schematron with extra rules.",
+        "de": "Die Aktivität Validierung zeigt, wogegen geprüft wird: das Schema und, wenn gewählt, ein Schematron mit zusätzlichen Regeln."
+      }
+    },
+    {
+      "id": "batch",
+      "say": {
+        "en": "With Batch you check many files at once, for example a whole folder. The results list shows each file with a tick or a cross. A click on a failing file shows its problems.",
+        "de": "Mit Stapel prüfen Sie viele Dateien auf einmal, zum Beispiel einen ganzen Ordner. Die Ergebnisliste zeigt jede Datei mit Haken oder Kreuz. Ein Klick auf eine fehlerhafte Datei zeigt ihre Probleme."
       }
     },
     {
       "id": "outro",
       "card": "outro",
       "say": {
-        "en": "That was validating against a schema. The documentation shows the next steps: views, transformations and queries.",
-        "de": "Das war das Prüfen gegen ein Schema. Die Dokumentation zeigt die nächsten Schritte: Ansichten, Transformationen und Abfragen."
+        "en": "That was validating against a schema. The Schematron video shows rules that check beyond the schema and bring their own fixes.",
+        "de": "Das war das Prüfen gegen ein Schema. Im Video zu Schematron sehen Sie, wie Regeln über das Schema hinaus prüfen und Korrekturen gleich mitbringen."
       }
     }
   ]
