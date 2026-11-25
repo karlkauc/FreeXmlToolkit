@@ -131,11 +131,28 @@ class SignEncryptDocVideo {
 
             video.scene("run-encrypt", () -> {
                 clickIfShown(video, "#enc-run");
+                java.nio.file.Path encrypted = xml.resolveSibling("order.encrypted.xml");
                 try {
-                    doc.waitUntilFx(30, () -> host.getActiveText().orElse("").contains("EncryptedData"));
+                    doc.waitUntilFx(30, () -> java.nio.file.Files.exists(encrypted));
                 } catch (Exception e) {
-                    System.out.println("[video] no encrypted document: "
+                    System.out.println("[video] no encrypted file: "
                             + doc.fx(() -> ((javafx.scene.control.Labeled) doc.find("#sig-status")).getText()));
+                }
+                video.pause(1200);
+                // the result opens behind the page: show its tab (the page takes it as its document next time)
+                Node tab = doc.fx(() -> doc.stage().getScene().getRoot().lookupAll(".tab").stream()
+                        .filter(t -> t.lookupAll(".tab-label").stream().anyMatch(l -> l instanceof javafx.scene.control.Labeled lb
+                                && lb.getText() != null && lb.getText().contains("order.encrypted.xml")))
+                        .findFirst().orElse(null));
+                if (tab != null) {
+                    video.click(tab);
+                } else {
+                    doc.onFx(() -> host.openFile(encrypted));
+                }
+                try {
+                    doc.waitUntilFx(15, () -> host.getActiveText().orElse("").contains("EncryptedData"));
+                } catch (Exception e) {
+                    System.out.println("[video] encrypted document not shown");
                 }
                 video.pause(1500);
                 video.zoomOut();
