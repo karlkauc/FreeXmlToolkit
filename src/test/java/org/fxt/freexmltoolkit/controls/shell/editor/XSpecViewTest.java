@@ -57,6 +57,7 @@ class XSpecViewTest {
         WaitForAsyncUtils.waitFor(60, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000, () -> view.resultForTesting() != null));
         XSpecRunner.Result result = WaitForAsyncUtils.waitForAsyncFx(2000, view::resultForTesting);
         assertEquals("2 tests: 1 passed, 1 failed, 0 pending", result.summary(), result.error());
+        assertEquals("2 tests: 1 passed, 1 failed, 0 pending", XSpecView.summaryText(result), "the shown line (fxt.locale=en)");
 
         // the failure is selected and shows expected and actual
         assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, view::expectedForTesting).contains("Ada"));

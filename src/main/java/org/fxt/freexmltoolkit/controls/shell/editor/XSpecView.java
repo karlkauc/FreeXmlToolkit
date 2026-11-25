@@ -130,9 +130,23 @@ public class XSpecView extends VBox {
         junitButton.setDisable(busy || result == null || result.reportXml() == null);
     }
 
+    /**
+     * The result line in the interface language ({@link XSpecRunner.Result#summary()} stays English: the
+     * command line and the MCP tool print it).
+     */
+    static String summaryText(XSpecRunner.Result done) {
+        if (done.error() != null) {
+            return I18n.t("XSpecView.not-run", done.error());
+        }
+        int total = done.tests().size();
+        return I18n.t(total == 1 ? "XSpecView.summary-one" : "XSpecView.summary", total,
+                done.count(XSpecRunner.Status.PASSED), done.count(XSpecRunner.Status.FAILED),
+                done.count(XSpecRunner.Status.PENDING));
+    }
+
     void show(XSpecRunner.Result done) {
         result = done;
-        summary.setText(done.summary());
+        summary.setText(summaryText(done));
         summary.getStyleClass().removeAll("fxt-xspec-failed", "fxt-xspec-passed");
         summary.getStyleClass().add(done.passed() ? "fxt-xspec-passed" : "fxt-xspec-failed");
         summaryIcon.setIconLiteral(done.passed() ? "bi-check-circle-fill" : "bi-x-circle-fill");
