@@ -1601,7 +1601,8 @@ public class EditorHost extends BorderPane {
 
     /**
      * Opens a scenario check's expected result (left; saving it updates the expected file) next to the
-     * actual result (right, a temporary file), compared as XML with the scenario's options.
+     * actual result (right, a temporary file), compared as XML with the scenario's options; text and HTML
+     * results that are not XML stay in the text comparison, as {@link ScenarioCheck} compares them.
      *
      * @return completes on the FX thread with the diff tab, or with {@code null} when refused
      */
@@ -1638,7 +1639,9 @@ public class EditorHost extends BorderPane {
                 .thenApply(diff -> {
                     tabPane.getTabs().add(diff);
                     tabPane.getSelectionModel().select(diff);
-                    diff.compareAsXml(options);
+                    if (ScenarioCheck.comparesByStructure(expectedText, actual == null ? "" : actual)) {
+                        diff.compareAsXml(options);
+                    }
                     return diff;
                 });
     }

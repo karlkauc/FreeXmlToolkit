@@ -127,6 +127,20 @@ public final class ScenarioCheck {
         return new Result(lines.isEmpty() ? Status.PASSED : Status.FAILED, lines, actual, expected, null);
     }
 
+    /**
+     * Whether {@link #compare} compares these texts by structure (both XML, and not HTML that fails to parse);
+     * otherwise they are compared line by line, and a diff view should show them as text.
+     */
+    public static boolean comparesByStructure(String expectedText, String actual) {
+        if (!XmlStructuralDiff.looksLikeXml(expectedText) || !XmlStructuralDiff.looksLikeXml(actual)) {
+            return false;
+        }
+        if (looksLikeHtml(expectedText) && looksLikeHtml(actual)) {
+            return XmlStructuralDiff.compare(expectedText, actual, XmlStructuralDiff.Options.DEFAULTS).compared();
+        }
+        return true;
+    }
+
     /** Whether the text starts (after whitespace and comments) with an HTML doctype or an {@code html} element. */
     static boolean looksLikeHtml(String text) {
         String t = text.strip();

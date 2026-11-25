@@ -126,6 +126,15 @@ class ScenarioCheckTest {
     }
 
     @Test
+    void onlyXmlIsComparedByStructure() {
+        String html = "<!DOCTYPE HTML>\n<html><head><meta charset=\"UTF-8\"></head><body/></html>\n";
+        assertFalse(ScenarioCheck.comparesByStructure(html, html), "HTML that is no XML");
+        assertTrue(ScenarioCheck.comparesByStructure("<a/>", "<a/>"));
+        assertTrue(ScenarioCheck.comparesByStructure("<html><body/></html>", "<html><body/></html>"), "XHTML");
+        assertFalse(ScenarioCheck.comparesByStructure("a,b", "a,c"), "text");
+    }
+
+    @Test
     void brokenXmlIsStillAnError() {
         ScenarioCheck.Result broken = ScenarioCheck.compare("<a><b></a>", "<a/>", dir.resolve("e.xml"),
                 org.fxt.freexmltoolkit.service.XmlStructuralDiff.Options.DEFAULTS);
