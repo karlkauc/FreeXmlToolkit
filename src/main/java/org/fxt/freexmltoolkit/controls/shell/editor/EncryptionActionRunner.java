@@ -46,11 +46,18 @@ public final class EncryptionActionRunner {
      * @param warnings legacy algorithms met
      * @param failure  why it failed (telemetry), or {@code null}
      * @param binary   the output is binary data (a decrypted non-XML EncryptedData)
+     * @param count    elements encrypted / EncryptedData decrypted, bytes for binary data (0 on failure);
+     *                 lets the UI word the line in its own language, {@code message} stays English
      */
-    public record Result(Path output, String message, List<String> warnings, QueryFailure failure, boolean binary) {
+    public record Result(Path output, String message, List<String> warnings, QueryFailure failure, boolean binary,
+                         int count) {
 
         Result(Path output, String message, List<String> warnings, QueryFailure failure) {
-            this(output, message, warnings, failure, false);
+            this(output, message, warnings, failure, false, 0);
+        }
+
+        Result(Path output, String message, List<String> warnings, QueryFailure failure, int count) {
+            this(output, message, warnings, failure, false, count);
         }
 
         public boolean ok() {
@@ -95,7 +102,7 @@ public final class EncryptionActionRunner {
             EncryptionOutcome outcome = SERVICE.encrypt(document, request);
             Files.writeString(output, serialize(document), StandardCharsets.UTF_8);
             return new Result(output, "Encrypted " + outcome.encrypted() + " element(s) for "
-                    + request.recipients().size() + " recipient(s)", outcome.warnings(), null);
+                    + request.recipients().size() + " recipient(s)", outcome.warnings(), null, outcome.encrypted());
         } catch (XmlEncryptionException e) {
             return failure(e.getMessage(), e);
         } catch (Exception e) {
@@ -110,7 +117,7 @@ public final class EncryptionActionRunner {
             Document document = SERVICE.encryptBinary(Files.readAllBytes(input), type, request);
             Files.writeString(output, serialize(document), StandardCharsets.UTF_8);
             return new Result(output, "Encrypted " + input.getFileName() + " (" + Files.size(input) + " bytes)"
-                    + (type != null ? " as " + type : ""), List.of(), null);
+                    + (type != null ? " as " + type : ""), List.of(), null, 1);
         } catch (XmlEncryptionException e) {
             return failure(e.getMessage(), e);
         } catch (Exception e) {
@@ -130,14 +137,14 @@ public final class EncryptionActionRunner {
             if (isBinary(document)) {
                 byte[] data = SERVICE.decryptBinary(document, keys);
                 Files.write(output, data);
-                return new Result(output, "Decrypted " + data.length + " bytes", List.of(), null, true);
+                return new Result(output, "Decrypted " + data.length + " bytes", List.of(), null, true, data.length);
             }
             DecryptionOutcome outcome = SERVICE.decrypt(document, keys, ids);
             if (!outcome.isSuccess()) {
                 return new Result(null, outcome.message(), outcome.warnings(), failureOf(outcome.status(), outcome.cause()));
             }
             Files.writeString(output, serialize(document), StandardCharsets.UTF_8);
-            return new Result(output, outcome.message(), outcome.warnings(), null);
+            return new Result(output, outcome.message(), outcome.warnings(), null, outcome.decrypted());
         } catch (XmlEncryptionException e) {
             return new Result(null, e.getMessage(), List.of(), failureOf(e.status(), e));
         } catch (Exception e) {
@@ -151,14 +158,16 @@ public final class EncryptionActionRunner {
             Document document = parse(xml, location);
             if (isBinary(document)) {
                 byte[] data = SERVICE.decryptBinary(document, keys);
-                return new DecryptedText(null, data, "Decrypted " + data.length + " bytes of binary data", List.of(), null);
+                return new DecryptedText(null, data, "Decrypted " + data.length + " bytes of binary data", List.of(), null,
+                        0, 0);
             }
             DecryptionOutcome outcome = SERVICE.decrypt(document, keys, ids);
             if (!outcome.isSuccess()) {
                 return new DecryptedText(null, null, outcome.message(), outcome.warnings(),
                         failureOf(outcome.status(), outcome.cause()));
             }
-            return new DecryptedText(serialize(document), null, outcome.message(), outcome.warnings(), null);
+            return new DecryptedText(serialize(document), null, outcome.message(), outcome.warnings(), null,
+                    outcome.decrypted(), outcome.remaining());
         } catch (XmlEncryptionException e) {
             return new DecryptedText(null, null, e.getMessage(), List.of(), failureOf(e.status(), e));
         } catch (Exception e) {
@@ -166,8 +175,19 @@ public final class EncryptionActionRunner {
         }
     }
 
-    /** A decrypted text (XML) or bytes (binary data), with message, warnings and failure. */
-    public record DecryptedText(String xml, byte[] binary, String message, List<String> warnings, QueryFailure failure) {
+    /**
+     * A decrypted text (XML) or bytes (binary data), with message (English), warnings and failure.
+     *
+     * @param decrypted EncryptedData elements decrypted (XML only)
+     * @param remaining EncryptedData elements left (XML only)
+     */
+    public record DecryptedText(String xml, byte[] binary, String message, List<String> warnings, QueryFailure failure,
+                                int decrypted, int remaining) {
+
+        public DecryptedText(String xml, byte[] binary, String message, List<String> warnings, QueryFailure failure) {
+            this(xml, binary, message, warnings, failure, 0, 0);
+        }
+
         public boolean ok() {
             return failure == null;
         }

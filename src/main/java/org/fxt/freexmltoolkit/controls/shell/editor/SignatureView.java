@@ -909,7 +909,7 @@ public class SignatureView extends ScrollPane {
         java.util.List<String> warnings = new java.util.ArrayList<>();
         java.util.stream.Stream.of(encDataAlgorithm.getValue(), encKeyTransport.getValue(), keyWrapChoice())
                 .filter(a -> a != null && a.legacy())
-                .forEach(a -> warnings.add(XmlEncryptionService.legacyWarning(a)));
+                .forEach(a -> warnings.add(EncryptionTexts.legacyWarning(a)));
         encLegacyWarning.setText(String.join("\n", warnings));
         encLegacyWarning.setVisible(!warnings.isEmpty());
         encLegacyWarning.setManaged(!warnings.isEmpty());
@@ -1140,7 +1140,7 @@ public class SignatureView extends ScrollPane {
         try {
             serviceRecipients = EncryptionRecipients.toRecipients(recipients, options);
         } catch (RuntimeException e) {
-            PanelStatus.failure(status, I18n.t("SignatureView.encryption-failed"), e.getMessage(), false);
+            PanelStatus.failure(status, I18n.t("SignatureView.encryption-failed"), EncryptionTexts.message(e.getMessage()), false);
             return;
         }
         var request = new XmlEncryptionService.EncryptionRequest(xpaths, java.util.Map.of(),
@@ -1149,6 +1149,7 @@ public class SignatureView extends ScrollPane {
                 encKeysOutside.isSelected());
         File output = siblingFile(xml, ".encrypted.xml");
         String target = targetKind;
+        int recipientCount = serviceRecipients.size();
         PanelStatus.info(status, I18n.t("SignatureView.encrypting"));
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
@@ -1159,12 +1160,14 @@ public class SignatureView extends ScrollPane {
                     legacy, t0, result.failure());
             Platform.runLater(() -> {
                 if (result.ok()) {
-                    PanelStatus.success(status, result.message() + " · " + output.getName()
-                            + (legacy ? " · " + String.join(" ", result.warnings()) : ""));
+                    PanelStatus.success(status, EncryptionTexts.encrypted(result.count(), recipientCount)
+                            + " · " + output.getName()
+                            + (legacy ? " · " + String.join(" ", EncryptionTexts.warnings(result.warnings())) : ""));
                     editorHost.openFile(output.toPath());
                     editorHost.selectTabShowing(this);
                 } else {
-                    PanelStatus.failure(status, I18n.t("SignatureView.encryption-failed"), result.message(), false);
+                    PanelStatus.failure(status, I18n.t("SignatureView.encryption-failed"),
+                            EncryptionTexts.message(result.message()), false);
                 }
             });
         });
@@ -1293,22 +1296,19 @@ public class SignatureView extends ScrollPane {
                         org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("key_unreadable"));
             }
             EncryptionActionRunner.DecryptedText done = result;
-            UsageEvents.decrypted(source, done.ok() ? Math.max(1, countIn(done.message())) : 0, t0, done.failure());
+            UsageEvents.decrypted(source, done.ok() ? Math.max(1, done.decrypted()) : 0, t0, done.failure());
             Platform.runLater(() -> showDecrypted(xml, done));
         });
     }
 
-    private static int countIn(String message) {
-        java.util.regex.Matcher m = java.util.regex.Pattern.compile("Decrypted (\\d+)").matcher(message);
-        return m.find() ? Integer.parseInt(m.group(1)) : 0;
-    }
-
     private void showDecrypted(File source, EncryptionActionRunner.DecryptedText result) {
         if (!result.ok()) {
-            PanelStatus.failure(status, I18n.t("SignatureView.decryption-failed"), result.message(), false);
+            PanelStatus.failure(status, I18n.t("SignatureView.decryption-failed"),
+                    EncryptionTexts.message(result.message()), false);
             return;
         }
-        String warnings = result.warnings().isEmpty() ? "" : " · " + String.join(" ", result.warnings());
+        String warnings = result.warnings().isEmpty() ? ""
+                : " · " + String.join(" ", EncryptionTexts.warnings(result.warnings()));
         if (result.binary() != null) {
             FileChooser chooser = new FileChooser();
             chooser.setTitle(I18n.t("SignatureView.save-decrypted-data"));
@@ -1317,7 +1317,8 @@ public class SignatureView extends ScrollPane {
             if (target != null) {
                 try {
                     java.nio.file.Files.write(target.toPath(), result.binary());
-                    PanelStatus.success(status, result.message() + " · " + target.getName() + warnings);
+                    PanelStatus.success(status, EncryptionTexts.decryptedBinary(result.binary().length)
+                            + " · " + target.getName() + warnings);
                     ExportResult.saved(window(), I18n.t("SignatureView.decrypted-what"), target);
                 } catch (java.io.IOException e) {
                     PanelStatus.failure(status, I18n.t("SignatureView.decryption-failed"), e.getMessage(), false);
@@ -1329,7 +1330,7 @@ public class SignatureView extends ScrollPane {
         editorHost.openGeneratedDocument(result.xml(), EditorFileType.XML,
                 source.getName().replaceFirst("\\.xml$", "") + ".decrypted.xml");
         editorHost.selectTabShowing(this);
-        PanelStatus.success(status, result.message() + warnings);
+        PanelStatus.success(status, EncryptionTexts.decrypted(result.decrypted(), result.remaining()) + warnings);
     }
 
     // ----- inspect ------------------------------------------------------------------------
@@ -1351,11 +1352,11 @@ public class SignatureView extends ScrollPane {
             try {
                 var report = EncryptionActionRunner.inspectFile(xml.toPath());
                 count = report.data().size();
-                text = report.toText();
+                text = EncryptionTexts.report(report);
             } catch (Exception e) {
                 text = null;
                 failure = org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("not_xml");
-                String message = e.getMessage();
+                String message = EncryptionTexts.message(e.getMessage());
                 Platform.runLater(() -> PanelStatus.failure(status, I18n.t("SignatureView.inspection-failed"),
                         message, false));
             }
