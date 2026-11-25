@@ -24,6 +24,7 @@
     "large-files",
     "xspec",
     "profiler",
-    "xproc"
+    "xproc",
+    "command-line"
   ]
 }

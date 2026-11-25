@@ -26,6 +26,7 @@ The first series, in the order it is meant to be watched. Status: **published** 
 | 18 | `xspec` | Test stylesheets with XSpec / Stylesheets testen mit XSpec | `guides/transform-query/xspec.md` | published |
 | 19 | `profiler` | Find slow stylesheets and queries / Langsame Stylesheets und Abfragen finden | `guides/transform-query/profile.md` | published |
 | 20 | `xproc` | Run XProc pipelines / XProc-Pipelines ausführen | `guides/transform-query/xproc.md` | published |
+| 21 | `command-line` | Automate with the command line fxt-cli / Automatisieren mit der Kommandozeile fxt-cli | `automate/command-line.md` | published |
 
 The extended storyboards (keywords, target lengths, two series) are planned in `videos/drehbuecher.md`.
 
