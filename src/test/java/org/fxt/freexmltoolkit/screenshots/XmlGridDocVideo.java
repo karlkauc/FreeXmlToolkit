@@ -13,6 +13,7 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridVideoProbe;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
@@ -54,6 +55,7 @@ class XmlGridDocVideo {
         doc.settle(2000);
 
         DocVideoRecorder video = new DocVideoRecorder(doc);
+        VideoTyping keys = new VideoTyping(doc, video);
         video.start();
         try {
             video.scene("switch", () -> {
@@ -79,6 +81,21 @@ class XmlGridDocVideo {
                 video.zoom(new BoundingBox(canvas.getMinX(), canvas.getMinY(), 1000, 520));
             });
 
+            video.scene("layout", () -> {
+                video.zoomOut();
+                video.spoken(0.15);
+                video.click(doc.<Node>find("#grid-zoom-in"));
+                video.pause(700);
+                video.click(doc.<Node>find("#grid-zoom-in"));
+                video.pause(900);
+                video.click(doc.<Node>find("#grid-zoom-out"));
+                video.pause(500);
+                video.click(doc.<Node>find("#grid-zoom-out"));
+                video.spoken(0.6);
+                video.click(doc.<Node>find("#grid-optimal-widths"));
+                video.pause(800);
+            });
+
             video.scene("table", () -> {
                 video.spoken(0.1);
                 video.zoom(doc.fx(() -> GridVideoProbe.table(grid)));
@@ -87,6 +104,38 @@ class XmlGridDocVideo {
                 Bounds end = doc.fx(() -> GridVideoProbe.cell(grid, 2, "sku"));
                 video.moveTo(cell.getCenterX(), cell.getCenterY());
                 video.moveTo(end.getCenterX(), end.getCenterY());
+            });
+
+            video.scene("sort", () -> {
+                video.spoken(0.35);
+                Bounds arrow = doc.fx(() -> GridVideoProbe.sortArrow(grid, "price"));
+                video.click(arrow.getCenterX(), arrow.getCenterY());
+                doc.waitUntilFx(15, () -> {
+                    String text = host.getActiveText().orElse("");
+                    return text.indexOf("BK-318") < text.indexOf("BK-101");
+                });
+                video.spoken(0.75);
+                keys.shortcut(KeyCode.Z, false, "Z");
+                doc.waitUntilFx(15, () -> {
+                    String text = host.getActiveText().orElse("");
+                    return text.indexOf("BK-101") < text.indexOf("BK-318");
+                });
+            });
+
+            video.scene("flip", () -> {
+                video.zoom(doc.fx(() -> GridVideoProbe.table(grid)));
+                video.spoken(0.15);
+                Bounds corner = doc.fx(() -> GridVideoProbe.corner(grid));
+                video.click(corner.getCenterX(), corner.getCenterY());
+                video.pause(1500);
+                video.zoomOut();
+                video.zoom(doc.fx(() -> GridVideoProbe.table(grid)));
+                video.spoken(0.8);
+                Bounds back = doc.fx(() -> GridVideoProbe.corner(grid));
+                video.click(back.getCenterX(), back.getCenterY());
+                video.pause(1200);
+                video.zoomOut();
+                video.zoom(doc.fx(() -> GridVideoProbe.table(grid)));
             });
 
             video.scene("edit", () -> {
@@ -100,14 +149,110 @@ class XmlGridDocVideo {
                 doc.waitUntilFx(15, () -> host.getActiveText().orElse("").contains("quantity=\"5\""));
             });
 
-            video.scene("sort", () -> {
-                video.spoken(0.35);
-                Bounds arrow = doc.fx(() -> GridVideoProbe.sortArrow(grid, "price"));
-                video.click(arrow.getCenterX(), arrow.getCenterY());
-                doc.waitUntilFx(15, () -> {
-                    String text = host.getActiveText().orElse("");
-                    return text.indexOf("BK-318") < text.indexOf("BK-101");
-                });
+            video.scene("rows", () -> {
+                video.zoomOut();
+                video.zoom(doc.fx(() -> GridVideoProbe.table(grid)));
+                Bounds cell = doc.fx(() -> GridVideoProbe.cell(grid, 2, "sku"));
+                video.spoken(0.15);
+                video.rightClick(cell.getCenterX(), cell.getCenterY());
+                video.pause(500);
+                Node tableItem = video.menuItem(I18n.t("XmlGridContextMenu.table"));
+                Bounds tb = video.screenBounds(tableItem);
+                video.moveTo(tb.getMinX() + 30, tb.getCenterY());
+                video.pause(900);
+                video.spoken(0.6);
+                Node append = video.menuItem(I18n.t("XmlGridContextMenu.append-row"));
+                Bounds ab = video.screenBounds(append);
+                // into the submenu sideways first: a diagonal path crosses other items and closes it
+                video.moveTo(ab.getMinX() + 20, tb.getCenterY());
+                video.pause(300);
+                video.click(ab.getMinX() + 40, ab.getCenterY());
+                try {
+                    doc.waitUntilFx(15, () -> host.getActiveText().orElse("").split("<item\\b", -1).length - 1 >= 4);
+                } catch (Exception e) {
+                    System.out.println("[video] no row appended; items in text: "
+                            + (host.getActiveText().orElse("").split("<item\\b", -1).length - 1));
+                }
+                video.pause(1200);
+                video.zoomOut();
+                video.zoom(doc.fx(() -> GridVideoProbe.table(grid)));
+                Bounds sku = doc.fx(() -> GridVideoProbe.cell(grid, 3, "sku"));
+                video.doubleClick(sku.getCenterX(), sku.getCenterY());
+                video.typeIntoFocused("BK-404");
+                video.key(KeyCode.ENTER, "Enter");
+                video.pause(600);
+            });
+
+            video.scene("spreadsheet", () -> {
+                Bounds cell = doc.fx(() -> GridVideoProbe.cell(grid, 1, "price"));
+                video.spoken(0.1);
+                video.rightClick(cell.getCenterX(), cell.getCenterY());
+                video.pause(500);
+                Node copy = video.menuItem(I18n.t("XmlGridContextMenu.copy-table-as-tab-separated"));
+                video.moveTo(copy);
+                video.spoken(0.85);
+                keys.hidePopups();
+            });
+
+            video.scene("filter", () -> {
+                Bounds cell = doc.fx(() -> GridVideoProbe.cell(grid, 0, "price"));
+                video.rightClick(cell.getCenterX(), cell.getCenterY());
+                video.pause(500);
+                video.click(video.menuItem(I18n.t("XmlGridContextMenu.filter")));
+                video.pause(1200);
+                video.typeIntoFocused("item[@price > 20]");
+                video.spoken(0.3);
+                clickDefault(video, keys);
+                video.pause(1500);
+                video.zoomOut();
+                Bounds canvas = doc.fx(() -> GridVideoProbe.canvas(grid));
+                video.zoom(new BoundingBox(canvas.getMinX(), canvas.getMinY(), 1100, 600));
+                video.spoken(0.8);
+                Bounds again = doc.fx(() -> GridVideoProbe.cell(grid, 0, "price"));
+                video.rightClick(again.getCenterX(), again.getCenterY());
+                video.pause(500);
+                Node remove = video.menuItem(I18n.t("XmlGridContextMenu.remove-filter"));
+                video.click(remove);
+                video.pause(1000);
+            });
+
+            video.scene("formula", () -> {
+                Bounds items = doc.fx(() -> GridVideoProbe.nameCell(grid, "items"));
+                System.out.println("[video] items name cell " + items + " labels " + doc.fx(() -> GridVideoProbe.labels(grid)));
+                if (items == null) {
+                    return;
+                }
+                video.rightClick(items.getMinX() + 20, items.getCenterY());
+                video.pause(500);
+                video.click(video.menuItem(I18n.t("XmlGridContextMenu.add-formula")));
+                video.pause(1200);
+                javafx.stage.Window dialog = keys.dialog();
+                if (dialog != null) {
+                    java.util.List<Node> fields = doc.fx(() -> dialog.getScene().getRoot().lookupAll(".text-field").stream()
+                            .filter(n -> n.isVisible()).toList());
+                    System.out.println("[video] formula fields " + fields.size());
+                    if (fields.size() >= 2) {
+                        video.click(fields.get(0));
+                        video.typeIntoFocused(keys.say("Summe", "Total"));
+                        video.click(fields.get(1));
+                        video.typeIntoFocused("sum(item/(@quantity * @price))");
+                    } else if (fields.size() == 1) {
+                        video.click(fields.get(0));
+                        video.typeIntoFocused("sum(item/(@quantity * @price))");
+                    }
+                    video.spoken(0.6);
+                    clickDefault(video, keys);
+                }
+                video.pause(1500);
+                video.zoomOut();
+                Bounds canvas = doc.fx(() -> GridVideoProbe.canvas(grid));
+                video.zoom(new BoundingBox(canvas.getMinX(), canvas.getMinY(), 1100, 600));
+                video.spoken(0.8);
+                Bounds q = doc.fx(() -> GridVideoProbe.cell(grid, 1, "quantity"));
+                video.doubleClick(q.getCenterX(), q.getCenterY());
+                video.typeIntoFocused("3");
+                video.key(KeyCode.ENTER, "Enter");
+                video.pause(1200);
             });
 
             video.scene("text", () -> {
@@ -121,9 +266,25 @@ class XmlGridDocVideo {
                 CodeArea area = doc.findType(CodeArea.class);
                 Bounds lines = doc.fx(() -> area.getCharacterBoundsOnScreen(from, to).orElseThrow());
                 video.zoom(new BoundingBox(lines.getMinX(), lines.getMinY(), 820, lines.getHeight()));
+                video.spoken(0.85);
+                video.showKey(keys.ctrl() + "+Z");
             });
         } finally {
             video.stop();
+        }
+    }
+
+    /** Clicks the default (OK) button of the newest dialog. */
+    private void clickDefault(DocVideoRecorder video, VideoTyping keys) {
+        javafx.stage.Window dialog = keys.dialog();
+        if (dialog == null) {
+            return;
+        }
+        Node ok = doc.fx(() -> dialog.getScene().getRoot().lookupAll(".button").stream()
+                .filter(n -> n instanceof javafx.scene.control.Button b && b.isDefaultButton() && !b.isDisabled())
+                .findFirst().orElse(null));
+        if (ok != null) {
+            video.click(ok);
         }
     }
 

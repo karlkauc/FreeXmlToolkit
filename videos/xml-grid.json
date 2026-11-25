@@ -7,71 +7,136 @@
     "de": "Das XML-Grid: ein Dokument als Tabellen bearbeiten"
   },
   "description": {
-    "en": "The Graphic view of FreeXmlToolkit shows an XML document as a grid: nested blocks, repeating elements as tables, editing in the cell and sorting by column.",
-    "de": "Die Ansicht Grafik in FreeXmlToolkit zeigt ein XML-Dokument als Grid: verschachtelte Blöcke, wiederholte Elemente als Tabellen, Bearbeiten in der Zelle und Sortieren nach Spalten."
+    "en": "See an XML document as nested tables: read blocks, sort and flip tables, edit cells, add rows and columns, filter, add a formula, and find every change in the text.",
+    "de": "Ein XML-Dokument als verschachtelte Tabellen sehen: Blöcke lesen, Tabellen sortieren und kippen, Zellen bearbeiten, Zeilen und Spalten ergänzen, filtern, eine Formel anlegen und jede Änderung im Text wiederfinden."
   },
   "scenes": [
     {
       "id": "intro",
       "card": "title",
       "say": {
-        "en": "In this video you look at an XML document as a grid. You edit a value in a cell, and you sort a table.",
-        "de": "In diesem Video sehen Sie ein XML-Dokument als Grid. Sie ändern einen Wert in einer Zelle und sortieren eine Tabelle."
+        "en": "In this video you edit an XML document as a grid: as nested tables. That is especially handy when elements repeat a lot.",
+        "de": "In diesem Video bearbeiten Sie ein XML-Dokument als Grid: als verschachtelte Tabellen. Das ist besonders praktisch, wenn sich Elemente oft wiederholen."
       }
     },
     {
       "id": "switch",
-      "chapter": { "en": "Switch to the grid", "de": "Zum Grid wechseln" },
+      "chapter": {
+        "en": "Switch to the grid",
+        "de": "Zum Grid wechseln"
+      },
       "say": {
-        "en": "The example order is open as text. The view switch at the top right changes the view of the document. Click Graphic.",
-        "de": "Die Beispielbestellung ist als Text geöffnet. Der Ansichtsumschalter oben rechts wechselt die Ansicht des Dokuments. Klicken Sie auf Grafik."
+        "en": "In the text, repeated data is hard to overview, here the items of the example order. The view switch in the top right corner changes the view. Click Graphic.",
+        "de": "Im Text sind wiederholte Daten mühsam zu überblicken, hier die Artikel der Beispielbestellung. Der Ansichtsumschalter oben rechts wechselt die Ansicht. Klicken Sie auf Grafik."
       }
     },
     {
       "id": "blocks",
+      "chapter": {
+        "en": "The layout",
+        "de": "Der Aufbau"
+      },
       "say": {
-        "en": "The grid shows the document as nested blocks. Every element is a row: its name on the left, its value or its children on the right. Expand all opens every block.",
+        "en": "The grid shows the document as nested blocks. Every element is a row: the name on the left, the value or the child elements on the right. Expand All opens every block.",
         "de": "Das Grid zeigt das Dokument als verschachtelte Blöcke. Jedes Element ist eine Zeile: links der Name, rechts der Wert oder die Kindelemente. Alle aufklappen öffnet jeden Block."
       }
     },
     {
-      "id": "table",
-      "chapter": { "en": "Repeating elements as a table", "de": "Wiederholte Elemente als Tabelle" },
+      "id": "layout",
       "say": {
-        "en": "Repeating elements become a table. The three items of the order are the rows, and their attributes are the columns.",
+        "en": "The buttons in the header zoom in and out. Optimal Widths fits the columns to their content.",
+        "de": "Die Knöpfe im Kopf vergrößern und verkleinern die Ansicht. Optimale Breiten passt die Spalten an ihren Inhalt an."
+      }
+    },
+    {
+      "id": "table",
+      "chapter": {
+        "en": "Repeated elements as a table",
+        "de": "Wiederholte Elemente als Tabelle"
+      },
+      "say": {
+        "en": "Repeated elements become a table. The three items of the order are the rows, their attributes are the columns.",
         "de": "Wiederholte Elemente werden zu einer Tabelle. Die drei Artikel der Bestellung sind die Zeilen, ihre Attribute sind die Spalten."
       }
     },
     {
-      "id": "edit",
-      "chapter": { "en": "Edit a cell", "de": "Eine Zelle bearbeiten" },
+      "id": "sort",
       "say": {
-        "en": "Double-click a cell to edit it. Change the first quantity to five, and confirm with Enter.",
-        "de": "Ein Doppelklick auf eine Zelle öffnet sie zum Bearbeiten. Ändern Sie die erste Menge auf fünf und bestätigen Sie mit Enter."
+        "en": "A click on the small arrow in a column header sorts the table, here by price. Undo brings back the old order.",
+        "de": "Ein Klick auf den kleinen Pfeil im Spaltenkopf sortiert die Tabelle, hier nach dem Preis. Rückgängig stellt die alte Reihenfolge wieder her."
       }
     },
     {
-      "id": "sort",
-      "chapter": { "en": "Sort a column", "de": "Eine Spalte sortieren" },
+      "id": "flip",
       "say": {
-        "en": "A click on the small arrow in a column header sorts the table. Here it is sorted by price. One undo restores the old order.",
-        "de": "Ein Klick auf den kleinen Pfeil im Spaltenkopf sortiert die Tabelle. Hier wird nach dem Preis sortiert. Einmal Rückgängig stellt die alte Reihenfolge wieder her."
+        "en": "A click on the top left corner flips the table: the attributes become rows and the items columns. That helps with many columns and few rows. A second click flips it back.",
+        "de": "Ein Klick auf die Ecke links oben kippt die Tabelle: Die Attribute stehen dann als Zeilen, die Artikel als Spalten. Das hilft bei vielen Spalten und wenigen Zeilen. Ein zweiter Klick kippt zurück."
+      }
+    },
+    {
+      "id": "edit",
+      "chapter": {
+        "en": "Edit cells",
+        "de": "Zellen bearbeiten"
+      },
+      "say": {
+        "en": "A double-click opens a cell for editing. Numbers and dates get matching input fields. Change the first quantity to five and confirm with Enter.",
+        "de": "Ein Doppelklick öffnet eine Zelle zum Bearbeiten. Zahlen und Datumswerte bekommen passende Eingabefelder. Ändern Sie die erste Menge auf fünf und bestätigen Sie mit Enter."
+      }
+    },
+    {
+      "id": "rows",
+      "chapter": {
+        "en": "Rows and columns",
+        "de": "Zeilen und Spalten"
+      },
+      "say": {
+        "en": "A right-click in the table offers, under Table, inserting and deleting rows and columns. Append Row adds a new item, with every column.",
+        "de": "Der Rechtsklick in die Tabelle bietet unter Tabelle das Einfügen und Löschen von Zeilen und Spalten. Zeile anhängen legt einen neuen Artikel an, mit allen Spalten."
+      }
+    },
+    {
+      "id": "spreadsheet",
+      "say": {
+        "en": "The table fits your spreadsheet: Copy puts the selected cells tab-separated on the clipboard, and Paste takes rows from Excel into the table.",
+        "de": "Die Tabelle passt zu Ihrer Tabellenkalkulation: Kopieren legt die markierten Zellen tabulatorgetrennt in die Zwischenablage, und Einfügen übernimmt Zeilen aus Excel in die Tabelle."
+      }
+    },
+    {
+      "id": "filter",
+      "chapter": {
+        "en": "Filters and formulas",
+        "de": "Filter und Formeln"
+      },
+      "say": {
+        "en": "Filter shows only what matches an expression. Here the items with a price above twenty remain. The filter changes only the view, not the document. Remove Filter shows everything again.",
+        "de": "Filter zeigt nur, was zu einem Ausdruck passt. Hier bleiben die Artikel mit einem Preis über zwanzig. Der Filter ändert nur die Ansicht, nicht das Dokument. Filter entfernen zeigt wieder alles."
+      }
+    },
+    {
+      "id": "formula",
+      "say": {
+        "en": "A formula calculates inside the grid. Add Formula on items, name Total, expression: the sum of quantity times price. The result is a row of its own, and it changes with every edit.",
+        "de": "Eine Formel rechnet im Grid mit. Formel hinzufügen auf items, Name Summe, Ausdruck: die Summe aus Menge mal Preis. Das Ergebnis steht als eigene Zeile, und es ändert sich mit jeder Eingabe."
       }
     },
     {
       "id": "text",
-      "chapter": { "en": "Back to the text", "de": "Zurück zum Text" },
+      "chapter": {
+        "en": "Back to the text",
+        "de": "Zurück zum Text"
+      },
       "say": {
-        "en": "All views share one document. Back in the Text view, the source has the new quantity, and the items are in their new order.",
-        "de": "Alle Ansichten teilen sich ein Dokument. Zurück in der Ansicht Text steht im Quelltext die neue Menge, und die Artikel stehen in der neuen Reihenfolge."
+        "en": "All views share one document. Back in the Text view, the new quantity and the new item are in the source. Ctrl Z takes back every change here too.",
+        "de": "Alle Ansichten teilen sich ein Dokument. Zurück in der Ansicht Text stehen die neue Menge und der neue Artikel im Quelltext. Strg Z nimmt jede Änderung auch hier zurück."
       }
     },
     {
       "id": "outro",
       "card": "outro",
       "say": {
-        "en": "That was the grid. The documentation shows more: filters, formulas, and pasting from a spreadsheet.",
-        "de": "Das war das Grid. Die Dokumentation zeigt mehr: Filter, Formeln und das Einfügen aus einer Tabellenkalkulation."
+        "en": "That was the grid. The documentation shows more: drag and drop, the entry helpers and the split view.",
+        "de": "Das war das Grid. Die Dokumentation zeigt mehr: Ziehen und Ablegen, die Eingabehilfen und das Teilen der Ansicht."
       }
     }
   ]

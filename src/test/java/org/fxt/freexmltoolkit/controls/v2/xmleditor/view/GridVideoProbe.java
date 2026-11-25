@@ -52,6 +52,42 @@ public final class GridVideoProbe {
                 RepeatingElementsTable.SORT_ZONE, table.drawnRowHeight(0));
     }
 
+    /** @return the corner cell of the first table (a click flips rows and columns) */
+    public static Bounds corner(XmlCanvasView view) {
+        RepeatingElementsTable table = firstTable(view);
+        return screen(view, table, table.drawnColumnX(0), table.drawnRowTop(0),
+                table.drawnColumnWidth(0), table.drawnRowHeight(0));
+    }
+
+    /** @return the row number cell of a record (0-based) of the first table */
+    public static Bounds rowNumber(XmlCanvasView view, int row) {
+        RepeatingElementsTable table = firstTable(view);
+        return screen(view, table, table.drawnColumnX(0), table.drawnRowTop(row + 1),
+                table.drawnColumnWidth(0), table.drawnRowHeight(row + 1));
+    }
+
+    /** @return the name cell of the first laid-out row labelled {@code label}, or {@code null} */
+    public static Bounds nameCell(XmlCanvasView view, String label) {
+        for (FlatRow row : view.visibleRowList()) {
+            if (label.equals(row.getLabel())) {
+                double[] origin = view.rowOrigin(row);
+                if (origin == null) {
+                    continue;
+                }
+                double zoom = view.getZoom();
+                double width = Math.max(40, row.getValueX() - row.getLabelX());
+                return view.canvas.localToScreen(new BoundingBox((origin[0] + row.getLabelX() - view.scrollOffsetX) * zoom,
+                        origin[1] * zoom, width * zoom, GridCanvasView.ROW_HEIGHT * zoom));
+            }
+        }
+        return null;
+    }
+
+    /** @return the labels of the laid-out rows (diagnostics) */
+    public static java.util.List<String> labels(XmlCanvasView view) {
+        return view.visibleRowList().stream().map(FlatRow::getLabel).toList();
+    }
+
     private static RepeatingElementsTable firstTable(XmlCanvasView view) {
         return view.visibleRowList().stream().filter(FlatRow::hasRepeatingTable)
                 .map(FlatRow::getRepeatingTable).findFirst().orElseThrow();
