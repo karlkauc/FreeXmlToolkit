@@ -18,6 +18,7 @@
     "query-console",
     "schema-library",
     "compare-merge",
-    "convert"
+    "convert",
+    "xsd-types"
   ]
 }
