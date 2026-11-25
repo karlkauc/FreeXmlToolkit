@@ -6,7 +6,8 @@ Options -Indexes
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  # https and no www
+  # https and no www (not for the Let's Encrypt challenge, which must stay reachable over http)
+  RewriteCond %{REQUEST_URI} !^/\.well-known/acme-challenge/
   RewriteCond %{HTTPS} !=on [OR]
   RewriteCond %{HTTP_HOST} ^www\. [NC]
   RewriteRule ^ https://freexmltoolkit.org%{REQUEST_URI} [R=301,L]
