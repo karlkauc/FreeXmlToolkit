@@ -80,6 +80,21 @@ class EditXmlTextDocVideo {
                 video.zoomOut();
             });
 
+            video.scene("why-schema", () -> {
+                video.spoken(0.2);
+                CodeArea area = area();
+                int at = host.getActiveText().orElseThrow().indexOf("xsi:noNamespaceSchemaLocation");
+                video.zoom(lines(area, at, 3));
+                video.spoken(0.5);
+                video.zoomOut();
+                Node schema = doc.find("#status-schema");
+                Bounds sb = video.screenBounds(schema);
+                video.zoom(new BoundingBox(0, sb.getMinY() - 8, sb.getMaxX() + 300, sb.getHeight() + 16));
+                video.moveTo(schema);
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
             video.scene("complete-element", () -> {
                 CodeArea area = area();
                 String text = host.getActiveText().orElseThrow();
@@ -225,6 +240,19 @@ class EditXmlTextDocVideo {
                 video.spoken(0.95);
             });
 
+            video.scene("xpath", () -> {
+                doc.onFx(() -> host.openFile(xml));
+                doc.waitUntilFx(10, () -> host.getActiveText().orElse("").contains("PO-1042"));
+                video.pause(500);
+                CodeArea area = area();
+                int item = host.getActiveText().orElseThrow().indexOf("<item ") + 2;
+                clickAt(video, area, item);
+                video.pause(800);
+                video.zoom(doc.<Node>find("#inspectorWrapper"));
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
             video.scene("bookmarks", () -> {
                 doc.onFx(() -> host.openFile(xml));
                 doc.waitUntilFx(10, () -> host.getActiveText().orElse("").contains("PO-1042"));
@@ -347,6 +375,19 @@ class EditXmlTextDocVideo {
                 video.spoken(0.95);
                 video.click(modes.get(0));
             });
+            video.scene("save", () -> {
+                video.spoken(0.1);
+                Node tab = doc.fx(() -> host.lookupAll(".tab").stream().filter(t -> t.localToScreen(t.getBoundsInLocal()) != null)
+                        .findFirst().orElse(null));
+                if (tab != null) {
+                    Bounds tb = video.screenBounds(tab);
+                    video.zoom(new BoundingBox(tb.getMinX() - 20, tb.getMinY() - 20, 600, 120));
+                    video.moveTo(tab);
+                }
+                video.spoken(0.6);
+                video.zoomOut();
+            });
+
         } finally {
             video.stop();
         }

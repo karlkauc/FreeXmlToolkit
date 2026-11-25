@@ -7,90 +7,143 @@
     "de": "Ein XSD-Schema grafisch bearbeiten"
   },
   "description": {
-    "en": "The Graphic view of FreeXmlToolkit shows an XSD schema as a diagram of cards. Read the cards, open a named type in the Type Editor, add an element with all its properties, and find it in the schema's text.",
-    "de": "Die Ansicht Grafik in FreeXmlToolkit zeigt ein XSD-Schema als Diagramm aus Karten. Karten lesen, einen benannten Typ im Typ-Editor öffnen, ein Element mit allen Eigenschaften hinzufügen und es im Quelltext des Schemas wiederfinden."
+    "de": "Ein XML-Schema als Diagramm lesen und bearbeiten: Karten, Typrahmen und Typ-Editor, Elemente und Attribute hinzufügen, Eigenschaften und Facetten, nur gültige Änderungen, Übersicht und Export.",
+    "en": "Read and edit an XML schema as a diagram: cards, type frames and the type editor, adding elements and attributes, properties and facets, only valid changes, overview and export."
   },
   "scenes": [
     {
       "id": "intro",
       "card": "title",
       "say": {
-        "en": "In this video you edit an XML schema as a diagram. You read its cards, open a type in the Type Editor, and add a new element.",
-        "de": "In diesem Video bearbeiten Sie ein XML-Schema als Diagramm. Sie lesen die Karten, öffnen einen Typ im Typ-Editor und fügen ein neues Element hinzu."
+        "de": "In diesem Video bearbeiten Sie ein XML-Schema als Diagramm. Sie lesen die Karten, öffnen einen benannten Typ im Typ-Editor, fügen Elemente und Attribute hinzu und speichern alles zurück ins Schema.",
+        "en": "In this video you edit an XML schema as a diagram. You read the cards, open a named type in the type editor, add elements and attributes, and save everything back into the schema."
+      }
+    },
+    {
+      "id": "why",
+      "chapter": {
+        "de": "Warum grafisch",
+        "en": "Why graphically"
+      },
+      "say": {
+        "de": "Das Schema der Beispielbestellung ist als Text geöffnet. Schon bei diesem kleinen Schema ist der Aufbau im Quelltext schwer zu überblicken: Typen verweisen auf andere Typen, und was wohin gehört, steht an verschiedenen Stellen. Die Ansicht Grafik zeigt dieselbe Struktur als Diagramm, und Sie bearbeiten sie dort direkt. Jede Änderung im Diagramm schreibt das Programm sauber als XSD zurück, Sie müssen die Syntax also nicht auswendig kennen.",
+        "en": "The example order's schema is open as text. Even with this small schema, the structure is hard to overview in the source: types refer to other types, and what belongs where is spread over several places. The Graphic view shows the same structure as a diagram, and you edit it right there. Every change in the diagram is written back as clean XSD, so you do not need to know the syntax by heart."
       }
     },
     {
       "id": "switch",
       "chapter": {
-        "en": "The diagram",
-        "de": "Das Diagramm"
+        "de": "Das Diagramm lesen",
+        "en": "Reading the diagram"
       },
       "say": {
-        "en": "The schema of the example order is open as text. Click Graphic in the view switch. The diagram starts with the root element, order.",
-        "de": "Das Schema der Beispielbestellung ist als Text geöffnet. Klicken Sie im Ansichtsumschalter auf Grafik. Das Diagramm beginnt mit dem Wurzelelement order."
+        "de": "Klicken Sie im Ansichtsumschalter auf Grafik. Das Diagramm beginnt mit dem Wurzelelement order. Bei einem Schema gibt es zusätzlich die Ansicht Übersicht, dazu später mehr. Die Ansichten teilen sich ein Dokument und einen Verlauf für Rückgängig.",
+        "en": "Click Graphic in the view switch. The diagram starts with the root element order. A schema also has the Overview view, more on that later. The views share one document and one undo history."
       }
     },
     {
       "id": "cards",
-      "chapter": {
-        "en": "Read the cards",
-        "de": "Die Karten lesen"
-      },
       "say": {
-        "en": "The diagram opens with the content of order. The button at the right edge of a card opens it, here customer. Every card shows the name, and below it the type. A dashed card is optional, like note. The attributes id and date are required.",
-        "de": "Das Diagramm zeigt gleich den Inhalt von order. Der Knopf am rechten Rand einer Karte klappt sie auf, hier customer. Jede Karte zeigt den Namen und darunter den Typ. Eine gestrichelte Karte ist optional, wie note. Die Attribute id und date sind Pflicht."
+        "de": "Das Diagramm zeigt gleich den Inhalt von order. Der Knopf am rechten Rand einer Karte klappt sie auf, hier customer. Jede Karte zeigt den Namen und darunter den Typ. Das kleine Symbol zwischen den Karten steht für eine Sequenz: Die Kinder kommen in genau dieser Reihenfolge. Eine gestrichelte Karte ist optional, wie note. Die Attribute id und date erkennen Sie am At-Zeichen, das Etikett req heißt Pflicht.",
+        "en": "The diagram shows the content of order right away. The button at the right edge of a card expands it, here customer. Each card shows the name and the type below it. The small symbol between the cards stands for a sequence: the children come in exactly this order. A dashed card is optional, like note. You recognise the attributes id and date by the at sign, and the req label means required."
+      }
+    },
+    {
+      "id": "cards-more",
+      "say": {
+        "de": "Mehrfach vorkommende Elemente haben einen doppelten Rand und ihre Häufigkeit als Etikett, zum Beispiel item mit eins bis unbegrenzt. Mit dem Mausrad und Strg zoomen Sie, mit gedrückter Maus verschieben Sie das Diagramm. Ein Klick auf eine Karte zeigt rechts ihre Eigenschaften. Der Titel oben links nennt das gewählte Element mit Art, Typ und Inhaltsmodell, so wissen Sie immer, wo Sie gerade sind. Bei großen Schemas behalten Sie mit Zoom und dem Aufklappen nur der nötigen Karten den Überblick.",
+        "en": "Elements that repeat have a double border and their occurrence as a label, for example item with one to unbounded. Ctrl and the mouse wheel zoom, and dragging moves the diagram. A click on a card shows its properties on the right. The title in the top left names the selected element with its kind, type and content model, so you always know where you are. With large schemas, zooming and expanding only the cards you need keeps the overview."
       }
     },
     {
       "id": "frame",
       "chapter": {
-        "en": "Named types in frames",
-        "de": "Benannte Typen im Rahmen"
+        "de": "Benannte Typen und der Typ-Editor",
+        "en": "Named types and the type editor"
       },
       "say": {
-        "en": "The content of order comes from the named type OrderType. It is drawn in a dashed frame, and it is read-only here. A double-click on the frame's title opens the type in the Type Editor.",
-        "de": "Der Inhalt von order kommt aus dem benannten Typ OrderType. Er steht in einem gestrichelten Rahmen und ist hier schreibgeschützt. Ein Doppelklick auf den Titel des Rahmens öffnet den Typ im Typ-Editor."
+        "de": "Der Inhalt von order kommt aus dem benannten Typ OrderType. Er steht in einem gestrichelten Rahmen und ist hier schreibgeschützt, denn eine Änderung würde überall gelten, wo der Typ verwendet wird. Ein Doppelklick auf den Titel des Rahmens öffnet den Typ im Typ-Editor, einem eigenen Tab nur für diesen Typ. Steht ein Typ in einem anderen Rahmen, etwa CustomerType innerhalb von OrderType, sehen Sie die Verschachtelung der Typen auf einen Blick. Im Bereich Eigenschaften führt ein Knopf ebenfalls zum Typ-Editor.",
+        "en": "The content of order comes from the named type OrderType. It sits in a dashed frame and is read-only here, because a change would apply everywhere the type is used. A double-click on the frame's title opens the type in the type editor, a tab of its own just for this type. When a type sits inside another frame, like CustomerType inside OrderType, you see the nesting of types at a glance. In the Properties panel a button leads to the type editor as well."
       }
     },
     {
       "id": "add",
       "chapter": {
-        "en": "Add an element",
-        "de": "Ein Element hinzufügen"
+        "de": "Elemente und Attribute hinzufügen",
+        "en": "Adding elements and attributes"
       },
       "say": {
-        "en": "In the Type Editor the content can be changed. Right-click the sequence, then Add, Element. The dialog takes all properties at once: the name deliveryDate, the type xs:date, and a minimum of zero, so the element is optional.",
-        "de": "Im Typ-Editor lässt sich der Inhalt ändern. Rechtsklick auf die Sequenz, dann Hinzufügen, Element. Der Dialog nimmt gleich alle Eigenschaften auf: den Namen deliveryDate, den Typ xs:date und mindestens null Vorkommen, damit das Element optional ist."
+        "de": "Im Typ-Editor lässt sich der Inhalt ändern. Rechtsklick auf die Sequenz, dann Hinzufügen, Element. Der Dialog nimmt gleich alle Eigenschaften auf: den Namen deliveryDate, den Typ xs:date aus der Typauswahl und mindestens null Vorkommen, damit das Element optional ist. Ein Name mit Leerzeichen wird sofort rot markiert, denn er wäre in XML nicht erlaubt. Die Typauswahl zeigt zuerst die eigenen Typen des Schemas und darunter die eingebauten Datentypen wie Text, Zahl und Datum, mit einer Suche. Unter Mehr finden Sie seltener gebrauchte Angaben wie einen Standardwert oder einen festen Wert.",
+        "en": "In the type editor the content can be changed. Right-click the sequence, then Add, Element. The dialog takes every property at once: the name deliveryDate, the type xs:date from the type picker, and a minimum of zero occurrences so that the element is optional. A name with a space is marked red at once, because XML would not allow it. The type picker shows the schema's own types first and the built-in data types such as text, number and date below them, with a search. Under More you find less common settings such as a default or a fixed value."
       }
     },
     {
       "id": "save",
+      "say": {
+        "de": "Nach OK steht die neue Karte im Diagramm, gestrichelt, weil sie optional ist. In Schema speichern überträgt die Änderung aus dem Typ-Editor in das Schema. Erst danach steht sie im Dokument, und Sie können sie noch mit Strg Z zurücknehmen. Der Tab des Schemas zeigt mit einem Punkt, dass es ungespeicherte Änderungen gibt.",
+        "en": "After OK, the new card is in the diagram, dashed because it is optional. Save to Schema carries the change from the type editor into the schema. Only then is it in the document, and you can still take it back with Ctrl Z. The schema's tab shows with a dot that there are unsaved changes."
+      }
+    },
+    {
+      "id": "attribute",
+      "say": {
+        "de": "Attribute fügen Sie genauso hinzu: Rechtsklick auf die Karte OrderType, Hinzufügen, Attribut. Hier heißt es status, vom Typ xs:string, und ist optional. Im Feld Dokumentation beschreiben Sie, wofür das Attribut gedacht ist. Diese Beschreibung erscheint später in der Autovervollständigung und in der erzeugten Dokumentation. Pflichtattribute bekommen auf der Karte das Etikett req, optionale nicht.",
+        "en": "You add attributes the same way: right-click the OrderType card, Add, Attribute. Here it is called status, of type xs:string, and optional. In the Documentation field you describe what the attribute is for. That description later shows in auto-completion and in the generated documentation. Required attributes get the req label on their card, optional ones do not."
+      }
+    },
+    {
+      "id": "properties",
       "chapter": {
-        "en": "Save to the schema",
-        "de": "Ins Schema speichern"
+        "de": "Eigenschaften bearbeiten",
+        "en": "Editing properties"
       },
       "say": {
-        "en": "After OK the new card is in the diagram, dashed because it is optional. Save to schema writes the change into the schema.",
-        "de": "Nach OK steht die neue Karte im Diagramm, gestrichelt, weil sie optional ist. Ins Schema speichern schreibt die Änderung in das Schema."
+        "de": "Jede Karte lässt sich auch im Bereich Eigenschaften bearbeiten. Für deliveryDate sehen Sie Typ und Facetten, die Kardinalität und die Dokumentation. Ändern Sie zum Beispiel das maximale Vorkommen, und das Etikett auf der Karte folgt sofort. Bei einem einfachen Typ wie der Bestellnummer stehen hier die Facetten, etwa das Muster PO, Bindestrich und vier Ziffern. Auch Bedingungen wie unique oder key legen Sie hier an, zum Beispiel, dass jede Artikelnummer nur einmal vorkommen darf. Auf Wunsch zeigt das Diagramm diese Bedingungen direkt auf den Karten an.",
+        "en": "Every card can also be edited in the Properties panel. For deliveryDate you see the type and facets, the cardinality and the documentation. Change the maximum occurrence, for example, and the label on the card follows at once. For a simple type such as the order number, the facets show here, like the pattern PO, hyphen and four digits. Constraints such as unique or key are set up here too, for example that every item number may appear only once. If you like, the diagram shows these constraints right on the cards."
+      }
+    },
+    {
+      "id": "rules",
+      "chapter": {
+        "de": "Nur gültige Änderungen",
+        "en": "Only valid changes"
+      },
+      "say": {
+        "de": "Der Editor lässt nur gültige Änderungen zu. Rechtsklick auf note, ein Element mit einfachem Typ: Unter Hinzufügen sind Element und Attribut ausgegraut, denn ein einfacher Typ kann keine Kinder haben. Wo eine Änderung etwas ersetzen müsste, fragt ein Dialog nach und erklärt, was passiert. So entsteht nie ein ungültiges Schema. Karten lassen sich außerdem mit der Maus verschieben: Eine blaue Linie zeigt die neue Position, ein roter Rahmen ein Ziel, das nicht erlaubt ist, und mit gedrückter Strg-Taste wird kopiert statt verschoben.",
+        "en": "The editor only allows valid changes. Right-click note, an element of a simple type: under Add, Element and Attribute are greyed out, because a simple type cannot have children. Where a change would have to replace something, a dialog asks first and explains what happens. That way you never end up with an invalid schema. You can also move cards with the mouse: a blue line shows the new position, a red frame marks a target that is not allowed, and holding Ctrl copies instead of moving."
+      }
+    },
+    {
+      "id": "overview",
+      "chapter": {
+        "de": "Übersicht, Export und Speichern",
+        "en": "Overview, export and saving"
+      },
+      "say": {
+        "de": "Zurück im Tab des Schemas zeigt die Ansicht Übersicht alle globalen Teile als Tabelle: Elemente, Typen, Gruppen und Importe. Hier fügen Sie neue Typen hinzu, sortieren und benennen sie um, und alle Verweise werden mitgeändert. Mehr dazu im Video über Typen. Die unteren Reiter zeigen zum gewählten Teil Details, Attribute, Bedingungen und die Namespaces des Schemas.",
+        "en": "Back in the schema's tab, the Overview view shows all global parts as a table: elements, types, groups and imports. Here you add new types, sort and rename them, and every reference changes along. More on that in the video about types. The lower tabs show details, attributes, constraints and the schema's namespaces for the selected part."
+      }
+    },
+    {
+      "id": "export",
+      "say": {
+        "de": "Für Dokumentation und Präsentationen exportiert Datei, Ansicht exportieren das Diagramm als PNG-Bild, als SVG-Grafik oder als PDF, auf Wunsch im hellen oder dunklen Design. Bearbeiten, Ansicht als Bild kopieren legt es direkt in die Zwischenablage. Sie wählen, ob das ganze Diagramm oder nur der sichtbare Ausschnitt exportiert wird, so sind auch große Schemas vollständig im Bild.",
+        "en": "For documentation and presentations, File, Export View exports the diagram as a PNG image, an SVG graphic or a PDF, in the light or dark design as you like. Edit, Copy View as Image puts it straight on the clipboard. You choose whether the whole diagram or just the visible part is exported, so large schemas fit completely too."
       }
     },
     {
       "id": "text",
-      "chapter": {
-        "en": "Back to the text",
-        "de": "Zurück zum Text"
-      },
       "say": {
-        "en": "Back in the schema's Text view, the new element is in the source of OrderType. Every change can be undone with Ctrl Z.",
-        "de": "Zurück in der Ansicht Text des Schemas steht das neue Element im Quelltext von OrderType. Jede Änderung lässt sich mit Strg Z rückgängig machen."
+        "de": "Zurück in der Ansicht Text des Schemas stehen das neue Element und das neue Attribut im Quelltext von OrderType. Strg S speichert die Datei. Jede Änderung lässt sich bis dahin mit Strg Z rückgängig machen.",
+        "en": "Back in the schema's Text view, the new element and the new attribute are in the source of OrderType. Ctrl S saves the file. Until then, every change can be undone with Ctrl Z."
       }
     },
     {
       "id": "outro",
       "card": "outro",
       "say": {
-        "en": "That was the Graphic view for XSD. The documentation shows more: drag and drop, constraints on the cards, and the type picker.",
-        "de": "Das war die Ansicht Grafik für XSD. Die Dokumentation zeigt mehr: Ziehen und Ablegen, Constraints auf den Karten und die Typauswahl."
+        "de": "Das war die Ansicht Grafik für XSD. Die Dokumentation zeigt mehr: Ziehen und Ablegen, Bedingungen auf den Karten und die Typauswahl.",
+        "en": "That was the Graphic view for XSD. The documentation shows more: drag and drop, constraints on the cards and the type picker."
       }
     }
   ]
