@@ -1,0 +1,117 @@
+{
+  "id": "convert",
+  "scenario": "ConvertDocVideo",
+  "docs": "guides/convert/",
+  "title": {
+    "en": "Convert XML, JSON, YAML and Excel",
+    "de": "XML, JSON, YAML und Excel umwandeln"
+  },
+  "description": {
+    "de": "Ein XML-Dokument nach JSON und YAML umwandeln und zurück, JSON und YAML in Text, Baum und Grid bearbeiten, und XML mit dem Tabellenkonverter nach Excel oder CSV bringen und wieder einlesen.",
+    "en": "Convert an XML document to JSON and YAML and back, edit JSON and YAML in text, tree and grid, and take XML to Excel or CSV with the spreadsheet converter and read it back."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "de": "In diesem Video wandeln Sie Daten zwischen Formaten um: XML nach JSON und YAML und zurück, und XML in eine Excel-Tabelle und wieder zurück. So bringen Sie Daten in das Format, das ein anderes System oder ein Kollege erwartet.",
+        "en": "In this video you convert data between formats: XML to JSON and YAML and back, and XML into an Excel sheet and back again. That way you bring data into the format another system or a colleague expects."
+      }
+    },
+    {
+      "id": "why",
+      "chapter": {
+        "de": "Warum umwandeln",
+        "en": "Why convert"
+      },
+      "say": {
+        "de": "Viele Schnittstellen sprechen heute JSON, Konfigurationen stehen oft in YAML, und für Auswertungen und Abstimmungen greifen die meisten zu Excel. Statt Daten von Hand abzutippen oder ein eigenes Skript zu schreiben, wandelt FreeXmlToolkit sie mit wenigen Klicks um. Ausgangspunkt ist wieder die Beispielbestellung. Alle Umwandlungen lassen das Original unverändert und erzeugen das Ergebnis als neuen Tab oder als neue Datei.",
+        "en": "Many interfaces speak JSON today, configurations often live in YAML, and for analysis and reconciliation most people reach for Excel. Instead of retyping data or writing a script of your own, FreeXmlToolkit converts it with a few clicks. The starting point is the example order again. Every conversion leaves the original unchanged and creates the result as a new tab or a new file."
+      }
+    },
+    {
+      "id": "to-json",
+      "chapter": {
+        "de": "XML, JSON und YAML",
+        "en": "XML, JSON and YAML"
+      },
+      "say": {
+        "de": "Werkzeuge, Nach JSON umwandeln. Ein kleiner Dialog fragt, wie umgewandelt werden soll. Die strukturierte Abbildung erzeugt lesbares JSON, in dem Elemente zu Feldern und wiederholte Elemente zu Listen werden. Mit typisierten Werten werden Zahlen zu echten Zahlen statt zu Text. Nach OK öffnet sich das Ergebnis als neuer Tab, die Bestellung bleibt unverändert. Die Einrückung des Ergebnisses legen Sie in den Einstellungen fest. Attribute erscheinen als eigene Felder, der Text eines Elements ebenfalls.",
+        "en": "Tools, Convert to JSON. A small dialog asks how to convert. The structured mapping creates readable JSON in which elements become fields and repeated elements become lists. With typed values, numbers become real numbers instead of text. After OK, the result opens as a new tab, and the order stays unchanged. You set the indentation of the result in the settings. Attributes appear as fields of their own, and so does the text of an element."
+      }
+    },
+    {
+      "id": "mapping",
+      "say": {
+        "de": "Neben der strukturierten Abbildung gibt es die W3C-Abbildung aus dem XPath-Standard. Sie beschreibt JSON mit festen Elementen wie map, array, string und number. Das ist weniger gut lesbar, aber verlustfrei und genau festgelegt, deshalb eignet es sich, wenn die Daten später mit XSLT oder XQuery weiterverarbeitet werden. Für Schnittstellen ist die strukturierte Abbildung meist die bessere Wahl.",
+        "en": "Besides the structured mapping there is the W3C mapping from the XPath standard. It describes JSON with fixed elements such as map, array, string and number. That is less readable, but lossless and precisely defined, so it suits data that is processed further with XSLT or XQuery. For interfaces, the structured mapping is usually the better choice."
+      }
+    },
+    {
+      "id": "to-yaml",
+      "say": {
+        "de": "Genauso wird aus der Bestellung YAML, die übersichtliche Schreibweise für Konfigurationen. Und der Weg zurück funktioniert ebenso: Aus einem JSON- oder YAML-Dokument macht Nach XML umwandeln wieder XML, dabei fragt der Dialog nach dem Namen des Wurzelelements. Formatieren ordnet bei YAML die Einrückung neu und lässt es bleiben, wenn dabei Kommentare verloren gingen.",
+        "en": "The order becomes YAML the same way, the clear notation for configurations. And the way back works just as well: from a JSON or YAML document, Convert to XML makes XML again, and the dialog asks for the name of the root element. For YAML, Format rearranges the indentation and refrains when comments would be lost."
+      }
+    },
+    {
+      "id": "json-views",
+      "chapter": {
+        "de": "JSON und YAML bearbeiten",
+        "en": "Editing JSON and YAML"
+      },
+      "say": {
+        "de": "JSON und YAML bearbeiten Sie wie XML: als Text mit Autovervollständigung, als Baum und in der Ansicht Grafik als Grid mit Tabellen. Bindet die Datei ein JSON Schema, prüft F8 sie dagegen, und die Probleme stehen in derselben Liste wie bei XML. Für bekannte Dateiarten wie package json oder GitHub-Workflows findet FreeXmlToolkit das Schema über SchemaStore sogar selbst.",
+        "en": "You edit JSON and YAML like XML: as text with auto-completion, as a tree, and in the Graphic view as a grid with tables. When the file binds a JSON Schema, F8 checks it, and the problems appear in the same list as for XML. For well-known file types such as package json or GitHub workflows, FreeXmlToolkit even finds the schema itself through SchemaStore."
+      }
+    },
+    {
+      "id": "spreadsheet",
+      "chapter": {
+        "de": "XML und Excel",
+        "en": "XML and Excel"
+      },
+      "say": {
+        "de": "Für Tabellen gibt es den Tabellenkonverter unter Werkzeuge. Er wandelt XML nach Excel oder CSV und zurück. Oben wählen Sie die Richtung und die Eingabe, darunter das Format. Rechts zeigt eine Vorschau sofort, wie das Ergebnis aussehen wird, noch bevor eine Datei geschrieben wird. Als Formate stehen Excel und CSV zur Wahl, bei CSV auch das Trennzeichen.",
+        "en": "For spreadsheets there is the Spreadsheet Converter under Tools. It converts XML to Excel or CSV and back. At the top you choose the direction and the input, below it the format. On the right, a preview shows right away what the result will look like, before any file is written. Excel and CSV are available as formats, and for CSV also the delimiter."
+      }
+    },
+    {
+      "id": "layouts",
+      "say": {
+        "de": "Es gibt zwei Aufteilungen. Eine Zeile pro Knoten listet jedes Element und Attribut mit seinem XPath und seinem Wert, das ist vollständig und lässt sich verlustfrei zurückwandeln. Eine Tabelle pro Datensatz macht aus jedem Artikel eine Zeile und aus seinen Feldern Spalten. So sieht die Tabelle aus, wie man sie in Excel erwartet, und lässt sich gut auswerten. Bei der Tabelle wählen Sie, welcher Knoten ein Datensatz ist, hier die Artikel.",
+        "en": "There are two layouts. One row per node lists every element and attribute with its XPath and its value; that is complete and converts back without loss. One table per record turns every item into a row and its fields into columns. The sheet then looks the way you expect it in Excel, and it is easy to analyse. For the table you choose which node is a record, here the items."
+      }
+    },
+    {
+      "id": "excel-style",
+      "say": {
+        "de": "Excel-Dateien bekommen ein einheitliches Aussehen: eine farbige Kopfzeile, Filter in jeder Spalte, Zahlen und Datumswerte als echte Werte statt als Text und ein Blatt mit Informationen zur Herkunft. Alles, was nicht in die Tabelle passt, landet auf einem eigenen Blatt, damit beim Zurückwandeln nichts verloren geht.",
+        "en": "Excel files get a consistent look: a coloured header row, filters in every column, numbers and dates as real values instead of text, and a sheet with information about the origin. Anything that does not fit the table goes to a sheet of its own, so that nothing is lost when converting back."
+      }
+    },
+    {
+      "id": "import",
+      "say": {
+        "de": "Der Weg zurück: Mit der Richtung Tabelle nach XML liest der Konverter eine Excel- oder CSV-Datei ein. Er erkennt die Aufteilung selbst. Eine fremde Tabelle ohne XPath-Spalten wird zu Datensätzen, deren Namen Sie für Wurzel und Datensatz festlegen. Mit einem Schema prüfen Sie das Ergebnis gleich gegen die Regeln. Danach öffnet sich das erzeugte XML als neuer Tab, und Sie können es wie jedes Dokument weiterbearbeiten.",
+        "en": "The way back: with the direction Spreadsheet to XML, the converter reads an Excel or CSV file. It recognises the layout by itself. A foreign sheet without XPath columns becomes records, whose names you set for root and record. With a schema you check the result against the rules right away. The generated XML then opens as a new tab, and you can keep editing it like any document."
+      }
+    },
+    {
+      "id": "cli",
+      "say": {
+        "de": "Für viele Dateien gibt es die Kommandozeile: fxt-cli convert wandelt zwischen XML, JSON und YAML um, mit denselben Abbildungen und Optionen wie im Dialog, und nimmt beliebig viele Dateien auf einmal. Mit einem Ausgabeordner landen die Ergebnisse gesammelt an einer Stelle. So lässt sich das Umwandeln leicht in ein Skript oder eine nächtliche Verarbeitung einbauen.",
+        "en": "For many files there is the command line: fxt-cli convert converts between XML, JSON and YAML, with the same mappings and options as the dialog, and takes any number of files at once. With an output folder, the results are collected in one place. That makes it easy to build converting into a script or a nightly process."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "de": "Das war das Umwandeln zwischen Formaten. Mehr zur Kommandozeile zeigt das Video Automatisieren mit fxt-cli.",
+        "en": "That was converting between formats. More on the command line is shown in the video Automating with fxt-cli."
+      }
+    }
+  ]
+}

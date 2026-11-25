@@ -1,0 +1,125 @@
+{
+  "id": "compare-merge",
+  "scenario": "CompareMergeDocVideo",
+  "docs": "guides/compare-merge/",
+  "title": {
+    "en": "Compare and merge",
+    "de": "Vergleichen und Zusammenführen"
+  },
+  "description": {
+    "de": "Zwei XML-Dateien als Text und als XML vergleichen, Unwichtiges ausblenden, ganze Ordner vergleichen und drei Fassungen einer Datei zusammenführen.",
+    "en": "Compare two XML files as text and as XML, leave out what does not matter, compare whole folders, and merge three versions of a file."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "de": "In diesem Video vergleichen Sie XML-Dateien: Zeile für Zeile als Text und nach ihrer Struktur als XML. Danach vergleichen Sie ganze Ordner und führen drei Fassungen einer Datei zusammen, so wie bei der Arbeit mit einer Versionsverwaltung.",
+        "en": "In this video you compare XML files: line by line as text and by their structure as XML. Then you compare whole folders and merge three versions of a file, just as when working with version control."
+      }
+    },
+    {
+      "id": "why",
+      "chapter": {
+        "de": "Warum XML anders vergleichen",
+        "en": "Why compare XML differently"
+      },
+      "say": {
+        "de": "Hier sind zwei Fassungen derselben Bestellung. Die zweite kommt aus einem anderen System: Sie ist anders eingerückt, die Attribute stehen in anderer Reihenfolge, und irgendwo dazwischen hat sich ein Preis geändert. Ein gewöhnlicher Textvergleich meldet hier fast jede Zeile als geändert, und der eine wichtige Unterschied geht im Rauschen unter. Genau dafür gibt es in FreeXmlToolkit den Vergleich als XML. Er versteht, was in XML wirklich eine Änderung ist und was nur eine andere Schreibweise desselben Inhalts.",
+        "en": "Here are two versions of the same order. The second one comes from another system: it is indented differently, the attributes are in a different order, and somewhere in between a price has changed. An ordinary text comparison reports almost every line as changed here, and the one important difference gets lost in the noise. That is exactly what FreeXmlToolkit's XML comparison is for. It understands what really is a change in XML and what is only another way of writing the same content."
+      }
+    },
+    {
+      "id": "open",
+      "chapter": {
+        "de": "Zwei Dateien vergleichen",
+        "en": "Comparing two files"
+      },
+      "say": {
+        "de": "Den Vergleich starten Sie über Werkzeuge, Dateien vergleichen, oder im Explorer über Dateien vergleichen. Die aktive Datei steht links, die gewählte rechts. Der Vergleich öffnet sich als eigener Tab und lässt sich wie jedes Dokument schließen. Zwei Dateien, die gerade nicht offen sind, wählen Sie im Dialog einfach nacheinander aus.",
+        "en": "You start the comparison from Tools, Compare Files, or from Compare Files in the Explorer. The active file is on the left, the chosen one on the right. The comparison opens as a tab of its own and closes like any document. Two files that are not open you simply pick one after the other in the dialog."
+      }
+    },
+    {
+      "id": "text-mode",
+      "say": {
+        "de": "Im Modus Text sehen Sie beide Dateien nebeneinander. Geänderte Zeilen sind farbig markiert, eingefügte grün, entfernte rot. Mit den Pfeilen oben springen Sie von Unterschied zu Unterschied. Bei Dateien aus demselben System ist das oft schon genug. Beide Seiten scrollen gemeinsam, so bleiben zusammengehörige Zeilen nebeneinander.",
+        "en": "In Text mode you see both files side by side. Changed lines are coloured, inserted ones green, removed ones red. The arrows at the top jump from difference to difference. For files from the same system, that is often enough. Both sides scroll together, so lines that belong together stay side by side."
+      }
+    },
+    {
+      "id": "xml-mode",
+      "chapter": {
+        "de": "Als XML vergleichen",
+        "en": "Comparing as XML"
+      },
+      "say": {
+        "de": "Der Modus XML vergleicht die Struktur. Einrückung, Zeilenumbrüche und die Reihenfolge der Attribute spielen dann keine Rolle mehr. Übrig bleibt, was sich inhaltlich geändert hat, hier der Preis eines Artikels. Die Tabelle nennt jeden Unterschied mit seinem XPath und beiden Werten, und ein Klick springt zur Stelle. Verschiedene Präfixe für denselben Namespace erkennt der Vergleich ebenfalls als gleich. Die Zusammenfassung oben nennt, wie viele Unterschiede es gibt und ob die Dateien gleichwertig sind.",
+        "en": "XML mode compares the structure. Indentation, line breaks and the order of attributes no longer matter. What remains is what changed in content, here the price of an item. The table names each difference with its XPath and both values, and a click jumps to the place. The comparison also recognises different prefixes for the same namespace as equal. The summary at the top states how many differences there are and whether the files are equivalent."
+      }
+    },
+    {
+      "id": "similar",
+      "say": {
+        "de": "Manche Unterschiede sind nur ähnlich, etwa ein Element, das an eine andere Stelle verschoben wurde, oder Text, der einmal als CDATA geschrieben ist. Sie gelten als gleichwertig und lassen sich mit einem Schalter ausblenden, damit nur echte Änderungen übrig bleiben.",
+        "en": "Some differences are only similar, such as an element moved to another place, or text written once as CDATA. They count as equivalent and can be hidden with a switch, so that only real changes remain."
+      }
+    },
+    {
+      "id": "ignore",
+      "chapter": {
+        "de": "Unwichtiges ausblenden",
+        "en": "Leaving out what does not matter"
+      },
+      "say": {
+        "de": "Manche Felder ändern sich bei jeder Lieferung, etwa ein Zeitstempel oder eine laufende Nummer. Unter den Optionen tragen Sie XPath-Ausdrücke ein, die beim Vergleich ignoriert werden. Zahlen lassen sich mit einer Toleranz vergleichen, damit Rundungsunterschiede nicht als Fehler zählen. Im erwarteten Dokument können Platzhalter stehen, die jeden Wert akzeptieren. Die Einstellungen merkt sich FreeXmlToolkit für den nächsten Vergleich. Gerade bei Testdaten, die regelmäßig neu erzeugt werden, sparen Sie sich damit viel Durchsehen von Unterschieden, die gar keine sind.",
+        "en": "Some fields change with every delivery, such as a timestamp or a running number. Under Options you enter XPath expressions that the comparison ignores. Numbers can be compared with a tolerance, so rounding differences do not count as errors. The expected document can hold placeholders that accept any value. FreeXmlToolkit remembers the settings for the next comparison. Especially with test data that is generated again and again, that saves a lot of looking through differences that are no differences at all."
+      }
+    },
+    {
+      "id": "folder",
+      "chapter": {
+        "de": "Ordner vergleichen",
+        "en": "Comparing folders"
+      },
+      "say": {
+        "de": "Ganze Ordner vergleichen Sie über Werkzeuge, Ordner vergleichen. Die Tabelle zeigt jede Datei mit ihrem Zustand: neu, gelöscht, geändert oder gleich. Mit dem Schalter XML vergleicht sie die Dateien nach ihrer Struktur, so zählen reine Formatierungen nicht als Änderung. Ein Doppelklick öffnet eine geänderte Datei im Vergleich. Das ist nützlich, um zwei Lieferungen oder zwei Ausgabeordner vor und nach einer Änderung zu vergleichen. Gleiche Dateien lassen sich ausblenden.",
+        "en": "Whole folders are compared from Tools, Compare Folders. The table shows each file with its state: new, deleted, changed or identical. With the XML switch, it compares the files by their structure, so pure formatting does not count as a change. A double-click opens a changed file in the comparison. That is useful for comparing two deliveries, or two output folders before and after a change. Identical files can be hidden."
+      }
+    },
+    {
+      "id": "merge",
+      "chapter": {
+        "de": "Drei Fassungen zusammenführen",
+        "en": "Merging three versions"
+      },
+      "say": {
+        "de": "Haben zwei Personen dieselbe Datei geändert, führt Dateien zusammenführen ihre Fassungen zusammen. Dazu braucht es drei Dateien: die gemeinsame Grundlage und die beiden geänderten Fassungen. Änderungen, die nur eine Seite gemacht hat, übernimmt FreeXmlToolkit automatisch. Das ist dieselbe Arbeitsweise wie bei Git, nur mit einer Ansicht, die XML gut lesbar macht.",
+        "en": "When two people changed the same file, Merge Files combines their versions. It needs three files: the common base and the two changed versions. Changes made by only one side are taken over automatically. It is the same way of working as with Git, only with a view that keeps XML readable."
+      }
+    },
+    {
+      "id": "conflict",
+      "say": {
+        "de": "Wo beide Seiten dieselbe Stelle geändert haben, entsteht ein Konflikt. Er ist markiert, und Sie entscheiden: links übernehmen, rechts übernehmen, beide oder die Grundlage. Mit den Pfeilen springen Sie von Konflikt zu Konflikt. Sind alle gelöst, speichert Speichern das Ergebnis. Ungelöste Konflikte bleiben mit den üblichen Markierungen einer Versionsverwaltung im Text. Prüfen Sie das Ergebnis danach mit F8, denn auch eine korrekt zusammengeführte Datei kann gegen das Schema verstoßen.",
+        "en": "Where both sides changed the same place, a conflict appears. It is marked, and you decide: take left, take right, both, or the base. The arrows jump from conflict to conflict. When all are resolved, Save stores the result. Unresolved conflicts stay in the text with the usual markers of version control. Check the result with F8 afterwards, because even a correctly merged file can break the schema."
+      }
+    },
+    {
+      "id": "cli",
+      "say": {
+        "de": "Dasselbe gibt es auf der Kommandozeile: fxt-cli compare vergleicht zwei Dateien als XML, mit denselben Optionen für ignorierte Pfade und Toleranzen, und fxt-cli merge führt drei Fassungen zusammen. So lassen sich Vergleiche auch automatisch ausführen, zum Beispiel in einer Pipeline. Der Rückgabewert sagt, ob die Dateien gleichwertig sind, sodass ein Skript darauf reagieren kann.",
+        "en": "The same exists on the command line: fxt-cli compare compares two files as XML, with the same options for ignored paths and tolerances, and fxt-cli merge merges three versions. That way comparisons can also run automatically, in a pipeline for example. The exit code says whether the files are equivalent, so a script can react to it."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "de": "Das war Vergleichen und Zusammenführen. In Projekten nutzt die Regressionsprüfung genau diesen Vergleich, um Ergebnisse von Transformationen zu prüfen.",
+        "en": "That was comparing and merging. In projects, the regression check uses exactly this comparison to verify the results of transformations."
+      }
+    }
+  ]
+}

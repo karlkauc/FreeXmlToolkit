@@ -1,0 +1,128 @@
+{
+  "id": "xsd-types",
+  "scenario": "XsdTypesDocVideo",
+  "docs": "guides/design-schemas/overview-view/",
+  "title": {
+    "en": "XSD: overview and types",
+    "de": "XSD: Übersicht und Typen"
+  },
+  "description": {
+    "de": "Die Ansicht Übersicht eines XML-Schemas: alle globalen Teile, Filter, Sortieren, neue Typen anlegen, einfache Typen mit Facetten, komplexe Typen im Typ-Editor, Namespaces und Assertions.",
+    "en": "The Overview view of an XML schema: all global parts, filter, sort, creating new types, simple types with facets, complex types in the type editor, namespaces and assertions."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "de": "In diesem Video geht es um die Typen eines XML-Schemas. Sie sehen alle globalen Teile eines Schemas auf einen Blick, legen neue Typen an und bearbeiten einfache Typen mit ihren Regeln und komplexe Typen mit ihrem Inhalt.",
+        "en": "This video is about the types of an XML schema. You see all global parts of a schema at a glance, create new types, and edit simple types with their rules and complex types with their content."
+      }
+    },
+    {
+      "id": "overview",
+      "chapter": {
+        "de": "Die Ansicht Übersicht",
+        "en": "The Overview view"
+      },
+      "say": {
+        "de": "Öffnen Sie order.xsd und wählen Sie im Ansichtsumschalter Übersicht. Die Tabelle listet alles, was das Schema auf oberster Ebene enthält: das Wurzelelement order, die komplexen Typen für Bestellung, Kunde, Adresse und Artikel und die einfachen Typen für Bestellnummer, Ländercode und Preis. Zu jedem Eintrag stehen Art, Name, Details und die Dokumentation.",
+        "en": "Open order.xsd and choose Overview in the view switch. The table lists everything the schema contains at the top level: the root element order, the complex types for order, customer, address and item, and the simple types for order number, country code and price. Each entry shows kind, name, details and documentation."
+      }
+    },
+    {
+      "id": "details",
+      "say": {
+        "de": "Ein Klick auf eine Zeile zeigt unten ihre Einzelheiten. Für einen einfachen Typ wie CountryCodeType sind das die Basis und die Facetten, hier eine Länge von genau zwei Zeichen. Die Reiter daneben zeigen Attribute, Identitätsbedingungen, Assertions und die Namespaces des Schemas. Rechts im Bereich Eigenschaften lässt sich alles bearbeiten.",
+        "en": "A click on a row shows its details below. For a simple type such as CountryCodeType, that is the base and the facets, here a length of exactly two characters. The tabs next to it show attributes, identity constraints, assertions and the schema's namespaces. On the right, in the Properties panel, everything can be edited."
+      }
+    },
+    {
+      "id": "filter",
+      "chapter": {
+        "de": "Ordnung schaffen",
+        "en": "Keeping order"
+      },
+      "say": {
+        "de": "Bei großen Schemas mit hunderten Typen hilft das Filterfeld: Tippen Sie einen Teil des Namens, und die Tabelle zeigt nur noch passende Einträge. Sortieren ordnet die Teile nach Art und Name. Mit Strg und den Pfeiltasten oder per Ziehen verschieben Sie einzelne Einträge, die Reihenfolge im Schema folgt sofort.",
+        "en": "In large schemas with hundreds of types, the filter field helps: type part of a name, and the table shows only matching entries. Sort orders the parts by kind and name. With Ctrl and the arrow keys, or by dragging, you move single entries, and the order in the schema follows at once."
+      }
+    },
+    {
+      "id": "rename",
+      "say": {
+        "de": "Umbenennen im Kontextmenü ändert den Namen direkt in der Tabelle. Hat der Eintrag Verweise, fragt FreeXmlToolkit, ob sie mit angepasst werden sollen: Wird aus PriceType etwa AmountType, verwenden dann alle Attribute und Elemente, die den Typ nutzen, sofort den neuen Namen. Von Hand müssten Sie jede Stelle einzeln suchen.",
+        "en": "Rename in the context menu changes the name right in the table. When the entry has references, FreeXmlToolkit asks whether to update them too: if PriceType becomes AmountType, every attribute and element using the type then takes the new name at once. By hand you would have to find each place yourself."
+      }
+    },
+    {
+      "id": "new-type",
+      "chapter": {
+        "de": "Einfache Typen",
+        "en": "Simple types"
+      },
+      "say": {
+        "de": "Anhängen legt einen neuen globalen Teil an, hier einen einfachen Typ für die Währung. Der Name wird gleich geprüft, denn er muss im Schema eindeutig sein. Der neue Typ erscheint am Ende der Tabelle und lässt sich sofort weiter bearbeiten. Einfügen legt ihn stattdessen vor der markierten Zeile an.",
+        "en": "Append creates a new global part, here a simple type for the currency. The name is checked at once, because it must be unique in the schema. The new type appears at the end of the table and can be edited further right away. Insert creates it before the selected row instead."
+      }
+    },
+    {
+      "id": "facets",
+      "say": {
+        "de": "Ein einfacher Typ schränkt einen Grundtyp ein, etwa Text, Zahl oder Datum. Die Regeln heißen Facetten: ein Muster, eine Liste erlaubter Werte, eine Länge, ein Zahlenbereich oder die Zahl der Nachkommastellen. Für die Währung passt eine Aufzählung mit EUR, CHF und USD. Die Autovervollständigung im XML bietet diese Werte später als Liste an.",
+        "en": "A simple type restricts a base type such as text, number or date. The rules are called facets: a pattern, a list of allowed values, a length, a range of numbers or the number of decimals. For the currency, an enumeration of EUR, CHF and USD fits. Auto-completion in XML later offers these values as a list."
+      }
+    },
+    {
+      "id": "list-union",
+      "say": {
+        "de": "Neben der Einschränkung gibt es zwei weitere Arten einfacher Typen. Eine Liste erlaubt mehrere Werte, durch Leerzeichen getrennt, und eine Vereinigung erlaubt Werte aus mehreren Typen, zum Beispiel eine Zahl oder das Wort unbekannt.",
+        "en": "Besides restriction there are two more kinds of simple types. A list allows several values separated by spaces, and a union allows values from several types, for example a number or the word unknown."
+      }
+    },
+    {
+      "id": "complex",
+      "chapter": {
+        "de": "Komplexe Typen",
+        "en": "Complex types"
+      },
+      "say": {
+        "de": "Komplexe Typen beschreiben Elemente mit Kindern und Attributen. Im Kontextmenü der Übersicht öffnet Im Typ-Editor öffnen den Typ als eigenen Tab. Oben stehen sein Name und ob er abstrakt ist, darunter sein Inhalt als Diagramm. So bearbeiten Sie den Typ einmal, und die Änderung gilt überall, wo er verwendet wird.",
+        "en": "Complex types describe elements with children and attributes. In the Overview's context menu, Open in Type Editor opens the type as a tab of its own. At the top are its name and whether it is abstract, below it its content as a diagram. That way you edit the type once, and the change applies everywhere it is used."
+      }
+    },
+    {
+      "id": "derivation",
+      "say": {
+        "de": "Ein komplexer Typ kann einen anderen erweitern oder einschränken. Eine Erweiterung übernimmt alles vom Basistyp und fügt etwas hinzu, zum Beispiel eine Geschäftsadresse, die eine normale Adresse um eine Abteilung ergänzt. Im Diagramm stehen die übernommenen Teile in einem eigenen Rahmen.",
+        "en": "A complex type can extend or restrict another one. An extension takes over everything from the base type and adds something, for example a business address that adds a department to a normal address. In the diagram, the inherited parts sit in a frame of their own."
+      }
+    },
+    {
+      "id": "namespaces",
+      "chapter": {
+        "de": "Namespaces und XSD 1.1",
+        "en": "Namespaces and XSD 1.1"
+      },
+      "say": {
+        "de": "Zurück in der Übersicht zeigt der Reiter Namespaces den Ziel-Namespace und alle Präfixe des Schemas. Import und Include binden andere Schemas ein: Include für Dateien mit demselben Namespace, Import für fremde Namespaces. Eingebunden zeigt deren Teile zusätzlich in der Tabelle.",
+        "en": "Back in the Overview, the Namespaces tab shows the target namespace and all prefixes of the schema. Import and Include bring in other schemas: Include for files with the same namespace, Import for foreign namespaces. Included shows their parts in the table as well."
+      }
+    },
+    {
+      "id": "xsd11",
+      "say": {
+        "de": "XSD 1.1 kann mehr: Assertions prüfen Bedingungen mit XPath, etwa dass ein Lieferdatum nach dem Bestelldatum liegt, und Alternativen wählen den Typ eines Elements abhängig von einem Attribut. Der Reiter Assertions listet sie, und FreeXmlToolkit prüft Dokumente auch gegen XSD 1.1.",
+        "en": "XSD 1.1 can do more: assertions check conditions with XPath, for example that a delivery date comes after the order date, and alternatives choose an element's type depending on an attribute. The Assertions tab lists them, and FreeXmlToolkit validates documents against XSD 1.1 too."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "de": "Das waren Übersicht und Typen. Wie Sie ein Schema analysieren und eine Dokumentation daraus erzeugen, zeigt das nächste Video.",
+        "en": "That was the Overview and types. How to analyse a schema and generate documentation from it is shown in the next video."
+      }
+    }
+  ]
+}

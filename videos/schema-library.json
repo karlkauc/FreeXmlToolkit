@@ -1,0 +1,114 @@
+{
+  "id": "schema-library",
+  "scenario": "SchemaLibraryDocVideo",
+  "docs": "guides/design-schemas/schema-library/",
+  "title": {
+    "en": "Find, manage and create schemas",
+    "de": "Schemas finden, verwalten und erzeugen"
+  },
+  "description": {
+    "de": "Wie FreeXmlToolkit Schemas findet, die Schema-Bibliothek mit Zuordnungen, Katalogen, SchemaStore und Cache, ein Schema aus XML erzeugen und Beispiel-XML aus einem Schema.",
+    "en": "How FreeXmlToolkit finds schemas, the Schema Library with mappings, catalogs, SchemaStore and cache, creating a schema from XML and sample XML from a schema."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "de": "In diesem Video geht es um Schemas selbst: wie FreeXmlToolkit das passende Schema zu einer Datei findet, wie Sie Schemas zentral verwalten, und wie Sie ein Schema aus vorhandenen Daten erzeugen oder umgekehrt Beispieldaten aus einem Schema. Das klingt technisch, spart aber im Alltag viel Zeit: Wer einmal festlegt, welches Schema wohin gehört, muss danach nie wieder suchen.",
+        "en": "This video is about schemas themselves: how FreeXmlToolkit finds the right schema for a file, how you manage schemas centrally, and how you create a schema from existing data or, the other way round, sample data from a schema. That sounds technical, but it saves a lot of time day to day: once you set which schema belongs where, you never have to look for it again."
+      }
+    },
+    {
+      "id": "lookup",
+      "chapter": {
+        "de": "Woher kommt das Schema?",
+        "en": "Where does the schema come from?"
+      },
+      "say": {
+        "de": "Für jede Datei sucht FreeXmlToolkit das Schema in einer festen Reihenfolge. Zuerst zählt die Angabe in der Datei selbst, etwa schemaLocation, mit einer lokalen Datei. Dann kommt die Schema-Bibliothek mit Ihren Zuordnungen und Katalogen. Erst danach wird ein Schema aus dem Netz geladen. Heruntergeladene Schemas landen als lokale Kopie neben dem Schema, das sie braucht, damit alles auch ohne Internet funktioniert. Welches Schema gerade gilt, zeigt die Statusleiste, ein Klick darauf bindet bei Bedarf ein anderes.",
+        "en": "For every file, FreeXmlToolkit looks for the schema in a fixed order. First comes what the file itself says, such as schemaLocation, with a local file. Then comes the Schema Library with your mappings and catalogs. Only after that is a schema loaded from the web. Downloaded schemas land as a local copy next to the schema that needs them, so everything works without internet too. The status bar shows which schema applies, and a click on it binds another one when needed."
+      }
+    },
+    {
+      "id": "library",
+      "chapter": {
+        "de": "Die Schema-Bibliothek",
+        "en": "The Schema Library"
+      },
+      "say": {
+        "de": "Die Schema-Bibliothek ist eine eigene Seite, erreichbar über die Aktivitätsleiste. Links listet die Seitenleiste ihre Bereiche: Zuordnungen, Kataloge, SchemaStore und Cache. Hier legen Sie einmal fest, welches Schema zu welchen Dateien gehört, und das gilt dann für alle Dokumente. Eine Datei mit einem bekannten Namespace braucht dann gar keine Schema-Angabe mehr, das spart Arbeit bei Lieferungen aus anderen Systemen.",
+        "en": "The Schema Library is a page of its own, reached from the activity bar. On the left, the side panel lists its sections: mappings, catalogs, SchemaStore and cache. Here you set once which schema belongs to which files, and that then applies to every document. A file with a known namespace then needs no schema reference at all, which saves work with deliveries from other systems."
+      }
+    },
+    {
+      "id": "mappings",
+      "say": {
+        "de": "Eine Zuordnung verbindet einen Namespace oder einen Dateinamen mit einem Schema. Zuordnung hinzufügen fragt nach beidem. Viele Standards bringt FreeXmlToolkit schon mit, etwa XSLT, Schematron oder die Schemas aus der Finanzbranche, die Liste zeigt sie mit ihrer Herkunft. Eigene Zuordnungen gehen den mitgelieferten vor. Eine Zuordnung über den Dateinamen ist praktisch für Konfigurationsdateien, die immer gleich heißen. Mit dem Filter über der Liste finden Sie einen Eintrag schnell, und Bearbeiten ändert eine vorhandene Zuordnung.",
+        "en": "A mapping connects a namespace or a file name with a schema. Add Mapping asks for both. Many standards come with FreeXmlToolkit already, such as XSLT, Schematron or schemas from the financial industry, and the list shows them with their origin. Your own mappings take priority over the bundled ones. A mapping by file name is handy for configuration files that always have the same name. The filter above the list finds an entry quickly, and Edit changes an existing mapping."
+      }
+    },
+    {
+      "id": "catalogs",
+      "chapter": {
+        "de": "Kataloge, SchemaStore und Cache",
+        "en": "Catalogs, SchemaStore and cache"
+      },
+      "say": {
+        "de": "Kataloge sind der Standardweg, um Schema-Adressen auf lokale Dateien umzuleiten. Ein Katalog ist eine kleine XML-Datei: Sie sagt etwa, dass eine Adresse im Netz in Wirklichkeit eine Datei auf Ihrem Rechner meint. Katalog hinzufügen nimmt einen solchen Katalog auf, und Kataloge neu laden liest ihn nach einer Änderung neu ein. Projekte können eigene Kataloge mitbringen. Ein Haken schaltet einen Katalog ab, ohne ihn zu entfernen. FreeXmlToolkit versteht die üblichen Einträge des OASIS-Formats, auch Verweise auf weitere Kataloge.",
+        "en": "Catalogs are the standard way to redirect schema addresses to local files. A catalog is a small XML file: it says, for example, that an address on the web really means a file on your computer. Add Catalog takes in such a catalog, and Reload Catalogs reads it again after a change. Projects can bring catalogs of their own. A tick switches a catalog off without removing it. FreeXmlToolkit understands the usual entries of the OASIS format, including references to further catalogs."
+      }
+    },
+    {
+      "id": "schemastore",
+      "say": {
+        "de": "Für JSON und YAML gibt es SchemaStore, einen öffentlichen Katalog mit Schemas für hunderte Dateiarten, von docker-compose bis zu GitHub-Workflows. Eingeschaltet bekommt eine Datei wie package json automatisch ihr Schema. Heruntergeladen werden nur der Katalog und die nötigen Schemas, Ihre Dateien verlassen den Rechner nicht. Mit dem Feld Dateinamen testen sehen Sie vorab, welches Schema eine Datei bekommen würde.",
+        "en": "For JSON and YAML there is SchemaStore, a public catalog with schemas for hundreds of file types, from docker-compose to GitHub workflows. When it is on, a file such as package json gets its schema automatically. Only the catalog and the schemas needed are downloaded; your files never leave the computer. The Test File Name field shows in advance which schema a file would get."
+      }
+    },
+    {
+      "id": "cache",
+      "say": {
+        "de": "Der Cache listet alle Schemas, die aus dem Netz geladen wurden, mit Adresse, Größe und Datum. Von hier öffnen Sie ein Schema, zeigen es im Dateimanager oder löschen es, damit es beim nächsten Mal frisch geladen wird. Gesamten Cache leeren hilft, wenn sich ein Schema im Netz geändert hat. Ein Schema im Cache wird nicht bei jedem Öffnen neu geladen, deshalb öffnen auch große Schemas mit vielen Importen schnell.",
+        "en": "The cache lists every schema loaded from the web, with address, size and date. From here you open a schema, show it in the file manager, or delete it so it is loaded fresh next time. Clear Entire Cache helps when a schema on the web has changed. A cached schema is not loaded again every time, so even large schemas with many imports open quickly."
+      }
+    },
+    {
+      "id": "generate-xsd",
+      "chapter": {
+        "de": "Schema aus XML erzeugen",
+        "en": "Schema from XML"
+      },
+      "say": {
+        "de": "Haben Sie Daten, aber kein Schema, erzeugt FreeXmlToolkit eines. Öffnen Sie die Beispielbestellung und wählen Sie unter Werkzeuge XSD aus XML erzeugen. Das Programm leitet aus den Daten Elemente, Attribute, Typen und Häufigkeiten ab und öffnet das neue Schema als eigenen Tab. Mit mehreren Dateien als Grundlage wird das Ergebnis genauer. Mehrere Dateien wählen Sie unter Werkzeuge, XSD aus mehreren XML-Dateien erzeugen, zum Beispiel einen ganzen Ordner mit Lieferungen.",
+        "en": "When you have data but no schema, FreeXmlToolkit creates one. Open the example order and choose Generate XSD from XML under Tools. The program derives elements, attributes, types and occurrences from the data and opens the new schema as a tab of its own. With several files as a basis, the result gets more accurate. Several files are chosen under Tools, Generate XSD from XML Files, for example a whole folder of deliveries."
+      }
+    },
+    {
+      "id": "check-xsd",
+      "say": {
+        "de": "Prüfen Sie das erzeugte Schema danach von Hand. Es kennt nur die Werte, die es gesehen hat: Ein Feld, das in den Beispielen immer vorkommt, gilt als Pflicht, und ein Typ kann zu eng sein, wenn alle Beispiele zufällig ganze Zahlen enthalten. Die Ansicht Grafik hilft beim Überarbeiten. Ein guter Weg ist, das Schema gleich gegen alle vorhandenen Dateien zu prüfen und dort nachzuschärfen, wo es zu streng oder zu großzügig ist.",
+        "en": "Check the generated schema by hand afterwards. It only knows the values it has seen: a field that always appears in the examples counts as required, and a type can be too narrow when all examples happen to hold whole numbers. The Graphic view helps with the rework. A good approach is to validate all existing files against the schema right away and to adjust it where it is too strict or too lenient."
+      }
+    },
+    {
+      "id": "sample",
+      "chapter": {
+        "de": "Beispiel-XML aus einem Schema",
+        "en": "Sample XML from a schema"
+      },
+      "say": {
+        "de": "Umgekehrt erzeugt Beispiel-XML aus einem Schema ein gültiges Dokument. Öffnen Sie order.xsd und wählen Sie Beispiel-XML erzeugen. Sie entscheiden, ob nur Pflichtelemente oder alles erzeugt wird, und Profile füllen die Werte mit realistischen Daten statt mit Platzhaltern. Das Ergebnis lässt sich gleich mit F8 prüfen. Beispieldaten sind nützlich für Tests, für Dokumentation und um einem Partner zu zeigen, wie eine Lieferung aussehen soll.",
+        "en": "The other way round, Generate Sample XML creates a valid document from a schema. Open order.xsd and choose Generate Sample XML. You decide whether only required elements or everything is generated, and profiles fill the values with realistic data instead of placeholders. You can check the result right away with F8. Sample data is useful for tests, for documentation, and to show a partner what a delivery should look like."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "de": "Das war die Verwaltung von Schemas. DTD und RELAX NG prüft FreeXmlToolkit übrigens genauso, mit Autovervollständigung. Wie Sie Schemas fest an ganze Ordner binden, zeigt das Video über Projekte.",
+        "en": "That was managing schemas. FreeXmlToolkit checks DTD and RELAX NG the same way, with auto-completion. How to bind schemas firmly to whole folders is shown in the projects video."
+      }
+    }
+  ]
+}
