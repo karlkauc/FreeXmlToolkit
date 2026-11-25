@@ -12,11 +12,13 @@ Usage:
     python3 scripts/upload-website.py --dir /www --docs [--dry-run]    the documentation, to <dir>/docs
     python3 scripts/upload-website.py --dir /www --videos [--dry-run]  the tutorial videos, to <dir>/videos
 
-With --rsync USER@HOST:/var/www/freexmltoolkit.org the files go to an own server instead (the SSH key is
-the one of your ssh configuration; no password here). --docs, --videos, --dry-run and --all work the same:
+With --rsync DEST the files go to an own server instead, over SSH (key from your ssh configuration; no
+password here). freexmltoolkit.org uses an upload-only account behind rrsync, so DEST is the alias of
+~/.ssh/config with nothing after the colon (paths are relative to the document root). --docs, --videos,
+--dry-run and --all work the same:
 
-    python3 scripts/upload-website.py --rsync fxt@vps:/var/www/freexmltoolkit.org --docs
-    python3 scripts/upload-website.py --rsync fxt@vps:/var/www/freexmltoolkit.org
+    python3 scripts/upload-website.py --rsync fxtweb-upload: --docs
+    python3 scripts/upload-website.py --rsync fxtweb-upload:
 
 Uploads only files whose size differs from the server copy (or all with --all). Never deletes anything.
 Runs scripts/check-website.py first and stops when it reports a problem.
