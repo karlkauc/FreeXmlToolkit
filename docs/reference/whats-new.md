@@ -15,6 +15,10 @@ running is shown under **Help → About FreeXmlToolkit**.
   `maxOccurs="unbounded"`, a type fits every value seen (`id="1"` is a number, no boolean), children stay in document
   order, and several files are merged into one schema. Every sample is valid against the schema generated from it.
   [Generate a schema from XML](../guides/design-schemas/generate-from-xml.md)
+- **Settings open without a pause.** On Windows the window could freeze for several seconds when the Settings page
+  was opened for the first time: the installed fonts were measured for the editor font list at the same moment, and
+  JavaFX handles fonts one at a time. The fonts are now looked at only when you open that list, and the result is kept
+  for the next start.
 - **Templates stay out of your document folders.** When Windows opened an XML file with FreeXmlToolkit, the
   application created a folder `release/examples/templates` next to the file and put its templates there. Templates
   now always live in `.freeXmlToolkit/templates` in your home folder (or the folder chosen under **Settings →

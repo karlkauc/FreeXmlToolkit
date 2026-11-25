@@ -143,4 +143,67 @@ class EditorFontTest {
             EditorFont.forgetInstalledFamilies();
         }
     }
+
+    @Test
+    void openingTheSettingsPageMeasuresNoFontsOnlyOpeningTheListDoes() throws Exception {
+        EditorFont.forgetMeasuring();
+        javafx.scene.control.ComboBox<?> list = WaitForAsyncUtils.waitForAsyncFx(10_000, () -> {
+            var page = new org.fxt.freexmltoolkit.controls.shell.editor.SettingsPanel();
+            Stage window = new Stage();
+            window.setScene(new Scene(page, 900, 700));
+            window.show();
+            page.applyCss();
+            page.layout();
+            return (javafx.scene.control.ComboBox<?>) page.lookup("#settings-editor-font-family");
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertFalse(EditorFont.measuringStarted(),
+                "measuring holds JavaFX's font factory: never together with the page's first CSS pass (AU)");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, list::show);
+        assertTrue(EditorFont.measuringStarted(), "opening the list starts it");
+        WaitForAsyncUtils.waitFor(60, java.util.concurrent.TimeUnit.SECONDS,
+                () -> EditorFont.monospaceFamiliesAsync().isDone() && list.getItems().stream()
+                        .noneMatch(item -> item.toString().equals(
+                                org.fxt.freexmltoolkit.i18n.I18n.t("SettingsPanel.editorFont.searching"))));
+        assertTrue(list.getItems().contains(EditorFont.DEFAULT_FAMILY));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            list.hide();
+            list.getScene().getWindow().hide();
+        });
+    }
+
+    @Test
+    void theMeasuredFontsAreKeptForTheInstalledFontsOnly() {
+        var original = EditorFont.fontList;
+        PropertiesService props = ServiceRegistry.get(PropertiesService.class);
+        EditorFont.fontList = () -> java.util.List.of("Courier New", "Arial");
+        EditorFont.forgetInstalledFamilies();
+        EditorFont.forgetMeasuring();
+        props.set(EditorFont.MONOSPACE_CACHE_KEY, "");
+        props.set(EditorFont.MONOSPACE_STAMP_KEY, "");
+        try {
+            int before = EditorFont.measuredFonts.get();
+            var measured = EditorFont.cachedOrMeasured();
+            assertTrue(EditorFont.measuredFonts.get() > before, "measured the first time");
+            assertEquals(EditorFont.DEFAULT_FAMILY, measured.getFirst());
+
+            EditorFont.forgetMeasuring(); // a new session
+            int afterFirst = EditorFont.measuredFonts.get();
+            assertEquals(measured, EditorFont.cachedOrMeasured());
+            assertEquals(afterFirst, EditorFont.measuredFonts.get(), "taken from the cache, nothing measured");
+
+            EditorFont.fontList = () -> java.util.List.of("Courier New", "Arial", "Fira Code"); // a font installed
+            EditorFont.forgetInstalledFamilies();
+            EditorFont.forgetMeasuring();
+            EditorFont.cachedOrMeasured();
+            assertTrue(EditorFont.measuredFonts.get() > afterFirst, "other installed fonts: measured again");
+        } finally {
+            EditorFont.fontList = original;
+            EditorFont.forgetInstalledFamilies();
+            EditorFont.forgetMeasuring();
+            props.set(EditorFont.MONOSPACE_CACHE_KEY, "");
+            props.set(EditorFont.MONOSPACE_STAMP_KEY, "");
+        }
+    }
 }

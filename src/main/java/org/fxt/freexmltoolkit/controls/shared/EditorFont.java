@@ -227,19 +227,30 @@ public final class EditorFont {
         installedFamilies();
     }
 
-    private static synchronized java.util.Set<String> installedFamilies() {
-        if (installedFamilies == null) {
-            try {
-                java.util.Set<String> names = new java.util.HashSet<>();
-                for (String name : fontList.get()) {
-                    names.add(name.toLowerCase(Locale.ROOT));
-                }
-                installedFamilies = names;
-            } catch (RuntimeException | Error e) {
-                return java.util.Set.of();
+    /**
+     * The installed families (lower case), read once. The system's font list is read outside the class lock: with
+     * many fonts it takes seconds, and the FX thread must not wait for it in {@link #resolveFamily}.
+     */
+    private static java.util.Set<String> installedFamilies() {
+        synchronized (EditorFont.class) {
+            if (installedFamilies != null) {
+                return installedFamilies;
             }
         }
-        return installedFamilies;
+        java.util.Set<String> names = new java.util.HashSet<>();
+        try {
+            for (String name : fontList.get()) {
+                names.add(name.toLowerCase(Locale.ROOT));
+            }
+        } catch (RuntimeException | Error e) {
+            return java.util.Set.of();
+        }
+        synchronized (EditorFont.class) {
+            if (installedFamilies == null) {
+                installedFamilies = names;
+            }
+            return installedFamilies;
+        }
     }
 
     /** Forgets the installed families read so far (tests). */
@@ -247,19 +258,29 @@ public final class EditorFont {
         installedFamilies = null;
     }
 
+    /** The measured monospace families of this computer, kept across sessions (one per line). */
+    static final String MONOSPACE_CACHE_KEY = "editor.font.monospaceCache";
+    /** Which installed fonts {@link #MONOSPACE_CACHE_KEY} was measured for; another set measures again. */
+    static final String MONOSPACE_STAMP_KEY = "editor.font.monospaceCacheKey";
+
     /** The measuring of the installed fonts, started once ({@link #monospaceFamiliesAsync()}). */
     private static java.util.concurrent.CompletableFuture<List<String>> monospaceMeasuring;
+    /** Fonts measured so far by {@link #isMonospace} in a full measurement (tests). */
+    static final java.util.concurrent.atomic.AtomicInteger measuredFonts = new java.util.concurrent.atomic.AtomicInteger();
 
     /**
-     * @return the installed monospace families, measured off the FX thread (once): a computer with hundreds of fonts
-     *         needs seconds for it (telemetry: 4.2 s frozen when the Settings font list opened)
+     * @return the installed monospace families, from this computer's cache or measured off the FX thread (once).
+     *         Start it only when the list is wanted (Settings: when the editor font list opens), never together with
+     *         building a page: measuring loads every installed font, and JavaFX's font factory is synchronized, so the
+     *         FX thread's first CSS pass of a page waits for it font by font (telemetry AU: 2-9 s on Windows when
+     *         Settings opened, from 3.4.0 on, when the measuring was started with the page).
      */
     public static synchronized java.util.concurrent.CompletableFuture<List<String>> monospaceFamiliesAsync() {
         if (monospaceMeasuring == null) {
             monospaceMeasuring = new java.util.concurrent.CompletableFuture<>();
             Thread worker = new Thread(() -> {
                 try {
-                    monospaceMeasuring.complete(monospaceFamilies());
+                    monospaceMeasuring.complete(cachedOrMeasured());
                 } catch (RuntimeException | Error e) {
                     monospaceMeasuring.complete(List.of(DEFAULT_FAMILY));
                 }
@@ -271,25 +292,104 @@ public final class EditorFont {
         return monospaceMeasuring;
     }
 
-    /**
-     * @return the installed monospace families, the bundled default first; measured once (any thread: the text
-     *         nodes measured are never part of a scene). The UI uses {@link #monospaceFamiliesAsync()}.
-     */
-    public static synchronized List<String> monospaceFamilies() {
-        if (monospaceFamilies == null) {
-            TreeSet<String> found = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-            for (String family : Font.getFamilies()) {
-                if (isMonospace(family)) {
-                    found.add(family);
+    /** @return whether {@link #monospaceFamiliesAsync()} was started (tests) */
+    static synchronized boolean measuringStarted() {
+        return monospaceMeasuring != null;
+    }
+
+    /** Forgets the measuring and its result of this session (tests). */
+    static synchronized void forgetMeasuring() {
+        monospaceMeasuring = null;
+        monospaceFamilies = null;
+    }
+
+    /** The families from the cache when they were measured for the fonts installed now, else measured and cached. */
+    static List<String> cachedOrMeasured() {
+        String stamp = installedStamp();
+        List<String> cached = readCache(stamp);
+        if (cached != null) {
+            synchronized (EditorFont.class) {
+                if (monospaceFamilies == null) {
+                    monospaceFamilies = cached;
                 }
             }
-            found.remove(DEFAULT_FAMILY);
-            List<String> list = new ArrayList<>();
-            list.add(DEFAULT_FAMILY);
-            list.addAll(found);
-            monospaceFamilies = List.copyOf(list);
+            return cached;
         }
-        return monospaceFamilies;
+        List<String> measured = monospaceFamilies();
+        writeCache(stamp, measured);
+        return measured;
+    }
+
+    /** @return a fingerprint of the installed font families */
+    private static String installedStamp() {
+        TreeSet<String> sorted = new TreeSet<>(installedFamilies());
+        return sorted.size() + "-" + Integer.toHexString(String.join("\n", sorted).hashCode());
+    }
+
+    private static List<String> readCache(String stamp) {
+        try {
+            PropertiesService props = ServiceRegistry.get(PropertiesService.class);
+            String value = props.get(MONOSPACE_CACHE_KEY);
+            if (!stamp.equals(props.get(MONOSPACE_STAMP_KEY)) || value == null || value.isBlank()) {
+                return null;
+            }
+            List<String> families = new ArrayList<>(List.of(value.split("\n")));
+            families.remove(DEFAULT_FAMILY);
+            families.addFirst(DEFAULT_FAMILY);
+            return List.copyOf(families);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    private static void writeCache(String stamp, List<String> families) {
+        try {
+            PropertiesService props = ServiceRegistry.get(PropertiesService.class);
+            props.set(MONOSPACE_CACHE_KEY, String.join("\n", families));
+            props.set(MONOSPACE_STAMP_KEY, stamp);
+        } catch (RuntimeException e) {
+            logger.debug("Could not keep the measured editor fonts: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * @return the installed monospace families, the bundled default first; measured once (any thread: the text
+     *         nodes measured are never part of a scene). The UI uses {@link #monospaceFamiliesAsync()}. Measured
+     *         outside the class lock, so the FX thread never waits for it in {@link #resolveFamily}; off the FX
+     *         thread it pauses after every font, so the FX thread gets JavaFX's font factory in between.
+     */
+    public static List<String> monospaceFamilies() {
+        synchronized (EditorFont.class) {
+            if (monospaceFamilies != null) {
+                return monospaceFamilies;
+            }
+        }
+        boolean background = !javafx.application.Platform.isFxApplicationThread();
+        TreeSet<String> found = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        for (String family : Font.getFamilies()) {
+            measuredFonts.incrementAndGet();
+            if (isMonospace(family)) {
+                found.add(family);
+            }
+            if (background) {
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        }
+        found.remove(DEFAULT_FAMILY);
+        List<String> list = new ArrayList<>();
+        list.add(DEFAULT_FAMILY);
+        list.addAll(found);
+        synchronized (EditorFont.class) {
+            if (monospaceFamilies == null) {
+                monospaceFamilies = List.copyOf(list);
+            }
+            return monospaceFamilies;
+        }
     }
 
     /** @return true when narrow and wide letters have the same advance in {@code family} */

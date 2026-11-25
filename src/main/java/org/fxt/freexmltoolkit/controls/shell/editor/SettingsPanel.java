@@ -972,12 +972,20 @@ public class SettingsPanel extends VBox {
     /** Fills the editor-font card and applies every change at once (like theme and accent). */
     private void initEditorFontControls() {
         var font = org.fxt.freexmltoolkit.controls.shared.EditorFont.current();
-        // The installed monospace fonts are measured in the background (seconds with many fonts); the list shows
-        // the default and the chosen family until the result is there
+        // The installed monospace fonts are listed when the list first opens, measured in the background (seconds
+        // with many fonts) or taken from this computer's cache. Never while the page is built: measuring holds
+        // JavaFX's font factory, and the page's first CSS pass waited for it (telemetry AU, 3.4.0-3.5.0).
         editorFontFamily.getItems().setAll(new java.util.LinkedHashSet<>(java.util.List.of(
                 org.fxt.freexmltoolkit.controls.shared.EditorFont.DEFAULT_FAMILY, font.family())));
-        org.fxt.freexmltoolkit.controls.shared.EditorFont.monospaceFamiliesAsync()
-                .thenAccept(families -> javafx.application.Platform.runLater(() -> fillEditorFontFamilies(families)));
+        editorFontFamily.setCellFactory(list -> new javafx.scene.control.ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? null : item);
+                setDisable(!empty && item != null && item.equals(editorFontSearching));
+            }
+        });
+        editorFontFamily.setOnShowing(event -> listEditorFontFamilies());
         showEditorFont(font);
         editorFontFamily.valueProperty().addListener((obs, old, value) -> applyEditorFontFromControls());
         editorFontSize.valueProperty().addListener((obs, old, value) -> applyEditorFontFromControls());
@@ -987,12 +995,36 @@ public class SettingsPanel extends VBox {
                 new javafx.beans.value.WeakChangeListener<>(editorFontListener));
     }
 
+    /** The disabled list entry shown while the installed fonts are measured, or null. */
+    private String editorFontSearching;
+
+    /** The editor font list opens: lists the installed monospace fonts, measuring them first if needed. */
+    private void listEditorFontFamilies() {
+        if (editorFontFamiliesListed || editorFontSearching != null) {
+            return;
+        }
+        var families = org.fxt.freexmltoolkit.controls.shared.EditorFont.monospaceFamiliesAsync();
+        if (families.isDone()) {
+            fillEditorFontFamilies(families.join());
+            return;
+        }
+        editorFontSearching = I18n.t("SettingsPanel.editorFont.searching");
+        showingEditorFont = true;
+        try {
+            editorFontFamily.getItems().add(editorFontSearching);
+        } finally {
+            showingEditorFont = false;
+        }
+        families.thenAccept(measured -> javafx.application.Platform.runLater(() -> fillEditorFontFamilies(measured)));
+    }
+
     /** Lists the installed monospace fonts (once, when measured), keeping the chosen family. FX thread. */
     private void fillEditorFontFamilies(java.util.List<String> measured) {
         if (editorFontFamiliesListed) {
             return;
         }
         editorFontFamiliesListed = true;
+        editorFontSearching = null;
         java.util.LinkedHashSet<String> families = new java.util.LinkedHashSet<>(measured);
         String chosen = editorFontFamily.getValue();
         if (chosen != null && !chosen.isBlank()) {
@@ -1028,6 +1060,9 @@ public class SettingsPanel extends VBox {
             return;
         }
         String family = editorFontFamily.getValue();
+        if (family != null && family.equals(editorFontSearching)) {
+            return;
+        }
         Integer size = editorFontSize.getValue();
         Double spacing = editorLineSpacing.getValue();
         applyEditorFont(new org.fxt.freexmltoolkit.controls.shared.EditorFont.Settings(family,
