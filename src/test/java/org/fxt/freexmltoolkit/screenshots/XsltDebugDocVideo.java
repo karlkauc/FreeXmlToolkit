@@ -287,10 +287,9 @@ class XsltDebugDocVideo {
                 javafx.stage.Window dialog = keys.dialog();
                 if (dialog != null) {
                     video.zoom(doc.fx(() -> new BoundingBox(dialog.getX(), dialog.getY(), dialog.getWidth(), dialog.getHeight())));
-                    Node field = doc.fx(() -> dialog.getScene().getRoot().lookupAll(".text-field").stream()
-                            .filter(Node::isVisible).findFirst().orElse(null));
+                    Node field = doc.fx(() -> dialog.getScene().getRoot().lookup("#breakpoint-condition"));
                     video.click(field);
-                    video.typeIntoFocused("@quantity > 2");
+                    typeInto(video, field, "@quantity > 2");
                     video.spoken(0.4);
                     clickDefault(video, dialog);
                 }
@@ -315,13 +314,10 @@ class XsltDebugDocVideo {
                 javafx.stage.Window dialog = keys.dialog();
                 if (dialog != null) {
                     video.zoom(doc.fx(() -> new BoundingBox(dialog.getX(), dialog.getY(), dialog.getWidth(), dialog.getHeight())));
-                    java.util.List<Node> fields = doc.fx(() -> dialog.getScene().getRoot().lookupAll(".text-field").stream()
-                            .filter(Node::isVisible).toList());
-                    if (fields.size() >= 2) {
-                        video.click(fields.get(1));
-                        doc.onFx(fields.get(1)::requestFocus);
-                        video.pause(200);
-                        video.typeIntoFocused(keys.say("Artikel {@sku}", "item {@sku}"));
+                    Node log = doc.fx(() -> dialog.getScene().getRoot().lookup("#breakpoint-log"));
+                    if (log != null) {
+                        video.click(log);
+                        typeInto(video, log, keys.say("Artikel {@sku}", "item {@sku}"));
                     }
                     video.spoken(0.6);
                     clickDefault(video, dialog);
@@ -462,5 +458,28 @@ class XsltDebugDocVideo {
             }
         }
         return true;
+    }
+
+    /**
+     * Types {@code text} into a field of a dialog one character at a time. Under Xvfb a dialog window does
+     * not always get the focus, so the field is filled directly instead of through key events.
+     */
+    private void typeInto(DocVideoRecorder video, Node field, String text) {
+        if (!(field instanceof javafx.scene.control.TextInputControl input)) {
+            System.out.println("[video] no text field: " + field);
+            return;
+        }
+        doc.onFx(() -> {
+            input.requestFocus();
+            input.clear();
+        });
+        for (int i = 1; i <= text.length(); i++) {
+            String part = text.substring(0, i);
+            doc.onFx(() -> {
+                input.setText(part);
+                input.positionCaret(part.length());
+            });
+            video.pause(70);
+        }
     }
 }
