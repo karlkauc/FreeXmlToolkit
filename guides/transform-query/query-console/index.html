@@ -4995,7 +4995,9 @@ pane shows the previous run's XML result with syntax highlighting.</em></p>
 <li>A read-only, selectable results editor with <strong>line numbers</strong> showing the query
     result. <strong>XML results are
     syntax-highlighted</strong> (tags, attributes, values, comments), and <strong>JSON results</strong> (e.g. from
-    JSONPath queries) get JSON highlighting; scalar results and messages stay plain.</li>
+    JSONPath queries) get JSON highlighting; scalar results and messages stay plain.
+    A result longer than one million characters is shown shortened (cut at a line end, with a note);
+    <strong>Copy</strong> and <strong>Save</strong> still take the whole result.</li>
 <li><strong>Copy</strong> - Copy the full result to the clipboard.</li>
 <li><strong>Table</strong> - Shows the last XPath or XQuery result as a table in the
     <a href="../../../reference/transform-panel/#the-output-panel-results">OUTPUT panel</a>: each result item is a row, its child elements
