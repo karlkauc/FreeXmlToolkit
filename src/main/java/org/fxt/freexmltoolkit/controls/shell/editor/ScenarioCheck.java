@@ -105,11 +105,16 @@ public final class ScenarioCheck {
     }
 
     /**
-     * Compares an expected text with a result: by structure when both are XML, else line by line.
+     * Compares an expected text with a result: by structure when both are XML, else line by line. HTML that
+     * is not well-formed XML (output method {@code html}: {@code <meta>} without end tag) is compared line by line.
      */
     static Result compare(String expectedText, String actual, Path expected, XmlStructuralDiff.Options options) {
         if (XmlStructuralDiff.looksLikeXml(expectedText) && XmlStructuralDiff.looksLikeXml(actual)) {
             XmlStructuralDiff.Result diff = XmlStructuralDiff.compare(expectedText, actual, options);
+            if (!diff.compared() && looksLikeHtml(expectedText) && looksLikeHtml(actual)) {
+                List<XmlStructuralDiff.Difference> lines = lineDifferences(expectedText, actual);
+                return new Result(lines.isEmpty() ? Status.PASSED : Status.FAILED, lines, actual, expected, null);
+            }
             if (!diff.compared()) {
                 String why = diff.leftError() != null ? I18n.t("ScenarioCheck.expected-not-well-formed", diff.leftError())
                         : I18n.t("ScenarioCheck.result-not-well-formed", diff.rightError());
@@ -120,6 +125,20 @@ public final class ScenarioCheck {
         }
         List<XmlStructuralDiff.Difference> lines = lineDifferences(expectedText, actual);
         return new Result(lines.isEmpty() ? Status.PASSED : Status.FAILED, lines, actual, expected, null);
+    }
+
+    /** Whether the text starts (after whitespace and comments) with an HTML doctype or an {@code html} element. */
+    static boolean looksLikeHtml(String text) {
+        String t = text.strip();
+        if (t.startsWith("\uFEFF")) {
+            t = t.substring(1);
+        }
+        while (t.startsWith("<!--") && t.indexOf("-->") > 0) {
+            t = t.substring(t.indexOf("-->") + 3).strip();
+        }
+        String head = t.length() > 20 ? t.substring(0, 20) : t;
+        head = head.toLowerCase(java.util.Locale.ROOT);
+        return head.startsWith("<!doctype html") || head.startsWith("<html");
     }
 
     /** Text results: the differing lines (line endings and trailing whitespace do not count). */

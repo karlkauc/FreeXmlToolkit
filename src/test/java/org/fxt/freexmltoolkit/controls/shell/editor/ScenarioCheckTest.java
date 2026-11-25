@@ -113,6 +113,26 @@ class ScenarioCheckTest {
     }
 
     @Test
+    void htmlResultsThatAreNotXmlAreComparedLineByLine() {
+        String html = "<!DOCTYPE HTML>\n<html>\n<head><meta charset=\"UTF-8\"><title>Order</title></head>\n"
+                + "<body><p>Total 125.30</p></body>\n</html>\n";
+        ScenarioCheck.Result same = ScenarioCheck.compare(html, html, dir.resolve("e.html"),
+                org.fxt.freexmltoolkit.service.XmlStructuralDiff.Options.DEFAULTS);
+        assertTrue(same.passed(), same.toString());
+        ScenarioCheck.Result changed = ScenarioCheck.compare(html, html.replace("125.30", "99.00"),
+                dir.resolve("e.html"), org.fxt.freexmltoolkit.service.XmlStructuralDiff.Options.DEFAULTS);
+        assertEquals(ScenarioCheck.Status.FAILED, changed.status());
+        assertEquals(1, changed.differences().size(), changed.differences().toString());
+    }
+
+    @Test
+    void brokenXmlIsStillAnError() {
+        ScenarioCheck.Result broken = ScenarioCheck.compare("<a><b></a>", "<a/>", dir.resolve("e.xml"),
+                org.fxt.freexmltoolkit.service.XmlStructuralDiff.Options.DEFAULTS);
+        assertEquals(ScenarioCheck.Status.ERROR, broken.status());
+    }
+
+    @Test
     void projectFileKeepsExpectedAndCompareSettings() throws IOException {
         scenario.compare = new FxtProject.CompareSettings();
         scenario.compare.ignore = List.of("//@created");
