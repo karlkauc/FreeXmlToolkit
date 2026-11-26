@@ -377,6 +377,38 @@ public class FundsXmlPanel extends VBox {
         }
     }
 
+    /**
+     * Lists the linked and embedded documents ({@code Documents/Document}) of the active FundsXML document in
+     * a dialog that opens, saves, embeds and links them.
+     */
+    @FXML
+    public void onDocuments() {
+        String xml = editorHost.getActiveText().orElse(null);
+        if (xml == null || !org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.isFundsXml(xml)) {
+            PanelStatus.precondition(status, I18n.t("FundsXmlPanel.notFundsXml"));
+            return;
+        }
+        PanelJobs.Job job = start("documents", I18n.t("FundsXmlPanel.fundsxml-documents.text"), false);
+        if (job == null) {
+            return;
+        }
+        job.message(I18n.t("FundsXmlPanel.documents-loading"));
+        FxtGui.executorService.submit(() -> {
+            try {
+                var loaded = FundsXmlDocumentsDialog.Loaded.of(xml);
+                job.finish();
+                Platform.runLater(() -> {
+                    PanelStatus.info(status, I18n.t("FundsXmlPanel.documents-count", loaded.entries().size()));
+                    FundsXmlDocumentsDialog.show(editorHost, loaded.entries(), loaded.candidates());
+                });
+            } catch (java.io.IOException | RuntimeException e) {
+                job.finish();
+                Platform.runLater(() -> PanelStatus.failure(status, I18n.t("FundsXmlPanel.documents-failed"),
+                        e.getMessage(), false));
+            }
+        });
+    }
+
     @FXML
     public void onGenerateDocs() {
         PanelJobs.Job job = start("docs", I18n.t("FundsXmlPanel.generating-documentation"), false);

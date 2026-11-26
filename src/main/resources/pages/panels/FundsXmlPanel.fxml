@@ -51,6 +51,8 @@
                                            text="%FundsXmlPanel.fundsxml-grid-setup.text" color="TOOL" onAction="#onGridSetup"/>
                         <PanelActionButton id="fundsxml-percentages" iconLiteral="bi-percent"
                                            text="%FundsXmlPanel.fundsxml-percentages.text" color="TOOL" onAction="#onPercentages"/>
+                        <PanelActionButton id="fundsxml-documents" iconLiteral="bi-file-earmark-richtext"
+                                           text="%FundsXmlPanel.fundsxml-documents.text" color="TOOL" onAction="#onDocuments"/>
                     </children>
                 </PanelActionList>
             </children>

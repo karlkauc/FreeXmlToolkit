@@ -181,6 +181,115 @@ class FundsXmlPanelTest {
         }
     }
 
+    @Test
+    void documentsDialogListsSavesAndEmbedsAsOneUndoStep(@TempDir Path tempDir) throws Exception {
+        String fixture;
+        try (var in = getClass().getResourceAsStream("/fundsxml/documents-fixture.xml")) {
+            fixture = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        }
+        FundsXmlPanel panel = WaitForAsyncUtils.waitForAsyncFx(3000, () -> new FundsXmlPanel(host));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openGeneratedDocument(fixture, EditorFileType.XML, "fund.xml"));
+        WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS,
+                () -> host.getActiveText().map(fixture::equals).orElse(false));
+        assertNotNull(WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.lookup("#fundsxml-documents")));
+        Path pdf = java.nio.file.Files.write(tempDir.resolve("prospectus.pdf"), new byte[] {1, 2, 3, 4, 5});
+        Path saved = tempDir.resolve("saved.txt");
+        List<String> proposed = new ArrayList<>();
+        FundsXmlDocumentsDialog.openFileChooser = title -> pdf.toFile();
+        FundsXmlDocumentsDialog.saveFileChooser = (title, name) -> {
+            proposed.add(name);
+            return saved.toFile();
+        };
+        javafx.stage.Window window = null;
+        try {
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                panel.onDocuments();
+                return null;
+            });
+            java.util.function.Supplier<Node> tableNode = () -> javafx.stage.Window.getWindows().stream()
+                    .map(w -> w.getScene() == null ? null : w.getScene().getRoot().lookup("#documents-table"))
+                    .filter(java.util.Objects::nonNull).findFirst().orElse(null);
+            WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS,
+                    () -> WaitForAsyncUtils.waitForAsyncFx(2000, tableNode::get) != null);
+            @SuppressWarnings("unchecked")
+            javafx.scene.control.TableView<org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDocuments.Entry> table =
+                    (javafx.scene.control.TableView<org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDocuments.Entry>)
+                            WaitForAsyncUtils.waitForAsyncFx(2000, tableNode::get);
+            window = table.getScene().getWindow();
+            javafx.scene.Parent root = table.getScene().getRoot();
+            assertEquals(2, table.getItems().size());
+            assertEquals(List.of("Type", "Name", "Language", "Assigned to", "Link / embedded", "Size"),
+                    table.getColumns().stream().map(javafx.scene.control.TableColumn::getText).toList());
+            assertEquals("Share class AT0000A00XX1", FundsXmlDocumentsDialog.assignedTo(table.getItems().get(1)));
+            assertEquals("Embedded", FundsXmlDocumentsDialog.storage(table.getItems().get(1)));
+            Button save = (Button) root.lookup("#documents-save");
+            Button embedLinked = (Button) root.lookup("#documents-embed-linked");
+            assertTrue(save.isDisabled(), "nothing selected");
+            assertFalse(((Button) root.lookup("#documents-embed")).isDisabled());
+
+            // save the embedded document
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                table.getSelectionModel().select(1);
+                assertFalse(save.isDisabled());
+                assertTrue(embedLinked.isDisabled());
+                save.fire();
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS, () -> java.nio.file.Files.exists(saved));
+            assertEquals(List.of("hello.txt"), proposed);
+            WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS,
+                    () -> "Hello FundsXML\n".equals(java.nio.file.Files.readString(saved)));
+
+            // embed the linked document: one undo step
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                table.getSelectionModel().select(0);
+                assertFalse(embedLinked.isDisabled());
+                embedLinked.fire();
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS,
+                    () -> host.getActiveText().map(t -> t.contains("<SizeInBytes>5</SizeInBytes>")).orElse(false));
+            WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS,
+                    () -> WaitForAsyncUtils.waitForAsyncFx(2000, () -> table.getItems().getFirst().embedded()));
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                host.getActiveCodeArea().undo();
+                return null;
+            });
+            assertEquals(fixture, host.getActiveText().orElseThrow(), "one undo takes it back");
+
+            // the undo edited the document after the list was read: an action reads the list again, changes nothing
+            javafx.scene.control.Label message = (javafx.scene.control.Label) root.lookup("#documents-message");
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                table.getSelectionModel().select(1);   // the embedded entry: Save is enabled
+                save.fire();
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(
+                    2000, () -> org.fxt.freexmltoolkit.i18n.I18n.t("FundsXmlPanel.documents-reread").equals(message.getText())));
+            assertEquals(fixture, host.getActiveText().orElseThrow(), "nothing changed on a stale list");
+        } finally {
+            FundsXmlDocumentsDialog.openFileChooser = null;
+            FundsXmlDocumentsDialog.saveFileChooser = null;
+            javafx.stage.Window w = window;
+            if (w != null) {
+                WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                    w.hide();
+                    return null;
+                });
+            }
+        }
+    }
+
+    @Test
+    void onlyWebLinksOfADocumentAreOpened() {
+        assertTrue(FundsXmlDocumentsDialog.openableLink("https://example.org/kid.pdf"));
+        assertTrue(FundsXmlDocumentsDialog.openableLink(" HTTP://example.org/a b.pdf"));
+        assertFalse(FundsXmlDocumentsDialog.openableLink("file:///C:/Users/x/payload.exe"));
+        assertFalse(FundsXmlDocumentsDialog.openableLink("smb://server/share/x.pdf"));
+        assertFalse(FundsXmlDocumentsDialog.openableLink("ms-settings:"));
+        assertFalse(FundsXmlDocumentsDialog.openableLink(null));
+    }
+
     private static Node findNode(Node root, java.util.function.Predicate<Node> match) {
         if (match.test(root)) {
             return root;

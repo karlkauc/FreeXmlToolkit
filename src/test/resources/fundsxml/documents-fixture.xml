@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FundsXML4>
+  <ControlData>
+    <UniqueDocumentID>DOCS-TEST-1</UniqueDocumentID>
+    <DocumentGenerated>2025-10-02T08:00:00</DocumentGenerated>
+    <ContentDate>2025-10-01</ContentDate>
+    <DataSupplier><SystemCountry>AT</SystemCountry><Short>FXT</Short><Name>FreeXmlToolkit Test</Name><Type>Asset Manager</Type></DataSupplier>
+    <DataOperation>INITIAL</DataOperation>
+  </ControlData>
+  <Funds>
+    <Fund>
+      <Identifiers><LEI>529900T8BM49AURSDO55</LEI></Identifiers>
+      <Names><OfficialName>Test Fund</OfficialName></Names>
+      <Currency>EUR</Currency>
+      <SingleFundFlag>true</SingleFundFlag>
+      <SingleFund>
+        <ShareClasses>
+          <ShareClass>
+            <Identifiers><ISIN>AT0000A00XX1</ISIN></Identifiers>
+            <Names><OfficialName>Test Fund EUR R</OfficialName></Names>
+            <Currency>EUR</Currency>
+          </ShareClass>
+          <ShareClass>
+            <Identifiers><ISIN>AT0000A00XX2</ISIN></Identifiers>
+            <Names><OfficialName>Test Fund EUR I</OfficialName></Names>
+            <Currency>EUR</Currency>
+          </ShareClass>
+        </ShareClasses>
+      </SingleFund>
+    </Fund>
+  </Funds>
+  <Documents>
+    <Document>
+      <Type>
+        <ListedType>Prospectus</ListedType>
+      </Type>
+      <Language>de</Language>
+      <Fund>
+        <Identifiers>
+          <LEI>529900T8BM49AURSDO55</LEI>
+        </Identifiers>
+      </Fund>
+      <Name>Verkaufsprospekt</Name>
+      <FileName>prospectus.pdf</FileName>
+      <Format>application/pdf</Format>
+      <SizeInBytes>123456</SizeInBytes>
+      <DocumentURL>https://example.com/docs/prospectus.pdf</DocumentURL>
+    </Document>
+    <Document>
+      <Type>
+        <UnlistedType>Hello note</UnlistedType>
+      </Type>
+      <Language>en</Language>
+      <ShareClasses>
+        <ShareClass>
+          <Identifiers>
+            <ISIN>AT0000A00XX1</ISIN>
+          </Identifiers>
+        </ShareClass>
+      </ShareClasses>
+      <Name>Hello</Name>
+      <FileName>hello.txt</FileName>
+      <Format>text/plain</Format>
+      <SizeInBytes>15</SizeInBytes>
+      <BinaryData>
+        SGVsbG8gRnVu
+        ZHNYTUwK
+      </BinaryData>
+    </Document>
+  </Documents>
+</FundsXML4>
