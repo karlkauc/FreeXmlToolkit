@@ -182,7 +182,9 @@
             jsonPath = basePath.content + 'languages.json';
         }
 
-        fetch(jsonPath)
+        // Preloaded by languages.js (works on file:// pages), else fetched
+        var preloaded = window.FXT_LANGUAGES;
+        (preloaded ? Promise.resolve({ ok: true, json: function () { return preloaded; } }) : fetch(jsonPath))
             .then(function (response) {
                 if (!response.ok) {
                     throw new Error('languages.json not found');

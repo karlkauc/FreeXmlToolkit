@@ -50,8 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return text.replace(regex, (match) => `<strong class="bg-sky-200 text-sky-800 font-semibold">${match}</strong>`);
     }
 
-    // Fetch the search index data
-    fetch(searchIndexPath)
+    // The index: preloaded by search_index.js (works on file:// pages), else fetched
+    const preloaded = window.FXT_SEARCH_INDEX;
+    (Array.isArray(preloaded) ? Promise.resolve({ ok: true, json: () => preloaded }) : fetch(searchIndexPath))
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);

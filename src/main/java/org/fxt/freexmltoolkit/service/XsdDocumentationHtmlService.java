@@ -954,6 +954,9 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
         final var outputFilePath = Paths.get(outputDirectory.getPath(), "search_index.json");
         try {
             Files.writeString(outputFilePath, jsonBuilder.toString(), StandardCharsets.UTF_8);
+            // The same index as a script: browsers refuse fetch() on file:// pages, a <script> loads anywhere
+            Files.writeString(Paths.get(outputDirectory.getPath(), "search_index.js"),
+                    "window.FXT_SEARCH_INDEX = " + jsonBuilder + ";\n", StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException("Could not write search index file", e);
         }

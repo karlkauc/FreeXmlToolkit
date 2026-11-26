@@ -162,6 +162,41 @@ class XsdDocumentationLanguageSelectionTest {
     }
 
     @Test
+    @DisplayName("Search index and languages are also written as scripts, so pages work when opened from disk")
+    void searchIndexAndLanguagesWorkOnFilePages(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("langs.xsd");
+        Files.writeString(xsd, XSD, StandardCharsets.UTF_8);
+        Path out = tmp.resolve("out");
+        XsdDocumentationService service = new XsdDocumentationService();
+        service.setXsdFilePath(xsd.toString());
+        service.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
+        service.generateXsdDocumentation(out.toFile());
+
+        String index = Files.readString(out.resolve("search_index.js"), StandardCharsets.UTF_8);
+        assertTrue(index.startsWith("window.FXT_SEARCH_INDEX = ["), index.substring(0, Math.min(80, index.length())));
+        assertTrue(index.contains("ROOT_ENGLISH_TEXT") || index.contains("\"name\""), "the index data");
+        String languages = Files.readString(out.resolve("languages.js"), StandardCharsets.UTF_8);
+        assertTrue(languages.startsWith("window.FXT_LANGUAGES = {") && languages.contains("\"de\""), languages);
+
+        // every page that loads search.js loads the scripts first, with the right relative path
+        List<Path> pages;
+        try (Stream<Path> files = Files.walk(out)) {
+            pages = files.filter(p -> p.toString().endsWith(".html")).toList();
+        }
+        for (Path page : pages) {
+            String html = Files.readString(page, StandardCharsets.UTF_8);
+            int search = html.indexOf("assets/search.js");
+            if (search < 0) {
+                continue;
+            }
+            String root = out.relativize(page).getNameCount() > 1 ? "../" : "";
+            int script = html.indexOf("<script src=\"" + root + "search_index.js\"");
+            assertTrue(script >= 0 && script < search, "search_index.js before search.js in " + out.relativize(page));
+            assertTrue(html.contains("<script src=\"" + root + "languages.js\""), "languages.js in " + out.relativize(page));
+        }
+    }
+
+    @Test
     @DisplayName("Type pages render the type's own documentation and the enumeration value docs")
     void typePagesRenderDocumentation(@TempDir Path tmp) throws Exception {
         Path xsd = tmp.resolve("langs.xsd");

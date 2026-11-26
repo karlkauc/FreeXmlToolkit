@@ -681,6 +681,9 @@ public class XsdDocumentationService {
             // Write to file
             Path languagesJsonPath = outputDirectory.toPath().resolve("languages.json");
             Files.writeString(languagesJsonPath, json.toString(), StandardCharsets.UTF_8);
+            // The same data as a script: browsers refuse fetch() on file:// pages, a <script> loads anywhere
+            Files.writeString(outputDirectory.toPath().resolve("languages.js"),
+                    "window.FXT_LANGUAGES = " + json.toString().strip() + ";\n", StandardCharsets.UTF_8);
 
             logger.debug("Generated languages.json with {} languages, fallback: {}", sortedLanguages.size(), fallbackLanguage);
         } catch (IOException e) {
