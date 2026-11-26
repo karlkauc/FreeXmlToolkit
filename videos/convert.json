@@ -42,6 +42,13 @@
       }
     },
     {
+      "id": "rules",
+      "say": {
+        "de": "Die Regeln der strukturierten Abbildung sind einfach: Das Wurzelelement wird zur Eigenschaft ganz außen, Attribute bekommen ein At-Zeichen vor den Namen, Text neben Attributen heißt hash text, und mehrere gleichnamige Geschwister werden zu einer Liste. Kommentare fallen weg. Verloren gehen dabei die Reihenfolge unterschiedlich benannter Geschwister und gemischter Inhalt aus Text und Elementen. Wer das braucht, nimmt die W3C-Abbildung.",
+        "en": "The rules of the structured mapping are simple: the root element becomes the outermost property, attributes get an at sign in front of their names, text next to attributes is called hash text, and several siblings of the same name become a list. Comments are dropped. What gets lost is the order of differently named siblings and mixed content of text and elements. If you need that, use the W3C mapping."
+      }
+    },
+    {
       "id": "mapping",
       "say": {
         "de": "Neben der strukturierten Abbildung gibt es die W3C-Abbildung aus dem XPath-Standard. Sie beschreibt JSON mit festen Elementen wie map, array, string und number. Das ist weniger gut lesbar, aber verlustfrei und genau festgelegt, deshalb eignet es sich, wenn die Daten später mit XSLT oder XQuery weiterverarbeitet werden. Für Schnittstellen ist die strukturierte Abbildung meist die bessere Wahl.",
@@ -53,6 +60,13 @@
       "say": {
         "de": "Genauso wird aus der Bestellung YAML, die übersichtliche Schreibweise für Konfigurationen. Und der Weg zurück funktioniert ebenso: Aus einem JSON- oder YAML-Dokument macht Nach XML umwandeln wieder XML, dabei fragt der Dialog nach dem Namen des Wurzelelements. Formatieren ordnet bei YAML die Einrückung neu und lässt es bleiben, wenn dabei Kommentare verloren gingen.",
         "en": "The order becomes YAML the same way, the clear notation for configurations. And the way back works just as well: from a JSON or YAML document, Convert to XML makes XML again, and the dialog asks for the name of the root element. For YAML, Format rearranges the indentation and refrains when comments would be lost."
+      }
+    },
+    {
+      "id": "back",
+      "say": {
+        "de": "Von JSON zurück nach XML gelten dieselben Regeln umgekehrt. Hat das JSON-Objekt ganz außen genau eine Eigenschaft, wird sie zum Wurzelelement, sonst packt der Dialog alles in ein Wurzelelement mit wählbarem Namen. Namen, die in XML nicht erlaubt sind, werden angepasst: Aus first name wird first_name, und ein Name, der mit einer Ziffer beginnt, bekommt einen Unterstrich davor.",
+        "en": "From JSON back to XML the same rules apply in reverse. If the outermost JSON object has exactly one property, it becomes the root element; otherwise the dialog wraps everything in a root element with a name you choose. Names that are not allowed in XML are adapted: first name becomes first_name, and a name starting with a digit gets an underscore in front."
       }
     },
     {
@@ -94,8 +108,8 @@
     {
       "id": "import",
       "say": {
-        "de": "Der Weg zurück: Mit der Richtung Tabelle nach XML liest der Konverter eine Excel- oder CSV-Datei ein. Er erkennt die Aufteilung selbst. Eine fremde Tabelle ohne XPath-Spalten wird zu Datensätzen, deren Namen Sie für Wurzel und Datensatz festlegen. Mit einem Schema prüfen Sie das Ergebnis gleich gegen die Regeln. Danach öffnet sich das erzeugte XML als neuer Tab, und Sie können es wie jedes Dokument weiterbearbeiten.",
-        "en": "The way back: with the direction Spreadsheet to XML, the converter reads an Excel or CSV file. It recognises the layout by itself. A foreign sheet without XPath columns becomes records, whose names you set for root and record. With a schema you check the result against the rules right away. The generated XML then opens as a new tab, and you can keep editing it like any document."
+        "de": "Der Weg zurück: Mit der Richtung Tabelle nach XML liest der Konverter eine Excel- oder CSV-Datei ein. Er erkennt die Aufteilung selbst. Eine fremde Tabelle ohne XPath-Spalten wird zu Datensätzen, deren Namen Sie für Wurzel und Datensatz festlegen. Mit einem Schema prüfen Sie das Ergebnis gleich gegen die Regeln. Danach öffnet sich das erzeugte XML als neuer Tab, und Sie können es wie jedes Dokument weiterbearbeiten. Eine fremde Tabelle, etwa eine CSV-Datei aus einem anderen System, wird zu einem Element pro Zeile; die Spaltenköpfe werden zu Elementnamen, ein At-Zeichen davor macht ein Attribut, und ein Schrägstrich wie Address Schrägstrich City ein verschachteltes Element.",
+        "en": "The way back: with the direction Spreadsheet to XML, the converter reads an Excel or CSV file. It recognises the layout by itself. A foreign sheet without XPath columns becomes records, whose names you set for root and record. With a schema you check the result against the rules right away. The generated XML then opens as a new tab, and you can keep editing it like any document. A foreign table, such as a CSV file from another system, becomes one element per row; the column headers become element names, an at sign in front makes an attribute, and a slash as in Address slash City a nested element."
       }
     },
     {

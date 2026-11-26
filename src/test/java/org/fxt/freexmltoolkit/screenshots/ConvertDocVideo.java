@@ -84,6 +84,8 @@ class ConvertDocVideo {
                 video.spoken(0.95);
             });
 
+            video.scene("rules", () -> video.spoken(0.95));
+
             video.scene("mapping", () -> {
                 Bounds editor = video.screenBounds(doc.find("#editorHost"));
                 video.zoom(new BoundingBox(editor.getMinX(), editor.getMinY(), editor.getWidth() * 0.7, editor.getHeight() * 0.7));
@@ -106,6 +108,8 @@ class ConvertDocVideo {
                 video.spoken(0.95);
                 video.zoomOut();
             });
+
+            video.scene("back", () -> video.spoken(0.95));
 
             video.scene("json-views", () -> {
                 Node jsonTab = tab(".json");
