@@ -46,6 +46,10 @@ class CommandLineDocVideo {
         Path dir = DocFiles.work("command-line");
         Path session = dir.resolve("fxt-cli-session.txt");
         Path ci = dir.resolve("xml-checks.yml");
+        Path session2 = dir.resolve("fxt-cli-session-2.txt");
+        try (var in = getClass().getResourceAsStream("/videos/fxt-cli-session-2.txt")) {
+            Files.write(session2, in.readAllBytes());
+        }
         try (var in = getClass().getResourceAsStream("/videos/fxt-cli-session.txt")) {
             Files.write(session, in.readAllBytes());
         }
@@ -64,7 +68,16 @@ class CommandLineDocVideo {
                 zoomTo(video, host, "$ fxt-cli validate", 3);
                 video.spoken(0.95);
             });
+            video.scene("help", () -> {
+                doc.open(session2, "fxt-cli --help");
+                zoomTo(video, host, "$ fxt-cli --help", 12);
+                video.spoken(0.5);
+                zoomTo(video, host, "Commands:", 10);
+                video.spoken(0.95);
+                video.zoomOut();
+            });
             video.scene("validate", () -> {
+                doc.open(session, "fxt-cli validate");
                 zoomTo(video, host, "$ fxt-cli validate", 5);
                 video.spoken(0.95);
             });
@@ -72,7 +85,14 @@ class CommandLineDocVideo {
                 zoomTo(video, host, "[exit code 1]", 2);
                 video.spoken(0.95);
             });
+            video.scene("report", () -> {
+                doc.open(session2, "fxt-cli --help");
+                zoomTo(video, host, "$ head -c 400 report.json", 14);
+                video.spoken(0.95);
+                video.zoomOut();
+            });
             video.scene("query", () -> {
+                doc.open(session, "fxt-cli validate");
                 zoomTo(video, host, "$ fxt-cli query -e \"count", 5);
                 video.spoken(0.55);
                 zoomTo(video, host, "$ fxt-cli query -e \"sum", 3);
@@ -87,8 +107,20 @@ class CommandLineDocVideo {
                 video.spoken(0.95);
             });
             video.scene("projects", () -> {
-                video.zoomOut();
+                doc.open(session2, "fxt-cli --help");
+                zoomTo(video, host, "$ fxt-cli validate orders --project", 5);
                 video.spoken(0.95);
+                video.zoomOut();
+            });
+            video.scene("scenario-check", () -> {
+                zoomTo(video, host, "$ fxt-cli scenario shop.fxtproj --check", 7);
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+            video.scene("more-commands", () -> {
+                zoomTo(video, host, "Commands:", 10);
+                video.spoken(0.95);
+                video.zoomOut();
             });
             video.scene("ci", () -> {
                 doc.open(ci, "XML checks");
@@ -114,6 +146,9 @@ class CommandLineDocVideo {
         if (area == null) {
             return;
         }
+        doc.onFx(() -> area.showParagraphAtTop(Math.max(0,
+                area.offsetToPosition(at, org.fxmisc.richtext.model.TwoDimensional.Bias.Forward).getMajor() - 1)));
+        doc.settle(400);
         Bounds line = doc.fx(() -> area.getCharacterBoundsOnScreen(at, at + 1).orElse(null));
         if (line != null) {
             video.zoom(new BoundingBox(line.getMinX() - 60, line.getMinY() - 30, 1300, line.getHeight() * (lines + 2)));

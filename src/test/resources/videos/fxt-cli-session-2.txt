@@ -1,0 +1,70 @@
+$ fxt-cli --help
+FreeXmlToolkit on the command line.
+Usage: fxt-cli [-hqV] [--verbose] [COMMAND]
+
+Description:
+Validate, transform, test (XSpec), compare, merge, document schemas, convert
+and render PDF without the user interface, or serve these tools to AI agents
+(mcp). Logs go to standard error, results to standard output.
+
+Options:
+  -h, --help      Show this help message and exit.
+  -q, --quiet     Print nothing but errors and requested reports.
+  -V, --version   Print version information and exit.
+      --verbose   Log details of the processing to standard error.
+
+Commands:
+  validate   Validate XML, JSON and project files against schemas and
+               Schematron.
+  transform  Run an XSLT stylesheet, an XQuery or an XProc pipeline.
+  query      Evaluate an XPath, XQuery or JSONPath expression against files.
+  xsd-doc    Generate the documentation of an XML Schema (HTML site, PDF or
+               Word).
+  convert    Convert between XML, JSON and YAML.
+  compare    Compare two XML, JSON or YAML files by structure, or two folders
+               file by file.
+  merge      Three-way merge of XML or text files with Git conflict markers.
+  xspec      Run XSpec tests for XSLT, XQuery and Schematron.
+
+$ fxt-cli validate orders --project shop.fxtproj
+orders/order-1045.xml:24:57: error: [XSD] cvc-datatype-valid.1.2.1: 'two' is not a valid value for 'integer'.
+orders/order-1045.xml:24:57: error: [XSD] cvc-attribute.3: The value 'two' of attribute 'quantity' on element 'item' is not valid with respect to its type, 'positiveInteger'.
+3 files, 1 invalid, 2 error(s), 0 warning(s) (228 ms)
+[exit code 1]
+
+$ fxt-cli validate orders -f json -r report.json
+orders/order-1045.xml:24:57: error: [XSD] cvc-datatype-valid.1.2.1: 'two' is not a valid value for 'integer'.
+orders/order-1045.xml:24:57: error: [XSD] cvc-attribute.3: The value 'two' of attribute 'quantity' on element 'item' is not valid with respect to its type, 'positiveInteger'.
+3 files, 1 invalid, 2 error(s), 0 warning(s) (317 ms)
+[exit code 1]
+$ head -c 400 report.json
+{
+  "tool": "FreeXmlToolkit",
+  "version": "3.5.0",
+  "valid": false,
+  "summary": {
+    "files": 3,
+    "invalidFiles": 1,
+    "errors": 2,
+    "warnings": 0,
+    "infos": 0,
+    "millis": 317
+  },
+  "files": [
+    {
+      "file": "orders/order-1043.xml",
+      "schema": "order.xsd",
+      "valid": true,
+      "millis": 256,
+      "findings": []
+    },
+    {
+      "file": "orders/order-1044.xml",
+
+$ fxt-cli scenario shop.fxtproj --check -i orders/order-1043.xml -i orders/order-1044.xml
+FAILED   Order summary (orders/order-1043.xml): 1 difference
+    line 37: Line 37 changed: "      <p><b>Order total: 125.30 EUR</b></p>" → "      <p><b>Order sum: 125.30 EUR</b></p>"
+FAILED   Order summary (orders/order-1044.xml): 1 difference
+    line 37: Line 37 changed: "      <p><b>Order total: 125.30 EUR</b></p>" → "      <p><b>Order sum: 125.30 EUR</b></p>"
+0 passed, 2 failed, 0 without expected result
+[exit code 1]

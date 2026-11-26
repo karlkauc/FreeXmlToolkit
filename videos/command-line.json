@@ -31,6 +31,13 @@
       }
     },
     {
+      "id": "help",
+      "say": {
+        "de": "fxt-cli mit der Option help listet alle Befehle: validate, transform, query, xsd-doc für die Dokumentation eines Schemas, convert, compare, merge, xspec und weitere. Jeder Befehl hat eine eigene Hilfe mit Beispielen. Meldungen über die Verarbeitung gehen auf den Fehlerkanal, Ergebnisse auf die Standardausgabe. So lässt sich das Ergebnis direkt weiterleiten, ohne dass Protokollzeilen stören. Die Option quiet zeigt nur noch Fehler.",
+        "en": "fxt-cli with the help option lists every command: validate, transform, query, xsd-doc for documenting a schema, convert, compare, merge, xspec and more. Each command has its own help with examples. Messages about the processing go to standard error, results to standard output. That way the result can be piped on without log lines getting in the way. The quiet option shows errors only."
+      }
+    },
+    {
       "id": "validate",
       "chapter": {
         "de": "Prüfen",
@@ -46,6 +53,13 @@
       "say": {
         "de": "Wichtig für Skripte ist der Exit-Code: Null heißt alles in Ordnung, eins heißt, es wurden Fehler gefunden. Ein Skript oder eine Pipeline kann darauf reagieren und zum Beispiel die Verarbeitung anhalten. Mit der Option für Berichte schreibt validate die Ergebnisse auch als JUnit, JSON oder SARIF.",
         "en": "What matters for scripts is the exit code: zero means everything is fine, one means errors were found. A script or a pipeline can react to it and stop processing, for example. With the report option, validate also writes the results as JUnit, JSON or SARIF."
+      }
+    },
+    {
+      "id": "report",
+      "say": {
+        "de": "Der Bericht als JSON enthält das Werkzeug und seine Version, ob alles gültig ist, eine Zusammenfassung mit der Zahl der Dateien, Fehler und Warnungen und für jede Datei das verwendete Schema und ihre Befunde. Andere Programme lesen ihn ohne Umwege. Für CI-Systeme gibt es dasselbe als JUnit, für die Code-Analyse von GitHub als SARIF.",
+        "en": "The report as JSON holds the tool and its version, whether everything is valid, a summary with the number of files, errors and warnings, and for every file the schema used and its findings. Other programs read it directly. For CI systems the same is available as JUnit, and as SARIF for GitHub's code analysis."
       }
     },
     {
@@ -73,8 +87,22 @@
         "en": "Projects and CI"
       },
       "say": {
-        "de": "Mit einem Projekt wird es noch einfacher: fxt-cli validate mit der Option project prüft alle Dateien mit ihren Zuordnungen, und fxt-cli scenario mit der Option check führt die Regressionsprüfung aus. Die Kommandozeile liest dabei keine Einstellungen der Anwendung, das Ergebnis ist also auf jedem Rechner gleich.",
-        "en": "With a project it gets even simpler: fxt-cli validate with the project option checks every file with its bindings, and fxt-cli scenario with the check option runs the regression check. The command line reads no settings of the application, so the result is the same on every computer."
+        "de": "Mit einem Projekt wird es noch einfacher: fxt-cli validate mit der Option project nimmt für jede Datei das Schema aus den Zuordnungen des Projekts, auch wenn die Datei selbst keins nennt. Die Kommandozeile liest dabei keine Einstellungen der Anwendung, das Ergebnis ist also auf jedem Rechner gleich.",
+        "en": "With a project it gets even simpler: fxt-cli validate with the project option takes each file's schema from the project's bindings, even when the file names none itself. The command line reads no settings of the application, so the result is the same on every computer."
+      }
+    },
+    {
+      "id": "scenario-check",
+      "say": {
+        "de": "fxt-cli scenario mit der Option check führt die Szenarien des Projekts aus und vergleicht jedes Ergebnis mit dem erwarteten. Hier hat jemand im Stylesheet Order total in Order sum geändert: Beide Bestellungen schlagen fehl, mit der geänderten Zeile, dem alten und dem neuen Text. Der Exit-Code ist eins. Ist die Änderung gewollt, schreibt die Option accept die neuen Ergebnisse als erwartete, und mit dem Format junit landet die Prüfung im Testbericht der CI.",
+        "en": "fxt-cli scenario with the check option runs the project's scenarios and compares each result with the expected one. Here someone changed Order total to Order sum in the stylesheet: both orders fail, with the changed line, the old and the new text. The exit code is one. If the change is intended, the accept option writes the new results as the expected ones, and with the junit format the check ends up in the CI's test report."
+      }
+    },
+    {
+      "id": "more-commands",
+      "say": {
+        "de": "Es gibt noch mehr: xsd-doc erzeugt die Dokumentation eines Schemas als HTML, PDF oder Word, merge führt drei Fassungen einer Datei zusammen, xspec führt Tests aus, sign und encrypt signieren und verschlüsseln. Alle folgen demselben Muster aus Optionen, Ergebnis auf der Standardausgabe und Exit-Code.",
+        "en": "There is more: xsd-doc generates the documentation of a schema as HTML, PDF or Word, merge combines three versions of a file, xspec runs tests, sign and encrypt sign and encrypt. They all follow the same pattern of options, result on standard output and exit code."
       }
     },
     {
