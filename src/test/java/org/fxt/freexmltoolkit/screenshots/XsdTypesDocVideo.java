@@ -126,23 +126,26 @@ class XsdTypesDocVideo {
                 Node simple = video.inPopup("#overview-append-simple_type");
                 video.click(simple);
                 video.pause(1500);
-                Window dialog = keys.dialog();
-                if (dialog != null) {
-                    video.zoom(doc.fx(() -> new BoundingBox(dialog.getX(), dialog.getY(), dialog.getWidth(), dialog.getHeight())));
-                    Node name = doc.fx(() -> dialog.getScene().getRoot().lookup("#new-type-name"));
-                    if (name == null) {
-                        name = doc.fx(() -> dialog.getScene().getRoot().lookupAll(".text-field").stream().findFirst().orElse(null));
-                    }
-                    if (name != null) {
-                        video.click(name);
-                        typeInto(video, name, "CurrencyType");
-                    }
-                    video.spoken(0.5);
-                    clickDefault(video, dialog);
-                    video.pause(1200);
+                // Append adds "NewSimpleType" and starts editing its name in the table
+                Node editor = doc.fx(() -> doc.stage().getScene().getFocusOwner());
+                if (!(editor instanceof javafx.scene.control.TextInputControl)) {
+                    editor = doc.fx(() -> doc.find("#overview-components") instanceof javafx.scene.Parent table
+                            ? table.lookupAll(".text-field").stream().filter(Node::isVisible).findFirst().orElse(null)
+                            : null);
+                }
+                if (editor instanceof javafx.scene.control.TextInputControl field) {
+                    Bounds b = video.screenBounds(field);
+                    video.zoom(new BoundingBox(b.getMinX() - 300, b.getMinY() - 120, 1100, 320));
+                    typeInto(video, field, "CurrencyType");
+                    video.pause(300);
+                    javafx.scene.control.TextInputControl input = field;
+                    doc.onFx(() -> javafx.event.Event.fireEvent(input, new javafx.scene.input.KeyEvent(
+                            javafx.scene.input.KeyEvent.KEY_PRESSED, "", "", javafx.scene.input.KeyCode.ENTER, false, false, false, false)));
+                    video.showKey("Enter");
+                    video.pause(1000);
                     video.zoomOut();
                 } else {
-                    System.out.println("[video] no dialog for a new simple type");
+                    System.out.println("[video] no name editor for the new simple type: " + editor);
                 }
                 video.spoken(0.95);
             });
