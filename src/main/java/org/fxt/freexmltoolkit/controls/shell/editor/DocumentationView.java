@@ -180,6 +180,13 @@ public class DocumentationView extends BorderPane {
             pdfElementReference.getItems().add(scope.getDisplayName());
         }
         pdfElementReference.getSelectionModel().selectFirst();
+        // the items stay the configuration's display names; the boxes show them in the interface language
+        pdfColorScheme.setConverter(translated("DocumentationView.color.", PdfDocumentationConfig.ColorScheme.values(),
+                PdfDocumentationConfig.ColorScheme::getDisplayName));
+        pdfWatermark.setConverter(translated("DocumentationView.watermark.", PdfDocumentationConfig.Watermark.values(),
+                PdfDocumentationConfig.Watermark::getDisplayName));
+        pdfElementReference.setConverter(translated("DocumentationView.reference.",
+                PdfDocumentationConfig.ElementReference.values(), PdfDocumentationConfig.ElementReference::getDisplayName));
         refreshFormatOptions();
 
         // Where the constraints go only matters while they are shown at all
@@ -584,7 +591,7 @@ public class DocumentationView extends BorderPane {
                     languagesStatus.setText(I18n.t("DocumentationView.no-languages-found-all-documentation"));
                     return;
                 }
-                languagesStatus.setText(languages.size() + " language(s) found:");
+                languagesStatus.setText(I18n.t("DocumentationView.languages-found", languages.size()));
                 for (String language : languages) {
                     CheckBox box = new CheckBox(language);
                     box.setSelected(true);
@@ -597,6 +604,35 @@ public class DocumentationView extends BorderPane {
     }
 
     // ----- helpers --------------------------------------------------------------------
+
+    /**
+     * A converter that shows an option's display name in the interface language: key {@code prefix + NAME}
+     * of the enum constant whose display name it is; anything else is shown as it is.
+     */
+    static <E extends Enum<E>> javafx.util.StringConverter<String> translated(String prefix, E[] values,
+                                                                              java.util.function.Function<E, String> name) {
+        return new javafx.util.StringConverter<>() {
+            @Override
+            public String toString(String displayName) {
+                for (E value : values) {
+                    if (name.apply(value).equals(displayName)) {
+                        return I18n.t(prefix + value.name());
+                    }
+                }
+                return displayName;
+            }
+
+            @Override
+            public String fromString(String text) {
+                for (E value : values) {
+                    if (I18n.t(prefix + value.name()).equals(text)) {
+                        return name.apply(value);
+                    }
+                }
+                return text;
+            }
+        };
+    }
 
     private void prefillFromActiveDocument() {
         editorHost.getActiveDocument()

@@ -219,4 +219,18 @@ class DocumentationViewTest {
         WaitForAsyncUtils.waitForFxEvents();
         assertTrue(view.getStatusText().contains("output"), view.getStatusText());
     }
+
+    @Test
+    void pdfOptionBoxesShowTranslatedNamesButKeepTheConfigurationValues() {
+        var converter = DocumentationView.translated("DocumentationView.watermark.",
+                org.fxt.freexmltoolkit.domain.PdfDocumentationConfig.Watermark.values(),
+                org.fxt.freexmltoolkit.domain.PdfDocumentationConfig.Watermark::getDisplayName);
+        String shown = converter.toString("Internal Use Only");
+        assertEquals(org.fxt.freexmltoolkit.i18n.I18n.t("DocumentationView.watermark.INTERNAL_USE_ONLY"), shown);
+        assertEquals("Internal Use Only", converter.fromString(shown));
+        assertEquals("something else", converter.toString("something else"));
+        for (var mark : org.fxt.freexmltoolkit.domain.PdfDocumentationConfig.Watermark.values()) {
+            assertFalse(org.fxt.freexmltoolkit.i18n.I18n.t("DocumentationView.watermark." + mark.name()).isBlank());
+        }
+    }
 }
