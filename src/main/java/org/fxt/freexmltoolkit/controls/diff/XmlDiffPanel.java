@@ -57,11 +57,11 @@ final class XmlDiffPanel extends VBox {
                 }
             }
         });
-        table.getColumns().add(column("Change", 80, d -> XmlStructuralDiff.label(d.change())));
-        table.getColumns().add(column("Node", 150, XmlDiffPanel::nodeText));
-        table.getColumns().add(column("Left", 220, Difference::leftValue));
-        table.getColumns().add(column("Right", 220, Difference::rightValue));
-        table.getColumns().add(column("Location", 260, d -> d.leftXPath().isEmpty() ? d.rightXPath() : d.leftXPath()));
+        table.getColumns().add(column(I18n.t("XmlDiffPanel.col.change"), 80, d -> changeLabel(d.change())));
+        table.getColumns().add(column(I18n.t("XmlDiffPanel.col.node"), 150, XmlDiffPanel::nodeText));
+        table.getColumns().add(column(I18n.t("XmlDiffPanel.col.left"), 220, Difference::leftValue));
+        table.getColumns().add(column(I18n.t("XmlDiffPanel.col.right"), 220, Difference::rightValue));
+        table.getColumns().add(column(I18n.t("XmlDiffPanel.col.location"), 260, d -> d.leftXPath().isEmpty() ? d.rightXPath() : d.leftXPath()));
         table.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> {
             if (n != null) {
                 onSelect.accept(n);
@@ -90,14 +90,19 @@ final class XmlDiffPanel extends VBox {
         return column;
     }
 
+    /** "Added", "Changed", … in the interface language. */
+    static String changeLabel(XmlStructuralDiff.Change change) {
+        return I18n.t("XmlDiffPanel.change." + change.name());
+    }
+
     static String nodeText(Difference d) {
         return switch (d.kind()) {
             case ELEMENT -> "<" + d.name() + ">";
             case ATTRIBUTE -> "@" + d.name();
-            case TEXT -> "text";
-            case COMMENT -> "comment";
+            case TEXT -> I18n.t("XmlDiffPanel.node.text");
+            case COMMENT -> I18n.t("XmlDiffPanel.node.comment");
             case PROCESSING_INSTRUCTION -> "<?" + d.name() + "?>";
-            case NAMESPACE -> "namespace of <" + d.name() + ">";
+            case NAMESPACE -> I18n.t("XmlDiffPanel.node.namespace", d.name());
             case DOCUMENT -> d.name();
             case MEMBER -> d.name();
             case ITEM -> "[" + d.name() + "]";
@@ -116,12 +121,12 @@ final class XmlDiffPanel extends VBox {
         summary.getStyleClass().remove("diff-xml-error");
         if (!result.compared()) {
             summary.getStyleClass().add("diff-xml-error");
-            StringBuilder text = new StringBuilder(dataMode ? "Cannot compare the data. " : "Cannot compare as XML. ");
+            StringBuilder text = new StringBuilder(I18n.t(dataMode ? "XmlDiffPanel.cannot-compare-data" : "XmlDiffPanel.cannot-compare-xml") + " ");
             if (result.leftError() != null) {
-                text.append("Left: ").append(result.leftError()).append(' ');
+                text.append(I18n.t("XmlDiffPanel.left-error", result.leftError())).append(' ');
             }
             if (result.rightError() != null) {
-                text.append("Right: ").append(result.rightError());
+                text.append(I18n.t("XmlDiffPanel.right-error", result.rightError()));
             }
             summary.setText(text.toString().strip());
             all = List.of();
@@ -131,9 +136,10 @@ final class XmlDiffPanel extends VBox {
         List<Difference> differences = result.differences();
         long similar = result.similarCount();
         summary.setText((differences.isEmpty()
-                ? (dataMode ? "The documents have the same data." : "The documents are equivalent as XML.")
-                : differences.size() == 1 ? "1 difference" : differences.size() + " differences")
-                + (similar > 0 ? " (" + similar + " similar)" : ""));
+                ? I18n.t(dataMode ? "XmlDiffPanel.same-data" : "XmlDiffPanel.equivalent")
+                : differences.size() == 1 ? I18n.t("XmlDiffPanel.one-difference")
+                : I18n.t("XmlDiffPanel.differences", differences.size()))
+                + (similar > 0 ? " " + I18n.t("XmlDiffPanel.similar-count", similar) : ""));
         all = differences;
         showRows();
     }
