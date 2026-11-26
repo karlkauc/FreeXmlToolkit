@@ -93,6 +93,13 @@ class AdministrationDocVideo {
                 video.zoomOut();
             });
 
+            video.scene("proxy", () -> {
+                doc.open(defaults, "defaults.properties");
+                zoomTo(video, host, "manualProxy", 5);
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
             video.scene("locked", () -> {
                 doc.onFx(shell::openSettings);
                 video.pause(1800);
@@ -125,6 +132,18 @@ class AdministrationDocVideo {
                 video.zoomOut();
             });
 
+            video.scene("check", () -> {
+                doc.onFx(shell::openSettings);
+                video.pause(1200);
+                Node notice = doc.find("#settings-policy-notice");
+                if (notice != null && doc.fx(notice::isVisible)) {
+                    Bounds b = video.screenBounds(notice);
+                    video.zoom(new BoundingBox(b.getMinX() - 30, b.getMinY() - 40, 1200, 160));
+                }
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
             video.scene("features", () -> {
                 show("extensions");
                 video.spoken(0.45);
@@ -132,6 +151,14 @@ class AdministrationDocVideo {
                 zoomTo(video, host, "# New versions", 14);
                 video.spoken(0.95);
                 video.zoomOut();
+            });
+
+            video.scene("updates", () -> {
+                video.click(doc.<Node>find("#menu-help"));
+                video.pause(1200);
+                video.spoken(0.6);
+                new VideoTyping(doc, video).hidePopups();
+                video.spoken(0.95);
             });
 
             video.scene("install", () -> {

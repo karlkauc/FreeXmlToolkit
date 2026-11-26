@@ -45,6 +45,13 @@
       }
     },
     {
+      "id": "proxy",
+      "say": {
+        "de": "Für einen Proxy mit Anmeldung, wie er in vielen Unternehmen mit Windows üblich ist, gibt es zusätzlich die Domäne und die Anmeldung mit dem Windows-Konto. Dann muss niemand ein Passwort eintragen. Adressen in der Ausnahmeliste, etwa interne Server, werden ohne Proxy erreicht, und die Zeitlimits für Verbindungen lassen sich ebenfalls vorgeben.",
+        "en": "For a proxy with sign-in, as is common in many Windows companies, there are also the domain and signing in with the Windows account. Then nobody has to enter a password. Addresses on the exception list, such as internal servers, are reached without the proxy, and the connection timeouts can be preset too."
+      }
+    },
+    {
       "id": "locked",
       "chapter": {
         "de": "Gesperrte Einstellungen",
@@ -56,6 +63,13 @@
       }
     },
     {
+      "id": "check",
+      "say": {
+        "de": "Was tatsächlich gilt, sehen Sie an drei Stellen: am Hinweis oben in den Einstellungen mit dem Pfad der Richtliniendatei, an den ausgegrauten Einstellungen und im Protokoll beim Start, das den Ordner und die Zahl der gesperrten Einstellungen und Vorgaben nennt. Die eigene Datei des Benutzers enthält nur seine eigenen Werte; gesperrte Werte landen nie darin.",
+        "en": "You can see what actually applies in three places: in the notice at the top of the settings with the path of the policy file, in the greyed-out settings, and in the log at start, which names the folder and the number of locked settings and defaults. The user's own file holds only their own values; locked values never end up in it."
+      }
+    },
+    {
       "id": "features",
       "chapter": {
         "de": "Funktionen abschalten",
@@ -64,6 +78,13 @@
       "say": {
         "de": "Manche Schlüssel gibt es nur als Richtlinie, sie schalten ganze Funktionen ab. update allowed gleich false entfernt die Update-Prüfung, neue Versionen kommen dann über Ihre Softwareverteilung. ai allowed gleich false entfernt jede KI-Funktion, in den Einstellungen fehlt dann der ganze Bereich KI. Ebenso lassen sich externe XSLT- und FO-Prozessoren, Plugins aus dem Plugin-Ordner und die Online-Abfragen von LEI und ISIN abschalten.",
         "en": "Some keys exist only as policies, and they switch off whole features. update allowed equals false removes the update check, and new versions then come through your software distribution. ai allowed equals false removes every AI function, and the whole AI section is then missing from the settings. External XSLT and FO processors, plugins from the plugins folder and the online LEI and ISIN lookups can be switched off the same way."
+      }
+    },
+    {
+      "id": "updates",
+      "say": {
+        "de": "Schaltet die Richtlinie Updates ab, gibt es weder die automatische Prüfung noch den Menüeintrag Nach Updates suchen. Neue Versionen kommen dann nur über Ihre Softwareverteilung. Zu jeder Version veröffentlicht FreeXmlToolkit Prüfsummen und eine Stückliste der Software, eine SBOM, damit Sie prüfen können, was Sie verteilen.",
+        "en": "If the policy switches updates off, there is neither the automatic check nor the menu entry Check for Updates. New versions then arrive only through your software distribution. With every version FreeXmlToolkit publishes checksums and a software bill of materials, an SBOM, so you can verify what you distribute."
       }
     },
     {
