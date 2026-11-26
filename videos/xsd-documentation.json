@@ -1,0 +1,180 @@
+{
+  "id": "xsd-documentation",
+  "scenario": "XsdDocumentationDocVideo",
+  "docs": "guides/design-schemas/documentation/",
+  "title": {
+    "en": "Document a schema as a website",
+    "de": "Ein Schema als Website dokumentieren"
+  },
+  "description": {
+    "de": "Aus einem XML-Schema eine HTML-Dokumentation erzeugen: Beschreibungen und technische Angaben im Schema, Optionen und Sprachen, Elementseiten mit Diagrammen, Datenwörterbuch mit Excel, Suche, Veröffentlichen, PDF und Word und die Kommandozeile.",
+    "en": "Generate HTML documentation from an XML schema: descriptions and technical notes in the schema, options and languages, element pages with diagrams, data dictionary with Excel, search, publishing, PDF and Word, and the command line."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "de": "In diesem Video erzeugen Sie aus einem XML-Schema eine Dokumentation als Website: mit Diagrammen, Beschreibungen in mehreren Sprachen, einem Datenwörterbuch und einer Suche. Am Ende kurz PDF und Word und die Kommandozeile.",
+        "en": "In this video you turn an XML schema into documentation as a website: with diagrams, descriptions in several languages, a data dictionary and a search. At the end, briefly, PDF and Word and the command line."
+      }
+    },
+    {
+      "id": "why",
+      "chapter": {
+        "de": "Vorbereitung",
+        "en": "Preparation"
+      },
+      "say": {
+        "de": "Ein Schema ist für Menschen schwer zu lesen. Wer Daten liefert oder empfängt, will wissen, welche Elemente es gibt, was sie bedeuten und welche Werte erlaubt sind. Die HTML-Dokumentation beantwortet das in einem Browser, ohne dass jemand XSD kennen oder ein Programm installieren muss. Sie besteht nur aus Dateien in einem Ordner.",
+        "en": "A schema is hard for people to read. Whoever sends or receives data wants to know which elements there are, what they mean and which values are allowed. The HTML documentation answers this in a browser, without anyone needing to know XSD or install a program. It is nothing but files in a folder."
+      }
+    },
+    {
+      "id": "schema",
+      "say": {
+        "de": "Was die Dokumentation zeigt, steht im Schema. Jedes Element hat hier eine Beschreibung in Englisch und in Deutsch, mit xml:lang gekennzeichnet. Dazu kommen technische Angaben in xs:appinfo: seit welcher Version es ein Element gibt, ein Verweis auf ein anderes Element, und bei fax der Hinweis, dass es veraltet ist. Beispielwerte für E-Mail und Artikelnummer stehen ebenfalls im Schema.",
+        "en": "What the documentation shows comes from the schema. Every element here has a description in English and in German, marked with xml:lang. On top come technical notes in xs:appinfo: since which version an element exists, a reference to another element, and for fax the note that it is deprecated. Example values for the e-mail and the article number are in the schema too."
+      }
+    },
+    {
+      "id": "generator",
+      "chapter": {
+        "de": "Generator",
+        "en": "Generator"
+      },
+      "say": {
+        "de": "Mit dem Schema im Editor wählen Sie im Menü Werkzeuge den Eintrag Dokumentation generieren. Der Generator öffnet sich als Tab. Das aktive Schema ist als Quelle schon eingetragen, als Ausgabe wählen Sie einen Ordner. Das Format ist HTML. Der Generator liest die gespeicherte Datei, speichern Sie also vorher.",
+        "en": "With the schema in the editor, choose Generate Documentation in the Tools menu. The generator opens as a tab. The active schema is already filled in as the source; as output you choose a folder. The format is HTML. The generator reads the saved file, so save first."
+      }
+    },
+    {
+      "id": "options",
+      "say": {
+        "de": "Die Optionen bestimmen, was auf die Seiten kommt. Markdown-Darstellung macht aus Sternchen fett und aus Strichen Listen. Bedingungen in Diagrammen zeigt Schlüssel und Assertions in den Kästen. Die SVG-Übersichtsseite zeigt das ganze Schema auf einer Seite. Das Datenwörterbuch lässt sich nach Typ zusammenfassen, und ein eigenes Favicon ist möglich. Die Diagramme entstehen als SVG, PNG oder JPG.",
+        "en": "The options decide what goes on the pages. Markdown rendering turns asterisks into bold and dashes into lists. Show constraints in diagrams lists keys and assertions in the boxes. The SVG overview page shows the whole schema on one page. The data dictionary can be grouped by type, and a favicon of your own is possible. Diagrams are drawn as SVG, PNG or JPG."
+      }
+    },
+    {
+      "id": "languages",
+      "say": {
+        "de": "Sprachen ermitteln findet alle Sprachen im Schema, hier Deutsch und Englisch. Nehmen Sie das Häkchen weg, fehlt die Sprache überall in der Ausgabe. Die Ersatzsprache zeigt die Website, wenn ein Text in der gewählten Sprache fehlt.",
+        "en": "Scan languages finds every language in the schema, here German and English. Untick one, and it is left out everywhere in the output. The fallback language is what the site shows when a text is missing in the chosen language."
+      }
+    },
+    {
+      "id": "generate",
+      "say": {
+        "de": "Dokumentation generieren startet den Lauf im Hintergrund. Unter Fortschritt erscheint jeder Schritt mit seiner Dauer, und mit Abbrechen lässt er sich stoppen. Nach wenigen Sekunden meldet die Statuszeile, dass die Website fertig ist. Danach können Sie die Seite gleich im Browser öffnen lassen.",
+        "en": "Generate Documentation starts the run in the background. Under Progress each step appears with its duration, and Cancel stops it. After a few seconds the status line reports that the site is ready. You can have it opened in your browser right away."
+      }
+    },
+    {
+      "id": "start-page",
+      "chapter": {
+        "de": "Die Website",
+        "en": "The website"
+      },
+      "say": {
+        "de": "So sieht die Startseite aus. Oben stehen die Bereiche: Komplexe Typen, Einfache Typen, Datenwörterbuch und das SVG-Diagramm, daneben die Suche und die Sprachwahl. Darunter das Wurzelelement und die Angaben zum Schema: Dateiname, Namespaces und Standardwerte. Ganz unten lassen sich alle Typen filtern und sortieren.",
+        "en": "This is the start page. At the top are the sections: complex types, simple types, data dictionary and the SVG diagram, next to them the search and the language choice. Below that the root element and the schema details: file name, namespaces and defaults. At the bottom you can filter and sort all types."
+      }
+    },
+    {
+      "id": "element-page",
+      "say": {
+        "de": "Jedes Element hat eine eigene Seite, hier das Wurzelelement order. Oben der Pfad mit einer Schaltfläche zum Kopieren, darunter das Diagramm wie in der Grafikansicht des Editors. Die Beschreibung darunter kommt mit Markdown: fett gedruckt und als Liste. Jeder Kasten im Diagramm ist ein Link, ein Klick auf customer führt eine Ebene tiefer.",
+        "en": "Every element has a page of its own, here the root element order. At the top the path with a button to copy it, below it the diagram as in the editor's graphic view. The description underneath comes with Markdown: in bold and as a list. Every box in the diagram is a link; a click on customer goes one level deeper."
+      }
+    },
+    {
+      "id": "details",
+      "say": {
+        "de": "Auf der Seite von customer folgen die Eigenschaften: Typ, Häufigkeit und Namespace. Die Tabelle der Kindelemente zeigt Typ, Beschreibung und Beispieldaten, bei email die Beispielwerte aus dem Schema. Am Ende steht der XSD-Quelltext des Elements und seines Typs, farbig und mit einer Schaltfläche zum Kopieren. Der Pfad oben führt wieder zurück.",
+        "en": "On the page of customer come the properties: type, cardinality and namespace. The table of child elements shows type, description and sample data, for email the example values from the schema. At the end is the XSD source of the element and its type, highlighted and with a button to copy it. The path at the top leads back."
+      }
+    },
+    {
+      "id": "notes",
+      "say": {
+        "de": "Die technischen Angaben aus xs:appinfo erscheinen ebenfalls. Seit steht bei order, Siehe auch bei address mit einem Link zu country. Und bei fax steht ein deutlicher Hinweis: veraltet, mit dem Verweis auf das Element, das stattdessen gilt.",
+        "en": "The technical notes from xs:appinfo appear as well. Since shows on order, See also on address with a link to country. And fax carries a clear note: deprecated, with a link to the element to use instead."
+      }
+    },
+    {
+      "id": "language",
+      "say": {
+        "de": "Über die Sprachwahl oben schalten Leser zwischen Deutsch und Englisch um. Die Wahl gilt für alle Seiten und bleibt beim Blättern erhalten. Fehlt ein Text in einer Sprache, zeigt die Seite die Ersatzsprache.",
+        "en": "With the language choice at the top, readers switch between German and English. The choice applies to every page and stays while they browse. If a text is missing in one language, the page shows the fallback language."
+      }
+    },
+    {
+      "id": "constraints",
+      "say": {
+        "de": "Regeln, die über den Typ hinausgehen, stehen ebenfalls auf der Seite. Bei order ist der Schlüssel zu sehen: Jede Artikelnummer darf nur einmal vorkommen, mit Selektor und Feld. Bei item steht die Assertion aus XSD 1.1 mit ihrem Test und ihrer Beschreibung.",
+        "en": "Rules that go beyond the type are on the page too. On order you see the key: every article number may occur only once, with selector and field. On item there is the XSD 1.1 assertion with its test and its description."
+      }
+    },
+    {
+      "id": "types",
+      "say": {
+        "de": "Die Typen haben eigene Seiten. Die Liste der komplexen Typen zeigt jeden mit seiner Beschreibung. Bei einem einfachen Typ wie CountryCodeType stehen die Einschränkungen, hier die erlaubten Länder, und unter Verwendet in jedes Element, das ihn benutzt.",
+        "en": "Types have pages of their own. The list of complex types shows each with its description. For a simple type such as CountryCodeType you see the restrictions, here the allowed countries, and under Used In every element that uses it."
+      }
+    },
+    {
+      "id": "dictionary",
+      "say": {
+        "de": "Das Datenwörterbuch listet jeden Pfad des Schemas in einer Tabelle: XPath, ob er Pflicht ist, und die Beschreibung, auch die des Typs. Download Excel lädt dieselbe Tabelle als Arbeitsmappe, mit einem Blatt pro Sprache. Das ist oft das, was Fachabteilungen am liebsten haben.",
+        "en": "The data dictionary lists every path of the schema in one table: XPath, whether it is mandatory, and the description, including that of the type. Download Excel gets the same table as a workbook, with one sheet per language. That is often what business departments like best."
+      }
+    },
+    {
+      "id": "overview",
+      "say": {
+        "de": "Die SVG-Seite zeigt das ganze Schema als ein Diagramm. Mit dem Mausrad zoomen Sie, mit gedrückter Maustaste verschieben Sie es, und An Bildschirm anpassen zeigt wieder alles. Exportieren speichert das Diagramm als SVG-Datei.",
+        "en": "The SVG page shows the whole schema as one diagram. The mouse wheel zooms, dragging moves it, and Fit to Screen shows everything again. Export saves the diagram as an SVG file."
+      }
+    },
+    {
+      "id": "search",
+      "say": {
+        "de": "Die Suche oben findet Namen, Pfade und Beschreibungen, in allen Sprachen. Tippen Sie price, erscheinen item und das Attribut price, mit dem Treffer hervorgehoben. Ein Klick öffnet die Seite. Die Suche arbeitet ohne Server, auch wenn die Website nur als Ordner auf der Festplatte liegt.",
+        "en": "The search at the top finds names, paths and descriptions, in every language. Type price, and item and the attribute price appear, with the match highlighted. A click opens the page. The search needs no server, even when the site is only a folder on disk."
+      }
+    },
+    {
+      "id": "publish",
+      "chapter": {
+        "de": "Weitergeben",
+        "en": "Sharing"
+      },
+      "say": {
+        "de": "Zum Veröffentlichen kopieren Sie den Ordner auf einen Webserver, in ein Intranet oder auf eine Dateifreigabe. Es braucht keine Datenbank und keine Serversoftware, nur statische Dateien. Das Schema liegt als Kopie dabei und ist von der Startseite verlinkt. Ändert sich das Schema, erzeugen Sie die Website einfach neu.",
+        "en": "To publish, copy the folder to a web server, an intranet or a file share. It needs no database and no server software, only static files. A copy of the schema is included and linked from the start page. When the schema changes, you simply generate the site again."
+      }
+    },
+    {
+      "id": "pdf-word",
+      "say": {
+        "de": "Statt einer Website kann der Generator auch ein PDF oder ein Word-Dokument schreiben. Dann erscheinen weitere Optionen: Seitengröße und Ausrichtung, Deckblatt, Inhaltsverzeichnis, Datenwörterbuch und Diagramme. Beim PDF kommen Farbschema, Wasserzeichen wie Entwurf, Seitenzahlen und Lesezeichen dazu. Das eignet sich für Anhänge zu Verträgen oder Spezifikationen.",
+        "en": "Instead of a website, the generator can also write a PDF or a Word document. Then more options appear: page size and orientation, cover page, table of contents, data dictionary and diagrams. For PDF there are also the colour scheme, a watermark such as Draft, page numbers and bookmarks. That suits attachments to contracts or specifications."
+      }
+    },
+    {
+      "id": "cli",
+      "say": {
+        "de": "Dasselbe geht auf der Kommandozeile mit fxt-cli xsd-doc. List-languages zeigt die Sprachen, minus o gibt den Ordner oder die Datei an, und die Optionen heißen wie im Generator. In einer Build-Pipeline entsteht die Website so bei jeder Änderung des Schemas automatisch neu.",
+        "en": "The same works on the command line with fxt-cli xsd-doc. List-languages shows the languages, minus o names the folder or file, and the options are named as in the generator. In a build pipeline the site is then rebuilt automatically whenever the schema changes."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "de": "Das war die Schema-Dokumentation. Schreiben Sie die Beschreibungen ins Schema, und alle, die mit den Daten arbeiten, haben eine aktuelle Website dazu.",
+        "en": "That was schema documentation. Write the descriptions into the schema, and everyone who works with the data has an up-to-date website for it."
+      }
+    }
+  ]
+}

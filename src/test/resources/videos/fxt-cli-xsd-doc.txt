@@ -1,0 +1,54 @@
+$ fxt-cli xsd-doc shop-order.xsd --list-languages
+en
+de
+
+$ fxt-cli xsd-doc shop-order.xsd -o site --language=de,en --fallback-language=de
+Wrote site/index.html
+
+$ fxt-cli xsd-doc shop-order.xsd -o shop-order.pdf --cover-page --watermark=draft
+Wrote shop-order.pdf
+
+# In a build pipeline (e.g. GitHub Actions): rebuild the site on every change
+- run: fxt-cli xsd-doc schema/shop-order.xsd -o public/docs
+
+$ fxt-cli xsd-doc --help
+Generate the documentation of an XML Schema (HTML site, PDF or Word).
+Usage: fxt-cli xsd-doc [OPTIONS] XSD
+
+Description:
+Documents every global element, type and group of the schema with diagrams, the
+documentation texts (all or some languages, Markdown rendered) and a data
+dictionary.
+The format follows the extension of --output (.pdf, .docx) unless --format is
+given; otherwise an HTML site is written into the folder --output. Options of
+another format are ignored with a warning.
+
+Parameters:
+      XSD                          The XML Schema.
+
+Options:
+  -o, --output=PATH                Output folder (HTML) or file (PDF, Word).
+                                     Required unless --list-languages.
+  -f, --format=FORMAT              html, pdf or docx. Default: from the
+                                     extension of --output (.pdf, .docx), else
+                                     html.
+      --list-languages             Print the documentation languages (xml:lang)
+                                     of the schema and exit.
+  -h, --help                       Show this help message and exit.
+  -V, --version                    Print version information and exit.
+  -q, --quiet                      Print nothing but errors and requested
+                                     reports.
+      --verbose                    Log details of the processing to standard
+                                     error.
+
+Content:
+      --language=LANG[,LANG...]    Only documentation in these languages (xml:
+                                     lang, comma-separated; documentation
+                                     without a language is always kept).
+                                     Default: all.
+      --fallback-language=LANG     Language the HTML site shows when the
+                                     reader's language is missing.
+      --markdown=MODE              Render documentation as Markdown: all,
+                                     marked (only where xs:appinfo sets
+                                     markdown="true") or off. Default: all.
+      --[no-]type-definitions      Show the type definitions in the source-code

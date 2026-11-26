@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- FreeXmlToolkit example for the documentation video: a small order schema in English and German. -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
+           xmlns:fxt="http://freexmltoolkit.org/xml-schema-extensions"
+           vc:minVersion="1.1"
+           elementFormDefault="qualified">
+
+    <xs:element name="order" type="OrderType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">A **purchase order** of the web shop: who ordered which items.
+
+- one customer
+- one or more items</xs:documentation>
+            <xs:documentation xml:lang="de">Eine **Bestellung** im Webshop: wer welche Artikel bestellt hat.
+
+- ein Kunde
+- ein oder mehrere Artikel</xs:documentation>
+            <xs:appinfo source="@since">1.0</xs:appinfo>
+            <xs:appinfo source="@version">2.1</xs:appinfo>
+        </xs:annotation>
+        <xs:key name="uniqueSku">
+            <xs:annotation>
+                <xs:documentation xml:lang="en">Every article number occurs only once in an order.</xs:documentation>
+                <xs:documentation xml:lang="de">Jede Artikelnummer kommt in einer Bestellung nur einmal vor.</xs:documentation>
+            </xs:annotation>
+            <xs:selector xpath="items/item"/>
+            <xs:field xpath="@sku"/>
+        </xs:key>
+    </xs:element>
+
+    <xs:complexType name="OrderType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">The content of an order.</xs:documentation>
+            <xs:documentation xml:lang="de">Der Inhalt einer Bestellung.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="customer" type="CustomerType">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en">The person or company that ordered.</xs:documentation>
+                    <xs:documentation xml:lang="de">Die Person oder Firma, die bestellt hat.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="items" type="ItemsType">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en">The ordered articles.</xs:documentation>
+                    <xs:documentation xml:lang="de">Die bestellten Artikel.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="note" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en">A free remark for the delivery.</xs:documentation>
+                    <xs:documentation xml:lang="de">Eine freie Bemerkung zur Lieferung.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="id" type="OrderIdType" use="required">
+            <xs:annotation>
+                <xs:documentation xml:lang="en">The order number, e.g. PO-1042.</xs:documentation>
+                <xs:documentation xml:lang="de">Die Bestellnummer, z. B. PO-1042.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="date" type="xs:date" use="required">
+            <xs:annotation>
+                <xs:documentation xml:lang="en">The day the order was placed.</xs:documentation>
+                <xs:documentation xml:lang="de">Der Tag der Bestellung.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="CustomerType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">Name and contact details of a customer.</xs:documentation>
+            <xs:documentation xml:lang="de">Name und Kontaktdaten eines Kunden.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="name" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en">The customer's name.</xs:documentation>
+                    <xs:documentation xml:lang="de">Der Name des Kunden.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="email" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en">The address for the order confirmation.</xs:documentation>
+                    <xs:documentation xml:lang="de">Die Adresse für die Auftragsbestätigung.</xs:documentation>
+                    <xs:appinfo>
+                        <fxt:exampleValues>
+                            <fxt:example value="orders@northwind.example"/>
+                            <fxt:example value="buyer@contoso.example"/>
+                        </fxt:exampleValues>
+                    </xs:appinfo>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="fax" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en">A fax number.</xs:documentation>
+                    <xs:documentation xml:lang="de">Eine Faxnummer.</xs:documentation>
+                    <xs:appinfo source="@deprecated">No longer evaluated. Use {@link /order/customer/email} instead.</xs:appinfo>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="address" type="AddressType">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en">The delivery address.</xs:documentation>
+                    <xs:documentation xml:lang="de">Die Lieferadresse.</xs:documentation>
+                    <xs:appinfo source="@see">{@link /order/customer/address/country}</xs:appinfo>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="AddressType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">A postal address.</xs:documentation>
+            <xs:documentation xml:lang="de">Eine Postanschrift.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="street" type="xs:string"/>
+            <xs:element name="city" type="xs:string"/>
+            <xs:element name="country" type="CountryCodeType">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en">The country as an ISO 3166 code.</xs:documentation>
+                    <xs:documentation xml:lang="de">Das Land als ISO-3166-Code.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ItemsType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">The list of ordered articles.</xs:documentation>
+            <xs:documentation xml:lang="de">Die Liste der bestellten Artikel.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="item" type="ItemType" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation xml:lang="en">One ordered article with quantity and price.</xs:documentation>
+                    <xs:documentation xml:lang="de">Ein bestellter Artikel mit Menge und Preis.</xs:documentation>
+                    <xs:appinfo source="@since">1.2</xs:appinfo>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ItemType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">An article: the title as text, number, quantity and price as attributes.</xs:documentation>
+            <xs:documentation xml:lang="de">Ein Artikel: der Titel als Text, Nummer, Menge und Preis als Attribute.</xs:documentation>
+        </xs:annotation>
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="sku" type="SkuType" use="required">
+                    <xs:annotation>
+                        <xs:documentation xml:lang="en">The article number.</xs:documentation>
+                        <xs:documentation xml:lang="de">Die Artikelnummer.</xs:documentation>
+                        <xs:appinfo>
+                            <fxt:exampleValues>
+                                <fxt:example value="BK-101"/>
+                                <fxt:example value="BK-207"/>
+                            </fxt:exampleValues>
+                        </xs:appinfo>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="quantity" type="xs:positiveInteger" use="required">
+                    <xs:annotation>
+                        <xs:documentation xml:lang="en">How many pieces.</xs:documentation>
+                        <xs:documentation xml:lang="de">Wie viele Stück.</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="price" type="PriceType" use="required">
+                    <xs:annotation>
+                        <xs:documentation xml:lang="en">The price of one piece in euros.</xs:documentation>
+                        <xs:documentation xml:lang="de">Der Preis eines Stücks in Euro.</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:assert test="@quantity * @price le 10000">
+                    <xs:annotation>
+                        <xs:documentation xml:lang="en">An item may cost at most 10,000 euros in total.</xs:documentation>
+                        <xs:documentation xml:lang="de">Ein Artikel darf insgesamt höchstens 10.000 Euro kosten.</xs:documentation>
+                    </xs:annotation>
+                </xs:assert>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:simpleType name="OrderIdType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">PO- followed by four digits.</xs:documentation>
+            <xs:documentation xml:lang="de">PO- gefolgt von vier Ziffern.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:pattern value="PO-[0-9]{4}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="SkuType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">Two letters, a hyphen and three digits.</xs:documentation>
+            <xs:documentation xml:lang="de">Zwei Buchstaben, ein Bindestrich und drei Ziffern.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[A-Z]{2}-[0-9]{3}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="CountryCodeType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">The countries the shop delivers to.</xs:documentation>
+            <xs:documentation xml:lang="de">Die Länder, in die der Shop liefert.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="AT"/>
+            <xs:enumeration value="CH"/>
+            <xs:enumeration value="DE"/>
+            <xs:enumeration value="GB"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="PriceType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">An amount with at most two decimal places.</xs:documentation>
+            <xs:documentation xml:lang="de">Ein Betrag mit höchstens zwei Nachkommastellen.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:decimal">
+            <xs:minInclusive value="0"/>
+            <xs:fractionDigits value="2"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

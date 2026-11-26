@@ -42,6 +42,7 @@ Szenen als Stichpunkte. Daraus entstehen beim Umsetzen Sprechtext (DE + EN), `vi
 | 13 | convert | XML, JSON, YAML und Excel umwandeln | online, 4:23 | 6:00 |
 | 14 | xsd-types | XSD: Übersicht und Typen | online, 5:12 | 7:00 |
 | 15 | xsd-analysis | XSD: Analyse und Dokumentation | online, 3:36 | 5:00 |
+| 26 | xsd-documentation | Ein Schema als Website dokumentieren | in Arbeit | 8:00 |
 | 16 | publish-pdf | PDF mit XSL-FO erzeugen | online, 3:06 | 6:00 |
 | 17 | large-files | Sehr große XML-Dateien | online, 3:05 | 4:00 |
 | 18 | xspec | Stylesheets testen mit XSpec | online, 2:43 | 5:00 |
@@ -459,6 +460,30 @@ Beispiel: ein größeres Schema (z. B. FundsXML)
 4. Aufräumen (0:45)
    - Includes einbetten (glätten), ungenutzte Typen entfernen; xsd-doc auf der Kommandozeile
 5. Abschluss (0:30)
+
+---
+
+## 26 · xsd-documentation — Ein Schema als Website dokumentieren
+
+Ziel-Laufzeit: 8:00
+Beispiel: neu: shop-order.xsd (Beschreibungen en/de, @since/@see/@deprecated, Beispielwerte, key, assert)
+Reihenfolge: in der Serie direkt nach Nr. 15. Die Website wird in einem echten Browser gezeigt (Chrome for Testing).
+
+1. Vorbereitung (1:00)
+   - Warum: Leser ohne XSD-Kenntnisse, statische Website
+   - Im Schema: xs:documentation mit xml:lang, xs:appinfo-Tags, Beispielwerte
+2. Generator (2:00)
+   - Werkzeuge → Dokumentation generieren; Quelle, Ausgabeordner, HTML
+   - Optionen: Markdown, Bedingungen, SVG-Übersicht, Datenwörterbuch, Favicon, Bildformat
+   - Sprachen ermitteln, Ersatzsprache; Generieren mit Fortschritt
+3. Die Website (3:30)
+   - Startseite; Elementseite mit Diagramm (Kästen sind Links), Beschreibung, Eigenschaften, Kindelemente, Quelltext
+   - Seit / Siehe auch / Veraltet; Sprachwahl; Schlüssel und Assertions
+   - Typenseiten; Datenwörterbuch mit Excel; SVG-Übersicht; Suche
+4. Weitergeben (1:15)
+   - Ordner auf Webserver / Intranet / Freigabe; PDF und Word mit ihren Optionen
+   - fxt-cli xsd-doc in einer Build-Pipeline
+5. Abschluss (0:15)
 
 ---
 

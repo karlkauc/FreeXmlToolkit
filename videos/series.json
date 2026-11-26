@@ -21,6 +21,7 @@
     "convert",
     "xsd-types",
     "xsd-analysis",
+    "xsd-documentation",
     "publish-pdf",
     "large-files",
     "xspec",
