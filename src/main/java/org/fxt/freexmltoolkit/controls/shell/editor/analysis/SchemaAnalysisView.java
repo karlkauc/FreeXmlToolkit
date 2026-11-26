@@ -34,7 +34,7 @@ import org.fxt.freexmltoolkit.i18n.I18n;
  */
 public class SchemaAnalysisView extends BorderPane {
 
-    public static final String TITLE = "Schema Analysis";
+    public static final String TITLE = org.fxt.freexmltoolkit.i18n.I18n.t("SchemaAnalysisView.title");
     public static final String ICON = "bi-clipboard-data";
     static final String NO_DOCUMENT = I18n.t("SchemaAnalysisView.open-an-xsd-document-first");
 
