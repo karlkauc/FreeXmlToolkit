@@ -21,6 +21,7 @@
     "convert",
     "xsd-types",
     "xsd-analysis",
+    "publish-pdf",
     "large-files",
     "xspec",
     "profiler",
