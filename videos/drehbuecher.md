@@ -26,32 +26,32 @@ Szenen als Stichpunkte. Daraus entstehen beim Umsetzen Sprechtext (DE + EN), `vi
 | # | Id | Titel | Stand heute (DE) | Ziel |
 |---|----|-------|------------------|------|
 | | | **Serie Grundlagen** | | **54 min** |
-| 1 | workspace-tour | Ein Rundgang durch die Arbeitsfläche | neu, 2:59 – zu kurz | 5:00 |
-| 2 | edit-xml-text | XML im Text-Editor schreiben | neu, 2:40 – zu kurz | 7:00 |
-| 3 | validate-xml | Eine XML-Datei gegen ihr Schema prüfen | neu, 2:44 – zu kurz | 7:00 |
-| 4 | xml-grid | Das XML-Grid: ein Dokument als Tabellen bearbeiten | neu, 2:43 – zu kurz | 8:00 |
-| 5 | xsd-graphic | Ein XSD-Schema grafisch bearbeiten | alte Kurzfassung 1:29 | 8:00 |
-| 6 | xslt-run | Ein XSLT-Stylesheet ausführen | neu, 3:08 – zu kurz | 4:00 |
-| 7 | schematron-quick-fixes | Probleme mit Schematron-Schnellkorrekturen beheben | alte Kurzfassung 1:00 | 7:00 |
-| 8 | projects | Projekte: Schemas und Szenarien für einen ganzen Ordner | alte Kurzfassung 1:07 | 8:00 |
+| 1 | workspace-tour | Ein Rundgang durch die Arbeitsfläche | online, 4:48 | 5:00 |
+| 2 | edit-xml-text | XML im Text-Editor schreiben | online, 6:18 | 7:00 |
+| 3 | validate-xml | Eine XML-Datei gegen ihr Schema prüfen | online, 6:38 | 7:00 |
+| 4 | xml-grid | Das XML-Grid: ein Dokument als Tabellen bearbeiten | online, 7:32 | 8:00 |
+| 5 | xsd-graphic | Ein XSD-Schema grafisch bearbeiten | online, 7:19 | 8:00 |
+| 6 | xslt-run | Ein XSLT-Stylesheet ausführen | online, 3:56 | 4:00 |
+| 7 | schematron-quick-fixes | Probleme mit Schematron-Schnellkorrekturen beheben | online, 6:06 | 7:00 |
+| 8 | projects | Projekte: Schemas und Szenarien für einen ganzen Ordner | online, 6:09 | 8:00 |
 | | | **Serie Vertiefung** | | **97 min** |
-| 9 | xslt-debug | Ein XSLT-Stylesheet debuggen | alte Kurzfassung 1:06 | 8:00 |
-| 10 | query-console | XPath und XQuery in der Abfragekonsole | – | 6:00 |
-| 11 | schema-library | Schemas finden, verwalten und erzeugen | – | 6:00 |
-| 12 | compare-merge | Vergleichen und Zusammenführen | – | 6:00 |
-| 13 | convert | XML, JSON, YAML und Excel umwandeln | – | 6:00 |
-| 14 | xsd-types | XSD: Übersicht und Typen | – | 7:00 |
-| 15 | xsd-analysis | XSD: Analyse und Dokumentation | – | 5:00 |
-| 16 | publish-pdf | PDF mit XSL-FO erzeugen | – | 6:00 |
-| 17 | large-files | Sehr große XML-Dateien | – | 4:00 |
-| 18 | xspec | Stylesheets testen mit XSpec | – | 5:00 |
-| 19 | profiler | Langsame Stylesheets und Abfragen finden | – | 4:00 |
-| 20 | xproc | XProc-Pipelines ausführen | – | 4:00 |
-| 21 | command-line | Automatisieren mit der Kommandozeile fxt-cli | – | 6:00 |
-| 22 | sign-encrypt | XML signieren und verschlüsseln | – | 7:00 |
-| 23 | ai-assistant | KI-Assistent und MCP-Server | – | 7:00 |
-| 24 | settings | Einstellungen und Darstellung | – | 5:00 |
-| 25 | administration | FreeXmlToolkit im Unternehmen verwalten | – | 5:00 |
+| 9 | xslt-debug | Ein XSLT-Stylesheet debuggen | online, 6:24 | 8:00 |
+| 10 | query-console | XPath und XQuery in der Abfragekonsole | online, 4:28 | 6:00 |
+| 11 | schema-library | Schemas finden, verwalten und erzeugen | online, 4:45 | 6:00 |
+| 12 | compare-merge | Vergleichen und Zusammenführen | online, 4:28 | 6:00 |
+| 13 | convert | XML, JSON, YAML und Excel umwandeln | online, 4:23 | 6:00 |
+| 14 | xsd-types | XSD: Übersicht und Typen | online, 5:12 | 7:00 |
+| 15 | xsd-analysis | XSD: Analyse und Dokumentation | online, 3:36 | 5:00 |
+| 16 | publish-pdf | PDF mit XSL-FO erzeugen | online, 3:06 | 6:00 |
+| 17 | large-files | Sehr große XML-Dateien | online, 3:05 | 4:00 |
+| 18 | xspec | Stylesheets testen mit XSpec | online, 2:43 | 5:00 |
+| 19 | profiler | Langsame Stylesheets und Abfragen finden | online, 5:08 | 4:00 |
+| 20 | xproc | XProc-Pipelines ausführen | online, 2:17 | 4:00 |
+| 21 | command-line | Automatisieren mit der Kommandozeile fxt-cli | online, 2:46 | 6:00 |
+| 22 | sign-encrypt | XML signieren und verschlüsseln | online, 3:16 | 7:00 |
+| 23 | ai-assistant | KI-Assistent und MCP-Server | online, 3:01 | 7:00 |
+| 24 | settings | Einstellungen und Darstellung | online, 2:28 | 5:00 |
+| 25 | administration | FreeXmlToolkit im Unternehmen verwalten | online, 3:09 | 5:00 |
 
 Summe: 25 Videos, ca. 2,5 Stunden. Die Filme 1, 2, 3, 4 und 6 werden mit diesen Drehbüchern neu aufgenommen.
 
