@@ -90,6 +90,71 @@ class SignEncryptDocVideo {
                 video.zoomOut();
             });
 
+            video.scene("sign-run", () -> {
+                show(SignatureView.Action.SIGN);
+                SignatureView view = doc.findType(SignatureView.class);
+                java.nio.file.Path keystore = folder.resolve("demo-rsa.p12");
+                try {
+                    java.nio.file.Files.copy(java.nio.file.Path.of("release/examples/encryption/demo-rsa.p12"), keystore,
+                            java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                } catch (java.io.IOException e) {
+                    throw new java.io.UncheckedIOException(e);
+                }
+                doc.onFx(() -> {
+                    view.setKeystore(keystore.toFile());
+                    view.setCredentials("demo-rsa", "changeit", "changeit");
+                });
+                video.pause(800);
+                zoomEditor(video);
+                video.moveTo(doc.<Node>find("#sig-keystore-row"));
+                video.spoken(0.35);
+                clickIfShown(video, "#sign-card-run");
+                java.nio.file.Path signed = xml.resolveSibling("order.signed.xml");
+                try {
+                    doc.waitUntilFx(30, () -> java.nio.file.Files.exists(signed));
+                } catch (Exception e) {
+                    System.out.println("[video] no signed file");
+                }
+                video.pause(1500);
+                video.zoomOut();
+                Node tab = tabLabeled("order.signed.xml");
+                if (tab != null) {
+                    video.click(tab);
+                    video.pause(1200);
+                    int at = host.getActiveText().orElse("").indexOf("Signature");
+                    if (at > 0) {
+                        doc.onFx(() -> {
+                            var area = host.getActiveCodeArea();
+                            if (area != null) {
+                                area.showParagraphAtTop(Math.max(0, area.offsetToPosition(at,
+                                        org.fxmisc.richtext.model.TwoDimensional.Bias.Forward).getMajor() - 2));
+                            }
+                        });
+                    }
+                    video.pause(800);
+                    zoomEditor(video);
+                }
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
+            video.scene("verify-run", () -> {
+                show(SignatureView.Action.SIGN);
+                video.pause(600);
+                Node link = doc.find("#sig-validate-signed");
+                if (link != null && doc.fx(link::isVisible)) {
+                    video.click(link);
+                    video.pause(3000);
+                } else {
+                    show(SignatureView.Action.VALIDATE);
+                    clickIfShown(video, "#sig-validate-run");
+                    video.pause(3000);
+                }
+                zoomEditor(video);
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
             video.scene("verify", () -> {
                 show(SignatureView.Action.VALIDATE);
                 zoomEditor(video);
@@ -100,6 +165,10 @@ class SignEncryptDocVideo {
             });
 
             video.scene("encrypt", () -> {
+                // the signed file is the active document now: encrypt the original order again
+                doc.onFx(() -> host.openFile(xml));
+                doc.waitUntilFx(10, () -> host.getActiveText().orElse("").contains("PO-1042")
+                        && !host.getActiveText().orElse("").contains("Signature"));
                 show(SignatureView.Action.ENCRYPT);
                 zoomEditor(video);
                 for (String id : new String[] {"#enc-target-document", "#enc-target-caret", "#enc-target-xpath", "#enc-content-only"}) {
@@ -128,6 +197,21 @@ class SignEncryptDocVideo {
                     clickDefault(video, dialog);
                 }
                 video.spoken(0.95);
+            });
+
+            video.scene("algorithms", () -> {
+                clickIfShown(video, "#enc-advanced");
+                video.pause(1000);
+                zoomEditor(video);
+                for (String id : new String[] {"#enc-key-transport", "#enc-kdf", "#enc-key-wrap"}) {
+                    moveIfShown(video, id);
+                    video.pause(500);
+                }
+                video.spoken(0.6);
+                moveIfShown(video, "#enc-data-alg");
+                video.spoken(0.95);
+                clickIfShown(video, "#enc-advanced");
+                video.zoomOut();
             });
 
             video.scene("run-encrypt", () -> {
@@ -185,6 +269,29 @@ class SignEncryptDocVideo {
                 video.zoomOut();
             });
 
+            video.scene("editor-menu", () -> {
+                doc.onFx(() -> host.openFile(xml));
+                doc.waitUntilFx(10, () -> host.getActiveText().orElse("").contains("PO-1042"));
+                var area = host.getActiveCodeArea();
+                int at = host.getActiveText().orElse("").indexOf("<customer>") + 3;
+                Bounds c = doc.fx(() -> area.getCharacterBoundsOnScreen(at, at + 1).orElse(null));
+                if (c != null) {
+                    video.click(c.getCenterX(), c.getCenterY());
+                    video.pause(400);
+                    video.rightClick(c.getCenterX(), c.getCenterY());
+                    video.pause(900);
+                    try {
+                        Node item = video.inPopup("#editor-encrypt-element");
+                        video.moveTo(item);
+                        video.pause(800);
+                    } catch (Exception e) {
+                        System.out.println("[video] no Encrypt Element in the editor menu");
+                    }
+                }
+                video.spoken(0.95);
+                new VideoTyping(doc, video).hidePopups();
+            });
+
             video.scene("cli", () -> video.spoken(0.95));
         } finally {
             video.stop();
@@ -238,5 +345,12 @@ class SignEncryptDocVideo {
             doc.onFx(dialog::hide);
         }
         video.pause(600);
+    }
+
+    private Node tabLabeled(String text) {
+        return doc.fx(() -> doc.stage().getScene().getRoot().lookupAll(".tab").stream()
+                .filter(t -> t.lookupAll(".tab-label").stream().anyMatch(l -> l instanceof javafx.scene.control.Labeled lb
+                        && lb.getText() != null && lb.getText().contains(text)))
+                .findFirst().orElse(null));
     }
 }

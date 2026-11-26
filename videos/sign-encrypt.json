@@ -49,6 +49,20 @@
       }
     },
     {
+      "id": "sign-run",
+      "say": {
+        "de": "Probieren wir es aus, mit dem Beispiel-Schlüsselspeicher demo-rsa aus dem Ordner examples, Passwort changeit. Nach Alias und Passwörtern genügt ein Klick auf Dokument signieren. FreeXmlToolkit schreibt eine neue Datei mit der Endung signed neben das Original und öffnet sie. Am Ende des Dokuments steht jetzt ein Element Signature mit dem Hash des Inhalts, dem Signaturwert und dem Zertifikat.",
+        "en": "Let us try it with the example keystore demo-rsa from the examples folder, password changeit. After alias and passwords, one click on Sign Document is enough. FreeXmlToolkit writes a new file with the extension signed next to the original and opens it. At the end of the document there is now a Signature element with the hash of the content, the signature value and the certificate."
+      }
+    },
+    {
+      "id": "verify-run",
+      "say": {
+        "de": "Gleich nach dem Signieren bietet die Seite Diese Signatur validieren an. Ein Klick prüft die neue Datei und meldet, dass die Signatur gültig ist und von welchem Zertifikat sie stammt. Wer die Datei danach von Hand ändert, und sei es nur ein Leerzeichen im signierten Teil, bekommt bei der nächsten Prüfung einen Fehler.",
+        "en": "Right after signing, the page offers Validate this signature. One click checks the new file and reports that the signature is valid and which certificate it comes from. If someone then edits the file by hand, even a single space in the signed part, the next check reports an error."
+      }
+    },
+    {
       "id": "verify",
       "say": {
         "de": "Signatur prüfen kontrolliert, ob die Signatur zum Inhalt passt und von welchem Zertifikat sie stammt. Wird auch nur ein Zeichen im signierten Teil geändert, schlägt die Prüfung fehl, und die Einzelheiten zeigen, warum. Im Expertenmodus prüfen Sie zusätzlich, ob das Zertifikat einem vertrauenswürdigen Aussteller gehört.",
@@ -74,6 +88,13 @@
       }
     },
     {
+      "id": "algorithms",
+      "say": {
+        "de": "Unter Erweiterte Optionen stehen die Verfahren. Für die Daten ist AES-256-GCM voreingestellt. Für die Empfänger gibt es RSA-OAEP für Zertifikate, ECDH-ES mit einer Schlüsselableitung für elliptische Kurven und AES Key Wrap für gemeinsame Schlüssel. Veraltete Verfahren wie AES im CBC-Modus, TripleDES oder RSA nach PKCS 1 Version 1.5 bleiben wählbar, damit Sie mit älteren Systemen arbeiten können; wählen Sie eins, zeigt die Seite eine Warnung.",
+        "en": "Advanced options hold the methods. AES-256-GCM is preset for the data. For the recipients there is RSA-OAEP for certificates, ECDH-ES with a key derivation for elliptic curves, and AES Key Wrap for shared keys. Outdated methods such as AES in CBC mode, TripleDES or RSA PKCS 1 version 1.5 remain selectable so you can work with older systems; if you pick one, the page shows a warning."
+      }
+    },
+    {
       "id": "run-encrypt",
       "say": {
         "de": "Verschlüsseln schreibt eine neue Datei neben das Original, mit der Endung encrypted, und öffnet sie. Statt der Bestellung steht darin ein EncryptedData-Element mit unlesbaren Daten und den Angaben, wie entschlüsselt wird. Das Original bleibt unverändert.",
@@ -92,10 +113,17 @@
       }
     },
     {
+      "id": "editor-menu",
+      "say": {
+        "de": "Einzelne Elemente verschlüsseln Sie auch direkt aus dem Editor. Setzen Sie die Schreibmarke in das Element, etwa in die Kundendaten, und wählen Sie im Kontextmenü Element verschlüsseln. Die Seite öffnet sich dann mit diesem Element als Ziel, und der Rest des Dokuments bleibt lesbar.",
+        "en": "You can also encrypt single elements straight from the editor. Put the caret into the element, for example into the customer data, and choose Encrypt Element in the context menu. The page then opens with that element as its target, and the rest of the document stays readable."
+      }
+    },
+    {
       "id": "cli",
       "say": {
-        "de": "Einzelne Elemente verschlüsseln Sie auch direkt aus dem Editor über das Kontextmenü. Auf der Kommandozeile gibt es dafür sign, verify, encrypt und decrypt, Passwörter kommen dort aus einer Abfrage oder einer Umgebungsvariablen. Administratoren können veraltete Verfahren oder die Verschlüsselung ganz abschalten.",
-        "en": "You also encrypt single elements straight from the editor through the context menu. On the command line there are sign, verify, encrypt and decrypt, with passwords coming from a prompt or an environment variable. Administrators can switch off outdated methods or encryption altogether."
+        "de": "Auf der Kommandozeile gibt es dafür sign, verify, encrypt und decrypt, Passwörter kommen dort aus einer Abfrage oder einer Umgebungsvariablen. Im Ordner examples liegen fertige Beispiele: Schlüssel für RSA und elliptische Kurven, eine Bestellung für drei Empfänger, die jeder mit seinem eigenen Schlüssel öffnet, und eine mit Passwort. Administratoren können veraltete Verfahren oder die Verschlüsselung ganz abschalten.",
+        "en": "On the command line there are sign, verify, encrypt and decrypt, with passwords from a prompt or an environment variable. The examples folder holds ready-made samples: keys for RSA and elliptic curves, an order for three recipients that each open with their own key, and one with a password. Administrators can switch off outdated methods or encryption altogether."
       }
     },
     {
