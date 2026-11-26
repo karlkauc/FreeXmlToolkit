@@ -58,8 +58,8 @@
     {
       "id": "quality-filter",
       "say": {
-        "de": "Die Zahlen neben der Bewertung sind zugleich Filter. Ein Klick auf Fehlende Dokumentation zeigt nur noch diese Meldungen, ein zweiter Klick hebt den Filter wieder auf. Dazu kommen Auswahllisten für Schweregrad und Kategorie und ein Suchfeld. Wählen Sie eine Meldung aus, steht darunter der Vorschlag, wie sie sich beheben lässt, und ein Link springt zu den betroffenen Elementen im Schema.",
-        "en": "The counts next to the rating are filters too. A click on Missing Documentation shows only those findings, a second click clears the filter again. On top come lists for severity and category and a search field. Select a finding, and below it you see the suggestion for fixing it, with a link that jumps to the affected elements in the schema."
+        "de": "Die Zahlen neben der Bewertung sind zugleich Filter. Ein Klick auf Fehlende Dokumentation zeigt nur noch diese Meldungen, ein zweiter Klick hebt den Filter wieder auf. Dazu kommen Auswahllisten für Schweregrad und Kategorie und ein Suchfeld. Wählen Sie eine Meldung aus, springt der Editor in der Baumansicht zu der Stelle im Schema. Zurück im Tab der Analyse stehen unter der Liste der Vorschlag, wie sich die Meldung beheben lässt, und Links zu den betroffenen Elementen.",
+        "en": "The counts next to the rating are filters too. A click on Missing Documentation shows only those findings, a second click clears the filter again. On top come lists for severity and category and a search field. Select a finding, and the editor jumps to that place in the schema in the tree view. Back in the analysis tab, below the list you see the suggestion for fixing it and links to the affected elements."
       }
     },
     {

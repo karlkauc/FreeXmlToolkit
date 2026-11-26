@@ -112,8 +112,20 @@ class XsdAnalysisDocVideo {
                         .findFirst().orElse(null));
                 if (row != null) {
                     Bounds b = video.screenBounds(row);
+                    video.zoomOut();
                     video.click(b.getMinX() + 200, b.getCenterY());
-                    video.pause(1200);
+                    video.pause(2000);
+                    video.spoken(0.7);
+                    // selecting a finding reveals it in the schema's tree view: go back to the analysis tab
+                    Node analysisTab = doc.fx(() -> doc.stage().getScene().getRoot().lookupAll(".tab").stream()
+                            .filter(t -> t.lookupAll(".tab-label").stream().anyMatch(l -> l instanceof javafx.scene.control.Labeled lb
+                                    && org.fxt.freexmltoolkit.controls.shell.editor.analysis.SchemaAnalysisView.TITLE.equals(lb.getText())))
+                            .findFirst().orElse(null));
+                    if (analysisTab != null) {
+                        video.click(analysisTab);
+                        video.pause(1200);
+                    }
+                    zoomEditor(video);
                 }
                 video.spoken(0.95);
                 if (missingDocs != null) {
