@@ -63,6 +63,13 @@
       }
     },
     {
+      "id": "apply",
+      "say": {
+        "de": "Beim Übernehmen ersetzt FreeXmlToolkit nur die Bytes dieses Ausschnitts, alles davor und danach bleibt Byte für Byte, wie es war. Geschrieben wird zuerst in eine temporäre Datei daneben, die das Original erst am Ende ersetzt. Bricht etwas ab, ist das Original unberührt. Auf Wunsch bleibt die vorige Fassung als Sicherung mit der Endung bak erhalten. Wechseln Sie mit ungespeicherten Änderungen den Ausschnitt, fragt FreeXmlToolkit vorher nach.",
+        "en": "When applying, FreeXmlToolkit replaces only the bytes of this window; everything before and after it stays byte for byte as it was. It writes to a temporary file next to it first, which replaces the original only at the end. If something breaks off, the original is untouched. If you like, the previous version is kept as a backup with the extension bak. If you switch windows with unwritten changes, FreeXmlToolkit asks first."
+      }
+    },
+    {
       "id": "statistics",
       "chapter": {
         "de": "Statistik und Validierung",
@@ -78,6 +85,13 @@
       "say": {
         "de": "Validieren prüft die Datei gegen ihr Schema, ebenfalls im Strom, ohne sie ganz zu laden. Die Probleme erscheinen im Reiter Probleme, jedes mit seiner Zeile. Auf der Kommandozeile prüft fxt-cli große Dateien automatisch auf dieselbe Weise. Wahlweise prüft die Validierung nur, ob die Datei wohlgeformt ist, gegen das in der Datei genannte Schema oder gegen ein anderes.",
         "en": "Validate checks the file against its schema, also as a stream, without loading it completely. The problems appear in the Problems tab, each with its line. On the command line, fxt-cli checks large files the same way automatically. Optionally it checks only whether the file is well-formed, against the schema named in the file, or against another one."
+      }
+    },
+    {
+      "id": "limits",
+      "say": {
+        "de": "Ein paar Grenzen gibt es: Bearbeitet wird Ausschnitt für Ausschnitt, jeweils bis zu zwanzig Megabyte. Unterstützt werden UTF-8 und Kodierungen mit einem Byte pro Zeichen, nicht UTF-16. Und zum Schreiben braucht der Ordner Platz für eine zweite Kopie der Datei. Ändert ein anderes Programm die Datei, während sie offen ist, meldet eine Leiste das und bietet Neu laden an.",
+        "en": "There are a few limits: editing works window by window, up to twenty megabytes each. UTF-8 and single-byte encodings are supported, not UTF-16. And writing needs room in the folder for a second copy of the file. If another program changes the file while it is open, a bar says so and offers Reload."
       }
     },
     {

@@ -135,6 +135,8 @@ class LargeFilesDocVideo {
                 video.zoomOut();
             });
 
+            video.scene("apply", () -> video.spoken(0.95));
+
             video.scene("statistics", () -> {
                 clickTab(video, "#large-file-tab-statistics");
                 video.pause(800);
@@ -163,6 +165,7 @@ class LargeFilesDocVideo {
                 clickTab(video, "#large-file-tab-problems");
                 video.spoken(0.95);
             });
+            video.scene("limits", () -> video.spoken(0.95));
         } finally {
             video.stop();
         }
