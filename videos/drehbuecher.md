@@ -36,25 +36,25 @@ Szenen als Stichpunkte. Daraus entstehen beim Umsetzen Sprechtext (DE + EN), `vi
 | 8 | projects | Projekte: Schemas und Szenarien für einen ganzen Ordner | online, 6:09 | 8:00 |
 | | | **Serie Vertiefung** | | **97 min** |
 | 9 | xslt-debug | Ein XSLT-Stylesheet debuggen | online, 6:24 | 8:00 |
-| 10 | query-console | XPath und XQuery in der Abfragekonsole | online, 4:28 | 6:00 |
-| 11 | schema-library | Schemas finden, verwalten und erzeugen | online, 4:45 | 6:00 |
-| 12 | compare-merge | Vergleichen und Zusammenführen | online, 4:28 | 6:00 |
-| 13 | convert | XML, JSON, YAML und Excel umwandeln | online, 4:23 | 6:00 |
-| 14 | xsd-types | XSD: Übersicht und Typen | online, 5:12 | 7:00 |
-| 15 | xsd-analysis | XSD: Analyse und Dokumentation | online, 3:36 | 5:00 |
-| 26 | xsd-documentation | Ein Schema als Website dokumentieren | in Arbeit | 8:00 |
-| 16 | publish-pdf | PDF mit XSL-FO erzeugen | online, 3:06 | 6:00 |
-| 17 | large-files | Sehr große XML-Dateien | online, 3:05 | 4:00 |
-| 18 | xspec | Stylesheets testen mit XSpec | online, 2:43 | 5:00 |
+| 10 | query-console | XPath und XQuery in der Abfragekonsole | online, 5:29 | 6:00 |
+| 11 | schema-library | Schemas finden, verwalten und erzeugen | online, 5:34 | 6:00 |
+| 12 | compare-merge | Vergleichen und Zusammenführen | online, 5:29 | 6:00 |
+| 13 | convert | XML, JSON, YAML und Excel umwandeln | online, 5:21 | 6:00 |
+| 14 | xsd-types | XSD: Übersicht und Typen | online, 5:55 | 7:00 |
+| 15 | xsd-analysis | XSD: Analyse und Dokumentation | online, 4:23 | 5:00 |
+| 26 | xsd-documentation | Ein Schema als Website dokumentieren | online, 6:06 | 8:00 |
+| 16 | publish-pdf | PDF mit XSL-FO erzeugen | online, 4:35 | 6:00 |
+| 17 | large-files | Sehr große XML-Dateien | online, 3:43 | 4:00 |
+| 18 | xspec | Stylesheets testen mit XSpec | online, 3:50 | 5:00 |
 | 19 | profiler | Langsame Stylesheets und Abfragen finden | online, 5:08 | 4:00 |
-| 20 | xproc | XProc-Pipelines ausführen | online, 2:17 | 4:00 |
-| 21 | command-line | Automatisieren mit der Kommandozeile fxt-cli | online, 2:46 | 6:00 |
-| 22 | sign-encrypt | XML signieren und verschlüsseln | online, 3:16 | 7:00 |
-| 23 | ai-assistant | KI-Assistent und MCP-Server | online, 3:01 | 7:00 |
-| 24 | settings | Einstellungen und Darstellung | online, 2:28 | 5:00 |
-| 25 | administration | FreeXmlToolkit im Unternehmen verwalten | online, 3:09 | 5:00 |
+| 20 | xproc | XProc-Pipelines ausführen | online, 3:43 | 4:00 |
+| 21 | command-line | Automatisieren mit der Kommandozeile fxt-cli | online, 4:15 | 6:00 |
+| 22 | sign-encrypt | XML signieren und verschlüsseln | online, 5:17 | 7:00 |
+| 23 | ai-assistant | KI-Assistent und MCP-Server | online, 4:59 | 7:00 |
+| 24 | settings | Einstellungen und Darstellung | online, 4:06 | 5:00 |
+| 25 | administration | FreeXmlToolkit im Unternehmen verwalten | online, 4:07 | 5:00 |
 
-Summe: 25 Videos, ca. 2,5 Stunden. Die Filme 1, 2, 3, 4 und 6 werden mit diesen Drehbüchern neu aufgenommen.
+Summe: 26 Videos, zusammen ca. 2 Stunden 20 Minuten je Sprache (Stand 26.11.2026, alle online).
 
 ---
 

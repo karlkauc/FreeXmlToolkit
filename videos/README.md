@@ -22,7 +22,7 @@ The first series, in the order it is meant to be watched. Status: **published** 
 | 13 | `convert` | Convert XML, JSON, YAML and Excel / XML, JSON, YAML und Excel umwandeln | `guides/convert.md` | published |
 | 14 | `xsd-types` | XSD: overview and types / XSD: Übersicht und Typen | `guides/design-schemas/` | published |
 | 15 | `xsd-analysis` | XSD: analysis and documentation / XSD: Analyse und Dokumentation | `guides/design-schemas/` | published |
-| 26 | `xsd-documentation` | Document a schema as a website / Ein Schema als Website dokumentieren | `guides/design-schemas/documentation.md` | recorded (shows the site in Chrome for Testing, `VideoBrowser`) |
+| 26 | `xsd-documentation` | Document a schema as a website / Ein Schema als Website dokumentieren | `guides/design-schemas/documentation.md` | published (shows the site in Chrome for Testing, `VideoBrowser`) |
 | 16 | `publish-pdf` | Create a PDF with XSL-FO / PDF mit XSL-FO erzeugen | `guides/publish-pdf.md` | published |
 | 17 | `large-files` | Very large XML files / Sehr große XML-Dateien | `guides/edit-xml/large-files.md` | published |
 | 18 | `xspec` | Test stylesheets with XSpec / Stylesheets testen mit XSpec | `guides/transform-query/xspec.md` | published |
