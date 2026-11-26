@@ -87,8 +87,29 @@
         "en": "XQuery, Schematron and the command line"
       },
       "say": {
-        "de": "Genauso testen Sie XQuery-Funktionen und Schematron-Regeln, dafür gibt es eigene Vorlagen. Bei Schematron prüft ein Test, ob eine Regel bei einem bestimmten Dokument anschlägt oder schweigt. Auf der Kommandozeile führt fxt-cli xspec dieselben Tests aus, zum Beispiel bei jedem Commit.",
-        "en": "You test XQuery functions and Schematron rules the same way, with templates of their own. For Schematron, a test checks whether a rule fires on a certain document or stays silent. On the command line, fxt-cli xspec runs the same tests, on every commit for example."
+        "de": "Genauso testen Sie XQuery-Funktionen und Schematron-Regeln. Was getestet wird, bestimmt das Element description: das Attribut stylesheet für XSLT, query mit query-at für ein XQuery-Modul und schematron für eine Regeldatei. FreeXmlToolkit bringt im Ordner examples fertige Beispiele für alle drei Arten mit, dazu eines, das absichtlich fehlschlägt.",
+        "en": "You test XQuery functions and Schematron rules the same way. The description element decides what is tested: the stylesheet attribute for XSLT, query with query-at for an XQuery module, and schematron for a rule file. FreeXmlToolkit ships ready-made examples for all three kinds in the examples folder, plus one that fails on purpose."
+      }
+    },
+    {
+      "id": "schematron",
+      "say": {
+        "de": "Hier das Beispiel für Schematron. Jedes Szenario gibt mit context ein kleines Dokument vor. expect-assert erwartet, dass eine bestimmte Regel anschlägt, zum Beispiel bei einer ISIN mit nur zehn Zeichen. expect-not-assert erwartet, dass sie schweigt, und expect-valid, dass das Dokument ohne Fehler durchgeht. Ausgeführt wird es wie jeder andere Test, und alle acht Tests bestehen.",
+        "en": "Here is the Schematron example. Each scenario gives a small document with context. expect-assert expects a particular rule to fire, for example for an ISIN with only ten characters. expect-not-assert expects it to stay silent, and expect-valid that the document passes without errors. It runs like any other test, and all eight tests pass."
+      }
+    },
+    {
+      "id": "cli",
+      "say": {
+        "de": "Auf der Kommandozeile führt fxt-cli xspec dieselben Tests aus, auch mehrere Dateien auf einmal. Mit der Option report schreibt es einen JUnit-Bericht, mit dem Format html den Bericht von XSpec. Der Exit-Code ist null, wenn alle Tests bestehen, eins, wenn einer fehlschlägt, und drei, wenn die Tests nicht laufen können. So prüft eine Pipeline Ihre Stylesheets bei jedem Commit.",
+        "en": "On the command line, fxt-cli xspec runs the same tests, several files at once too. With the report option it writes a JUnit report, with the html format XSpec's own report. The exit code is zero when all tests pass, one when a test fails, and three when the tests cannot run. That way a pipeline checks your stylesheets with every commit."
+      }
+    },
+    {
+      "id": "restrictions",
+      "say": {
+        "de": "Tests laufen immer mit dem mitgelieferten Saxon HE, auch wenn für Umwandlungen ein externer XSLT-Prozessor eingestellt ist. Wie bei jeder Umwandlung darf der getestete Code keine Dokumente aus dem Netz laden, außer die Schema-Bibliothek ordnet eine Adresse einer lokalen Datei zu.",
+        "en": "Tests always run on the bundled Saxon HE, also when an external XSLT processor is set for transformations. As with every transformation, the tested code may not load documents from the network, unless the Schema Library maps an address to a local file."
       }
     },
     {

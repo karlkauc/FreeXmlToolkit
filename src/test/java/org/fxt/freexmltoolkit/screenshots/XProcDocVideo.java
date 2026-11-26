@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
+import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
@@ -108,13 +109,8 @@ class XProcDocVideo {
             });
 
             video.scene("run", () -> {
-                Node run = doc.find("#doc-action-run");
-                Bounds b = video.screenBounds(run);
-                video.click(b.getMaxX() - 8, b.getCenterY());
-                video.pause(800);
-                Node item = video.inPopup("#doc-action-run-pipeline");
-                video.spoken(0.4);
-                video.click(item);
+                video.spoken(0.2);
+                runPipeline(video);
                 video.pause(4000);
                 video.spoken(0.95);
             });
@@ -124,6 +120,35 @@ class XProcDocVideo {
                 video.zoom(new BoundingBox(editor.getMinX(), editor.getCenterY(), editor.getWidth(), editor.getHeight() / 2));
                 video.spoken(0.95);
                 video.zoomOut();
+            });
+
+            video.scene("output-views", () -> {
+                Bounds editor = video.screenBounds(doc.find("#editorHost"));
+                video.zoom(new BoundingBox(editor.getMinX(), editor.getCenterY(), editor.getWidth(), editor.getHeight() / 2));
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
+            video.scene("error", () -> {
+                doc.open(xpl, "p:declare-step");
+                int at = host.getActiveText().orElse("").indexOf("<p:delete ") + "<p:delet".length();
+                if (at > 10) {
+                    video.retype(at, 1, "");
+                    video.pause(600);
+                }
+                runPipeline(video);
+                video.pause(3000);
+                Bounds editor = video.screenBounds(doc.find("#editorHost"));
+                video.zoom(new BoundingBox(editor.getMinX(), editor.getCenterY(), editor.getWidth(), editor.getHeight() / 2));
+                video.spoken(0.75);
+                video.zoomOut();
+                doc.open(xpl, "p:declare-step");
+                new VideoTyping(doc, video).shortcut(KeyCode.Z, false, "Z");
+                video.pause(800);
+                if (!host.getActiveText().orElse("").contains("<p:delete ")) {
+                    System.out.println("[video] the typo is still in the pipeline");
+                }
+                video.spoken(0.95);
             });
 
             video.scene("examples", () -> {
@@ -137,6 +162,25 @@ class XProcDocVideo {
             });
 
             video.scene("limits", () -> video.spoken(0.95));
+
+            video.scene("restrictions", () -> {
+                video.spoken(0.55);
+                doc.onFx(doc.shell()::openSettings);
+                video.pause(1500);
+                var settings = doc.findType(org.fxt.freexmltoolkit.controls.shell.editor.SettingsPanel.class);
+                if (settings != null) {
+                    doc.onFx(() -> settings.showSection("network"));
+                    video.pause(800);
+                }
+                Node box = doc.find("#settings-xproc-unrestricted");
+                if (box != null) {
+                    Bounds b = video.screenBounds(box);
+                    video.zoom(new BoundingBox(b.getMinX() - 200, b.getMinY() - 120, 1100, 300));
+                    video.moveTo(box);
+                }
+                video.spoken(0.95);
+                video.zoomOut();
+            });
         } finally {
             video.stop();
         }
@@ -145,5 +189,17 @@ class XProcDocVideo {
     private void zoomEditor(DocVideoRecorder video) {
         Bounds editor = video.screenBounds(doc.find("#editorHost"));
         video.zoom(new BoundingBox(editor.getMinX(), editor.getMinY(), editor.getWidth() * 0.8, editor.getHeight() * 0.8));
+    }
+
+    /** Run ▾ → Run Pipeline on the active pipeline tab. */
+    private void runPipeline(DocVideoRecorder video) throws Exception {
+        Node run = doc.find("#doc-action-run");
+        Bounds b = video.screenBounds(run);
+        video.click(b.getMaxX() - 8, b.getCenterY());
+        video.pause(800);
+        Node item = video.inPopup("#doc-action-run-pipeline");
+        video.moveTo(item);
+        video.pause(400);
+        video.click(item);
     }
 }

@@ -121,6 +121,18 @@ class SettingsDocVideo {
                 video.zoomOut();
             });
 
+            video.scene("memory", () -> {
+                zoomTo(video, "#settings-max-memory", 200);
+                video.moveTo(doc.<Node>find("#settings-max-memory"));
+                video.spoken(0.6);
+                Node status = doc.find("#settings-memory-status");
+                if (status != null) {
+                    video.moveTo(status);
+                }
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
             video.scene("editor", () -> {
                 show("editor");
                 zoomTo(video, "#settings-editor-font-family", 420);
@@ -129,6 +141,22 @@ class SettingsDocVideo {
                 video.moveTo(doc.<Node>find("#settings-editor-line-spacing"));
                 video.spoken(0.6);
                 video.moveTo(doc.<Node>find("#settings-syntax-scheme"));
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
+            video.scene("schemas", () -> {
+                show("schemas");
+                zoomTo(video, "#settings-schema-library-autobind", 380);
+                video.moveTo(doc.<Node>find("#settings-schema-library-autobind"));
+                video.spoken(0.35);
+                video.moveTo(doc.<Node>find("#settings-query-timeout"));
+                video.pause(500);
+                video.moveTo(doc.<Node>find("#settings-query-live-preview"));
+                video.spoken(0.65);
+                video.zoomOut();
+                zoomTo(video, "#settings-standards-expert", 300);
+                video.moveTo(doc.<Node>find("#settings-standards-expert"));
                 video.spoken(0.95);
                 video.zoomOut();
             });
@@ -152,6 +180,40 @@ class SettingsDocVideo {
                 video.spoken(0.95);
                 video.zoomOut();
             });
+            video.scene("files", () -> {
+                show("files");
+                zoomTo(video, "#settings-clear-temp", 420);
+                video.moveTo(doc.<Node>find("#settings-export-confirm"));
+                video.spoken(0.55);
+                video.moveTo(doc.<Node>find("#settings-log-cleanup"));
+                video.pause(600);
+                video.moveTo(doc.<Node>find("#settings-clear-temp"));
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
+            video.scene("extensions", () -> {
+                show("extensions");
+                zoomTo(video, "#settings-plugins", 360);
+                video.moveTo(doc.<Node>find("#settings-plugins"));
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
+            video.scene("save", () -> {
+                Node bar = doc.find("#settings-save-bar");
+                if (bar != null) {
+                    Bounds b = video.screenBounds(bar);
+                    video.zoom(new BoundingBox(b.getMinX(), b.getMinY() - 80, b.getWidth(), b.getHeight() + 120));
+                }
+                video.spoken(0.3);
+                video.moveTo(doc.<Node>find("#settings-save"));
+                video.spoken(0.6);
+                video.moveTo(doc.<Node>find("#settings-reset"));
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
         } finally {
             video.stop();
         }

@@ -67,6 +67,20 @@
       }
     },
     {
+      "id": "output-views",
+      "say": {
+        "de": "Die Ausgabe zeigt, was am primären Ausgabeport ankommt, hier result. Mehrere Dokumente auf diesem Port stehen nacheinander. Die Ansicht richtet sich nach dem Medientyp des Ergebnisses: XML, HTML, JSON oder Text wie CSV öffnen jeweils in der passenden Darstellung. Erzeugt eine Pipeline gar nichts, sagt die Ausgabe das ausdrücklich. Dateien, die eine Pipeline selbst mit p:store schreibt, landen dort, wo die Pipeline es angibt.",
+        "en": "The output shows what arrives on the primary output port, here result. Several documents on that port are shown one after the other. The view follows the result's media type: XML, HTML, JSON or text such as CSV each open in the matching view. If a pipeline produces nothing at all, the output says so explicitly. Files a pipeline writes itself with p:store end up where the pipeline says."
+      }
+    },
+    {
+      "id": "error",
+      "say": {
+        "de": "Ein Tippfehler im Namen eines Schritts zeigt, wie Fehler aussehen. Statt eines Ergebnisses steht in der Ausgabe ERROR und die Meldung von XML Calabash, mit dem XProc-Fehlercode in Klammern, wenn die Engine einen nennt. Damit finden Sie in der Dokumentation des Standards schnell heraus, was gemeint ist. Strg Z macht die Änderung wieder rückgängig.",
+        "en": "A typo in the name of a step shows what errors look like. Instead of a result, the output shows ERROR and the message from XML Calabash, with the XProc error code in brackets when the engine names one. That lets you look up quickly in the standard's documentation what is meant. Ctrl Z undoes the change again."
+      }
+    },
+    {
       "id": "examples",
       "chapter": {
         "de": "Beispiele und Grenzen",
@@ -80,8 +94,15 @@
     {
       "id": "limits",
       "say": {
-        "de": "Ausgeführt wird mit XML Calabash, einer vollständigen Umsetzung von XProc 3.0. Einige wenige Schritte sind nicht verfügbar, die Dokumentation listet sie. Auf der Kommandozeile führt fxt-cli dieselben Pipelines aus, als Teil einer automatischen Verarbeitung.",
-        "en": "Execution uses XML Calabash, a complete implementation of XProc 3.0. A few steps are not available, and the documentation lists them. On the command line, fxt-cli runs the same pipelines as part of an automatic process."
+        "de": "Ausgeführt wird mit XML Calabash, einer vollständigen Umsetzung von XProc 3.0. Einige wenige Schritte sind nicht verfügbar: Die Validierung gegen XML Schema und die Formatierung mit XSL-FO brauchen die kommerzielle Saxon-Edition. Dafür gibt es die Aktivitäten Validierung und PDF. Auf der Kommandozeile führt fxt-cli transform dieselben Pipelines aus, die Endung xpl wählt XProc automatisch, als Teil einer automatischen Verarbeitung.",
+        "en": "Pipelines run on XML Calabash, a complete implementation of XProc 3.0. A few steps are not available: validation against XML Schema and formatting with XSL-FO need the commercial Saxon edition. For those, use the Validation and PDF activities. On the command line, fxt-cli transform runs the same pipelines, the xpl extension selects XProc automatically, as part of automatic processing."
+      }
+    },
+    {
+      "id": "restrictions",
+      "say": {
+        "de": "Pipelines sind Programme, deshalb laufen sie standardmäßig mit Einschränkungen. Schritte, die andere Programme starten, zur Laufzeit erzeugte Pipelines ausführen oder Anfragen ins Netz schicken, werden nicht ausgeführt, und Dokumente dürfen nur lokale Dateien sein. Lokale Dateien lesen und schreiben geht wie gewohnt. In den Einstellungen unter Netzwerk und Sicherheit hebt XProc-Pipelines ohne Einschränkungen ausführen das auf; ein Administrator kann diese Einstellung sperren.",
+        "en": "Pipelines are programs, so by default they run with restrictions. Steps that start other programs, run pipelines computed at run time or send requests to the network are not run, and documents may only be local files. Reading and writing local files works as usual. In the settings under Network and Security, running XProc pipelines without restrictions lifts this; an administrator can lock that setting."
       }
     },
     {

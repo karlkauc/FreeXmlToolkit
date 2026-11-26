@@ -15,8 +15,8 @@
       "id": "intro",
       "card": "title",
       "say": {
-        "de": "In diesem Video passen Sie FreeXmlToolkit an: Farben, Schriften und Größen, das Verhalten des Editors, das Netzwerk und den Datenschutz. Die meisten Einstellungen wirken sofort, ohne Neustart.",
-        "en": "In this video you adapt FreeXmlToolkit: colours, fonts and sizes, the editor's behaviour, the network and privacy. Most settings take effect at once, without a restart."
+        "de": "In diesem Video passen Sie FreeXmlToolkit an: Farben, Schriften und Größen, das Verhalten des Editors, das Netzwerk und den Datenschutz. Darstellung und Schrift wirken sofort, ohne Neustart.",
+        "en": "In this video you adapt FreeXmlToolkit: colours, fonts and sizes, the editor's behaviour, the network and privacy. Appearance and fonts take effect at once, without a restart."
       }
     },
     {
@@ -63,6 +63,13 @@
       }
     },
     {
+      "id": "memory",
+      "say": {
+        "de": "Unter Arbeitsspeicher legen Sie fest, wie viel Speicher FreeXmlToolkit höchstens verwenden darf. Automatisch ist es die Hälfte des installierten Arbeitsspeichers. Mit mehr Speicher lassen sich größere Dateien öffnen und bearbeiten. Eine Änderung wirkt nach einem Neustart, und die Anzeige darunter zeigt, wie viel gerade belegt ist.",
+        "en": "Under Memory you set how much memory FreeXmlToolkit may use at most. Automatic means half of the installed memory. More memory lets you open and edit larger files. A change takes effect after a restart, and the line below shows how much is in use right now."
+      }
+    },
+    {
       "id": "editor",
       "chapter": {
         "de": "Editor",
@@ -71,6 +78,13 @@
       "say": {
         "de": "Unter Editor wählen Sie Schriftart, Schriftgröße und Zeilenabstand für alle Editoren, mit einer Vorschau. Strg und das Mausrad vergrößern im Editor, und auf Wunsch merkt sich FreeXmlToolkit diese Größe. Die Syntaxfarben lassen sich als fertiges Schema wählen oder für jede Rolle einzeln einstellen, etwa Elemente, Attribute und Kommentare.",
         "en": "Under Editor you choose font, font size and line spacing for all editors, with a preview. Ctrl and the mouse wheel zoom in the editor, and if you like, FreeXmlToolkit remembers that size. Syntax colours can be picked as a ready-made scheme or set per role, such as elements, attributes and comments."
+      }
+    },
+    {
+      "id": "schemas",
+      "say": {
+        "de": "Die Gruppe Schemas und Validierung steuert, wie Dokumente ihr Schema finden: Schemas automatisch über die Schema-Bibliothek zuweisen bindet ein Dokument an das passende Schema, auch wenn es selbst keins nennt. Für Abfragen gibt es ein Zeitlimit in Sekunden, und Treffer beim Tippen zählen zeigt schon während der Eingabe, wie viele Knoten passen. Wer mit älteren Standards arbeitet, schaltet Sprachversionen wählen ein; dann bieten die Werkzeuge eine Auswahl für XPath, XQuery, XSLT, XSD und XML.",
+        "en": "The Schemas and Validation group controls how documents find their schema: assigning schemas automatically through the Schema Library binds a document to the matching schema even when it names none itself. Queries get a time limit in seconds, and counting hits while typing shows how many nodes match during input. If you work with older standards, switch on choosing language versions; the tools then offer a choice for XPath, XQuery, XSLT, XSD and XML."
       }
     },
     {
@@ -89,6 +103,27 @@
       "say": {
         "de": "Unter Datenschutz entscheiden Sie, ob FreeXmlToolkit anonyme Nutzungsdaten und Fehlerberichte sendet. Was genau gesendet wird, zeigt der Link daneben. Inhalte Ihrer Dokumente werden nie gesendet, und beides lässt sich jederzeit abschalten.",
         "en": "Under Privacy you decide whether FreeXmlToolkit sends anonymous usage data and error reports. The link next to it shows exactly what is sent. The content of your documents is never sent, and both can be switched off at any time."
+      }
+    },
+    {
+      "id": "files",
+      "say": {
+        "de": "Unter Dateien und Cache bestimmen Sie, was nach einem Export passiert: Ist Jeden Export bestätigen eingeschaltet, fragt ein Dialog, ob die Datei geöffnet oder im Ordner gezeigt werden soll; ausgeschaltet erscheint nur eine kurze Meldung unten rechts mit einem Öffnen-Link. Alte Logdateien lassen sich beim Start automatisch löschen, und Temp-Ordner leeren räumt zwischengespeicherte Dateien weg.",
+        "en": "Under Files and Cache you decide what happens after an export: with confirming every export switched on, a dialog asks whether to open the file or show it in its folder; switched off, only a short note with an Open link appears at the bottom right. Old log files can be deleted automatically at start, and clearing the temp folder removes cached files."
+      }
+    },
+    {
+      "id": "extensions",
+      "say": {
+        "de": "Unter Erweiterungen stehen die mitgelieferten Erweiterungen für Branchenformate und die Dateien im Erweiterungsordner. Ein Haken schaltet eine Erweiterung ein oder aus. FundsXML wirkt sofort, jede andere Erweiterung beim nächsten Start.",
+        "en": "Under Extensions you find the bundled extensions for industry formats and the files in the extensions folder. A tick switches an extension on or off. FundsXML takes effect at once, every other extension at the next start."
+      }
+    },
+    {
+      "id": "save",
+      "say": {
+        "de": "Darstellung, Schrift und Syntaxfarben wirken sofort und werden gleich gespeichert. Alle anderen Änderungen zeigt die Leiste unten als ungespeichert an, bis Sie Einstellungen speichern klicken. Auf Standardwerte zurücksetzen stellt nach einer Rückfrage alles wieder her, wie es nach der Installation war.",
+        "en": "Appearance, fonts and syntax colours take effect at once and are saved right away. Every other change is shown as unsaved in the bar at the bottom until you click Save Settings. Reset to defaults asks first and then restores everything as it was after installation."
       }
     },
     {

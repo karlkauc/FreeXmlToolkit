@@ -190,6 +190,43 @@ class XSpecDocVideo {
             });
 
             video.scene("more", () -> video.spoken(0.95));
+
+            video.scene("schematron", () -> {
+                java.nio.file.Path example = java.nio.file.Path.of("release/examples/xspec/04-schematron.xspec").toAbsolutePath();
+                if (!java.nio.file.Files.exists(example)) {
+                    System.out.println("[video] no Schematron example");
+                    video.spoken(0.95);
+                    return;
+                }
+                doc.open(example, "x:description");
+                zoomEditor(video);
+                video.spoken(0.6);
+                video.zoomOut();
+                video.click(doc.<Node>find("#menu-tools"));
+                video.pause(600);
+                video.click(video.inPopup("#menu-tools-xspec"));
+                try {
+                    doc.waitUntilFx(90, () -> {
+                        Node summary = doc.stage().getScene().getRoot().lookup("#xspec-summary");
+                        return summary instanceof javafx.scene.control.Labeled l && l.getText() != null
+                                && l.getText().contains("8");
+                    });
+                } catch (Exception e) {
+                    System.out.println("[video] no result for the Schematron example");
+                }
+                video.pause(1200);
+                Node summary = doc.find("#xspec-summary");
+                if (summary != null) {
+                    Bounds b = video.screenBounds(summary);
+                    video.zoom(new BoundingBox(b.getMinX() - 40, b.getMinY() - 40, 1200, 420));
+                }
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
+            video.scene("cli", () -> video.spoken(0.95));
+
+            video.scene("restrictions", () -> video.spoken(0.95));
         } finally {
             video.stop();
         }
