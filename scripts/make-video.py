@@ -425,7 +425,9 @@ def slide_units(slide, lang):
     """The number of parts of a slide that appear one after the other (see draw_slide)."""
     text = slide[lang]
     layout = slide["layout"]
-    n = {"statement": 1 + bool(text.get("sub")), "hub": 2}.get(layout) or len(text["items"])
+    n = {"statement": 1 + bool(text.get("sub")), "hub": 2,
+         "code": 1 + bool(text.get("highlight")), "table": 1 + bool(text.get("mark")),
+         "image": 1}.get(layout) or len(text["items"])
     return n + bool(text.get("note"))
 
 
@@ -441,7 +443,9 @@ def slide_states(slide, lang):
 def draw_slide(path, theme, lang, slide, shown):
     """One state of a slide: the brand's page, a title, and the layout's parts whose index is in shown.
     Layouts: statement (headline, sub), bullets, tiles, steps (items with head and text), hub (actors
-    around a centre: "mesh" joins every actor with every other, "hub" all through the centre)."""
+    around a centre: "mesh" joins every actor with every other, "hub" all through the centre), code (a
+    listing; "highlight" lines appear marked as a second part), table ("columns", "rows"; "mark" rows as a
+    second part), image (a picture, e.g. a web page, path relative to the set's folder)."""
     b = Brand(theme)
     t = slide[lang]
     layout = slide["layout"]
@@ -584,6 +588,71 @@ def draw_slide(path, theme, lang, slide, shown):
             w = d.textlength(label, font=cf) + 120
             d.rounded_rectangle([cx - w / 2, cy - 62, cx + w / 2, cy + 62], radius=62, fill=b.c["accent"])
             d.text((cx, cy), label, font=cf, fill=(255, 255, 255), anchor="mm")
+
+    elif layout == "code":
+        lines = t["code"].rstrip("\n").split("\n")
+        size = max(20, min(34, int((bottom - top - 80) / (len(lines) * 1.45))))
+        mono = ImageFont.truetype(str(FONTS / "JetBrainsMono-Regular.ttf"), size)
+        longest = max(d.textlength(l, font=mono) for l in lines)
+        while longest > W - 420 and size > 18:
+            size -= 1
+            mono = ImageFont.truetype(str(FONTS / "JetBrainsMono-Regular.ttf"), size)
+            longest = max(d.textlength(l, font=mono) for l in lines)
+        step = round(size * 1.45)
+        box_h = len(lines) * step + 70
+        y0 = top + 10
+        d.rounded_rectangle([160, y0, W - 160, y0 + box_h], radius=16, fill=b.c["panel"], outline=b.c["border"], width=2)
+        if t.get("file"):
+            ff = b.font(26, True)
+            tw = d.textlength(t["file"], font=ff) + 32
+            d.rounded_rectangle([W - 160 - tw - 20, y0 - 22, W - 180, y0 + 22], radius=22, fill=b.c["heading"])
+            d.text((W - 180 - tw / 2, y0), t["file"], font=ff, fill=(255, 255, 255), anchor="mm")
+        marked = set(t.get("highlight", [])) if 1 in shown else set()
+        for i, line in enumerate(lines):
+            y = y0 + 35 + i * step
+            if i + 1 in marked:
+                d.rectangle([162, y - 6, W - 162, y + step - 6], fill=(219, 234, 254))
+                d.rectangle([162, y - 6, 170, y + step - 6], fill=b.c["accent"])
+            d.text((200, y), line, font=mono, fill=b.c["heading"])
+
+    elif layout == "table":
+        cols, rows = t["columns"], t["rows"]
+        cells = [[str(c) for c in cols]] + [[str(c) for c in r] for r in rows]
+        size = max(18, min(32, int((bottom - top - 40) / ((len(rows) + 1) * 1.9))))
+        while True:   # the largest font at which every column fits the width
+            hf, cf = b.font(size, True), b.font(size)
+            widths = [max(d.textlength(row[i], font=hf if k == 0 else cf) for k, row in enumerate(cells)) + 40
+                      for i in range(len(cols))]
+            if sum(widths) <= W - 320 or size <= 16:
+                break
+            size -= 1
+        row_h = round(size * 1.9)
+        y = top + 10
+        d.rounded_rectangle([160, y, 160 + sum(widths), y + row_h * len(cells)], radius=12, fill=(255, 255, 255),
+                            outline=b.c["border"], width=2)
+        marked = set(t.get("mark", [])) if 1 in shown else set()
+        for k, row in enumerate(cells):
+            yy = y + k * row_h
+            if k == 0:
+                d.rounded_rectangle([160, yy, 160 + sum(widths), yy + row_h], radius=12, fill=b.c["panel"])
+            elif k - 1 in marked:
+                d.rectangle([162, yy, 158 + sum(widths), yy + row_h], fill=(219, 234, 254))
+            if k > 0:
+                d.line([(160, yy), (160 + sum(widths), yy)], fill=b.c["border"], width=1)
+            x = 160
+            for i, cell in enumerate(row):
+                d.text((x + 24, yy + row_h / 2), cell, font=hf if k == 0 else cf,
+                       fill=b.c["heading"] if k == 0 or k - 1 in marked else b.c["text"], anchor="lm")
+                x += widths[i]
+
+    elif layout == "image":
+        pic = Image.open(BOARDS / t["image"]).convert("RGB")
+        box_w, box_h = W - 320, bottom - top - 10
+        f = min(box_w / pic.width, box_h / pic.height)
+        pic = pic.resize((round(pic.width * f), round(pic.height * f)), Image.LANCZOS)
+        x, y = 160 + (box_w - pic.width) // 2, top + 10
+        d.rounded_rectangle([x - 3, y - 3, x + pic.width + 2, y + pic.height + 2], radius=10, outline=b.c["border"], width=3)
+        img.paste(pic, (x, y))
 
     if note and units - 1 in shown:
         nf = b.font(34)

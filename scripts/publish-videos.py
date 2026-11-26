@@ -130,6 +130,12 @@ def main():
                 if args.partial:
                     continue
                 sys.exit(f"missing {mp4}: make the film first")
+            if args.partial:   # a film that is still being written has no index yet: leave it out this time
+                try:
+                    duration(mp4)
+                except subprocess.CalledProcessError:
+                    print("skipped (not finished)", mp4.name)
+                    continue
             name = f"{mv.film_number(film_id):02d}-{film_id}"
             faststart(mp4, out / lang / f"{name}.mp4")
             srt_to_vtt(BUILD / f"{film_id}-{lang}.srt", out / lang / f"{name}.vtt")
