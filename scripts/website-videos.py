@@ -65,7 +65,9 @@ TEXT = {
         "h1": "Watch it in action",
         "lead": "Short films that show the real application. Each one has subtitles and chapters; "
                 "a series plays on by itself.",
-        "note": "Narration and editing are AI-generated. The films show the real application.",
+        "note": "Narration voice, text and editing are AI-generated. The films show the real application.",
+        "ai_badge": "AI",
+        "ai_label": "AI-generated narration voice, text and editing · real application footage",
         "jump": "Series",
         "now": "Now playing",
         "chapters": "Chapters",
@@ -83,7 +85,9 @@ TEXT = {
         "h1": "In Aktion sehen",
         "lead": "Kurze Filme mit der echten Anwendung. Jeder hat Untertitel und Kapitel; "
                 "eine Reihe läuft von selbst weiter.",
-        "note": "Sprecherstimme und Schnitt sind KI-generiert. Die Filme zeigen die echte Anwendung.",
+        "note": "Sprecherstimme, Text und Schnitt sind KI-generiert. Die Filme zeigen die echte Anwendung.",
+        "ai_badge": "KI",
+        "ai_label": "KI-generierte Sprecherstimme, Texte und Schnitt · Bilder aus der echten Anwendung",
         "jump": "Reihen",
         "now": "Läuft gerade",
         "chapters": "Kapitel",
@@ -95,6 +99,16 @@ TEXT = {
     },
 }
 LANG_LABEL = {"en": "English", "de": "Deutsch"}
+
+
+VOICES = {"de": "de_DE-thorsten-high", "en": "en_US-lessac-high"}   # as in make-video.py
+
+
+def ai_note(lang):
+    """The machine-readable AI disclosure written into each published MP4 (format tag "comment")."""
+    return ("AI-generated content: the narration is a synthetic voice (Piper TTS, "
+            f"{VOICES.get(lang, 'a local voice model')}), the text and the editing are AI-generated. "
+            "The screen footage shows the real application.")
 
 
 def faststart(path):
@@ -172,11 +186,9 @@ def prepare(video_id, lang):
     name = f"{video_id}-{lang}"
     mp4 = RELEASE / f"{name}.mp4"
     if not mp4.exists() or mp4.stat().st_mtime < src.stat().st_mtime:
-        if faststart(src):
-            shutil.copy2(src, mp4)
-        else:
-            subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(src), "-c", "copy", "-movflags", "+faststart",
-                            str(mp4)], check=True)
+        # always remuxed (a copy of the streams): index in front, and the AI note in the metadata
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(src), "-map", "0", "-c", "copy",
+                        "-metadata", f"comment={ai_note(lang)}", "-movflags", "+faststart", str(mp4)], check=True)
     total = duration(mp4)
     srt = BUILT / f"{name}.srt"
     if srt.exists():
@@ -270,7 +282,9 @@ def json_ld(series, lang):
             secs = int(round(f["duration"]))
             items.append({"@type": "ListItem", "position": pos, "item": {
                 "@type": "VideoObject", "name": pick(film["title"], f["lang"]),
-                "description": pick(film["description"], f["lang"]) or pick(film["title"], f["lang"]),
+                # the AI disclosure travels with every film's description (EU AI Act Art. 50)
+                "description": (pick(film["description"], f["lang"]) or pick(film["title"], f["lang"]))
+                               + " " + TEXT[f["lang"]]["note"],
                 "thumbnailUrl": f"{BASE_URL}videos/{f['name']}.webp",
                 "contentUrl": MP4_URL + f["name"] + ".mp4",
                 # schema.org / Google: an ISO 8601 date-time with a time zone, e.g. 2026-11-26T08:15:00+00:00
@@ -309,6 +323,8 @@ def page(series, lang):
           "</video>",
           "</div>",
           '<div class="video-now" aria-live="polite">',
+          # visible next to the player, before the first frame plays (EU AI Act Art. 50)
+          f'<p class="video-ai"><b>{t["ai_badge"]}</b><span>{t["ai_label"]}</span></p>',
           f'<div class="eyebrow">{t["now"]}</div>',
           f'<h2 id="video-now-title">{e(pick(first["title"], f0["lang"]))}</h2>',
           f'<p id="video-now-desc" class="video-desc">{e(pick(first["description"], f0["lang"]))}</p>',

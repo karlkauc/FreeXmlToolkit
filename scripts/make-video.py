@@ -68,13 +68,17 @@ ZOOM_MAX = 2.0
 ZOOM_PAD = 90       # air around a zoomed region, px
 CARD_TEXT = {
     "en": {"kicker": "FreeXmlToolkit · Tutorial", "more": "Read on:",
-           "ai": "Narration and editing are AI-generated. The video shows the real application."},
+           "ai": "Narration voice, text and editing are AI-generated. The video shows the real application."},
     "de": {"kicker": "FreeXmlToolkit · Lernvideo", "more": "Weiterlesen:",
-           "ai": "Sprecherstimme und Schnitt sind KI-generiert. Das Video zeigt die echte Anwendung."},
+           "ai": "Sprecherstimme, Text und Schnitt sind KI-generiert. Das Video zeigt die echte Anwendung."},
 }
 # written into every film's metadata (comment), so a machine can tell the narration is synthetic (EU AI Act Art. 50)
 AI_NOTE = ("AI-generated content: the narration is a synthetic voice (Piper TTS, {voice}), the text and the "
            "editing are AI-generated and reviewed by a human. The screen footage shows the real application.")
+# the same for films whose texts nobody declared as reviewed (the FreeXmlToolkit tutorials; a set's theme.json
+# says "reviewed": true when people checked its texts)
+AI_NOTE_UNREVIEWED = ("AI-generated content: the narration is a synthetic voice (Piper TTS, {voice}), the text "
+                      "and the editing are AI-generated. The screen footage shows the real application.")
 
 
 BOARDS = ROOT / "videos"   # the storyboards' folder: videos/ or videos/<set>/ (--set)
@@ -725,7 +729,8 @@ def screen_runs(board):
 
 def ai_note(work):
     voice = json.loads((work / "timing.json").read_text()).get("voice", "a local voice model")
-    return AI_NOTE.format(voice=voice)
+    theme = load_theme()
+    return (AI_NOTE if theme and theme.get("reviewed") else AI_NOTE_UNREVIEWED).format(voice=voice)
 
 
 def compose(board, lang, work, out):

@@ -361,3 +361,8 @@ a.shot:hover { border-color: var(--link); }
 .video-open:hover .video-title { color: var(--link); }
 .video-item[aria-current] .video-title { color: var(--link); }
 .video-item[aria-current] .video-thumb { outline: 3px solid var(--link); outline-offset: 2px; }
+
+/* AI disclosure next to the video player (EU AI Act Art. 50): visible before the first frame plays */
+.video-ai { display: flex; align-items: center; gap: 8px; margin: 0; padding: 4px 12px 4px 4px; width: fit-content; max-width: 100%;
+  font-size: 13px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; }
+.video-ai b { flex: none; background: var(--ink); color: var(--page); font-size: 11px; letter-spacing: .04em; border-radius: 999px; padding: 2px 8px; }
