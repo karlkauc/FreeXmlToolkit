@@ -91,6 +91,46 @@ class XsdAnalysisDocVideo {
                 video.zoomOut();
             });
 
+            video.scene("quality-filter", () -> {
+                Node chips = doc.find("#analysis-quality-category-chips");
+                java.util.List<Node> list = chips instanceof javafx.scene.Parent parent
+                        ? doc.fx(() -> parent.getChildrenUnmodifiable().stream().filter(Node::isVisible).toList())
+                        : java.util.List.of();
+                Node missingDocs = doc.fx(() -> list.stream().filter(n -> n instanceof javafx.scene.control.Labeled l
+                        && l.getText() != null && l.getText().contains(org.fxt.freexmltoolkit.i18n.I18n.t(
+                                "QualityIssue.category.MISSING_DOCUMENTATION")))
+                        .findFirst().orElse(list.size() > 1 ? list.get(1) : null));
+                if (missingDocs != null) {
+                    video.click(missingDocs);
+                    video.pause(1200);
+                }
+                zoomEditor(video);
+                video.spoken(0.4);
+                Node table = doc.find("#analysis-quality-table");
+                Node row = table == null ? null : doc.fx(() -> table.lookupAll(".table-row-cell").stream()
+                        .filter(r -> r instanceof javafx.scene.control.IndexedCell<?> c && c.getIndex() == 0 && !c.isEmpty())
+                        .findFirst().orElse(null));
+                if (row != null) {
+                    Bounds b = video.screenBounds(row);
+                    video.click(b.getMinX() + 200, b.getCenterY());
+                    video.pause(1200);
+                }
+                video.spoken(0.95);
+                if (missingDocs != null) {
+                    video.click(missingDocs);
+                }
+                video.zoomOut();
+            });
+
+            video.scene("quality-checks", () -> {
+                Node limit = doc.find("#analysis-quality-nesting-limit");
+                video.spoken(0.75);
+                if (limit != null) {
+                    video.moveTo(limit);
+                }
+                video.spoken(0.95);
+            });
+
             video.scene("constraints", () -> {
                 tab("SchemaAnalysisView.constraintsTab.text", video);
                 video.pause(1200);

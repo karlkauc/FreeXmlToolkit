@@ -56,6 +56,20 @@
       }
     },
     {
+      "id": "quality-filter",
+      "say": {
+        "de": "Die Zahlen neben der Bewertung sind zugleich Filter. Ein Klick auf Fehlende Dokumentation zeigt nur noch diese Meldungen, ein zweiter Klick hebt den Filter wieder auf. Dazu kommen Auswahllisten für Schweregrad und Kategorie und ein Suchfeld. Wählen Sie eine Meldung aus, steht darunter der Vorschlag, wie sie sich beheben lässt, und ein Link springt zu den betroffenen Elementen im Schema.",
+        "en": "The counts next to the rating are filters too. A click on Missing Documentation shows only those findings, a second click clears the filter again. On top come lists for severity and category and a search field. Select a finding, and below it you see the suggestion for fixing it, with a link that jumps to the affected elements in the schema."
+      }
+    },
+    {
+      "id": "quality-checks",
+      "say": {
+        "de": "Geprüft wird unter anderem: ob Namen einer einheitlichen Schreibweise folgen, ob Verweise auf Typen ins Leere zeigen, ob ein Typ von sich selbst abgeleitet ist, ob dasselbe Element zweimal in einer Sequenz steht, ob Aufzählungswerte zu den Längenregeln passen, welche Typen niemand verwendet und welche nur einmal verwendet werden. Das Feld Max. Verschachtelung legt fest, ab welcher Tiefe Elemente als zu tief gelten.",
+        "en": "Among other things it checks whether names follow one naming convention, whether type references point nowhere, whether a type derives from itself, whether the same element appears twice in a sequence, whether enumeration values fit the length rules, which types nobody uses and which are used only once. The Max nesting field sets the depth from which elements count as too deep."
+      }
+    },
+    {
       "id": "constraints",
       "say": {
         "de": "Identitätsbedingungen legen fest, dass Werte eindeutig sind oder auf andere verweisen, etwa dass jede Artikelnummer nur einmal vorkommt. Der Reiter listet sie mit Selektor und Feldern, und die XPath-Validierung prüft, ob diese Ausdrücke im Schema überhaupt etwas treffen. Ein Tippfehler im Selektor fällt sonst erst auf, wenn ein Fehler durchrutscht.",
