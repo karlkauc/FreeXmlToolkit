@@ -63,6 +63,13 @@
       }
     },
     {
+      "id": "hits-views",
+      "say": {
+        "de": "Die Treffer erscheinen in der Ansicht, in der Sie gerade sind. Im Text sind alle markiert, im Baum wird der Knoten ausgewählt, und in der Grafik leuchtet die ganze Tabellenzeile auf. Die Pfeile neben dem Zähler oder F3 und Umschalt F3 gehen von Treffer zu Treffer. Ändern Sie danach das Dokument, gelten die Treffer als veraltet, bis Sie die Abfrage erneut ausführen.",
+        "en": "The hits appear in the view you are in. In the text all are highlighted, in the tree the node is selected, and in the graphic the whole table row lights up. The arrows next to the counter, or F3 and Shift F3, go from hit to hit. If you change the document afterwards, the hits count as outdated until you run the query again."
+      }
+    },
+    {
       "id": "functions",
       "say": {
         "de": "XPath rechnet auch. Count zählt die Artikel, und Sum bildet die Summe aus Menge mal Preis über alle Artikel, hier 125 Komma 30. Solche Kontrollsummen sind nützlich, um eine Lieferung schnell zu prüfen, ohne eine Tabellenkalkulation zu öffnen. XPath kennt dutzende Funktionen für Text, Zahlen und Datumswerte, etwa contains, round oder current-date. Die Autovervollständigung listet sie mit ihren Parametern.",
@@ -114,6 +121,20 @@
       "say": {
         "de": "Abfragen, die Sie öfter brauchen, speichern Sie mit Speichern unter einem Namen. Snippets listet sie zum Laden, und Beispiele enthält fertige Abfragen zum Ausprobieren. Längere XQuery-Dateien öffnen Sie einfach als Dokument mit der Endung xq und führen sie dort aus, sogar mit dem Debugger.",
         "en": "Queries you need often are saved under a name with Save. Snippets lists them for loading, and Examples holds ready-made queries to try. Longer XQuery files you simply open as a document with the extension xq and run them there, even with the debugger."
+      }
+    },
+    {
+      "id": "query-docs",
+      "say": {
+        "de": "Abfragen lassen sich auch als eigene Dateien speichern, mit der Endung xq für XQuery oder xpath. Sie öffnen sich in einem Editor mit Hervorhebung und Autovervollständigung, und Strg Enter führt sie aus. Die Auswahl Eingabe in der Werkzeugleiste legt fest, gegen welches Dokument: automatisch das zuletzt aktive XML-Dokument, ein anderes geöffnetes oder eine Datei von der Festplatte. Im Ordner examples liegen zweiunddreißig XPath-Ausdrücke und siebzehn XQuery-Skripte zum Ausprobieren.",
+        "en": "Queries can also be saved as files of their own, with the extension xq for XQuery or xpath. They open in an editor with highlighting and autocompletion, and Ctrl Enter runs them. The Input choice in the toolbar decides against which document: automatically the last active XML document, another open one, or a file from disk. The examples folder holds thirty-two XPath expressions and seventeen XQuery scripts to try."
+      }
+    },
+    {
+      "id": "jsonpath",
+      "say": {
+        "de": "Ist das aktive Dokument JSON, fragt die Konsole es mit JSONPath ab, nach demselben Muster: Ausdruck eingeben, ausführen, Ergebnis lesen.",
+        "en": "If the active document is JSON, the console queries it with JSONPath, following the same pattern: enter an expression, run it, read the result."
       }
     },
     {

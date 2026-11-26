@@ -119,6 +119,27 @@ class QueryConsoleDocVideo {
                 video.spoken(0.95);
             });
 
+            video.scene("hits-views", () -> {
+                video.zoomOut();
+                doc.onFx(() -> host.setActiveViewMode(org.fxt.freexmltoolkit.controls.shell.editor.ViewMode.GRAPHIC));
+                video.pause(2500);
+                Node hits = doc.fx(() -> doc.stage().getScene().getRoot().lookupAll(".fxt-query-hits").stream()
+                        .filter(n -> n.isVisible() && n.localToScreen(n.getBoundsInLocal()) != null).findFirst().orElse(null));
+                if (hits != null) {
+                    Node cell = doc.fx(() -> hits.lookupAll(".list-cell").stream()
+                            .filter(c -> c instanceof javafx.scene.control.ListCell<?> lc && !lc.isEmpty())
+                            .findFirst().orElse(null));
+                    if (cell != null) {
+                        video.click(cell);
+                        video.pause(1500);
+                    }
+                }
+                video.spoken(0.75);
+                doc.onFx(() -> host.setActiveViewMode(org.fxt.freexmltoolkit.controls.shell.editor.ViewMode.TEXT));
+                video.pause(1200);
+                video.spoken(0.95);
+            });
+
             video.scene("functions", () -> {
                 CodeArea input = input(false);
                 setInput(input, "");
@@ -205,6 +226,27 @@ class QueryConsoleDocVideo {
                 video.spoken(0.95);
                 video.zoomOut();
             });
+            video.scene("query-docs", () -> {
+                java.nio.file.Path example = java.nio.file.Path.of("release/examples/xquery/02-currency-consistency.xq").toAbsolutePath();
+                if (java.nio.file.Files.exists(example)) {
+                    doc.onFx(() -> host.openFile(example));
+                    video.pause(1800);
+                    Bounds editor = video.screenBounds(doc.find("#editorHost"));
+                    video.zoom(new BoundingBox(editor.getMinX(), editor.getMinY(), editor.getWidth() * 0.8, editor.getHeight() * 0.6));
+                    video.spoken(0.45);
+                    video.zoomOut();
+                    Node input = doc.find("#doc-query-target");
+                    if (input != null && doc.fx(input::isVisible)) {
+                        video.click(input);
+                        video.pause(1500);
+                        video.spoken(0.8);
+                        new VideoTyping(doc, video).hidePopups();
+                    }
+                }
+                video.spoken(0.95);
+            });
+
+            video.scene("jsonpath", () -> video.spoken(0.95));
         } finally {
             video.stop();
         }
