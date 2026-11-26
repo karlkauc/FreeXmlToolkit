@@ -197,6 +197,40 @@ class XsdDocumentationLanguageSelectionTest {
     }
 
     @Test
+    @DisplayName("The parent's child table shows a child's example values, as its own page does")
+    void childTableShowsExampleValues(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("examples.xsd");
+        Files.writeString(xsd, """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                           xmlns:fxt="http://freexmltoolkit.org/xml-schema-extensions">
+                  <xs:element name="customer">
+                    <xs:complexType><xs:sequence>
+                      <xs:element name="email" type="xs:string">
+                        <xs:annotation><xs:appinfo>
+                          <fxt:exampleValues><fxt:example value="EXAMPLE_MAIL_VALUE"/></fxt:exampleValues>
+                        </xs:appinfo></xs:annotation>
+                      </xs:element>
+                    </xs:sequence></xs:complexType>
+                  </xs:element>
+                </xs:schema>
+                """, StandardCharsets.UTF_8);
+        Path out = tmp.resolve("out");
+        XsdDocumentationService service = new XsdDocumentationService();
+        service.setXsdFilePath(xsd.toString());
+        service.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
+        service.generateXsdDocumentation(out.toFile());
+
+        Path parent;
+        try (Stream<Path> files = Files.list(out.resolve("details"))) {
+            parent = files.filter(p -> p.getFileName().toString().startsWith("customer_")).findFirst().orElseThrow();
+        }
+        String html = Files.readString(parent, StandardCharsets.UTF_8);
+        int table = html.indexOf("Child Elements");
+        assertTrue(table > 0, "child table");
+        assertTrue(html.indexOf("EXAMPLE_MAIL_VALUE", table) > 0, "example value in the child table");
+    }
+
+    @Test
     @DisplayName("Type pages render the type's own documentation and the enumeration value docs")
     void typePagesRenderDocumentation(@TempDir Path tmp) throws Exception {
         Path xsd = tmp.resolve("langs.xsd");

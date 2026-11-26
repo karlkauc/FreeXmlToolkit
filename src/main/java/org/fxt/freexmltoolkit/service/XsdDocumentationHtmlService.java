@@ -1328,14 +1328,15 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
     }
 
     /**
-     * Retrieves the sample data for a child element by its XPath.
+     * Retrieves the sample data for a child element by its XPath: its example values first (as on its own page),
+     * else the generated value.
      *
      * @param childXpath The XPath of the child element.
      * @return The sample data or an empty string.
      */
     public String getChildSampleData(String childXpath) {
         XsdExtendedElement child = xsdDocService.xsdDocumentationData.getExtendedXsdElementMap().get(childXpath);
-        return (child != null) ? child.getSampleData() : "";
+        return (child != null) ? child.getDisplaySampleData() : "";
     }
 
     /**
