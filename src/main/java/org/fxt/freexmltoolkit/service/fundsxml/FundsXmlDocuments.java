@@ -246,7 +246,9 @@ public final class FundsXmlDocuments {
                 padding = c == '=' ? padding + 1 : 0;
             }
         }
-        return chars / 4 * 3 - Math.min(padding, 2);
+        // unpadded base64 is legal too: 2 or 3 trailing characters still carry 1 or 2 bytes
+        long rest = chars % 4;
+        return chars / 4 * 3 + (rest == 0 ? 0 : rest - 1) - Math.min(padding, 2);
     }
 
     /**
@@ -463,12 +465,31 @@ public final class FundsXmlDocuments {
      * @return the edits (non-overlapping)
      */
     public static List<TextEdit> toEmbedded(String xml, int index, byte[] bytes) throws IOException {
+        return toEmbedded(xml, index, bytes, null);
+    }
+
+    /**
+     * As {@link #toEmbedded(String, int, byte[])}; with a {@code fileName}, the document's {@code FileName} and
+     * {@code Format} (when present) follow the embedded file, so a .docx embedded where the link named a PDF is
+     * not left marked {@code application/pdf}.
+     */
+    public static List<TextEdit> toEmbedded(String xml, int index, byte[] bytes, String fileName) throws IOException {
         if (bytes == null || bytes.length == 0) {
             throw new IllegalArgumentException("The file is empty.");
         }
         DocumentText doc = documentText(xml, index);
         Layout layout = doc.layout;
         List<TextEdit> edits = new ArrayList<>();
+        if (fileName != null && !fileName.isBlank()) {
+            int fileNameAt = doc.indexOf("FileName");
+            if (fileNameAt >= 0) {
+                edits.add(doc.setContent(fileNameAt, escape(text256(fileName))));
+            }
+            int format = doc.indexOf("Format");
+            if (format >= 0) {
+                edits.add(doc.setContent(format, escape(mimeType(fileName))));
+            }
+        }
         int size = doc.indexOf("SizeInBytes");
         int url = doc.indexOf("DocumentURL");
         int binary = doc.indexOf("BinaryData");
@@ -504,6 +525,9 @@ public final class FundsXmlDocuments {
             throw new IllegalArgumentException("No URL.");
         }
         String link = url.strip();
+        if (!isUri(link)) {
+            throw new IllegalArgumentException("Not a valid address (xs:anyURI): " + link);
+        }
         DocumentText doc = documentText(xml, index);
         Layout layout = doc.layout;
         int size = doc.indexOf("SizeInBytes");
@@ -577,7 +601,7 @@ public final class FundsXmlDocuments {
         /** The new {@code Document} element, starting at {@code indent} (not written before it). */
         String document(NewDocument file, String indent, LocalDate today) {
             String in = indent + unit;
-            String name = file.name() == null || file.name().isBlank() ? baseName(file.fileName()) : file.name().strip();
+            String name = text256(file.name() == null || file.name().isBlank() ? baseName(file.fileName()) : file.name().strip());
             StringBuilder b = new StringBuilder();
             b.append('<').append(name("Document")).append('>');
             line(b, in, "<" + name("Type") + ">" + simple("ListedType", file.listedType().strip()) + "</" + name("Type") + ">");
@@ -600,7 +624,7 @@ public final class FundsXmlDocuments {
                 line(b, in, simple("Name", name));
             }
             if (file.fileName() != null && !file.fileName().isBlank()) {
-                line(b, in, simple("FileName", file.fileName().strip()));
+                line(b, in, simple("FileName", text256(file.fileName().strip())));
             }
             line(b, in, simple("Format", mimeType(file.fileName())));
             line(b, in, simple("CreationDate", today.toString()));
@@ -683,9 +707,13 @@ public final class FundsXmlDocuments {
             return new TextEdit(span.start() + open + 1, span.start() + close, escaped);
         }
 
-        /** Removes a child element and the white space before it. */
+        /** Removes a child element and the white space before it (a comment before it stays). */
         TextEdit remove(int child) {
-            int start = child == 0 ? region.contentStart() : span(child - 1).end();
+            int floor = child == 0 ? region.contentStart() : span(child - 1).end();
+            int start = span(child).start();
+            while (start > floor && Character.isWhitespace(xml.charAt(start - 1))) {
+                start--;
+            }
             return new TextEdit(start, span(child).end(), "");
         }
 
@@ -808,6 +836,29 @@ public final class FundsXmlDocuments {
         String name = fileName.strip();
         int dot = name.lastIndexOf('.');
         return dot > 0 ? name.substring(0, dot) : name;
+    }
+
+    /** Longest text of FundsXML's {@code Text256Type}. */
+    static final int TEXT_256 = 256;
+    private static final Pattern XML_ILLEGAL = Pattern.compile("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\uFFFE\\uFFFF]");
+
+    /** A name for a {@code Text256Type} element: characters XML forbids removed, cut to 256 characters. */
+    static String text256(String text) {
+        String clean = XML_ILLEGAL.matcher(text == null ? "" : text).replaceAll("");
+        return clean.codePointCount(0, clean.length()) <= TEXT_256 ? clean
+                : clean.substring(0, clean.offsetByCodePoints(0, TEXT_256));
+    }
+
+    /** @return whether {@code text} is an absolute address with a scheme (no spaces), as DocumentURL expects */
+    public static boolean isUri(String text) {
+        if (text == null || text.isBlank() || text.chars().anyMatch(Character::isWhitespace)) {
+            return false;
+        }
+        try {
+            return new java.net.URI(text).getScheme() != null;
+        } catch (java.net.URISyntaxException e) {
+            return false;
+        }
     }
 
     static String escape(String text) {

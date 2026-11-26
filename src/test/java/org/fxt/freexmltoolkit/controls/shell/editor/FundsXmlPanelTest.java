@@ -281,6 +281,16 @@ class FundsXmlPanelTest {
     }
 
     @Test
+    void aFileNameFromTheDocumentIsProposedSafely() {
+        assertEquals("x.pdf", FundsXmlDocumentsDialog.safeFileName("../../x.pdf", "d"));
+        assertEquals("x.pdf", FundsXmlDocumentsDialog.safeFileName("C:\\Windows\\x.pdf", "d"));
+        assertEquals("a_b_.pdf", FundsXmlDocumentsDialog.safeFileName("a:b?.pdf", "d"));
+        assertEquals("d", FundsXmlDocumentsDialog.safeFileName("..", "d"));
+        assertEquals("d", FundsXmlDocumentsDialog.safeFileName(null, "d"));
+        assertEquals("Annual Report 2025.pdf", FundsXmlDocumentsDialog.safeFileName("Annual Report 2025.pdf", "d"));
+    }
+
+    @Test
     void onlyWebLinksOfADocumentAreOpened() {
         assertTrue(FundsXmlDocumentsDialog.openableLink("https://example.org/kid.pdf"));
         assertTrue(FundsXmlDocumentsDialog.openableLink(" HTTP://example.org/a b.pdf"));

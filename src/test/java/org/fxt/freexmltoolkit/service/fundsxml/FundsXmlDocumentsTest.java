@@ -269,6 +269,52 @@ class FundsXmlDocumentsTest {
     }
 
     @Test
+    @DisplayName("embedding another kind of file updates FileName and Format")
+    void embeddedFileNameAndFormatFollowTheFile() throws Exception {
+        String xml = fixture();
+        String embedded = apply(xml, FundsXmlDocuments.toEmbedded(xml, 1, bytes(9), "terms & conditions.docx"));
+        assertTrue(embedded.contains("<FileName>terms &amp; conditions.docx</FileName>"), embedded);
+        assertTrue(embedded.contains(
+                "<Format>application/vnd.openxmlformats-officedocument.wordprocessingml.document</Format>"), embedded);
+        assertFalse(embedded.contains("<Format>application/pdf</Format>"));
+        assertEquals(List.of(), schemaErrors(embedded));
+    }
+
+    @Test
+    @DisplayName("replacing by a link keeps a comment before BinaryData and refuses an invalid address")
+    void toLinkKeepsCommentsAndChecksTheAddress() throws Exception {
+        String xml = fixture().replace("      <BinaryData>", "      <!-- delivered by the hub -->\n      <BinaryData>");
+        String linked = apply(xml, FundsXmlDocuments.toLink(xml, 2, "https://example.com/hello.txt"));
+        assertTrue(linked.contains("<!-- delivered by the hub -->"), linked);
+        assertEquals(List.of(), schemaErrors(linked));
+        assertThrows(IllegalArgumentException.class, () -> FundsXmlDocuments.toLink(fixture(), 2, "docs/a b.pdf"));
+        assertThrows(IllegalArgumentException.class, () -> FundsXmlDocuments.toLink(fixture(), 2, "no scheme"));
+        assertTrue(FundsXmlDocuments.isUri("https://example.com/a%20b.pdf"));
+        assertFalse(FundsXmlDocuments.isUri("example.com/a.pdf"));
+    }
+
+    @Test
+    @DisplayName("names are cut to 256 characters and lose characters XML forbids")
+    void namesFitText256() throws Exception {
+        String longName = "x".repeat(300) + ".pdf";
+        String xml = apply(fixture(), List.of(FundsXmlDocuments.embed(fixture(), new NewDocument(bytes(3),
+                longName, "Bad\u0001Name", "Factsheet", "en", Assignment.shareClasses(List.of("AT0000A00XX1"))), TODAY)));
+        assertTrue(xml.contains("<Name>BadName</Name>"), "control character removed");
+        assertTrue(xml.contains("<FileName>" + "x".repeat(256) + "</FileName>"), "file name cut to 256");
+        assertEquals(List.of(), schemaErrors(xml));
+        assertEquals(256, FundsXmlDocuments.text256("y".repeat(400)).length());
+    }
+
+    @Test
+    @DisplayName("the size of unpadded base64 is counted right")
+    void decodedLengthWithoutPadding() {
+        assertEquals(1, FundsXmlDocuments.decodedLength("QQ=="));
+        assertEquals(1, FundsXmlDocuments.decodedLength("QQ"));
+        assertEquals(2, FundsXmlDocuments.decodedLength("QUI"));
+        assertEquals(3, FundsXmlDocuments.decodedLength("QUJD"));
+    }
+
+    @Test
     @DisplayName("without SizeInBytes it is added before DocumentURL / BinaryData")
     void sizeIsAdded() throws Exception {
         String xml = fixture().replace("      <SizeInBytes>123456</SizeInBytes>\n", "")

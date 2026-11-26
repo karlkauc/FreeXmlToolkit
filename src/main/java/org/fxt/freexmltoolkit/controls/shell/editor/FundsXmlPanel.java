@@ -401,10 +401,10 @@ public class FundsXmlPanel extends VBox {
                     PanelStatus.info(status, I18n.t("FundsXmlPanel.documents-count", loaded.entries().size()));
                     FundsXmlDocumentsDialog.show(editorHost, loaded.entries(), loaded.candidates());
                 });
-            } catch (java.io.IOException | RuntimeException e) {
-                job.finish();
+            } catch (java.io.IOException | RuntimeException | OutOfMemoryError | StackOverflowError e) {
+                job.finish();   // an Error too: else the "documents" job counts as running and the action stays dead
                 Platform.runLater(() -> PanelStatus.failure(status, I18n.t("FundsXmlPanel.documents-failed"),
-                        e.getMessage(), false));
+                        e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(), false));
             }
         });
     }

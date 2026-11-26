@@ -106,8 +106,15 @@ public final class FundsXmlDocumentsDialog {
     }
 
     /** Shows the dialog for the active document with entries already read (FX thread). */
+    /** The dialog that is open, if any: a second Documents click replaces it instead of opening another. */
+    private static FundsXmlDocumentsDialog open;
+
     static void show(EditorHost editorHost, List<Entry> entries, List<Candidate> candidates) {
+        if (open != null && open.dialog.isShowing()) {
+            open.dialog.close();
+        }
         FundsXmlDocumentsDialog d = new FundsXmlDocumentsDialog(editorHost);
+        open = d;
         d.listed = editorHost.validationTarget();
         d.setEntries(entries, candidates);
         d.dialog.show();
@@ -158,7 +165,7 @@ public final class FundsXmlDocumentsDialog {
     }
 
     private static String bytes(long n) {
-        return I18n.t("FundsXmlPanel.documents-bytes", String.format("%,d", n));
+        return I18n.t("FundsXmlPanel.documents-bytes", java.text.NumberFormat.getIntegerInstance(I18n.locale()).format(n));
     }
 
     private void setEntries(List<Entry> entries, List<Candidate> candidates) {
@@ -208,10 +215,41 @@ public final class FundsXmlDocumentsDialog {
                 Platform.runLater(() -> {
                     busy = false;
                     updateButtons();
-                    info(I18n.t("FundsXmlPanel.documents-change-failed") + " " + ex.getMessage());
+                    info(I18n.t("FundsXmlPanel.documents-change-failed") + " " + messageOf(ex));
                 });
             }
         });
+    }
+
+    private static String messageOf(Throwable t) {
+        return t.getMessage() != null && !t.getMessage().isBlank() ? t.getMessage() : t.getClass().getSimpleName();
+    }
+
+    /** Files above this size are not embedded: the base64 text (a third larger) would stall the editor. */
+    static final long EMBED_LIMIT = 25L * 1024 * 1024;
+    /** Files above this size are embedded only after a confirmation. */
+    static final long EMBED_WARN = 5L * 1024 * 1024;
+
+    /** @return whether {@code file} may be embedded (asks above {@link #EMBED_WARN}, refuses above the limit) */
+    private boolean embeddable(File file) {
+        long size = file.length();
+        if (size > EMBED_LIMIT) {
+            info(I18n.t("FundsXmlPanel.documents-too-large", file.getName(), bytes(size), bytes(EMBED_LIMIT)));
+            return false;
+        }
+        return size <= EMBED_WARN || DialogHelper.showConfirmation(I18n.t("FundsXmlPanel.documents-embed"),
+                I18n.t("FundsXmlPanel.documents-large-header"), I18n.t("FundsXmlPanel.documents-large", file.getName(), bytes(size)));
+    }
+
+    /**
+     * A file name from the document made safe to propose: its last path segment only (no {@code ../}, no
+     * folders), characters that Windows refuses replaced, never empty.
+     */
+    static String safeFileName(String name, String fallback) {
+        String last = name == null ? "" : name.strip();
+        int slash = Math.max(last.lastIndexOf('/'), last.lastIndexOf('\\'));
+        last = last.substring(slash + 1).replaceAll("[<>:\"|?*\\x00-\\x1F]", "_").replaceAll("^[.\\s]+|[.\\s]+$", "");
+        return last.isEmpty() ? fallback : last;
     }
 
     // ---- actions -------------------------------------------------------------------------------------------
@@ -273,8 +311,9 @@ public final class FundsXmlDocumentsDialog {
                 info("");
                 return;
             }
-            String proposed = decoded.fileName() != null && !decoded.fileName().isBlank() ? decoded.fileName()
-                    : (e.name() == null || e.name().isBlank() ? "document-" + e.index() : e.name());
+            String fallback = "document-" + e.index();
+            String proposed = safeFileName(decoded.fileName() != null && !decoded.fileName().isBlank() ? decoded.fileName()
+                    : e.name(), fallback);
             File target = chooseSaveTarget(proposed);
             if (target == null) {
                 info("");
@@ -315,7 +354,7 @@ public final class FundsXmlDocumentsDialog {
             return;
         }
         File file = chooseFile();
-        if (file == null) {
+        if (file == null || !embeddable(file)) {
             return;
         }
         EmbedChoice choice = askEmbedDetails(file.getName());
@@ -335,10 +374,10 @@ public final class FundsXmlDocumentsDialog {
             return;
         }
         File file = chooseFile();
-        if (file == null) {
+        if (file == null || !embeddable(file)) {
             return;
         }
-        change(xml -> FundsXmlDocuments.toEmbedded(xml, e.index(), Files.readAllBytes(file.toPath())),
+        change(xml -> FundsXmlDocuments.toEmbedded(xml, e.index(), Files.readAllBytes(file.toPath()), file.getName()),
                 I18n.t("FundsXmlPanel.documents-embedded-done", file.getName()));
     }
 
@@ -354,6 +393,10 @@ public final class FundsXmlDocumentsDialog {
         prompt.getEditor().setPrefColumnCount(40);
         String url = prompt.showAndWait().map(String::strip).orElse(null);
         if (url == null || url.isEmpty() || url.equals("https://")) {
+            return;
+        }
+        if (!FundsXmlDocuments.isUri(url)) {
+            info(I18n.t("FundsXmlPanel.documents-url-invalid", url));
             return;
         }
         change(xml -> FundsXmlDocuments.toLink(xml, e.index(), url), I18n.t("FundsXmlPanel.documents-linked-done", url));
@@ -411,7 +454,17 @@ public final class FundsXmlDocumentsDialog {
     /** Documents and assignment candidates read from a text. */
     record Loaded(List<Entry> entries, List<Candidate> candidates) {
         static Loaded of(String xml) throws IOException {
+            warmListedTypes();
             return new Loaded(FundsXmlDocuments.list(xml), FundsXmlDocuments.candidates(xml));
+        }
+    }
+
+    /** The document types of the active schema; read off the FX thread (the schema is several MB). */
+    private static volatile List<String> listedTypes;
+
+    static void warmListedTypes() {
+        if (listedTypes == null) {
+            listedTypes = FundsXmlDocuments.listedTypes(FundsXmlRunner.activeSchemaFile());
         }
     }
 
@@ -424,8 +477,8 @@ public final class FundsXmlDocumentsDialog {
         Dialog<EmbedChoice> form = DialogHelper.createDialog(I18n.t("FundsXmlPanel.documents-embed"),
                 I18n.t("FundsXmlPanel.documents-embed-header", fileName), "bi-file-earmark-plus");
         form.getDialogPane().setId("documents-embed-form");
-        ComboBox<String> type = new ComboBox<>(FXCollections.observableArrayList(
-                FundsXmlDocuments.listedTypes(FundsXmlRunner.activeSchemaFile())));
+        List<String> types = listedTypes != null ? listedTypes : FundsXmlDocuments.DEFAULT_LISTED_TYPES;
+        ComboBox<String> type = new ComboBox<>(FXCollections.observableArrayList(types));
         type.setId("documents-embed-type");
         type.getSelectionModel().select(type.getItems().contains("Factsheet") ? "Factsheet" : type.getItems().getFirst());
         TextField language = new TextField("en");
