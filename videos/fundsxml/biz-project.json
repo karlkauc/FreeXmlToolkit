@@ -1,5 +1,5 @@
 {
-  "_comment": "Business series, film 5. Slides only (no recording). The last film of the series: its closing card points to the developers series.",
+  "_comment": "Business series, film 5. Slides only (no recording).",
   "id": "biz-project",
   "link": "fundsxml.org",
   "title": {
@@ -654,7 +654,7 @@
       "id": "outro",
       "card": "outro",
       "say": {
-        "en": "That was a FundsXML project from A to Z, and the end of the series for business readers. If you want to see the standard in a real file, continue with the series for developers. Thanks for watching."
+        "en": "That was a FundsXML project from A to Z. In the next film, the last one for business readers, you see how FundsXML evolves, and how you can take part in it. Thanks for watching."
       }
     }
   ]

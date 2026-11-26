@@ -1,0 +1,851 @@
+{
+  "_comment": "Production series, film 5. Slides only (no recording). The last film of the series.",
+  "id": "prod-operations",
+  "title": {
+    "en": "Running FundsXML in daily operations"
+  },
+  "description": {
+    "en": "What daily operation of a FundsXML chain needs: a day in operations, monitoring and a delivery overview, duty and runbooks, error classes and incident handling with an example, reconciliation, feedback, agreements with partners, onboarding, changes in the partner landscape, security, schema upgrades, the archive, metrics, people, reporting, typical first-year issues, a checklist, and staying involved in the standard."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "The chain is built. Now it has to run, every day, for every partner. In this film you see what daily operation needs: monitoring, error handling, reconciliation, feedback, onboarding new partners, and moving to new schema versions."
+      }
+    },
+    {
+      "id": "day",
+      "chapter": {
+        "en": "A day in operations"
+      },
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.08,
+          0.3,
+          0.55,
+          0.72
+        ],
+        "en": {
+          "title": "A day in operations",
+          "items": [
+            {
+              "head": "Night",
+              "text": "Generate and send."
+            },
+            {
+              "head": "Morning",
+              "text": "Receive, load, check."
+            },
+            {
+              "head": "Midday",
+              "text": "Release."
+            },
+            {
+              "head": "Evening",
+              "text": "Overview, open issues."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "What does a normal day look like? At night, the deliveries are generated and sent. In the morning, files from partners arrive, are loaded and checked. By midday, the data is released for the systems that need it. And in the evening, an overview shows what went well and which issues are still open."
+      }
+    },
+    {
+      "id": "monitor",
+      "chapter": {
+        "en": "Monitoring"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.38,
+          0.6,
+          0.78
+        ],
+        "en": {
+          "title": "Monitoring",
+          "items": [
+            {
+              "head": "Arrived, on time, valid?",
+              "text": "For every expected delivery."
+            },
+            {
+              "head": "Counts and sizes",
+              "text": "Compared with the day before."
+            },
+            {
+              "head": "Alerts",
+              "text": "To the people who can act."
+            },
+            {
+              "head": "A daily overview",
+              "text": "All partners at a glance."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "First, monitoring. For every expected delivery, the system should know whether it arrived, when, and whether it was valid. Counts and file sizes compared with the day before reveal many problems early. Alerts go to the people who can act, and a daily overview shows the state of all partners at a glance."
+      }
+    },
+    {
+      "id": "dashboard",
+      "slide": {
+        "layout": "table",
+        "builds": [
+          0.0,
+          0.65
+        ],
+        "en": {
+          "title": "The delivery overview",
+          "columns": [
+            "partner",
+            "delivery",
+            "expected",
+            "arrived",
+            "status"
+          ],
+          "rows": [
+            [
+              "Example AM",
+              "Prices, all funds",
+              "07:00",
+              "06:42",
+              "ok"
+            ],
+            [
+              "Example AM",
+              "Portfolio, Multi Asset",
+              "07:00",
+              "06:51",
+              "ok"
+            ],
+            [
+              "Example Custodian",
+              "Holdings",
+              "08:00",
+              "08:12",
+              "warning: late"
+            ],
+            [
+              "Example Platform",
+              "Feedback (EFT)",
+              "09:00",
+              "–",
+              "missing"
+            ],
+            [
+              "Example Insurer",
+              "TPT request",
+              "on change",
+              "07:30",
+              "error: invalid"
+            ]
+          ],
+          "mark": [
+            2,
+            3,
+            4
+          ]
+        }
+      },
+      "say": {
+        "en": "Such an overview can be simple. One row per expected delivery: the partner, the kind of data, when it was expected, when it arrived, and its status. Green when everything is fine, yellow for warnings, red for errors or missing files. This one table answers the first question of every morning."
+      }
+    },
+    {
+      "id": "duty",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.35,
+          0.55,
+          0.72
+        ],
+        "en": {
+          "title": "Clear duty",
+          "items": [
+            {
+              "head": "Who is on duty, and when",
+              "text": "Also early mornings and holidays."
+            },
+            {
+              "head": "A runbook per delivery"
+            },
+            {
+              "head": "Contacts of every partner"
+            },
+            {
+              "head": "An escalation path"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Who looks at the overview? Daily operation needs clear duty: who is responsible on which day, also early in the morning and during holidays. A runbook describes every delivery: where it comes from, what it needs, what to do when it fails. A list holds the contacts of every partner. And an escalation path says who decides when a delivery cannot be fixed in time."
+      }
+    },
+    {
+      "id": "errors",
+      "chapter": {
+        "en": "Error classes"
+      },
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.1,
+          0.25,
+          0.38,
+          0.55
+        ],
+        "en": {
+          "title": "Four error classes",
+          "items": [
+            {
+              "head": "Technical",
+              "text": "Transfer failed, file broken."
+            },
+            {
+              "head": "Schema",
+              "text": "The file is not valid."
+            },
+            {
+              "head": "Business",
+              "text": "Valid, but implausible values."
+            },
+            {
+              "head": "Missing",
+              "text": "The delivery did not arrive."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Errors fall into four classes. Technical errors: the transfer failed, or the file is broken. Schema errors: the file is not valid. Business errors: the file is valid, but values are implausible. And missing deliveries. Each class has its own handling and its own owner: operations, I T, or the data team."
+      }
+    },
+    {
+      "id": "incident",
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.08,
+          0.2,
+          0.3,
+          0.48,
+          0.62,
+          0.72
+        ],
+        "en": {
+          "title": "When an error occurs",
+          "items": [
+            {
+              "head": "Alert"
+            },
+            {
+              "head": "Classify"
+            },
+            {
+              "head": "Inform",
+              "text": "Inside and the partner."
+            },
+            {
+              "head": "Fix",
+              "text": "Or ask for a correction."
+            },
+            {
+              "head": "Load again"
+            },
+            {
+              "head": "Close",
+              "text": "With a short note."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "When an error occurs, follow the same steps every time. The alert arrives. Classify it. Inform the people affected, inside the company and the partner. Fix the cause, or ask the sender for a correction. Load again. And close the case with a short note, so that the same error is recognised faster next time."
+      }
+    },
+    {
+      "id": "case",
+      "slide": {
+        "layout": "table",
+        "builds": [
+          0.0,
+          0.2,
+          0.42,
+          0.62,
+          0.8
+        ],
+        "en": {
+          "title": "An example",
+          "columns": [
+            "time",
+            "what happens"
+          ],
+          "rows": [
+            [
+              "07:10",
+              "Alert: the weights of a portfolio add up to 120 %"
+            ],
+            [
+              "07:20",
+              "Classified as a business error, the data is held back"
+            ],
+            [
+              "07:30",
+              "The partner is told, with the document ID"
+            ],
+            [
+              "09:00",
+              "The correction arrives (AMEND)"
+            ],
+            [
+              "09:05",
+              "Loaded, checked and released"
+            ]
+          ],
+          "mark": [
+            4
+          ]
+        }
+      },
+      "say": {
+        "en": "An example. At ten past seven, the reconciliation raises an alert: the weights of a portfolio add up to a hundred and twenty percent. At twenty past, it is classified as a business error, and the data is held back. At half past, the partner is told, with the document ID. At nine, the correction arrives as an amend delivery, and five minutes later it is loaded, checked and released."
+      }
+    },
+    {
+      "id": "recon",
+      "chapter": {
+        "en": "Reconciliation"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.25,
+          0.4,
+          0.6,
+          0.8
+        ],
+        "en": {
+          "title": "Reconciliation: the daily safety net",
+          "items": [
+            {
+              "head": "Positions add up to net assets?"
+            },
+            {
+              "head": "Weights reach 100 %?"
+            },
+            {
+              "head": "NAV moved more than usual?"
+            },
+            {
+              "head": "Identifiers valid?",
+              "text": "Check digits."
+            },
+            {
+              "head": "A starting point",
+              "text": "FreeXmlToolkit's data-quality checks."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Reconciliation is the daily safety net. Do the positions add up to the total net assets? Do the weights reach one hundred percent? Did the net asset value move more than usual since the day before? Are the identifiers valid, with correct check digits? FreeXmlToolkit's data-quality checks are a good starting point for these rules."
+      }
+    },
+    {
+      "id": "feedback",
+      "chapter": {
+        "en": "Feedback"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.1,
+          0.45,
+          0.7
+        ],
+        "en": {
+          "title": "Feedback to the sender",
+          "items": [
+            {
+              "head": "Quick and precise",
+              "text": "File, document ID, element, expected value."
+            },
+            {
+              "head": "A correction as AMEND"
+            },
+            {
+              "head": "EFT",
+              "text": "Feedback from distributors has its own template."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "When something is wrong, tell the sender, quickly and precisely: which file, by its document ID, which element, and what was expected. The sender answers with a correction delivery. For feedback from distributors there is even a template of its own, the E F T, which FundsXML carries as well."
+      }
+    },
+    {
+      "id": "sla",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.1,
+          0.3,
+          0.45,
+          0.6,
+          0.85
+        ],
+        "en": {
+          "title": "A clear agreement",
+          "items": [
+            {
+              "head": "Which data, when, which version"
+            },
+            {
+              "head": "Cut-off times"
+            },
+            {
+              "head": "Contacts on both sides"
+            },
+            {
+              "head": "Errors and corrections",
+              "text": "How they are reported and delivered."
+            },
+            {
+              "head": "One page is often enough"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Many problems are avoided with a clear agreement between partners. It says which data is delivered, when, and in which version and templates. It names cut-off times and contacts on both sides, and it describes how errors are reported and how corrections are delivered. One page is often enough."
+      }
+    },
+    {
+      "id": "onboarding",
+      "chapter": {
+        "en": "New partners"
+      },
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.08,
+          0.3,
+          0.5,
+          0.65,
+          0.85
+        ],
+        "en": {
+          "title": "A new partner",
+          "items": [
+            {
+              "head": "Scope",
+              "text": "Data, versions, schedule."
+            },
+            {
+              "head": "Test files",
+              "text": "From the official examples."
+            },
+            {
+              "head": "Validate",
+              "text": "On both sides."
+            },
+            {
+              "head": "Parallel run",
+              "text": "A few weeks."
+            },
+            {
+              "head": "Go live"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "A new partner follows a fixed path. Agree on the scope: data, versions, schedule. Exchange test files, ideally built from the official examples. Both sides validate them. Then a parallel run of a few weeks, where the new delivery runs next to the old way. And only then the switch to live operation."
+      }
+    },
+    {
+      "id": "changes",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.25,
+          0.42,
+          0.6
+        ],
+        "en": {
+          "title": "The partner landscape moves",
+          "items": [
+            {
+              "head": "New funds and share classes"
+            },
+            {
+              "head": "Closed or merged funds"
+            },
+            {
+              "head": "A partner changes systems",
+              "text": "New test files."
+            },
+            {
+              "head": "A partnership ends",
+              "text": "Stop, keep the archive, confirm in writing."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "The partner landscape keeps moving. New funds and share classes must be added to the right deliveries, closed or merged funds removed. A partner changes its systems and needs new test files. And when a partnership ends, the deliveries are stopped, the archive is kept, and both sides confirm it in writing. Each of these is a small change in the register, if the register is kept up to date."
+      }
+    },
+    {
+      "id": "secops",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.3,
+          0.5,
+          0.65
+        ],
+        "en": {
+          "title": "Security in daily operation",
+          "items": [
+            {
+              "head": "Rotate keys and passwords"
+            },
+            {
+              "head": "Review access",
+              "text": "At least once a year."
+            },
+            {
+              "head": "Watch failed logins"
+            },
+            {
+              "head": "Test restoring the archive"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Security is part of daily operation too. Rotate the keys and passwords for the transfers regularly. Review who has access to the data, at least once a year. Watch for failed logins on the transfer servers. And test now and then that files can really be restored from the archive; an archive that cannot be read is no archive."
+      }
+    },
+    {
+      "id": "upgrade",
+      "chapter": {
+        "en": "New versions"
+      },
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.05,
+          0.18,
+          0.3,
+          0.45,
+          0.55,
+          0.62
+        ],
+        "en": {
+          "title": "A new schema version",
+          "items": [
+            {
+              "head": "Read the changelog"
+            },
+            {
+              "head": "Update the schema"
+            },
+            {
+              "head": "Test",
+              "text": "With the official examples."
+            },
+            {
+              "head": "Agree a date"
+            },
+            {
+              "head": "Switch"
+            },
+            {
+              "head": "Keep the old version",
+              "text": "For a transition period."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "New schema versions come regularly. Read the changelog, update the schema in your tools, and test with the official examples. Agree a date with your partners, switch over, and keep the old version running for a transition period. Because new elements are usually optional, most upgrades are small."
+      }
+    },
+    {
+      "id": "archive",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.25,
+          0.45,
+          0.65
+        ],
+        "en": {
+          "title": "The archive",
+          "items": [
+            {
+              "head": "Every file, sent and received"
+            },
+            {
+              "head": "With validation result and status"
+            },
+            {
+              "head": "As long as your retention rules require"
+            },
+            {
+              "head": "Found by document ID"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Keep an archive of every file, sent and received, together with its validation result and its status. Keep it as long as your retention rules require. When a partner or an auditor asks months later what was delivered on a certain day, the document ID leads straight to the file."
+      }
+    },
+    {
+      "id": "metrics",
+      "chapter": {
+        "en": "Getting better"
+      },
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.08,
+          0.25,
+          0.38,
+          0.52
+        ],
+        "en": {
+          "title": "Measure",
+          "items": [
+            {
+              "head": "On time",
+              "text": "Share of deliveries on time."
+            },
+            {
+              "head": "Errors",
+              "text": "Per partner."
+            },
+            {
+              "head": "Corrections",
+              "text": "Time until corrected."
+            },
+            {
+              "head": "Trend",
+              "text": "Over months."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Finally, measure. How many deliveries arrived on time? How many had errors, per partner? How long did corrections take? Watched over months, these numbers show where the chain is weak, and they make the conversation with partners concrete. Good data quality is not a project; it is a habit."
+      }
+    },
+    {
+      "id": "people",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.1,
+          0.45,
+          0.65
+        ],
+        "en": {
+          "title": "People",
+          "items": [
+            {
+              "head": "Two people per partner"
+            },
+            {
+              "head": "Written, current runbooks"
+            },
+            {
+              "head": "New colleagues learn in the test environment"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Operations depends on people. Make sure at least two people know each partner and each delivery, so that holidays and illness are no risk. Keep the runbooks written and current. And let new colleagues learn in the test environment, where a mistake costs nothing."
+      }
+    },
+    {
+      "id": "management",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.1,
+          0.28,
+          0.42,
+          0.55
+        ],
+        "en": {
+          "title": "A monthly report",
+          "items": [
+            {
+              "head": "Deliveries in and out"
+            },
+            {
+              "head": "Errors and corrections"
+            },
+            {
+              "head": "Open issues with partners"
+            },
+            {
+              "head": "Coming changes and versions"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Once a month, a short report for management helps: how many deliveries went out and came in, how many errors and corrections there were, which issues with partners are open, and which changes and new versions are coming. It shows that the chain works, and it makes the case for the time and money it needs."
+      }
+    },
+    {
+      "id": "firstyear",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.12,
+          0.28,
+          0.45,
+          0.58,
+          0.8
+        ],
+        "en": {
+          "title": "The first year: a familiar list",
+          "items": [
+            {
+              "head": "Time zones",
+              "text": "Around midnight."
+            },
+            {
+              "head": "Decimal separators",
+              "text": "From a server with other settings."
+            },
+            {
+              "head": "No identifiers",
+              "text": "Cash and derivatives."
+            },
+            {
+              "head": "Unannounced changes",
+              "text": "By partners."
+            },
+            {
+              "head": "Found in the parallel run",
+              "text": "Never skip it.",
+              "tag": "tip"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "What goes wrong in the first year? Experience shows a familiar list: time zones around midnight, decimal separators from a server with other language settings, cash and derivatives without identifiers, and partners who change their systems without notice. Most of these show up in the parallel run, which is why it should never be skipped."
+      }
+    },
+    {
+      "id": "checklist",
+      "chapter": {
+        "en": "Checklist"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.12,
+          0.2,
+          0.3,
+          0.38,
+          0.45,
+          0.5,
+          0.62
+        ],
+        "en": {
+          "title": "Checklist for production",
+          "items": [
+            {
+              "head": "Validation on both sides"
+            },
+            {
+              "head": "Loading that never doubles data"
+            },
+            {
+              "head": "An archive of every file"
+            },
+            {
+              "head": "Monitoring with alerts"
+            },
+            {
+              "head": "Reconciliation rules"
+            },
+            {
+              "head": "A partner register"
+            },
+            {
+              "head": "A plan for the next upgrade"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "To close, a checklist for production. Validation on both sides. Loading that never doubles data. An archive of every file. Monitoring with alerts. Reconciliation rules. A register of partners, versions and templates. And a plan for the next upgrade. With these in place, FundsXML runs quietly in the background, and that is exactly how it should be."
+      }
+    },
+    {
+      "id": "involved",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.25,
+          0.4,
+          0.55
+        ],
+        "en": {
+          "title": "Stay involved",
+          "items": [
+            {
+              "head": "Read the changelog of every version"
+            },
+            {
+              "head": "Report problems in the standard"
+            },
+            {
+              "head": "Share what works"
+            },
+            {
+              "head": "Join a working group",
+              "text": "People from operations are welcome."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "And stay involved. Read the changelog of every new version. Report problems you find in the standard, and share what works. The working groups of FundsXML welcome people from operations, because they know best where the standard helps, and where it could help more."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was the last film of the series FundsXML in production. You find the reference implementation on GitHub, and the community and the working groups on fundsxml dot org. Thanks for watching."
+      }
+    }
+  ]
+}

@@ -1,0 +1,729 @@
+{
+  "_comment": "Production series, film 3. Slides only (no recording); code and output from github.com/fundsxml/integration-examples.",
+  "id": "prod-loading",
+  "title": {
+    "en": "Loading FundsXML files"
+  },
+  "description": {
+    "en": "How a FundsXML file gets into a database safely: the six steps of a robust loader, a landing folder, cheap checks first, triggers, validation and schema versions, idempotency through the UniqueDocumentID, full and delta deliveries, streaming large files, the order of assets and positions, asset keys, transactions, business rules, speed, reconciliation, code checks, error reports, tests and release. With the reference loader at work."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "A FundsXML file has arrived. How does it get into the database, safely, even when it is large, and even when the same file arrives twice? In this film you see the steps of a robust loader, the traps on the way, and the reference loader at work."
+      }
+    },
+    {
+      "id": "steps",
+      "chapter": {
+        "en": "The steps"
+      },
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.08,
+          0.3,
+          0.42,
+          0.55,
+          0.65,
+          0.82
+        ],
+        "en": {
+          "title": "Six steps of a robust loader",
+          "items": [
+            {
+              "head": "Check",
+              "text": "Complete? Expected partner?"
+            },
+            {
+              "head": "Validate",
+              "text": "Against the schema."
+            },
+            {
+              "head": "Register",
+              "text": "The document ID."
+            },
+            {
+              "head": "Read",
+              "text": "The data."
+            },
+            {
+              "head": "Write",
+              "text": "One transaction."
+            },
+            {
+              "head": "Reconcile",
+              "text": "Before release."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "A robust loader works in six steps. Check the file: is it complete, is it the expected partner? Validate it against the schema. Register the delivery with its document ID. Read the data. Write it to the tables, in one transaction. And reconcile the result, before the data is released for use."
+      }
+    },
+    {
+      "id": "landing",
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.08,
+          0.3,
+          0.42,
+          0.65
+        ],
+        "en": {
+          "title": "A landing folder",
+          "items": [
+            {
+              "head": "Landing",
+              "text": "New files arrive."
+            },
+            {
+              "head": "Processing"
+            },
+            {
+              "head": "Done",
+              "text": "Or error."
+            },
+            {
+              "head": "Log",
+              "text": "One line per step."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "It starts with a landing folder. New files arrive there, and the loader moves each file through clear states: in processing, done, or error. The original file is never changed. And every step writes a line to the log, so that later you can say exactly what happened to every file, and when."
+      }
+    },
+    {
+      "id": "check",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.38,
+          0.6,
+          0.72
+        ],
+        "en": {
+          "title": "The cheap check first",
+          "items": [
+            {
+              "head": "Complete?",
+              "text": "A cut-off file has no closing root element."
+            },
+            {
+              "head": "Expected sender and kind of data?"
+            },
+            {
+              "head": "Which schema version?"
+            },
+            {
+              "head": "Zipped?",
+              "text": "Unpack first."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "The first check is cheap. Is the file complete? A file cut off during transfer has no closing root element. Does it come from an expected sender, with an expected kind of data? Which schema version does it declare? Zipped files are unpacked first. Only then does the expensive work begin."
+      }
+    },
+    {
+      "id": "trigger",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.12,
+          0.35,
+          0.55
+        ],
+        "en": {
+          "title": "When does the loader start?",
+          "items": [
+            {
+              "head": "File watcher",
+              "text": "Starts as soon as a file arrives."
+            },
+            {
+              "head": "Schedule",
+              "text": "Loads at fixed times."
+            },
+            {
+              "head": "Both",
+              "text": "Load on arrival, alarm at the deadline."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "When does the loader start? Either a watcher notices every new file and starts at once, or the loader runs at fixed times. The best of both: load as soon as a file arrives, and raise an alarm when a file has not arrived by its deadline. Then a late delivery is noticed in the morning, not at noon, when someone asks for the data."
+      }
+    },
+    {
+      "id": "validate",
+      "chapter": {
+        "en": "Validate first"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.05,
+          0.42,
+          0.6,
+          0.75
+        ],
+        "en": {
+          "title": "Validate first, load later",
+          "items": [
+            {
+              "head": "Invalid: not loaded at all",
+              "text": "Half a delivery is worse than none."
+            },
+            {
+              "head": "Keep the error report",
+              "text": "With the file."
+            },
+            {
+              "head": "Tell the sender"
+            },
+            {
+              "head": "XSD 1.1",
+              "text": "Saxon or Xerces."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Validate first, load later. A file that fails the schema is not loaded at all, not even partly, because half a delivery is worse than none. The error report is kept with the file, and the sender is told. Remember that FundsXML needs an X S D one point one validator, such as Saxon or Xerces."
+      }
+    },
+    {
+      "id": "version",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.3,
+          0.7
+        ],
+        "en": {
+          "title": "Which schema version?",
+          "items": [
+            {
+              "head": "The version the file declares"
+            },
+            {
+              "head": "A newer version than expected",
+              "text": "Validate against it, load what you know, log the rest."
+            },
+            {
+              "head": "Nothing is lost",
+              "text": "The original is in the archive."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Which schema to validate against? Against the version the file declares, as long as you know it. When a partner already sends a newer version, validate against that one, load the elements you know, and log the rest. The original file is in the archive, so nothing is lost; the new elements can be loaded later."
+      }
+    },
+    {
+      "id": "idem",
+      "chapter": {
+        "en": "Twice is not double"
+      },
+      "slide": {
+        "layout": "code",
+        "builds": [
+          0.0,
+          0.3
+        ],
+        "en": {
+          "title": "Twice is not double",
+          "file": "loader/load.py",
+          "highlight": [
+            3,
+            4,
+            5
+          ],
+          "code": "def register_delivery(cur, path, ctl):\n    \"\"\"A UniqueDocumentID we already have is skipped, never loaded twice.\"\"\"\n    cur.execute(\"SELECT status FROM delivery WHERE unique_document_id = %s\",\n                (ctl[\"unique_document_id\"],))\n    if row := cur.fetchone():\n        return None, row[0]\n    cur.execute(\"INSERT INTO delivery (unique_document_id, data_supplier, ...) \"\n                \"VALUES (%s, %s, ...) RETURNING delivery_id\", ...)\n    return cur.fetchone()[0], None\n\n# AMEND / DELETE: the rows of the related delivery are marked replaced"
+        }
+      },
+      "say": {
+        "en": "Files arrive twice more often than you think: a repeated transfer, a manual upload. So the loader registers every document ID. If the same ID comes again, it skips the file. If a delivery is a correction, it replaces the data of the delivery it names. That way, loading the same file twice never doubles the data."
+      }
+    },
+    {
+      "id": "fulldelta",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.12,
+          0.45,
+          0.75
+        ],
+        "en": {
+          "title": "Full or delta?",
+          "items": [
+            {
+              "head": "Full",
+              "text": "The complete state; replaces everything for that fund and date. Simpler, more robust."
+            },
+            {
+              "head": "Delta",
+              "text": "Only changes; needs a complete start. Saves volume."
+            },
+            {
+              "head": "Agree it",
+              "text": "The loader must know which one it reads."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Another question to settle with each partner: does a delivery contain the full state, or only the changes? A full delivery replaces everything the receiver knows for that fund and date. A delta delivery only adds and changes, and needs a complete start. Full deliveries are simpler and more robust; deltas save volume. Your loader must know which one it is reading."
+      }
+    },
+    {
+      "id": "stream",
+      "chapter": {
+        "en": "Large files"
+      },
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.15,
+          0.55
+        ],
+        "en": {
+          "title": "Reading large files",
+          "items": [
+            {
+              "head": "DOM",
+              "text": "The whole file in memory. Fine for prices and small portfolios."
+            },
+            {
+              "head": "Streaming",
+              "text": "Element by element, any size: StAX in Java, iterparse in Python."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "How to read the file? The simplest way loads the whole document into memory. That is fine for prices and small portfolios. But a delivery with thousands of positions, regulatory templates and embedded documents can reach hundreds of megabytes. Then read it as a stream, element by element: with StAX in Java, or iterparse in Python."
+      }
+    },
+    {
+      "id": "order",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.1,
+          0.45,
+          0.65
+        ],
+        "en": {
+          "title": "The catch: order",
+          "items": [
+            {
+              "head": "In the file",
+              "text": "Positions first, AssetMasterData at the end."
+            },
+            {
+              "head": "Read twice",
+              "text": "Assets first, then positions."
+            },
+            {
+              "head": "Or stage",
+              "text": "Positions into a staging table, link at the end. The reference loader does this."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Streaming has one catch. In FundsXML, the asset master data comes after the funds and their positions. So while reading a position, its asset is not known yet. Two solutions: read the file twice, assets first. Or write positions into a staging table and link them to their assets at the end. The reference loader does the second."
+      }
+    },
+    {
+      "id": "code",
+      "slide": {
+        "layout": "code",
+        "builds": [
+          0.0,
+          0.4
+        ],
+        "en": {
+          "title": "The core of the reference loader",
+          "file": "loader/load.py",
+          "highlight": [
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ],
+          "code": "def stream(self, path):\n    \"\"\"One pass, flat memory: handle an element at its end tag, then throw it away.\"\"\"\n    stack = []\n    for event, elem in etree.iterparse(str(path), events=(\"start\", \"end\")):\n        if event == \"start\":\n            stack.append(elem.tag); continue\n        handler = self.handlers.get(\"/\".join(stack))   # e.g. .../Positions/Position\n        stack.pop()\n        if handler:\n            handler(elem)                               # write the row (staging)\n            elem.clear()                                # free the subtree ...\n            while elem.getprevious() is not None:\n                del elem.getparent()[0]                 # ... and finished siblings\n    self.flush()"
+        }
+      },
+      "say": {
+        "en": "This is the core of the reference loader. It walks through the file and handles one position at a time: it reads the identifiers and values, and writes the row to the staging table. After each position the memory is released, so the file size does not matter."
+      }
+    },
+    {
+      "id": "keys",
+      "slide": {
+        "layout": "code",
+        "builds": [
+          0.0,
+          0.5
+        ],
+        "en": {
+          "title": "Finding the asset",
+          "file": "loader/load.py",
+          "highlight": [
+            6,
+            7,
+            8
+          ],
+          "code": "def asset_keys(asset, supplier):\n    \"\"\"Identifiers first. Without any, the file's UniqueID\n    only means something together with who sent it.\"\"\"\n    keys = [(scheme, asset.findtext(f\"Identifiers/{tag}\")) ...]\n    keys = [(scheme, value) for scheme, value in keys if value]\n    if not keys:\n        kind, own = asset.findtext(\"AssetType\"), asset.findtext(\"UniqueID\")\n        keys.append((\"SUPPLIER\", f\"{supplier}/{kind}/{own}\"))\n    return keys\n\n# known asset: update its master data\n# unknown asset: create it, and log it"
+        }
+      },
+      "say": {
+        "en": "Then the keys. For each asset, the loader looks for it by its ISIN, or by the key built from sender and own identifier. If it is unknown, it creates it. If it is known, it updates its master data with the newer values. Every new asset is logged, because a sudden flood of new assets often points to a problem in the delivery."
+      }
+    },
+    {
+      "id": "tx",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.05,
+          0.4,
+          0.62
+        ],
+        "en": {
+          "title": "One transaction per file",
+          "items": [
+            {
+              "head": "All or nothing",
+              "text": "On an error everything is rolled back."
+            },
+            {
+              "head": "Bulk writes",
+              "text": "Not row by row."
+            },
+            {
+              "head": "After a fix: just load again",
+              "text": "The document ID prevents doubles."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Writing happens in one transaction per file. If anything goes wrong, everything is rolled back, and the database is as before. For speed, rows are written in bulk, not one by one. And after the cause of an error has been fixed, the file is simply loaded again; thanks to the document ID, nothing is doubled."
+      }
+    },
+    {
+      "id": "business",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.12,
+          0.32,
+          0.62
+        ],
+        "en": {
+          "title": "Reject, flag or hold back?",
+          "items": [
+            {
+              "head": "Schema error",
+              "text": "Always rejected.",
+              "tag": "reject"
+            },
+            {
+              "head": "Business warning",
+              "text": "e.g. a large price change: load, flag, ask.",
+              "tag": "flag"
+            },
+            {
+              "head": "Business error",
+              "text": "e.g. weights of 120 %: hold back until corrected.",
+              "tag": "hold"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Not every problem is a reason to reject a file. A schema error always is. But a business warning, such as an unusually large price change, may be correct; load the data, flag it, and ask. A real business error, such as weights that add up to a hundred and twenty percent, holds the delivery back until the sender corrects it. Agree on these rules with your partners."
+      }
+    },
+    {
+      "id": "speed",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.4,
+          0.55,
+          0.8
+        ],
+        "en": {
+          "title": "How fast?",
+          "items": [
+            {
+              "head": "Bulk insert or COPY",
+              "text": "Thousands of positions per second."
+            },
+            {
+              "head": "Some indexes after the load"
+            },
+            {
+              "head": "One fund at a time",
+              "text": "Small memory, restart in the middle."
+            },
+            {
+              "head": "Speed is rarely the problem",
+              "text": "Correctness is."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "How fast can it be? With bulk inserts, or the copy command of PostgreSQL, a loader writes thousands of positions per second. Large tables load faster when some indexes are built after the load. And processing one fund at a time keeps memory small and lets you restart in the middle. Speed is rarely the real problem; correctness is."
+      }
+    },
+    {
+      "id": "run",
+      "chapter": {
+        "en": "The loader at work"
+      },
+      "slide": {
+        "layout": "code",
+        "builds": [
+          0.0,
+          0.62
+        ],
+        "en": {
+          "title": "The loader at work",
+          "file": "python loader/load.py --release examples/",
+          "highlight": [
+            13,
+            14,
+            15
+          ],
+          "code": "file       Multi-Asset-Derivatives-Fund_2025-10.xml\ncheck      EXAMPLE-MULTI-ASSET-DERIVATIVES-FUND-2025-10, INITIAL, content date 2025-10-31\nvalidate   ok: valid against schemas/4.2.9/FundsXML.xsd (XSD 1.1)\nregister   delivery 4\nstream     1 funds, 4 share classes, 96 prices, 81 positions, 82 assets\nlink       81 positions linked to assets\nreconcile  Example Multi Asset Opportunities Fund 2025-10-31:\n           positions 278791093.07 vs net assets 278791093.07 EUR, weights 100.0000 % -> ok\nstatus     released\n\n# second run, same files:\nfile       Multi-Asset-Derivatives-Fund_2025-10.xml\ncheck      EXAMPLE-MULTI-ASSET-DERIVATIVES-FUND-2025-10, INITIAL, content date 2025-10-31\nvalidate   ok: valid against schemas/4.2.9/FundsXML.xsd (XSD 1.1)\nregister   skipped: already loaded (status released)"
+        }
+      },
+      "say": {
+        "en": "Here the loader runs over the four realistic example files: one delivery each, registered with its document ID, with funds, share classes, prices, positions and assets. A second run skips all four. The positions table now holds the portfolio of the multi-asset fund, ready for queries."
+      }
+    },
+    {
+      "id": "reconcile",
+      "chapter": {
+        "en": "Reconcile"
+      },
+      "slide": {
+        "layout": "table",
+        "builds": [
+          0.0,
+          0.3
+        ],
+        "en": {
+          "title": "Reconciliation of the four example funds",
+          "columns": [
+            "fund",
+            "positions",
+            "sum of positions",
+            "net assets",
+            "weights",
+            "ok"
+          ],
+          "rows": [
+            [
+              "Example Balanced Fund of Funds",
+              "38",
+              "155,706,556.38",
+              "155,706,556.38",
+              "100.0000 %",
+              "yes"
+            ],
+            [
+              "Example Euro Bond Fund",
+              "207",
+              "838,581,814.97",
+              "838,581,814.97",
+              "100.0000 %",
+              "yes"
+            ],
+            [
+              "Example Global Equity Fund",
+              "123",
+              "602,060,878.93",
+              "602,060,878.93",
+              "100.0000 %",
+              "yes"
+            ],
+            [
+              "Example Multi Asset Opportunities Fund",
+              "81",
+              "278,791,093.07",
+              "278,791,093.07",
+              "100.0000 %",
+              "yes"
+            ]
+          ],
+          "mark": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      },
+      "say": {
+        "en": "Before the data is released, reconcile it. Do the position values add up to the total net assets? Do the weights add up to one hundred percent? Are the counts plausible compared with the last delivery? The data-quality checks of FreeXmlToolkit do the same on the file; the loader repeats them on the data."
+      }
+    },
+    {
+      "id": "codes",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.45,
+          0.68
+        ],
+        "en": {
+          "title": "Checking codes",
+          "items": [
+            {
+              "head": "Every listed code",
+              "text": "Against the lookup tables of the version."
+            },
+            {
+              "head": "From a newer version",
+              "text": "Keep it, with a warning."
+            },
+            {
+              "head": "Otherwise unknown",
+              "text": "An error: usually a mapping problem."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "The loader also checks codes. Every listed code, such as a price type or a document type, is compared with the lookup tables of the schema version. A code from a newer version than yours is kept with a warning. Any other unknown code is an error, because it usually means a mapping problem on the sender's side."
+      }
+    },
+    {
+      "id": "report",
+      "slide": {
+        "layout": "code",
+        "builds": [
+          0.0,
+          0.2
+        ],
+        "en": {
+          "title": "A report the sender can act on",
+          "file": "error report",
+          "highlight": [
+            3,
+            4,
+            5
+          ],
+          "code": "File         Global-Equity-Fund_2025-10.xml\nDocumentID   EXAMPLE-GLOBAL-EQUITY-FUND-2025-10\nRule         XSD: cvc-datatype-valid.1.2.1\nElement      /FundsXML4/Funds/Fund/.../Position[17]/TotalValue/Amount\nFound        '2.5 million'     expected: a decimal number\nResult       rejected - nothing was loaded; please send a corrected file"
+        }
+      },
+      "say": {
+        "en": "When a delivery fails, the sender needs a report it can act on. It names the file and its document ID, the rule that failed, the path of the element and the value found, and what was expected. And it says what happens now: the file was rejected, or loaded with warnings. A precise report gets a correction back in minutes, a vague one in days."
+      }
+    },
+    {
+      "id": "tests",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.2,
+          0.45,
+          0.62,
+          0.75
+        ],
+        "en": {
+          "title": "Testing the loader",
+          "items": [
+            {
+              "head": "The official examples"
+            },
+            {
+              "head": "Broken files",
+              "text": "Cut off, invalid, unknown sender."
+            },
+            {
+              "head": "Twice, then AMEND, then DELETE"
+            },
+            {
+              "head": "A very large file"
+            },
+            {
+              "head": "On every change",
+              "text": "The reference implementation runs several of these in CI."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Test the loader as carefully as the generator. Use the official example files. Add broken ones: a file cut off in the middle, an invalid file, a file from an unknown sender. Load the same file twice, then a correction, then a deletion. And try a very large file. The reference implementation does several of these tests on every change."
+      }
+    },
+    {
+      "id": "release",
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.1,
+          0.22,
+          0.4,
+          0.62
+        ],
+        "en": {
+          "title": "Release",
+          "items": [
+            {
+              "head": "Loaded"
+            },
+            {
+              "head": "Checked",
+              "text": "Reconciliation ok."
+            },
+            {
+              "head": "Released",
+              "text": "Reports read only this."
+            },
+            {
+              "head": "Warnings",
+              "text": "To the data team: release or ask for a correction."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Only then is the data released. A status column on the delivery shows the way: loaded, checked, released. Reports and downstream systems read only released data. Warnings from the reconciliation go to the data team, who decide whether to release anyway or to ask the sender for a correction."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was loading FundsXML: validate first, never twice, streaming for large files, and reconcile before release. In the next film, you see the other direction: generating FundsXML from a database. Thanks for watching."
+      }
+    }
+  ]
+}

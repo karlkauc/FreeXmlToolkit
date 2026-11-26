@@ -1,0 +1,4100 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Synthetic sample: written by export/export.py of github.com/fundsxml/integration-examples from the realistic example files. -->
+<FundsXML4 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="FundsXML4.xsd">
+  <ControlData>
+    <UniqueDocumentID>EXAMPLE-HUB-8c819965-2134-47a7-bef9-7a2d8b04bc53</UniqueDocumentID>
+    <DocumentGenerated>2026-11-26T17:02:37+00:00</DocumentGenerated>
+    <Version>4.2.9</Version>
+    <ContentDate>2025-10-31</ContentDate>
+    <DataSupplier>
+      <SystemCountry>AT</SystemCountry>
+      <Short>EXAMPLE-HUB</Short>
+      <Name>Example Fund Data Hub</Name>
+      <Type>Data Hub</Type>
+    </DataSupplier>
+    <DataOperation>INITIAL</DataOperation>
+    <Language>en</Language>
+  </ControlData>
+  <Funds>
+    <Fund>
+      <Identifiers>
+        <LEI>XMPL00FNDMULTI000170</LEI>
+      </Identifiers>
+      <Names>
+        <OfficialName>Example Multi Asset Opportunities Fund</OfficialName>
+      </Names>
+      <Currency>EUR</Currency>
+      <SingleFundFlag>true</SingleFundFlag>
+      <FundDynamicData>
+        <TotalAssetValues>
+          <TotalAssetValue>
+            <NavDate>2025-10-31</NavDate>
+            <TotalAssetNature>OFFICIAL</TotalAssetNature>
+            <TotalNetAssetValue>
+              <Amount ccy="EUR">278791093.07</Amount>
+            </TotalNetAssetValue>
+          </TotalAssetValue>
+        </TotalAssetValues>
+        <Portfolios>
+          <Portfolio>
+            <NavDate>2025-10-31</NavDate>
+            <Positions>
+              <Position>
+                <UniqueID>A397</UniqueID>
+                <Identifiers>
+                  <ISIN>IEXMPLS00036</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">10364653.57</Amount>
+                </TotalValue>
+                <TotalPercentage>3.7177</TotalPercentage>
+                <ShareClass>
+                  <Shares>50287</Shares>
+                </ShareClass>
+              </Position>
+              <Position>
+                <UniqueID>A404</UniqueID>
+                <Identifiers>
+                  <ISIN>DEXMPLC00015</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">9016480.00</Amount>
+                </TotalValue>
+                <TotalPercentage>3.2341</TotalPercentage>
+                <Certificate>
+                  <Units>44000</Units>
+                </Certificate>
+              </Position>
+              <Position>
+                <UniqueID>A400</UniqueID>
+                <Identifiers>
+                  <ISIN>IEXMPLS00069</ISIN>
+                </Identifiers>
+                <Currency>USD</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">8970551.89</Amount>
+                </TotalValue>
+                <TotalPercentage>3.2177</TotalPercentage>
+                <ShareClass>
+                  <Shares>146289</Shares>
+                </ShareClass>
+              </Position>
+              <Position>
+                <UniqueID>A426</UniqueID>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">8500000.00</Amount>
+                </TotalValue>
+                <TotalPercentage>3.0489</TotalPercentage>
+                <CallMoney/>
+              </Position>
+              <Position>
+                <UniqueID>A171</UniqueID>
+                <Identifiers>
+                  <ISIN>FRXMPLB01681</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">7222550.00</Amount>
+                </TotalValue>
+                <TotalPercentage>2.5907</TotalPercentage>
+                <Bond>
+                  <Nominal>7300000</Nominal>
+                </Bond>
+              </Position>
+              <Position>
+                <UniqueID>A393</UniqueID>
+                <Identifiers>
+                  <ISIN>NLXMPLB00748</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">7186070.96</Amount>
+                </TotalValue>
+                <TotalPercentage>2.5776</TotalPercentage>
+                <Bond>
+                  <Nominal>6600000</Nominal>
+                </Bond>
+              </Position>
+              <Position>
+                <UniqueID>A396</UniqueID>
+                <Identifiers>
+                  <ISIN>IEXMPLS00028</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">6909740.16</Amount>
+                </TotalValue>
+                <TotalPercentage>2.4785</TotalPercentage>
+                <ShareClass>
+                  <Shares>64074</Shares>
+                </ShareClass>
+              </Position>
+              <Position>
+                <UniqueID>A399</UniqueID>
+                <Identifiers>
+                  <ISIN>IEXMPLS00051</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">6909672.60</Amount>
+                </TotalValue>
+                <TotalPercentage>2.4784</TotalPercentage>
+                <ShareClass>
+                  <Shares>41612</Shares>
+                </ShareClass>
+              </Position>
+              <Position>
+                <UniqueID>A391</UniqueID>
+                <Identifiers>
+                  <ISIN>XSXMPLB02276</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">6891319.73</Amount>
+                </TotalValue>
+                <TotalPercentage>2.4719</TotalPercentage>
+                <Bond>
+                  <Nominal>6300000</Nominal>
+                </Bond>
+              </Position>
+              <Position>
+                <UniqueID>A16</UniqueID>
+                <Identifiers>
+                  <ISIN>DEXMPLB00140</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">6534230.96</Amount>
+                </TotalValue>
+                <TotalPercentage>2.3438</TotalPercentage>
+                <Bond>
+                  <Nominal>6200000</Nominal>
+                </Bond>
+              </Position>
+              <Position>
+                <UniqueID>A260</UniqueID>
+                <Identifiers>
+                  <ISIN>FRXMPLE00158</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">6343642.80</Amount>
+                </TotalValue>
+                <TotalPercentage>2.2754</TotalPercentage>
+                <Equity>
+                  <Units>8712</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A257</UniqueID>
+                <Identifiers>
+                  <ISIN>DEXMPLE00128</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">6343555.63</Amount>
+                </TotalValue>
+                <TotalPercentage>2.2754</TotalPercentage>
+                <Equity>
+                  <Units>12829</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A314</UniqueID>
+                <Identifiers>
+                  <ISIN>USXMPLE01526</ISIN>
+                </Identifiers>
+                <Currency>USD</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">6343461.28</Amount>
+                </TotalValue>
+                <TotalPercentage>2.2753</TotalPercentage>
+                <Equity>
+                  <Units>28951</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A296</UniqueID>
+                <Identifiers>
+                  <ISIN>FRXMPLE01693</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">6343430.16</Amount>
+                </TotalValue>
+                <TotalPercentage>2.2753</TotalPercentage>
+                <Equity>
+                  <Units>33144</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A386</UniqueID>
+                <Identifiers>
+                  <ISIN>USXMPLE00643</ISIN>
+                </Identifiers>
+                <Currency>USD</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">6343396.92</Amount>
+                </TotalValue>
+                <TotalPercentage>2.2753</TotalPercentage>
+                <Equity>
+                  <Units>39455</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A303</UniqueID>
+                <Identifiers>
+                  <ISIN>GBXMPLE01646</ISIN>
+                </Identifiers>
+                <Currency>GBP</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">6343396.11</Amount>
+                </TotalValue>
+                <TotalPercentage>2.2753</TotalPercentage>
+                <Equity>
+                  <Units>17386</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A323</UniqueID>
+                <Identifiers>
+                  <ISIN>USXMPLE00692</ISIN>
+                </Identifiers>
+                <Currency>USD</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">6343393.49</Amount>
+                </TotalValue>
+                <TotalPercentage>2.2753</TotalPercentage>
+                <Equity>
+                  <Units>85581</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A248</UniqueID>
+                <Identifiers>
+                  <ISIN>ESXMPLE00035</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">6343374.36</Amount>
+                </TotalValue>
+                <TotalPercentage>2.2753</TotalPercentage>
+                <Equity>
+                  <Units>225102</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A355</UniqueID>
+                <Identifiers>
+                  <ISIN>USXMPLE01468</ISIN>
+                </Identifiers>
+                <Currency>USD</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">6343331.49</Amount>
+                </TotalValue>
+                <TotalPercentage>2.2753</TotalPercentage>
+                <Equity>
+                  <Units>21816</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A271</UniqueID>
+                <Identifiers>
+                  <ISIN>JPXMPLE00261</ISIN>
+                </Identifiers>
+                <Currency>JPY</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">6343303.64</Amount>
+                </TotalValue>
+                <TotalPercentage>2.2753</TotalPercentage>
+                <Equity>
+                  <Units>15261</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A427</UniqueID>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">6218403.92</Amount>
+                </TotalValue>
+                <TotalPercentage>2.2305</TotalPercentage>
+                <Account/>
+              </Position>
+              <Position>
+                <UniqueID>A163</UniqueID>
+                <Identifiers>
+                  <ISIN>FRXMPLB01657</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">5906932.19</Amount>
+                </TotalValue>
+                <TotalPercentage>2.1188</TotalPercentage>
+                <Bond>
+                  <Nominal>5500000</Nominal>
+                </Bond>
+              </Position>
+              <Position>
+                <UniqueID>A199</UniqueID>
+                <Identifiers>
+                  <ISIN>ESXMPLB02490</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">5899875.62</Amount>
+                </TotalValue>
+                <TotalPercentage>2.1162</TotalPercentage>
+                <Bond>
+                  <Nominal>6800000</Nominal>
+                </Bond>
+              </Position>
+              <Position>
+                <UniqueID>A388</UniqueID>
+                <Identifiers>
+                  <ISIN>NLXMPLE00387</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">5796086.25</Amount>
+                </TotalValue>
+                <TotalPercentage>2.0790</TotalPercentage>
+                <Equity>
+                  <Units>7705</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A405</UniqueID>
+                <Identifiers>
+                  <ISIN>DEXMPLC00023</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">5708880.00</Amount>
+                </TotalValue>
+                <TotalPercentage>2.0477</TotalPercentage>
+                <Certificate>
+                  <Units>24000</Units>
+                </Certificate>
+              </Position>
+              <Position>
+                <UniqueID>A372</UniqueID>
+                <Identifiers>
+                  <ISIN>NLXMPLE00353</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">5382579.26</Amount>
+                </TotalValue>
+                <TotalPercentage>1.9307</TotalPercentage>
+                <Equity>
+                  <Units>16546</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A197</UniqueID>
+                <Identifiers>
+                  <ISIN>XSXMPLB02698</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">5316240.00</Amount>
+                </TotalValue>
+                <TotalPercentage>1.9069</TotalPercentage>
+                <Bond>
+                  <Nominal>10200000</Nominal>
+                </Bond>
+              </Position>
+              <Position>
+                <UniqueID>A261</UniqueID>
+                <Identifiers>
+                  <ISIN>SEXMPLE00167</ISIN>
+                </Identifiers>
+                <Currency>SEK</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">5181224.00</Amount>
+                </TotalValue>
+                <TotalPercentage>1.8585</TotalPercentage>
+                <Equity>
+                  <Units>1005332</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A81</UniqueID>
+                <Identifiers>
+                  <ISIN>DEXMPLB00074</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">5171610.00</Amount>
+                </TotalValue>
+                <TotalPercentage>1.8550</TotalPercentage>
+                <Bond>
+                  <Nominal>5700000</Nominal>
+                </Bond>
+              </Position>
+              <Position>
+                <UniqueID>A66</UniqueID>
+                <Identifiers>
+                  <ISIN>XSXMPLB02524</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">4885920.41</Amount>
+                </TotalValue>
+                <TotalPercentage>1.7525</TotalPercentage>
+                <Bond>
+                  <Nominal>4700000</Nominal>
+                </Bond>
+              </Position>
+              <Position>
+                <UniqueID>A106</UniqueID>
+                <Identifiers>
+                  <ISIN>ATXMPLB01936</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">4881619.18</Amount>
+                </TotalValue>
+                <TotalPercentage>1.7510</TotalPercentage>
+                <Bond>
+                  <Nominal>5500000</Nominal>
+                </Bond>
+              </Position>
+              <Position>
+                <UniqueID>A71</UniqueID>
+                <Identifiers>
+                  <ISIN>XSXMPLB02623</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">4666120.27</Amount>
+                </TotalValue>
+                <TotalPercentage>1.6737</TotalPercentage>
+                <Bond>
+                  <Nominal>4600000</Nominal>
+                </Bond>
+              </Position>
+              <Position>
+                <UniqueID>A285</UniqueID>
+                <Identifiers>
+                  <ISIN>FRXMPLB00261</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">4560712.88</Amount>
+                </TotalValue>
+                <TotalPercentage>1.6359</TotalPercentage>
+                <Bond>
+                  <Nominal>4600000</Nominal>
+                </Bond>
+              </Position>
+              <Position>
+                <UniqueID>A133</UniqueID>
+                <Identifiers>
+                  <ISIN>ITXMPLB00485</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">4207240.27</Amount>
+                </TotalValue>
+                <TotalPercentage>1.5091</TotalPercentage>
+                <Bond>
+                  <Nominal>3800000</Nominal>
+                </Bond>
+              </Position>
+              <Position>
+                <UniqueID>A394</UniqueID>
+                <Identifiers>
+                  <ISIN>ATXMPLB00680</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">4157457.53</Amount>
+                </TotalValue>
+                <TotalPercentage>1.4912</TotalPercentage>
+                <Bond>
+                  <Nominal>4000000</Nominal>
+                </Bond>
+              </Position>
+              <Position>
+                <UniqueID>A331</UniqueID>
+                <Identifiers>
+                  <ISIN>CHXMPLE01683</ISIN>
+                </Identifiers>
+                <Currency>CHF</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">3880349.63</Amount>
+                </TotalValue>
+                <TotalPercentage>1.3918</TotalPercentage>
+                <Equity>
+                  <Units>4573</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A406</UniqueID>
+                <Identifiers>
+                  <ISIN>DEXMPLC00031</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">3812250.00</Amount>
+                </TotalValue>
+                <TotalPercentage>1.3674</TotalPercentage>
+                <Certificate>
+                  <Units>25000</Units>
+                </Certificate>
+              </Position>
+              <Position>
+                <UniqueID>A184</UniqueID>
+                <Identifiers>
+                  <ISIN>XSXMPLB01732</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">3755512.33</Amount>
+                </TotalValue>
+                <TotalPercentage>1.3471</TotalPercentage>
+                <Bond>
+                  <Nominal>4000000</Nominal>
+                </Bond>
+              </Position>
+              <Position>
+                <UniqueID>A36</UniqueID>
+                <Identifiers>
+                  <ISIN>ATXMPLB00664</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">3617030.55</Amount>
+                </TotalValue>
+                <TotalPercentage>1.2974</TotalPercentage>
+                <Bond>
+                  <Nominal>3300000</Nominal>
+                </Bond>
+              </Position>
+              <Position>
+                <UniqueID>A395</UniqueID>
+                <Identifiers>
+                  <ISIN>IEXMPLS00010</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">3454822.60</Amount>
+                </TotalValue>
+                <TotalPercentage>1.2392</TotalPercentage>
+                <ShareClass>
+                  <Shares>41227</Shares>
+                </ShareClass>
+              </Position>
+              <Position>
+                <UniqueID>A398</UniqueID>
+                <Identifiers>
+                  <ISIN>IEXMPLS00044</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">3454802.68</Amount>
+                </TotalValue>
+                <TotalPercentage>1.2392</TotalPercentage>
+                <ShareClass>
+                  <Shares>27634</Shares>
+                </ShareClass>
+              </Position>
+              <Position>
+                <UniqueID>A387</UniqueID>
+                <Identifiers>
+                  <ISIN>USXMPLE00916</ISIN>
+                </Identifiers>
+                <Currency>USD</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">3380145.10</Amount>
+                </TotalValue>
+                <TotalPercentage>1.2124</TotalPercentage>
+                <Equity>
+                  <Units>16489</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A385</UniqueID>
+                <Identifiers>
+                  <ISIN>USXMPLE01203</ISIN>
+                </Identifiers>
+                <Currency>USD</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">3380109.23</Amount>
+                </TotalValue>
+                <TotalPercentage>1.2124</TotalPercentage>
+                <Equity>
+                  <Units>4787</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A198</UniqueID>
+                <Identifiers>
+                  <ISIN>XSXMPLB02474</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">2939592.86</Amount>
+                </TotalValue>
+                <TotalPercentage>1.0544</TotalPercentage>
+                <Bond>
+                  <Nominal>3000000</Nominal>
+                </Bond>
+              </Position>
+              <Position>
+                <UniqueID>A113</UniqueID>
+                <Identifiers>
+                  <ISIN>NLXMPLB02314</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">2837189.59</Amount>
+                </TotalValue>
+                <TotalPercentage>1.0177</TotalPercentage>
+                <Bond>
+                  <Nominal>2700000</Nominal>
+                </Bond>
+              </Position>
+              <Position>
+                <UniqueID>A146</UniqueID>
+                <Identifiers>
+                  <ISIN>XSXMPLB01781</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">2735638.36</Amount>
+                </TotalValue>
+                <TotalPercentage>0.9813</TotalPercentage>
+                <Bond>
+                  <Nominal>2800000</Nominal>
+                </Bond>
+              </Position>
+              <Position>
+                <UniqueID>A392</UniqueID>
+                <Identifiers>
+                  <ISIN>ATXMPLB00615</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">2559455.75</Amount>
+                </TotalValue>
+                <TotalPercentage>0.9181</TotalPercentage>
+                <Bond>
+                  <Nominal>2700000</Nominal>
+                </Bond>
+              </Position>
+              <Position>
+                <UniqueID>A259</UniqueID>
+                <Identifiers>
+                  <ISIN>USXMPLE00148</ISIN>
+                </Identifiers>
+                <Currency>USD</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">1962137.36</Amount>
+                </TotalValue>
+                <TotalPercentage>0.7038</TotalPercentage>
+                <Equity>
+                  <Units>11307</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A311</UniqueID>
+                <Identifiers>
+                  <ISIN>USXMPLE00908</ISIN>
+                </Identifiers>
+                <Currency>USD</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">1841601.38</Amount>
+                </TotalValue>
+                <TotalPercentage>0.6606</TotalPercentage>
+                <Equity>
+                  <Units>4376</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A389</UniqueID>
+                <Identifiers>
+                  <ISIN>JPXMPLE01657</ISIN>
+                </Identifiers>
+                <Currency>JPY</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">1841519.96</Amount>
+                </TotalValue>
+                <TotalPercentage>0.6605</TotalPercentage>
+                <Equity>
+                  <Units>3463</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A297</UniqueID>
+                <Identifiers>
+                  <ISIN>USXMPLE01567</ISIN>
+                </Identifiers>
+                <Currency>USD</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">1724569.38</Amount>
+                </TotalValue>
+                <TotalPercentage>0.6186</TotalPercentage>
+                <Equity>
+                  <Units>2353</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A390</UniqueID>
+                <Identifiers>
+                  <ISIN>USXMPLE00924</ISIN>
+                </Identifiers>
+                <Currency>USD</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">1724278.43</Amount>
+                </TotalValue>
+                <TotalPercentage>0.6185</TotalPercentage>
+                <Equity>
+                  <Units>2290</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A288</UniqueID>
+                <Identifiers>
+                  <ISIN>DEXMPLE01431</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">1723944.48</Amount>
+                </TotalValue>
+                <TotalPercentage>0.6184</TotalPercentage>
+                <Equity>
+                  <Units>10104</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A410</UniqueID>
+                <Currency>USD</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">1207872.60</Amount>
+                </TotalValue>
+                <TotalPercentage>0.4333</TotalPercentage>
+                <Option>
+                  <Contracts>142</Contracts>
+                </Option>
+              </Position>
+              <Position>
+                <UniqueID>A428</UniqueID>
+                <Currency>USD</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">1162261.64</Amount>
+                </TotalValue>
+                <TotalPercentage>0.4169</TotalPercentage>
+                <Account/>
+              </Position>
+              <Position>
+                <UniqueID>A321</UniqueID>
+                <Identifiers>
+                  <ISIN>USXMPLE01005</ISIN>
+                </Identifiers>
+                <Currency>USD</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">927463.87</Amount>
+                </TotalValue>
+                <TotalPercentage>0.3327</TotalPercentage>
+                <Equity>
+                  <Units>2017</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A401</UniqueID>
+                <Identifiers>
+                  <ISIN>DEXMPLW00013</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">875040.00</Amount>
+                </TotalValue>
+                <TotalPercentage>0.3139</TotalPercentage>
+                <Warrant>
+                  <Units>48000</Units>
+                </Warrant>
+              </Position>
+              <Position>
+                <UniqueID>A246</UniqueID>
+                <Identifiers>
+                  <ISIN>FRXMPLE00018</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">845046.87</Amount>
+                </TotalValue>
+                <TotalPercentage>0.3031</TotalPercentage>
+                <Equity>
+                  <Units>3981</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A412</UniqueID>
+                <Currency>USD</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">622602.56</Amount>
+                </TotalValue>
+                <TotalPercentage>0.2233</TotalPercentage>
+                <Option>
+                  <Contracts>93</Contracts>
+                </Option>
+              </Position>
+              <Position>
+                <UniqueID>A359</UniqueID>
+                <Identifiers>
+                  <ISIN>FIXMPLE01379</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">621025.32</Amount>
+                </TotalValue>
+                <TotalPercentage>0.2228</TotalPercentage>
+                <Equity>
+                  <Units>948</Units>
+                </Equity>
+              </Position>
+              <Position>
+                <UniqueID>A403</UniqueID>
+                <Identifiers>
+                  <ISIN>DEXMPLW00039</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">606150.00</Amount>
+                </TotalValue>
+                <TotalPercentage>0.2174</TotalPercentage>
+                <Warrant>
+                  <Units>45000</Units>
+                </Warrant>
+              </Position>
+              <Position>
+                <UniqueID>A429</UniqueID>
+                <Currency>CHF</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">433224.14</Amount>
+                </TotalValue>
+                <TotalPercentage>0.1554</TotalPercentage>
+                <Account/>
+              </Position>
+              <Position>
+                <UniqueID>A408</UniqueID>
+                <Currency>USD</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">405412.84</Amount>
+                </TotalValue>
+                <TotalPercentage>0.1454</TotalPercentage>
+                <Option>
+                  <Contracts>159</Contracts>
+                </Option>
+              </Position>
+              <Position>
+                <UniqueID>A402</UniqueID>
+                <Identifiers>
+                  <ISIN>DEXMPLW00021</ISIN>
+                </Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">310230.00</Amount>
+                </TotalValue>
+                <TotalPercentage>0.1113</TotalPercentage>
+                <Warrant>
+                  <Units>27000</Units>
+                </Warrant>
+              </Position>
+              <Position>
+                <UniqueID>A423</UniqueID>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">212480.35</Amount>
+                </TotalValue>
+                <TotalPercentage>0.0762</TotalPercentage>
+                <Swap/>
+              </Position>
+              <Position>
+                <UniqueID>A425</UniqueID>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">146093.70</Amount>
+                </TotalValue>
+                <TotalPercentage>0.0524</TotalPercentage>
+                <Swap/>
+              </Position>
+              <Position>
+                <UniqueID>A411</UniqueID>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">143278.80</Amount>
+                </TotalValue>
+                <TotalPercentage>0.0514</TotalPercentage>
+                <Option>
+                  <Contracts>148</Contracts>
+                </Option>
+              </Position>
+              <Position>
+                <UniqueID>A409</UniqueID>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">99548.40</Amount>
+                </TotalValue>
+                <TotalPercentage>0.0357</TotalPercentage>
+                <Option>
+                  <Contracts>147</Contracts>
+                </Option>
+              </Position>
+              <Position>
+                <UniqueID>A419</UniqueID>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">79900.67</Amount>
+                </TotalValue>
+                <TotalPercentage>0.0287</TotalPercentage>
+                <FXForward/>
+              </Position>
+              <Position>
+                <UniqueID>A418</UniqueID>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">44251.16</Amount>
+                </TotalValue>
+                <TotalPercentage>0.0159</TotalPercentage>
+                <FXForward/>
+              </Position>
+              <Position>
+                <UniqueID>A407</UniqueID>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">39110.00</Amount>
+                </TotalValue>
+                <TotalPercentage>0.0140</TotalPercentage>
+                <Option>
+                  <Contracts>100</Contracts>
+                </Option>
+              </Position>
+              <Position>
+                <UniqueID>A415</UniqueID>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">21480.00</Amount>
+                </TotalValue>
+                <TotalPercentage>0.0077</TotalPercentage>
+                <Future>
+                  <Contracts>-60</Contracts>
+                </Future>
+              </Position>
+              <Position>
+                <UniqueID>A413</UniqueID>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">9314.50</Amount>
+                </TotalValue>
+                <TotalPercentage>0.0033</TotalPercentage>
+                <Future>
+                  <Contracts>-45</Contracts>
+                </Future>
+              </Position>
+              <Position>
+                <UniqueID>A421</UniqueID>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">6260.41</Amount>
+                </TotalValue>
+                <TotalPercentage>0.0022</TotalPercentage>
+                <FXForward/>
+              </Position>
+              <Position>
+                <UniqueID>A417</UniqueID>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">3260.00</Amount>
+                </TotalValue>
+                <TotalPercentage>0.0012</TotalPercentage>
+                <Future>
+                  <Contracts>-20</Contracts>
+                </Future>
+              </Position>
+              <Position>
+                <UniqueID>A414</UniqueID>
+                <Currency>USD</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">-4127.80</Amount>
+                </TotalValue>
+                <TotalPercentage>-0.0015</TotalPercentage>
+                <Future>
+                  <Contracts>12</Contracts>
+                </Future>
+              </Position>
+              <Position>
+                <UniqueID>A416</UniqueID>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">-7215.00</Amount>
+                </TotalValue>
+                <TotalPercentage>-0.0026</TotalPercentage>
+                <Future>
+                  <Contracts>35</Contracts>
+                </Future>
+              </Position>
+              <Position>
+                <UniqueID>A424</UniqueID>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">-38914.20</Amount>
+                </TotalValue>
+                <TotalPercentage>-0.0140</TotalPercentage>
+                <Swap/>
+              </Position>
+              <Position>
+                <UniqueID>A420</UniqueID>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">-45385.77</Amount>
+                </TotalValue>
+                <TotalPercentage>-0.0163</TotalPercentage>
+                <FXForward/>
+              </Position>
+              <Position>
+                <UniqueID>A422</UniqueID>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">-91245.60</Amount>
+                </TotalValue>
+                <TotalPercentage>-0.0327</TotalPercentage>
+                <Swap/>
+              </Position>
+              <Position>
+                <UniqueID>A430</UniqueID>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                  <Amount ccy="EUR">-348733.59</Amount>
+                </TotalValue>
+                <TotalPercentage>-0.1251</TotalPercentage>
+                <Fee/>
+              </Position>
+            </Positions>
+          </Portfolio>
+        </Portfolios>
+      </FundDynamicData>
+      <SingleFund>
+        <ShareClasses>
+          <ShareClass>
+            <Identifiers>
+              <ISIN>ATXMPLF03016</ISIN>
+            </Identifiers>
+            <Names>
+              <OfficialName>Example Multi Asset Opportunities Fund EUR R (acc)</OfficialName>
+            </Names>
+            <Currency>EUR</Currency>
+            <Prices>
+              <Price>
+                <ActionCode>C</ActionCode>
+                <NavDate>2025-10-31</NavDate>
+                <PriceCurrency>EUR</PriceCurrency>
+                <PriceNature>OFFICIAL</PriceNature>
+                <NavPrice>128.41</NavPrice>
+              </Price>
+            </Prices>
+            <TotalAssetValues>
+              <TotalAssetValue>
+                <NavDate>2025-10-31</NavDate>
+                <TotalAssetNature>OFFICIAL</TotalAssetNature>
+                <TotalNetAssetValue>
+                  <Amount ccy="EUR">144971368.40</Amount>
+                </TotalNetAssetValue>
+                <SharesOutstanding>1128972.575</SharesOutstanding>
+              </TotalAssetValue>
+            </TotalAssetValues>
+          </ShareClass>
+          <ShareClass>
+            <Identifiers>
+              <ISIN>ATXMPLF03024</ISIN>
+            </Identifiers>
+            <Names>
+              <OfficialName>Example Multi Asset Opportunities Fund EUR I (acc)</OfficialName>
+            </Names>
+            <Currency>EUR</Currency>
+            <Prices>
+              <Price>
+                <ActionCode>C</ActionCode>
+                <NavDate>2025-10-31</NavDate>
+                <PriceCurrency>EUR</PriceCurrency>
+                <PriceNature>OFFICIAL</PriceNature>
+                <NavPrice>1186.05</NavPrice>
+              </Price>
+            </Prices>
+            <TotalAssetValues>
+              <TotalAssetValue>
+                <NavDate>2025-10-31</NavDate>
+                <TotalAssetNature>OFFICIAL</TotalAssetNature>
+                <TotalNetAssetValue>
+                  <Amount ccy="EUR">61334040.48</Amount>
+                </TotalNetAssetValue>
+                <SharesOutstanding>51712.862</SharesOutstanding>
+              </TotalAssetValue>
+            </TotalAssetValues>
+          </ShareClass>
+          <ShareClass>
+            <Identifiers>
+              <ISIN>ATXMPLF03032</ISIN>
+            </Identifiers>
+            <Names>
+              <OfficialName>Example Multi Asset Opportunities Fund CHF R (acc, hedged)</OfficialName>
+            </Names>
+            <Currency>CHF</Currency>
+            <Prices>
+              <Price>
+                <ActionCode>C</ActionCode>
+                <NavDate>2025-10-31</NavDate>
+                <PriceCurrency>CHF</PriceCurrency>
+                <PriceNature>OFFICIAL</PriceNature>
+                <NavPrice>104.77</NavPrice>
+              </Price>
+            </Prices>
+            <TotalAssetValues>
+              <TotalAssetValue>
+                <NavDate>2025-10-31</NavDate>
+                <TotalAssetNature>OFFICIAL</TotalAssetNature>
+                <TotalNetAssetValue>
+                  <Amount ccy="CHF" isShareClassCcy="true">18114172.48</Amount>
+                  <Amount ccy="EUR" isFundCcy="true">19515376.51</Amount>
+                </TotalNetAssetValue>
+                <SharesOutstanding>172894.650</SharesOutstanding>
+              </TotalAssetValue>
+            </TotalAssetValues>
+          </ShareClass>
+          <ShareClass>
+            <Identifiers>
+              <ISIN>ATXMPLF03040</ISIN>
+            </Identifiers>
+            <Names>
+              <OfficialName>Example Multi Asset Opportunities Fund USD R (acc, hedged)</OfficialName>
+            </Names>
+            <Currency>USD</Currency>
+            <Prices>
+              <Price>
+                <ActionCode>C</ActionCode>
+                <NavDate>2025-10-31</NavDate>
+                <PriceCurrency>USD</PriceCurrency>
+                <PriceNature>OFFICIAL</PriceNature>
+                <NavPrice>131.66</NavPrice>
+              </Price>
+            </Prices>
+            <TotalAssetValues>
+              <TotalAssetValue>
+                <NavDate>2025-10-31</NavDate>
+                <TotalAssetNature>OFFICIAL</TotalAssetNature>
+                <TotalNetAssetValue>
+                  <Amount ccy="USD" isShareClassCcy="true">61201893.49</Amount>
+                  <Amount ccy="EUR" isFundCcy="true">52970307.68</Amount>
+                </TotalNetAssetValue>
+                <SharesOutstanding>464848.044</SharesOutstanding>
+              </TotalAssetValue>
+            </TotalAssetValues>
+          </ShareClass>
+        </ShareClasses>
+      </SingleFund>
+    </Fund>
+  </Funds>
+  <AssetMasterData>
+    <Asset>
+      <UniqueID>A16</UniqueID>
+      <Identifiers>
+        <ISIN>DEXMPLB00140</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>Example Federal Treasury 3.75% 28.10.2045</Name>
+      <AssetType>BO</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Bond>
+          <ConvertibleFlag>false</ConvertibleFlag>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00BOI00000000154</LEI>
+            </Identifiers>
+            <Name>Example Federal Treasury</Name>
+          </Issuer>
+          <IssueDate>2021-10-28</IssueDate>
+          <MaturityDate>2045-10-28</MaturityDate>
+          <Coupon>
+            <Type>fix</Type>
+            <PaymentFrequency>YEAR</PaymentFrequency>
+            <InterestRate>3.750</InterestRate>
+          </Coupon>
+          <RedemptionRate>100</RedemptionRate>
+          <Yields>
+            <Yield>
+              <Method>Yield to maturity</Method>
+              <Date>2025-10-31</Date>
+              <Value>3.447</Value>
+            </Yield>
+          </Yields>
+          <Durations>
+            <Duration>
+              <Name>Modified duration</Name>
+              <Date>2025-10-31</Date>
+              <Value>17.79</Value>
+            </Duration>
+          </Durations>
+        </Bond>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A36</UniqueID>
+      <Identifiers>
+        <ISIN>ATXMPLB00664</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>AT</Country>
+      <Name>Example Alpine Treasury 3.875% 01.09.2033</Name>
+      <AssetType>BO</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Bond>
+          <ConvertibleFlag>false</ConvertibleFlag>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00BOI00000000542</LEI>
+            </Identifiers>
+            <Name>Example Alpine Treasury</Name>
+          </Issuer>
+          <IssueDate>2023-09-01</IssueDate>
+          <MaturityDate>2033-09-01</MaturityDate>
+          <Coupon>
+            <Type>fix</Type>
+            <PaymentFrequency>YEAR</PaymentFrequency>
+            <InterestRate>3.875</InterestRate>
+          </Coupon>
+          <RedemptionRate>100</RedemptionRate>
+          <Yields>
+            <Yield>
+              <Method>Yield to maturity</Method>
+              <Date>2025-10-31</Date>
+              <Value>2.703</Value>
+            </Yield>
+          </Yields>
+          <Durations>
+            <Duration>
+              <Name>Modified duration</Name>
+              <Date>2025-10-31</Date>
+              <Value>7.02</Value>
+            </Duration>
+          </Durations>
+        </Bond>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A66</UniqueID>
+      <Identifiers>
+        <ISIN>XSXMPLB02524</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>US</Country>
+      <Name>Mistral Insurance Inc. 4.25% 28.04.2043</Name>
+      <AssetType>BO</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Bond>
+          <ConvertibleFlag>false</ConvertibleFlag>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00BOI00000005586</LEI>
+            </Identifiers>
+            <Name>Mistral Insurance Inc.</Name>
+          </Issuer>
+          <IssueDate>2023-04-28</IssueDate>
+          <MaturityDate>2043-04-28</MaturityDate>
+          <Coupon>
+            <Type>fix</Type>
+            <PaymentFrequency>YEAR</PaymentFrequency>
+            <InterestRate>4.250</InterestRate>
+          </Coupon>
+          <RedemptionRate>100</RedemptionRate>
+          <Yields>
+            <Yield>
+              <Method>Yield to maturity</Method>
+              <Date>2025-10-31</Date>
+              <Value>4.106</Value>
+            </Yield>
+          </Yields>
+          <Durations>
+            <Duration>
+              <Name>Modified duration</Name>
+              <Date>2025-10-31</Date>
+              <Value>15.47</Value>
+            </Duration>
+          </Durations>
+        </Bond>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A71</UniqueID>
+      <Identifiers>
+        <ISIN>XSXMPLB02623</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DK</Country>
+      <Name>Zephyr Retail A/S 1.75% 01.05.2036</Name>
+      <AssetType>BO</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Bond>
+          <ConvertibleFlag>false</ConvertibleFlag>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00BOI00000005974</LEI>
+            </Identifiers>
+            <Name>Zephyr Retail A/S</Name>
+          </Issuer>
+          <IssueDate>2023-05-01</IssueDate>
+          <MaturityDate>2036-05-01</MaturityDate>
+          <Coupon>
+            <Type>fix</Type>
+            <PaymentFrequency>YEAR</PaymentFrequency>
+            <InterestRate>1.750</InterestRate>
+          </Coupon>
+          <RedemptionRate>100</RedemptionRate>
+          <Yields>
+            <Yield>
+              <Method>Yield to maturity</Method>
+              <Date>2025-10-31</Date>
+              <Value>1.680</Value>
+            </Yield>
+          </Yields>
+          <Durations>
+            <Duration>
+              <Name>Modified duration</Name>
+              <Date>2025-10-31</Date>
+              <Value>10.13</Value>
+            </Duration>
+          </Durations>
+        </Bond>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A81</UniqueID>
+      <Identifiers>
+        <ISIN>DEXMPLB00074</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>Example Federal Treasury Zero 01.01.2028</Name>
+      <AssetType>BO</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Bond>
+          <ConvertibleFlag>false</ConvertibleFlag>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00BOI00000000154</LEI>
+            </Identifiers>
+            <Name>Example Federal Treasury</Name>
+          </Issuer>
+          <IssueDate>2024-01-01</IssueDate>
+          <MaturityDate>2028-01-01</MaturityDate>
+          <Coupon>
+            <Type>zero</Type>
+          </Coupon>
+          <RedemptionRate>100</RedemptionRate>
+          <Yields>
+            <Yield>
+              <Method>Yield to maturity</Method>
+              <Date>2025-10-31</Date>
+              <Value>4.232</Value>
+            </Yield>
+          </Yields>
+          <Durations>
+            <Duration>
+              <Name>Modified duration</Name>
+              <Date>2025-10-31</Date>
+              <Value>2.04</Value>
+            </Duration>
+          </Durations>
+        </Bond>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A106</UniqueID>
+      <Identifiers>
+        <ISIN>ATXMPLB01936</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>AT</Country>
+      <Name>Juniper Motors AG 4.75% 28.06.2040</Name>
+      <AssetType>BO</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Bond>
+          <ConvertibleFlag>false</ConvertibleFlag>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00BOI00000003549</LEI>
+            </Identifiers>
+            <Name>Juniper Motors AG</Name>
+          </Issuer>
+          <IssueDate>2021-06-28</IssueDate>
+          <MaturityDate>2040-06-28</MaturityDate>
+          <Coupon>
+            <Type>fix</Type>
+            <PaymentFrequency>YEAR</PaymentFrequency>
+            <InterestRate>4.750</InterestRate>
+          </Coupon>
+          <RedemptionRate>100</RedemptionRate>
+          <Yields>
+            <Yield>
+              <Method>Yield to maturity</Method>
+              <Date>2025-10-31</Date>
+              <Value>5.575</Value>
+            </Yield>
+          </Yields>
+          <Durations>
+            <Duration>
+              <Name>Modified duration</Name>
+              <Date>2025-10-31</Date>
+              <Value>12.78</Value>
+            </Duration>
+          </Durations>
+        </Bond>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A113</UniqueID>
+      <Identifiers>
+        <ISIN>NLXMPLB02314</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>NL</Country>
+      <Name>Yarrow Insurance N.V. 0.5% 01.10.2038</Name>
+      <AssetType>BO</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Bond>
+          <ConvertibleFlag>false</ConvertibleFlag>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00BOI00000004907</LEI>
+            </Identifiers>
+            <Name>Yarrow Insurance N.V.</Name>
+          </Issuer>
+          <IssueDate>2023-10-01</IssueDate>
+          <MaturityDate>2038-10-01</MaturityDate>
+          <Coupon>
+            <Type>fix</Type>
+            <PaymentFrequency>YEAR</PaymentFrequency>
+            <InterestRate>0.500</InterestRate>
+          </Coupon>
+          <RedemptionRate>100</RedemptionRate>
+          <Yields>
+            <Yield>
+              <Method>Yield to maturity</Method>
+              <Date>2025-10-31</Date>
+              <Value>0.109</Value>
+            </Yield>
+          </Yields>
+          <Durations>
+            <Duration>
+              <Name>Modified duration</Name>
+              <Date>2025-10-31</Date>
+              <Value>12.65</Value>
+            </Duration>
+          </Durations>
+        </Bond>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A133</UniqueID>
+      <Identifiers>
+        <ISIN>ITXMPLB00485</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>IT</Country>
+      <Name>Example State Treasury 4.5% 28.09.2035</Name>
+      <AssetType>BO</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Bond>
+          <ConvertibleFlag>false</ConvertibleFlag>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00BOI00000000445</LEI>
+            </Identifiers>
+            <Name>Example State Treasury</Name>
+          </Issuer>
+          <IssueDate>2023-09-28</IssueDate>
+          <MaturityDate>2035-09-28</MaturityDate>
+          <Coupon>
+            <Type>fix</Type>
+            <PaymentFrequency>YEAR</PaymentFrequency>
+            <InterestRate>4.500</InterestRate>
+          </Coupon>
+          <RedemptionRate>100</RedemptionRate>
+          <Yields>
+            <Yield>
+              <Method>Yield to maturity</Method>
+              <Date>2025-10-31</Date>
+              <Value>3.424</Value>
+            </Yield>
+          </Yields>
+          <Durations>
+            <Duration>
+              <Name>Modified duration</Name>
+              <Date>2025-10-31</Date>
+              <Value>8.82</Value>
+            </Duration>
+          </Durations>
+        </Bond>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A146</UniqueID>
+      <Identifiers>
+        <ISIN>XSXMPLB01781</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>JP</Country>
+      <Name>Pinecrest Chemicals K.K. 1.25% 28.12.2039</Name>
+      <AssetType>BO</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Bond>
+          <ConvertibleFlag>false</ConvertibleFlag>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00BOI00000003064</LEI>
+            </Identifiers>
+            <Name>Pinecrest Chemicals K.K.</Name>
+          </Issuer>
+          <IssueDate>2024-12-28</IssueDate>
+          <MaturityDate>2039-12-28</MaturityDate>
+          <Coupon>
+            <Type>fix</Type>
+            <PaymentFrequency>YEAR</PaymentFrequency>
+            <InterestRate>1.250</InterestRate>
+          </Coupon>
+          <RedemptionRate>100</RedemptionRate>
+          <Yields>
+            <Yield>
+              <Method>Yield to maturity</Method>
+              <Date>2025-10-31</Date>
+              <Value>1.472</Value>
+            </Yield>
+          </Yields>
+          <Durations>
+            <Duration>
+              <Name>Modified duration</Name>
+              <Date>2025-10-31</Date>
+              <Value>13.68</Value>
+            </Duration>
+          </Durations>
+        </Bond>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A163</UniqueID>
+      <Identifiers>
+        <ISIN>FRXMPLB01657</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>FR</Country>
+      <Name>Northgate Semiconductors S.A. 3.25% 15.06.2036</Name>
+      <AssetType>BO</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Bond>
+          <ConvertibleFlag>false</ConvertibleFlag>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00BOI00000002676</LEI>
+            </Identifiers>
+            <Name>Northgate Semiconductors S.A.</Name>
+          </Issuer>
+          <IssueDate>2021-06-15</IssueDate>
+          <MaturityDate>2036-06-15</MaturityDate>
+          <Coupon>
+            <Type>fix</Type>
+            <PaymentFrequency>YEAR</PaymentFrequency>
+            <InterestRate>3.250</InterestRate>
+          </Coupon>
+          <RedemptionRate>100</RedemptionRate>
+          <Yields>
+            <Yield>
+              <Method>Yield to maturity</Method>
+              <Date>2025-10-31</Date>
+              <Value>2.642</Value>
+            </Yield>
+          </Yields>
+          <Durations>
+            <Duration>
+              <Name>Modified duration</Name>
+              <Date>2025-10-31</Date>
+              <Value>9.53</Value>
+            </Duration>
+          </Durations>
+        </Bond>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A171</UniqueID>
+      <Identifiers>
+        <ISIN>FRXMPLB01681</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>FR</Country>
+      <Name>Northgate Semiconductors S.A. 2.375% 01.06.2043</Name>
+      <AssetType>BO</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Bond>
+          <ConvertibleFlag>false</ConvertibleFlag>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00BOI00000002676</LEI>
+            </Identifiers>
+            <Name>Northgate Semiconductors S.A.</Name>
+          </Issuer>
+          <IssueDate>2024-06-01</IssueDate>
+          <MaturityDate>2043-06-01</MaturityDate>
+          <Coupon>
+            <Type>fix</Type>
+            <PaymentFrequency>YEAR</PaymentFrequency>
+            <InterestRate>2.375</InterestRate>
+          </Coupon>
+          <RedemptionRate>100</RedemptionRate>
+          <Yields>
+            <Yield>
+              <Method>Yield to maturity</Method>
+              <Date>2025-10-31</Date>
+              <Value>2.467</Value>
+            </Yield>
+          </Yields>
+          <Durations>
+            <Duration>
+              <Name>Modified duration</Name>
+              <Date>2025-10-31</Date>
+              <Value>15.80</Value>
+            </Duration>
+          </Durations>
+        </Bond>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A184</UniqueID>
+      <Identifiers>
+        <ISIN>XSXMPLB01732</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>US</Country>
+      <Name>Zephyr Media Inc. 4.5% 01.12.2030</Name>
+      <AssetType>BO</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Bond>
+          <ConvertibleFlag>false</ConvertibleFlag>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00BOI00000002870</LEI>
+            </Identifiers>
+            <Name>Zephyr Media Inc.</Name>
+          </Issuer>
+          <IssueDate>2021-12-01</IssueDate>
+          <MaturityDate>2030-12-01</MaturityDate>
+          <Coupon>
+            <Type>fix</Type>
+            <PaymentFrequency>YEAR</PaymentFrequency>
+            <InterestRate>4.500</InterestRate>
+          </Coupon>
+          <RedemptionRate>100</RedemptionRate>
+          <Yields>
+            <Yield>
+              <Method>Yield to maturity</Method>
+              <Date>2025-10-31</Date>
+              <Value>6.450</Value>
+            </Yield>
+          </Yields>
+          <Durations>
+            <Duration>
+              <Name>Modified duration</Name>
+              <Date>2025-10-31</Date>
+              <Value>4.40</Value>
+            </Duration>
+          </Durations>
+        </Bond>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A197</UniqueID>
+      <Identifiers>
+        <ISIN>XSXMPLB02698</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>US</Country>
+      <Name>Birchwood Logistics Inc. Zero 01.06.2043</Name>
+      <AssetType>BO</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Bond>
+          <ConvertibleFlag>false</ConvertibleFlag>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00BOI00000006168</LEI>
+            </Identifiers>
+            <Name>Birchwood Logistics Inc.</Name>
+          </Issuer>
+          <IssueDate>2024-06-01</IssueDate>
+          <MaturityDate>2043-06-01</MaturityDate>
+          <Coupon>
+            <Type>zero</Type>
+          </Coupon>
+          <RedemptionRate>100</RedemptionRate>
+          <Yields>
+            <Yield>
+              <Method>Yield to maturity</Method>
+              <Date>2025-10-31</Date>
+              <Value>2.701</Value>
+            </Yield>
+          </Yields>
+          <Durations>
+            <Duration>
+              <Name>Modified duration</Name>
+              <Date>2025-10-31</Date>
+              <Value>16.79</Value>
+            </Duration>
+          </Durations>
+        </Bond>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A198</UniqueID>
+      <Identifiers>
+        <ISIN>XSXMPLB02474</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DK</Country>
+      <Name>Pinecrest Engineering A/S FRN 01.12.2034</Name>
+      <AssetType>BO</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Bond>
+          <ConvertibleFlag>false</ConvertibleFlag>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00BOI00000005392</LEI>
+            </Identifiers>
+            <Name>Pinecrest Engineering A/S</Name>
+          </Issuer>
+          <IssueDate>2024-12-01</IssueDate>
+          <MaturityDate>2034-12-01</MaturityDate>
+          <Coupon>
+            <Type>float</Type>
+            <PaymentFrequency>QURT</PaymentFrequency>
+            <InterestRate>2.951</InterestRate>
+            <OffsetBPS>92</OffsetBPS>
+          </Coupon>
+          <RedemptionRate>100</RedemptionRate>
+          <Yields>
+            <Yield>
+              <Method>Yield to maturity</Method>
+              <Date>2025-10-31</Date>
+              <Value>0.272</Value>
+            </Yield>
+          </Yields>
+          <Durations>
+            <Duration>
+              <Name>Modified duration</Name>
+              <Date>2025-10-31</Date>
+              <Value>0.21</Value>
+            </Duration>
+          </Durations>
+        </Bond>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A199</UniqueID>
+      <Identifiers>
+        <ISIN>ESXMPLB02490</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>ES</Country>
+      <Name>Quarrystone Logistics S.A. 4.625% 15.09.2034</Name>
+      <AssetType>BO</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Bond>
+          <ConvertibleFlag>false</ConvertibleFlag>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00BOI00000005489</LEI>
+            </Identifiers>
+            <Name>Quarrystone Logistics S.A.</Name>
+          </Issuer>
+          <IssueDate>2023-09-15</IssueDate>
+          <MaturityDate>2034-09-15</MaturityDate>
+          <Coupon>
+            <Type>fix</Type>
+            <PaymentFrequency>YEAR</PaymentFrequency>
+            <InterestRate>4.625</InterestRate>
+          </Coupon>
+          <RedemptionRate>100</RedemptionRate>
+          <Yields>
+            <Yield>
+              <Method>Yield to maturity</Method>
+              <Date>2025-10-31</Date>
+              <Value>6.124</Value>
+            </Yield>
+          </Yields>
+          <Durations>
+            <Duration>
+              <Name>Modified duration</Name>
+              <Date>2025-10-31</Date>
+              <Value>7.70</Value>
+            </Duration>
+          </Durations>
+        </Bond>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A246</UniqueID>
+      <Identifiers>
+        <ISIN>FRXMPLE00018</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>FR</Country>
+      <Name>Eastbrook Bank S.A.</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XPAR</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000000183</LEI>
+            </Identifiers>
+            <Name>Eastbrook Bank S.A.</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>74000000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>64.19</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A248</UniqueID>
+      <Identifiers>
+        <ISIN>ESXMPLE00035</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>ES</Country>
+      <Name>Kestrel Motors S.A.</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XMAD</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000000377</LEI>
+            </Identifiers>
+            <Name>Kestrel Motors S.A.</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>16000000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>29.10</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A257</UniqueID>
+      <Identifiers>
+        <ISIN>DEXMPLE00128</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>Elmfield Insurance AG</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XETR</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000001250</LEI>
+            </Identifiers>
+            <Name>Elmfield Insurance AG</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>11100000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>65.12</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A259</UniqueID>
+      <Identifiers>
+        <ISIN>USXMPLE00148</ISIN>
+      </Identifiers>
+      <Currency>USD</Currency>
+      <Country>US</Country>
+      <Name>Fenwick Pharma Inc.</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XNYS</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000001444</LEI>
+            </Identifiers>
+            <Name>Fenwick Pharma Inc.</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>143800000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>21.20</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A260</UniqueID>
+      <Identifiers>
+        <ISIN>FRXMPLE00158</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>FR</Country>
+      <Name>Northgate Semiconductors S.A.</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XPAR</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000001541</LEI>
+            </Identifiers>
+            <Name>Northgate Semiconductors S.A.</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>108400000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>26.11</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A261</UniqueID>
+      <Identifiers>
+        <ISIN>SEXMPLE00167</ISIN>
+      </Identifiers>
+      <Currency>SEK</Currency>
+      <Country>SE</Country>
+      <Name>Ashcombe Healthcare AB</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XSTO</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000001638</LEI>
+            </Identifiers>
+            <Name>Ashcombe Healthcare AB</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>170000000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>86.10</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A271</UniqueID>
+      <Identifiers>
+        <ISIN>JPXMPLE00261</ISIN>
+      </Identifiers>
+      <Currency>JPY</Currency>
+      <Country>JP</Country>
+      <Name>Valemont Engineering K.K.</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XTKS</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000002608</LEI>
+            </Identifiers>
+            <Name>Valemont Engineering K.K.</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>11200000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>28.29</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A285</UniqueID>
+      <Identifiers>
+        <ISIN>FRXMPLB00261</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>FR</Country>
+      <Name>Example Republic Treasury FRN 28.01.2036</Name>
+      <AssetType>BO</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Bond>
+          <ConvertibleFlag>false</ConvertibleFlag>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00BOI00000000251</LEI>
+            </Identifiers>
+            <Name>Example Republic Treasury</Name>
+          </Issuer>
+          <IssueDate>2024-01-28</IssueDate>
+          <MaturityDate>2036-01-28</MaturityDate>
+          <Coupon>
+            <Type>float</Type>
+            <PaymentFrequency>QURT</PaymentFrequency>
+            <InterestRate>3.181</InterestRate>
+            <OffsetBPS>115</OffsetBPS>
+          </Coupon>
+          <RedemptionRate>100</RedemptionRate>
+          <Yields>
+            <Yield>
+              <Method>Yield to maturity</Method>
+              <Date>2025-10-31</Date>
+              <Value>0.085</Value>
+            </Yield>
+          </Yields>
+          <Durations>
+            <Duration>
+              <Name>Modified duration</Name>
+              <Date>2025-10-31</Date>
+              <Value>0.21</Value>
+            </Duration>
+          </Durations>
+        </Bond>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A288</UniqueID>
+      <Identifiers>
+        <ISIN>DEXMPLE01431</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>Castell Energy AG</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XETR</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000014345</LEI>
+            </Identifiers>
+            <Name>Castell Energy AG</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>59100000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>35.11</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A296</UniqueID>
+      <Identifiers>
+        <ISIN>FRXMPLE01693</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>FR</Country>
+      <Name>Elmfield Telecom S.A.</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XPAR</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000016964</LEI>
+            </Identifiers>
+            <Name>Elmfield Telecom S.A.</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>130800000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>61.10</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A297</UniqueID>
+      <Identifiers>
+        <ISIN>USXMPLE01567</ISIN>
+      </Identifiers>
+      <Currency>USD</Currency>
+      <Country>US</Country>
+      <Name>Ashcombe Retail Inc.</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XNYS</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000015606</LEI>
+            </Identifiers>
+            <Name>Ashcombe Retail Inc.</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>110300000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>47.19</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A303</UniqueID>
+      <Identifiers>
+        <ISIN>GBXMPLE01646</ISIN>
+      </Identifiers>
+      <Currency>GBP</Currency>
+      <Country>GB</Country>
+      <Name>Castell Semiconductors plc</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XLON</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000016479</LEI>
+            </Identifiers>
+            <Name>Castell Semiconductors plc</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>11000000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>26.11</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A311</UniqueID>
+      <Identifiers>
+        <ISIN>USXMPLE00908</ISIN>
+      </Identifiers>
+      <Currency>USD</Currency>
+      <Country>US</Country>
+      <Name>Juniper Energy Inc.</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XNYS</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000009010</LEI>
+            </Identifiers>
+            <Name>Juniper Energy Inc.</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>100700000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>35.11</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A314</UniqueID>
+      <Identifiers>
+        <ISIN>USXMPLE01526</ISIN>
+      </Identifiers>
+      <Currency>USD</Currency>
+      <Country>US</Country>
+      <Name>Mistral Retail Inc.</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XNYS</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000015218</LEI>
+            </Identifiers>
+            <Name>Mistral Retail Inc.</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>44100000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>47.19</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A321</UniqueID>
+      <Identifiers>
+        <ISIN>USXMPLE01005</ISIN>
+      </Identifiers>
+      <Currency>USD</Currency>
+      <Country>US</Country>
+      <Name>Pinecrest Semiconductors Inc.</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XNYS</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000010077</LEI>
+            </Identifiers>
+            <Name>Pinecrest Semiconductors Inc.</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>101000000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>26.11</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A323</UniqueID>
+      <Identifiers>
+        <ISIN>USXMPLE00692</ISIN>
+      </Identifiers>
+      <Currency>USD</Currency>
+      <Country>US</Country>
+      <Name>Thornbury Semiconductors Inc.</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XNYS</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000006973</LEI>
+            </Identifiers>
+            <Name>Thornbury Semiconductors Inc.</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>64100000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>26.11</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A331</UniqueID>
+      <Identifiers>
+        <ISIN>CHXMPLE01683</ISIN>
+      </Identifiers>
+      <Currency>CHF</Currency>
+      <Country>CH</Country>
+      <Name>Valemont Healthcare AG</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XSWX</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000016867</LEI>
+            </Identifiers>
+            <Name>Valemont Healthcare AG</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>25600000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>86.10</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A355</UniqueID>
+      <Identifiers>
+        <ISIN>USXMPLE01468</ISIN>
+      </Identifiers>
+      <Currency>USD</Currency>
+      <Country>US</Country>
+      <Name>Glenrock Materials Inc.</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XNYS</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000014636</LEI>
+            </Identifiers>
+            <Name>Glenrock Materials Inc.</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>136600000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>24.10</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A359</UniqueID>
+      <Identifiers>
+        <ISIN>FIXMPLE01379</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>FI</Country>
+      <Name>Dunmore Pharma Oyj</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XHEL</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000013763</LEI>
+            </Identifiers>
+            <Name>Dunmore Pharma Oyj</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>128100000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>21.20</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A372</UniqueID>
+      <Identifiers>
+        <ISIN>NLXMPLE00353</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>NL</Country>
+      <Name>Ashcombe Software N.V.</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XAMS</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000003578</LEI>
+            </Identifiers>
+            <Name>Ashcombe Software N.V.</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>127900000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>62.01</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A385</UniqueID>
+      <Identifiers>
+        <ISIN>USXMPLE01203</ISIN>
+      </Identifiers>
+      <Currency>USD</Currency>
+      <Country>US</Country>
+      <Name>Driftwood Engineering Inc.</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XNYS</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000012017</LEI>
+            </Identifiers>
+            <Name>Driftwood Engineering Inc.</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>170800000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>28.29</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A386</UniqueID>
+      <Identifiers>
+        <ISIN>USXMPLE00643</ISIN>
+      </Identifiers>
+      <Currency>USD</Currency>
+      <Country>US</Country>
+      <Name>Ironvale Foods Inc.</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XNYS</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000006488</LEI>
+            </Identifiers>
+            <Name>Ironvale Foods Inc.</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>124100000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>10.89</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A387</UniqueID>
+      <Identifiers>
+        <ISIN>USXMPLE00916</ISIN>
+      </Identifiers>
+      <Currency>USD</Currency>
+      <Country>US</Country>
+      <Name>Castell Insurance Inc.</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XNYS</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000009107</LEI>
+            </Identifiers>
+            <Name>Castell Insurance Inc.</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>209600000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>65.12</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A388</UniqueID>
+      <Identifiers>
+        <ISIN>NLXMPLE00387</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>NL</Country>
+      <Name>Yarrow Insurance N.V.</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XAMS</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000003869</LEI>
+            </Identifiers>
+            <Name>Yarrow Insurance N.V.</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>83200000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>65.12</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A389</UniqueID>
+      <Identifiers>
+        <ISIN>JPXMPLE01657</ISIN>
+      </Identifiers>
+      <Currency>JPY</Currency>
+      <Country>JP</Country>
+      <Name>Harlow Healthcare K.K.</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XTKS</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000016576</LEI>
+            </Identifiers>
+            <Name>Harlow Healthcare K.K.</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>142000000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>86.10</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A390</UniqueID>
+      <Identifiers>
+        <ISIN>USXMPLE00924</ISIN>
+      </Identifiers>
+      <Currency>USD</Currency>
+      <Country>US</Country>
+      <Name>Kestrel Bank Inc.</Name>
+      <AssetType>EQ</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Equity>
+          <StockMarket>XNYS</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00EQI00000009204</LEI>
+            </Identifiers>
+            <Name>Kestrel Bank Inc.</Name>
+          </Issuer>
+          <MarketCapitalization>
+            <Date>2025-10-31</Date>
+            <Value>202900000000</Value>
+          </MarketCapitalization>
+          <Industries>
+            <IndustryCode>
+              <Name>NACE Rev. 2</Name>
+              <Date>2025-01-01</Date>
+              <Value>64.19</Value>
+            </IndustryCode>
+          </Industries>
+        </Equity>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A391</UniqueID>
+      <Identifiers>
+        <ISIN>XSXMPLB02276</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>US</Country>
+      <Name>Larchmont Media Inc. 3.75% 28.07.2031</Name>
+      <AssetType>BO</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Bond>
+          <ConvertibleFlag>false</ConvertibleFlag>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00BOI00000004810</LEI>
+            </Identifiers>
+            <Name>Larchmont Media Inc.</Name>
+          </Issuer>
+          <IssueDate>2022-07-28</IssueDate>
+          <MaturityDate>2031-07-28</MaturityDate>
+          <Coupon>
+            <Type>fix</Type>
+            <PaymentFrequency>YEAR</PaymentFrequency>
+            <InterestRate>3.750</InterestRate>
+          </Coupon>
+          <RedemptionRate>100</RedemptionRate>
+          <Yields>
+            <Yield>
+              <Method>Yield to maturity</Method>
+              <Date>2025-10-31</Date>
+              <Value>2.262</Value>
+            </Yield>
+          </Yields>
+          <Durations>
+            <Duration>
+              <Name>Modified duration</Name>
+              <Date>2025-10-31</Date>
+              <Value>5.17</Value>
+            </Duration>
+          </Durations>
+        </Bond>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A392</UniqueID>
+      <Identifiers>
+        <ISIN>ATXMPLB00615</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>AT</Country>
+      <Name>Example Alpine Treasury 3.125% 15.07.2031</Name>
+      <AssetType>BO</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Bond>
+          <ConvertibleFlag>false</ConvertibleFlag>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00BOI00000000542</LEI>
+            </Identifiers>
+            <Name>Example Alpine Treasury</Name>
+          </Issuer>
+          <IssueDate>2020-07-15</IssueDate>
+          <MaturityDate>2031-07-15</MaturityDate>
+          <Coupon>
+            <Type>fix</Type>
+            <PaymentFrequency>YEAR</PaymentFrequency>
+            <InterestRate>3.125</InterestRate>
+          </Coupon>
+          <RedemptionRate>100</RedemptionRate>
+          <Yields>
+            <Yield>
+              <Method>Yield to maturity</Method>
+              <Date>2025-10-31</Date>
+              <Value>4.159</Value>
+            </Yield>
+          </Yields>
+          <Durations>
+            <Duration>
+              <Name>Modified duration</Name>
+              <Date>2025-10-31</Date>
+              <Value>5.04</Value>
+            </Duration>
+          </Durations>
+        </Bond>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A393</UniqueID>
+      <Identifiers>
+        <ISIN>NLXMPLB00748</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>NL</Country>
+      <Name>Example Lowlands Treasury 3.25% 28.08.2028</Name>
+      <AssetType>BO</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Bond>
+          <ConvertibleFlag>false</ConvertibleFlag>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00BOI00000000639</LEI>
+            </Identifiers>
+            <Name>Example Lowlands Treasury</Name>
+          </Issuer>
+          <IssueDate>2022-08-28</IssueDate>
+          <MaturityDate>2028-08-28</MaturityDate>
+          <Coupon>
+            <Type>fix</Type>
+            <PaymentFrequency>YEAR</PaymentFrequency>
+            <InterestRate>3.250</InterestRate>
+          </Coupon>
+          <RedemptionRate>100</RedemptionRate>
+          <Yields>
+            <Yield>
+              <Method>Yield to maturity</Method>
+              <Date>2025-10-31</Date>
+              <Value>0.308</Value>
+            </Yield>
+          </Yields>
+          <Durations>
+            <Duration>
+              <Name>Modified duration</Name>
+              <Date>2025-10-31</Date>
+              <Value>2.59</Value>
+            </Duration>
+          </Durations>
+        </Bond>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A394</UniqueID>
+      <Identifiers>
+        <ISIN>ATXMPLB00680</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>AT</Country>
+      <Name>Example Alpine Treasury 1.375% 15.03.2039</Name>
+      <AssetType>BO</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Bond>
+          <ConvertibleFlag>false</ConvertibleFlag>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00BOI00000000542</LEI>
+            </Identifiers>
+            <Name>Example Alpine Treasury</Name>
+          </Issuer>
+          <IssueDate>2021-03-15</IssueDate>
+          <MaturityDate>2039-03-15</MaturityDate>
+          <Coupon>
+            <Type>fix</Type>
+            <PaymentFrequency>YEAR</PaymentFrequency>
+            <InterestRate>1.375</InterestRate>
+          </Coupon>
+          <RedemptionRate>100</RedemptionRate>
+          <Yields>
+            <Yield>
+              <Method>Yield to maturity</Method>
+              <Date>2025-10-31</Date>
+              <Value>1.134</Value>
+            </Yield>
+          </Yields>
+          <Durations>
+            <Duration>
+              <Name>Modified duration</Name>
+              <Date>2025-10-31</Date>
+              <Value>12.96</Value>
+            </Duration>
+          </Durations>
+        </Bond>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A395</UniqueID>
+      <Identifiers>
+        <ISIN>IEXMPLS00010</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>IE</Country>
+      <Name>Sample Emerging Markets UCITS ETF</Name>
+      <AssetType>SC</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <ShareClass>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00TPMANAGER00102</LEI>
+            </Identifiers>
+            <Name>Sample Index Funds plc</Name>
+            <LegalForm>plc</LegalForm>
+            <Address>
+              <CityName>Dublin</CityName>
+              <Country>IE</Country>
+            </Address>
+          </Issuer>
+          <StockMarket>XETR</StockMarket>
+          <ExchangeTradedFundFlag>true</ExchangeTradedFundFlag>
+        </ShareClass>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A396</UniqueID>
+      <Identifiers>
+        <ISIN>IEXMPLS00028</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>IE</Country>
+      <Name>Sample Gold UCITS ETF</Name>
+      <AssetType>SC</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <ShareClass>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00TPMANAGER00102</LEI>
+            </Identifiers>
+            <Name>Sample Index Funds plc</Name>
+            <LegalForm>plc</LegalForm>
+            <Address>
+              <CityName>Dublin</CityName>
+              <Country>IE</Country>
+            </Address>
+          </Issuer>
+          <StockMarket>XETR</StockMarket>
+          <ExchangeTradedFundFlag>true</ExchangeTradedFundFlag>
+        </ShareClass>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A397</UniqueID>
+      <Identifiers>
+        <ISIN>IEXMPLS00036</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>IE</Country>
+      <Name>Sample Japan UCITS ETF</Name>
+      <AssetType>SC</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <ShareClass>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00TPMANAGER00102</LEI>
+            </Identifiers>
+            <Name>Sample Index Funds plc</Name>
+            <LegalForm>plc</LegalForm>
+            <Address>
+              <CityName>Dublin</CityName>
+              <Country>IE</Country>
+            </Address>
+          </Issuer>
+          <StockMarket>XETR</StockMarket>
+          <ExchangeTradedFundFlag>true</ExchangeTradedFundFlag>
+        </ShareClass>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A398</UniqueID>
+      <Identifiers>
+        <ISIN>IEXMPLS00044</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>IE</Country>
+      <Name>Sample Global REIT UCITS ETF</Name>
+      <AssetType>SC</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <ShareClass>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00TPMANAGER00102</LEI>
+            </Identifiers>
+            <Name>Sample Index Funds plc</Name>
+            <LegalForm>plc</LegalForm>
+            <Address>
+              <CityName>Dublin</CityName>
+              <Country>IE</Country>
+            </Address>
+          </Issuer>
+          <StockMarket>XETR</StockMarket>
+          <ExchangeTradedFundFlag>true</ExchangeTradedFundFlag>
+        </ShareClass>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A399</UniqueID>
+      <Identifiers>
+        <ISIN>IEXMPLS00051</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>IE</Country>
+      <Name>Sample EUR High Yield UCITS ETF</Name>
+      <AssetType>SC</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <ShareClass>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00TPMANAGER00102</LEI>
+            </Identifiers>
+            <Name>Sample Index Funds plc</Name>
+            <LegalForm>plc</LegalForm>
+            <Address>
+              <CityName>Dublin</CityName>
+              <Country>IE</Country>
+            </Address>
+          </Issuer>
+          <StockMarket>XETR</StockMarket>
+          <ExchangeTradedFundFlag>true</ExchangeTradedFundFlag>
+        </ShareClass>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A400</UniqueID>
+      <Identifiers>
+        <ISIN>IEXMPLS00069</ISIN>
+      </Identifiers>
+      <Currency>USD</Currency>
+      <Country>IE</Country>
+      <Name>Sample US Tech UCITS ETF</Name>
+      <AssetType>SC</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <ShareClass>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00TPMANAGER00102</LEI>
+            </Identifiers>
+            <Name>Sample Index Funds plc</Name>
+            <LegalForm>plc</LegalForm>
+            <Address>
+              <CityName>Dublin</CityName>
+              <Country>IE</Country>
+            </Address>
+          </Issuer>
+          <StockMarket>XETR</StockMarket>
+          <ExchangeTradedFundFlag>true</ExchangeTradedFundFlag>
+        </ShareClass>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A401</UniqueID>
+      <Identifiers>
+        <ISIN>DEXMPLW00013</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>Call warrant on Castell Energy AG 06/2026</Name>
+      <AssetType>WA</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Warrant>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00CPTSTRAN000158</LEI>
+            </Identifiers>
+            <Name>Strandvik Investment Bank plc</Name>
+            <LegalForm>plc</LegalForm>
+            <Address>
+              <CityName>London</CityName>
+              <Country>GB</Country>
+            </Address>
+          </Issuer>
+          <ContractSize>0.1</ContractSize>
+          <MaturityDate>2026-06-19</MaturityDate>
+          <CallPutIndicator>CALL</CallPutIndicator>
+          <StrikePrice>
+            <Amount ccy="EUR">184.27</Amount>
+          </StrikePrice>
+          <Underlyings>
+            <Underlying>
+              <Type>Security</Type>
+              <Name>Castell Energy AG</Name>
+              <Identifiers>
+                <ISIN>DEXMPLE01431</ISIN>
+              </Identifiers>
+            </Underlying>
+          </Underlyings>
+        </Warrant>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A402</UniqueID>
+      <Identifiers>
+        <ISIN>DEXMPLW00021</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>Call warrant on Driftwood Engineering Inc. 06/2026</Name>
+      <AssetType>WA</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Warrant>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00CPTSTRAN000158</LEI>
+            </Identifiers>
+            <Name>Strandvik Investment Bank plc</Name>
+            <LegalForm>plc</LegalForm>
+            <Address>
+              <CityName>London</CityName>
+              <Country>GB</Country>
+            </Address>
+          </Issuer>
+          <ContractSize>0.1</ContractSize>
+          <MaturityDate>2026-06-19</MaturityDate>
+          <CallPutIndicator>CALL</CallPutIndicator>
+          <StrikePrice>
+            <Amount ccy="USD">881.10</Amount>
+          </StrikePrice>
+          <Underlyings>
+            <Underlying>
+              <Type>Security</Type>
+              <Name>Driftwood Engineering Inc.</Name>
+              <Identifiers>
+                <ISIN>USXMPLE01203</ISIN>
+              </Identifiers>
+            </Underlying>
+          </Underlyings>
+        </Warrant>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A403</UniqueID>
+      <Identifiers>
+        <ISIN>DEXMPLW00039</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>Call warrant on Ironvale Foods Inc. 06/2026</Name>
+      <AssetType>WA</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Warrant>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00CPTSTRAN000158</LEI>
+            </Identifiers>
+            <Name>Strandvik Investment Bank plc</Name>
+            <LegalForm>plc</LegalForm>
+            <Address>
+              <CityName>London</CityName>
+              <Country>GB</Country>
+            </Address>
+          </Issuer>
+          <ContractSize>0.1</ContractSize>
+          <MaturityDate>2026-06-19</MaturityDate>
+          <CallPutIndicator>CALL</CallPutIndicator>
+          <StrikePrice>
+            <Amount ccy="USD">200.62</Amount>
+          </StrikePrice>
+          <Underlyings>
+            <Underlying>
+              <Type>Security</Type>
+              <Name>Ironvale Foods Inc.</Name>
+              <Identifiers>
+                <ISIN>USXMPLE00643</ISIN>
+              </Identifiers>
+            </Underlying>
+          </Underlyings>
+        </Warrant>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A404</UniqueID>
+      <Identifiers>
+        <ISIN>DEXMPLC00015</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>Discount certificate on Example Euro 50 Index 2026</Name>
+      <AssetType>CE</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Certificate>
+          <Type>Index</Type>
+          <Underlyings>
+            <Underlying>
+              <Type>Index</Type>
+              <Name>Example Euro 50 Index</Name>
+              <Identifiers>
+                <ISIN>EUXMPLI00024</ISIN>
+              </Identifiers>
+            </Underlying>
+          </Underlyings>
+          <StockMarket>XSTU</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00CPTSTRAN000158</LEI>
+            </Identifiers>
+            <Name>Strandvik Investment Bank plc</Name>
+            <LegalForm>plc</LegalForm>
+            <Address>
+              <CityName>London</CityName>
+              <Country>GB</Country>
+            </Address>
+          </Issuer>
+          <MaturityDate>2026-12-18</MaturityDate>
+        </Certificate>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A405</UniqueID>
+      <Identifiers>
+        <ISIN>DEXMPLC00023</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>Gold tracker certificate on Gold spot (troy ounce) 2026</Name>
+      <AssetType>CE</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Certificate>
+          <Type>Commodity</Type>
+          <Underlyings>
+            <Underlying>
+              <Type>Other</Type>
+              <Name>Gold spot (troy ounce)</Name>
+              <Identifiers>
+                <ISIN>XSXMPLG00014</ISIN>
+              </Identifiers>
+            </Underlying>
+          </Underlyings>
+          <StockMarket>XSTU</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00CPTSTRAN000158</LEI>
+            </Identifiers>
+            <Name>Strandvik Investment Bank plc</Name>
+            <LegalForm>plc</LegalForm>
+            <Address>
+              <CityName>London</CityName>
+              <Country>GB</Country>
+            </Address>
+          </Issuer>
+          <MaturityDate>2026-12-18</MaturityDate>
+        </Certificate>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A406</UniqueID>
+      <Identifiers>
+        <ISIN>DEXMPLC00031</ISIN>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>Bonus certificate on Example US 500 Index 2026</Name>
+      <AssetType>CE</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Certificate>
+          <Type>Index</Type>
+          <Underlyings>
+            <Underlying>
+              <Type>Index</Type>
+              <Name>Example US 500 Index</Name>
+              <Identifiers>
+                <ISIN>USXMPLI00032</ISIN>
+              </Identifiers>
+            </Underlying>
+          </Underlyings>
+          <StockMarket>XSTU</StockMarket>
+          <Issuer>
+            <Identifiers>
+              <LEI>XMPL00CPTSTRAN000158</LEI>
+            </Identifiers>
+            <Name>Strandvik Investment Bank plc</Name>
+            <LegalForm>plc</LegalForm>
+            <Address>
+              <CityName>London</CityName>
+              <Country>GB</Country>
+            </Address>
+          </Issuer>
+          <MaturityDate>2026-12-18</MaturityDate>
+        </Certificate>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A407</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/OP/ID_0058</OtherID>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>Example Euro 50 Index Put 5276 Dec 2025</Name>
+      <AssetType>OP</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Option>
+          <Type>IO</Type>
+          <StockMarket>XEUR</StockMarket>
+          <ExecutionStyle>Europe</ExecutionStyle>
+          <ContractSize>10</ContractSize>
+          <MaturityDate>2025-12-19</MaturityDate>
+          <CallPutIndicator>PUT</CallPutIndicator>
+          <StrikePrice>
+            <Amount ccy="EUR">5276</Amount>
+          </StrikePrice>
+          <Underlyings>
+            <Underlying>
+              <Type>Index</Type>
+              <Name>Example Euro 50 Index</Name>
+              <Identifiers>
+                <ISIN>EUXMPLI00024</ISIN>
+              </Identifiers>
+            </Underlying>
+          </Underlyings>
+        </Option>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A408</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/OP/ID_0059</OtherID>
+      </Identifiers>
+      <Currency>USD</Currency>
+      <Country>US</Country>
+      <Name>Example US 500 Index Put 6328 Mar 2026</Name>
+      <AssetType>OP</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Option>
+          <Type>IO</Type>
+          <StockMarket>XCBO</StockMarket>
+          <ExecutionStyle>Europe</ExecutionStyle>
+          <ContractSize>100</ContractSize>
+          <MaturityDate>2026-03-20</MaturityDate>
+          <CallPutIndicator>PUT</CallPutIndicator>
+          <StrikePrice>
+            <Amount ccy="USD">6328</Amount>
+          </StrikePrice>
+          <Underlyings>
+            <Underlying>
+              <Type>Index</Type>
+              <Name>Example US 500 Index</Name>
+              <Identifiers>
+                <ISIN>USXMPLI00032</ISIN>
+              </Identifiers>
+            </Underlying>
+          </Underlyings>
+        </Option>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A409</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/OP/ID_0060</OtherID>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>Example Euro 50 Index Put 5276 Jun 2026</Name>
+      <AssetType>OP</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Option>
+          <Type>IO</Type>
+          <StockMarket>XEUR</StockMarket>
+          <ExecutionStyle>Europe</ExecutionStyle>
+          <ContractSize>10</ContractSize>
+          <MaturityDate>2026-06-19</MaturityDate>
+          <CallPutIndicator>PUT</CallPutIndicator>
+          <StrikePrice>
+            <Amount ccy="EUR">5276</Amount>
+          </StrikePrice>
+          <Underlyings>
+            <Underlying>
+              <Type>Index</Type>
+              <Name>Example Euro 50 Index</Name>
+              <Identifiers>
+                <ISIN>EUXMPLI00024</ISIN>
+              </Identifiers>
+            </Underlying>
+          </Underlyings>
+        </Option>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A410</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/OP/ID_0061</OtherID>
+      </Identifiers>
+      <Currency>USD</Currency>
+      <Country>US</Country>
+      <Name>Example US 500 Index Put 6328 Dec 2025</Name>
+      <AssetType>OP</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Option>
+          <Type>IO</Type>
+          <StockMarket>XCBO</StockMarket>
+          <ExecutionStyle>Europe</ExecutionStyle>
+          <ContractSize>100</ContractSize>
+          <MaturityDate>2025-12-19</MaturityDate>
+          <CallPutIndicator>PUT</CallPutIndicator>
+          <StrikePrice>
+            <Amount ccy="USD">6328</Amount>
+          </StrikePrice>
+          <Underlyings>
+            <Underlying>
+              <Type>Index</Type>
+              <Name>Example US 500 Index</Name>
+              <Identifiers>
+                <ISIN>USXMPLI00032</ISIN>
+              </Identifiers>
+            </Underlying>
+          </Underlyings>
+        </Option>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A411</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/OP/ID_0062</OtherID>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>Example Euro 50 Index Call 5893 Mar 2026</Name>
+      <AssetType>OP</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Option>
+          <Type>IO</Type>
+          <StockMarket>XEUR</StockMarket>
+          <ExecutionStyle>Europe</ExecutionStyle>
+          <ContractSize>10</ContractSize>
+          <MaturityDate>2026-03-20</MaturityDate>
+          <CallPutIndicator>CALL</CallPutIndicator>
+          <StrikePrice>
+            <Amount ccy="EUR">5893</Amount>
+          </StrikePrice>
+          <Underlyings>
+            <Underlying>
+              <Type>Index</Type>
+              <Name>Example Euro 50 Index</Name>
+              <Identifiers>
+                <ISIN>EUXMPLI00024</ISIN>
+              </Identifiers>
+            </Underlying>
+          </Underlyings>
+        </Option>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A412</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/OP/ID_0063</OtherID>
+      </Identifiers>
+      <Currency>USD</Currency>
+      <Country>US</Country>
+      <Name>Example US 500 Index Call 7068 Jun 2026</Name>
+      <AssetType>OP</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Option>
+          <Type>IO</Type>
+          <StockMarket>XCBO</StockMarket>
+          <ExecutionStyle>Europe</ExecutionStyle>
+          <ContractSize>100</ContractSize>
+          <MaturityDate>2026-06-19</MaturityDate>
+          <CallPutIndicator>CALL</CallPutIndicator>
+          <StrikePrice>
+            <Amount ccy="USD">7068</Amount>
+          </StrikePrice>
+          <Underlyings>
+            <Underlying>
+              <Type>Index</Type>
+              <Name>Example US 500 Index</Name>
+              <Identifiers>
+                <ISIN>USXMPLI00032</ISIN>
+              </Identifiers>
+            </Underlying>
+          </Underlyings>
+        </Option>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A413</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/FU/ID_0064</OtherID>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>Example Euro 50 Index Future Dec 2025</Name>
+      <AssetType>FU</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Future>
+          <Type>IF</Type>
+          <ContractSize>10</ContractSize>
+          <MaturityDate>2025-12-19</MaturityDate>
+          <Counterparty>
+            <Identifiers>
+              <LEI>XMPL00CCPEXAMP000166</LEI>
+            </Identifiers>
+            <Name>Example Clearing House AG</Name>
+            <LegalForm>AG</LegalForm>
+            <Address>
+              <CityName>Frankfurt am Main</CityName>
+              <Country>DE</Country>
+            </Address>
+          </Counterparty>
+          <LastTradeDate>2025-12-17</LastTradeDate>
+          <StockMarket>XEUR</StockMarket>
+          <Underlyings>
+            <Underlying>
+              <Type>Index</Type>
+              <Name>Example Euro 50 Index</Name>
+              <Identifiers>
+                <ISIN>EUXMPLI00024</ISIN>
+              </Identifiers>
+            </Underlying>
+          </Underlyings>
+        </Future>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A414</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/FU/ID_0065</OtherID>
+      </Identifiers>
+      <Currency>USD</Currency>
+      <Country>DE</Country>
+      <Name>Example US 500 Index Future Dec 2025</Name>
+      <AssetType>FU</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Future>
+          <Type>IF</Type>
+          <ContractSize>50</ContractSize>
+          <MaturityDate>2025-12-19</MaturityDate>
+          <Counterparty>
+            <Identifiers>
+              <LEI>XMPL00CCPEXAMP000166</LEI>
+            </Identifiers>
+            <Name>Example Clearing House AG</Name>
+            <LegalForm>AG</LegalForm>
+            <Address>
+              <CityName>Frankfurt am Main</CityName>
+              <Country>DE</Country>
+            </Address>
+          </Counterparty>
+          <LastTradeDate>2025-12-17</LastTradeDate>
+          <StockMarket>XCME</StockMarket>
+          <Underlyings>
+            <Underlying>
+              <Type>Index</Type>
+              <Name>Example US 500 Index</Name>
+              <Identifiers>
+                <ISIN>USXMPLI00032</ISIN>
+              </Identifiers>
+            </Underlying>
+          </Underlyings>
+        </Future>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A415</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/FU/ID_0066</OtherID>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>Example Euro-Bund Future Dec 2025 (1)</Name>
+      <AssetType>FU</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Future>
+          <Type>IRF</Type>
+          <ContractSize>100000</ContractSize>
+          <MaturityDate>2025-12-08</MaturityDate>
+          <Counterparty>
+            <Identifiers>
+              <LEI>XMPL00CCPEXAMP000166</LEI>
+            </Identifiers>
+            <Name>Example Clearing House AG</Name>
+            <LegalForm>AG</LegalForm>
+            <Address>
+              <CityName>Frankfurt am Main</CityName>
+              <Country>DE</Country>
+            </Address>
+          </Counterparty>
+          <LastTradeDate>2025-12-06</LastTradeDate>
+          <StockMarket>XEUR</StockMarket>
+          <Underlyings>
+            <Underlying>
+              <Type>Future</Type>
+              <Name>Example Euro-Bund 10Y Notional</Name>
+              <Identifiers>
+                <ISIN>DEXMPLI00053</ISIN>
+              </Identifiers>
+            </Underlying>
+          </Underlyings>
+        </Future>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A416</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/FU/ID_0067</OtherID>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>Example Euro-Bund Future Dec 2025 (2)</Name>
+      <AssetType>FU</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Future>
+          <Type>IRF</Type>
+          <ContractSize>100000</ContractSize>
+          <MaturityDate>2025-12-08</MaturityDate>
+          <Counterparty>
+            <Identifiers>
+              <LEI>XMPL00CCPEXAMP000166</LEI>
+            </Identifiers>
+            <Name>Example Clearing House AG</Name>
+            <LegalForm>AG</LegalForm>
+            <Address>
+              <CityName>Frankfurt am Main</CityName>
+              <Country>DE</Country>
+            </Address>
+          </Counterparty>
+          <LastTradeDate>2025-12-06</LastTradeDate>
+          <StockMarket>XEUR</StockMarket>
+          <Underlyings>
+            <Underlying>
+              <Type>Future</Type>
+              <Name>Example Euro-Bund 10Y Notional</Name>
+              <Identifiers>
+                <ISIN>DEXMPLI00053</ISIN>
+              </Identifiers>
+            </Underlying>
+          </Underlyings>
+        </Future>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A417</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/FU/ID_0068</OtherID>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>Example Euro-Bund Future Mar 2026 (3)</Name>
+      <AssetType>FU</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Future>
+          <Type>IRF</Type>
+          <ContractSize>100000</ContractSize>
+          <MaturityDate>2026-03-09</MaturityDate>
+          <Counterparty>
+            <Identifiers>
+              <LEI>XMPL00CCPEXAMP000166</LEI>
+            </Identifiers>
+            <Name>Example Clearing House AG</Name>
+            <LegalForm>AG</LegalForm>
+            <Address>
+              <CityName>Frankfurt am Main</CityName>
+              <Country>DE</Country>
+            </Address>
+          </Counterparty>
+          <LastTradeDate>2026-03-07</LastTradeDate>
+          <StockMarket>XEUR</StockMarket>
+          <Underlyings>
+            <Underlying>
+              <Type>Future</Type>
+              <Name>Example Euro-Bund 10Y Notional</Name>
+              <Identifiers>
+                <ISIN>DEXMPLI00053</ISIN>
+              </Identifiers>
+            </Underlying>
+          </Underlyings>
+        </Future>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A418</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/FX/ID_0069</OtherID>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>FX forward buy USD / sell EUR 19.12.2025</Name>
+      <AssetType>FX</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <FXForward>
+          <CurrencyBuy>USD</CurrencyBuy>
+          <AmountBuy>20925000</AmountBuy>
+          <CurrencySell>EUR</CurrencySell>
+          <AmountSell>18066359.88</AmountSell>
+          <AgreedFxRate>1.15823</AgreedFxRate>
+          <StartDate>2025-10-01</StartDate>
+          <MaturityDate>2025-12-19</MaturityDate>
+          <Counterparty>
+            <Identifiers>
+              <LEI>XMPL00CPTMERID000169</LEI>
+            </Identifiers>
+            <Name>Meridian Global Bank AG</Name>
+            <LegalForm>AG</LegalForm>
+            <Address>
+              <CityName>Frankfurt am Main</CityName>
+              <Country>DE</Country>
+            </Address>
+          </Counterparty>
+          <Deliverable>true</Deliverable>
+        </FXForward>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A419</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/FX/ID_0070</OtherID>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>GB</Country>
+      <Name>FX forward buy USD / sell EUR 30.01.2026</Name>
+      <AssetType>FX</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <FXForward>
+          <CurrencyBuy>USD</CurrencyBuy>
+          <AmountBuy>20925000</AmountBuy>
+          <CurrencySell>EUR</CurrencySell>
+          <AmountSell>18030710.37</AmountSell>
+          <AgreedFxRate>1.16052</AgreedFxRate>
+          <StartDate>2025-10-01</StartDate>
+          <MaturityDate>2026-01-30</MaturityDate>
+          <Counterparty>
+            <Identifiers>
+              <LEI>XMPL00CPTSTRAN000158</LEI>
+            </Identifiers>
+            <Name>Strandvik Investment Bank plc</Name>
+            <LegalForm>plc</LegalForm>
+            <Address>
+              <CityName>London</CityName>
+              <Country>GB</Country>
+            </Address>
+          </Counterparty>
+          <Deliverable>true</Deliverable>
+        </FXForward>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A420</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/FX/ID_0071</OtherID>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>FX forward buy CHF / sell EUR 19.12.2025</Name>
+      <AssetType>FX</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <FXForward>
+          <CurrencyBuy>CHF</CurrencyBuy>
+          <AmountBuy>18230000</AmountBuy>
+          <CurrencySell>EUR</CurrencySell>
+          <AmountSell>19685549.53</AmountSell>
+          <AgreedFxRate>0.92606</AgreedFxRate>
+          <StartDate>2025-10-01</StartDate>
+          <MaturityDate>2025-12-19</MaturityDate>
+          <Counterparty>
+            <Identifiers>
+              <LEI>XMPL00CPTMERID000169</LEI>
+            </Identifiers>
+            <Name>Meridian Global Bank AG</Name>
+            <LegalForm>AG</LegalForm>
+            <Address>
+              <CityName>Frankfurt am Main</CityName>
+              <Country>DE</Country>
+            </Address>
+          </Counterparty>
+          <Deliverable>true</Deliverable>
+        </FXForward>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A421</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/FX/ID_0072</OtherID>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>FX forward buy GBP / sell EUR 28.11.2025</Name>
+      <AssetType>FX</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <FXForward>
+          <CurrencyBuy>GBP</CurrencyBuy>
+          <AmountBuy>6120000</AmountBuy>
+          <CurrencySell>EUR</CurrencySell>
+          <AmountSell>6960952.70</AmountSell>
+          <AgreedFxRate>0.87919</AgreedFxRate>
+          <StartDate>2025-10-01</StartDate>
+          <MaturityDate>2025-11-28</MaturityDate>
+          <Counterparty>
+            <Identifiers>
+              <LEI>XMPL00CPTMERID000169</LEI>
+            </Identifiers>
+            <Name>Meridian Global Bank AG</Name>
+            <LegalForm>AG</LegalForm>
+            <Address>
+              <CityName>Frankfurt am Main</CityName>
+              <Country>DE</Country>
+            </Address>
+          </Counterparty>
+          <Deliverable>true</Deliverable>
+        </FXForward>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A422</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/SW/ID_0073</OtherID>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>Interest rate swap receive 2.10% / pay 6M Euribor 2030</Name>
+      <AssetType>SW</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Swap>
+          <Type>Interestrateswap</Type>
+          <StartDate>2025-02-03</StartDate>
+          <MaturityDate>2028-02-03</MaturityDate>
+          <Counterparty>
+            <Identifiers>
+              <LEI>XMPL00CPTMERID000169</LEI>
+            </Identifiers>
+            <Name>Meridian Global Bank AG</Name>
+            <LegalForm>AG</LegalForm>
+            <Address>
+              <CityName>Frankfurt am Main</CityName>
+              <Country>DE</Country>
+            </Address>
+          </Counterparty>
+          <Legs>
+            <Leg>
+              <Type>BUY</Type>
+              <Currency>EUR</Currency>
+              <Notional>20000000</Notional>
+              <YieldType>Fixed Rate</YieldType>
+              <FixedRate>2.10</FixedRate>
+              <PayFrequency>YEAR</PayFrequency>
+              <YieldDayConvention>30/360</YieldDayConvention>
+            </Leg>
+            <Leg>
+              <Type>SELL</Type>
+              <Currency>EUR</Currency>
+              <Notional>20000000</Notional>
+              <YieldType>Variable Rate</YieldType>
+              <Spread>0</Spread>
+              <PayFrequency>SEMI</PayFrequency>
+              <YieldDayConvention>ACT/360</YieldDayConvention>
+            </Leg>
+          </Legs>
+        </Swap>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A423</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/SW/ID_0074</OtherID>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>GB</Country>
+      <Name>Cross currency swap EUR/USD 2028</Name>
+      <AssetType>SW</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Swap>
+          <Type>Crosscurrencyswap</Type>
+          <StartDate>2025-02-04</StartDate>
+          <MaturityDate>2029-02-04</MaturityDate>
+          <Counterparty>
+            <Identifiers>
+              <LEI>XMPL00CPTSTRAN000158</LEI>
+            </Identifiers>
+            <Name>Strandvik Investment Bank plc</Name>
+            <LegalForm>plc</LegalForm>
+            <Address>
+              <CityName>London</CityName>
+              <Country>GB</Country>
+            </Address>
+          </Counterparty>
+          <Legs>
+            <Leg>
+              <Type>BUY</Type>
+              <Currency>USD</Currency>
+              <Notional>15000000</Notional>
+              <YieldType>Variable Rate</YieldType>
+              <Spread>0.1450</Spread>
+              <PayFrequency>QURT</PayFrequency>
+              <YieldDayConvention>ACT/360</YieldDayConvention>
+            </Leg>
+            <Leg>
+              <Type>SELL</Type>
+              <Currency>EUR</Currency>
+              <Notional>13000000</Notional>
+              <YieldType>Variable Rate</YieldType>
+              <Spread>0</Spread>
+              <PayFrequency>QURT</PayFrequency>
+              <YieldDayConvention>ACT/360</YieldDayConvention>
+            </Leg>
+          </Legs>
+        </Swap>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A424</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/SW/ID_0075</OtherID>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>FR</Country>
+      <Name>CDS protection bought on Kestrel Real Estate K.K. 5Y</Name>
+      <AssetType>SW</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Swap>
+          <Type>Creditdefaultswap</Type>
+          <StartDate>2025-02-05</StartDate>
+          <MaturityDate>2030-02-05</MaturityDate>
+          <Counterparty>
+            <Identifiers>
+              <LEI>XMPL00CPTCASTE000126</LEI>
+            </Identifiers>
+            <Name>Castellane Banque S.A.</Name>
+            <LegalForm>S.A.</LegalForm>
+            <Address>
+              <CityName>Paris</CityName>
+              <Country>FR</Country>
+            </Address>
+          </Counterparty>
+          <Legs>
+            <Leg>
+              <Type>SELL</Type>
+              <Currency>EUR</Currency>
+              <Notional>10000000</Notional>
+              <YieldType>Fixed Rate</YieldType>
+              <FixedRate>1.00</FixedRate>
+              <RecoveryRate>40</RecoveryRate>
+              <PayFrequency>QURT</PayFrequency>
+              <YieldDayConvention>ACT/360</YieldDayConvention>
+              <Underlying>
+                <ISIN>XSXMPLB01518</ISIN>
+              </Underlying>
+            </Leg>
+            <Leg>
+              <Type>BUY</Type>
+              <Currency>EUR</Currency>
+              <Notional>10000000</Notional>
+            </Leg>
+          </Legs>
+        </Swap>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A425</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/SW/ID_0076</OtherID>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>DE</Country>
+      <Name>Total return swap on Example Euro 50 Index</Name>
+      <AssetType>SW</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Swap>
+          <Type>Totalreturnswap</Type>
+          <StartDate>2025-02-06</StartDate>
+          <MaturityDate>2031-02-06</MaturityDate>
+          <Counterparty>
+            <Identifiers>
+              <LEI>XMPL00CPTMERID000169</LEI>
+            </Identifiers>
+            <Name>Meridian Global Bank AG</Name>
+            <LegalForm>AG</LegalForm>
+            <Address>
+              <CityName>Frankfurt am Main</CityName>
+              <Country>DE</Country>
+            </Address>
+          </Counterparty>
+          <Legs>
+            <Leg>
+              <Type>BUY</Type>
+              <Currency>EUR</Currency>
+              <Notional>12000000</Notional>
+              <Underlying>
+                <ISIN>EUXMPLI00024</ISIN>
+              </Underlying>
+            </Leg>
+            <Leg>
+              <Type>SELL</Type>
+              <Currency>EUR</Currency>
+              <Notional>12000000</Notional>
+              <YieldType>Variable Rate</YieldType>
+              <Spread>0.35</Spread>
+              <PayFrequency>QURT</PayFrequency>
+              <YieldDayConvention>ACT/360</YieldDayConvention>
+            </Leg>
+          </Legs>
+        </Swap>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A426</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/CM/ID_0077</OtherID>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>AT</Country>
+      <Name>Call money EUR at Example Depositary Bank AG</Name>
+      <AssetType>CM</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <CallMoney>
+          <StartDate>2025-10-20</StartDate>
+          <MaturityDate>2025-11-03</MaturityDate>
+          <InterestRate>1.93</InterestRate>
+          <Counterparty>
+            <Identifiers>
+              <LEI>XMPL00EXAMPLEDB00109</LEI>
+            </Identifiers>
+            <Name>Example Depositary Bank AG</Name>
+            <LegalForm>AG</LegalForm>
+            <Address>
+              <CityName>Vienna</CityName>
+              <Country>AT</Country>
+            </Address>
+          </Counterparty>
+        </CallMoney>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A427</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/AC/ID_0078</OtherID>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>AT</Country>
+      <Name>Current account EUR at Example Depositary Bank AG</Name>
+      <AssetType>AC</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Account>
+          <IndicatorCreditDebit>Credit</IndicatorCreditDebit>
+          <InterestRateCredit>1.85</InterestRateCredit>
+          <Counterparty>
+            <Identifiers>
+              <LEI>XMPL00EXAMPLEDB00109</LEI>
+            </Identifiers>
+            <Name>Example Depositary Bank AG</Name>
+            <LegalForm>AG</LegalForm>
+            <Address>
+              <CityName>Vienna</CityName>
+              <Country>AT</Country>
+            </Address>
+          </Counterparty>
+        </Account>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A428</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/AC/ID_0079</OtherID>
+      </Identifiers>
+      <Currency>USD</Currency>
+      <Country>AT</Country>
+      <Name>Current account USD at Example Depositary Bank AG</Name>
+      <AssetType>AC</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Account>
+          <IndicatorCreditDebit>Credit</IndicatorCreditDebit>
+          <InterestRateCredit>0.75</InterestRateCredit>
+          <Counterparty>
+            <Identifiers>
+              <LEI>XMPL00EXAMPLEDB00109</LEI>
+            </Identifiers>
+            <Name>Example Depositary Bank AG</Name>
+            <LegalForm>AG</LegalForm>
+            <Address>
+              <CityName>Vienna</CityName>
+              <Country>AT</Country>
+            </Address>
+          </Counterparty>
+        </Account>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A429</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/AC/ID_0080</OtherID>
+      </Identifiers>
+      <Currency>CHF</Currency>
+      <Country>AT</Country>
+      <Name>Current account CHF at Example Depositary Bank AG</Name>
+      <AssetType>AC</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Account>
+          <IndicatorCreditDebit>Credit</IndicatorCreditDebit>
+          <InterestRateCredit>0.75</InterestRateCredit>
+          <Counterparty>
+            <Identifiers>
+              <LEI>XMPL00EXAMPLEDB00109</LEI>
+            </Identifiers>
+            <Name>Example Depositary Bank AG</Name>
+            <LegalForm>AG</LegalForm>
+            <Address>
+              <CityName>Vienna</CityName>
+              <Country>AT</Country>
+            </Address>
+          </Counterparty>
+        </Account>
+      </AssetDetails>
+    </Asset>
+    <Asset>
+      <UniqueID>A430</UniqueID>
+      <Identifiers>
+        <OtherID FreeType="SUPPLIER">EXAMPLE-AM/FE/ID_0081</OtherID>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>AT</Country>
+      <Name>Accrued management and depositary fees</Name>
+      <AssetType>FE</AssetType>
+      <AssetDetails xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <Fee>
+          <Type>Management and depositary fees</Type>
+          <Counterparty>
+            <Identifiers>
+              <LEI>XMPL00EXAMPLEAM00123</LEI>
+            </Identifiers>
+            <Name>Example Asset Management GmbH</Name>
+            <LegalForm>GmbH</LegalForm>
+            <Address>
+              <CityName>Vienna</CityName>
+              <Country>AT</Country>
+            </Address>
+          </Counterparty>
+        </Fee>
+      </AssetDetails>
+    </Asset>
+  </AssetMasterData>
+</FundsXML4>

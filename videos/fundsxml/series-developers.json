@@ -4,6 +4,7 @@
   "title": {
     "en": "FundsXML for developers"
   },
+  "next": "fundsxml-production",
   "videos": [
     "dev-setup",
     "dev-anatomy",
@@ -11,6 +12,7 @@
     "dev-portfolio",
     "dev-transactions",
     "dev-regulatory",
+    "dev-documents",
     "dev-validate",
     "dev-query"
   ],

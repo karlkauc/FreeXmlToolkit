@@ -1,0 +1,602 @@
+{
+  "_comment": "Business series, film 6. Slides only (no recording). The last film of the series: its closing card points to the developers series.",
+  "id": "biz-participate",
+  "link": "fundsxml.org/about",
+  "title": {
+    "en": "Taking part in FundsXML"
+  },
+  "description": {
+    "en": "How FundsXML evolves and how to take part: the FundsXML Standards Committee, the secretariat and the three working groups (Content & Technique, Promotion, Documentation), associate and full membership, contributing on GitHub, the path of a change request from proposal to a new version, small and large changes, and what makes a good change request."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "How does FundsXML evolve, and how can you take part? In this film you see who decides about the standard, which working groups there are, how to join them, how a change request becomes part of a new version, and what makes a good change request."
+      }
+    },
+    {
+      "id": "why",
+      "chapter": {
+        "en": "Why take part"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.3,
+          0.55,
+          0.78
+        ],
+        "en": {
+          "title": "Why take part",
+          "items": [
+            {
+              "head": "The standard follows its users",
+              "text": "It changes when the people who use it ask for it."
+            },
+            {
+              "head": "Regulation changes every year",
+              "text": "New templates, new instruments, new fields."
+            },
+            {
+              "head": "Every change affects many partners",
+              "text": "Hear about it early, plan your systems."
+            },
+            {
+              "head": "Your requirements, your timing",
+              "text": "Bring them in before the decision is made."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Why should you take part at all? Because the standard follows the people who use it. Regulation changes every year, new templates appear, and markets bring new instruments. Every change to FundsXML affects many partners at once. Whoever takes part brings in their own requirements early, hears about changes before they arrive, and can plan their own systems accordingly."
+      }
+    },
+    {
+      "id": "who",
+      "chapter": {
+        "en": "Who decides"
+      },
+      "slide": {
+        "layout": "hub",
+        "builds": [
+          0.2,
+          0.45
+        ],
+        "en": {
+          "title": "Who shapes FundsXML",
+          "items": [
+            "Standards Committee",
+            "Secretariat",
+            "Working groups",
+            "Members",
+            "Community"
+          ],
+          "centre": "FundsXML.org"
+        }
+      },
+      "say": {
+        "en": "FundsXML belongs to no single company. It is run by FundsXML dot org, a not-for-profit organisation of the fund industry. Its rules are set out in a charter. At the top stands the FundsXML Standards Committee. A secretariat organises the work, working groups do the work on the standard, and members and the wider community bring in their needs."
+      }
+    },
+    {
+      "id": "fsc",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.1,
+          0.38,
+          0.55,
+          0.75
+        ],
+        "en": {
+          "title": "The FundsXML Standards Committee",
+          "items": [
+            {
+              "head": "Fund companies and associations",
+              "text": "Members from AT, DE, DK, FR, LU, NL and CH."
+            },
+            {
+              "head": "Meets at least twice a year"
+            },
+            {
+              "head": "Sets up the working groups",
+              "text": "And names their chairs."
+            },
+            {
+              "head": "Decides on members and releases",
+              "text": "When results become a new version."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "The Standards Committee, or F S C, is the governing body. Its members are fund companies, service providers and fund associations from several European countries. It meets at least twice a year. It decides on new members, it sets up the working groups and names their chairs, and it decides when the results of a working group become a new version of the standard."
+      }
+    },
+    {
+      "id": "secretariat",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.1,
+          0.35,
+          0.55,
+          0.78
+        ],
+        "en": {
+          "title": "The secretariat",
+          "items": [
+            {
+              "head": "First point of contact",
+              "text": "Questions, new members, change requests."
+            },
+            {
+              "head": "Website and communication"
+            },
+            {
+              "head": "Prepares the committee's meetings"
+            },
+            {
+              "head": "Documents and follows up decisions"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "The secretariat keeps things running. It is the first point of contact for questions, for new members and for change requests. It looks after the website and the communication of FundsXML, prepares the meetings of the committee, and makes sure that decisions are documented and followed up."
+      }
+    },
+    {
+      "id": "groups",
+      "chapter": {
+        "en": "The working groups"
+      },
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.12,
+          0.5,
+          0.72
+        ],
+        "en": {
+          "title": "Three working groups",
+          "items": [
+            {
+              "head": "Content & Technique",
+              "text": "Maintains the schema, designs new structures, keeps the standard consistent."
+            },
+            {
+              "head": "Promotion",
+              "text": "Makes FundsXML known across Europe, talks to new members and partners."
+            },
+            {
+              "head": "Documentation",
+              "text": "Guides, examples and references for implementers, including these films."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "The work itself happens in three working groups. Content and Technique is the technical heart: it maintains the schema, designs new data structures and keeps the standard consistent. Promotion makes FundsXML known across Europe and talks to new members and partners. And Documentation creates the guides, examples and references that help users implement the standard, including films like this one."
+      }
+    },
+    {
+      "id": "groupwork",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.38,
+          0.52,
+          0.68
+        ],
+        "en": {
+          "title": "How a working group works",
+          "items": [
+            {
+              "head": "A chair and a written assignment",
+              "text": "Goal, members, scope, timeline."
+            },
+            {
+              "head": "Regular meetings",
+              "text": "Today mostly online."
+            },
+            {
+              "head": "A report to every committee meeting"
+            },
+            {
+              "head": "Open to experts",
+              "text": "Active participation is expected."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Each working group has a chair and a written assignment: its goal, its members, its scope and its timeline. The groups meet regularly, today mostly online, and report to every meeting of the Standards Committee. The groups are open to experts from the industry. Active participation is expected: a group lives from the people who bring in their time and their knowledge."
+      }
+    },
+    {
+      "id": "meeting",
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.1,
+          0.38,
+          0.62,
+          0.78
+        ],
+        "en": {
+          "title": "A typical meeting",
+          "items": [
+            {
+              "head": "Change requests",
+              "text": "What is new, who needs it."
+            },
+            {
+              "head": "Drafts",
+              "text": "Structures, examples, questions."
+            },
+            {
+              "head": "Decisions",
+              "text": "Recorded in the minutes."
+            },
+            {
+              "head": "Next steps",
+              "text": "Each with an owner."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "What happens in a meeting of a working group? A typical agenda starts with the open change requests: what is new, and who needs it. Then the drafts under discussion: a proposed structure, an example file, open questions. Then decisions, recorded in the minutes. And finally the next steps, each with a name next to it. Between meetings, much of the work happens on GitHub."
+      }
+    },
+    {
+      "id": "join",
+      "chapter": {
+        "en": "How to join"
+      },
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.08,
+          0.42,
+          0.8
+        ],
+        "en": {
+          "title": "Three ways in",
+          "items": [
+            {
+              "head": "Associate member",
+              "text": "Free, apply on fundsxml.org."
+            },
+            {
+              "head": "Join a working group",
+              "text": "Form on fundsxml.org/about."
+            },
+            {
+              "head": "Contribute on GitHub",
+              "text": "github.com/fundsxml"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "There are three ways in. First, become an associate member. It is free, any company or person can apply on the website, and members receive the news and invitations of FundsXML. Second, join a working group: on the About page of fundsxml dot org, a short form asks for your name, your e-mail and the group you are interested in. Third, contribute on GitHub, where the schema, the examples and the tools are public."
+      }
+    },
+    {
+      "id": "members",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.1,
+          0.55,
+          0.8
+        ],
+        "en": {
+          "title": "Membership",
+          "items": [
+            {
+              "head": "Full members",
+              "text": "Fund companies, asset managers, associations. Admitted by the committee, with a vote."
+            },
+            {
+              "head": "Associate members",
+              "text": "Free, open to everyone. More than 110 companies today."
+            },
+            {
+              "head": "Both",
+              "text": "Invited to the working groups. An annual meeting for associate members."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Full membership is meant for fund companies, asset managers and national fund associations. The Standards Committee decides on it, and full members have a vote. More than a hundred and ten companies support FundsXML as associate members today. Both kinds of members are invited to take part in the working groups, and at least once a year there is a meeting for the associate members."
+      }
+    },
+    {
+      "id": "github",
+      "slide": {
+        "layout": "image",
+        "en": {
+          "title": "FundsXML on GitHub",
+          "image": "img/github-fundsxml.png"
+        }
+      },
+      "say": {
+        "en": "On GitHub, the organisation fundsxml publishes the schema, the example files, and also these videos. In the schema repository you can follow every change: issues describe problems and wishes, pull requests contain proposed changes, and the changelog lists what each version brings. Anyone can read along, and anyone can open an issue."
+      }
+    },
+    {
+      "id": "cr",
+      "chapter": {
+        "en": "Change requests"
+      },
+      "slide": {
+        "layout": "statement",
+        "builds": [
+          0.0,
+          0.45
+        ],
+        "en": {
+          "headline": "Anyone can propose a change.",
+          "sub": "A new field, a new code, a correction, or a whole new area."
+        }
+      },
+      "say": {
+        "en": "The most direct way to shape the standard is a change request. Anyone can submit one: a member, a software provider or a single user. A change request may be a new data field, a new code value, a correction, or a whole new area, such as a new regulatory template."
+      }
+    },
+    {
+      "id": "crpath",
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.06,
+          0.4,
+          0.55,
+          0.68,
+          0.8
+        ],
+        "en": {
+          "title": "The path of a change request",
+          "items": [
+            {
+              "head": "Proposal",
+              "text": "To a working group or committee member, or as a GitHub issue."
+            },
+            {
+              "head": "Working group",
+              "text": "Decides on a working draft."
+            },
+            {
+              "head": "Working draft",
+              "text": "Structure and examples."
+            },
+            {
+              "head": "Review",
+              "text": "By the committee, or in public."
+            },
+            {
+              "head": "New version",
+              "text": "With a changelog entry."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "This is the path of a change request. It is submitted in writing to the working group or to a member of the Standards Committee, or as an issue on GitHub. The working group decides whether it goes into a working draft. The draft is reviewed. And when it is approved, it becomes part of the next version of the schema, with an entry in the changelog."
+      }
+    },
+    {
+      "id": "crsize",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.15,
+          0.62
+        ],
+        "en": {
+          "title": "Small or large change",
+          "items": [
+            {
+              "head": "Small change",
+              "text": "New optional fields, corrections. The working group decides; the committee has 5 working days to object.",
+              "tag": "5 days"
+            },
+            {
+              "head": "Large change",
+              "text": "Structure or compatibility changes. Committee vote and public comment of at least 20 days.",
+              "tag": "20+ days"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "How long the review takes depends on the size of the change. Small changes, such as new optional fields or corrections that keep existing files valid, are decided by the working group, and the committee has five working days to object. Large changes, which alter the structure or break compatibility, need a vote of the committee and a public comment period of at least twenty days."
+      }
+    },
+    {
+      "id": "release",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.35,
+          0.5,
+          0.72
+        ],
+        "en": {
+          "title": "Into the next version",
+          "items": [
+            {
+              "head": "4.2.11 → 4.2.12",
+              "text": "Accepted changes are collected."
+            },
+            {
+              "head": "Changelog",
+              "text": "Every change listed."
+            },
+            {
+              "head": "“since” mark",
+              "text": "On every new element in the schema."
+            },
+            {
+              "head": "Existing files stay valid",
+              "text": "New fields are usually optional."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Accepted changes are collected in the next version, for example four point two point twelve. Every change is listed in the changelog, and every new element carries a mark in the schema that says since which version it exists. Because new fields are usually optional, existing deliveries stay valid, and partners can move to the new version when they are ready."
+      }
+    },
+    {
+      "id": "example",
+      "chapter": {
+        "en": "A good change request"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.05,
+          0.3,
+          0.55,
+          0.8
+        ],
+        "en": {
+          "title": "Example: a checksum for documents",
+          "items": [
+            {
+              "head": "Today",
+              "text": "A document carries its size, but no checksum."
+            },
+            {
+              "head": "The problem",
+              "text": "A receiver cannot verify an embedded file."
+            },
+            {
+              "head": "The proposal",
+              "text": "An optional element Checksum with the algorithm, e.g. SHA-256."
+            },
+            {
+              "head": "Small change",
+              "text": "Optional, so existing files stay valid."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "An example. Today a document in FundsXML carries its size, but no checksum, so a receiver cannot be sure that an embedded file arrived unchanged. A change request could propose an optional checksum element with the algorithm, for example S H A two five six. Since it is optional and keeps existing files valid, it would count as a small change."
+      }
+    },
+    {
+      "id": "examplexml",
+      "slide": {
+        "layout": "code",
+        "builds": [
+          0.0,
+          0.45
+        ],
+        "en": {
+          "title": "The change request as an issue",
+          "file": "GitHub issue",
+          "highlight": [
+            10,
+            11
+          ],
+          "code": "Title: Add an optional checksum to Document\n\nUse case\n  Receivers of embedded KIDs want to verify that the file\n  arrived unchanged.\n\nProposal\n  New optional element after SizeInBytes:\n\n  <SizeInBytes>18734</SizeInBytes>\n  <Checksum algorithm=\"SHA-256\">9f2c…e41a</Checksum>\n\nCompatibility\n  Optional: existing files stay valid (small change)."
+        }
+      },
+      "say": {
+        "en": "Here is how such a request could look as an issue. A short title. The use case: receivers of embedded key information documents want to verify them. The proposal: an element Checksum after the size, with the value and an attribute for the algorithm. A small X M L example. And the note that the element is optional, so existing files stay valid."
+      }
+    },
+    {
+      "id": "good",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.32,
+          0.5,
+          0.62,
+          0.78
+        ],
+        "en": {
+          "title": "A good change request",
+          "items": [
+            {
+              "head": "The business case",
+              "text": "Who needs the data, and why."
+            },
+            {
+              "head": "The data point",
+              "text": "Meaning, type, codes."
+            },
+            {
+              "head": "An example in XML"
+            },
+            {
+              "head": "The effect on existing files"
+            },
+            {
+              "head": "Who would use it"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "What makes a good change request? Describe the business case: who needs the data, and why. Define the data point exactly: its meaning, its type and its codes. Add a short example in X M L. Say whether existing files stay valid. And name the partners who would use it. A clear request saves the working group a lot of time."
+      }
+    },
+    {
+      "id": "mistakes",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.12,
+          0.35,
+          0.5,
+          0.65
+        ],
+        "en": {
+          "title": "A weak change request",
+          "items": [
+            {
+              "head": "Too vague",
+              "text": "“We need more ESG data.”"
+            },
+            {
+              "head": "A solution without a problem"
+            },
+            {
+              "head": "One company's internal codes"
+            },
+            {
+              "head": "Already in the schema",
+              "text": "Under another name: check the documentation first."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "And what makes a weak one? A request that is too vague, such as: we need more E S G data. A solution without a problem behind it. A field that only makes sense for the internal codes of one company. Or an element that already exists under another name. So look into the schema documentation first; the answer may already be there."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was how to take part in FundsXML: the committee, the working groups, membership and change requests. You find the contact form on fundsxml dot org, and the schema on GitHub. The next series shows FundsXML in a real file, for developers. Thanks for watching."
+      }
+    }
+  ]
+}

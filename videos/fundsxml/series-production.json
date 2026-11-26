@@ -1,0 +1,14 @@
+{
+  "_comment": "FundsXML in production: running FundsXML in real systems. Concepts on slides; code and results from the reference implementation github.com/fundsxml/integration-examples.",
+  "id": "fundsxml-production",
+  "title": {
+    "en": "FundsXML in production"
+  },
+  "videos": [
+    "prod-architecture",
+    "prod-database-model",
+    "prod-loading",
+    "prod-generating",
+    "prod-operations"
+  ]
+}

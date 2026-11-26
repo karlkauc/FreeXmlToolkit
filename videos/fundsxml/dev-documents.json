@@ -1,0 +1,468 @@
+{
+  "_comment": "Developers series, film 7: slides and a run in FreeXmlToolkit (FundsXmlDevDocumentsDocVideo), on the realistic example Fund-Documents_2025-10.xml (fundsxml/examples PR #37).",
+  "id": "dev-documents",
+  "scenario": "FundsXmlDevDocumentsDocVideo",
+  "link": "fundsxml.org",
+  "title": {
+    "en": "Documents: link, embed, extract"
+  },
+  "description": {
+    "en": "How FundsXML carries documents such as prospectuses, PRIIPs KIDs and factsheets: the Documents block, document types, languages and countries, the assignment to funds and share classes, format, signature and dates, delivery as a link or embedded as base64, replacing and restricted documents, and the Documents tool of FreeXmlToolkit to save embedded documents and embed new ones."
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "card": "title",
+      "say": {
+        "en": "Fund deliveries are not only data. Prospectuses, key information documents and factsheets travel with them. In this film you see how FundsXML carries documents: as a link, or embedded in the file, how to get them out again with FreeXmlToolkit, and what receivers do with them."
+      }
+    },
+    {
+      "id": "why",
+      "chapter": {
+        "en": "Why documents"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.35,
+          0.55,
+          0.75
+        ],
+        "en": {
+          "title": "Why documents in a data format",
+          "items": [
+            {
+              "head": "The current KID before every purchase",
+              "text": "In the right language, for every share class."
+            },
+            {
+              "head": "Prospectus, reports, factsheets",
+              "text": "Shown by platforms and distributors."
+            },
+            {
+              "head": "Many countries, many languages",
+              "text": "Hundreds of documents per fund."
+            },
+            {
+              "head": "One channel",
+              "text": "Documents travel with the data, assigned to the fund."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Why documents in a data format? Distributors must give investors the current key information document before every purchase, in the right language. Platforms show prospectuses, annual reports and factsheets. A fund sold in ten countries quickly has hundreds of documents. FundsXML lets them travel through the same channel as the data, together with the information which fund they belong to."
+      }
+    },
+    {
+      "id": "where",
+      "chapter": {
+        "en": "The Documents block"
+      },
+      "say": {
+        "en": "Documents have their own block at the top level of the file: Documents, next to Funds and the asset master data. This example delivery carries three documents for the multi-asset fund of our fictitious asset manager: a prospectus, a key information document and a factsheet. Each one is an element Document."
+      }
+    },
+    {
+      "id": "type",
+      "say": {
+        "en": "A document starts with its type. The schema lists the common ones: the prospectus, the PRIIPs key information document, the factsheet, annual, half-year, quarterly and monthly reports, audit and valuation reports, marketing material, and the sustainability disclosures under S F D R. A type that is not in the list goes into the element unlisted type, as free text."
+      }
+    },
+    {
+      "id": "typelist",
+      "say": {
+        "en": "You do not need to remember the list. In FreeXmlToolkit, the documentation of the schema shows all allowed values, right next to the element. Use a listed type whenever one fits, because receivers sort and filter documents by it."
+      }
+    },
+    {
+      "id": "lang",
+      "say": {
+        "en": "Then the language, as an I S O code, such as e n or d e. Whether translations exist. And the countries where the document is published, also as I S O codes. A key information document for Austria and Germany in German, and another one for Luxembourg in English, are two separate Document elements."
+      }
+    },
+    {
+      "id": "assign",
+      "say": {
+        "en": "And then: what does the document belong to? To the whole fund, to a subfund of an umbrella, or to single share classes. Each is named by its identifiers. A prospectus usually belongs to the fund. A key information document belongs to one or more share classes, here two classes, each with its ISIN."
+      }
+    },
+    {
+      "id": "meta",
+      "say": {
+        "en": "Then the details. The name and the file name. Whether the document may be published. The format, as a media type, here application slash pdf. Whether it is signed, digitally or as a scan. The creation date, and an expiration date, after which the document must no longer be used. And the size in bytes."
+      }
+    },
+    {
+      "id": "version",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.05,
+          0.35,
+          0.55,
+          0.78
+        ],
+        "en": {
+          "title": "Replacing a document",
+          "items": [
+            {
+              "head": "A new KID every year, a factsheet every month"
+            },
+            {
+              "head": "Same type, language and share classes",
+              "text": "Receivers know what to replace."
+            },
+            {
+              "head": "New Version and CreationDate"
+            },
+            {
+              "head": "ModificationDate",
+              "text": "For a small correction of the same document."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Documents are replaced regularly: a new key information document every year, a new factsheet every month. The new document has the same type, language and share classes, and a new version and creation date. Receivers use these to replace the old document. For a small correction of the same document, the modification date says that something changed."
+      }
+    },
+    {
+      "id": "restricted",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.2,
+          0.45,
+          0.75
+        ],
+        "en": {
+          "title": "Documents not for the public",
+          "items": [
+            {
+              "head": "ForPublicUsage false"
+            },
+            {
+              "head": "Restrictions",
+              "text": "In words: e.g. “professional investors only”."
+            },
+            {
+              "head": "Same channel",
+              "text": "Receivers must not publish it."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Not every document is for the public. Some are only for professional investors, or only for the distributor itself. Then For Public Usage is false, and Restrictions says in words who may see it. The document still travels through the same channel, but a receiver must not show it on a public website."
+      }
+    },
+    {
+      "id": "signature",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.12,
+          0.3,
+          0.45,
+          0.75
+        ],
+        "en": {
+          "title": "Signature",
+          "items": [
+            {
+              "head": "No",
+              "text": "Not signed."
+            },
+            {
+              "head": "Digital",
+              "text": "The signature sits inside the PDF."
+            },
+            {
+              "head": "Scan",
+              "text": "Signed on paper, then scanned."
+            },
+            {
+              "head": "The whole delivery",
+              "text": "Can carry an XML signature."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "A word on signatures. The element Signature says whether the document is signed: not at all, digitally, which means the signature sits inside the P D F, or as a scan of a document signed on paper. This is information for the receiver, not a check. If the whole delivery has to be protected, the FundsXML file itself can carry an X M L signature."
+      }
+    },
+    {
+      "id": "link",
+      "chapter": {
+        "en": "Link or embed"
+      },
+      "say": {
+        "en": "Now the content. There are two ways. The prospectus is delivered as a link: the element Document U R L holds the address where the receiver downloads it. The file stays small, and the document can be updated in one place. But the link must remain reachable, and the receiver needs access to it."
+      }
+    },
+    {
+      "id": "embed",
+      "say": {
+        "en": "The key information document is embedded. The element Binary Data holds the whole P D F, encoded as base64. The receiver has everything in one file, and nothing can get lost. The price: base64 makes the content about a third larger, and the file grows with every document."
+      }
+    },
+    {
+      "id": "base64",
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.05,
+          0.28,
+          0.45,
+          0.68
+        ],
+        "en": {
+          "title": "How base64 works",
+          "items": [
+            {
+              "head": "3 bytes",
+              "text": "24 bits of the file."
+            },
+            {
+              "head": "4 groups",
+              "text": "Of 6 bits each."
+            },
+            {
+              "head": "4 characters",
+              "text": "A–Z, a–z, 0–9, + and /."
+            },
+            {
+              "head": "+33 %",
+              "text": "Four characters for three bytes."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "How does base64 work? It takes three bytes of the file, twenty-four bits, and splits them into four groups of six bits. Each group becomes one of sixty-four safe characters: letters, digits, plus and slash. So three bytes become four characters, which is where the extra third comes from. Line breaks are allowed and are ignored when decoding."
+      }
+    },
+    {
+      "id": "compare",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.1,
+          0.5
+        ],
+        "en": {
+          "title": "Link or embed?",
+          "items": [
+            {
+              "head": "Link",
+              "text": "Small file, always current, one place to update. Needs access and a reachable address."
+            },
+            {
+              "head": "Embedded",
+              "text": "Complete on its own, good for archives. About a third larger, the file grows.",
+              "tag": "+33 %"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "So which one? A link suits large documents and documents that change often, if the receiver can reach the address. Embedding suits deliveries that must be complete on their own, for example for archiving, or when the receiver has no access to the sender's website."
+      }
+    },
+    {
+      "id": "separate",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.15,
+          0.4,
+          0.62,
+          0.8
+        ],
+        "en": {
+          "title": "A delivery of its own",
+          "items": [
+            {
+              "head": "ControlData and Documents only"
+            },
+            {
+              "head": "Sent when documents change",
+              "text": "Not every day with the prices."
+            },
+            {
+              "head": "Small, fast data files"
+            },
+            {
+              "head": "Documents follow their own rhythm"
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "In practice, many senders deliver documents separately: a FundsXML file that contains only ControlData and the Documents block. It goes out when documents change, not every day with the prices. That keeps the daily data files small and fast, and documents can follow their own rhythm."
+      }
+    },
+    {
+      "id": "tool",
+      "chapter": {
+        "en": "The Documents tool"
+      },
+      "say": {
+        "en": "FreeXmlToolkit helps with both. In the FundsXML panel, the tool Documents lists all documents of the open file: type, language, the share class, whether it is linked or embedded, and its size. A linked document opens in the browser with one click."
+      }
+    },
+    {
+      "id": "save",
+      "say": {
+        "en": "To get an embedded document out, select it and choose Save embedded document. The tool decodes the base64 content and saves the file under its file name. It also compares the size with the value in Size in Bytes, and warns if they differ. Here is the key information document, as the receiver sees it."
+      }
+    },
+    {
+      "id": "embedfile",
+      "say": {
+        "en": "The other way round: Embed file. Choose a P D F, the document type, the language and the share class it belongs to. The tool adds a new Document element: with the file name, the media type, the size, and the content as base64, wrapped in lines of seventy-six characters. Validation confirms that the file is still valid."
+      }
+    },
+    {
+      "id": "schemacheck",
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.1,
+          0.55
+        ],
+        "en": {
+          "title": "What the schema checks",
+          "items": [
+            {
+              "head": "Checked",
+              "text": "base64 well formed, Format and Language present, dates are dates."
+            },
+            {
+              "head": "Not checked",
+              "text": "A real PDF? The right size? A working link? Business checks: the tool or the receiver."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "What does the schema check for documents? That the base64 content is well formed, that the format and the language are there, and that dates are dates. What it cannot check: whether the content really is a P D F, whether the size matches, or whether a link still works. Those are business checks, done by the tool, or by the receiver's own rules."
+      }
+    },
+    {
+      "id": "receiver",
+      "chapter": {
+        "en": "On the receiver's side"
+      },
+      "slide": {
+        "layout": "steps",
+        "builds": [
+          0.1,
+          0.25,
+          0.4,
+          0.5,
+          0.75
+        ],
+        "en": {
+          "title": "On the receiver's side",
+          "items": [
+            {
+              "head": "Read the list"
+            },
+            {
+              "head": "Match the ISINs"
+            },
+            {
+              "head": "Store the file"
+            },
+            {
+              "head": "Replace the older version"
+            },
+            {
+              "head": "Publish",
+              "text": "Until the expiration date."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "What does a receiver do with the documents? It reads the list, matches each document to its share classes by ISIN, stores the file, and replaces the older version of the same type and language. Expiration dates tell it when a document must be taken down. Then the platform or the distributor's system can show the current document to investors."
+      }
+    },
+    {
+      "id": "cli",
+      "chapter": {
+        "en": "Tips"
+      },
+      "slide": {
+        "layout": "code",
+        "builds": [
+          0.0,
+          0.3
+        ],
+        "en": {
+          "title": "Without the tool",
+          "file": "shell",
+          "highlight": [
+            2,
+            3
+          ],
+          "code": "# select the KID's content with XPath and decode it\nxmllint --xpath \"string(//Document[FileName='EX-Multi-Asset_PRIIPs-KID_2025-02_en.pdf']/BinaryData)\" \\\n    Fund-Documents_2025-10.xml | base64 -d > kid.pdf\n\n# large deliveries: read as a stream\n#   Java: StAX (XMLStreamReader)    Python: lxml.etree.iterparse"
+        }
+      },
+      "say": {
+        "en": "Without the tool, the same works with standard means. Select the Binary Data element with X Path, and decode it with base64 on the command line, or in a few lines of Python or Java. For large deliveries with many documents, read the file as a stream, so that the documents do not all sit in memory at once."
+      }
+    },
+    {
+      "id": "tips",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.05,
+          0.22,
+          0.45,
+          0.58,
+          0.72
+        ],
+        "en": {
+          "title": "Tips",
+          "items": [
+            {
+              "head": "Keep SizeInBytes correct",
+              "text": "Receivers use it as a first check."
+            },
+            {
+              "head": "Set an ExpirationDate",
+              "text": "For documents that are replaced regularly."
+            },
+            {
+              "head": "Mark restricted documents"
+            },
+            {
+              "head": "One document per language"
+            },
+            {
+              "head": "No checksum yet",
+              "text": "A good change request."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "A few tips. Keep the size in bytes correct; receivers use it as a first check. Set an expiration date on documents that are replaced regularly, such as factsheets. Mark documents that are not for the public. Deliver one document per language. And note: FundsXML has no checksum for documents yet; that would be a good change request."
+      }
+    },
+    {
+      "id": "outro",
+      "card": "outro",
+      "say": {
+        "en": "That was documents in FundsXML: linked or embedded, how to get them in and out, and what receivers do with them. In the next film, you validate a delivery and check its data quality. Thanks for watching."
+      }
+    }
+  ]
+}
