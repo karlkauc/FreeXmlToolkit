@@ -49,6 +49,13 @@
       }
     },
     {
+      "id": "take-over",
+      "say": {
+        "de": "Der Modus XML vergleicht nur. Um Änderungen zu übernehmen, wechseln Sie zurück auf Text: Die Pfeile neben einem Unterschied übernehmen ihn auf die andere Seite, Alle nach rechts oder Alle nach links übernimmt alles auf einmal. Beide Seiten lassen sich direkt bearbeiten und danach speichern.",
+        "en": "The XML mode only compares. To take changes over, switch back to Text: the arrows next to a difference copy it to the other side, All right or All left takes everything at once. Both sides can be edited directly and saved afterwards."
+      }
+    },
+    {
       "id": "xml-mode",
       "chapter": {
         "de": "Als XML vergleichen",
@@ -67,6 +74,13 @@
       }
     },
     {
+      "id": "options",
+      "say": {
+        "de": "Unter XML-Optionen bestimmen Sie, was der Vergleich übersieht: Unterschiede bei Leerzeichen, Kommentare oder die Reihenfolge der Elemente. Schlüsselattribute wie id sorgen dafür, dass ein Artikel mit seinem Gegenstück verglichen wird, egal an welcher Stelle er steht. Eine Toleranz für Zahlen lässt kleine Rundungsunterschiede durchgehen. Ihre Auswahl merkt sich FreeXmlToolkit für das nächste Mal.",
+        "en": "XML Options decides what the comparison overlooks: whitespace differences, comments or the order of elements. Key attributes such as id make sure an item is compared with its counterpart wherever it stands. A numeric tolerance lets small rounding differences pass. FreeXmlToolkit remembers your choice for next time."
+      }
+    },
+    {
       "id": "ignore",
       "chapter": {
         "de": "Unwichtiges ausblenden",
@@ -75,6 +89,13 @@
       "say": {
         "de": "Manche Felder ändern sich bei jeder Lieferung, etwa ein Zeitstempel oder eine laufende Nummer. Unter den Optionen tragen Sie XPath-Ausdrücke ein, die beim Vergleich ignoriert werden. Zahlen lassen sich mit einer Toleranz vergleichen, damit Rundungsunterschiede nicht als Fehler zählen. Im erwarteten Dokument können Platzhalter stehen, die jeden Wert akzeptieren. Die Einstellungen merkt sich FreeXmlToolkit für den nächsten Vergleich. Gerade bei Testdaten, die regelmäßig neu erzeugt werden, sparen Sie sich damit viel Durchsehen von Unterschieden, die gar keine sind.",
         "en": "Some fields change with every delivery, such as a timestamp or a running number. Under Options you enter XPath expressions that the comparison ignores. Numbers can be compared with a tolerance, so rounding differences do not count as errors. The expected document can hold placeholders that accept any value. FreeXmlToolkit remembers the settings for the next comparison. Especially with test data that is generated again and again, that saves a lot of looking through differences that are no differences at all."
+      }
+    },
+    {
+      "id": "placeholders",
+      "say": {
+        "de": "Für erwartete Ergebnisse gibt es Platzhalter. Steht in der linken Datei statt eines Werts xmlunit.ignore, passt dort alles. isNumber verlangt eine Zahl, isDateTime ein Datum, und matchesRegex prüft den Text gegen einen regulären Ausdruck. So beschreibt eine erwartete Datei auch Werte, die sich bei jedem Lauf ändern, etwa eine Erstellungszeit.",
+        "en": "For expected results there are placeholders. If the left file holds xmlunit.ignore instead of a value, anything matches there. isNumber requires a number, isDateTime a date, and matchesRegex checks the text against a regular expression. That way an expected file also describes values that change with every run, such as a creation time."
       }
     },
     {

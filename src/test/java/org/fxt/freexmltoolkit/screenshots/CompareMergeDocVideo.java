@@ -121,6 +121,24 @@ class CompareMergeDocVideo {
                 video.zoomOut();
             });
 
+            video.scene("take-over", () -> {
+                Node allRight = button(I18n.t("DiffView.all-right"));
+                Node allLeft = button(I18n.t("DiffView.all-left"));
+                if (allRight != null) {
+                    video.moveTo(allRight);
+                    video.pause(700);
+                }
+                if (allLeft != null) {
+                    video.moveTo(allLeft);
+                }
+                video.spoken(0.6);
+                Node saveLeft = button(I18n.t("DiffView.save-left"));
+                if (saveLeft != null) {
+                    video.moveTo(saveLeft);
+                }
+                video.spoken(0.95);
+            });
+
             video.scene("xml-mode", () -> {
                 video.click(doc.<Node>find("#diff-mode-xml"));
                 video.pause(2500);
@@ -151,6 +169,23 @@ class CompareMergeDocVideo {
                 }
             });
 
+            video.scene("options", () -> {
+                video.click(doc.<Node>find("#diff-xml-options"));
+                video.pause(1000);
+                for (String key : new String[] {"DiffView.ignore-whitespace-differences", "DiffView.ignore-comments",
+                        "DiffView.ignore-element-order", "DiffView.key-attributes"}) {
+                    try {
+                        Node item = video.menuItem(I18n.t(key));
+                        video.moveTo(item);
+                        video.pause(700);
+                    } catch (Exception e) {
+                        System.out.println("[video] no menu item " + key);
+                    }
+                }
+                video.spoken(0.95);
+                keys.hidePopups();
+            });
+
             video.scene("ignore", () -> {
                 video.click(doc.<Node>find("#diff-xml-options"));
                 video.pause(1000);
@@ -164,6 +199,8 @@ class CompareMergeDocVideo {
                 video.spoken(0.95);
                 keys.hidePopups();
             });
+
+            video.scene("placeholders", () -> video.spoken(0.95));
 
             video.scene("folder", () -> {
                 video.click(doc.<Node>find("#menu-tools"));
