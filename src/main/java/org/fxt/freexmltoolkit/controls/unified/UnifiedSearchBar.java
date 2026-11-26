@@ -360,7 +360,7 @@ public class UnifiedSearchBar extends HBox {
             return;
         }
         int count = currentSearchTarget.countMatches(text);
-        statusLabel.setText(count >= 0 ? count + " found" : "Found");
+        statusLabel.setText(count >= 0 ? I18n.t("UnifiedSearchBar.found-count", count) : I18n.t("UnifiedSearchBar.found"));
         statusLabel.setStyle("");
     }
 
@@ -387,7 +387,7 @@ public class UnifiedSearchBar extends HBox {
         }
 
         if (count > 0) {
-            statusLabel.setText(count + " found");
+            statusLabel.setText(I18n.t("UnifiedSearchBar.found-count", count));
             statusLabel.setStyle("");
         } else {
             statusLabel.setText(I18n.t("UnifiedSearchBar.not-found"));
