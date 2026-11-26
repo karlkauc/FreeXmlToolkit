@@ -88,6 +88,13 @@
       }
     },
     {
+      "id": "simple-editor",
+      "say": {
+        "de": "Ein einfacher Typ lässt sich auch in einem eigenen Formular bearbeiten, dem Typ-Editor für einfache Typen. Er hat fünf Bereiche: Allgemein mit Name und final, Einschränkung mit Basistyp und Facetten, Liste, Vereinigung und Annotation für Dokumentation und AppInfo. Die Auswahl des Basistyps bietet nur an, wovon ein einfacher Typ ableiten darf: die anderen einfachen Typen des Schemas und die eingebauten Datentypen.",
+        "en": "A simple type can also be edited in a form of its own, the type editor for simple types. It has five areas: General with name and final, Restriction with base type and facets, List, Union, and Annotation for documentation and appinfo. The base type picker only offers what a simple type may derive from: the schema's other simple types and the built-in datatypes."
+      }
+    },
+    {
       "id": "complex",
       "chapter": {
         "de": "Komplexe Typen",
@@ -121,6 +128,13 @@
       "say": {
         "de": "Zurück in der Übersicht zeigt der Reiter Namespaces den Ziel-Namespace und alle Präfixe des Schemas. Import und Include binden andere Schemas ein: Include für Dateien mit demselben Namespace, Import für fremde Namespaces. Eingebunden zeigt deren Teile zusätzlich in der Tabelle. Präfixe lassen sich hier hinzufügen und ändern. Ein Präfix, das im Schema noch verwendet wird, lässt sich nicht entfernen, so bleibt das Schema gültig.",
         "en": "Back in the Overview, the Namespaces tab shows the target namespace and all prefixes of the schema. Import and Include bring in other schemas: Include for files with the same namespace, Import for foreign namespaces. Included shows their parts in the table as well. Prefixes can be added and changed here. A prefix the schema still uses cannot be removed, so the schema stays valid."
+      }
+    },
+    {
+      "id": "order",
+      "say": {
+        "de": "Gespeichert wird das Schema in der Reihenfolge, die Sie in der Übersicht sehen. Sie ändert sich nur, wenn Sie ausdrücklich sortieren. So bleiben Änderungen in der Versionsverwaltung klein und gut lesbar, und Kommentare oder Annotationen auf oberster Ebene behalten ihren Platz.",
+        "en": "The schema is saved in the order you see in the Overview. It only changes when you sort explicitly. That keeps changes in version control small and easy to read, and comments or annotations at the top level keep their place."
       }
     },
     {

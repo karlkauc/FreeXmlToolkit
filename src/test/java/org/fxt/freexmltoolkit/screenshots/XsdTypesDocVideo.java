@@ -205,6 +205,38 @@ class XsdTypesDocVideo {
                 video.spoken(0.95);
             });
 
+            video.scene("simple-editor", () -> {
+                Node row = row("CurrencyType");
+                if (row == null) {
+                    row = row("CountryCodeType");
+                }
+                if (row != null) {
+                    Bounds b = video.screenBounds(row);
+                    video.rightClick(b.getMinX() + 200, b.getCenterY());
+                    video.pause(800);
+                    try {
+                        video.click(video.menuItem(I18n.t("SchemaOverviewView.open-in-type-editor")));
+                        video.pause(2500);
+                        Bounds editor = video.screenBounds(doc.find("#editorHost"));
+                        video.zoom(new BoundingBox(editor.getMinX(), editor.getMinY(), editor.getWidth(), editor.getHeight() * 0.8));
+                    } catch (Exception e) {
+                        System.out.println("[video] no type editor for the simple type");
+                        keys.hidePopups();
+                    }
+                }
+                video.spoken(0.95);
+                video.zoomOut();
+                Node schemaTab = doc.fx(() -> doc.stage().getScene().getRoot().lookupAll(".tab").stream()
+                        .filter(t -> t.lookupAll(".tab-label").stream()
+                                .anyMatch(l -> l instanceof Labeled label && label.getText() != null
+                                        && label.getText().endsWith("order.xsd")))
+                        .findFirst().orElse(null));
+                if (schemaTab != null) {
+                    video.click(schemaTab);
+                    video.pause(1200);
+                }
+            });
+
             video.scene("complex", () -> {
                 Node row = row("OrderType");
                 if (row != null) {
@@ -274,6 +306,11 @@ class XsdTypesDocVideo {
                 video.moveTo(doc.<Node>find("#overview-directive"));
                 video.spoken(0.8);
                 video.moveTo(doc.<Node>find("#overview-show-included"));
+            });
+
+            video.scene("order", () -> {
+                video.moveTo(doc.<Node>find("#overview-sort"));
+                video.spoken(0.95);
             });
 
             video.scene("xsd11", () -> {
