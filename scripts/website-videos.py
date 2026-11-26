@@ -273,7 +273,9 @@ def json_ld(series, lang):
                 "description": pick(film["description"], f["lang"]) or pick(film["title"], f["lang"]),
                 "thumbnailUrl": f"{BASE_URL}videos/{f['name']}.webp",
                 "contentUrl": MP4_URL + f["name"] + ".mp4",
-                "uploadDate": datetime.date.fromtimestamp((RELEASE / f"{f['name']}.mp4").stat().st_mtime).isoformat(),
+                # schema.org / Google: an ISO 8601 date-time with a time zone, e.g. 2026-11-26T08:15:00+00:00
+                "uploadDate": datetime.datetime.fromtimestamp((RELEASE / f"{f['name']}.mp4").stat().st_mtime,
+                                                              tz=datetime.timezone.utc).replace(microsecond=0).isoformat(),
                 "duration": f"PT{secs // 60}M{secs % 60}S", "inLanguage": f["lang"]}})
     data = {"@context": "https://schema.org", "@type": "ItemList", "itemListElement": items}
     return '<script type="application/ld+json">' + json.dumps(data, ensure_ascii=False) + "</script>"
