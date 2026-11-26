@@ -85,6 +85,27 @@
       }
     },
     {
+      "id": "followups",
+      "say": {
+        "de": "Unter jeder Antwort hat der Bereich KI das Feld Verfeinern oder nachfragen. Was Sie dort schreiben, setzt dasselbe Gespräch fort, etwa nur die Einträge in Euro oder nach Datum sortiert. Das neue Ergebnis wird genauso geprüft wie das erste. Haben Sie ein übernommenes Ergebnis selbst bearbeitet, schickt FreeXmlToolkit Ihre Fassung mit, und das Modell arbeitet damit weiter.",
+        "en": "Below every answer, the AI area has the field Refine or ask a follow-up. What you write there continues the same conversation, for example only the entries in euros, or sorted by date. The new result is checked just like the first one. If you edited a result you took over, FreeXmlToolkit sends your version along, and the model continues from it."
+      }
+    },
+    {
+      "id": "unverified",
+      "say": {
+        "de": "Besteht ein Vorschlag die Prüfung nicht, bittet FreeXmlToolkit das Modell um eine Korrektur, bis zu dreimal. Klappt es dann immer noch nicht, zeigt der Bereich den letzten Vorschlag als ungeprüft, zusammen mit dem Bericht, was nicht passt. Ungeprüft übernehmen fragt noch einmal nach; nutzen Sie es nur, wenn Sie den Vorschlag selbst kontrolliert haben.",
+        "en": "If a proposal fails the checks, FreeXmlToolkit asks the model for a repair, up to three times. If it still does not pass, the area shows the last proposal as not verified, together with the report of what does not fit. Apply unverified asks once more; use it only after checking the proposal yourself."
+      }
+    },
+    {
+      "id": "models",
+      "say": {
+        "de": "Wichtig: Geprüft heißt, dass ein Vorschlag sich übersetzen und ausführen lässt und die strukturellen Prüfungen besteht, nicht dass er Ihre Frage richtig beantwortet. Kleine lokale Modelle schreiben oft Abfragen, die laufen, aber das Falsche zählen. Kontrollieren Sie deshalb das Ergebnis, und nehmen Sie für echte Arbeit ein größeres Modell. Ein Modell, das die Prüfungen nicht besteht, bietet gar nichts an: weniger Vorschläge, aber keine kaputten Dokumente.",
+        "en": "Important: verified means a proposal compiles, runs and passes the structural checks, not that it answers your question correctly. Small local models often write queries that run but count the wrong thing. So check the result, and use a larger model for real work. A model that fails the checks offers nothing at all: fewer proposals, but no broken documents."
+      }
+    },
+    {
       "id": "mcp",
       "chapter": {
         "de": "Der MCP-Server",
@@ -93,6 +114,20 @@
       "say": {
         "de": "Der MCP-Server geht den umgekehrten Weg: KI-Agenten wie Claude Code nutzen die Werkzeuge von FreeXmlToolkit. fxt-cli mcp startet ihn, und die Liste zeigt die Werkzeuge: validieren, XPath und XQuery, XSLT, XSpec, Gliederungen von Dokumenten und Schemas, Beispiel-XML, Schematron-Prüfung und Vergleich.",
         "en": "The MCP server goes the other way: AI agents such as Claude Code use FreeXmlToolkit's tools. fxt-cli mcp starts it, and the list shows the tools: validate, XPath and XQuery, XSLT, XSpec, outlines of documents and schemas, sample XML, Schematron check and compare."
+      }
+    },
+    {
+      "id": "mcp-setup",
+      "say": {
+        "de": "In Claude Code richten Sie den Server mit einem Befehl im Arbeitsordner ein: claude mcp add fxt, dann der Pfad zu fxt-cli mit mcp und der Option root für den Ordner, den die Werkzeuge lesen dürfen. Die Werkzeuge erscheinen dann als mcp__fxt__validate und so weiter. Andere Programme nehmen einen Eintrag in ihrer JSON-Konfiguration. Mit der Option tools bieten Sie nur ausgewählte Werkzeuge an.",
+        "en": "In Claude Code you set up the server with one command in the working folder: claude mcp add fxt, then the path to fxt-cli with mcp and the root option for the folder the tools may read. The tools then appear as mcp__fxt__validate and so on. Other programs take an entry in their JSON configuration. With the tools option you offer only selected tools."
+      }
+    },
+    {
+      "id": "mcp-use",
+      "say": {
+        "de": "Das hilft vor allem, wenn ein Agent XML-Code schreibt: Ein Stylesheet oder eine Abfrage läuft zuerst über die Werkzeuge, und Fehler kommen mit Code und Zeile zurück, bevor Sie das Ergebnis sehen. Nach einer Änderung prüft validate, ob das Dokument noch zum Schema passt, und schema_describe erklärt ein unbekanntes Schema. Für ältere Prozessoren lässt sich die Sprachversion vorgeben, etwa XPath eins oder XSLT zwei.",
+        "en": "It helps most when an agent writes XML code: a stylesheet or a query first runs through the tools, and errors come back with code and line before you see the result. After a change, validate checks whether the document still fits its schema, and schema_describe explains an unfamiliar schema. For older processors the language version can be set, for example XPath one or XSLT two."
       }
     },
     {

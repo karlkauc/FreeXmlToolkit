@@ -1,0 +1,20 @@
+# Claude Code: in the folder the agent works in
+claude mcp add fxt -- /opt/freexmltoolkit/bin/fxt-cli mcp --root .
+claude mcp list
+
+# The tools then appear as mcp__fxt__validate, mcp__fxt__xslt_transform, ...
+
+# Other MCP clients: JSON configuration
+{
+  "mcpServers": {
+    "fxt": {
+      "command": "/opt/freexmltoolkit/bin/fxt-cli",
+      "args": ["mcp", "--root", "/home/me/projects/orders"]
+    }
+  }
+}
+
+# Options
+#   --root DIR       a folder the tools may read (repeatable)
+#   --tools NAMES    offer only these tools, e.g. --tools validate,xpath,schema_describe
+#   --list-tools     print the tools and exit

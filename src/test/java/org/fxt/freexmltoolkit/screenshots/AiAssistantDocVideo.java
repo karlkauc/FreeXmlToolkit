@@ -55,6 +55,11 @@ class AiAssistantDocVideo {
         ExampleFiles.install(folder);
         Path xml = folder.resolve("order.xml");
         Path tools = DocFiles.work("mcp").resolve("fxt-cli-mcp-tools.txt");
+        Path setup = DocFiles.work("mcp").resolve("mcp-setup.txt");
+        try (var in = getClass().getResourceAsStream("/videos/mcp-setup.txt")) {
+            Files.write(setup, in.readAllBytes());
+        }
+        Path guide = Path.of("docs/guides/ai-assistant.md").toAbsolutePath();
         try (var in = getClass().getResourceAsStream("/videos/fxt-cli-mcp-tools.txt")) {
             Files.write(tools, in.readAllBytes());
         }
@@ -168,7 +173,44 @@ class AiAssistantDocVideo {
                 video.zoomOut();
             });
 
+            video.scene("followups", () -> video.spoken(0.95));
+
+            video.scene("unverified", () -> video.spoken(0.95));
+
+            video.scene("models", () -> {
+                if (Files.exists(guide)) {
+                    doc.open(guide, "# AI Assistant");
+                    var area = host.getActiveCodeArea();
+                    int at = host.getActiveText().orElse("").indexOf("| | Run 1 | Run 2 |");
+                    if (area != null && at > 0) {
+                        doc.onFx(() -> area.showParagraphAtTop(Math.max(0, area.offsetToPosition(at,
+                                org.fxmisc.richtext.model.TwoDimensional.Bias.Forward).getMajor() - 3)));
+                        video.pause(600);
+                        Bounds editor = video.screenBounds(doc.find("#editorHost"));
+                        video.zoom(new BoundingBox(editor.getMinX(), editor.getMinY(), editor.getWidth(), editor.getHeight() * 0.5));
+                    }
+                }
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
             video.scene("mcp", () -> {
+                doc.open(tools, "fxt-cli mcp");
+                Bounds editor = video.screenBounds(doc.find("#editorHost"));
+                video.zoom(new BoundingBox(editor.getMinX(), editor.getMinY(), editor.getWidth(), editor.getHeight() * 0.6));
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
+            video.scene("mcp-setup", () -> {
+                doc.open(setup, "claude mcp add");
+                Bounds editor = video.screenBounds(doc.find("#editorHost"));
+                video.zoom(new BoundingBox(editor.getMinX(), editor.getMinY(), editor.getWidth() * 0.75, editor.getHeight() * 0.55));
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
+            video.scene("mcp-use", () -> {
                 doc.open(tools, "fxt-cli mcp");
                 Bounds editor = video.screenBounds(doc.find("#editorHost"));
                 video.zoom(new BoundingBox(editor.getMinX(), editor.getMinY(), editor.getWidth(), editor.getHeight() * 0.6));
