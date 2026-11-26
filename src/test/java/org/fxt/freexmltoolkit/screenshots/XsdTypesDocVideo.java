@@ -135,7 +135,7 @@ class XsdTypesDocVideo {
                     }
                     if (name != null) {
                         video.click(name);
-                        video.typeIntoFocused("CurrencyType");
+                        typeInto(video, name, "CurrencyType");
                     }
                     video.spoken(0.5);
                     clickDefault(video, dialog);
@@ -159,6 +159,11 @@ class XsdTypesDocVideo {
             });
 
             video.scene("add-facet", () -> {
+                if (row("CurrencyType") == null) {
+                    System.out.println("[video] no CurrencyType row: no facets added");
+                    video.spoken(0.95);
+                    return;
+                }
                 clickRow(video, "CurrencyType");
                 video.pause(1000);
                 Node inspector = doc.find("#inspectorWrapper");
