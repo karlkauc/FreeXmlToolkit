@@ -38,7 +38,7 @@ Any key of the user's settings file works. These are the ones most often managed
 
 | Key | Values | Setting |
 |---|---|---|
-| `update.allowed` | `false` | **Policy only.** No update check, no **Check for Updates** in the Help menu or the About dialog, no update installs. Use it when software distribution delivers new versions. |
+| `update.allowed` | `false` | **Policy only.** No update check, **Check for Updates** in the Help menu and the About dialog greyed out, no update installs. Use it when software distribution delivers new versions. |
 | `update.check.enabled` | `true` / `false` | Automatic update check at start (Settings → Updates) |
 | `telemetry.usage.enabled`, `telemetry.errors.enabled` | `true` / `false` | Anonymous usage statistics and error reports (Settings → Privacy) |
 | `fxt.telemetry.disabled` | `true` | Telemetry fully off, without the first-start notice (see [Privacy & Telemetry](privacy-telemetry.md)) |

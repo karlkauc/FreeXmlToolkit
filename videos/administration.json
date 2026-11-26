@@ -83,8 +83,8 @@
     {
       "id": "updates",
       "say": {
-        "de": "Schaltet die Richtlinie Updates ab, gibt es weder die automatische Prüfung noch den Menüeintrag Nach Updates suchen. Neue Versionen kommen dann nur über Ihre Softwareverteilung. Zu jeder Version veröffentlicht FreeXmlToolkit Prüfsummen und eine Stückliste der Software, eine SBOM, damit Sie prüfen können, was Sie verteilen.",
-        "en": "If the policy switches updates off, there is neither the automatic check nor the menu entry Check for Updates. New versions then arrive only through your software distribution. With every version FreeXmlToolkit publishes checksums and a software bill of materials, an SBOM, so you can verify what you distribute."
+        "de": "Schaltet die Richtlinie Updates ab, entfällt die automatische Prüfung, und der Menüeintrag Nach Updates suchen ist ausgegraut. Neue Versionen kommen dann nur über Ihre Softwareverteilung. Zu jeder Version veröffentlicht FreeXmlToolkit Prüfsummen und eine Stückliste der Software, eine SBOM, damit Sie prüfen können, was Sie verteilen.",
+        "en": "If the policy switches updates off, the automatic check is gone and the menu entry Check for Updates is greyed out. New versions then arrive only through your software distribution. With every version FreeXmlToolkit publishes checksums and a software bill of materials, an SBOM, so you can verify what you distribute."
       }
     },
     {
