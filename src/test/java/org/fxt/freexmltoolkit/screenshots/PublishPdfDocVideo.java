@@ -126,6 +126,23 @@ class PublishPdfDocVideo {
                 doc.onFx(() -> host.openFile(xml));
             });
 
+            video.scene("fo-basics", () -> {
+                doc.onFx(() -> host.openFile(xsl));
+                video.pause(800);
+                var area = host.getActiveCodeArea();
+                int at = host.getActiveText().orElse("").indexOf("<fo:simple-page-master");
+                if (area != null && at > 0) {
+                    doc.onFx(() -> area.showParagraphAtTop(Math.max(0, area.offsetToPosition(at,
+                            org.fxmisc.richtext.model.TwoDimensional.Bias.Forward).getMajor() - 2)));
+                    video.pause(500);
+                }
+                Bounds editor = video.screenBounds(doc.find("#editorHost"));
+                video.zoom(new BoundingBox(editor.getMinX(), editor.getMinY(), editor.getWidth(), editor.getHeight() * 0.6));
+                video.spoken(0.95);
+                video.zoomOut();
+                doc.onFx(() -> host.openFile(xml));
+            });
+
             video.scene("panel", () -> {
                 video.click(doc.<Node>find("#activity-pdf"));
                 video.pause(1200);
@@ -147,6 +164,18 @@ class PublishPdfDocVideo {
                 video.click(author);
                 video.typeIntoFocused("Northwind Books");
                 video.spoken(0.95);
+            });
+
+            video.scene("metadata", () -> {
+                video.zoom(doc.<Node>find("#leftPanelWrapper"));
+                for (String id : new String[] {"#fop-meta-title", "#fop-meta-author", "#fop-meta-subject"}) {
+                    video.moveTo(doc.<Node>find(id));
+                    video.pause(500);
+                }
+                video.spoken(0.5);
+                video.moveTo(doc.<Node>find("#fop-page-size"));
+                video.spoken(0.95);
+                video.zoomOut();
             });
 
             video.scene("options", () -> {
@@ -180,6 +209,33 @@ class PublishPdfDocVideo {
                 video.spoken(0.95);
             });
 
+            video.scene("change", () -> {
+                doc.onFx(() -> host.openFile(xsl));
+                video.pause(800);
+                int at = host.getActiveText().orElse("").indexOf("font-size=\"20pt\"") + "font-size=\"".length();
+                if (at > 20) {
+                    var area = host.getActiveCodeArea();
+                    doc.onFx(() -> area.showParagraphAtTop(Math.max(0, area.offsetToPosition(at,
+                            org.fxmisc.richtext.model.TwoDimensional.Bias.Forward).getMajor() - 3)));
+                    video.pause(400);
+                    video.retype(at, 2, "28");
+                }
+                video.spoken(0.3);
+                new VideoTyping(doc, video).shortcut(javafx.scene.input.KeyCode.S, false, "S");
+                video.pause(1200);
+                FopPanel fop = doc.findType(FopPanel.class);
+                java.io.File pdf = xml.resolveSibling("invoice.pdf").toFile();
+                video.moveTo(doc.<Node>find("#fop-generate"));
+                doc.onFx(() -> fop.generateTo(pdf));
+                video.pause(4000);
+                Node preview = doc.find("#fop-preview");
+                if (preview != null && !doc.fx(preview::isDisabled)) {
+                    video.click(preview);
+                    video.pause(3000);
+                }
+                video.spoken(0.95);
+            });
+
             video.scene("messages", () -> {
                 video.zoom(doc.<Node>find("#leftPanelWrapper"));
                 video.moveTo(doc.<Node>find("#fop-messages"));
@@ -198,6 +254,15 @@ class PublishPdfDocVideo {
                 video.zoomOut();
                 video.moveTo(doc.<Node>find("#fop-tool-debug"));
                 video.spoken(0.95);
+            });
+
+            video.scene("debug-fo", () -> {
+                video.zoom(doc.<Node>find("#leftPanelWrapper"));
+                video.moveTo(doc.<Node>find("#fop-tool-debug"));
+                video.spoken(0.55);
+                video.moveTo(doc.<Node>find("#fop-render-fo"));
+                video.spoken(0.95);
+                video.zoomOut();
             });
 
             video.scene("processors", () -> {

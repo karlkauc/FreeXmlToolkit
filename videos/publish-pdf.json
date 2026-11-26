@@ -38,6 +38,13 @@
       }
     },
     {
+      "id": "fo-basics",
+      "say": {
+        "de": "Ein Blick in die Bausteine von XSL-FO: simple-page-master legt das Seitenformat fest, hier A4 mit zwei Zentimetern Rand. page-sequence mit einem flow enthält den fließenden Inhalt, der automatisch auf weitere Seiten umbricht. Ein block ist ein Absatz mit Schrift, Größe und Abständen, und table baut Tabellen aus Spalten, Zeilen und Zellen. Daten aus der Bestellung kommen wie in jedem XSLT mit value-of hinein.",
+        "en": "A look at the building blocks of XSL-FO: simple-page-master sets the page format, here A4 with two centimetre margins. page-sequence with a flow holds the flowing content, which breaks onto further pages automatically. A block is a paragraph with font, size and spacing, and table builds tables from columns, rows and cells. Data from the order comes in with value-of, as in any XSLT."
+      }
+    },
+    {
       "id": "panel",
       "chapter": {
         "de": "Das Werkzeug PDF",
@@ -46,6 +53,13 @@
       "say": {
         "de": "Die Aktivität PDF in der Aktivitätsleiste öffnet das Werkzeug. Oben stehen die XML-Datei und das Stylesheet, beide mit Ändern auszuwählen oder per Ablegen. Darunter tragen Sie Titel, Autor und Thema ein, die als Metadaten im PDF landen und zum Beispiel in den Dokumenteigenschaften eines PDF-Betrachters erscheinen.",
         "en": "The PDF activity in the activity bar opens the tool. At the top are the XML file and the stylesheet, both chosen with Change or by dropping a file. Below them you enter title, author and subject, which end up as metadata in the PDF and appear, for example, in the document properties of a PDF viewer."
+      }
+    },
+    {
+      "id": "metadata",
+      "say": {
+        "de": "Titel, Autor und Thema landen in den Dokumenteigenschaften des PDF, wo Suchmaschinen und Archivsysteme sie lesen. Das Seitenformat im Panel wird als Parameter page-size und page-orientation an das Stylesheet übergeben; es wirkt nur, wenn das Stylesheet diese Parameter auch verwendet.",
+        "en": "Title, author and subject go into the PDF's document properties, where search engines and archive systems read them. The page size in the panel is passed to the stylesheet as the parameters page-size and page-orientation; it only has an effect if the stylesheet uses those parameters."
       }
     },
     {
@@ -67,6 +81,13 @@
       }
     },
     {
+      "id": "change",
+      "say": {
+        "de": "Layout entsteht in kleinen Schritten. Ändern Sie im Stylesheet zum Beispiel die Schriftgröße der Überschrift von zwanzig auf achtundzwanzig Punkt, speichern Sie mit Strg S und erzeugen Sie das PDF erneut. Das PDF wird aus den gespeicherten Dateien erzeugt, deshalb vor dem Erzeugen immer speichern. Die Vorschau zeigt dann das neue Ergebnis. So tasten Sie sich an das gewünschte Aussehen heran.",
+        "en": "Layout comes together in small steps. In the stylesheet, change for example the heading's font size from twenty to twenty-eight points, save with Ctrl S and generate the PDF again. The PDF is made from the saved files, so always save before generating. The preview then shows the new result. That way you work your way towards the look you want."
+      }
+    },
+    {
       "id": "messages",
       "say": {
         "de": "Meldungen und Ereignisse listet, was der FO-Prozessor beim Setzen bemerkt hat. Ist zum Beispiel eine Tabelle breiter als die Seite oder fehlt eine Schrift, erfahren Sie es hier, mit einer verständlichen Beschreibung. PDF öffnen zeigt das Ergebnis im Programm Ihres Systems.",
@@ -85,6 +106,13 @@
       }
     },
     {
+      "id": "debug-fo",
+      "say": {
+        "de": "Zwei Werkzeuge helfen bei der Fehlersuche. Stylesheet debuggen startet den XSLT-Debugger mit genau diesem Stylesheet und dieser Eingabe, mit Haltepunkten und Variablen wie im Video zum Debugger. PDF aus FO rendern setzt ein fertiges, auch von Hand bearbeitetes FO-Dokument direkt in ein PDF, ohne die Umwandlung davor.",
+        "en": "Two tools help with finding faults. Debug Stylesheet starts the XSLT debugger with exactly this stylesheet and input, with breakpoints and variables as in the debugger video. Render PDF from FO turns a finished FO document, even one edited by hand, straight into a PDF without the transformation before it."
+      }
+    },
+    {
       "id": "processors",
       "chapter": {
         "de": "Externe Prozessoren und Automatisierung",
@@ -98,8 +126,8 @@
     {
       "id": "automation",
       "say": {
-        "de": "Für wiederkehrende Dokumente legen Sie in einem Projekt ein Szenario mit der Ausgabe PDF an, dann entsteht die Rechnung für jede Bestellung mit einem Klick. Auf der Kommandozeile erzeugt fxt-cli fop dasselbe PDF ohne Oberfläche, etwa in einer nächtlichen Verarbeitung.",
-        "en": "For recurring documents, create a scenario with PDF output in a project, and the invoice for every order is one click away. On the command line, fxt-cli fop creates the same PDF without a user interface, in a nightly process for example."
+        "de": "Für wiederkehrende Dokumente legen Sie in einem Projekt ein Szenario mit der Ausgabe PDF an, dann entsteht die Rechnung für jede Bestellung mit einem Klick. Auf der Kommandozeile erzeugt fxt-cli fop dasselbe PDF aus XML und Stylesheet oder aus einer fertigen FO-Datei, wahlweise mit einem externen Prozessor.",
+        "en": "For recurring documents, create a scenario with PDF output in a project, and the invoice for every order is one click away. On the command line, fxt-cli fop renders the same PDF from XML and stylesheet or from a finished FO file, optionally with an external processor."
       }
     },
     {
