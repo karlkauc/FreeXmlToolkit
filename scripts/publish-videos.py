@@ -79,8 +79,9 @@ def chapters_vtt(chapters, total, path):
 
 
 def faststart(source, target):
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(source), "-map", "0:v", "-map", "0:a", "-c", "copy",
-                    "-movflags", "+faststart", str(target)], check=True)
+    """Remux for the web: picture and sound only, keeping the metadata (title, the AI note in comment)."""
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(source), "-map", "0:v", "-map", "0:a", "-map_metadata", "0",
+                    "-c", "copy", "-movflags", "+faststart", str(target)], check=True)
 
 
 def poster(source, target, at=1.5):

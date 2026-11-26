@@ -1,6 +1,7 @@
 {
   "_comment": "The FundsXML look of this set's title and closing cards, after the FundsXML brand guide (https://branding.status20.net/, presentation template title slide). Manrope: SIL Open Font License 1.1. The logo belongs to FundsXML.",
-  "logo": "brand/fundsxml-logo.png",
+  "logo": "brand/fundsxml-logo-official.png",
+  "logo_height": 72,
   "font": "brand/Manrope-Regular.ttf",
   "font_bold": "brand/Manrope-Bold.ttf",
   "colors": {
@@ -19,6 +20,7 @@
       "kicker": "Tutorial · Episode {n} of {total}",
       "series_kicker": "Tutorial",
       "footer": "Shown with FreeXmlToolkit  ·  fundsxml.org",
+      "ai_label": "AI-generated narration · real application footage",
       "thanks": "Thanks for watching",
       "next": "up next",
       "more": "Learn more",

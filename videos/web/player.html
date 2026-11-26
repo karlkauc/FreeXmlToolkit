@@ -16,7 +16,7 @@
 <body>
 <div class="page">
 <h1>FundsXML Training Videos</h1>
-<p>Two short series about FundsXML, the open standard for fund data exchange: one for business readers, one for developers and data teams. All examples use fictional funds and synthetic identifiers.</p>
+<p>Two short series about FundsXML, the open standard for fund data exchange: one for business readers, one for developers and data teams. All examples use fictional funds and synthetic identifiers. The narration is AI-generated (a synthetic voice, texts reviewed by people); the picture shows the real application.</p>
 <!-- widget -->
 <div class="fx-vid" id="fx-vid">
 <style>
@@ -57,6 +57,9 @@
 .fx-vid .fxv-meta { font-size: 12px; color: var(--fxv-muted); display: flex; justify-content: space-between; }
 .fx-vid .fxv-card-title { font-size: 15px; font-weight: 600; margin-top: 2px; line-height: 1.35; }
 .fx-vid .fxv-note { font-size: 12px; color: var(--fxv-muted); margin: 24px 0 0; }
+.fx-vid .fxv-ai { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--fxv-ink); background: var(--fxv-soft);
+  border: 1px solid var(--fxv-line); border-radius: 999px; padding: 4px 12px 4px 4px; margin: 0 0 12px; width: fit-content; max-width: 100%; }
+.fx-vid .fxv-ai b { background: var(--fxv-ink); color: #fff; font-size: 11px; letter-spacing: .04em; border-radius: 999px; padding: 2px 8px; flex: none; }
 @media (max-width: 820px) { .fx-vid .fxv-stage { grid-template-columns: minmax(0, 1fr); } .fx-vid .fxv-chaps { max-height: none; } }
 @media (max-width: 560px) { .fx-vid .fxv-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .fx-vid .fxv-card-title { font-size: 13px; } .fx-vid .fxv-card-body { padding: 8px 10px 10px; } }
@@ -65,6 +68,7 @@
 <div class="fxv-stage">
   <div class="fxv-player"><video controls preload="metadata" playsinline crossorigin="anonymous"></video></div>
   <div class="fxv-info" aria-live="polite">
+    <p class="fxv-ai"><b>AI</b><span>AI-generated narration (synthetic voice) · real application footage</span></p>
     <p class="fxv-kicker"></p>
     <h2 class="fxv-title"></h2>
     <p class="fxv-desc"></p>

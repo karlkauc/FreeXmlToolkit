@@ -72,6 +72,9 @@ CARD_TEXT = {
     "de": {"kicker": "FreeXmlToolkit · Lernvideo", "more": "Weiterlesen:",
            "ai": "Sprecherstimme und Schnitt sind KI-generiert. Das Video zeigt die echte Anwendung."},
 }
+# written into every film's metadata (comment), so a machine can tell the narration is synthetic (EU AI Act Art. 50)
+AI_NOTE = ("AI-generated content: the narration is a synthetic voice (Piper TTS, {voice}), the text and the "
+           "editing are AI-generated and reviewed by a human. The screen footage shows the real application.")
 
 
 BOARDS = ROOT / "videos"   # the storyboards' folder: videos/ or videos/<set>/ (--set)
@@ -272,7 +275,7 @@ class Brand:
         d = ImageDraw.Draw(img)
         d.rectangle([0, 0, 27, H], fill=self.c["bar"])
         logo = Image.open(BOARDS / self.theme["logo"]).convert("RGBA")
-        height = 58
+        height = self.theme.get("logo_height", 58)
         logo = logo.resize((round(logo.width * height / logo.height), height), Image.LANCZOS)
         img.paste(logo, (160, 120), logo)
         return img, d
@@ -320,7 +323,26 @@ def brand_intro(path, theme, lang, board, series_title):
     if series_title:
         d.text((160, y + 30), series_title, font=b.font(46), fill=b.c["text"])
     d.text((160, H - 130), t["footer"], font=b.font(34), fill=b.c["text"])
+    if t.get("ai_label"):
+        ai_badge(d, b, t["ai_label"])
     img.save(path)
+
+
+def ai_badge(d, b, label):
+    """The AI label at the bottom right of the title card: an "AI" tag and a short text in a framed pill,
+    seen from the first second of the film (EU AI Act Art. 50, Code of Practice: visible at first exposure)."""
+    fnt, tag_fnt = b.font(30), b.font(28, True)
+    text_w = d.textlength(label, font=fnt)
+    tag_w = d.textlength("AI", font=tag_fnt) + 28
+    height, pad, gap = 60, 14, 16
+    right, top = W - 120, H - 140
+    left = right - (pad + tag_w + gap + text_w + pad + 8)
+    d.rounded_rectangle([left, top, right, top + height], radius=height // 2, outline=b.c["border"], width=2,
+                        fill=b.c["panel"])
+    tx = left + pad
+    d.rounded_rectangle([tx, top + 11, tx + tag_w, top + height - 11], radius=10, fill=b.c["heading"])
+    d.text((tx + tag_w / 2, top + height / 2), "AI", font=tag_fnt, fill=(255, 255, 255), anchor="mm")
+    d.text((tx + tag_w + gap, top + height / 2), label, font=fnt, fill=b.c["heading"], anchor="lm")
 
 
 def series_titles(lang, spec):
@@ -343,6 +365,11 @@ def brand_outro(path, theme, lang, board, series_title):
     img, d = b.canvas()
     d.text((160, 225), t["thanks"], font=b.font(80, True), fill=b.c["heading"])
     b.accent(img, 160, 335, 260)
+    # the disclaimer card at the bottom (measured first: the series list must end above it)
+    note_fnt = b.font(25)
+    left, right, bottom = 160, W - 160, H - 50
+    lines = wrap(d, t["disclaimer"], note_fnt, right - left - 64)
+    top = bottom - 40 - 35 * len(lines)
     # left column: the series, this film marked, the next one named
     spec = series_of(board)
     continuing = board.get("standalone")
@@ -358,6 +385,7 @@ def brand_outro(path, theme, lang, board, series_title):
         ids = [vid for vid, _ in episodes]
         here = ids.index(board["id"]) if board["id"] in ids else -1
         y = 455
+        step = min(56, (top - 24 - 40 - y) / max(1, len(episodes) - 1))   # 8 films fit above the disclaimer
         for i, (vid, title) in enumerate(episodes):
             current, upcoming = i == here, i == here + 1
             fnt = b.font(30, current or upcoming)
@@ -369,7 +397,7 @@ def brand_outro(path, theme, lang, board, series_title):
             d.text((200, y), label, font=fnt, fill=colour)
             if upcoming:
                 d.text((200 + d.textlength(label, font=fnt) + 18, y + 4), t["next"], font=b.font(24), fill=b.c["text"])
-            y += 56
+            y += step
     # right column: where to read on
     x = 1040
     d.text((x, 395), t["more"], font=b.font(34, True), fill=b.c["accent"])
@@ -378,15 +406,11 @@ def brand_outro(path, theme, lang, board, series_title):
         d.text((x, y), label, font=b.font(28), fill=b.c["text"])
         d.text((x, y + 34), url, font=b.font(36, True), fill=b.c["heading"])
         y += 92
-    # the disclaimer in a card at the bottom
-    fnt = b.font(25)
-    left, right, bottom = 160, W - 160, H - 50
-    lines = wrap(d, t["disclaimer"], fnt, right - left - 64)
-    top = bottom - 40 - 35 * len(lines)
+    # the disclaimer card
     d.rounded_rectangle([left, top, right, bottom], radius=12, fill=b.c["panel"], outline=b.c["border"], width=2)
     y = top + 20
     for line in lines:
-        d.text((left + 32, y), line, font=fnt, fill=b.c["heading"])
+        d.text((left + 32, y), line, font=note_fnt, fill=b.c["heading"])
         y += 35
     img.save(path)
 
@@ -630,6 +654,11 @@ def screen_runs(board):
     return runs + ([run_] if run_ else [])
 
 
+def ai_note(work):
+    voice = json.loads((work / "timing.json").read_text()).get("voice", "a local voice model")
+    return AI_NOTE.format(voice=voice)
+
+
 def compose(board, lang, work, out):
     """Cuts the film from segments in the storyboard's order: the title card, slides, runs of the
     screen recording (between slides), the closing card. A storyboard without slides has one run."""
@@ -785,7 +814,8 @@ def compose(board, lang, work, out):
          "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p", "-r", FPS,
          "-c:a", "aac", "-b:a", "160k", "-ac", "2", "-c:s", "mov_text",
          "-metadata:s:s:0", f"language={SUBTITLE_LANG.get(lang, lang)}",
-         "-metadata", f"title={board['title'][lang]}", "-t", f"{total:.3f}", "-movflags", "+faststart", out])
+         "-metadata", f"title={board['title'][lang]}", "-metadata", f"comment={ai_note(work)}",
+         "-t", f"{total:.3f}", "-movflags", "+faststart", out])
 
     # title, description and chapters for the upload (a chapter needs 10 s, shorter ones join the one before)
     lines = [board["title"][lang], "", board["description"][lang], "", "0:00 Intro"]
@@ -898,7 +928,7 @@ def series(lang, spec):
     work = ROOT / "build" / "videos" / spec["id"] / lang
     work.mkdir(parents=True, exist_ok=True)
     (work / "list.txt").write_text("".join(f"file '{f}'\n" for f in films))
-    meta = [";FFMETADATA1", f"title={spec['title'][lang]}"]
+    meta = [";FFMETADATA1", f"title={spec['title'][lang]}", f"comment={ai_note(films[0].parent / boards[0]['id'] / lang)}"]
     chapters, srt_parts, start = [], [], 0.0
     for film, board in zip(films, boards):
         length = seconds_of(film)
