@@ -28,6 +28,7 @@ The first series, in the order it is meant to be watched. Status: **published** 
 | 19 | `profiler` | Find slow stylesheets and queries / Langsame Stylesheets und Abfragen finden | `guides/transform-query/profile.md` | published |
 | 20 | `xproc` | Run XProc pipelines / XProc-Pipelines ausführen | `guides/transform-query/xproc.md` | published |
 | 21 | `command-line` | Automate with the command line fxt-cli / Automatisieren mit der Kommandozeile fxt-cli | `automate/command-line.md` | published |
+| 22 | `sign-encrypt` | Sign and encrypt XML / XML signieren und verschlüsseln | `guides/sign-encrypt/` | published |
 | 23 | `ai-assistant` | AI assistant and MCP server / KI-Assistent und MCP-Server | `guides/ai-assistant.md` | published |
 | 24 | `settings` | Settings and appearance / Einstellungen und Darstellung | `reference/settings.md` | published |
 | 25 | `administration` | Manage FreeXmlToolkit in a company / FreeXmlToolkit im Unternehmen verwalten | `administer/policies.md` | published |
