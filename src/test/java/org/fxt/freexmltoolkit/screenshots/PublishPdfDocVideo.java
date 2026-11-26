@@ -227,7 +227,14 @@ class PublishPdfDocVideo {
                 java.io.File pdf = xml.resolveSibling("invoice.pdf").toFile();
                 video.moveTo(doc.<Node>find("#fop-generate"));
                 doc.onFx(() -> fop.generateTo(pdf));
-                video.pause(4000);
+                video.pause(800);
+                Node generateButton = doc.find("#fop-generate");
+                try {
+                    doc.waitUntilFx(90, () -> generateButton != null && !generateButton.isDisabled());
+                } catch (Exception e) {
+                    System.out.println("[video] PDF not generated again within 90 s");
+                }
+                video.pause(800);
                 Node preview = doc.find("#fop-preview");
                 if (preview != null && !doc.fx(preview::isDisabled)) {
                     video.click(preview);
