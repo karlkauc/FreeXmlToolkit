@@ -34,6 +34,7 @@ class SignEncryptDocVideo {
     private static final String PASSWORD = "Video-Demo-2026";
 
     private final DocShell doc = new DocShell("video");
+    private DocVideoRecorder video;
 
     @Start
     void start(Stage stage) throws Exception {
@@ -56,7 +57,7 @@ class SignEncryptDocVideo {
                 () -> host.getActiveText().map(t -> t.contains("PO-1042")).orElse(false));
         doc.settle(1500);
 
-        DocVideoRecorder video = new DocVideoRecorder(doc);
+        video = new DocVideoRecorder(doc);
         VideoTyping keys = new VideoTyping(doc, video);
         video.start();
         try {
@@ -190,7 +191,14 @@ class SignEncryptDocVideo {
         }
     }
 
+    /** Picks the section in the side panel, as a user does: that also brings the page to the front. */
     private void show(SignatureView.Action action) {
+        Node entry = doc.find("#sig-nav-" + action.key());
+        if (entry != null && doc.fx(() -> entry.localToScreen(entry.getBoundsInLocal()) != null)) {
+            video.click(entry);
+            doc.settle(900);
+            return;
+        }
         SignatureView view = doc.findType(SignatureView.class);
         if (view != null) {
             doc.onFx(() -> view.selectAction(action));
