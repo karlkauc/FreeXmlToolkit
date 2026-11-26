@@ -142,6 +142,20 @@ class XProcDocVideo {
                 video.zoom(new BoundingBox(editor.getMinX(), editor.getCenterY(), editor.getWidth(), editor.getHeight() / 2));
                 video.spoken(0.75);
                 video.zoomOut();
+                // the run also reports the error in a dialog: close it before going on
+                VideoTyping keys = new VideoTyping(doc, video);
+                javafx.stage.Window dialog = keys.dialog();
+                if (dialog != null) {
+                    Node ok = doc.fx(() -> dialog.getScene().getRoot().lookupAll(".button").stream()
+                            .filter(n -> n instanceof javafx.scene.control.Button b && b.isDefaultButton())
+                            .findFirst().orElse(null));
+                    if (ok != null) {
+                        video.click(ok);
+                    } else {
+                        doc.onFx(dialog::hide);
+                    }
+                    video.pause(600);
+                }
                 doc.open(xpl, "p:declare-step");
                 new VideoTyping(doc, video).shortcut(KeyCode.Z, false, "Z");
                 video.pause(800);
