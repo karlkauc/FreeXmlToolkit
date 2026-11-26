@@ -1682,8 +1682,12 @@ public class EditorHost extends BorderPane {
                 });
     }
 
+    /** Tab property: the PDF file a preview tab shows. */
+    private static final String PDF_PREVIEW_KEY = "fxt.pdfPreview.file";
+
     /**
-     * Opens an in-app preview of {@code pdf} as a new tab (lazy page rendering).
+     * Opens an in-app preview of {@code pdf} in a tab (lazy page rendering); a tab that already shows
+     * this file is refreshed instead of opening another one.
      *
      * @return completes on the FX thread with the preview control, or {@code null} if the PDF cannot be read
      */
@@ -1701,9 +1705,19 @@ public class EditorHost extends BorderPane {
             }
             Platform.runLater(() -> {
                 PdfPreview preview = new PdfPreview(pdf, pages);
-                Tab tab = new Tab(pdf.getName(), preview);
-                tab.setGraphic(new IconifyIcon("bi-file-earmark-pdf"));
-                tabPane.getTabs().add(tab);
+                // A preview of the same file (e.g. after generating it again) is refreshed in its tab
+                java.nio.file.Path key = pdf.toPath().toAbsolutePath().normalize();
+                Tab tab = tabPane.getTabs().stream()
+                        .filter(t -> key.equals(t.getProperties().get(PDF_PREVIEW_KEY)))
+                        .findFirst().orElse(null);
+                if (tab == null) {
+                    tab = new Tab(pdf.getName(), preview);
+                    tab.setGraphic(new IconifyIcon("bi-file-earmark-pdf"));
+                    tab.getProperties().put(PDF_PREVIEW_KEY, key);
+                    tabPane.getTabs().add(tab);
+                } else {
+                    tab.setContent(preview);
+                }
                 tabPane.getSelectionModel().select(tab);
                 result.complete(preview);
             });

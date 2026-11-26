@@ -52,6 +52,29 @@ class EditorHostPdfPreviewTest {
     }
 
     @Test
+    void previewingTheSameFileAgainRefreshesItsTab(@TempDir Path tmp) throws Exception {
+        File pdf = tmp.resolve("doc.pdf").toFile();
+        try (PDDocument doc = new PDDocument()) {
+            doc.addPage(new PDPage());
+            doc.save(pdf);
+        }
+        WaitForAsyncUtils.waitForAsyncFx(3000, () -> host.openPdfPreview(pdf)).get(30, java.util.concurrent.TimeUnit.SECONDS);
+        int tabs = WaitForAsyncUtils.waitForAsyncFx(2000, () -> ((javafx.scene.control.TabPane) host.lookup(".tab-pane")).getTabs().size());
+
+        // generated again, now with two pages
+        try (PDDocument doc = new PDDocument()) {
+            doc.addPage(new PDPage());
+            doc.addPage(new PDPage());
+            doc.save(pdf);
+        }
+        PdfPreview again = WaitForAsyncUtils.waitForAsyncFx(3000, () -> host.openPdfPreview(pdf)).get(30, java.util.concurrent.TimeUnit.SECONDS);
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(tabs, (int) WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> ((javafx.scene.control.TabPane) host.lookup(".tab-pane")).getTabs().size()), "no second tab");
+        assertEquals(2, again.getPageCount(), "the tab shows the new file");
+    }
+
+    @Test
     void writesSnapshotWhenRequested(@TempDir Path tmp) throws Exception {
         if (!"true".equals(System.getenv("FXT_SHELL_SNAPSHOT"))) {
             return;
