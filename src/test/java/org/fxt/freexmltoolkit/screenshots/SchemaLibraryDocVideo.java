@@ -141,6 +141,19 @@ class SchemaLibraryDocVideo {
                 video.moveTo(doc.<Node>find("#library-cache-clear"));
             });
 
+            video.scene("bundled", () -> {
+                selectLibraryTab(video, "mappingsTab");
+                video.pause(800);
+                Node table = doc.find("#library-mappings-table");
+                if (table != null) {
+                    Bounds b = video.screenBounds(table);
+                    video.zoom(new BoundingBox(b.getMinX(), b.getMinY(), b.getWidth(), Math.min(b.getHeight(), 520)));
+                    video.moveTo(table);
+                }
+                video.spoken(0.95);
+                video.zoomOut();
+            });
+
             video.scene("generate-xsd", () -> {
                 doc.onFx(() -> host.openFile(xml));
                 doc.waitUntilFx(10, () -> host.getActiveText().orElse("").contains("PO-1042"));
@@ -197,6 +210,17 @@ class SchemaLibraryDocVideo {
                 video.spoken(0.75);
                 video.key(javafx.scene.input.KeyCode.F8, "F8");
                 video.pause(1500);
+            });
+            video.scene("sample-options", () -> {
+                video.click(doc.<Node>find("#activity-schema"));
+                video.pause(1200);
+                video.zoom(doc.<Node>find("#leftPanelWrapper"));
+                Node advanced = doc.find("#schema-tool-sample-advanced");
+                if (advanced != null) {
+                    video.moveTo(advanced);
+                }
+                video.spoken(0.95);
+                video.zoomOut();
             });
         } finally {
             video.stop();

@@ -74,6 +74,13 @@
       }
     },
     {
+      "id": "bundled",
+      "say": {
+        "de": "Fünfundzwanzig verbreitete Standards kennt die Bibliothek von Haus aus, damit sie ohne Suche nach dem Schema funktionieren: die Grundlagen des W3C wie XML Schema, Signaturen und Verschlüsselung, dazu XHTML, SVG und MathML, SOAP und WSDL, X3D und aus der Finanzwelt FundsXML, XBRL, UBL und die Rechnung nach ZUGFeRD. Heruntergeladen wird ein solches Schema erst beim ersten Gebrauch, danach liegt es im Cache und wirkt auch ohne Netz.",
+        "en": "The library knows twenty-five common standards out of the box, so they work without searching for the schema: W3C basics such as XML Schema, signatures and encryption, plus XHTML, SVG and MathML, SOAP and WSDL, X3D and, from finance, FundsXML, XBRL, UBL and the ZUGFeRD invoice. Such a schema is downloaded only on first use; after that it is in the cache and works without the network too."
+      }
+    },
+    {
       "id": "generate-xsd",
       "chapter": {
         "de": "Schema aus XML erzeugen",
@@ -100,6 +107,13 @@
       "say": {
         "de": "Umgekehrt erzeugt Beispiel-XML aus einem Schema ein gültiges Dokument. Öffnen Sie order.xsd und wählen Sie Beispiel-XML erzeugen. Sie entscheiden, ob nur Pflichtelemente oder alles erzeugt wird, und Profile füllen die Werte mit realistischen Daten statt mit Platzhaltern. Das Ergebnis lässt sich gleich mit F8 prüfen. Beispieldaten sind nützlich für Tests, für Dokumentation und um einem Partner zu zeigen, wie eine Lieferung aussehen soll.",
         "en": "The other way round, Generate Sample XML creates a valid document from a schema. Open order.xsd and choose Generate Sample XML. You decide whether only required elements or everything is generated, and profiles fill the values with realistic data instead of placeholders. You can check the result right away with F8. Sample data is useful for tests, for documentation, and to show a partner what a delivery should look like."
+      }
+    },
+    {
+      "id": "sample-options",
+      "say": {
+        "de": "Mehr Kontrolle gibt Beispiel-XML mit Optionen. Dort legen Sie für jedes Element oder Attribut über seinen XPath fest, woher der Wert kommt: ein fester Wert, weglassen, leer, der Reihe nach aus der Werteliste, eine fortlaufende Nummer oder eine Vorlage. Solche Einstellungen speichern Sie als Profil und geben sie an Kollegen weiter, und auf Wunsch entstehen gleich viele Dateien auf einmal, etwa für Testdaten. Das Beispiel ist schon an sein Schema gebunden und lässt sich sofort mit F8 prüfen.",
+        "en": "More control comes with Sample XML with Options. There you set, for each element or attribute by its XPath, where the value comes from: a fixed value, omitted, empty, cycling through the enumeration, a running number or a template. You save such settings as a profile and share it with colleagues, and if you like, many files are created at once, for example as test data. The sample is already bound to its schema and can be checked right away with F8."
       }
     },
     {
