@@ -289,7 +289,8 @@ public class XsdDocumentationSvgService {
         // Add zoom and pan JavaScript. It acts on the SVG it sits in (the documentation page has other
         // SVGs before it, e.g. the search icon) and reads the current view box at every interaction,
         // so the page's Reset Zoom / Fit to Screen and this script never work on different boxes.
-        svgBuilder.append("<script type=\"text/javascript\">");
+        // CDATA: the script has "&&" and "<", which an XML reader (FOP for the PDF overview) refuses otherwise
+        svgBuilder.append("<script type=\"text/javascript\"><![CDATA[");
         svgBuilder.append("(function () {");
         svgBuilder.append("var svg = (document.currentScript && document.currentScript.closest('svg')) || document.querySelector('svg');");
         svgBuilder.append("var isPanning = false;");
@@ -329,7 +330,7 @@ public class XsdDocumentationSvgService {
         svgBuilder.append("  writeViewBox(b);");
         svgBuilder.append("}, { passive: false });");
         svgBuilder.append("})();");
-        svgBuilder.append("</script>");
+        svgBuilder.append("]]></script>");
 
         svgBuilder.append("</svg>");
 
