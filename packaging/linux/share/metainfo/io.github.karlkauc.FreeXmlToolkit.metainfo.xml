@@ -79,6 +79,9 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="3.6.0" date="2026-11-27">
+      <url type="details">https://github.com/karlkauc/FreeXmlToolkit/releases/tag/v3.6.0</url>
+    </release>
     <release version="3.5.0" date="2026-11-22">
       <url type="details">https://github.com/karlkauc/FreeXmlToolkit/releases/tag/v3.5.0</url>
     </release>
