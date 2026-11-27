@@ -247,6 +247,38 @@ class TransformOutputPanelTest {
     }
 
     @Test
+    void aLargeHtmlResultIsNotRenderedUntilAsked() throws Exception {
+        String row = "<tr><td>" + "x".repeat(90) + "</td></tr>\n";
+        String html = "<html><body><table>\n"
+                + row.repeat(TransformOutputPanel.PREVIEW_AUTO_LIMIT_CHARS / row.length() + 100) + "</table></body></html>";
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            out.showTransformResult(html, org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.HTML, 5);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, out::isLargePreviewPending), "not rendered on its own");
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, out::isHtmlPreviewShown), "the Text view is shown");
+        assertNotNull(WaitForAsyncUtils.waitForAsyncFx(2000, () -> out.lookup("#transform-output-large-html")));
+
+        // "Show anyway" renders it
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            ((javafx.scene.control.Button) out.lookup("#transform-output-render-anyway")).fire();
+            return null;
+        });
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, out::isLargePreviewPending));
+
+        // a small result renders as before
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            out.showTransformResult("<html><body>ok</body></html>",
+                    org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.HTML, 5);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, out::isLargePreviewPending));
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, out::isHtmlPreviewShown));
+    }
+
+    @Test
     void editorActionOpensHtmlResultRenderedInPreviewMode() throws Exception {
         String html = "<html><body><h1>Report</h1></body></html>";
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {

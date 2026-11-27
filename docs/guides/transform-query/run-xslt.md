@@ -37,7 +37,7 @@ toggles:
 | View        | Description                                                              |
 |-------------|--------------------------------------------------------------------------|
 | **Text**    | The result in a read-only code editor with line numbers and syntax highlighting (the default) |
-| **Preview** | For HTML/XHTML output: the result rendered as a web page                 |
+| **Preview** | For HTML/XHTML output: the result rendered as a web page. A result over 1 MB is not rendered on its own (rendering it can block the application for seconds): the Text view opens, and the Preview offers **Show anyway** and **Open in browser** |
 | **Table**   | For XQuery (and Query Console XPath) results that return a sequence: the items shown as a table |
 
 The **OUTPUT METHOD** defaults to **Auto**: the format (XML, HTML, XHTML, Text, JSON) is
@@ -58,7 +58,7 @@ or browse with ◀ / ▶. Uncheck it to only set the file and run with **Run Tra
 | **Run automatically**         | (Checkbox next to Run Transform, on by default) Runs as soon as a stylesheet or input is dropped, picked from favorites or browsed with ◀ / ▶ |
 | **Debug**                     | (Next to Run Transform, also `Shift+F5`) Runs the stylesheet in the interactive debugger - breakpoints (toggle them in the saved stylesheet's gutter at any time, before or during a session; they are remembered per file), stepping, variables - in a DEBUG dock below the editor; see [XSLT Developer](debug.md#interactive-live-debugger) |
 | **Transform with XSLT…**      | (Editor toolbar / Tools menu, XML documents) Opens this panel on the active document, asks for a stylesheet if none is set, and runs it |
-| **Open result as editor tab** | (OUTPUT panel) Opens the result as an editable, savable document. HTML/XHTML results open as an HTML document rendered in the editor's read-only [Preview view](../../get-started/workspace-tour.md#html-preview); re-running the transform updates the open tab |
+| **Open result as editor tab** | (OUTPUT panel) Opens the result as an editable, savable document. HTML/XHTML results open as an HTML document rendered in the editor's read-only [Preview view](../../get-started/workspace-tour.md#html-preview) (over 1 MB: as text); re-running the transform updates the open tab |
 | **Open in browser**           | (OUTPUT panel) Opens the result in your default web browser                  |
 | **Save result…**              | (OUTPUT panel) Writes the result straight to a file                          |
 | **Watch stylesheet file**     | (OPTIONS & TOOLS checkbox) Re-runs automatically when the stylesheet changes on disk |

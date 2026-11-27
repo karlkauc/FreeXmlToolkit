@@ -73,6 +73,16 @@ public class TransformOutputPanel extends VBox {
     private String statsText = "";
     /** The output format of the most recent successful run (for the Editor/Save actions). */
     private OutputFormat lastResultFormat = OutputFormat.XML;
+    /**
+     * HTML results longer than this are not rendered on their own: WebKit lays out and paints on the FX
+     * thread, and an HTML report from a large document froze the application for seconds after every run
+     * (telemetry, 3.5.0). The Preview shows a note with "Show anyway" / "Open in browser" instead.
+     */
+    static final int PREVIEW_AUTO_LIMIT_CHARS = 1024 * 1024;
+    /** The WebView (or its text fallback) once created. */
+    private javafx.scene.Node previewView;
+    /** A large HTML result that waits for "Show anyway", or {@code null}. */
+    private String pendingPreview;
     /** Results longer than this show only their start in the output area. */
     static final int SHOWN_LIMIT_CHARS = 2 * 1024 * 1024;
     /** The last result as a whole (the output area may show only its start). */
@@ -377,14 +387,17 @@ public class TransformOutputPanel extends VBox {
 
         boolean html = format == OutputFormat.HTML || format == OutputFormat.XHTML;
         setToggleAvailable(previewToggle, html);
-        if (html) {
+        boolean largeHtml = html && text.length() > PREVIEW_AUTO_LIMIT_CHARS;
+        if (largeHtml) {
+            showLargePreviewNote(text);
+        } else if (html) {
             updateHtmlPreview(text);
         }
         boolean tabular = table != null && !table.isError() && !table.isEmpty();
         setToggleAvailable(tableToggle, tabular);
-        // Auto-select the best view: rendered preview for HTML, the table for a
+        // Auto-select the best view: rendered preview for HTML (the text of a large one), the table for a
         // tabular XQuery sequence, plain text otherwise.
-        (html ? previewToggle : tabular ? tableToggle : textToggle).setSelected(true);
+        (html && !largeHtml ? previewToggle : tabular ? tableToggle : textToggle).setSelected(true);
         updateContentView();
         // Last on purpose: observers (tests) wait on the output text / table rows, so
         // every other state change of this run must already be applied when they appear.
@@ -471,8 +484,9 @@ public class TransformOutputPanel extends VBox {
         if (!sameTab || !editorHost.updateGeneratedDocument(resultDocument, result, resultSource)) {
             resultDocument = editorHost.openGeneratedDocument(result, type, name, resultSource);
         }
-        // HTML results open rendered, matching the OUTPUT dock's Preview toggle.
-        if (type == EditorFileType.HTML) {
+        // HTML results open rendered, matching the OUTPUT dock's Preview toggle (a large one as text: see
+        // PREVIEW_AUTO_LIMIT_CHARS).
+        if (type == EditorFileType.HTML && result.length() <= PREVIEW_AUTO_LIMIT_CHARS) {
             editorHost.setViewModeFor(resultDocument, ViewMode.PREVIEW);
         }
     }
@@ -563,21 +577,61 @@ public class TransformOutputPanel extends VBox {
      * stripped-down runtimes).
      */
     private void updateHtmlPreview(String html) {
+        pendingPreview = null;
         if (htmlPreviewUpdater == null) {
             try {
                 // no JavaScript, no remote content unless allowed in Settings (SafeWebView)
                 javafx.scene.web.WebView view = org.fxt.freexmltoolkit.controls.shell.SafeWebView.create();
                 htmlPreviewUpdater = content -> org.fxt.freexmltoolkit.controls.shell.SafeWebView.load(view, content);
-                previewHolder.getChildren().setAll(view);
+                previewView = view;
             } catch (Throwable t) {
                 TextArea fallback = new TextArea();
                 fallback.setEditable(false);
                 fallback.getStyleClass().add("fxt-transform-output");
                 htmlPreviewUpdater = fallback::setText;
-                previewHolder.getChildren().setAll(fallback);
+                previewView = fallback;
             }
         }
+        previewHolder.getChildren().setAll(previewView);
         htmlPreviewUpdater.accept(html);
+    }
+
+    /**
+     * A large HTML result: the Preview shows a note instead of rendering it (the old page is dropped, it
+     * would keep the previous run's result), "Show anyway" renders it, "Open in browser" hands it on.
+     */
+    private void showLargePreviewNote(String html) {
+        pendingPreview = html;
+        if (htmlPreviewUpdater != null) {
+            htmlPreviewUpdater.accept("");
+        }
+        Label note = new Label(I18n.t("TransformOutputPanel.large-html",
+                String.format(java.util.Locale.ROOT, "%.1f", html.length() / (1024.0 * 1024.0))));
+        note.setWrapText(true);
+        note.getStyleClass().add("fxt-placeholder-text");
+        javafx.scene.control.Button render = new javafx.scene.control.Button(I18n.t("TransformOutputPanel.render-anyway"));
+        render.setId("transform-output-render-anyway");
+        render.setOnAction(e -> {
+            String pending = pendingPreview;
+            if (pending != null) {
+                updateHtmlPreview(pending);
+            }
+        });
+        javafx.scene.control.Button browser = new javafx.scene.control.Button(I18n.t("TransformOutputPanel.open-in-browser.text"));
+        browser.setId("transform-output-large-browser");
+        browser.setOnAction(e -> openInBrowser());
+        javafx.scene.layout.HBox buttons = new javafx.scene.layout.HBox(8, render, browser);
+        javafx.scene.layout.VBox box = new javafx.scene.layout.VBox(10, note, buttons);
+        box.setId("transform-output-large-html");
+        box.setPadding(new javafx.geometry.Insets(16));
+        box.setMaxWidth(560);
+        StackPane.setAlignment(box, javafx.geometry.Pos.TOP_LEFT);
+        previewHolder.getChildren().setAll(box);
+    }
+
+    /** @return whether the Preview waits for "Show anyway" (a large HTML result) */
+    boolean isLargePreviewPending() {
+        return pendingPreview != null;
     }
 
     /** Rebuilds the result table from a tabular XQuery result (columns + string rows). */
