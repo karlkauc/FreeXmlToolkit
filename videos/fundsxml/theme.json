@@ -45,7 +45,57 @@
       ],
       "disclaimer": "Disclaimer: This video is for training purposes only and is not legal, regulatory or investment advice. The example data is fictitious: companies, funds, securities and identifiers are made up. The official FundsXML documentation and the applicable regulations are binding. Narration and editing are AI-generated; the video shows the real application.",
       "series": "In this series",
-      "series_continue": "Continue with the series"
+      "series_continue": "Continue with the series",
+      "episode": "Episode {n} of {total}"
     }
+  },
+  "_comment_audiences": "Each film names its audience (\"audience\" in the storyboard). The audience colours the bar, accents and title kicker of the film and puts its label at the top right of every slide: business amber, data the brand blue, engineering violet.",
+  "audiences": {
+    "business": {
+      "label": {
+        "en": "For business"
+      },
+      "description": {
+        "en": "business readers, management, project leads and operations managers"
+      },
+      "colors": {
+        "bar": "#E07B12",
+        "accent": "#C2620A",
+        "accent_to": "#F2A93B"
+      }
+    },
+    "data": {
+      "label": {
+        "en": "For data specialists"
+      },
+      "description": {
+        "en": "data specialists and analysts who read, check and query FundsXML files with tools"
+      },
+      "colors": {
+        "bar": "#4A90E2",
+        "accent": "#2B6CB0",
+        "accent_to": "#20C997"
+      }
+    },
+    "engineering": {
+      "label": {
+        "en": "For engineers"
+      },
+      "description": {
+        "en": "software and data engineers, database developers and IT architects"
+      },
+      "colors": {
+        "bar": "#6B46C1",
+        "accent": "#6B46C1",
+        "accent_to": "#A78BFA"
+      }
+    }
+  },
+  "metadata": {
+    "artist": "FundsXML.org",
+    "genre": "Education",
+    "year": "2026",
+    "copyright": "Licensed under CC BY 4.0. The FundsXML name and logo belong to FundsXML.",
+    "url": "https://fundsxml.github.io/videos/"
   }
 }

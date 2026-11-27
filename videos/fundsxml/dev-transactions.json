@@ -6,6 +6,7 @@
   "title": {
     "en": "Transactions and investor flows"
   },
+  "audience": "data",
   "description": {
     "en": "How FundsXML records what moved in a fund: subscriptions and redemptions of investors (Flows on the share class), distributions (Distributions), income from the portfolio (Earnings) and the portfolio's own trades (Transactions), with reporting periods, dates, amounts in several currencies and the links to the assets. Also: how switches are reported, and what the core schema leaves to other standards."
   },

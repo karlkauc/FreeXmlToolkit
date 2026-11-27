@@ -5,6 +5,7 @@
   "title": {
     "en": "Introducing FundsXML: a project from A to Z"
   },
+  "audience": "business",
   "description": {
     "en": "How a FundsXML project runs, from the first idea to daily operation: scope, mapping, prototype and pilot, testing, go-live and operations; the roles involved, typical pitfalls, what is available free of charge, how versions and the standard evolve, and how to take part."
   },
@@ -514,39 +515,61 @@
       }
     },
     {
-      "id": "tips",
+      "id": "example",
       "slide": {
-        "layout": "bullets",
+        "layout": "table",
         "builds": [
-          0.06,
-          0.3,
-          0.54,
-          0.76
+          0.05,
+          0.6
         ],
         "en": {
-          "title": "Tips from practice",
-          "items": [
-            {
-              "head": "Start small",
-              "text": "One data area, one partner, then extend."
-            },
-            {
-              "head": "Agree on the details",
-              "text": "Which optional fields, which codes, which delivery times."
-            },
-            {
-              "head": "Check on both sides",
-              "text": "The sender validates before sending, the receiver before loading."
-            },
-            {
-              "head": "Keep test files",
-              "text": "Good and bad examples that every change is tested against."
-            }
+          "title": "An example: prices and EMT for three distributors",
+          "note": "Illustrative: a first project of a mid-sized fund house",
+          "columns": [
+            "phase",
+            "weeks",
+            "result"
+          ],
+          "rows": [
+            [
+              "Prepare",
+              "1 – 2",
+              "Scope agreed: daily prices and EMT, three distributors, one schema version"
+            ],
+            [
+              "Map",
+              "3 – 6",
+              "Mapping table with a source and an owner for every field"
+            ],
+            [
+              "Pilot",
+              "7 – 9",
+              "First real file accepted by one distributor"
+            ],
+            [
+              "Test",
+              "10 – 12",
+              "Good and bad test files; both sides validate"
+            ],
+            [
+              "Go live",
+              "13",
+              "Daily deliveries, fully automated"
+            ],
+            [
+              "Operate",
+              "from 14",
+              "Monitoring; the two other distributors follow"
+            ]
+          ],
+          "mark": [
+            2,
+            4
           ]
         }
       },
       "say": {
-        "en": "A few tips from practice. Start small: one data area and one partner, then extend. Agree on the details: which optional fields you fill, which codes you use, and when the data arrives. Check on both sides: the sender validates before sending, and the receiver before loading. And keep a set of test files, good ones and bad ones, so that every change can be tested against them."
+        "en": "How can this look in practice? Here is a typical first project of a mid-sized fund house, as an illustration. It starts small: daily prices and the EMT, for three distributors. Two weeks to agree the scope, four for the mapping. After about nine weeks, the first real file is accepted by one distributor. Testing with good and bad files takes three more weeks, and in week thirteen the deliveries go live, fully automated. The other two distributors follow in operation, with the same files."
       }
     },
     {

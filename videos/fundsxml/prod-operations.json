@@ -4,6 +4,7 @@
   "title": {
     "en": "Running FundsXML in daily operations"
   },
+  "audience": "business",
   "description": {
     "en": "What daily operation of a FundsXML chain needs: a day in operations, monitoring and a delivery overview, duty and runbooks, error classes and incident handling with an example, reconciliation, feedback, agreements with partners, onboarding, changes in the partner landscape, security, schema upgrades, the archive, metrics, people, reporting, typical first-year issues, a checklist, and staying involved in the standard."
   },
@@ -233,44 +234,107 @@
     {
       "id": "incident",
       "slide": {
-        "layout": "steps",
+        "layout": "flow",
         "builds": [
-          0.08,
-          0.2,
-          0.3,
-          0.48,
-          0.62,
-          0.72
+          0.05,
+          0.45,
+          0.75
         ],
         "en": {
           "title": "When an error occurs",
-          "items": [
+          "nodes": [
             {
-              "head": "Alert"
+              "id": "alert",
+              "label": "alert",
+              "sub": "monitoring, reconciliation",
+              "col": 0,
+              "row": 0,
+              "kind": "error",
+              "group": 0
             },
             {
-              "head": "Classify"
+              "id": "classify",
+              "label": "classify",
+              "sub": "technical, schema, business, data",
+              "col": 1,
+              "row": 0,
+              "group": 0
             },
             {
-              "head": "Inform",
-              "text": "Inside and the partner."
+              "id": "hold",
+              "label": "hold the data back",
+              "sub": "business errors",
+              "col": 1,
+              "row": 1,
+              "kind": "warn",
+              "group": 1
             },
             {
-              "head": "Fix",
-              "text": "Or ask for a correction."
+              "id": "inform",
+              "label": "inform",
+              "sub": "inside and the partner",
+              "col": 2,
+              "row": 0,
+              "group": 1
             },
             {
-              "head": "Load again"
+              "id": "fix",
+              "label": "fix",
+              "sub": "or ask for a correction",
+              "col": 3,
+              "row": 0,
+              "group": 1
             },
             {
-              "head": "Close",
-              "text": "With a short note."
+              "id": "load",
+              "label": "load again",
+              "sub": "checked, released",
+              "col": 3,
+              "row": 1,
+              "group": 2
+            },
+            {
+              "id": "close",
+              "label": "close",
+              "sub": "with a short note",
+              "col": 2,
+              "row": 1,
+              "kind": "ok",
+              "group": 2
+            }
+          ],
+          "edges": [
+            {
+              "from": "alert",
+              "to": "classify"
+            },
+            {
+              "from": "classify",
+              "to": "inform"
+            },
+            {
+              "from": "classify",
+              "to": "hold",
+              "kind": "warn"
+            },
+            {
+              "from": "inform",
+              "to": "fix"
+            },
+            {
+              "from": "fix",
+              "to": "load"
+            },
+            {
+              "from": "load",
+              "to": "close",
+              "kind": "ok"
             }
           ]
         }
       },
       "say": {
-        "en": "When an error occurs, follow the same steps every time. The alert arrives. Classify it. Inform the people affected, inside the company and the partner. Fix the cause, or ask the sender for a correction. Load again. And close the case with a short note, so that the same error is recognised faster next time."
+        "en": "When an error occurs, follow the same steps every time. The alert arrives. Classify it: technical, schema, business or data. A business error holds the data back until it is corrected. Inform the people affected, inside the company and the partner. Fix the cause, or ask the sender for a correction. Load again. And close the case with a short note, so that the same error is recognised faster next time."
       }
     },
     {

@@ -6,6 +6,7 @@
   "title": {
     "en": "Set up FreeXmlToolkit for FundsXML"
   },
+  "audience": "data",
   "description": {
     "en": "Set up a free working environment for FundsXML: turn on the FundsXML extension of FreeXmlToolkit, choose the schema version, get to know the FundsXML panel and its tools, read the schema's documentation of any element, open the schema itself, and start from an official example file. Also: why FundsXML needs an XSD 1.1 validator, and the two forms in which the schema is published. With an overview of other tools: command line validators, IDEs and the online documentation."
   },

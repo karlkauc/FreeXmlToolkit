@@ -5,6 +5,7 @@
   "title": {
     "en": "Regulatory reporting with FundsXML"
   },
+  "audience": "business",
   "description": {
     "en": "How FundsXML carries the European regulatory templates: why regulation needs structured fund data, the roles of FinDatEx and FundsXML, the templates EMT (MiFID II), EPT (PRIIPs), EET (SFDR and ESG), TPT (Solvency II look-through) and EFT (feedback from distributors), who sends what to whom, template versions, national reporting and the European Single Access Point."
   },
@@ -292,6 +293,60 @@
       },
       "say": {
         "en": "Here is the whole picture. The fund house sends EMT, EET and EPT data to distributors and platforms, and TPT data to insurers. Data vendors often collect and pass on the same templates. Distributors send EFT feedback back. And because all of it travels in FundsXML, one delivery can carry several templates together with the fund's prices and portfolio."
+      }
+    },
+    {
+      "id": "example",
+      "slide": {
+        "layout": "table",
+        "builds": [
+          0.05,
+          0.6
+        ],
+        "en": {
+          "title": "One share class, three templates",
+          "note": "From the FundsXML examples: a fictional multi-asset fund",
+          "columns": [
+            "template",
+            "for",
+            "a field in the file",
+            "value"
+          ],
+          "rows": [
+            [
+              "EMT V4.2",
+              "distributors",
+              "ongoing costs",
+              "1.58 % a year"
+            ],
+            [
+              "EMT V4.2",
+              "distributors",
+              "suitable for retail investors",
+              "yes"
+            ],
+            [
+              "EET V1.1.3",
+              "distributors, platforms",
+              "SFDR product type",
+              "article 6"
+            ],
+            [
+              "TPT V7.0",
+              "insurers",
+              "positions for the look-through",
+              "45"
+            ]
+          ],
+          "mark": [
+            0,
+            2,
+            3
+          ]
+        }
+      },
+      "say": {
+        "en": "What does this look like for a real share class? Here is the retail class of a fictional multi-asset fund, from the FundsXML examples. Its EMT data says the ongoing costs are one point five eight percent a year, and that the class suits retail investors. Its EET data says it is an article six product under the SFDR. And its TPT data lists forty-five positions for the insurer's look-through. Three templates, one share class, and all of it in one delivery."
       }
     },
     {

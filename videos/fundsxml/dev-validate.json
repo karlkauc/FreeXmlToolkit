@@ -6,6 +6,7 @@
   "title": {
     "en": "Validate and check data quality"
   },
+  "audience": "data",
   "description": {
     "en": "Validate a FundsXML delivery in two stages: against the XSD 1.1 schema, reading and fixing its error messages, and against business rules with the FundsXML data-quality checks of FreeXmlToolkit. With the data-quality report, a catalogue of typical schema errors, Schematron rules, and validation on the command line and in build pipelines."
   },

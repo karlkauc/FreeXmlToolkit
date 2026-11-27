@@ -5,6 +5,7 @@
   "title": {
     "en": "Why fund data needs a standard"
   },
+  "audience": "business",
   "description": {
     "en": "Why the fund industry needs a common data format: how fund data travels between asset managers, administrators, custodians, distributors, insurers, data vendors and regulators; what goes wrong without a standard; how regulation drives the need for structured data; and how FundsXML, an open standard made by the fund industry, answers it."
   },
@@ -255,6 +256,35 @@
       }
     },
     {
+      "id": "mesh-math",
+      "slide": {
+        "layout": "hub",
+        "mode": "mesh",
+        "builds": [
+          0.05,
+          0.3
+        ],
+        "en": {
+          "title": "Ten partners: forty-five interfaces",
+          "items": [
+            "Asset manager",
+            "Administrator",
+            "Custodian",
+            "Distributor",
+            "Platform",
+            "Insurer",
+            "Data vendor",
+            "Regulator",
+            "Bank",
+            "Auditor"
+          ]
+        }
+      },
+      "say": {
+        "en": "The arithmetic is simple. Ten partners who all exchange data with each other need up to forty five bilateral interfaces: every line in this picture is one, with its own format, its own tests and its own maintenance. With a common format, each partner builds one: to read and write FundsXML. And a new partner no longer means a new project, because it speaks the same format."
+      }
+    },
+    {
       "id": "answer",
       "slide": {
         "layout": "hub",
@@ -279,37 +309,6 @@
       },
       "say": {
         "en": "FundsXML is the answer: one common language for fund data. Instead of many bilateral formats, every party writes and reads the same format. A sender produces a file once, and every receiver understands it, in the same way."
-      }
-    },
-    {
-      "id": "mesh-math",
-      "slide": {
-        "layout": "bullets",
-        "builds": [
-          0.08,
-          0.4,
-          0.7
-        ],
-        "en": {
-          "title": "From many interfaces to one",
-          "items": [
-            {
-              "head": "Without a standard",
-              "text": "Ten partners who all exchange data need up to forty-five interfaces."
-            },
-            {
-              "head": "With FundsXML",
-              "text": "Each partner builds one: to read and write the common format."
-            },
-            {
-              "head": "New partner, same format",
-              "text": "Joining a new partner becomes a matter of configuration, not a project."
-            }
-          ]
-        }
-      },
-      "say": {
-        "en": "The arithmetic is simple. Ten partners who all exchange data with each other need up to forty five bilateral interfaces. With a common format, each partner builds one: to read and write FundsXML. And a new partner no longer means a new project, because it speaks the same format."
       }
     },
     {

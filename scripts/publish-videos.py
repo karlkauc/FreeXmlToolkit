@@ -106,7 +106,18 @@ def main():
     ap.add_argument("--release", default="v1")
     ap.add_argument("--partial", action="store_true", help="skip films that are not made yet (and empty series)")
     ap.add_argument("--films", nargs="+", help="publish only these films (with --partial: an early release)")
+    ap.add_argument("--update", action="store_true",
+                    help="with --films: replace only these films and keep every other film and the full series "
+                         "films of the published videos.json (their audience and title are taken from the storyboards)")
     args = ap.parse_args()
+    if args.update and not args.films:
+        ap.error("--update needs --films")
+    previous = {}
+    if args.update:
+        published = json.loads((args.out / "videos.json").read_text(encoding="utf-8"))
+        previous = {f["id"]: f for s in published["series"] for f in s["films"]}
+        previous.update({"_full:" + s["id"]: s["full"] for s in published["series"] if s.get("full")})
+        args.release = published["release"].rsplit("/", 1)[-1]
 
     mv = make_video()
     mv.BOARDS = ROOT / "videos" / args.set
@@ -118,12 +129,21 @@ def main():
     (out / "release").mkdir(exist_ok=True)
 
     manifest = {"lang": lang, "series": [], "release": f"https://github.com/{args.repo}/releases/tag/{args.release}",
-                "disclaimer": theme.get("text", {}).get(lang, {}).get("disclaimer", "")}
+                "disclaimer": theme.get("text", {}).get(lang, {}).get("disclaimer", ""),
+                # who each film is for: label, colour (the film's accent) and a short description
+                "audiences": {key: {"label": a["label"][lang], "color": a["colors"]["accent"],
+                                    "description": a.get("description", {}).get(lang, "")}
+                              for key, a in theme.get("audiences", {}).items()}}
     for spec in mv.series_specs():
         series = {"id": spec["id"], "title": spec["title"][lang], "films": []}
         for film_id in spec["videos"]:
             board = json.loads((mv.BOARDS / f"{film_id}.json").read_text(encoding="utf-8"))
             mp4 = BUILD / f"{film_id}-{lang}.mp4"
+            if args.update and film_id not in args.films and film_id in previous:
+                kept = dict(previous[film_id])
+                kept.update({"title": board["title"][lang], "audience": board.get("audience")})
+                series["films"].append(kept)
+                continue
             if args.films and film_id not in args.films:
                 continue
             if not mp4.exists():
@@ -145,13 +165,16 @@ def main():
             poster(mp4, out / "posters" / f"{name}.jpg")
             series["films"].append({
                 "id": film_id, "number": mv.film_number(film_id), "title": board["title"][lang],
+                "audience": board.get("audience"),
                 "description": board.get("description", {}).get(lang) or upload_text(BUILD / f"{film_id}-{lang}.txt"),
                 "duration": round(total, 1), "chapters": [{"t": t, "title": c} for t, c in chapters],
                 "mp4": f"{lang}/{name}.mp4", "subtitles": f"{lang}/{name}.vtt",
                 "chapters_vtt": f"{lang}/{name}-chapters.vtt", "poster": f"posters/{name}.jpg"})
             print("film", name)
         full = BUILD / f"{spec['id']}-{lang}.mp4"
-        if full.exists() and not args.films:
+        if args.update and "_full:" + spec["id"] in previous:
+            series["full"] = previous["_full:" + spec["id"]]
+        elif full.exists() and not args.films:
             faststart(full, out / "release" / full.name)
             shutil.copy2(BUILD / f"{spec['id']}-{lang}.srt", out / "release" / f"{spec['id']}-{lang}.srt")
             series["full"] = {"title": f"{spec['title'][lang]} (all films)", "duration": round(duration(full), 1),

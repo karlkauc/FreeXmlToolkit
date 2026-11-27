@@ -4,6 +4,7 @@
   "title": {
     "en": "Loading FundsXML files"
   },
+  "audience": "engineering",
   "description": {
     "en": "How FundsXML files get into a database safely, with the loader of the complete PostgreSQL example: the steps of a robust loader, a landing folder, cheap checks first, triggers, validation and schema versions, idempotency through the UniqueDocumentID, full and delta deliveries, streaming large files with one handler per repeating element, funds and subfunds, the order of assets and positions, asset keys, transactions, documents and regulatory templates, business rules, speed, six deliveries and four broken files at work, corrections and deletions, reconciliation, code checks, error reports, tests and release. All files can be downloaded."
   },
@@ -21,82 +22,140 @@
         "en": "The steps"
       },
       "slide": {
-        "layout": "steps",
+        "layout": "flow",
         "builds": [
-          0.08,
-          0.3,
-          0.42,
+          0.05,
           0.55,
-          0.65,
-          0.82
+          0.8
         ],
         "en": {
-          "title": "Six steps of a robust loader",
-          "items": [
+          "title": "Six steps, every file",
+          "note": "loader/load.py --landing",
+          "nodes": [
             {
-              "head": "Check",
-              "text": "Complete? Expected partner?"
+              "id": "landing",
+              "label": "landing/",
+              "sub": "new files",
+              "col": 0,
+              "row": 0,
+              "kind": "store",
+              "group": 0
             },
             {
-              "head": "Validate",
-              "text": "Against the schema."
+              "id": "check",
+              "label": "check",
+              "sub": "complete? sender?",
+              "col": 1,
+              "row": 0,
+              "group": 0
             },
             {
-              "head": "Register",
-              "text": "The document ID."
+              "id": "validate",
+              "label": "validate",
+              "sub": "XSD 1.1",
+              "col": 2,
+              "row": 0,
+              "group": 0
             },
             {
-              "head": "Read",
-              "text": "The data."
+              "id": "register",
+              "label": "register",
+              "sub": "document ID",
+              "col": 3,
+              "row": 0,
+              "group": 0
             },
             {
-              "head": "Write",
-              "text": "One transaction."
+              "id": "write",
+              "label": "read + write",
+              "sub": "one transaction",
+              "col": 4,
+              "row": 0,
+              "group": 0
             },
             {
-              "head": "Reconcile",
-              "text": "Before release."
+              "id": "error",
+              "label": "error/",
+              "sub": "with a report",
+              "col": 1,
+              "row": 1,
+              "kind": "error",
+              "group": 1
+            },
+            {
+              "id": "skipped",
+              "label": "skipped",
+              "sub": "ID already known",
+              "col": 3,
+              "row": 1,
+              "kind": "warn",
+              "group": 1
+            },
+            {
+              "id": "reconcile",
+              "label": "reconcile",
+              "sub": "values, weights",
+              "col": 4,
+              "row": 1,
+              "group": 2
+            },
+            {
+              "id": "released",
+              "label": "done/",
+              "sub": "released",
+              "col": 4,
+              "row": 2,
+              "kind": "ok",
+              "group": 2
+            }
+          ],
+          "edges": [
+            {
+              "from": "landing",
+              "to": "check"
+            },
+            {
+              "from": "check",
+              "to": "validate"
+            },
+            {
+              "from": "validate",
+              "to": "register"
+            },
+            {
+              "from": "register",
+              "to": "write"
+            },
+            {
+              "from": "check",
+              "to": "error",
+              "kind": "error"
+            },
+            {
+              "from": "validate",
+              "to": "error",
+              "kind": "error",
+              "route": "vh"
+            },
+            {
+              "from": "register",
+              "to": "skipped",
+              "kind": "warn"
+            },
+            {
+              "from": "write",
+              "to": "reconcile"
+            },
+            {
+              "from": "reconcile",
+              "to": "released",
+              "kind": "ok"
             }
           ]
         }
       },
       "say": {
-        "en": "A robust loader works in six steps. Check the file: is it complete, is it the expected partner? Validate it against the schema. Register the delivery with its document ID. Read the data. Write it to the tables, in one transaction. And reconcile the result, before the data is released for use."
-      }
-    },
-    {
-      "id": "landing",
-      "slide": {
-        "layout": "steps",
-        "builds": [
-          0.08,
-          0.3,
-          0.42,
-          0.65
-        ],
-        "en": {
-          "title": "A landing folder",
-          "items": [
-            {
-              "head": "Landing",
-              "text": "New files arrive."
-            },
-            {
-              "head": "Processing"
-            },
-            {
-              "head": "Done",
-              "text": "Or error."
-            },
-            {
-              "head": "Log",
-              "text": "One line per step."
-            }
-          ]
-        }
-      },
-      "say": {
-        "en": "It starts with a landing folder. New files arrive there, and the loader moves each file through clear states: in processing, done, or error. The original file is never changed. And every step writes a line to the log, so that later you can say exactly what happened to every file, and when. The example loader moves each file to done or to error, and writes a report next to every rejected file."
+        "en": "A robust loader works in six steps, and the example follows them for every file in its landing folder. Check the file: is it complete, and from a known sender? Validate it against the schema. Register the delivery with its document ID; a document ID that is already known is skipped. Read the data and write it to the tables, in one transaction. Reconcile the result, and only then release it. A file that fails a check moves to the error folder, with a report next to it. The original file is never changed, and every step writes a line to the log."
       }
     },
     {
@@ -594,21 +653,22 @@
         "en": "The loader at work"
       },
       "slide": {
-        "layout": "code",
+        "layout": "terminal",
         "builds": [
-          0.0,
-          0.35
+          0.05,
+          0.6
         ],
         "en": {
           "title": "The loader at work",
-          "file": "loader/load.py --landing",
+          "window": "bash  ·  PostgreSQL_End_to_End",
           "highlight": [
-            5,
             6,
-            7,
-            10
+            12
           ],
-          "code": "file       01_month-end_2025-10-31.xml\ncheck      EXAMPLE-AM-MONTHEND-2025-10-31, INITIAL, content date 2025-10-31\nvalidate   ok: valid against FundsXML.xsd (XSD 1.1)\nregister   delivery 1\nstream     5 funds, 11 share classes, 264 prices, 19 navs, 522 positions, 209 trades,\n           68 income, 67 flows, 3 distributions, 430 assets, 430 new assets, 12 templates\nlink       522 positions linked to assets\ncodes      12 distinct codes checked against code_list\nreconcile  4 portfolios -> ok\nstatus     released\nfile       02_nav_2025-11-05.xml        ... 66 prices, 114 navs ...       released\nfile       03_documents_2025-11-03.xml  ... 9 documents ...               released"
+          "blocks": [
+            "$ python loader/load.py --landing --release-by \"data team\" out/landing\n09:48:49 INFO    file       01_month-end_2025-10-31.xml\n09:48:49 INFO    check      EXAMPLE-AM-MONTHEND-2025-10-31, INITIAL, content date 2025-10-31, from EXAMPLE-AM\n09:48:50 INFO    validate   ok: valid against FundsXML.xsd (XSD 1.1)\n09:48:50 INFO    register   delivery 1\n09:48:51 INFO    stream     5 funds, 11 share classes, 264 prices, 19 navs, 522 positions, 209 trades, 68 incom…\n09:48:51 INFO    link       522 positions linked to assets\n09:48:51 INFO    reconcile  Example Balanced Fund of Funds 2025-10-31: positions 155706556.38 vs net assets 155…\n09:48:51 INFO    reconcile  Example Euro Bond Fund 2025-10-31: positions 838581814.97 vs net assets 838581814.9…\n09:48:51 INFO    reconcile  Example Global Equity Fund 2025-10-31: positions 602060878.93 vs net assets 6020608…\n09:48:51 INFO    reconcile  Example Multi Asset Opportunities Fund 2025-10-31: positions 278791093.07 vs net as…\n09:48:51 INFO    status     released",
+            "09:48:51 INFO    file       02_nav_2025-11-05.xml\n09:48:52 INFO    stream     5 funds, 11 share classes, 66 prices, 114 navs\n09:48:52 INFO    status     released\n09:48:52 INFO    file       03_documents_2025-11-03.xml\n09:48:53 INFO    stream     9 documents\n09:48:53 INFO    status     released"
+          ]
         }
       },
       "say": {
@@ -618,19 +678,22 @@
     {
       "id": "amend",
       "slide": {
-        "layout": "code",
+        "layout": "terminal",
         "builds": [
-          0.0,
-          0.45
+          0.05,
+          0.55
         ],
         "en": {
           "title": "A correction and a deletion",
-          "file": "loader/load.py",
+          "window": "bash  ·  PostgreSQL_End_to_End",
           "highlight": [
-            3,
-            8
+            4,
+            15
           ],
-          "code": "file       04_nav_2025-11-05_amend.xml\ncheck      EXAMPLE-AM-NAV-2025-11-05-AMEND-1, AMEND, content date 2025-11-05\nregister   AMEND of EXAMPLE-AM-NAV-2025-11-05: rows marked replaced {'price': 66, 'nav': 114}\nstream     5 funds, 11 share classes, 66 prices, 114 navs\nstatus     released\nfile       06_nav_2025-11-06_delete.xml\ncheck      EXAMPLE-AM-NAV-2025-11-06-DELETE, DELETE, content date 2025-11-06\nregister   DELETE of EXAMPLE-AM-NAV-2025-11-06: rows marked replaced {'price': 22, 'nav': 38}\nstatus     released"
+          "blocks": [
+            "09:48:53 INFO    file       04_nav_2025-11-05_amend.xml\n09:48:53 INFO    check      EXAMPLE-AM-NAV-2025-11-05-AMEND-1, AMEND, content date 2025-11-05, from EXAMPLE-AM\n09:48:54 INFO    register   delivery 4\n09:48:54 INFO    register   AMEND of EXAMPLE-AM-NAV-2025-11-05: rows marked replaced {'price': 66, 'nav': 114}\n09:48:54 INFO    stream     5 funds, 11 share classes, 66 prices, 114 navs\n09:48:54 INFO    status     released",
+            "09:48:54 INFO    file       05_nav_2025-11-06_sent-by-mistake.xml\n09:48:54 INFO    check      EXAMPLE-AM-NAV-2025-11-06, INITIAL, content date 2025-11-06, from EXAMPLE-AM\n09:48:55 INFO    register   delivery 5\n09:48:55 INFO    stream     5 funds, 11 share classes, 22 prices, 38 navs\n09:48:55 INFO    status     released\n09:48:55 INFO    file       06_nav_2025-11-06_delete.xml\n09:48:55 INFO    check      EXAMPLE-AM-NAV-2025-11-06-DELETE, DELETE, content date 2025-11-06, from EXAMPLE-AM\n09:48:56 INFO    register   delivery 6\n09:48:56 INFO    register   DELETE of EXAMPLE-AM-NAV-2025-11-06: rows marked replaced {'price': 22, 'nav': 38}\n09:48:56 INFO    status     released"
+          ]
         }
       },
       "say": {
@@ -640,24 +703,48 @@
     {
       "id": "rejected",
       "slide": {
-        "layout": "code",
+        "layout": "terminal",
         "builds": [
-          0.0,
-          0.4
+          0.05
         ],
         "en": {
           "title": "Four broken files",
-          "file": "loader/load.py",
+          "window": "bash  ·  PostgreSQL_End_to_End",
           "highlight": [
-            1,
-            3,
-            4
+            2,
+            6,
+            8,
+            11,
+            12
           ],
-          "code": "rejected   cut-off.xml: INCOMPLETE: no closing </FundsXML4>\nregister   skipped: EXAMPLE-AM-NAV-2025-11-05 already loaded (status released)\nrejected   unknown-sender.xml: UNKNOWN_SENDER: data supplier 'OTHER-AM' is not known\nrejected   wrong-order.xml: SCHEMA: line 134: cvc-complex-type.2.4.a: Invalid content was\n           found starting with element 'Currency'. One of '{Names}' is expected.\nsummary    6 loaded, 1 skipped, 3 rejected"
+          "blocks": [
+            "09:48:56 INFO    file       cut-off.xml\n09:48:56 ERROR   rejected   cut-off.xml: INCOMPLETE: no closing </FundsXML4>: the file was cut off during trans…\n09:48:56 INFO    file       duplicate-of-02.xml\n09:48:56 INFO    check      EXAMPLE-AM-NAV-2025-11-05, INITIAL, content date 2025-11-05, from EXAMPLE-AM\n09:48:58 INFO    validate   ok: valid against FundsXML.xsd (XSD 1.1)\n09:48:58 INFO    register   skipped: EXAMPLE-AM-NAV-2025-11-05 already loaded (status released)\n09:48:58 INFO    file       unknown-sender.xml\n09:48:58 ERROR   rejected   unknown-sender.xml: UNKNOWN_SENDER: data supplier 'OTHER-AM' is not in loader/sende…\n09:48:58 INFO    file       wrong-order.xml\n09:48:58 INFO    check      EXAMPLE-AM-NAV-2025-11-05-ORDER, INITIAL, content date 2025-11-05, from EXAMPLE-AM\n09:48:59 ERROR   rejected   wrong-order.xml: SCHEMA: line 134: cvc-complex-type.2.4.a: Invalid content was foun…\n09:48:59 INFO    summary    6 loaded, 1 skipped, 3 rejected"
+          ]
         }
       },
       "say": {
         "en": "And the four broken files. The file cut off during transfer fails the cheap check, before any validation. The second copy of the daily file is skipped, because its document ID is known. The file from an unknown sender is rejected. And the file with two elements in the wrong order fails the schema. Six loaded, one skipped, three rejected, and the database is exactly as it should be."
+      }
+    },
+    {
+      "id": "rows",
+      "slide": {
+        "layout": "terminal",
+        "builds": [
+          0.05,
+          0.3
+        ],
+        "en": {
+          "title": "What is in the database now",
+          "window": "psql  ·  fundsxml",
+          "blocks": [
+            "$ psql -f queries/10_rows_per_table.sql",
+            "    table_name     | rows\n-------------------+------\n delivery          |    6\n fund              |    5\n share_class       |   11\n nav               |  285\n price             |  418\n portfolio         |    4\n position          |  522\n asset             |  430\n trade             |  209\n document          |    9\n regulatory_report |   12\n(11 rows)"
+          ]
+        }
+      },
+      "say": {
+        "en": "And what is in the database now? A look with psql. Six deliveries, five funds, eleven share classes. Two hundred eighty-five net asset values and four hundred eighteen prices: that includes the rows replaced by the correction and the deletion, because nothing is overwritten. Four portfolios with five hundred twenty-two positions, four hundred thirty assets, two hundred nine trades, nine documents and twelve template records. Every number matches the log."
       }
     },
     {

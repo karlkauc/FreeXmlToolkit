@@ -5,6 +5,7 @@
   "title": {
     "en": "Generating FundsXML"
   },
+  "audience": "engineering",
   "description": {
     "en": "How to produce FundsXML from a database, with the generator of the complete PostgreSQL example: start with the target file, a mapping table, a partner register that says which data goes to whom, templates, XSLT or generated code, ControlData, writing share classes, several funds and dates in one file, element order, empty elements and formats, validation in FreeXmlToolkit, corrections, large deliveries, several schema versions, partner configuration, time windows, golden files, CI and the round trip, handing over, resends and documentation. All files can be downloaded."
   },
@@ -593,27 +594,22 @@
         "en": "Tests"
       },
       "slide": {
-        "layout": "bullets",
+        "layout": "terminal",
         "builds": [
-          0.08,
-          0.3,
-          0.62
+          0.05,
+          0.45,
+          0.7
         ],
         "en": {
           "title": "Golden files",
-          "items": [
-            {
-              "head": "Known input, known output",
-              "text": "data/in → data/expected."
-            },
-            {
-              "head": "Compare after every change",
-              "text": "Byte for byte, then validate and check."
-            },
-            {
-              "head": "The difficult cases",
-              "text": "A correction, an umbrella, a second currency, two natures."
-            }
+          "window": "bash  ·  PostgreSQL_End_to_End",
+          "highlight": [
+            12
+          ],
+          "blocks": [
+            "$ ./run_all.sh\n…\n=== 5. generate FundsXML for every partner in generator/partners.json, validate, compare\nwrote out/export/EXAMPLE-AM-DATAVENDOR-C-2025-11-05.xml (1932 KB, 430 assets)\nwrote out/export/EXAMPLE-AM-DISTRIBUTOR-B-2025-11-05.xml (91 KB, 0 assets)\nwrote out/export/EXAMPLE-AM-INSURER-A-2025-11-05.xml (511 KB, 177 assets)\nwrote out/export/EXAMPLE-AM-DATAVENDOR-C-2025-11-05-AMEND-1.xml (1932 KB, 430 assets)",
+            "out/export/EXAMPLE-AM-DATAVENDOR-C-2025-11-05-AMEND-1.xml: valid (XSD 1.1)\nout/export/EXAMPLE-AM-DATAVENDOR-C-2025-11-05.xml: valid (XSD 1.1)\nout/export/EXAMPLE-AM-DISTRIBUTOR-B-2025-11-05.xml: valid (XSD 1.1)\nout/export/EXAMPLE-AM-INSURER-A-2025-11-05.xml: valid (XSD 1.1)",
+            "exports equal the golden files"
           ]
         }
       },
@@ -624,21 +620,161 @@
     {
       "id": "ci",
       "slide": {
-        "layout": "code",
+        "layout": "flow",
         "builds": [
-          0.0,
-          0.4
+          0.05,
+          0.4,
+          0.7
         ],
         "en": {
           "title": "Automated on every change",
-          "file": ".github/workflows/ci.yml",
-          "highlight": [
-            7,
-            8,
-            9,
-            10
+          "note": ".github/workflows/ci.yml  ·  job postgres-end-to-end",
+          "nodes": [
+            {
+              "id": "push",
+              "label": "push, pull request",
+              "col": 0,
+              "row": 0,
+              "kind": "active",
+              "group": 0
+            },
+            {
+              "id": "pg",
+              "label": "postgres:16",
+              "sub": "a fresh database",
+              "col": 1,
+              "row": 0,
+              "group": 0
+            },
+            {
+              "id": "repro",
+              "label": "samples",
+              "sub": "reproducible",
+              "col": 2,
+              "row": 0,
+              "group": 0
+            },
+            {
+              "id": "codes",
+              "label": "code lists",
+              "sub": "same as the XSD",
+              "col": 3,
+              "row": 0,
+              "group": 0
+            },
+            {
+              "id": "load",
+              "label": "load",
+              "sub": "6 loaded, 3 rejected",
+              "col": 3,
+              "row": 1,
+              "group": 1
+            },
+            {
+              "id": "again",
+              "label": "load again",
+              "sub": "6 skipped",
+              "col": 2,
+              "row": 1,
+              "group": 1
+            },
+            {
+              "id": "export",
+              "label": "generate",
+              "sub": "3 partners, 4 files",
+              "col": 1,
+              "row": 1,
+              "group": 1
+            },
+            {
+              "id": "valid",
+              "label": "XSD 1.1",
+              "sub": "every file valid",
+              "col": 0,
+              "row": 1,
+              "group": 1
+            },
+            {
+              "id": "golden",
+              "label": "golden files",
+              "sub": "byte for byte",
+              "col": 0,
+              "row": 2,
+              "group": 2
+            },
+            {
+              "id": "round",
+              "label": "round trip",
+              "sub": "no new assets",
+              "col": 1,
+              "row": 2,
+              "group": 2
+            },
+            {
+              "id": "sch",
+              "label": "Schematron",
+              "sub": "no errors",
+              "col": 2,
+              "row": 2,
+              "group": 2
+            },
+            {
+              "id": "green",
+              "label": "green",
+              "sub": "ready to merge",
+              "col": 3,
+              "row": 2,
+              "kind": "ok",
+              "group": 2
+            }
           ],
-          "code": "postgres-end-to-end                                    success\n  sample deliveries are reproducible                   ok\n  code lists match the schema                          ok\n  load 6 deliveries, reject 3 bad files, skip 1        ok\n  load again: every file skipped                       ok\n  AMEND and DELETE, reconcile 4 portfolios             ok\n  generate 4 files for 3 partners                      ok\n  validate them (XSD 1.1)                              ok\n  compare with the golden files                        ok\n  load an export again: no new assets                  ok\n  Schematron: no errors                                ok"
+          "edges": [
+            {
+              "from": "push",
+              "to": "pg"
+            },
+            {
+              "from": "pg",
+              "to": "repro"
+            },
+            {
+              "from": "repro",
+              "to": "codes"
+            },
+            {
+              "from": "codes",
+              "to": "load"
+            },
+            {
+              "from": "load",
+              "to": "again"
+            },
+            {
+              "from": "again",
+              "to": "export"
+            },
+            {
+              "from": "export",
+              "to": "valid"
+            },
+            {
+              "from": "valid",
+              "to": "golden"
+            },
+            {
+              "from": "golden",
+              "to": "round"
+            },
+            {
+              "from": "round",
+              "to": "sch"
+            },
+            {
+              "from": "sch",
+              "to": "green",
+              "kind": "ok"
+            }
+          ]
         }
       },
       "say": {
@@ -648,32 +784,29 @@
     {
       "id": "roundtrip",
       "slide": {
-        "layout": "bullets",
+        "layout": "terminal",
         "builds": [
-          0.08,
-          0.35,
-          0.65
+          0.05,
+          0.5
         ],
         "en": {
           "title": "The round trip",
-          "items": [
-            {
-              "head": "Load the generated file again",
-              "text": "With the loader of the last film."
-            },
-            {
-              "head": "Every asset found again",
-              "text": "By ISIN, or by our key in OtherID: no new assets."
-            },
-            {
-              "head": "Everything reconciles",
-              "text": "To the cent."
-            }
+          "window": "bash  ·  PostgreSQL_End_to_End",
+          "highlight": [
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "blocks": [
+            "=== 6. round trip: the export loads again; every asset is found again by its identifiers\n09:49:08 INFO    file       EXAMPLE-AM-DATAVENDOR-C-2025-11-05.xml\n09:49:08 INFO    check      EXAMPLE-AM-DATAVENDOR-C-2025-11-05, INITIAL, content date 2025-11-05, from EXAMPLE-AM\n09:49:10 INFO    validate   ok: valid against FundsXML.xsd (XSD 1.1)\n09:49:10 INFO    register   delivery 7\n09:49:10 INFO    stream     5 funds, 11 share classes, 22 prices, 42 navs, 522 positions, 209 trades, 68 income, 67 flows, 3 distributions, 430 assets, 9 documents, 12 templates",
+            "09:49:11 INFO    reconcile  Example Balanced Fund of Funds 2025-10-31: positions 155706556.38 vs net assets 155706556.38 EUR, weights 100.0000 % -> ok\n09:49:11 INFO    reconcile  Example Euro Bond Fund 2025-10-31: positions 838581814.97 vs net assets 838581814.97 EUR, weights 100.0000 % -> ok\n09:49:11 INFO    reconcile  Example Global Equity Fund 2025-10-31: positions 602060878.93 vs net assets 602060878.93 EUR, weights 100.0000 % -> ok\n09:49:11 INFO    reconcile  Example Multi Asset Opportunities Fund 2025-10-31: positions 278791093.07 vs net assets 278791093.07 EUR, weights 100.0000 % -> ok\n09:49:11 INFO    summary    1 loaded, 0 skipped, 0 rejected"
           ]
         }
       },
       "say": {
-        "en": "One more test is cheap and finds a lot: load the generated file again, with the loader of the last film. Every asset must be found again: by its I S I N, or, for assets without one, by the key the generator wrote as other identifier. In the example, the round trip creates no new asset, and every portfolio still reconciles to the cent."
+        "en": "One more test is cheap and finds a lot: load the generated file again, with the loader of the last film. Every asset must be found again: by its I S I N, or, for assets without one, by the key the generator wrote as other identifier. In the log, the four hundred thirty assets are all known: not one new asset is created. And every portfolio still reconciles to the cent."
       }
     },
     {

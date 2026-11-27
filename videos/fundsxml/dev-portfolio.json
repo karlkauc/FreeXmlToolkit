@@ -6,6 +6,7 @@
   "title": {
     "en": "Portfolios and asset master data"
   },
+  "audience": "data",
   "description": {
     "en": "The portfolio part of a FundsXML document: positions with their value and weight, the instrument-specific block (equities, bonds, fund units, options, FX forwards, cash), the link from a position to its asset in AssetMasterData through UniqueID (xs:ID and xs:IDREF), a broken link found by the schema, portfolio breakdowns, and how fund-of-fund look-through is modelled."
   },

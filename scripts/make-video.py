@@ -220,6 +220,20 @@ def load_theme():
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def film_theme(theme, board):
+    """The set's theme for one film: the colours and labels of the film's audience ("audience" in the
+    storyboard, a key of the theme's "audiences") over the set's own. Without an audience: the theme as is."""
+    if not theme or not board.get("audience"):
+        return theme
+    audience = theme.get("audiences", {}).get(board["audience"])
+    if audience is None:
+        sys.exit(f"unknown audience {board['audience']!r} (theme.json: {', '.join(theme.get('audiences', {}))})")
+    out = json.loads(json.dumps(theme))
+    out["colors"].update(audience.get("colors", {}))
+    out["_audience"] = audience
+    return out
+
+
 def series_specs():
     """The set's series files (series.json, series-<name>.json), each a dict with its "_path"."""
     out = []
@@ -272,9 +286,10 @@ class Brand:
     def font(self, size, bold=False):
         return ImageFont.truetype(str(BOARDS / self.theme["font_bold" if bold else "font"]), size)
 
-    def canvas(self):
-        """White page with the brand's blue bar on the left and the logo at the top left (as the
-        presentation template's title slide)."""
+    def canvas(self, audience_tag=True):
+        """White page with the bar on the left (in the colour of the film's audience) and the logo at
+        the top left (as the presentation template's title slide); with an audience, its label at the
+        top right."""
         img = Image.new("RGB", (W, H), self.c["background"])
         d = ImageDraw.Draw(img)
         d.rectangle([0, 0, 27, H], fill=self.c["bar"])
@@ -282,7 +297,28 @@ class Brand:
         height = self.theme.get("logo_height", 58)
         logo = logo.resize((round(logo.width * height / logo.height), height), Image.LANCZOS)
         img.paste(logo, (160, 120), logo)
+        if audience_tag:
+            self.audience_tag(d)
         return img, d
+
+    def tint(self, share=0.16):
+        """The accent colour, much lighter: the background of marked lines and rows."""
+        return tuple(round(255 + (c - 255) * share) for c in self.c["accent"])
+
+    def audience_label(self, lang="en"):
+        audience = self.theme.get("_audience")
+        return audience["label"].get(lang) if audience else None
+
+    def audience_tag(self, d, lang="en"):
+        """The audience as a filled pill in its colour, at the top right."""
+        label = self.audience_label(lang)
+        if not label:
+            return
+        fnt = self.font(28, True)
+        width, height = d.textlength(label, font=fnt) + 48, 56
+        right, top = W - 120, 128
+        d.rounded_rectangle([right - width, top, right, top + height], radius=height // 2, fill=self.c["accent"])
+        d.text((right - width / 2, top + height / 2), label, font=fnt, fill=(255, 255, 255), anchor="mm")
 
     def accent(self, img, x, y, width, height=14):
         """The accent line in the brand's blue-to-green gradient."""
@@ -311,10 +347,14 @@ class Brand:
 def brand_intro(path, theme, lang, board, series_title):
     b = Brand(theme)
     t = theme["text"][lang]
-    img, d = b.canvas()
+    img, d = b.canvas(audience_tag=False)
     n, total, _ = place_in_series(board)
     own = board.get("kicker", {}).get(lang)
-    kicker = t["kicker"].format(n=n, total=total) if n else own or t["series_kicker"]
+    audience = b.audience_label(lang)
+    if audience:
+        kicker = f"{audience}  ·  " + (t["episode"].format(n=n, total=total) if n else own or t["series_kicker"])
+    else:
+        kicker = t["kicker"].format(n=n, total=total) if n else own or t["series_kicker"]
     if board.get("standalone"):   # not an episode: its own subtitle instead of the series' name
         series_title = board.get("subtitle", {}).get(lang)
     d.text((160, 330), kicker, font=b.font(40, True), fill=b.c["accent"])
@@ -431,7 +471,14 @@ def slide_units(slide, lang):
     layout = slide["layout"]
     n = {"statement": 1 + bool(text.get("sub")), "hub": 2,
          "code": 1 + bool(text.get("highlight")), "table": 1 + bool(text.get("mark")),
-         "image": 1}.get(layout) or len(text["items"])
+         "image": 1}.get(layout)
+    if layout == "terminal":
+        n = len(text["blocks"])
+    elif layout in ("er", "flow"):
+        parts = text["tables"] if layout == "er" else text["nodes"]
+        n = 1 + max(p.get("group", 0) for p in parts) + bool(text.get("mark"))
+    elif not n:
+        n = len(text["items"])
     return n + bool(text.get("note"))
 
 
@@ -596,11 +643,11 @@ def draw_slide(path, theme, lang, slide, shown):
     elif layout == "code":
         lines = t["code"].rstrip("\n").split("\n")
         size = max(20, min(34, int((bottom - top - 80) / (len(lines) * 1.45))))
-        mono = ImageFont.truetype(str(FONTS / "JetBrainsMono-Regular.ttf"), size)
+        mono = ImageFont.truetype(str(FONTS / "JetBrainsMono-Regular.ttf"), size, layout_engine=ImageFont.Layout.BASIC)
         longest = max(d.textlength(l, font=mono) for l in lines)
         while longest > W - 420 and size > 18:
             size -= 1
-            mono = ImageFont.truetype(str(FONTS / "JetBrainsMono-Regular.ttf"), size)
+            mono = ImageFont.truetype(str(FONTS / "JetBrainsMono-Regular.ttf"), size, layout_engine=ImageFont.Layout.BASIC)
             longest = max(d.textlength(l, font=mono) for l in lines)
         step = round(size * 1.45)
         box_h = len(lines) * step + 70
@@ -615,7 +662,7 @@ def draw_slide(path, theme, lang, slide, shown):
         for i, line in enumerate(lines):
             y = y0 + 35 + i * step
             if i + 1 in marked:
-                d.rectangle([162, y - 6, W - 162, y + step - 6], fill=(219, 234, 254))
+                d.rectangle([162, y - 6, W - 162, y + step - 6], fill=b.tint())
                 d.rectangle([162, y - 6, 170, y + step - 6], fill=b.c["accent"])
             d.text((200, y), line, font=mono, fill=b.c["heading"])
 
@@ -640,7 +687,7 @@ def draw_slide(path, theme, lang, slide, shown):
             if k == 0:
                 d.rounded_rectangle([160, yy, 160 + sum(widths), yy + row_h], radius=12, fill=b.c["panel"])
             elif k - 1 in marked:
-                d.rectangle([162, yy, 158 + sum(widths), yy + row_h], fill=(219, 234, 254))
+                d.rectangle([162, yy, 158 + sum(widths), yy + row_h], fill=b.tint())
             if k > 0:
                 d.line([(160, yy), (160 + sum(widths), yy)], fill=b.c["border"], width=1)
             x = 160
@@ -648,6 +695,15 @@ def draw_slide(path, theme, lang, slide, shown):
                 d.text((x + 24, yy + row_h / 2), cell, font=hf if k == 0 else cf,
                        fill=b.c["heading"] if k == 0 or k - 1 in marked else b.c["text"], anchor="lm")
                 x += widths[i]
+
+    elif layout == "terminal":
+        draw_terminal(b, d, t, shown, top, bottom)
+
+    elif layout == "er":
+        draw_er(b, img, d, t, shown, top, bottom)
+
+    elif layout == "flow":
+        draw_flow(b, d, t, shown, top, bottom)
 
     elif layout == "image":
         pic = Image.open(BOARDS / t["image"]).convert("RGB")
@@ -663,6 +719,201 @@ def draw_slide(path, theme, lang, slide, shown):
         b.accent(img, 160, H - 128, 8, 46)
         d.text((190, H - 105), note, font=nf, fill=b.c["heading"], anchor="lm")
     img.save(path)
+
+
+TERM_BG, TERM_BAR, TERM_TEXT, TERM_DIM, TERM_MARK = (22, 27, 38), (44, 51, 66), (226, 232, 240), (139, 150, 168), (49, 58, 78)
+
+
+def mono_font(size):
+    return ImageFont.truetype(str(FONTS / "JetBrainsMono-Regular.ttf"), size, layout_engine=ImageFont.Layout.BASIC)
+
+
+def draw_terminal(b, d, t, shown, top, bottom):
+    """A terminal window whose output appears block by block ("blocks": texts; block i is part i).
+    Lines starting with "$ " are commands (in the accent colour), lines starting with "#" comments
+    (dimmed); "highlight" marks lines (1-based over all blocks) once their block is shown. Lines longer
+    than "columns" (116) wrap, as in a terminal of that width."""
+    width = t.get("columns", 116)   # like a terminal of that many columns: longer lines wrap
+    marked_src = set(t.get("highlight", []))
+    lines, marked, n = [], set(), 0
+    for k, block in enumerate(t["blocks"]):
+        for line in block.rstrip("\n").split("\n"):
+            n += 1
+            for c in range(0, max(1, len(line)), width):
+                lines.append((k, line[c:c + width] if c == 0 else "  " + line[c:c + width]))
+                if n in marked_src:
+                    marked.add(len(lines))
+    size = max(14, min(30, int((bottom - top - 110) / (len(lines) * 1.42))))
+    mono = mono_font(size)
+    while max(d.textlength(l, font=mono) for _, l in lines) > W - 400 and size > 14:
+        size -= 1
+        mono = mono_font(size)
+    step = round(size * 1.42)
+    y0 = top + 10
+    box_h = 56 + len(lines) * step + 40
+    d.rounded_rectangle([160, y0, W - 160, y0 + box_h], radius=14, fill=TERM_BG)
+    d.rounded_rectangle([160, y0, W - 160, y0 + 56], radius=14, fill=TERM_BAR)
+    d.rectangle([160, y0 + 40, W - 160, y0 + 56], fill=TERM_BAR)
+    for i, colour in enumerate([(255, 95, 86), (255, 189, 46), (39, 201, 63)]):
+        d.ellipse([190 + i * 34, y0 + 18, 210 + i * 34, y0 + 38], fill=colour)
+    d.text((W / 2, y0 + 28), t.get("window", "bash"), font=b.font(24, True), fill=TERM_DIM, anchor="mm")
+    prompt = tuple(round(255 + (c - 255) * 0.75) for c in b.c["accent_to"])
+    for i, (k, line) in enumerate(lines):
+        if k not in shown:
+            continue
+        y = y0 + 56 + 20 + i * step
+        if i + 1 in marked:
+            d.rectangle([162, y - 5, W - 162, y + step - 5], fill=TERM_MARK)
+            d.rectangle([162, y - 5, 168, y + step - 5], fill=b.c["accent_to"])
+        colour = prompt if line.startswith("$ ") else TERM_DIM if line.lstrip().startswith("#") else TERM_TEXT
+        d.text((196, y), line, font=mono, fill=colour)
+
+
+def grid_boxes(items, top, bottom, box_w_share=0.8):
+    """Centres and cell size of items placed on a grid by "col" and "row"."""
+    cols = 1 + max(i.get("col", 0) for i in items)
+    rows = 1 + max(i.get("row", 0) for i in items)
+    cw, ch = (W - 320) / cols, (bottom - top - 10) / rows
+    return {i["id"] if "id" in i else i["name"]: (160 + cw * (i.get("col", 0) + 0.5), top + 10 + ch * (i.get("row", 0) + 0.5))
+            for i in items}, cw, ch
+
+
+def edge_point(box, toward):
+    """Where the line from the centre of box (x0, y0, x1, y1) to the point toward leaves the box."""
+    x0, y0, x1, y1 = box
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    dx, dy = toward[0] - cx, toward[1] - cy
+    if dx == 0 and dy == 0:
+        return cx, cy
+    sx = (x1 - x0) / 2 / abs(dx) if dx else float("inf")
+    sy = (y1 - y0) / 2 / abs(dy) if dy else float("inf")
+    f = min(sx, sy)
+    return cx + dx * f, cy + dy * f
+
+
+def arrow_head(d, tip, frm, colour, size=18):
+    ang = math.atan2(tip[1] - frm[1], tip[0] - frm[0])
+    pts = [tip] + [(tip[0] - size * math.cos(ang + s), tip[1] - size * math.sin(ang + s)) for s in (0.45, -0.45)]
+    d.polygon(pts, fill=colour)
+
+
+def draw_er(b, img, d, t, shown, top, bottom):
+    """An entity-relationship diagram: "tables" ({"name", "col", "row", "columns", "group"}) on a grid,
+    "links" [[child, parent]] drawn as lines with a crow's foot at the child once both are shown;
+    "mark" (table names) is filled with the accent colour as the last part. A column is "name",
+    "name PK" or "name FK"; keys are written in bold."""
+    groups = 1 + max(x.get("group", 0) for x in t["tables"])
+    marked = set(t.get("mark", [])) if groups in shown else set()
+    centres, cw, ch = grid_boxes(t["tables"], top, bottom)
+    longest = max(len(x["columns"]) for x in t["tables"])
+    row_h = max(24, min(34, int((ch - 70) / (longest + 1.4))))
+    size = round(row_h * 0.72)
+    hf, cf = b.font(size + 3, True), mono_font(size - 2)
+    boxes = {}
+    for x in t["tables"]:
+        cx, cy = centres[x["name"]]
+        width = max([d.textlength(x["name"], font=hf) + 40] + [d.textlength(c, font=cf) + 40 for c in x["columns"]])
+        width = min(width, cw - 24)
+        height = row_h * (len(x["columns"]) + 1.3)
+        boxes[x["name"]] = (cx - width / 2, cy - height / 2, cx + width / 2, cy + height / 2)
+    visible = {x["name"] for x in t["tables"] if x.get("group", 0) in shown}
+    for child, parent in t.get("links", []):
+        if child in visible and parent in visible:
+            a, z = boxes[child], boxes[parent]
+            ca, cz = ((a[0] + a[2]) / 2, (a[1] + a[3]) / 2), ((z[0] + z[2]) / 2, (z[1] + z[3]) / 2)
+            p, q = edge_point(a, cz), edge_point(z, ca)
+            d.line([p, q], fill=b.c["text"], width=3)
+            ang = math.atan2(q[1] - p[1], q[0] - p[0])   # crow's foot at the child (many)
+            base = (p[0] + 22 * math.cos(ang), p[1] + 22 * math.sin(ang))
+            for side in (-1, 0, 1):
+                foot = (p[0] + 16 * math.cos(ang + math.pi / 2) * side, p[1] + 16 * math.sin(ang + math.pi / 2) * side)
+                d.line([base, foot], fill=b.c["text"], width=3)
+            bar = (q[0] - 16 * math.cos(ang), q[1] - 16 * math.sin(ang))   # one at the parent
+            d.line([(bar[0] + 12 * math.cos(ang + math.pi / 2), bar[1] + 12 * math.sin(ang + math.pi / 2)),
+                    (bar[0] - 12 * math.cos(ang + math.pi / 2), bar[1] - 12 * math.sin(ang + math.pi / 2))], fill=b.c["text"], width=3)
+    for x in t["tables"]:
+        if x["name"] not in visible:
+            continue
+        x0, y0, x1, y1 = boxes[x["name"]]
+        mark = x["name"] in marked
+        d.rounded_rectangle([x0, y0, x1, y1], radius=10, fill=b.tint() if mark else (255, 255, 255),
+                            outline=b.c["accent"] if mark else b.c["border"], width=4 if mark else 2)
+        d.rounded_rectangle([x0, y0, x1, y0 + row_h * 1.2], radius=10, fill=b.c["accent"] if mark else b.c["heading"])
+        d.rectangle([x0, y0 + row_h * 0.8, x1, y0 + row_h * 1.2], fill=b.c["accent"] if mark else b.c["heading"])
+        d.text(((x0 + x1) / 2, y0 + row_h * 0.6), x["name"], font=hf, fill=(255, 255, 255), anchor="mm")
+        for k, col in enumerate(x["columns"]):
+            yy = y0 + row_h * (1.3 + k + 0.5)
+            key = col.endswith(" PK") or col.endswith(" FK")
+            d.text((x0 + 18, yy), col, font=cf, fill=b.c["heading"] if key else b.c["text"], anchor="lm")
+
+
+FLOW_KINDS = {"ok": ((230, 247, 238), (47, 133, 90)), "error": ((253, 236, 236), (197, 48, 48)),
+              "warn": ((254, 245, 224), (192, 120, 20))}
+
+
+def draw_flow(b, d, t, shown, top, bottom):
+    """A flow diagram: "nodes" ({"id", "label", "sub", "col", "row", "kind", "group"}) on a grid and
+    "edges" ({"from", "to", "label", "kind", "route": "vh" for down-then-sideways}) as arrows, drawn once
+    both ends are shown. Kinds: box (default),
+    active (filled with the accent), ok, warn, error, store. "mark" (node ids) fills nodes with the accent
+    as the last part."""
+    groups = 1 + max(n.get("group", 0) for n in t["nodes"])
+    marked = set(t.get("mark", [])) if groups in shown else set()
+    centres, cw, ch = grid_boxes(t["nodes"], top, bottom)
+    lf, sf = b.font(30 if cw > 330 else 26, True), b.font(23 if cw > 330 else 21)
+    boxes = {}
+    for n in t["nodes"]:
+        cx, cy = centres[n["id"]]
+        width = min(cw - 70, max(d.textlength(n["label"], font=lf), d.textlength(n.get("sub", ""), font=sf)) + 48)
+        sub = wrap(d, n.get("sub", ""), sf, width - 32) if n.get("sub") else []
+        height = 66 + 30 * len(sub)
+        boxes[n["id"]] = (cx - width / 2, cy - height / 2, cx + width / 2, cy + height / 2, sub)
+    visible = {n["id"] for n in t["nodes"] if n.get("group", 0) in shown}
+    ef = b.font(22)
+    for e in t.get("edges", []):
+        if e["from"] not in visible or e["to"] not in visible:
+            continue
+        a, z = boxes[e["from"]][:4], boxes[e["to"]][:4]
+        ca, cz = ((a[0] + a[2]) / 2, (a[1] + a[3]) / 2), ((z[0] + z[2]) / 2, (z[1] + z[3]) / 2)
+        if abs(ca[1] - cz[1]) < 2 or abs(ca[0] - cz[0]) < 2:   # same row or column: straight
+            p, q = edge_point(a, cz), edge_point(z, ca)
+            path = [p, q]
+        elif e.get("route") == "vh":   # an elbow: down or up out of the source, then sideways into the target
+            p = (ca[0], a[3] if cz[1] > ca[1] else a[1])
+            q = (z[0] if cz[0] > ca[0] else z[2], cz[1])
+            path = [p, (ca[0], cz[1]), q]
+        else:   # an elbow: out of the side, then up or down into the target
+            sx = a[2] if cz[0] > ca[0] else a[0]
+            p = (sx, ca[1])
+            q = (cz[0], z[1] if cz[1] > ca[1] else z[3])
+            path = [p, (cz[0], ca[1]), q]
+        colour = b.c["text"]
+        if e.get("kind") in FLOW_KINDS:
+            colour = FLOW_KINDS[e["kind"]][1]
+        d.line(path, fill=colour, width=4, joint="curve")
+        arrow_head(d, path[-1], path[-2], colour)
+        if e.get("label"):
+            mx, my = (path[0][0] + path[1][0]) / 2, (path[0][1] + path[1][1]) / 2
+            w = d.textlength(e["label"], font=ef) + 16
+            d.rounded_rectangle([mx - w / 2, my - 16, mx + w / 2, my + 16], radius=8, fill=(255, 255, 255))
+            d.text((mx, my), e["label"], font=ef, fill=colour, anchor="mm")
+    for n in t["nodes"]:
+        if n["id"] not in visible:
+            continue
+        x0, y0, x1, y1, sub = boxes[n["id"]]
+        kind = "active" if n["id"] in marked else n.get("kind", "box")
+        fill, line, text = b.c["panel"], b.c["border"], b.c["heading"]
+        if kind == "active":
+            fill, line, text = b.c["accent"], b.c["accent"], (255, 255, 255)
+        elif kind == "store":
+            fill, line = b.tint(), b.c["accent"]
+        elif kind in FLOW_KINDS:
+            fill, line = FLOW_KINDS[kind]
+        d.rounded_rectangle([x0, y0, x1, y1], radius=14, fill=fill, outline=line, width=3)
+        d.text(((x0 + x1) / 2, y0 + 34), n["label"], font=lf, fill=text, anchor="mm")
+        for k, s_line in enumerate(sub):
+            d.text(((x0 + x1) / 2, y0 + 70 + 30 * k), s_line, font=sf,
+                   fill=(255, 255, 255) if kind == "active" else b.c["text"], anchor="mm")
 
 
 # ---------------------------------------------------------------- cut
@@ -753,7 +1004,7 @@ def compose(board, lang, work, out):
 
     texts = CARD_TEXT[lang]
     link = board.get("link") or DOCS_URL + board.get("docs", "")
-    theme = load_theme()
+    theme = film_theme(load_theme(), board)
     if theme:
         spec = series_of(board)
         series_title = spec["title"].get(lang) if spec else None
@@ -778,8 +1029,9 @@ def compose(board, lang, work, out):
     # the screen recording, processed as one: zoom, click rings and key caps (times from t0)
     run_parts = {}
     if runs:
-        t0 = max(0.0, min(starts.values()) - 0.4)
-        screen_len = max(finish.values()) - t0
+        # only the scenes the storyboard still has: a recorded scene that was dropped from it is cut away
+        t0 = max(0.0, min(starts[i] for i in recorded) - 0.4)
+        screen_len = max(finish[i] for i in recorded) - t0
         inputs += ["-i", work / "screen.mkv"]
         graph.append(f"[{n}:v]trim=start={t0:.3f}:end={t0 + screen_len:.3f},setpts=PTS-STARTPTS,fps={FPS}[s0]")
         n += 1
@@ -888,7 +1140,8 @@ def compose(board, lang, work, out):
          "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p", "-r", FPS,
          "-c:a", "aac", "-b:a", "160k", "-ac", "2", "-c:s", "mov_text",
          "-metadata:s:s:0", f"language={SUBTITLE_LANG.get(lang, lang)}",
-         "-metadata", f"title={board['title'][lang]}", "-metadata", f"comment={ai_note(work)}",
+         "-metadata:s:a:0", f"language={SUBTITLE_LANG.get(lang, lang)}",
+         *film_metadata(board, lang, theme, work),
          "-t", f"{total:.3f}", "-movflags", "+faststart", out])
 
     # title, description and chapters for the upload (a chapter needs 10 s, shorter ones join the one before)
@@ -906,6 +1159,50 @@ def compose(board, lang, work, out):
     out.with_suffix(".txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"wrote {out} ({total:.0f} s), {srt.name}, {out.with_suffix('.txt').name}")
     publish(out, board["id"])
+
+
+def chapter_names(board, lang):
+    return [s["chapter"][lang] for s in board["scenes"] if "chapter" in s]
+
+
+def shorten(text, limit):
+    """text cut at a word boundary to at most limit characters, with an ellipsis when cut."""
+    if len(text) <= limit:
+        return text
+    return text[:limit - 1].rsplit(" ", 1)[0].rstrip(",;:") + "…"
+
+
+def film_metadata(board, lang, theme, work):
+    """ffmpeg -metadata arguments of a film: title, series as album and show, episode, audience as
+    grouping, description and synopsis (with the topics, its chapter names), genre, year, licence, and
+    the AI note as comment. Values from the theme's "metadata" and "audiences"; without a theme only
+    title and comment."""
+    tags = {"title": board["title"][lang], "comment": ai_note(work)}
+    meta = (theme or {}).get("metadata", {})
+    if meta:
+        spec = series_of(board)
+        n, total, _ = place_in_series(board)
+        audience = (theme or {}).get("_audience")
+        description = board.get("description", {}).get(lang, "")
+        topics = ", ".join(chapter_names(board, lang))
+        tags.update({
+            "artist": meta["artist"], "album_artist": meta["artist"], "composer": meta.get("composer", meta["artist"]),
+            "genre": meta["genre"], "date": meta["year"], "copyright": meta["copyright"],
+            "description": shorten(description, 250),
+            "synopsis": description + (f" Topics: {topics}." if topics else "")
+                        + (f" Audience: {audience['description'][lang]}." if audience else "")
+                        + f" {meta['url']}",
+        })
+        if spec:
+            tags.update({"album": spec["title"][lang], "show": spec["title"][lang]})
+        if n:
+            tags.update({"track": f"{n}/{total}", "episode_sort": str(n), "episode_id": f"{n} of {total}"})
+        if audience:
+            tags["grouping"] = audience["label"][lang]
+    out = []
+    for key, value in tags.items():
+        out += ["-metadata", f"{key}={value}"]
+    return out
 
 
 def film_number(film_id):
@@ -977,6 +1274,11 @@ def copy_target():
     return target / SET if SET else target
 
 
+def ffmeta(value):
+    """A value for an FFMETADATA file: = ; # \\ and line breaks escaped."""
+    return re.sub(r"([=;#\\\n])", r"\\\1", value)
+
+
 def seconds_of(path):
     out = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(path)],
                          check=True, capture_output=True, text=True).stdout
@@ -1003,6 +1305,19 @@ def series(lang, spec):
     work.mkdir(parents=True, exist_ok=True)
     (work / "list.txt").write_text("".join(f"file '{f}'\n" for f in films))
     meta = [";FFMETADATA1", f"title={spec['title'][lang]}", f"comment={ai_note(films[0].parent / boards[0]['id'] / lang)}"]
+    theme = load_theme()
+    if theme and theme.get("metadata"):
+        m = theme["metadata"]
+        audiences = sorted({(theme.get("audiences", {}).get(b.get("audience")) or {}).get("label", {}).get(lang, "")
+                            for b in boards} - {""})
+        meta += [f"artist={m['artist']}", f"album_artist={m['artist']}", f"album={spec['title'][lang]}",
+                 f"show={spec['title'][lang]}", f"genre={m['genre']}", f"date={m['year']}", f"copyright={m['copyright']}",
+                 "description=" + ffmeta(shorten(f"{spec['title'][lang]}: {len(boards)} films. " + "; ".join(b["title"][lang] for b in boards), 250)),
+                 "synopsis=" + ffmeta(f"{spec['title'][lang]}, all {len(boards)} films in one, with a chapter per film: "
+                                      + "; ".join(b["title"][lang] for b in boards) + "."
+                                      + (f" Audience: {', '.join(audiences)}." if audiences else "") + f" {m['url']}")]
+        if audiences:
+            meta.append("grouping=" + ffmeta(", ".join(audiences)))
     chapters, srt_parts, start = [], [], 0.0
     for film, board in zip(films, boards):
         length = seconds_of(film)

@@ -6,6 +6,7 @@
   "title": {
     "en": "Funds, share classes and NAV"
   },
+  "audience": "data",
   "description": {
     "en": "The fund part of a FundsXML document: fund identifiers and names, SingleFundFlag with single funds and umbrellas, FundStaticData and FundDynamicData, the total net asset value, share classes with prices, shares outstanding and amounts in several currencies (AmountType with ccy), action codes, and checking ISIN and LEI check digits in FreeXmlToolkit."
   },

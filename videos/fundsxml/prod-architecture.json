@@ -4,8 +4,9 @@
   "title": {
     "en": "A FundsXML delivery chain"
   },
+  "audience": "engineering",
   "description": {
-    "en": "How FundsXML runs in production: who sends what to whom, the delivery chain of sender and receiver, data sources and a central database, how files travel (SFTP, API, portals), security, rhythms and schema versions, roles, the five building blocks of a production setup, build or buy, how to start, and the complete example used in this series, which can be downloaded."
+    "en": "How FundsXML runs in production: who sends what to whom, the whole delivery chain on one page (sources, central database, generator, validation, SFTP, API and portals), the chains of sender and receiver, security, rhythms and schema versions, the five building blocks of a production setup, roles, build or buy, two environments, document IDs, and the complete example used in this series, which can be downloaded."
   },
   "scenes": [
     {
@@ -127,25 +128,132 @@
     {
       "id": "sources",
       "slide": {
-        "layout": "hub",
+        "layout": "flow",
         "builds": [
-          0.1,
-          0.72
+          0.05,
+          0.4,
+          0.75
         ],
         "en": {
-          "title": "Where the data comes from",
-          "items": [
-            "Fund accounting",
-            "Portfolio management",
-            "Master data",
-            "Regulatory tools",
-            "Document store"
+          "title": "A delivery chain on one page",
+          "nodes": [
+            {
+              "id": "acc",
+              "label": "fund accounting",
+              "sub": "NAV, prices",
+              "col": 0,
+              "row": 0,
+              "group": 0
+            },
+            {
+              "id": "pms",
+              "label": "portfolio system",
+              "sub": "positions, trades",
+              "col": 0,
+              "row": 1,
+              "group": 0
+            },
+            {
+              "id": "md",
+              "label": "master data",
+              "sub": "ISIN, LEI, names",
+              "col": 0,
+              "row": 2,
+              "group": 0
+            },
+            {
+              "id": "db",
+              "label": "central database",
+              "sub": "checked once",
+              "col": 1,
+              "row": 1,
+              "kind": "store",
+              "group": 1
+            },
+            {
+              "id": "gen",
+              "label": "generator",
+              "sub": "partner register",
+              "col": 2,
+              "row": 1,
+              "group": 1
+            },
+            {
+              "id": "val",
+              "label": "validate",
+              "sub": "XSD, rules",
+              "col": 3,
+              "row": 1,
+              "group": 1
+            },
+            {
+              "id": "dist",
+              "label": "distributor",
+              "col": 4,
+              "row": 0,
+              "kind": "ok",
+              "group": 2
+            },
+            {
+              "id": "ins",
+              "label": "insurer",
+              "col": 4,
+              "row": 1,
+              "kind": "ok",
+              "group": 2
+            },
+            {
+              "id": "dv",
+              "label": "data vendor",
+              "col": 4,
+              "row": 2,
+              "kind": "ok",
+              "group": 2
+            }
           ],
-          "centre": "Database"
+          "edges": [
+            {
+              "from": "acc",
+              "to": "db"
+            },
+            {
+              "from": "pms",
+              "to": "db"
+            },
+            {
+              "from": "md",
+              "to": "db"
+            },
+            {
+              "from": "db",
+              "to": "gen"
+            },
+            {
+              "from": "gen",
+              "to": "val"
+            },
+            {
+              "from": "val",
+              "to": "dist",
+              "label": "SFTP",
+              "route": "vh"
+            },
+            {
+              "from": "val",
+              "to": "ins",
+              "label": "API"
+            },
+            {
+              "from": "val",
+              "to": "dv",
+              "label": "portal",
+              "route": "vh"
+            }
+          ]
         }
       },
       "say": {
-        "en": "The data rarely comes from one system. Net asset values come from fund accounting, positions from the portfolio system, identifiers and names from master data, regulatory templates from their own tools, and documents from a document store. A good setup collects them in one place first, often a database, and generates the file from there."
+        "en": "Here is the whole chain on one page. The data rarely comes from one system. Net asset values come from fund accounting, positions from the portfolio system, identifiers and names from master data. A good setup collects them in one place first, often a database, where the data is checked once. From there, a generator writes the file each partner needs, it is validated, and it travels by S F T P, through an A P I or to a portal."
       }
     },
     {
@@ -529,37 +637,6 @@
       }
     },
     {
-      "id": "granularity",
-      "slide": {
-        "layout": "tiles",
-        "builds": [
-          0.1,
-          0.35,
-          0.72
-        ],
-        "en": {
-          "title": "How large is a delivery?",
-          "items": [
-            {
-              "head": "One large file",
-              "text": "A whole fund family, all data. Fewer transfers."
-            },
-            {
-              "head": "Many small files",
-              "text": "Per fund, per kind of data. One error does not stop everything."
-            },
-            {
-              "head": "Agree it early",
-              "text": "Most partners prefer files per kind of data."
-            }
-          ]
-        }
-      },
-      "say": {
-        "en": "How large should a delivery be? Some senders put a whole fund family into one file, with all data. Others send one file per fund and per kind of data. Large files mean fewer transfers, small files mean that one error does not hold up everything. Most partners prefer files per kind of data, so agree on it early."
-      }
-    },
-    {
       "id": "pitfalls",
       "slide": {
         "layout": "bullets",
@@ -627,44 +704,6 @@
       }
     },
     {
-      "id": "start",
-      "slide": {
-        "layout": "steps",
-        "builds": [
-          0.1,
-          0.3,
-          0.42,
-          0.65,
-          0.75
-        ],
-        "en": {
-          "title": "Start small",
-          "items": [
-            {
-              "head": "One kind of data",
-              "text": "For example prices."
-            },
-            {
-              "head": "One partner"
-            },
-            {
-              "head": "Automate completely",
-              "text": "With validation and monitoring."
-            },
-            {
-              "head": "More partners"
-            },
-            {
-              "head": "More kinds of data"
-            }
-          ]
-        }
-      },
-      "say": {
-        "en": "And how to start? Small. Take one kind of data, for example prices, and one partner. Automate it completely, with validation and monitoring. Then add partners, and then further kinds of data. Each step reuses what is already there."
-      }
-    },
-    {
       "id": "environments",
       "slide": {
         "layout": "tiles",
@@ -728,42 +767,6 @@
       },
       "say": {
         "en": "Plan the document IDs carefully, because everything downstream relies on them. An ID must be unique forever. A simple pattern works well: the supplier, the kind of delivery, the date and a sequence number. A resend of the same file keeps its ID; a corrected file gets a new one. Never reuse an ID, not even after years."
-      }
-    },
-    {
-      "id": "peaks",
-      "slide": {
-        "layout": "bullets",
-        "builds": [
-          0.08,
-          0.3,
-          0.48,
-          0.65
-        ],
-        "en": {
-          "title": "Plan for peaks",
-          "items": [
-            {
-              "head": "Month end",
-              "text": "Prices, portfolios and templates at once."
-            },
-            {
-              "head": "Year end",
-              "text": "Annual reports and documents."
-            },
-            {
-              "head": "Regulatory deadlines",
-              "text": "Waves of new templates."
-            },
-            {
-              "head": "Growth",
-              "text": "More funds, more partners."
-            }
-          ]
-        }
-      },
-      "say": {
-        "en": "Plan for peaks. At month end, prices, portfolios and regulatory templates go out at the same time. At year end, annual reports and documents follow. Regulatory deadlines bring waves of new templates. And the chain grows: more funds, more partners. A setup that is just fast enough on a quiet day will be late on the busiest one."
       }
     },
     {

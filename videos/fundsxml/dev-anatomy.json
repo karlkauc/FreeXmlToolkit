@@ -6,6 +6,7 @@
   "title": {
     "en": "Anatomy of a delivery: structure and ControlData"
   },
+  "audience": "data",
   "description": {
     "en": "How a FundsXML document is built: the root element FundsXML4, its main blocks (ControlData, Funds, AssetMasterData, Documents, RegulatoryReportings, CountrySpecificData), and ControlData in detail: document ID, timestamps, schema version, content date, data supplier, and the data operations INITIAL, AMEND and DELETE with related document IDs. With common pitfalls. Includes turning a delivery into a correction in FreeXmlToolkit."
   },

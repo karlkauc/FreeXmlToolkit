@@ -6,15 +6,16 @@
   "title": {
     "en": "Query, transform and integrate"
   },
+  "audience": "engineering",
   "description": {
-    "en": "Work with the data in a FundsXML file: XPath paths without a namespace, the ready-made FundsXML queries in the Query Console of FreeXmlToolkit (the ten largest positions as a table), an XSLT stylesheet that turns the positions into CSV, strategies for large files, and how FundsXML fits into a system landscape of databases, data warehouses and scheduled deliveries."
+    "en": "Work with the data in a FundsXML file: XPath paths without a namespace, the ready-made FundsXML queries in the Query Console of FreeXmlToolkit (the ten largest positions as a table), an XSLT stylesheet that turns the positions into CSV, a large file read as a stream in Python with lxml (half a million positions with flat memory, from the FundsXML examples), classes generated from the schema, and the way on to a database."
   },
   "scenes": [
     {
       "id": "intro",
       "card": "title",
       "say": {
-        "en": "In this film you get the data out of a FundsXML file: you query it, you transform it, and you see how it fits into a system landscape. It takes about five minutes."
+        "en": "In this film you get the data out of a FundsXML file: you query it, you transform it, and you read a very large file as a stream, with real code. It takes about five minutes."
       }
     },
     {
@@ -114,32 +115,50 @@
         "en": "Into your systems"
       },
       "slide": {
-        "layout": "bullets",
+        "layout": "code",
         "builds": [
-          0.08,
-          0.38,
-          0.68
+          0.05,
+          0.55
         ],
         "en": {
-          "title": "Reading strategies",
-          "items": [
-            {
-              "head": "In memory",
-              "text": "DOM or a data binding: simple, fine for most files."
-            },
-            {
-              "head": "Streaming",
-              "text": "StAX, SAX or streaming XSLT for very large deliveries."
-            },
-            {
-              "head": "Data binding",
-              "text": "Classes generated from the schema, for Java, C# and more."
-            }
+          "title": "Large files: read a stream",
+          "file": "Large_File_Processing/python/stream_aggregate.py",
+          "code": "context = etree.iterparse(path, events=(\"end\",), tag=\"Position\",\n                          resolve_entities=False, no_network=True,\n                          huge_tree=False)\nfor _, pos in context:\n    amt = pos.find(\"./TotalValue/Amount\")\n    if amt is not None and amt.text:\n        sum_value += float(amt.text)\n    p = pos.findtext(\"TotalPercentage\")\n    if p:\n        sum_pct += float(p)\n    n += 1\n    # Free this element and earlier siblings already parsed.\n    pos.clear()\n    while pos.getprevious() is not None:\n        del pos.getparent()[0]",
+          "highlight": [
+            1,
+            13,
+            14,
+            15
           ]
         }
       },
       "say": {
-        "en": "What about large files? A full delivery with many funds and thousands of positions can reach hundreds of megabytes. Loading it all into memory is simple, and fine for most files. For very large ones, read it as a stream, element by element, with StAX, SAX or streaming XSLT, and process one fund or one position at a time."
+        "en": "What about large files? A full delivery with many funds and thousands of positions can reach hundreds of megabytes. Loading it all into memory is simple, and fine for most files. For very large ones, read it as a stream. Here is the streaming example from the FundsXML examples repository, in Python with lxml. Iterparse hands over one position at a time. The loop adds up value and weight, and then frees the element and everything before it, so the memory stays flat, however large the file is."
+      }
+    },
+    {
+      "id": "large-run",
+      "slide": {
+        "layout": "terminal",
+        "builds": [
+          0.05,
+          0.4
+        ],
+        "en": {
+          "title": "Half a million positions",
+          "window": "bash  ·  Large_File_Processing/python",
+          "highlight": [
+            9,
+            11
+          ],
+          "blocks": [
+            "$ python make_large_sample.py large.xml 500000\nwrote large.xml: 500000 positions, total NAV 500000000.00 EUR\n$ du -h large.xml\n105M    large.xml",
+            "$ time python stream_aggregate.py large.xml\npositions      : 500000\nsum value (EUR): 500000000.00\nsum percentage : 100.0000\npeak RSS       : 18 MiB\n\nreal    0m5.428s\nuser    0m5.411s\nsys    0m0.016s"
+          ]
+        }
+      },
+      "say": {
+        "en": "Let us try it on a large file. The examples repository also has a script that writes a sample with any number of positions: here half a million, a file of a hundred and five megabytes. The streaming script reads it in about five seconds, with a peak memory of eighteen megabytes. And the weights add up to exactly one hundred percent."
       }
     },
     {
@@ -179,75 +198,20 @@
       }
     },
     {
-      "id": "database",
+      "id": "production",
       "slide": {
-        "layout": "tiles",
+        "layout": "statement",
         "builds": [
-          0.08,
-          0.3,
-          0.52,
-          0.74
+          0.05,
+          0.45
         ],
         "en": {
-          "title": "FundsXML in a database",
-          "items": [
-            {
-              "head": "Delivery",
-              "text": "One row per file: document ID, content date, sender, operation."
-            },
-            {
-              "head": "Fund and share class",
-              "text": "Keyed by LEI and ISIN, with their dates."
-            },
-            {
-              "head": "Position",
-              "text": "Fund, date, UniqueID, value, weight."
-            },
-            {
-              "head": "Asset",
-              "text": "UniqueID and identifiers, described once per delivery."
-            }
-          ]
+          "headline": "Into a database, every day.",
+          "sub": "The series FundsXML in production: a complete PostgreSQL example with loader and generator, to download."
         }
       },
       "say": {
-        "en": "Most receivers load FundsXML into a database. The structure of the file suggests the tables. One row per delivery, with its document ID, content date, sender and operation, so corrections can be traced. Funds and share classes, keyed by LEI and ISIN. Positions, keyed by fund, date and UniqueID. And assets, described once per delivery and joined to the positions. Keep the original file as well: it is the evidence of what was delivered."
-      }
-    },
-    {
-      "id": "landscape",
-      "slide": {
-        "layout": "steps",
-        "builds": [
-          0.08,
-          0.3,
-          0.52,
-          0.74
-        ],
-        "en": {
-          "title": "FundsXML in the system landscape",
-          "items": [
-            {
-              "head": "Source systems",
-              "text": "Fund accounting, data warehouse."
-            },
-            {
-              "head": "Produce and check",
-              "text": "FundsXML, schema and rules."
-            },
-            {
-              "head": "Send on schedule",
-              "text": "SFTP, API, platforms."
-            },
-            {
-              "head": "Receive and load",
-              "text": "Check, then into the database."
-            }
-          ]
-        }
-      },
-      "say": {
-        "en": "In a system landscape, FundsXML usually sits at the edge. Outgoing, data comes from the fund accounting and the data warehouse, is turned into FundsXML, checked, and sent on a schedule. Incoming, files are collected, checked, and loaded into a database, from where reports and other systems read them. The same checks and the same test files serve both directions."
+        "en": "And how does the data get into a database, every day, reliably? That is the subject of the series FundsXML in production. It builds on a complete example you can download: a PostgreSQL database, a loader for FundsXML files, and a generator that writes them again."
       }
     },
     {

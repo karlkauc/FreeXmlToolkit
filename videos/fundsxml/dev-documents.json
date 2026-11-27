@@ -6,6 +6,7 @@
   "title": {
     "en": "Documents: link, embed, extract"
   },
+  "audience": "data",
   "description": {
     "en": "How FundsXML carries documents such as prospectuses, PRIIPs KIDs and factsheets: the Documents block, document types, languages and countries, the assignment to funds and share classes, format, signature and dates, delivery as a link or embedded as base64, replacing and restricted documents, and the Documents tool of FreeXmlToolkit to save embedded documents and embed new ones."
   },

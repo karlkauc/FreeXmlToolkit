@@ -6,8 +6,9 @@
   "title": {
     "en": "What a FundsXML delivery contains"
   },
+  "audience": "business",
   "description": {
-    "en": "What a FundsXML delivery carries, in business terms: fund and share class master data, net asset values and prices, portfolios and holdings, transactions and distributions, documents, country modules and regulatory data. Why static and dynamic data are kept apart, typical kinds of deliveries, and a look into a real file, including a ready-made query for the largest holdings."
+    "en": "What a FundsXML delivery carries, in business terms: fund and share class master data, net asset values and prices, portfolios and holdings, transactions and distributions, documents, country modules and regulatory data. Why static and dynamic data are kept apart, typical kinds of deliveries, and a look into a real file."
   },
   "scenes": [
     {
@@ -293,18 +294,6 @@
       }
     },
     {
-      "id": "demo-query",
-      "say": {
-        "en": "A delivery is also a source for analysis. The Query Console of FreeXmlToolkit comes with ready-made FundsXML queries. This one lists the ten largest positions of the fund."
-      }
-    },
-    {
-      "id": "demo-table",
-      "say": {
-        "en": "Shown as a table: each position with its name, its market value and its weight in the fund. The same query works on any FundsXML file, from any fund house."
-      }
-    },
-    {
       "id": "kinds",
       "chapter": {
         "en": "Kinds of deliveries"
@@ -417,23 +406,6 @@
       },
       "say": {
         "en": "Who needs which part? Distributors and fund platforms need the share classes, their prices, their costs and their target markets. Insurers need the full portfolio with the master data of every position, so they can look through to the real holdings. Data vendors collect master data and prices from many fund houses and pass them on. And supervisors and central banks receive fund volumes, holdings and the national data their country asks for."
-      }
-    },
-    {
-      "id": "onefile",
-      "slide": {
-        "layout": "statement",
-        "builds": [
-          0,
-          0.4
-        ],
-        "en": {
-          "headline": "One file, many receivers.",
-          "sub": "The distributor takes prices and costs, the insurer the portfolio, the data vendor the master data."
-        }
-      },
-      "say": {
-        "en": "And this is the key idea once more: one file, many receivers. The distributor takes the prices and costs, the insurer the portfolio, the data vendor the master data. Each one takes the part it needs, from the same delivery."
       }
     },
     {

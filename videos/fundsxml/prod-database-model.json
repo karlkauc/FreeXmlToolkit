@@ -4,6 +4,7 @@
   "title": {
     "en": "FundsXML in a database"
   },
+  "audience": "engineering",
   "description": {
     "en": "How FundsXML data is stored in a database, with the complete PostgreSQL example of the FundsXML examples repository: the XML column and shredded tables, layers, a table model in which everything that repeats is a row (several funds per file, umbrellas and subfunds, several NAVs per day and currency, portfolios and positions, look-through), keys and assets without an ISIN, amounts and currencies, code lists, dates, transactions in four places, documents, regulatory templates, history and corrections, views, quality, access and performance. All files can be downloaded."
   },
@@ -73,37 +74,6 @@
       }
     },
     {
-      "id": "jsonb",
-      "slide": {
-        "layout": "bullets",
-        "builds": [
-          0.1,
-          0.3,
-          0.72
-        ],
-        "en": {
-          "title": "Why not JSON?",
-          "items": [
-            {
-              "head": "XML column",
-              "text": "Complete, queryable with XPath."
-            },
-            {
-              "head": "JSON column",
-              "text": "Easier for web applications, but loses the order of elements and the difference between attributes and elements."
-            },
-            {
-              "head": "Always keep the original file",
-              "text": "Unchanged: the record of what was received."
-            }
-          ]
-        }
-      },
-      "say": {
-        "en": "Some teams convert the file to J S O N and store that instead, because web applications like it. That works, but the conversion loses details: the order of elements and the difference between attributes and elements. Whatever you choose for daily use, keep the original file, unchanged, as the record of what was received."
-      }
-    },
-    {
       "id": "layers",
       "slide": {
         "layout": "steps",
@@ -141,32 +111,177 @@
     },
     {
       "id": "entities",
+      "chapter": {
+        "en": "A table model"
+      },
       "slide": {
-        "layout": "hub",
+        "layout": "er",
         "builds": [
-          0.12,
-          0.25
+          0.08,
+          0.35,
+          0.62
         ],
         "en": {
-          "title": "A table model",
-          "items": [
-            "Fund and subfund",
-            "Share class",
-            "Price and NAV",
-            "Portfolio and position",
-            "Asset",
-            "Flows and trades",
-            "Document",
-            "Template"
+          "title": "The core of the table model",
+          "note": "ddl/02_master.sql  ·  ddl/03_timeseries.sql",
+          "tables": [
+            {
+              "name": "delivery",
+              "col": 0,
+              "row": 0,
+              "group": 0,
+              "columns": [
+                "delivery_id PK",
+                "unique_document_id",
+                "data_operation",
+                "content_date",
+                "status"
+              ]
+            },
+            {
+              "name": "fund",
+              "col": 2,
+              "row": 0,
+              "group": 0,
+              "columns": [
+                "fund_id PK",
+                "lei",
+                "name",
+                "parent_fund_id FK",
+                "single_fund_flag"
+              ]
+            },
+            {
+              "name": "share_class",
+              "col": 3,
+              "row": 0,
+              "group": 0,
+              "columns": [
+                "share_class_id PK",
+                "fund_id FK",
+                "isin",
+                "currency"
+              ]
+            },
+            {
+              "name": "price",
+              "col": 4,
+              "row": 0,
+              "group": 1,
+              "columns": [
+                "share_class_id FK",
+                "nav_date",
+                "nature",
+                "nav_price",
+                "delivery_id FK"
+              ]
+            },
+            {
+              "name": "portfolio",
+              "col": 1,
+              "row": 0,
+              "group": 1,
+              "columns": [
+                "portfolio_id PK",
+                "fund_id FK",
+                "nav_date",
+                "delivery_id FK"
+              ]
+            },
+            {
+              "name": "nav",
+              "col": 3,
+              "row": 1,
+              "group": 1,
+              "columns": [
+                "fund_id FK",
+                "share_class_id FK",
+                "nav_date",
+                "nature",
+                "amount",
+                "currency"
+              ]
+            },
+            {
+              "name": "position",
+              "col": 2,
+              "row": 1,
+              "group": 2,
+              "columns": [
+                "portfolio_id FK",
+                "position_no",
+                "asset_id FK",
+                "total_value",
+                "percentage",
+                "details xml"
+              ]
+            },
+            {
+              "name": "asset",
+              "col": 1,
+              "row": 1,
+              "group": 2,
+              "columns": [
+                "asset_id PK",
+                "name",
+                "asset_type",
+                "details xml"
+              ]
+            },
+            {
+              "name": "asset_identifier",
+              "col": 0,
+              "row": 1,
+              "group": 2,
+              "columns": [
+                "asset_id FK",
+                "scheme",
+                "value"
+              ]
+            }
           ],
-          "centre": "Delivery"
+          "links": [
+            [
+              "share_class",
+              "fund"
+            ],
+            [
+              "price",
+              "share_class"
+            ],
+            [
+              "portfolio",
+              "fund"
+            ],
+            [
+              "portfolio",
+              "delivery"
+            ],
+            [
+              "nav",
+              "share_class"
+            ],
+            [
+              "nav",
+              "fund"
+            ],
+            [
+              "position",
+              "portfolio"
+            ],
+            [
+              "position",
+              "asset"
+            ],
+            [
+              "asset_identifier",
+              "asset"
+            ]
+          ]
         }
       },
       "say": {
-        "en": "For daily work, tables are better. The model of the example follows the structure of FundsXML. Every delivery is registered first. Then come funds and, for umbrellas, their subfunds; share classes with their prices and net asset values; portfolios with their positions; the assets the positions refer to; the transactions; documents; and the regulatory templates. Twenty tables in all, in eight files."
-      },
-      "chapter": {
-        "en": "A table model"
+        "en": "For daily work, tables are better. Here is the core of the example's model as a diagram. Every delivery is registered first. A fund can point to its umbrella, share classes point to their fund, and prices and net asset values to their share class. A portfolio belongs to a fund and a date, its positions point to the assets, and each asset has its identifiers. Around this core come the transactions, the documents and the regulatory templates: twenty-three tables in all, in eight files."
       }
     },
     {
@@ -405,6 +520,33 @@
       }
     },
     {
+      "id": "describe",
+      "slide": {
+        "layout": "terminal",
+        "builds": [
+          0.05,
+          0.45
+        ],
+        "en": {
+          "window": "psql  ·  the position table",
+          "highlight": [
+            14,
+            16,
+            19,
+            20,
+            22
+          ],
+          "blocks": [
+            "$ psql -c '\\d position'",
+            "                    Table \"public.position\"\n    Column     |     Type     | Collation | Nullable | Default\n---------------+--------------+-----------+----------+---------\n portfolio_id  | bigint       |           | not null |\n position_no   | integer      |           | not null |\n look_through  | boolean      |           | not null | false\n asset_id      | bigint       |           | not null |\n position_type | text         |           | not null |\n total_value   | numeric      |           | not null |\n currency      | character(3) |           | not null |\n percentage    | numeric      |           |          |\n quantity      | numeric      |           |          |\n details       | xml          |           | not null |\nIndexes:\n    \"position_pkey\" PRIMARY KEY, btree (portfolio_id, look_through, position_no)\n    \"position_asset\" btree (asset_id)\nForeign-key constraints:\n    \"position_asset_id_fkey\" FOREIGN KEY (asset_id) REFERENCES asset(asset_id)\n    \"position_portfolio_id_fkey\" FOREIGN KEY (portfolio_id) REFERENCES portfolio(portfolio_id)\nPolicies:\n    POLICY \"position_of_client\" FOR SELECT\n      TO fundsxml_reader\n      USING ((portfolio_id IN ( SELECT portfolio.portfolio_id\n   FROM portfolio)))"
+          ]
+        }
+      },
+      "say": {
+        "en": "In the database, psql shows what became of it. The position table has a primary key of portfolio, look-through flag and position number, an index on the asset, and two foreign keys: to its portfolio and to its asset. The details column keeps the position's complete X M L. And a policy for row-level security, which you see later in this film, decides who may read it."
+      }
+    },
+    {
       "id": "lookthrough",
       "slide": {
         "layout": "bullets",
@@ -637,37 +779,180 @@
         "en": "Transactions and documents"
       },
       "slide": {
-        "layout": "tiles",
+        "layout": "er",
         "builds": [
-          0.1,
+          0.06,
           0.3,
-          0.5,
-          0.7
+          0.68
         ],
         "en": {
-          "title": "Transactions in four places",
-          "items": [
+          "title": "Around the core: flows, documents, templates",
+          "note": "ddl/04_flows.sql  ·  ddl/05_documents.sql  ·  ddl/06_regulatory.sql",
+          "tables": [
             {
-              "head": "Flows",
-              "text": "Subscriptions, redemptions: sc_flow, 67 rows."
+              "name": "portfolio",
+              "col": 1,
+              "row": 0,
+              "group": 0,
+              "columns": [
+                "portfolio_id PK",
+                "fund_id FK",
+                "nav_date"
+              ]
             },
             {
-              "head": "Distributions",
-              "text": "Per share class: distribution, 3 rows."
+              "name": "fund",
+              "col": 2,
+              "row": 0,
+              "group": 0,
+              "columns": [
+                "fund_id PK",
+                "lei",
+                "name"
+              ]
             },
             {
-              "head": "Trades",
-              "text": "The fund's own: trade, 209 rows."
+              "name": "share_class",
+              "col": 3,
+              "row": 0,
+              "group": 0,
+              "columns": [
+                "share_class_id PK",
+                "fund_id FK",
+                "isin"
+              ]
             },
             {
-              "head": "Income",
-              "text": "Dividends, coupons, interest: earning, 68 rows."
+              "name": "sc_flow",
+              "col": 4,
+              "row": 0,
+              "group": 1,
+              "columns": [
+                "share_class_id FK",
+                "flow_type",
+                "units",
+                "value"
+              ]
+            },
+            {
+              "name": "trade",
+              "col": 0,
+              "row": 0,
+              "group": 1,
+              "columns": [
+                "portfolio_id FK",
+                "asset_id FK",
+                "kind",
+                "details xml"
+              ]
+            },
+            {
+              "name": "distribution",
+              "col": 4,
+              "row": 1,
+              "group": 1,
+              "columns": [
+                "share_class_id FK",
+                "ex_date",
+                "gross_per_share"
+              ]
+            },
+            {
+              "name": "earning",
+              "col": 0,
+              "row": 1,
+              "group": 1,
+              "columns": [
+                "portfolio_id FK",
+                "asset_id FK",
+                "kind",
+                "value"
+              ]
+            },
+            {
+              "name": "document_target",
+              "col": 2,
+              "row": 1,
+              "group": 2,
+              "columns": [
+                "document_id FK",
+                "fund_id FK",
+                "share_class_id FK"
+              ]
+            },
+            {
+              "name": "document",
+              "col": 1,
+              "row": 1,
+              "group": 2,
+              "columns": [
+                "document_id PK",
+                "doc_type",
+                "language",
+                "url",
+                "content bytea"
+              ]
+            },
+            {
+              "name": "regulatory_report",
+              "col": 3,
+              "row": 1,
+              "group": 2,
+              "columns": [
+                "report_id PK",
+                "template",
+                "share_class_id FK",
+                "ongoing_costs",
+                "content xml"
+              ]
             }
+          ],
+          "links": [
+            [
+              "portfolio",
+              "fund"
+            ],
+            [
+              "share_class",
+              "fund"
+            ],
+            [
+              "sc_flow",
+              "share_class"
+            ],
+            [
+              "trade",
+              "portfolio"
+            ],
+            [
+              "distribution",
+              "share_class"
+            ],
+            [
+              "earning",
+              "portfolio"
+            ],
+            [
+              "document_target",
+              "fund"
+            ],
+            [
+              "document_target",
+              "share_class"
+            ],
+            [
+              "document_target",
+              "document"
+            ],
+            [
+              "regulatory_report",
+              "share_class"
+            ]
           ]
         }
       },
       "say": {
-        "en": "Transactions live in four places in FundsXML, and the model keeps them apart. Subscriptions, redemptions and distributions belong to a share class. The fund's own trades and its income belong to the portfolio of a date. The month-end file of the example brings sixty-seven flows, three distributions, two hundred nine trades and sixty-eight income records. Trades keep their complete X M L next to the columns, so nothing of a complex trade is lost."
+        "en": "Transactions live in four places in FundsXML, and the model keeps them apart. Subscriptions, redemptions and distributions belong to a share class. The fund's own trades and its income belong to the portfolio of a date. The month-end file of the example brings sixty-seven flows, three distributions, two hundred nine trades and sixty-eight income records. Trades keep their complete X M L next to the columns. And the diagram shows where documents and templates attach: documents through a target table to funds and share classes, templates to the share class."
       }
     },
     {

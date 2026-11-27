@@ -5,8 +5,9 @@
   "title": {
     "en": "Taking part in FundsXML"
   },
+  "audience": "business",
   "description": {
-    "en": "How FundsXML evolves and how to take part: the FundsXML Standards Committee, the secretariat and the three working groups (Content & Technique, Promotion, Documentation), associate and full membership, contributing on GitHub, the path of a change request from proposal to a new version, small and large changes, and what makes a good change request."
+    "en": "How FundsXML evolves and how to take part: who decides about the standard, the FundsXML Standards Committee and the three working groups (Content & Technique, Promotion, Documentation), associate and full membership, contributing on GitHub, the path of a change request from proposal to a new version, small and large changes, and what makes a good change request."
   },
   "scenes": [
     {
@@ -118,39 +119,6 @@
       }
     },
     {
-      "id": "secretariat",
-      "slide": {
-        "layout": "bullets",
-        "builds": [
-          0.1,
-          0.35,
-          0.55,
-          0.78
-        ],
-        "en": {
-          "title": "The secretariat",
-          "items": [
-            {
-              "head": "First point of contact",
-              "text": "Questions, new members, change requests."
-            },
-            {
-              "head": "Website and communication"
-            },
-            {
-              "head": "Prepares the committee's meetings"
-            },
-            {
-              "head": "Documents and follows up decisions"
-            }
-          ]
-        }
-      },
-      "say": {
-        "en": "The secretariat keeps things running. It is the first point of contact for questions, for new members and for change requests. It looks after the website and the communication of FundsXML, prepares the meetings of the committee, and makes sure that decisions are documented and followed up."
-      }
-    },
-    {
       "id": "groups",
       "chapter": {
         "en": "The working groups"
@@ -182,77 +150,6 @@
       },
       "say": {
         "en": "The work itself happens in three working groups. Content and Technique is the technical heart: it maintains the schema, designs new data structures and keeps the standard consistent. Promotion makes FundsXML known across Europe and talks to new members and partners. And Documentation creates the guides, examples and references that help users implement the standard, including films like this one."
-      }
-    },
-    {
-      "id": "groupwork",
-      "slide": {
-        "layout": "bullets",
-        "builds": [
-          0.08,
-          0.38,
-          0.52,
-          0.68
-        ],
-        "en": {
-          "title": "How a working group works",
-          "items": [
-            {
-              "head": "A chair and a written assignment",
-              "text": "Goal, members, scope, timeline."
-            },
-            {
-              "head": "Regular meetings",
-              "text": "Today mostly online."
-            },
-            {
-              "head": "A report to every committee meeting"
-            },
-            {
-              "head": "Open to experts",
-              "text": "Active participation is expected."
-            }
-          ]
-        }
-      },
-      "say": {
-        "en": "Each working group has a chair and a written assignment: its goal, its members, its scope and its timeline. The groups meet regularly, today mostly online, and report to every meeting of the Standards Committee. The groups are open to experts from the industry. Active participation is expected: a group lives from the people who bring in their time and their knowledge."
-      }
-    },
-    {
-      "id": "meeting",
-      "slide": {
-        "layout": "steps",
-        "builds": [
-          0.1,
-          0.38,
-          0.62,
-          0.78
-        ],
-        "en": {
-          "title": "A typical meeting",
-          "items": [
-            {
-              "head": "Change requests",
-              "text": "What is new, who needs it."
-            },
-            {
-              "head": "Drafts",
-              "text": "Structures, examples, questions."
-            },
-            {
-              "head": "Decisions",
-              "text": "Recorded in the minutes."
-            },
-            {
-              "head": "Next steps",
-              "text": "Each with an owner."
-            }
-          ]
-        }
-      },
-      "say": {
-        "en": "What happens in a meeting of a working group? A typical agenda starts with the open change requests: what is new, and who needs it. Then the drafts under discussion: a proposed structure, an example file, open questions. Then decisions, recorded in the minutes. And finally the next steps, each with a name next to it. Between meetings, much of the work happens on GitHub."
       }
     },
     {
@@ -423,42 +320,6 @@
       }
     },
     {
-      "id": "release",
-      "slide": {
-        "layout": "bullets",
-        "builds": [
-          0.08,
-          0.35,
-          0.5,
-          0.72
-        ],
-        "en": {
-          "title": "Into the next version",
-          "items": [
-            {
-              "head": "4.2.11 → 4.2.12",
-              "text": "Accepted changes are collected."
-            },
-            {
-              "head": "Changelog",
-              "text": "Every change listed."
-            },
-            {
-              "head": "“since” mark",
-              "text": "On every new element in the schema."
-            },
-            {
-              "head": "Existing files stay valid",
-              "text": "New fields are usually optional."
-            }
-          ]
-        }
-      },
-      "say": {
-        "en": "Accepted changes are collected in the next version, for example four point two point twelve. Every change is listed in the changelog, and every new element carries a mark in the schema that says since which version it exists. Because new fields are usually optional, existing deliveries stay valid, and partners can move to the new version when they are ready."
-      }
-    },
-    {
       "id": "example",
       "chapter": {
         "en": "A good change request"
@@ -555,40 +416,6 @@
       },
       "say": {
         "en": "What makes a good change request? Describe the business case: who needs the data, and why. Define the data point exactly: its meaning, its type and its codes. Add a short example in X M L. Say whether existing files stay valid. And name the partners who would use it. A clear request saves the working group a lot of time."
-      }
-    },
-    {
-      "id": "mistakes",
-      "slide": {
-        "layout": "bullets",
-        "builds": [
-          0.12,
-          0.35,
-          0.5,
-          0.65
-        ],
-        "en": {
-          "title": "A weak change request",
-          "items": [
-            {
-              "head": "Too vague",
-              "text": "“We need more ESG data.”"
-            },
-            {
-              "head": "A solution without a problem"
-            },
-            {
-              "head": "One company's internal codes"
-            },
-            {
-              "head": "Already in the schema",
-              "text": "Under another name: check the documentation first."
-            }
-          ]
-        }
-      },
-      "say": {
-        "en": "And what makes a weak one? A request that is too vague, such as: we need more E S G data. A solution without a problem behind it. A field that only makes sense for the internal codes of one company. Or an element that already exists under another name. So look into the schema documentation first; the answer may already be there."
       }
     },
     {
