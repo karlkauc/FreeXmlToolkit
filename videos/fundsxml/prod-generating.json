@@ -1,19 +1,19 @@
 {
-  "_comment": "Production series, film 4: slides and a short run in FreeXmlToolkit (FundsXmlProdGeneratingDocVideo) on files written by the reference export (Example-Export_Multi-Asset_2025-10*.xml).",
+  "_comment": "Production series, film 4: slides and a short run in FreeXmlToolkit (FundsXmlProdGeneratingDocVideo) on a file written by the generator of the complete example github.com/fundsxml/examples/tree/main/PostgreSQL_End_to_End (EXAMPLE-AM-INSURER-A-2025-11-05*.xml).",
   "id": "prod-generating",
   "scenario": "FundsXmlProdGeneratingDocVideo",
   "title": {
     "en": "Generating FundsXML"
   },
   "description": {
-    "en": "How to produce FundsXML from a database: start with the target file, a mapping table, which data goes to whom, templates, XSLT or generated code, ControlData, the reference export, element order, empty elements and formats, validation in FreeXmlToolkit, corrections, large deliveries, several schema versions, partner configuration, time windows, golden-file tests and CI, handing over, resends and documentation."
+    "en": "How to produce FundsXML from a database, with the generator of the complete PostgreSQL example: start with the target file, a mapping table, a partner register that says which data goes to whom, templates, XSLT or generated code, ControlData, writing share classes, several funds and dates in one file, element order, empty elements and formats, validation in FreeXmlToolkit, corrections, large deliveries, several schema versions, partner configuration, time windows, golden files, CI and the round trip, handing over, resends and documentation. All files can be downloaded."
   },
   "scenes": [
     {
       "id": "intro",
       "card": "title",
       "say": {
-        "en": "Now the other direction: the data is in your database, and a partner expects a FundsXML file. In this film you see the ways to generate FundsXML, the mapping behind it, how to handle several schema versions and large files, and how to test the result."
+        "en": "Now the other direction: the data is in your database, and a partner expects a FundsXML file. In this film you see the ways to generate FundsXML, the mapping behind it, how to serve several partners from one generator, and how to test the result. The generator of the complete example writes from the database of the last two films, and you can download all of it."
       }
     },
     {
@@ -51,11 +51,14 @@
         }
       },
       "say": {
-        "en": "Start with the target, not with the code. Take an official example file that comes close to what your partner expects, for example one of the realistic samples in the FundsXML examples repository. It shows which elements a complete delivery uses, in which order. Agree it with your partner, and you know what to build before the first line of code."
+        "en": "Start with the target, not with the code. Take an official example file that comes close to what your partner expects, for example one of the realistic samples in the FundsXML examples repository. It shows which elements a complete delivery uses, in which order. Agree it with your partner, and you know what to build before the first line of code. The complete example keeps the files its generator must produce right next to the code."
       }
     },
     {
       "id": "mapping",
+      "chapter": {
+        "en": "The mapping"
+      },
       "slide": {
         "layout": "table",
         "builds": [
@@ -65,85 +68,82 @@
         "en": {
           "title": "The mapping table",
           "columns": [
-            "database column",
             "FundsXML path",
+            "source",
             "rule"
           ],
           "rows": [
             [
-              "share_class.isin",
-              "ShareClass/Identifiers/ISIN",
-              "as is"
-            ],
-            [
-              "share_class.name",
-              "ShareClass/Names/OfficialName",
-              "as is"
-            ],
-            [
-              "share_class.currency",
-              "ShareClass/Currency",
-              "ISO 4217"
-            ],
-            [
-              "price.nav_date",
-              "Prices/Price/NavDate",
-              "YYYY-MM-DD"
-            ],
-            [
-              "price.price_type",
-              "Prices/Price/PriceNature",
-              "code list"
-            ],
-            [
-              "price.value",
-              "Prices/Price/NavPrice",
-              "decimal point"
-            ],
-            [
+              "ControlData/UniqueDocumentID",
               "–",
-              "Prices/Price/ActionCode",
-              "fixed: C"
+              "new for every file, never reused"
+            ],
+            [
+              "Fund/Identifiers/LEI",
+              "fund.lei",
+              "funds of the partner register"
+            ],
+            [
+              "…/TotalAssetValues/TotalAssetValue",
+              "nav",
+              "per date and nature; Amount per currency"
+            ],
+            [
+              "ShareClass/Prices/Price",
+              "price",
+              "ActionCode C, date, nature, value"
+            ],
+            [
+              "Portfolio/Positions/Position",
+              "position",
+              "UniqueID = our asset key"
+            ],
+            [
+              "AssetMasterData/Asset",
+              "asset",
+              "only assets the file refers to"
+            ],
+            [
+              "Documents/Document",
+              "document",
+              "in force on the content date"
             ]
           ],
           "mark": [
-            5,
-            6
-          ]
+            2,
+            4
+          ],
+          "note": "generator/MAPPING.md"
         }
       },
       "say": {
-        "en": "Then the mapping: for each element, where does the value come from? A simple table does the job: the database column, the FundsXML path, and the rule, such as a conversion or a fixed value. This table is the most important document of the project. It is also what the business side reviews, long before any file exists."
+        "en": "Then the mapping: for each element, where does the value come from? A simple table does the job: the FundsXML path, the source in the database, and the rule, such as a conversion or a fixed value. This table is the most important document of the project. It is also what the business side reviews, long before any file exists. The example keeps it as a file of its own, next to the code."
       }
     },
     {
       "id": "select",
       "slide": {
-        "layout": "bullets",
+        "layout": "code",
         "builds": [
-          0.08,
-          0.5,
-          0.75
+          0.0,
+          0.4
         ],
         "en": {
           "title": "Which data goes to whom?",
-          "items": [
-            {
-              "head": "The partner register",
-              "text": "Funds, kinds of data, version, templates."
-            },
-            {
-              "head": "One delivery per partner and type"
-            },
-            {
-              "head": "A new fund for a partner",
-              "text": "A change in the register, not in the code."
-            }
-          ]
+          "file": "generator/partners.json",
+          "highlight": [
+            3,
+            5,
+            6,
+            9,
+            11,
+            12
+          ],
+          "code": "\"DISTRIBUTOR-B\": {\n  \"name\": \"Example Distribution Bank (fictitious)\",\n  \"funds\": [\"XMPL00FNDUMBRELLA182\", \"XMPL00FNDMULTI000170\"],\n  \"nav_days\": 3,\n  \"blocks\": [\"navs\", \"prices\", \"documents\"],\n  \"templates\": [\"EMT\", \"EET\"]\n},\n\"INSURER-A\": {\n  \"funds\": [\"XMPL00FNDMULTI000170\", \"XMPL00FNDFOFBAL00195\"],\n  \"nav_days\": 1,\n  \"blocks\": [\"navs\", \"prices\", \"portfolio\", \"look_through\"],\n  \"templates\": [\"TPT\"]\n}"
         }
       },
       "say": {
-        "en": "Which data goes to whom? The partner register answers it: which funds a partner receives, which kinds of data, which version and which templates. The generator reads the register and builds one delivery per partner and type. Adding a fund for a partner is then a change in the register, not in the code."
+        "en": "Which data goes to whom? The partner register answers it: which funds a partner receives, which kinds of data, and which templates. In the example, the distributor receives the umbrella and the multi-asset fund, with three days of prices, the documents and the E M T and E E T. The insurer receives two funds with their portfolios and the T P T. Adding a fund for a partner is a change in the register, not in the code."
       }
     },
     {
@@ -217,46 +217,142 @@
         "layout": "code",
         "builds": [
           0.0,
-          0.2
+          0.4
         ],
         "en": {
           "title": "ControlData of every file",
-          "file": "ControlData",
+          "file": "generator/export.py",
           "highlight": [
-            2
+            3,
+            4,
+            6,
+            9,
+            10
           ],
-          "code": "<ControlData>\n  <UniqueDocumentID>EXAMPLE-HUB-f5c56ecd-…</UniqueDocumentID>     new for every file\n  <DocumentGenerated>2026-11-26T14:16:26+00:00</DocumentGenerated>   now\n  <Version>4.2.9</Version>\n  <ContentDate>2025-10-31</ContentDate>                              the data's date\n  <DataSupplier>...EXAMPLE-HUB...</DataSupplier>\n  <DataOperation>INITIAL</DataOperation>                             AMEND for a correction\n</ControlData>"
+          "code": "def control_data(self):\n    return el(\"ControlData\",\n              el(\"UniqueDocumentID\", self.doc_id),        # new for every file, never reused\n              el(\"DocumentGenerated\", self.generated),     # now ...\n              el(\"Version\", \"4.2.9\"),\n              el(\"ContentDate\", self.until),               # ... and the day the data is valid for\n              el(\"DataSupplier\", el(\"SystemCountry\", \"AT\"), el(\"Short\", \"EXAMPLE-AM\"), ...),\n              el(\"DataOperation\", \"AMEND\" if self.amend_of else \"INITIAL\"),\n              el(\"RelatedDocumentIDs\", el(\"RelatedDocumentID\", self.amend_of))\n                  if self.amend_of else None,\n              el(\"Language\", \"en\"))"
         }
       },
       "say": {
-        "en": "Every file begins with ControlData. Generate a new document ID for every file, never reuse one. The generation time is now; the content date is the date the data is valid for, which is usually earlier. Name the data supplier. And set the data operation: initial for a first delivery, amend for a correction, with the ID of the delivery it corrects."
+        "en": "Every file begins with control data. Generate a new document ID for every file, never reuse one. The generation time is now; the content date is the date the data is valid for, which is usually earlier. Name the data supplier. And set the data operation: initial for a first delivery, amend for a correction, with the ID of the delivery it corrects."
       }
     },
     {
       "id": "export",
       "chapter": {
-        "en": "The reference export"
+        "en": "The generator"
       },
       "slide": {
         "layout": "code",
         "builds": [
           0.0,
-          0.6
+          0.4
         ],
         "en": {
-          "title": "The reference export: a share class",
-          "file": "export/export.py",
+          "title": "The example generator: a share class",
+          "file": "generator/export.py",
           "highlight": [
-            2,
             3,
             4,
-            5
+            5,
+            6,
+            7
           ],
-          "code": "def share_class(sc, price, navs, fund_ccy, action):\n    return el(\"ShareClass\",\n              el(\"Identifiers\", el(\"ISIN\", sc[\"isin\"])),\n              el(\"Names\", el(\"OfficialName\", sc[\"name\"])),\n              el(\"Currency\", sc[\"currency\"]),\n              el(\"Prices\", price and el(\"Price\",\n                 el(\"ActionCode\", action),\n                 el(\"NavDate\", price[\"nav_date\"]),\n                 el(\"PriceCurrency\", price[\"currency\"]),\n                 el(\"PriceNature\", price[\"price_type\"]),\n                 el(\"NavPrice\", price[\"value\"]))),\n              total_asset_value(navs, fund_ccy, sc[\"currency\"]))\n\n# el() leaves out elements without a value"
+          "code": "put(xf, el(\"ShareClass\",\n           el(\"Identifiers\", el(\"ISIN\", isin)), el(\"Names\", el(\"OfficialName\", name)),\n           el(\"Currency\", ccy), el(\"CurrencyHedgedFlag\", hedged),\n           self.prices(sc_id),                          # every date and nature\n           self.total_asset_values(fund_id, sc_id, self.dates),  # one Amount per currency\n           self.distributions(sc_id),\n           self.flows(sc_id, fund_id)))\n\ndef prices(self, sc_id):\n    found = rows(...SELECT nav_date, currency, nature, nav_price, ... FROM price\n                    WHERE share_class_id = %s AND nav_date = ANY(%s) AND <current, released>)\n    return el(\"Prices\", *[el(\"Price\", el(\"ActionCode\", \"C\"), el(\"NavDate\", d), ...)\n                          for d, c, n, v, s, r in found])"
         }
       },
       "say": {
-        "en": "The reference implementation uses templates. This one writes a share class with its prices: the identifiers, the currency, and the net asset value per date. The values come from the tables you saw in the earlier films. The order of the elements follows the schema exactly, because X S D sequences are strict."
+        "en": "The example uses templates written in code. This part writes a share class: the identifiers, the name, the currency, then its prices for every date and nature, its net assets in every currency, its distributions and its flows. The values come from the tables you saw in the earlier films, current and released only. The order of the elements follows the schema exactly, because X S D sequences are strict."
+      }
+    },
+    {
+      "id": "partners",
+      "slide": {
+        "layout": "table",
+        "builds": [
+          0.0,
+          0.45
+        ],
+        "en": {
+          "title": "One database, three partners, three files",
+          "columns": [
+            "partner",
+            "funds",
+            "share classes",
+            "NAV days",
+            "assets",
+            "size"
+          ],
+          "rows": [
+            [
+              "DISTRIBUTOR-B",
+              "umbrella with 2 subfunds, 1 fund",
+              "9",
+              "3",
+              "–",
+              "93 KB"
+            ],
+            [
+              "INSURER-A",
+              "2 funds with portfolios",
+              "6",
+              "1 + month end",
+              "177",
+              "524 KB"
+            ],
+            [
+              "DATAVENDOR-C",
+              "everything",
+              "11",
+              "1 + month end",
+              "430",
+              "1.9 MB"
+            ]
+          ],
+          "mark": [
+            0,
+            1,
+            2
+          ]
+        }
+      },
+      "say": {
+        "en": "From one database, the example writes three quite different files. The distributor's file has an umbrella with two subfunds and a single fund, nine share classes, three days of prices with an estimated and an official value each, and no portfolio. The insurer's file has two funds with their month-end portfolios and the one hundred seventy-seven assets they hold. The data vendor gets everything."
+      }
+    },
+    {
+      "id": "repeat",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.3,
+          0.55,
+          0.78
+        ],
+        "en": {
+          "title": "Several funds and dates in one file",
+          "items": [
+            {
+              "head": "One fund at a time",
+              "text": "Written, then forgotten: flat memory."
+            },
+            {
+              "head": "Umbrella → subfunds → share classes",
+              "text": "From the parent column."
+            },
+            {
+              "head": "Every date and nature",
+              "text": "One TotalAssetValue each."
+            },
+            {
+              "head": "Assets collected on the way",
+              "text": "AssetMasterData once, at the end."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Several funds and dates in one file need no special code either. The generator writes one fund at a time, and forgets it when it is done. An umbrella brings its subfunds, found through the parent column, and each subfund its share classes. Every date and nature becomes one total asset value. The assets the positions refer to are collected on the way, and written once, at the end."
       }
     },
     {
@@ -268,32 +364,23 @@
     {
       "id": "empty",
       "slide": {
-        "layout": "bullets",
+        "layout": "code",
         "builds": [
-          0.08,
-          0.42,
-          0.62
+          0.0,
+          0.4
         ],
         "en": {
           "title": "Leave out what you do not have",
-          "items": [
-            {
-              "head": "No empty elements",
-              "text": "Empty is not the same as missing, and often invalid."
-            },
-            {
-              "head": "No placeholders",
-              "text": "No “N/A”, no 0."
-            },
-            {
-              "head": "A required element without a value",
-              "text": "Fix the data, not the file."
-            }
-          ]
+          "file": "generator/export.py",
+          "highlight": [
+            5,
+            6
+          ],
+          "code": "def el(tag, *content, **attrib):\n    \"\"\"An element, or None when it has no content: leave out what you do not have.\"\"\"\n    children = [c for c in content if isinstance(c, etree._Element)]\n    values = [c for c in content if c is not None and not isinstance(c, etree._Element)]\n    if not children and not values:\n        return None\n    ..."
         }
       },
       "say": {
-        "en": "A rule that saves many errors: leave out what you do not have. An empty element is not the same as a missing one, and it often fails validation. Never write placeholders such as N A or zero. And if a required element has no value, the problem is in the data; fix it there, not in the file."
+        "en": "A rule that saves many errors: leave out what you do not have. An empty element is not the same as a missing one, and it often fails validation. Never write placeholders such as N A or zero. In the example, the one function that builds every element returns nothing when there is no value, so an empty element cannot be written at all. And if a required element has no value, the problem is in the data; fix it there."
       }
     },
     {
@@ -343,75 +430,58 @@
         "en": "Check before sending"
       },
       "say": {
-        "en": "Here is the generated file, opened in FreeXmlToolkit. Validation against the schema: valid. The data-quality check: no errors. Every generated file goes through exactly these checks before it leaves the house, automatically."
+        "en": "Here is the generated file for the insurer, opened in FreeXmlToolkit. Validation against the schema: valid. The data-quality check: no errors. Every generated file goes through exactly these checks before it leaves the house, automatically."
       }
     },
     {
       "id": "amend",
+      "chapter": {
+        "en": "Corrections"
+      },
       "slide": {
-        "layout": "bullets",
+        "layout": "code",
         "builds": [
-          0.05,
-          0.2,
-          0.32,
-          0.55
+          0.0,
+          0.45
         ],
         "en": {
           "title": "Generating a correction",
-          "items": [
-            {
-              "head": "A new file, a new document ID"
-            },
-            {
-              "head": "DataOperation AMEND"
-            },
-            {
-              "head": "RelatedDocumentID",
-              "text": "The delivery it corrects."
-            },
-            {
-              "head": "The complete corrected data",
-              "text": "For that fund and date, not one number."
-            }
-          ]
+          "file": "generator/export.py --amend",
+          "highlight": [
+            2,
+            7,
+            9
+          ],
+          "code": "<ControlData>\n  <UniqueDocumentID>EXAMPLE-AM-DATAVENDOR-C-2025-11-05-AMEND-1</UniqueDocumentID>\n  <DocumentGenerated>2025-11-06T10:30:00</DocumentGenerated>\n  <Version>4.2.9</Version>\n  <ContentDate>2025-11-05</ContentDate>\n  <DataSupplier>...</DataSupplier>\n  <DataOperation>AMEND</DataOperation>\n  <RelatedDocumentIDs>\n    <RelatedDocumentID>EXAMPLE-AM-DATAVENDOR-C-2025-11-05</RelatedDocumentID>\n  </RelatedDocumentIDs>\n</ControlData>  ... then the complete corrected data for the funds and the date"
         }
       },
       "say": {
-        "en": "Corrections are generated too. A correction is a new file with its own document ID, the data operation amend, and the ID of the delivery it corrects. It carries the complete corrected data for that fund and date, not just the one changed number. Then the receiver can simply replace what it has, as you saw in the film about loading."
+        "en": "Corrections are generated too. A correction is a new file with its own document ID, the data operation amend, and the ID of the delivery it corrects. It carries the complete corrected data for those funds and that date, not just the one changed number. Then the receiver can simply replace what it has, as you saw in the film about loading."
       }
     },
     {
       "id": "large",
       "slide": {
-        "layout": "bullets",
+        "layout": "code",
         "builds": [
-          0.08,
-          0.42,
-          0.58,
-          0.8
+          0.0,
+          0.4
         ],
         "en": {
-          "title": "Large deliveries",
-          "items": [
-            {
-              "head": "Write as a stream",
-              "text": "XMLStreamWriter in Java, lxml xmlfile in Python."
-            },
-            {
-              "head": "One fund at a time"
-            },
-            {
-              "head": "Split very large deliveries",
-              "text": "For example one file per fund."
-            },
-            {
-              "head": "Compress for transport"
-            }
-          ]
+          "title": "Large deliveries: a stream",
+          "file": "generator/export.py",
+          "highlight": [
+            1,
+            5,
+            6,
+            9,
+            10
+          ],
+          "code": "with etree.xmlfile(str(out), encoding=\"UTF-8\") as xf:\n    xf.write_declaration()\n    with xf.element(\"FundsXML4\", ...):\n        xf.write(self.control_data())\n        with xf.element(\"Funds\"):\n            for fund_id in self.top:            # one fund at a time\n                self.write_fund(xf, fund_id)\n\ndef stream(conn, sql, *params):                 # positions: a server-side cursor\n    with conn.cursor(name=\"export_stream\") as cur:\n        cur.itersize = 500; cur.execute(sql, params); yield from cur"
         }
       },
       "say": {
-        "en": "For large deliveries, write the file as a stream too: with the X M L stream writer in Java, or incremental writing in Python. Generate one fund at a time, so that memory stays small. Very large deliveries can be split, for example one file per fund. And compress the file for transport."
+        "en": "For large deliveries, write the file as a stream too: with the X M L stream writer in Java, or incremental writing in Python, as here. The example writes one fund at a time, and reads the positions through a server-side cursor, a few hundred rows at a time, so that memory stays small. Very large deliveries can be split, for example one file per fund. And compress the file for transport."
       }
     },
     {
@@ -479,7 +549,7 @@
         }
       },
       "say": {
-        "en": "Partners have wishes: one wants the E S G template, another only some share classes, a third no documents. Handle these in configuration, not in code. The register says which blocks and templates each partner gets, and the generator follows it. A copy of the generator per partner is the fastest way into the trouble you saw in the first film of this series."
+        "en": "Partners have wishes: one wants the E S G template, another only some share classes, a third no documents. Handle these in configuration, not in code. The register says which blocks and templates each partner gets, and the generator follows it; in the example, the distributor gets documents and the insurer does not. A copy of the generator per partner is the fastest way into the trouble you saw in the first film of this series."
       }
     },
     {
@@ -519,6 +589,9 @@
     },
     {
       "id": "tests",
+      "chapter": {
+        "en": "Tests"
+      },
       "slide": {
         "layout": "bullets",
         "builds": [
@@ -530,21 +603,22 @@
           "title": "Golden files",
           "items": [
             {
-              "head": "Known input, known output"
+              "head": "Known input, known output",
+              "text": "data/in → data/expected."
             },
             {
               "head": "Compare after every change",
-              "text": "Then validate and check."
+              "text": "Byte for byte, then validate and check."
             },
             {
               "head": "The difficult cases",
-              "text": "A correction, a fund without positions, a second currency."
+              "text": "A correction, an umbrella, a second currency, two natures."
             }
           ]
         }
       },
       "say": {
-        "en": "Test with golden files: a fixed set of input data and the file it must produce. After every change, the generator runs again, and the result is compared with the golden file, then validated and checked. Include the difficult cases: a correction, a fund without positions, a share class in a second currency."
+        "en": "Test with golden files: a fixed set of input data and the file it must produce. In the example, the six deliveries are the input, and the four expected files are the output. After every change, the generator runs again, and the result is compared with the golden file, then validated and checked. Include the difficult cases: a correction, an umbrella, a share class in a second currency."
       }
     },
     {
@@ -559,15 +633,47 @@
           "title": "Automated on every change",
           "file": ".github/workflows/ci.yml",
           "highlight": [
-            5,
-            6,
-            7
+            7,
+            8,
+            9,
+            10
           ],
-          "code": "end-to-end                                        success\n  start PostgreSQL 16                             ok\n  fetch the examples and the 4.2.9 schema         ok\n  load the realistic files                        ok\n  load them again: every file skipped             ok\n  export the Multi-Asset fund                     ok\n  validate the export (XSD 1.1)                   ok\n  correction (AMEND): assets unchanged            ok\n  reconciliation queries                          ok"
+          "code": "postgres-end-to-end                                    success\n  sample deliveries are reproducible                   ok\n  code lists match the schema                          ok\n  load 6 deliveries, reject 3 bad files, skip 1        ok\n  load again: every file skipped                       ok\n  AMEND and DELETE, reconcile 4 portfolios             ok\n  generate 4 files for 3 partners                      ok\n  validate them (XSD 1.1)                              ok\n  compare with the golden files                        ok\n  load an export again: no new assets                  ok\n  Schematron: no errors                                ok"
         }
       },
       "say": {
-        "en": "Automate the tests. In the reference implementation, every change runs through the same steps on GitHub: start the database, load the example files, export them again, validate the export, run the data-quality checks. A change that breaks the output is noticed before it reaches a partner."
+        "en": "Automate the tests. In the example, every change runs through the same steps on GitHub: start the database, load the deliveries, reject the broken ones, generate the files for every partner, validate them, compare them with the golden files, and run the data-quality checks. A change that breaks the output is noticed before it reaches a partner."
+      }
+    },
+    {
+      "id": "roundtrip",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.35,
+          0.65
+        ],
+        "en": {
+          "title": "The round trip",
+          "items": [
+            {
+              "head": "Load the generated file again",
+              "text": "With the loader of the last film."
+            },
+            {
+              "head": "Every asset found again",
+              "text": "By ISIN, or by our key in OtherID: no new assets."
+            },
+            {
+              "head": "Everything reconciles",
+              "text": "To the cent."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "One more test is cheap and finds a lot: load the generated file again, with the loader of the last film. Every asset must be found again: by its I S I N, or, for assets without one, by the key the generator wrote as other identifier. In the example, the round trip creates no new asset, and every portfolio still reconciles to the cent."
       }
     },
     {
@@ -675,14 +781,54 @@
         }
       },
       "say": {
-        "en": "Finally, document the generator. Keep the mapping table next to the code and change both together. Keep a short change log for your partners: what changed in the deliveries, and from when. And keep one example file for every kind of delivery. When a partner asks how a field is filled, the answer is found in minutes."
+        "en": "Finally, document the generator. Keep the mapping table next to the code and change both together. Keep a short change log for your partners: what changed in the deliveries, and from when. And keep one example file for every kind of delivery; the golden files are exactly that. When a partner asks how a field is filled, the answer is found in minutes."
+      }
+    },
+    {
+      "id": "download",
+      "chapter": {
+        "en": "Download"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.1,
+          0.35,
+          0.6,
+          0.8
+        ],
+        "en": {
+          "title": "Download the complete example",
+          "items": [
+            {
+              "head": "generator/export.py",
+              "text": "The generator of this film."
+            },
+            {
+              "head": "generator/partners.json, MAPPING.md",
+              "text": "The register and the mapping."
+            },
+            {
+              "head": "data/expected",
+              "text": "The files for the three partners."
+            },
+            {
+              "head": "run_all.sh",
+              "text": "Load, generate, validate, compare, load again."
+            }
+          ],
+          "note": "github.com/fundsxml/examples  →  PostgreSQL_End_to_End"
+        }
+      },
+      "say": {
+        "en": "Everything you saw in this film is in the complete example: the generator, the partner register, the mapping table, and the files it writes for the three partners. You find it in the FundsXML examples repository on GitHub, in the folder PostgreSQL end to end, also as a single zip file. Change the register, run the script, and compare your own files."
       }
     },
     {
       "id": "outro",
       "card": "outro",
       "say": {
-        "en": "That was generating FundsXML: the target first, a clear mapping, careful formats, several versions, and automatic tests. In the last film of this series, you see how to run all this in daily operations. Thanks for watching."
+        "en": "That was generating FundsXML: the target first, a clear mapping, a partner register, careful formats, and automatic tests with golden files and a round trip. In the last film of this series, you see how to run all this in daily operations. Thanks for watching."
       }
     }
   ]

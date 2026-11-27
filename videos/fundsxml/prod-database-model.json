@@ -1,18 +1,18 @@
 {
-  "_comment": "Production series, film 2. Slides only (no recording); code and results from github.com/fundsxml/integration-examples.",
+  "_comment": "Production series, film 2. Slides only (no recording); tables, code and query results from the complete example github.com/fundsxml/examples/tree/main/PostgreSQL_End_to_End.",
   "id": "prod-database-model",
   "title": {
     "en": "FundsXML in a database"
   },
   "description": {
-    "en": "How FundsXML data lives in a database: storing whole documents in an XML column or shredding them into tables, layers, a table model for funds, share classes, prices, portfolios, positions and assets, own keys instead of file IDs, amounts with currencies, code lists, dates, history and corrections, views, data quality, access, regulatory templates and performance. With real results from the reference implementation."
+    "en": "How FundsXML data is stored in a database, with the complete PostgreSQL example of the FundsXML examples repository: the XML column and shredded tables, layers, a table model in which everything that repeats is a row (several funds per file, umbrellas and subfunds, several NAVs per day and currency, portfolios and positions, look-through), keys and assets without an ISIN, amounts and currencies, code lists, dates, transactions in four places, documents, regulatory templates, history and corrections, views, quality, access and performance. All files can be downloaded."
   },
   "scenes": [
     {
       "id": "intro",
       "card": "title",
       "say": {
-        "en": "Where does the data of a FundsXML file live once it has arrived? In this film you see two ways of storing FundsXML in a database, a table model for the core data, the traps around keys and currencies, and how to keep the history of deliveries and corrections."
+        "en": "Where does the data of a FundsXML file live once it has arrived? In this film you see two ways of storing FundsXML in a database, a complete table model in which every repeating part of a file has its place, the traps around keys and currencies, and how to keep the history of deliveries and corrections. Everything you see comes from a complete example that you can download and run yourself."
       }
     },
     {
@@ -61,14 +61,15 @@
           "title": "Querying the XML column",
           "file": "PostgreSQL",
           "highlight": [
+            2,
             3,
             4
           ],
-          "code": "SELECT unique_document_id,\n  (xpath('//Fund/Names/OfficialName/text()', raw))[1] AS fund,\n  (xpath('//Fund/FundDynamicData//TotalNetAssetValue\n          /Amount/text()', raw))[1] AS net_assets\nFROM delivery;\n\n unique_document_id                    fund                         net_assets\n EXAMPLE-EURO-BOND-FUND-2025-10        Example Euro Bond Fund       838581814.97\n EXAMPLE-FUND-OF-FUNDS-2025-10         Example Balanced F. of F.    155706556.38\n EXAMPLE-GLOBAL-EQUITY-FUND-2025-10    Example Global Equity Fund   602060878.93\n EXAMPLE-MULTI-ASSET-…-FUND-2025-10    Example Multi Asset Opp. F.  278791093.07"
+          "code": "SELECT unique_document_id,\n       cardinality(xpath('/FundsXML4/Funds/Fund', raw))     AS funds,\n       cardinality(xpath('//Subfund', raw))                 AS subfunds,\n       cardinality(xpath('//ShareClass/Prices/Price', raw)) AS prices\nFROM delivery;\n\n unique_document_id                  funds  subfunds  prices\n EXAMPLE-AM-MONTHEND-2025-10-31          3         2     264\n EXAMPLE-AM-NAV-2025-11-05               3         2      66\n EXAMPLE-AM-DOCUMENTS-2025-11-03         0         0       0\n EXAMPLE-AM-NAV-2025-11-05-AMEND-1       3         2      66"
         }
       },
       "say": {
-        "en": "Storing the document is simple and keeps everything, also data you do not use today. Here the deliveries table holds every file in an X M L column, and a query reads the total net asset value directly with X Path. That is good for archives and for occasional questions, but slow for reporting over thousands of files."
+        "en": "Storing the document is simple and keeps everything, also data you do not use today. In the example, the deliveries table keeps every file in an X M L column, and a query counts the funds, subfunds and prices of each file directly with X Path. That is good for archives and for occasional questions, but slow for reporting over thousands of files."
       }
     },
     {
@@ -107,21 +108,21 @@
       "slide": {
         "layout": "steps",
         "builds": [
-          0.1,
-          0.25,
-          0.42,
-          0.62
+          0.08,
+          0.3,
+          0.55,
+          0.75
         ],
         "en": {
           "title": "Layers in the database",
           "items": [
             {
               "head": "Raw",
-              "text": "The original files."
+              "text": "delivery.raw: the file as received."
             },
             {
               "head": "Staging",
-              "text": "As delivered, unchecked."
+              "text": "position_staging: waiting for the assets."
             },
             {
               "head": "Core",
@@ -135,14 +136,11 @@
         }
       },
       "say": {
-        "en": "Many setups arrange the database in layers. The raw layer holds the original files. The staging layer holds the data as delivered, still unchecked. The core layer holds checked data with the own keys and the history. And the reporting layer offers views for the people and systems that use the data. Each layer has one job, and errors stay in the layer where they occur."
+        "en": "Many setups arrange the database in layers, and so does the example. The raw layer holds the original files, unchanged. The staging layer holds data as delivered, still unchecked: here, positions that wait for their assets. The core layer holds checked data with its own keys and the history. And the reporting layer offers views for the people and systems that use the data. Each layer has one job, and errors stay in the layer where they occur."
       }
     },
     {
       "id": "entities",
-      "chapter": {
-        "en": "A table model"
-      },
       "slide": {
         "layout": "hub",
         "builds": [
@@ -152,20 +150,23 @@
         "en": {
           "title": "A table model",
           "items": [
-            "Fund",
-            "Subfund",
+            "Fund and subfund",
             "Share class",
-            "Prices and NAV",
-            "Portfolio",
-            "Position",
+            "Price and NAV",
+            "Portfolio and position",
             "Asset",
-            "Document"
+            "Flows and trades",
+            "Document",
+            "Template"
           ],
           "centre": "Delivery"
         }
       },
       "say": {
-        "en": "For daily work, tables are better. The reference model follows the structure of FundsXML. Every delivery is registered first. Then come funds and, for umbrellas, their subfunds; share classes with their prices and net asset values; portfolios with their positions; the assets the positions refer to; and documents."
+        "en": "For daily work, tables are better. The model of the example follows the structure of FundsXML. Every delivery is registered first. Then come funds and, for umbrellas, their subfunds; share classes with their prices and net asset values; portfolios with their positions; the assets the positions refer to; the transactions; documents; and the regulatory templates. Twenty tables in all, in eight files."
+      },
+      "chapter": {
+        "en": "A table model"
       }
     },
     {
@@ -174,25 +175,211 @@
         "layout": "code",
         "builds": [
           0.0,
-          0.55
+          0.4
         ],
         "en": {
           "title": "The table definition",
-          "file": "db/schema.sql",
+          "file": "ddl/02_master.sql, 03_timeseries.sql",
           "highlight": [
-            8,
-            9,
-            10,
-            11,
-            12,
+            6,
             13,
             14
           ],
-          "code": "CREATE TABLE share_class (\n    fund_id      bigint NOT NULL REFERENCES fund,\n    isin         char(12) NOT NULL UNIQUE,\n    name         text NOT NULL,\n    currency     char(3) NOT NULL\n);\nCREATE TABLE price (\n    share_class_id  bigint NOT NULL REFERENCES share_class,\n    nav_date        date NOT NULL,\n    price_type      text NOT NULL,     -- OFFICIAL, ESTIMATED\n    value           numeric NOT NULL,  -- NavPrice\n    currency        char(3) NOT NULL,\n    delivery_id     bigint NOT NULL REFERENCES delivery,\n    replaced_by_delivery_id bigint REFERENCES delivery\n);"
+          "code": "CREATE TABLE fund (\n    fund_id          bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,\n    lei              text UNIQUE,\n    name             text NOT NULL,\n    currency         char(3) NOT NULL,\n    parent_fund_id   bigint REFERENCES fund,     -- the umbrella of a subfund\n    single_fund_flag boolean);\nCREATE TABLE share_class (\n    share_class_id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,\n    fund_id bigint NOT NULL REFERENCES fund, isin char(12) NOT NULL UNIQUE, ...);\nCREATE TABLE price (\n    share_class_id bigint NOT NULL REFERENCES share_class,\n    nav_date date NOT NULL, nature text NOT NULL,      -- OFFICIAL, ESTIMATED\n    nav_price numeric NOT NULL, currency char(3) NOT NULL,\n    delivery_id bigint NOT NULL, replaced_by_delivery_id bigint);"
         }
       },
       "say": {
-        "en": "Here is the table definition. The columns follow the FundsXML elements, so that the mapping stays easy to read: the fund has its LEI and its name, the share class its ISIN, its currency and the fund it belongs to. A price row has the share class, the date, the price type and the value."
+        "en": "Here is the table definition. The columns follow the FundsXML elements, so that the mapping stays easy to read: the fund has its L E I, its name, its currency and, for a subfund, the umbrella it belongs to. The share class has its I S I N and the fund. A price row has the share class, the date, the nature of the price, the value, and the delivery it came from."
+      }
+    },
+    {
+      "id": "repeat",
+      "chapter": {
+        "en": "What repeats"
+      },
+      "slide": {
+        "layout": "table",
+        "builds": [
+          0.0,
+          0.3
+        ],
+        "en": {
+          "title": "Everything that repeats is a row",
+          "columns": [
+            "in the file",
+            "repeats per",
+            "table"
+          ],
+          "rows": [
+            [
+              "Funds/Fund, Subfunds/Subfund",
+              "file, umbrella",
+              "fund"
+            ],
+            [
+              "ShareClass",
+              "fund or subfund",
+              "share_class"
+            ],
+            [
+              "Price",
+              "share class, date, nature",
+              "price"
+            ],
+            [
+              "TotalAssetValue",
+              "date, nature, currency",
+              "nav"
+            ],
+            [
+              "Portfolio",
+              "fund and date",
+              "portfolio"
+            ],
+            [
+              "Position",
+              "portfolio",
+              "position"
+            ],
+            [
+              "Flow, Transaction, Earning",
+              "share class or portfolio",
+              "sc_flow, trade, earning"
+            ],
+            [
+              "Document",
+              "fund or share class, language",
+              "document"
+            ]
+          ],
+          "mark": [
+            2,
+            3
+          ]
+        }
+      },
+      "say": {
+        "en": "The most important rule of the model: everything that can repeat in a file is a row, never a column. A file can carry several funds. A fund has several share classes. A share class has prices for many dates, and on one date an estimated and an official price. Net assets come in several currencies. A fund has portfolios for many dates, each with hundreds of positions. Whoever puts a second date or a second currency into columns rebuilds the table with the next delivery."
+      }
+    },
+    {
+      "id": "deliveries",
+      "slide": {
+        "layout": "table",
+        "builds": [
+          0.0,
+          0.35
+        ],
+        "en": {
+          "title": "The example deliveries",
+          "columns": [
+            "delivery",
+            "funds",
+            "NAV dates",
+            "prices",
+            "NAV rows",
+            "portfolios",
+            "positions"
+          ],
+          "rows": [
+            [
+              "MONTHEND-2025-10-31",
+              "5",
+              "24",
+              "264",
+              "19",
+              "4",
+              "522"
+            ],
+            [
+              "NAV-2025-11-05",
+              "5",
+              "3",
+              "66",
+              "114",
+              "–",
+              "–"
+            ],
+            [
+              "NAV-2025-11-06",
+              "5",
+              "1",
+              "22",
+              "38",
+              "–",
+              "–"
+            ]
+          ],
+          "mark": [
+            0
+          ]
+        }
+      },
+      "say": {
+        "en": "Here is what the example deliveries bring. The month-end file holds four funds: an umbrella with two subfunds, and two single funds, so five rows in the fund table. Together that is twenty-four valuation days, two hundred sixty-four prices and five hundred twenty-two positions, in one file. The daily file brings three days, each with an estimated and an official value."
+      }
+    },
+    {
+      "id": "natures",
+      "slide": {
+        "layout": "table",
+        "builds": [
+          0.0,
+          0.5
+        ],
+        "en": {
+          "title": "One share class, one day: four rows",
+          "columns": [
+            "nature",
+            "amount",
+            "currency",
+            "share-class ccy",
+            "fund ccy",
+            "shares"
+          ],
+          "rows": [
+            [
+              "ESTIMATED",
+              "18,223,096.11",
+              "CHF",
+              "yes",
+              "",
+              "172,894.650"
+            ],
+            [
+              "ESTIMATED",
+              "19,632,725.82",
+              "EUR",
+              "",
+              "yes",
+              "172,894.650"
+            ],
+            [
+              "OFFICIAL",
+              "18,226,554.00",
+              "CHF",
+              "yes",
+              "",
+              "172,894.650"
+            ],
+            [
+              "OFFICIAL",
+              "19,636,451.20",
+              "EUR",
+              "",
+              "yes",
+              "172,894.650"
+            ]
+          ],
+          "mark": [
+            2,
+            3
+          ],
+          "note": "nav: Multi Asset Opportunities Fund, CHF class, 2025-11-05"
+        }
+      },
+      "say": {
+        "en": "One share class on one day shows why. The franc class of the multi-asset fund reports its net assets as an estimate and as the official value, each in francs and in euros, flagged as share-class currency and as fund currency. Four rows, one day, one share class. A table with one value column per day could not hold them."
       }
     },
     {
@@ -207,15 +394,45 @@
           "title": "One position on its way into a table",
           "file": "file → row",
           "highlight": [
-            13,
-            14,
-            15
+            11,
+            12
           ],
-          "code": "<Position>\n   <UniqueID>ID_0046</UniqueID>                  only valid inside this file\n   <Identifiers><ISIN>IEXMPLS00010</ISIN></Identifiers>\n   <TotalValue><Amount ccy=\"EUR\">3454822.60</Amount></TotalValue>\n   <TotalPercentage>1.2392</TotalPercentage>\n   <ShareClass><Shares>41227</Shares> ...</ShareClass>\n</Position>\n\nposition:\n portfolio  asset  position_type  total_value  currency  percentage  quantity\n 5          395    ShareClass     3454822.60   EUR       1.2392      41227\n\n asset 395     = our key, found by ISIN IEXMPLS00010\n portfolio 5   = fund, date 2025-10-31, delivery 5\n total_value   = always with its currency"
+          "code": "<Position>\n  <UniqueID>MA_0014</UniqueID>                    only valid inside this file\n  <Identifiers><ISIN>IEXMPLS00036</ISIN></Identifiers>\n  <TotalValue><Amount ccy=\"EUR\">10364653.57</Amount></TotalValue>\n  <TotalPercentage>3.7177</TotalPercentage>\n  <ShareClass><Shares>50287</Shares> ...</ShareClass>\n</Position>\n\nposition:\n portfolio  no  look_through  asset  position_type  total_value  ccy  percentage  quantity\n         3  48  false           346  ShareClass     10364653.57  EUR      3.7177     50287\n portfolio 3 = Example Multi Asset Opportunities Fund, 2025-10-31, delivery 1"
         }
       },
       "say": {
-        "en": "Here is one position on its way into a table. On the left in the file: the reference to the asset, the total value with its currency, and the weight. On the right the row: the asset is no longer the reference of the file, but the key of the database; the value keeps its currency; and the row knows the portfolio, the date and the delivery it came from."
+        "en": "Here is one position on its way into a table. At the top, in the file: the sender's reference to the asset, the total value with its currency, and the weight. Below, the row: the asset is now the key of the database; the value keeps its currency; the row knows its portfolio, and through it the fund, the date and the delivery. And it keeps its number in the file, so that a generator can write the positions back in the same order."
+      }
+    },
+    {
+      "id": "lookthrough",
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.08,
+          0.4,
+          0.7
+        ],
+        "en": {
+          "title": "Look-through",
+          "items": [
+            {
+              "head": "PositionsDecomposed",
+              "text": "The holdings of the target funds of a fund of funds."
+            },
+            {
+              "head": "Same table, one flag",
+              "text": "position.look_through = true: 73 rows in the example."
+            },
+            {
+              "head": "Not counted twice",
+              "text": "Reconciliation uses the fund's own positions only."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "A fund of funds can also deliver what its target funds hold: the look-through. These positions have the same shape as the fund's own, so they go into the same table, with a flag. The example has seventy-three of them. The flag matters: the reconciliation counts only the fund's own positions, never the look-through as well."
       }
     },
     {
@@ -246,7 +463,7 @@
         }
       },
       "say": {
-        "en": "One structural point: single funds and umbrellas. FundsXML says with the single fund flag whether a fund has share classes directly, or subfunds that each have their own share classes. In the database, one fund table with a parent column handles both cases, so that queries do not need to know which kind of fund they look at."
+        "en": "One structural point: single funds and umbrellas. FundsXML says with the single fund flag whether a fund has share classes directly, or subfunds that each have their own share classes. In the database, one fund table with a parent column handles both cases. In the example, the umbrella and its two subfunds are three rows of the same table, and queries do not need to know which kind of fund they look at."
       }
     },
     {
@@ -310,7 +527,7 @@
         }
       },
       "say": {
-        "en": "And not every asset has an ISIN. Cash accounts, over-the-counter derivatives and currency forwards usually have none. For them, build a key from the sender, the type of asset and the sender's own identifier. Keep all identifiers of an asset in a table of their own: ISIN, WKN, Bloomberg ticker and internal codes, so that any of them can be used to find it."
+        "en": "And not every asset has an I S I N. Cash accounts, over-the-counter derivatives and currency forwards usually have none; in the example, forty-five of four hundred thirty assets. For them, build a key from the sender, the type of asset and the sender's own identifier. Keep all identifiers of an asset in a table of their own, so that any of them can be used to find it."
       }
     },
     {
@@ -344,7 +561,7 @@
         }
       },
       "say": {
-        "en": "Amounts are the next trap. In FundsXML, one amount can be given in several currencies at once, with flags for the fund currency and the share-class currency. So the database stores the currency with every amount, and if needed several rows per amount. A bare number without its currency is the most common source of wrong reports."
+        "en": "Amounts are the next trap, as the franc class showed. In FundsXML, one amount can be given in several currencies at once, with flags for the fund currency and the share-class currency. So the database stores the currency with every amount, keeps the flags, and writes several rows where needed. A bare number without its currency is the most common source of wrong reports."
       }
     },
     {
@@ -375,7 +592,7 @@
         }
       },
       "say": {
-        "en": "Many FundsXML elements use fixed lists of codes: document types, price types, data operations and many more. Store them in lookup tables, filled from the schema, and refresh them with every new version. Then the database can check incoming codes, and reports can show readable names."
+        "en": "Many FundsXML elements use fixed lists of codes: document types, price natures, data operations and many more. Store them in lookup tables, filled from the schema, and refresh them with every new version. In the example, a small script reads the lists from the schema file and writes them into a code list table, per schema version. Then the database can check incoming codes, and reports can show readable names."
       }
     },
     {
@@ -412,6 +629,149 @@
       },
       "say": {
         "en": "Dates need care too. A file has a content date, the day its data is valid for, and a generation time, when it was written. A price has its own date, the valuation day. These can all differ: a file generated on Monday morning carries prices of Friday. Store all of them, and decide clearly which one your reports use."
+      }
+    },
+    {
+      "id": "flows",
+      "chapter": {
+        "en": "Transactions and documents"
+      },
+      "slide": {
+        "layout": "tiles",
+        "builds": [
+          0.1,
+          0.3,
+          0.5,
+          0.7
+        ],
+        "en": {
+          "title": "Transactions in four places",
+          "items": [
+            {
+              "head": "Flows",
+              "text": "Subscriptions, redemptions: sc_flow, 67 rows."
+            },
+            {
+              "head": "Distributions",
+              "text": "Per share class: distribution, 3 rows."
+            },
+            {
+              "head": "Trades",
+              "text": "The fund's own: trade, 209 rows."
+            },
+            {
+              "head": "Income",
+              "text": "Dividends, coupons, interest: earning, 68 rows."
+            }
+          ]
+        }
+      },
+      "say": {
+        "en": "Transactions live in four places in FundsXML, and the model keeps them apart. Subscriptions, redemptions and distributions belong to a share class. The fund's own trades and its income belong to the portfolio of a date. The month-end file of the example brings sixty-seven flows, three distributions, two hundred nine trades and sixty-eight income records. Trades keep their complete X M L next to the columns, so nothing of a complex trade is lost."
+      }
+    },
+    {
+      "id": "documents",
+      "slide": {
+        "layout": "table",
+        "builds": [
+          0.0,
+          0.5
+        ],
+        "en": {
+          "title": "Documents in force on 2025-11-05",
+          "columns": [
+            "type",
+            "language",
+            "stored as",
+            "belongs to"
+          ],
+          "rows": [
+            [
+              "Prospectus",
+              "en",
+              "link",
+              "the multi-asset fund"
+            ],
+            [
+              "PRIIPS-KID",
+              "en, de",
+              "link",
+              "3 share classes, Global Equity"
+            ],
+            [
+              "PRIIPS-KID",
+              "en",
+              "embedded, 1,696 bytes",
+              "2 share classes, Multi Asset"
+            ],
+            [
+              "Factsheet",
+              "en",
+              "embedded, 1,605 bytes",
+              "1 share class, Multi Asset"
+            ]
+          ],
+          "mark": [
+            2,
+            3
+          ]
+        }
+      },
+      "say": {
+        "en": "Documents get a table of their own. A document is either a link, then the table keeps the address, or it is embedded, then the table keeps the decoded file itself, with its size and a hash to recognise it again. A second table says which funds and share classes a document belongs to; one key information document can apply to several share classes, in several languages. A function returns the documents in force on any day."
+      }
+    },
+    {
+      "id": "regulatory",
+      "slide": {
+        "layout": "table",
+        "builds": [
+          0.0,
+          0.5
+        ],
+        "en": {
+          "title": "Regulatory templates: XML plus key fields",
+          "columns": [
+            "template",
+            "version",
+            "ISIN",
+            "key field",
+            "value"
+          ],
+          "rows": [
+            [
+              "EMT",
+              "V4.2",
+              "ATXMPLF03016",
+              "ongoing costs",
+              "0.0158"
+            ],
+            [
+              "EET",
+              "V1.1.3",
+              "ATXMPLF01010",
+              "SFDR product type",
+              "8"
+            ],
+            [
+              "TPT",
+              "V7.0",
+              "ATXMPLF03016",
+              "positions",
+              "45"
+            ]
+          ],
+          "mark": [
+            0,
+            1,
+            2
+          ],
+          "note": "regulatory_report: plus the whole template record as XML"
+        }
+      },
+      "say": {
+        "en": "Regulatory templates are a world of their own: hundreds of fields each, and a new version every few years. The example keeps every template record in one table: the template, its version, the share class, the record as X M L, and the few fields it reports on as columns, such as the ongoing costs of the E M T or the S F D R product type of the E E T. Avoid one column per field and version; it ends in confusion."
       }
     },
     {
@@ -468,24 +828,24 @@
           "rows": [
             [
               "as known today",
-              "2025-10-31",
-              "104.87 CHF",
-              "delivery 5 (correction)",
+              "2025-11-04",
+              "106.29 CHF",
+              "NAV-2025-11-05-AMEND-1",
               "–"
             ],
             [
-              "as known before",
-              "2025-10-31",
-              "104.77 CHF",
-              "delivery 4 (original)",
-              "delivery 5"
+              "as known on 6 Nov, 8:00",
+              "2025-11-04",
+              "104.98 CHF",
+              "NAV-2025-11-05",
+              "AMEND-1"
             ],
             [
-              "as known before",
-              "2025-10-30",
-              "105.16 CHF",
-              "delivery 4 (original)",
-              "delivery 5"
+              "as known on 6 Nov, 8:00",
+              "2025-11-05",
+              "105.42 CHF",
+              "NAV-2025-11-05",
+              "AMEND-1"
             ]
           ],
           "mark": [
@@ -495,7 +855,7 @@
         }
       },
       "say": {
-        "en": "This makes questions like these simple: what was the net asset value of this share class on the thirty-first of October, as known today, and as known on the first of November? Here the second delivery corrected one value. Both versions are in the table, and the query picks the one that is valid."
+        "en": "This makes questions like these simple: what was the net asset value of the franc class on the fourth of November, as known today, and as known on the morning of the sixth, before the correction arrived? The correction changed one value. Both versions are in the table, and the query picks the one that was valid."
       }
     },
     {
@@ -503,29 +863,30 @@
       "slide": {
         "layout": "bullets",
         "builds": [
-          0.1,
+          0.08,
           0.45,
-          0.65
+          0.7
         ],
         "en": {
           "title": "Views for the users",
           "items": [
             {
               "head": "One view per use",
-              "text": "Current prices, latest portfolio, documents in force."
+              "text": "current_price, current_nav, latest_portfolio, current_position."
             },
             {
-              "head": "History logic hidden"
+              "head": "A function for documents",
+              "text": "documents_in_force(day)."
             },
             {
-              "head": "Stable names",
+              "head": "History hidden, names stable",
               "text": "Tables can change underneath."
             }
           ]
         }
       },
       "say": {
-        "en": "Users should not have to know how the history works. Offer views for each use: the current prices, the latest portfolio per fund, the documents in force. The views hide the logic of deliveries and replaced rows, and give consumers stable names. Then you can change the tables underneath without breaking every report that reads them."
+        "en": "Users should not have to know how the history works. Offer views for each use: the current prices, the current net assets, the latest portfolio per fund, the documents in force. The views hide the logic of deliveries and replaced rows, and give consumers stable names. Then you can change the tables underneath without breaking every report that reads them."
       }
     },
     {
@@ -533,98 +894,57 @@
       "slide": {
         "layout": "bullets",
         "builds": [
-          0.1,
+          0.08,
           0.3,
-          0.6,
+          0.55,
           0.75
         ],
         "en": {
           "title": "Quality with the data",
           "items": [
             {
-              "head": "A status per delivery"
+              "head": "A status per delivery",
+              "text": "loaded, checked, released."
             },
             {
-              "head": "Warnings per row",
-              "text": "Unusual price change, missing identifier."
+              "head": "Findings per delivery",
+              "text": "delivery_finding: rule, path, value, message."
             },
             {
-              "head": "Who released, when"
+              "head": "Who released, when",
+              "text": "release_delivery()."
             },
             {
-              "head": "Reports read released data only"
+              "head": "Views show released data only"
             }
           ]
         }
       },
       "say": {
-        "en": "Store the quality of the data with the data. Each delivery has a status, and rows can carry warnings from the checks: an unusual price change, a missing identifier. The database records who released a delivery, and when. Reports read only released data, and anyone can see why a value was held back."
+        "en": "Store the quality of the data with the data. Each delivery has a status: loaded, checked or released. The findings of the checks are stored with it: the rule, the place in the file, the value found. A function releases a checked delivery and records who did it, and when. The views show released data only, and anyone can see why a value was held back."
       }
     },
     {
       "id": "access",
       "slide": {
-        "layout": "bullets",
+        "layout": "code",
         "builds": [
-          0.05,
-          0.35,
-          0.6,
-          0.75
+          0.0,
+          0.5
         ],
         "en": {
-          "title": "Access",
-          "items": [
-            {
-              "head": "Portfolios are confidential"
-            },
-            {
-              "head": "Access per client or fund",
-              "text": "Row-level security."
-            },
-            {
-              "head": "Separate roles",
-              "text": "Load, release, read."
-            },
-            {
-              "head": "A log of who read what"
-            }
-          ]
+          "title": "Access: each client sees its own",
+          "file": "ddl/08_access.sql",
+          "highlight": [
+            3,
+            4,
+            5
+          ],
+          "code": "ALTER TABLE portfolio ENABLE ROW LEVEL SECURITY;\nCREATE POLICY portfolio_of_client ON portfolio FOR SELECT TO fundsxml_reader\n    USING (fund_id IN (SELECT fund_id FROM client_fund\n                       WHERE client = current_setting('fundsxml.client', true)));\n-- position: only rows of visible portfolios\n\nSET ROLE fundsxml_reader;  SET fundsxml.client = 'INSURER-A';\nSELECT fund, count(*) FROM current_position GROUP BY fund;\n\n fund                                     count\n Example Multi Asset Opportunities Fund      81"
         }
       },
       "say": {
-        "en": "Portfolios are confidential. A data vendor or an insurer may hold the portfolios of many clients in one database, and each client may only see its own. So control access per client or per fund, separate the roles of loading, releasing and reading, and keep a log of who accessed what. Most databases support this with row-level security."
-      }
-    },
-    {
-      "id": "regulatory",
-      "slide": {
-        "layout": "tiles",
-        "builds": [
-          0.2,
-          0.55,
-          0.8
-        ],
-        "en": {
-          "title": "Regulatory templates",
-          "items": [
-            {
-              "head": "XML column per template",
-              "text": "Extract only the fields you report on."
-            },
-            {
-              "head": "One table per template version",
-              "text": "For heavy use."
-            },
-            {
-              "head": "Not one giant table",
-              "text": "For all versions: it ends in confusion.",
-              "tag": "avoid"
-            }
-          ]
-        }
-      },
-      "say": {
-        "en": "Regulatory templates are a world of their own: hundreds of fields each, and a new version every few years. Two approaches work well. Keep each template in an X M L column and extract only the fields you report on. Or create one table per template version. Avoid one giant table for all versions; it ends in confusion."
+        "en": "Portfolios are confidential. A data vendor or an insurer may hold the portfolios of many clients in one database, and each client may only see its own. So separate the roles of loading, releasing and reading, and control access per client. The example does it with row-level security: a reader for the insurer sees the one fund its client may see, and nothing else."
       }
     },
     {
@@ -679,10 +999,50 @@
       }
     },
     {
+      "id": "download",
+      "chapter": {
+        "en": "Download"
+      },
+      "slide": {
+        "layout": "bullets",
+        "builds": [
+          0.1,
+          0.35,
+          0.6,
+          0.8
+        ],
+        "en": {
+          "title": "Download the complete example",
+          "items": [
+            {
+              "head": "ddl/",
+              "text": "Tables, views, access, code lists."
+            },
+            {
+              "head": "loader/, generator/",
+              "text": "The loader and the generator of the next films."
+            },
+            {
+              "head": "data/",
+              "text": "Six deliveries, four bad files, the generated files."
+            },
+            {
+              "head": "run_all.sh",
+              "text": "Everything, end to end."
+            }
+          ],
+          "note": "github.com/fundsxml/examples  →  PostgreSQL_End_to_End"
+        }
+      },
+      "say": {
+        "en": "Everything you saw in this film is in the complete example: the table definitions, the views and the access rules, the code lists, the sample deliveries, the loader and the generator. You find it in the FundsXML examples repository on GitHub, in the folder PostgreSQL end to end, also as a single zip file. One script builds the database, loads the files and runs every query of this film."
+      }
+    },
+    {
       "id": "outro",
       "card": "outro",
       "say": {
-        "en": "That was FundsXML in a database: documents and tables, keys, amounts and codes, and history. In the next film, you load large files into this model. Thanks for watching."
+        "en": "That was FundsXML in a database: documents and tables, everything that repeats as rows, keys, amounts and codes, and history. In the next film, you load the example deliveries into this model. Thanks for watching."
       }
     }
   ]

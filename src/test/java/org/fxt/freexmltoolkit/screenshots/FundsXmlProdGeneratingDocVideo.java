@@ -18,10 +18,10 @@ import org.testfx.framework.junit5.Start;
 
 /**
  * The screen part of "Generating FundsXML", film 4 of "FundsXML in production" (storyboard
- * {@code videos/fundsxml/prod-generating.json}): an export of the reference implementation
- * (github.com/fundsxml/integration-examples, {@code export/export.py}) whose share class names its
- * Currency before its Names, rejected by the schema; then the correct export, valid and without
- * data-quality errors.
+ * {@code videos/fundsxml/prod-generating.json}): the file the generator of the complete example
+ * (github.com/fundsxml/examples, {@code PostgreSQL_End_to_End/generator/export.py}) writes for the
+ * partner INSURER-A, once with a share class that names its Currency before its Names, rejected by
+ * the schema; then the correct file, valid and without data-quality errors.
  *
  * <pre>{@code
  * python3 scripts/make-video.py prod-generating --set fundsxml --lang en
@@ -30,8 +30,8 @@ import org.testfx.framework.junit5.Start;
 @ExtendWith(ApplicationExtension.class)
 class FundsXmlProdGeneratingDocVideo {
 
-    private static final String ORDER_ERROR = "Example-Export_Multi-Asset_2025-10_order-error.xml";
-    private static final String EXPORT = "Example-Export_Multi-Asset_2025-10.xml";
+    private static final String ORDER_ERROR = "EXAMPLE-AM-INSURER-A-2025-11-05_order-error.xml";
+    private static final String EXPORT = "EXAMPLE-AM-INSURER-A-2025-11-05.xml";
     private static final String SWAPPED = "<Currency>EUR</Currency>\n            <Names>";
 
     private final DocShell doc = new DocShell("video");
@@ -83,11 +83,16 @@ class FundsXmlProdGeneratingDocVideo {
                 doc.open(folder.resolve(EXPORT), "<!-- Synthetic sample");
                 Bounds root = textBounds(host, "<FundsXML4 ");
                 video.click(root.getMaxX() + 40, root.getCenterY());
-                video.zoom(textBounds(host, "<!-- Synthetic sample: written by export/export.py"));
+                video.zoom(textBounds(host, "<!-- Synthetic sample: written by generator/export.py"));
                 video.spoken(0.25);
                 video.zoomOut();
                 video.key(KeyCode.F8, "F8");
-                doc.waitUntilFx(60, () -> !hasErrorsOrWarnings(host));
+                try {
+                    doc.waitUntilFx(60, () -> !hasErrorsOrWarnings(host));
+                } catch (java.util.concurrent.TimeoutException e) {
+                    host.getActiveProblems().forEach(p -> System.err.println("[problem] " + p));
+                    throw e;
+                }
                 video.pause(1500);
                 // the "valid" toast in the bottom right corner
                 video.zoom(new BoundingBox(DocVideoRecorder.WIDTH - 420, DocVideoRecorder.HEIGHT - 190, 400, 150));

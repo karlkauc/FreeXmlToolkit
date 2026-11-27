@@ -5,7 +5,7 @@
     "en": "A FundsXML delivery chain"
   },
   "description": {
-    "en": "How FundsXML runs in production: who sends what to whom, the delivery chain of sender and receiver, data sources and a central database, how files travel (SFTP, API, portals), security, rhythms and schema versions, roles, the five building blocks of a production setup, build or buy, how to start, and the reference implementation used in this series."
+    "en": "How FundsXML runs in production: who sends what to whom, the delivery chain of sender and receiver, data sources and a central database, how files travel (SFTP, API, portals), security, rhythms and schema versions, roles, the five building blocks of a production setup, build or buy, how to start, and the complete example used in this series, which can be downloaded."
   },
   "scenes": [
     {
@@ -769,7 +769,7 @@
     {
       "id": "ref",
       "chapter": {
-        "en": "The reference implementation"
+        "en": "The complete example"
       },
       "slide": {
         "layout": "steps",
@@ -781,11 +781,11 @@
           0.55
         ],
         "en": {
-          "title": "The reference implementation",
+          "title": "The complete example",
           "items": [
             {
-              "head": "Example files",
-              "text": "The realistic samples, FundsXML 4.2.9."
+              "head": "Sample deliveries",
+              "text": "Several funds, NAVs, documents, corrections."
             },
             {
               "head": "Loader",
@@ -796,19 +796,19 @@
               "text": "Own keys, history of deliveries."
             },
             {
-              "head": "Export",
-              "text": "Back to FundsXML, in schema order."
+              "head": "Generator",
+              "text": "One file per partner, in schema order."
             },
             {
               "head": "Validate",
               "text": "XSD 1.1, in CI on every change."
             }
           ],
-          "note": "github.com/fundsxml/integration-examples"
+          "note": "github.com/fundsxml/examples  →  PostgreSQL_End_to_End"
         }
       },
       "say": {
-        "en": "For the next films we use a small reference implementation, published on GitHub: a PostgreSQL database, a loader for FundsXML files and an export back to FundsXML. It is an example, not a product, but it shows the essential steps in a few hundred lines that you can run yourself."
+        "en": "For the next films we use a complete example, published in the FundsXML examples repository on GitHub: a PostgreSQL database, a loader for FundsXML files and a generator back to FundsXML, with six sample deliveries and the files it writes for three partners. It is an example, not a product, but it shows the essential steps, and you can download it and run it yourself."
       }
     },
     {

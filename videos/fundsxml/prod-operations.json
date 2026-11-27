@@ -844,7 +844,7 @@
       "id": "outro",
       "card": "outro",
       "say": {
-        "en": "That was the last film of the series FundsXML in production. You find the reference implementation on GitHub, and the community and the working groups on fundsxml dot org. Thanks for watching."
+        "en": "That was the last film of the series FundsXML in production. You find the complete example in the FundsXML examples repository on GitHub, and the community and the working groups on fundsxml dot org. Thanks for watching."
       }
     }
   ]

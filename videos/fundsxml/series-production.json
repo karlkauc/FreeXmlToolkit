@@ -1,5 +1,5 @@
 {
-  "_comment": "FundsXML in production: running FundsXML in real systems. Concepts on slides; code and results from the reference implementation github.com/fundsxml/integration-examples.",
+  "_comment": "FundsXML in production: running FundsXML in real systems. Concepts on slides; code and results from the complete example github.com/fundsxml/examples (PostgreSQL_End_to_End).",
   "id": "fundsxml-production",
   "title": {
     "en": "FundsXML in production"
