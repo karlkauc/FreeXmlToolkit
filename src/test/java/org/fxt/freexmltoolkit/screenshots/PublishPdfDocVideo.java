@@ -9,7 +9,6 @@ import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.stage.Stage;
 
-import org.fxt.freexmltoolkit.controls.shell.Activity;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.editor.ExampleFiles;
 import org.fxt.freexmltoolkit.controls.shell.editor.FopPanel;

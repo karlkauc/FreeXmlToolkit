@@ -403,6 +403,10 @@ such as `record <1001..2000>`; opening a group closes the other groups of the sa
 change: the text follows when you switch to the Text view, save, validate or transform. While
 it is written back, a loading indicator shows and the text is read-only for a moment.
 
+When an edit in the grid, the Tree view or the Properties panel is written into the text, the rest of
+the document keeps its form: the `<!DOCTYPE …>` declaration stays, and attributes written on lines of
+their own stay there.
+
 ## Next steps
 
 - [JSON grid](../json-grid.md)

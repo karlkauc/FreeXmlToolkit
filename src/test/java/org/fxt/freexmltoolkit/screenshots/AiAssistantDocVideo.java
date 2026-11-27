@@ -12,7 +12,6 @@ import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
-import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.editor.ExampleFiles;
 import org.fxt.freexmltoolkit.controls.shell.editor.SettingsPanel;

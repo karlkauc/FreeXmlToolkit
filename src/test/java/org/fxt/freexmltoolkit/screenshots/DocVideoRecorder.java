@@ -20,12 +20,12 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
+import org.testfx.util.WaitForAsyncUtils;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-
-import org.testfx.util.WaitForAsyncUtils;
 
 /**
  * Records a tutorial video's screen part: {@code ffmpeg} grabs the X screen while a scenario plays

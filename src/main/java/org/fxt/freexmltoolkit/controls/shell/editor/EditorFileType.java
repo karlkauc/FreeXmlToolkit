@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Locale;
 
 import javafx.stage.FileChooser;
-import org.fxt.freexmltoolkit.i18n.I18n;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.telemetry.DocKind;
 
 /**

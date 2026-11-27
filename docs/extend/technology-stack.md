@@ -13,7 +13,7 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 - **JavaFX:** 25 for cross-platform desktop GUI (bundled with Liberica Full JDK)
 - **FXML:** Declarative UI layout with MVC architecture
 - **RichTextFX:** 0.11.7 - Advanced text editing component with syntax highlighting
-- **ControlsFX:** 11.2.6 - Extended JavaFX controls
+- **ControlsFX:** 11.2.7 - Extended JavaFX controls
 
 ## Key Libraries
 
@@ -41,7 +41,7 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 
 ### AI
 - **MCP Java SDK:** 2.2.0 - Model Context Protocol server for `fxt-cli mcp` (stdio)
-- **Anthropic Java SDK:** 3.8.0 (`anthropic-java-core`) - Anthropic provider of the optional AI assistant, on the application's own HTTP connection service (OpenAI-compatible providers use plain HTTP)
+- **Anthropic Java SDK:** 3.11.0 (`anthropic-java-core`) - Anthropic provider of the optional AI assistant, on the application's own HTTP connection service (OpenAI-compatible providers use plain HTTP)
 
 ### Office Integration
 - **Apache POI:** 6.0.0 - Excel export for validation results
@@ -170,11 +170,11 @@ dependencies {
 
     // AI (MCP server, Anthropic provider)
     implementation("io.modelcontextprotocol.sdk:mcp-core:2.2.0")
-    implementation("com.anthropic:anthropic-java-core:3.8.0")
+    implementation("com.anthropic:anthropic-java-core:3.11.0")
 
     // UI Components
     implementation("org.fxmisc.richtext:richtextfx:0.11.7")
-    implementation("org.controlsfx:controlsfx:11.2.6")
+    implementation("org.controlsfx:controlsfx:11.2.7")
 
     // Security
     implementation("org.apache.santuario:xmlsec:4.0.4")

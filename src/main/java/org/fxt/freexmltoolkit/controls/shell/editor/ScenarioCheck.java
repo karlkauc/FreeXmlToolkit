@@ -135,10 +135,9 @@ public final class ScenarioCheck {
         if (!XmlStructuralDiff.looksLikeXml(expectedText) || !XmlStructuralDiff.looksLikeXml(actual)) {
             return false;
         }
-        if (looksLikeHtml(expectedText) && looksLikeHtml(actual)) {
-            return XmlStructuralDiff.compare(expectedText, actual, XmlStructuralDiff.Options.DEFAULTS).compared();
-        }
-        return true;
+        // HTML only when it parses as XML
+        return !(looksLikeHtml(expectedText) && looksLikeHtml(actual))
+                || XmlStructuralDiff.compare(expectedText, actual, XmlStructuralDiff.Options.DEFAULTS).compared();
     }
 
     /**

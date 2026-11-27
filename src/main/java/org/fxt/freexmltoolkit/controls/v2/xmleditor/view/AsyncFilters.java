@@ -1,6 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -14,6 +13,7 @@ import javafx.application.Platform;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Evaluates grid filters over large contexts off the FX thread, like {@link AsyncFormulas}: a

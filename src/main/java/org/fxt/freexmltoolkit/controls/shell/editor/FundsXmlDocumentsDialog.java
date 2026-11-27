@@ -107,7 +107,7 @@ public final class FundsXmlDocumentsDialog {
 
     /** Shows the dialog for the active document with entries already read (FX thread). */
     /** The dialog that is open, if any: a second Documents click replaces it instead of opening another. */
-    private static FundsXmlDocumentsDialog open;
+    private static volatile FundsXmlDocumentsDialog open; // FX thread only; volatile for the analysers
 
     static void show(EditorHost editorHost, List<Entry> entries, List<Candidate> candidates) {
         if (open != null && open.dialog.isShowing()) {

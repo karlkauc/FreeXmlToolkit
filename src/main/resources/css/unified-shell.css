@@ -4120,6 +4120,13 @@
     -fx-border-color: transparent;
 }
 
+/* Selected rows of every table: the theme sheets give each cell an opaque background (white / #1e1e1e), which
+   covered the row's selection bar - a selected row looked like any other. The cells take the selection colour. */
+.table-view .table-row-cell:filled:selected .table-cell,
+.table-view .table-row-cell:filled:selected .table-cell:hover {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
 .table-view.fxt-analysis-table .table-row-cell:filled:hover {
     -fx-background-color: -fxt-bg-surface-2;
 }

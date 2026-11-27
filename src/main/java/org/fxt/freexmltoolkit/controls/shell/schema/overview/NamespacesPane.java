@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.schema.overview;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +17,7 @@ import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeNamespaceDeclarationCommand;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * "Namespaces" tab of the {@link SchemaOverviewView}: the schema's namespace declarations,

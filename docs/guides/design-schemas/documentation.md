@@ -27,6 +27,11 @@ the data dictionary as a table with one row per element and attribute path (XPat
 cardinality, documentation, restrictions, sample data). It has a **Schema Info** sheet and one
 sheet per documentation language; the **Download Excel** button on the HTML Data Dictionary page
 opens it. There is no separate Excel format to choose, and PDF and Word do not write the workbook.
+A cell longer than Excel allows (32,767 characters - a very long documentation text or enumeration
+list) is cut and ends with an ellipsis.
+
+The HTML documentation needs no web server: opened from disk (double-click `index.html`), its search and
+language switch work as well.
 
 ## How to Generate Documentation
 

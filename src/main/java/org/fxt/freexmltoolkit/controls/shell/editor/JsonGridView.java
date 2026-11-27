@@ -2,11 +2,11 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import java.util.function.Consumer;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext;
 import org.fxt.freexmltoolkit.controls.jsoneditor.grid.JsonCanvasView;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode;
 import org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * The JSON Grid view for the unified shell: the same editable grid as the

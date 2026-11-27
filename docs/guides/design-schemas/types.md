@@ -72,7 +72,7 @@ see [Reading a Card](graphic-view.md#reading-a-card) for what each card shows:
   apply to the schema right away and can be undone there (**Ctrl+Z** in the schema's tab)
 - Add, delete and modify elements, attributes and Sequence / Choice / All compositors through the
   cards' context menus, as in the Graphic view; the properties pane beside the diagram edits the
-  selected node
+  selected node. **Ctrl+Z** undoes a change in the diagram, **Ctrl+Y** (or Ctrl+Shift+Z) redoes it
 - Changes to the diagram are kept in the tab until you click **Save to schema** (or press
   Ctrl+S); they are then written into the schema. Close the tab with **Close**, **Esc** or its **×**
 

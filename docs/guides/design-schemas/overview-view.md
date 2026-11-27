@@ -35,7 +35,8 @@ order they have in the file. It is offered for XSD documents only.
 - **Delete** (Del) removes the selected components. If they are still referenced, you are asked first.
 - **Included** also lists the components of included files - read-only and in italics.
 - The header edits the **target namespace** and the **elementFormDefault** /
-  **attributeFormDefault** of the schema.
+  **attributeFormDefault** of the schema. A schema that declares neither is saved without them (XSD's
+  default is *unqualified*); nothing is added on its own.
 - Double-click a type to open it in the [Type Editor](types.md#type-editor), an element to show it in
   the [Graphic View](graphic-view.md), an import to open its file.
 

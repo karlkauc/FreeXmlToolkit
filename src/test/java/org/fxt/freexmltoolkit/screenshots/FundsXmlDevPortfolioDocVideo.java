@@ -2,7 +2,6 @@ package org.fxt.freexmltoolkit.screenshots;
 
 import java.nio.file.Path;
 
-import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.input.KeyCode;

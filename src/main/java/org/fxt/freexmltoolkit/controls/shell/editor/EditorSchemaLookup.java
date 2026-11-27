@@ -1,6 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,6 +12,7 @@ import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaUsage;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.XmlSchemaDeclaration;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.XmlSchemaDetails;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Schema lookups and navigation of an {@link EditorHost}: the XSD-derived facts the Inspector

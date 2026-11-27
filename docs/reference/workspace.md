@@ -390,7 +390,7 @@ It contains:
 | **GitHub Repository** | Opens the project page on GitHub |
 | **Sponsor this Project** | Opens the GitHub Sponsors page |
 | **Check for Updates…** | Looks for a newer version |
-| **About FreeXmlToolkit** | Shows the version and build, licenses and links |
+| **About FreeXmlToolkit** | Shows the version and build, licenses and links - including the website [freexmltoolkit.org](https://freexmltoolkit.org) and the contact address office@freexmltoolkit.org |
 
 On **macOS**, **Check for Updates…** and **About FreeXmlToolkit** are in the **FreeXmlToolkit**
 application menu instead (see [macOS](#macos)). To find out which version you are running, open

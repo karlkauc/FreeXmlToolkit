@@ -204,7 +204,7 @@ required elements and attributes) are not repeated.
 | Check | Severity | What it looks at |
 |---|---|---|
 | Positions have master data | warning | Every portfolio position's UniqueID has an Asset in AssetMasterData (when the document has AssetMasterData). |
-| Unused master data | warning | Assets in AssetMasterData that no position, transaction or earning refers to. |
+| Unused master data | warning | Assets in AssetMasterData that no position (including look-through positions in PositionsDecomposed), transaction or earning refers to. |
 | No duplicate assets | error | AssetMasterData lists every asset (UniqueID) once. |
 | One asset per ISIN | warning | No two assets in AssetMasterData carry the same ISIN. |
 | Position ISIN matches the master data | warning | A position's ISIN is the ISIN of the asset with the same UniqueID in AssetMasterData. |
@@ -213,7 +213,7 @@ required elements and attributes) are not repeated.
 | Securities in the master data have an ISIN | warning | Assets of type EQ (equity), BO (bond) and SC (fund share) carry an ISIN. |
 | Options and futures have an underlying | warning | Assets of type OP (option) and FU (future) name at least one underlying. |
 | FX forwards are consistent | warning | An FX forward buys and sells different currencies, both amounts are positive, and the agreed rate matches AmountBuy / AmountSell or its inverse (± 1 %). |
-| No matured instruments held | warning | Positions in bonds, futures, options, swaps, warrants … whose maturity date is before the content date. |
+| No matured instruments held | warning | Positions in bonds, futures, options, swaps, warrants … whose maturity date is before the date (NavDate) of the portfolio that holds them. |
 | Bonds mature after issue | error | A bond's MaturityDate is not before its IssueDate. |
 
 **Net asset values, share classes and prices**
@@ -222,7 +222,7 @@ required elements and attributes) are not repeated.
 |---|---|---|
 | Portfolio dates have a net asset value | warning | Every portfolio's NavDate has a TotalAssetValue of the node it belongs to (fund, share class, segment, subfund) for that date. |
 | Net asset value in the owner's currency | warning | Every TotalAssetValue has a TotalNetAssetValue amount in the currency of its fund, share class, segment or subfund. |
-| Share classes add up to the fund | warning | The net asset values of the share classes (in fund currency) add up to the fund's (± 0.5 %) for each date. |
+| Share classes add up to the fund | warning | The net asset values of the share classes (in fund currency) add up to the fund's (± 0.5 %) for each date and nature (an ESTIMATED and an OFFICIAL value of the same day are compared separately). |
 | Share class ratios add up to 100 % | warning | When every share class gives its Ratio for a date, the ratios add up to 100 % (± 0.5). |
 | Share class dates match the fund | warning | Every net asset value date of a share class is also a net asset value date of its fund. |
 | Price × shares = share class value | warning | NAV price × shares outstanding of a share class matches its net asset value (± 1 %). |
@@ -392,7 +392,7 @@ required elements and attributes) are not repeated.
     **Unused master data** (`unused-assets`, warning)
 
     ```xpath
-    /FundsXML4/AssetMasterData/Asset[not(UniqueID = (//Positions/Position/UniqueID, //Transaction/AssetUniqueID, //Earning/AssetUniqueID))]
+    /FundsXML4/AssetMasterData/Asset[not(UniqueID = (//Portfolios/Portfolio/Positions/Position/UniqueID, //PositionsDecomposed/Positions/Position/UniqueID, //Transaction/AssetUniqueID, //Earning/AssetUniqueID))]
     ```
 
     **No duplicate assets** (`duplicate-assets`, error)
@@ -446,7 +446,7 @@ required elements and attributes) are not repeated.
     **No matured instruments held** (`matured`, warning)
 
     ```xpath
-    /FundsXML4/AssetMasterData/Asset[/FundsXML4/ControlData/ContentDate castable as xs:date][(AssetDetails/*/MaturityDate)[1] castable as xs:date][xs:date((AssetDetails/*/MaturityDate)[1]) lt xs:date(/FundsXML4/ControlData/ContentDate)][UniqueID = //Positions/Position/UniqueID]
+    /FundsXML4/AssetMasterData/Asset[(AssetDetails/*/MaturityDate)[1] castable as xs:date][let $m := xs:date((AssetDetails/*/MaturityDate)[1]), $id := string(UniqueID) return some $p in //Portfolios/Portfolio[NavDate castable as xs:date][xs:date(NavDate) gt $m] satisfies $p/Positions/Position/UniqueID = $id]
     ```
 
     **Bonds mature after issue** (`bond-dates`, error)
@@ -470,7 +470,7 @@ required elements and attributes) are not repeated.
     **Share classes add up to the fund** (`share-classes-sum`, warning)
 
     ```xpath
-    //Fund[SingleFund/ShareClasses/ShareClass/TotalAssetValues]/FundDynamicData/TotalAssetValues/TotalAssetValue[let $t := ., $f := ancestor::Fund[1], $ccy := string($f/Currency), $tna := ($t/TotalNetAssetValue/Amount[@ccy = $ccy][. castable as xs:decimal])[1] ! xs:decimal(.), $cl := $f/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue[NavDate = $t/NavDate]/TotalNetAssetValue/Amount[@ccy = $ccy][. castable as xs:decimal] return exists($tna) and exists($cl) and $tna ne 0 and abs(sum($cl ! xs:decimal(.)) - $tna) div abs($tna) gt 0.005]
+    //Fund[SingleFund/ShareClasses/ShareClass/TotalAssetValues]/FundDynamicData/TotalAssetValues/TotalAssetValue[let $t := ., $f := ancestor::Fund[1], $ccy := string($f/Currency), $tna := ($t/TotalNetAssetValue/Amount[@ccy = $ccy][. castable as xs:decimal])[1] ! xs:decimal(.), $cl := $f/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue[NavDate = $t/NavDate][string(TotalAssetNature) = string($t/TotalAssetNature)]/TotalNetAssetValue/Amount[@ccy = $ccy][. castable as xs:decimal] return exists($tna) and exists($cl) and $tna ne 0 and abs(sum($cl ! xs:decimal(.)) - $tna) div abs($tna) gt 0.005]
     ```
 
     **Share class ratios add up to 100 %** (`share-class-ratio`, warning)
@@ -632,6 +632,34 @@ the open document as text edits - its formatting stays - and **Edit → Undo** t
 document changes while the values are computed, nothing is set. For a signed document you are asked first: new
 values no longer match the signature.
 
+## Documents (Linked and Embedded)
+
+*New in 3.6.0.* A FundsXML file can carry documents - a prospectus, a KID, an annual report - in its
+`Documents` element: each `Document` either **links** to the file (`DocumentURL`) or **embeds** it as base64
+text (`BinaryData`). **Documents (Linked & Embedded)** in the side panel lists them for the active document:
+type, name, language, what the document is assigned to (the fund, subfunds or share classes), link or
+embedded, and size.
+
+![The Documents dialog: a prospectus linked, a PRIIPs KID and a factsheet embedded; the selected KID can be saved or replaced by a link](../img/fundsxml-documents.png)
+
+Select an entry and choose what to do:
+
+| Action | What it does |
+|---|---|
+| **Open Link** | Opens a linked document in your browser. Only web addresses (`http`, `https`) are opened - a link in a delivered file never starts a program or opens a network share. |
+| **Save Embedded Document…** | Decodes an embedded document and saves it as a file. The proposed name is the document's own file name without any folders. If `SizeInBytes` does not match the embedded content, you are asked first - the file may be incomplete. |
+| **Embed File…** | Adds a file as a new embedded document. You pick its type (from the schema's list), language, the fund or share class it belongs to (one with an ISIN or LEI) and its name. |
+| **Embed Linked Document…** | Embeds a file you choose (for example the linked document you downloaded) in place of the link; file name and format are updated to the new file. |
+| **Replace by Link…** | Replaces an embedded document by a link; the address must be absolute and contain no spaces. |
+
+Every change is one step that **Edit → Undo** takes back, and the rest of the document keeps its formatting.
+Files over 25 MB cannot be embedded (link them instead); above 5 MB you are asked first, because the base64
+text makes the document about a third larger than the file and the editor slower. For a signed document you
+are warned that the change breaks the signature.
+
+The list stays open beside the editor. When you switch to another tab, its actions do nothing until you switch
+back; when the document was edited meanwhile, the list is read again and you choose the entry again.
+
 ## The FundsXML Side Panel
 
 Select the **FundsXML** activity in the activity bar to open its side panel.
@@ -644,7 +672,7 @@ sections:
 | Section | What you can do |
 |---------|-----------------|
 | **MANAGEMENT** | Pick the **Active version** and force a manual **Download / Update Content**. A **progress bar with stage text** at the bottom of the panel tracks running downloads - including automatic background downloads. |
-| **VALIDATE** | **Validate active document** - check the open XML against the active FundsXML schema. **Run Data Quality Checks**, **Check Identifiers Online** (are the LEIs registered and valid, do the ISINs exist and are they still traded? Findings in the Problems panel - see [Online Identifier Lookup](identifier-lookup.md)), **Add Grid Formulas & Filters** and **Set Position Weights (TotalPercentage)** (see [Position Weights](#position-weights-totalpercentage)). |
+| **VALIDATE** | **Validate active document** - check the open XML against the active FundsXML schema. **Run Data Quality Checks**, **Check Identifiers Online** (are the LEIs registered and valid, do the ISINs exist and are they still traded? Findings in the Problems panel - see [Online Identifier Lookup](identifier-lookup.md)), **Add Grid Formulas & Filters**, **Set Position Weights (TotalPercentage)** (see [Position Weights](#position-weights-totalpercentage)) and **Documents (Linked & Embedded)** (see [Documents](#documents-linked-and-embedded)). |
 | **CHECK AN IDENTIFIER** | Checks a pasted ISIN, LEI, BIC or IBAN; LEIs and ISINs can be looked up online ([Online Identifier Lookup](identifier-lookup.md)). |
 | **DOCS & RESOURCES** | Open the schema and browse the downloaded content (see below). |
 

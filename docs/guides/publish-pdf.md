@@ -133,7 +133,8 @@ The generated PDF opens in the built-in **PDF preview**, a tab next to your docu
 - Scroll within a page; it is fitted to the tab's width
 - Review the layout and formatting without leaving the app
 
-The **Preview PDF** and **Open PDF** buttons re-open the last result at any time.
+The **Preview PDF** and **Open PDF** buttons re-open the last result at any time. When you generate the same
+PDF again, its preview tab shows the new file - no second tab with the same name opens.
 
 ![PDF preview tab](../img/fop-pdf-preview.png)
 *The generated factsheet in the preview tab; the RESULT section lists the follow-up actions*

@@ -114,14 +114,15 @@ public final class XmlNodeXPath {
                 }
                 chain.add(current);
             }
+            StringBuilder path = new StringBuilder(known);
             for (int i = chain.size() - 1; i >= 0; i--) {
                 XmlNode current = chain.get(i);
                 if (current instanceof XmlElement element) {
-                    known = known + stepOf(element);
+                    path.append(stepOf(element));
                 }
-                prefixes.put(current, known);
+                prefixes.put(current, path.toString());
             }
-            return known;
+            return path.toString();
         }
 
         private String stepOf(XmlElement element) {

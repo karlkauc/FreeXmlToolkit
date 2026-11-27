@@ -1,6 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.view;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,6 +39,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.NodeWrapperType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 import org.fxt.freexmltoolkit.domain.XsdBuiltinTypeCatalog;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Builds a visual tree from the XsdNode-based model (XsdSchema).

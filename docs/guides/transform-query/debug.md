@@ -234,7 +234,7 @@ icons - hover one for its name and key:
 | **Pause** | F6 | While the run is going: break in at the next instruction - e.g. to look into a long loop or an endless recursion without a breakpoint (the status reads *paused by request*) |
 | **Step Into** | F7 | Step into the current instruction - the next stop is the next **line** that runs (inside a called template or function too) |
 | **Smart Step Into** | Shift+F7 | When the paused line calls several things (`f:a(1) + f:b(2)`, an `xsl:call-template` next to an `xsl:apply-templates`), a menu at **Step Into** lists them - pick the one to stop in. Also a right-click on **Step Into**. One call steps straight into it; none is a plain Step Into. The run stops when that function / template is entered, even while breakpoints are muted |
-| **Step Over** | F8 | Execute the current instruction without descending |
+| **Step Over** | F8 | Execute the current instruction without descending - the next stop is the next line at the same level (after a local `xsl:variable`, the next line of the same loop body) |
 | **Step Out** | Shift+F8 | Run until the current template/function returns |
 | **Restart** | | Run again from the start with the same breakpoints; the stylesheet is read again from the editor, so your edits (saved or not) are picked up |
 | **Stop** | | Abort the running transformation |

@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.schema.overview;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +26,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCheck;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.EditIdentityConstraintCommand;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * "Identity Constraints" tab of the {@link SchemaOverviewView}: the xs:key, xs:keyref and

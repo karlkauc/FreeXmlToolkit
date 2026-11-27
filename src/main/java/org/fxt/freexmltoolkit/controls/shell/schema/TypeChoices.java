@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -29,6 +27,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.domain.XsdBuiltinTypeCatalog;
 import org.fxt.freexmltoolkit.domain.XsdBuiltinTypeCatalog.BuiltinType;
 import org.fxt.freexmltoolkit.domain.XsdBuiltinTypeCatalog.Category;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Builds the {@link TypeChoice} list a type picker offers for a schema: the schema's named simple

@@ -1,6 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
 import java.util.Objects;
 import java.util.Set;
 
@@ -29,6 +28,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeAppinfoCommand;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**

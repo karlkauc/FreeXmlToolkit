@@ -341,6 +341,15 @@
             <Field name="onExported"/>
         </Or>
     </Match>
+    <!-- Test hooks that tests in other packages set (videos, screenshots) -->
+    <Match>
+        <Bug pattern="UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD"/>
+        <Class name="org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlDocumentsDialog"/>
+        <Or>
+            <Field name="openFileChooser"/>
+            <Field name="saveFileChooser"/>
+        </Or>
+    </Match>
 
     <!-- JSON data classes filled by Gson through reflection (FinDatEx templates, FundsXML checks) -->
     <Match>

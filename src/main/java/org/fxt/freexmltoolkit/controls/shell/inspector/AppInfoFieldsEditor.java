@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.inspector;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -26,6 +24,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.panels.LinkAutocompletePopup;
 import org.fxt.freexmltoolkit.controls.v2.editor.panels.XsdElementPathExtractor;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**

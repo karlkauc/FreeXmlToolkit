@@ -8,8 +8,44 @@ The highlights of each release. The complete notes and all downloads are on the
 [GitHub Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases); the version you are
 running is shown under **Help → About FreeXmlToolkit**.
 
-## Unreleased
+## 3.6.0 (2026-11-27)
 
+- **FundsXML documents.** **Documents (Linked & Embedded)** in the FundsXML panel lists the prospectuses, KIDs and
+  reports a FundsXML file links to or embeds, opens links, saves embedded documents, embeds a file (as a new document
+  or in place of a link) and replaces an embedded one by a link - each change one undo step.
+  [More](../industry/fundsxml.md#documents-linked-and-embedded)
+- **FundsXML schema errors in the Problems panel.** **Validate active document** lists the schema errors in the
+  Problems panel instead of only counting them, and a FundsXML document without a schema reference that resolves is
+  bound to the active FundsXML schema, so F8, live validation and auto-completion use it too.
+  [More](../industry/fundsxml.md#quick-validate-your-xml)
+- **Fewer false FundsXML data-quality warnings.** Assets used only by look-through positions count as used, an
+  ESTIMATED and an OFFICIAL net asset value of the same day are no longer added together, and a matured instrument is
+  compared with the date of the portfolio that holds it, not with the file's content date.
+- **Behind a company proxy.** HTTPS works behind a proxy that inspects traffic with a company root certificate:
+  the certificates of the Windows certificate store or the macOS keychain are trusted (**Settings → Network &
+  Security → Trust the certificates of the operating system**, on by default). The proxy sign-in with the Windows
+  account uses Kerberos where the proxy offers it, and a refused sign-in is explained in plain words. ESMA FIRDS
+  lookups are retried after a gateway error. [More](../administer/updates-and-network.md#network)
+- **Large HTML results do not block the window.** An HTML result over 1 MB opens as text; the Preview offers **Show
+  anyway** and **Open in browser**. Query Console results over one million characters are shown shortened - Copy
+  and Save still take the whole result. [More](../guides/transform-query/run-xslt.md)
+- **Scenario checks with HTML results.** HTML output that is not well-formed XML is compared line by line, so such a
+  check can pass, and **Differences** shows them. [More](../guides/projects.md#regression-checks)
+- **Your file stays as you wrote it.** A grid, Tree or Properties edit keeps the `<!DOCTYPE …>` declaration and
+  attributes on lines of their own; saving a schema no longer adds `elementFormDefault="qualified"` /
+  `attributeFormDefault="unqualified"` when it did not declare them.
+- **Fixes in the editors.** Step Over on a local `xsl:variable` in the XSLT debugger stays in the loop body;
+  Ctrl+Z / Ctrl+Y work in the complex type editor; previewing the same PDF again refreshes its tab instead of opening
+  another; the **Change** buttons of the input rows in the Transform, Validation and PDF/FOP panels and on the Sign &
+  Encrypt page work again; when transform runs overlap, only the latest one shows its result; switching on *Display
+  as Table* for tens of thousands of records takes a second instead of minutes; the selected row of a table (for
+  example in the FundsXML Documents dialog) is highlighted again.
+- **Schema documentation.** The PDF shows the schema overview diagram again, the child table shows a child's own
+  example values, the HTML documentation's search and language switch work when it is opened from disk, and very long
+  texts no longer stop the Excel data dictionary. [More](../guides/design-schemas/documentation.md)
+- **More German texts** in the editor, panels, dialogs, diagram, grid, debugger, XSD quality checks and comparison.
+- **Website and contact** - [freexmltoolkit.org](https://freexmltoolkit.org) and office@freexmltoolkit.org - in the
+  About dialog and the installation packages.
 - **Generate XSD from XML gives a usable schema.** All occurrences of an element are put together, so repeated
   elements keep their children, attributes and type. What is missing somewhere becomes optional, what repeats becomes
   `maxOccurs="unbounded"`, a type fits every value seen (`id="1"` is a number, no boolean), children stay in document

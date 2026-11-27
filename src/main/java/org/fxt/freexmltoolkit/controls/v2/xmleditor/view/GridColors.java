@@ -1,6 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
 import java.lang.ref.WeakReference;
 import java.util.EnumMap;
 import java.util.Map;
@@ -9,6 +8,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import javafx.scene.paint.Color;
 
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * The user-configurable cell colours of the grid's embedded tables (Fonts and Colors →

@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.schema.overview;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +18,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeDocumentationsCo
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeNotationCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.EditSchemaReferenceCommand;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * "Details" tab of the {@link SchemaOverviewView}: edits what the Inspector does not cover

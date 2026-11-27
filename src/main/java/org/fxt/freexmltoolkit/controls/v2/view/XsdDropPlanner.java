@@ -1,6 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.view;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +20,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSequence;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Works out where a node dragged in the graphic XSD view lands: the model parent and index for a

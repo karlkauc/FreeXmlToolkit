@@ -1,6 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.tabs;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
 import javafx.scene.control.Alert;
 
 import org.apache.logging.log4j.LogManager;
@@ -8,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.views.ComplexTypeEditorView;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Tab for editing a ComplexType in the graphic editor.

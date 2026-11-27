@@ -1,7 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.view;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * A run of a card's children that comes from a named complex type: the content of an element with

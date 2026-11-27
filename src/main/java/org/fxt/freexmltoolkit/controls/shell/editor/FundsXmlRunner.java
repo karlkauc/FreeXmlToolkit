@@ -3,8 +3,8 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 import java.nio.file.Path;
 import java.util.List;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlCache;
 import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService;

@@ -160,7 +160,8 @@ below OPTIONS & TOOLS.
 A scenario with an **expected result** can be checked: it runs as usual, and its result is
 compared with the expected file ("golden file"). XML results are compared by structure, like
 [Comparing as XML](compare-merge.md#comparing-as-xml) — formatting and attribute order do not
-count. Other results (text, JSON) are compared line by line.
+count. Other results (text, JSON, and HTML that is not well-formed XML - such as `<meta>` without an end tag
+from output method `html`) are compared line by line; **Differences** opens them in the same mode.
 
 **Values that change from run to run** — a creation date, an ID — go into the expected file as
 XMLUnit placeholders, or are left out with an ignore XPath:

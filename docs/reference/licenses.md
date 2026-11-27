@@ -101,7 +101,7 @@ use it. FreeXmlToolkit uses that artifact:
 | **Java runtime with JavaFX** (BellSoft Liberica Full JDK, see [below](#bundled-java-runtime-and-javafx)) | 25 | [GPL v2 with Classpath Exception](https://openjdk.org/legal/gplv2+ce.html) |
 | **RichTextFX** (org.fxmisc.richtext:richtextfx) | 0.11.7 | [BSD-2-Clause License](https://opensource.org/licenses/BSD-2-Clause) |
 | **Flowless** (org.fxmisc.flowless, RichTextFX's virtual list; compiled into the application with a patch so folded lines get no cell, license and patch notes in the application jar under `META-INF/flowless/`) | 0.7.4 | [BSD-2-Clause License](https://opensource.org/licenses/BSD-2-Clause) |
-| **ControlsFX** (org.controlsfx:controlsfx) | 11.2.6 | [BSD 3-Clause License](https://opensource.org/licenses/BSD-3-Clause) |
+| **ControlsFX** (org.controlsfx:controlsfx) | 11.2.7 | [BSD 3-Clause License](https://opensource.org/licenses/BSD-3-Clause) |
 | **CSSFX** (fr.brouillard.oss:cssfx) | 11.5.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **NSMenuFX** (de.jangassen:nsmenufx, macOS menu bar) | 3.1.0 | [BSD 3-Clause License](https://opensource.org/licenses/BSD-3-Clause) |
 
@@ -183,7 +183,7 @@ are not bundled but downloaded from their publishers when first used.
 | **Apache Commons Lang3** (org.apache.commons:commons-lang3) | 3.22.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Apache Commons IO** (commons-io:commons-io) | 2.22.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Apache HttpClient 5** (org.apache.httpcomponents.client5:httpclient5) | 5.6.5 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **Apache HttpCore 5 H2** (org.apache.httpcomponents.core5:httpcore5-h2) | 5.4.4 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Apache HttpCore 5 H2** (org.apache.httpcomponents.core5:httpcore5-h2) | 5.5 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **java-diff-utils** (io.github.java-diff-utils:java-diff-utils) | 4.18 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Apache Commons Text** (org.apache.commons:commons-text) | 1.15.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Apache Commons Validator** (commons-validator:commons-validator) | 1.11.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
@@ -191,7 +191,7 @@ are not bundled but downloaded from their publishers when first used.
 | **MCP Java SDK** (io.modelcontextprotocol.sdk:mcp-core, mcp-json-jackson3), for `fxt-cli mcp` | 2.2.0 | [MIT License](https://github.com/modelcontextprotocol/java-sdk/blob/main/LICENSE) |
 | **Reactor Core** (io.projectreactor:reactor-core), via the MCP Java SDK | 3.9.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Reactive Streams** (org.reactivestreams:reactive-streams), via Reactor Core | 1.0.4 | [MIT No Attribution](https://github.com/reactive-streams/reactive-streams-jvm/blob/main/LICENSE) |
-| **Anthropic Java SDK** (com.anthropic:anthropic-java-core), for the AI assistant's Anthropic provider | 3.8.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Anthropic Java SDK** (com.anthropic:anthropic-java-core), for the AI assistant's Anthropic provider | 3.11.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Kotlin standard library and reflection** (org.jetbrains.kotlin:kotlin-stdlib, kotlin-reflect), via the Anthropic SDK | 1.9.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Jackson 2** (com.fasterxml.jackson: core, databind, annotations, datatype-jdk8, datatype-jsr310, module-kotlin), via the Anthropic SDK | 2.19+ | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **OpenTelemetry API** (io.opentelemetry:opentelemetry-api), via the Anthropic SDK (switched off) | 1.62.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
