@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -37,5 +38,22 @@ class NetworkErrorsTest {
         assertEquals("java.io.IOException", NetworkErrors.describe(new IOException()));
         assertEquals("ESMA FIRDS could not be reached: offline",
                 NetworkErrors.unreachable("ESMA FIRDS", new IOException("offline")));
+    }
+
+    @Test
+    void untrustedCertificateExplainsTheProxyCase() {
+        String text = NetworkErrors.describe(new javax.net.ssl.SSLHandshakeException(
+                "(certificate_unknown) PKIX path building failed: sun.security.provider.certpath."
+                        + "SunCertPathBuilderException: unable to find valid certification path to requested target"));
+        assertTrue(text.contains("certificate is not trusted"), text);
+        assertTrue(text.contains("inspects HTTPS"), text);
+    }
+
+    @Test
+    void gatewayErrorsSayTheyAreUsuallyTemporary() {
+        assertTrue(NetworkErrors.httpStatus("ESMA FIRDS", 504).contains("no answer in time"));
+        assertEquals("GLEIF answered with HTTP 500.", NetworkErrors.httpStatus("GLEIF", 500));
+        assertTrue(NetworkErrors.isGatewayError(503));
+        assertFalse(NetworkErrors.isGatewayError(404));
     }
 }

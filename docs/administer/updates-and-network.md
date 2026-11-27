@@ -145,6 +145,14 @@ Windows sign-in.
 
 ### Certificates
 
+**Settings → Network & Security → SECURITY → Trust the certificates of the operating system** (on by
+default) accepts, next to the Java runtime's own list, the root certificates of the Windows certificate
+store or the macOS keychain. A proxy that inspects HTTPS signs with a company root certificate your IT
+department installs there; without this option every HTTPS connection fails with "PKIX path building
+failed" ("the server's certificate is not trusted"). A certificate that neither Java nor the operating
+system trusts stays refused. Changing the option takes effect for new connections; restart the
+application to be sure every part uses it.
+
 **Settings → Network & Security → SECURITY → Trust all certificates** makes HTTPS downloads
 (for example of schemas) accept any TLS certificate. It helps behind a proxy that inspects HTTPS
 with a certificate the Java runtime does not know, but it also removes the protection against a

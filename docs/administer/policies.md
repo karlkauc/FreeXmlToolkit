@@ -48,6 +48,7 @@ Any key of the user's settings file works. These are the ones most often managed
 | `http.proxy.domain`, `http.proxy.windowsSignOn` | domain, `true` / `false` | NTLM proxy: domain; sign on with the Windows account |
 | `http.connectTimeoutSeconds`, `http.readTimeoutSeconds` | seconds | Network timeouts |
 | `ssl.trustAllCerts` | `false` | Lock "Trust all certificates" off |
+| `ssl.systemTrust` | `true` / `false` | Trust the root certificates of the Windows certificate store / macOS keychain too (default `true`) |
 | `security.xslt.allow.extensions` | `false` | Lock Java extension calls in stylesheets off |
 | `security.xproc.unrestricted` | `false` | Lock the XProc restrictions on: no `p:os-exec`, `p:run`, `p:http-request`, no network (see [Threat Model](threat-model.md)) |
 | `security.htmlPreview.allowActiveContent` | `false` | Lock JavaScript and remote content in HTML previews off |

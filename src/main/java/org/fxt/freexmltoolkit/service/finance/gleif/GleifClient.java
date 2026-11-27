@@ -135,7 +135,7 @@ public final class GleifClient {
             throw new GleifException("GLEIF refused the request: too many requests - try again in a minute.", null);
         }
         if (response.status() != 200) {
-            throw new GleifException("GLEIF answered with HTTP " + response.status() + ".", null);
+            throw new GleifException(org.fxt.freexmltoolkit.service.NetworkErrors.httpStatus("GLEIF", response.status()), null);
         }
         try {
             return parse(new String(response.body(), StandardCharsets.UTF_8), clock.instant());

@@ -210,6 +210,7 @@ public class SettingsPanel extends VBox {
 
     // Security
     @FXML private CheckBox trustAllCerts;
+    @FXML private CheckBox systemTrust;
 
     // Usage statistics
     @FXML private CheckBox trackingEnabled;
@@ -629,6 +630,7 @@ public class SettingsPanel extends VBox {
         showProxySettings(org.fxt.freexmltoolkit.service.ProxySettings.from(
                 org.fxt.freexmltoolkit.service.AdminPolicy.current().overlay()));
         trustAllCerts.setSelected(false);
+        systemTrust.setSelected(true);
         updateCheck.setSelected(true);
         saveStatus.setText(I18n.t("SettingsPanel.defaults-restored-click-save-settings"));
     }
@@ -1411,6 +1413,7 @@ public class SettingsPanel extends VBox {
         keys.put(userEmail, new String[] {"user.email"});
         keys.put(userCompany, new String[] {"user.company"});
         keys.put(trustAllCerts, new String[] {"ssl.trustAllCerts"});
+        keys.put(systemTrust, new String[] {org.fxt.freexmltoolkit.service.SystemTrust.KEY});
         keys.put(telemetryUsage, new String[] {PropertiesService.TELEMETRY_USAGE_ENABLED});
         keys.put(telemetryErrors, new String[] {PropertiesService.TELEMETRY_ERRORS_ENABLED});
         keys.put(execStatsEnabled, new String[] {org.fxt.freexmltoolkit.service.DeveloperPropertyKeys.EXECUTION_STATS_ENABLED});
@@ -1888,6 +1891,7 @@ public class SettingsPanel extends VBox {
             userCompany.setText(props.get("user.company") == null ? "" : props.get("user.company"));
             trustAllCerts.setSelected(Boolean.parseBoolean(
                     props.get("ssl.trustAllCerts") == null ? "false" : props.get("ssl.trustAllCerts")));
+            systemTrust.setSelected(org.fxt.freexmltoolkit.service.SystemTrust.enabled(props.loadProperties()));
             trackingEnabled.setSelected(
                     UsageTrackingServiceImpl.getInstance().isTrackingEnabled());
             telemetryUsage.setSelected(props.isTelemetryUsageEnabled());
@@ -1987,6 +1991,7 @@ public class SettingsPanel extends VBox {
             props.set("user.email", userEmail.getText().trim());
             props.set("user.company", userCompany.getText().trim());
             props.set("ssl.trustAllCerts", String.valueOf(trustAllCerts.isSelected()));
+            props.set(org.fxt.freexmltoolkit.service.SystemTrust.KEY, String.valueOf(systemTrust.isSelected()));
             UsageTrackingServiceImpl.getInstance()
                     .setTrackingEnabled(trackingEnabled.isSelected());
             saveTelemetrySettings(props);

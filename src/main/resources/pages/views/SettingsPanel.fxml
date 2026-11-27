@@ -751,6 +751,12 @@
                                         </SettingsCard>
                                         <SettingsCard title="%SettingsPanel.security.title" iconLiteral="bi-shield-lock">
                                             <children>
+                                                <CheckBox fx:id="systemTrust" id="settings-system-trust"
+                                                          text="%SettingsPanel.systemTrust.text">
+                                                    <tooltip>
+                                                        <Tooltip text="%SettingsPanel.systemTrust.tooltip"/>
+                                                    </tooltip>
+                                                </CheckBox>
                                                 <CheckBox fx:id="trustAllCerts" text="%SettingsPanel.trustAllCerts.text"/>
                                                 <CheckBox fx:id="htmlActiveContent" id="settings-html-active-content"
                                                           text="%SettingsPanel.htmlActiveContent.text">

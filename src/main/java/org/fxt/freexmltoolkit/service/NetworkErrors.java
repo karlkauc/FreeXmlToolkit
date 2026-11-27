@@ -32,8 +32,28 @@ public final class NetworkErrors {
             if (message.contains("Unable to tunnel through proxy") && message.contains("407")) {
                 return I18n.t("NetworkErrors.proxy-needs-sign-in");
             }
+            if (message.contains("PKIX path building failed")
+                    || message.contains("unable to find valid certification path")) {
+                return I18n.t(SystemTrust.isInstalled() ? "NetworkErrors.certificate-untrusted"
+                        : "NetworkErrors.certificate-untrusted-system-trust-off");
+            }
         }
         return error.getMessage() == null ? error.toString() : error.getMessage();
+    }
+
+    /**
+     * @return "{@code service} answered with HTTP {@code status}", for a gateway error (502/503/504) with what it
+     * means: an intermediary (the proxy) or the service got no answer in time - usually temporary
+     */
+    public static String httpStatus(String service, int status) {
+        return status == 502 || status == 503 || status == 504
+                ? I18n.t("NetworkErrors.gateway", service, String.valueOf(status))
+                : I18n.t("NetworkErrors.http-status", service, String.valueOf(status));
+    }
+
+    /** @return whether {@code status} is a gateway error worth one more try (502/503/504) */
+    public static boolean isGatewayError(int status) {
+        return status == 502 || status == 503 || status == 504;
     }
 
     /** @return "{@code service} could not be reached: why" */

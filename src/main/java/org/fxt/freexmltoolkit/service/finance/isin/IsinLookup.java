@@ -202,6 +202,17 @@ public final class IsinLookup {
 
     // ------------------------------------------------------------------ FIRDS
 
+    /** Pause before the one more try after a gateway error (502/503/504). */
+    static long GATEWAY_RETRY_MILLIS = 5_000;
+
+    private Response firdsGet(URI uri) throws LookupException {
+        try {
+            return get.get(uri);
+        } catch (IOException | RuntimeException e) {
+            throw new LookupException(org.fxt.freexmltoolkit.service.NetworkErrors.unreachable("ESMA FIRDS", e), e);
+        }
+    }
+
     private Map<String, IsinRecord> firds(List<String> batch, Progress progress) throws LookupException {
         lastFirds = throttle(lastFirds, 1_000, progress);
         String query = "isin:(" + String.join(" OR ", batch) + ")";
@@ -209,14 +220,14 @@ public final class IsinLookup {
                 + "&group=true&group.field=isin&group.limit=1&group.sort=" + enc("status desc")
                 + "&facet=true&facet.pivot=isin,status&facet.limit=-1&fl="
                 + enc("id,isin,gnr_full_name,gnr_short_name,gnr_cfi_code,lei,gnr_notional_curr_code,status,mrkt_trdng_trmination_date"));
-        Response r;
-        try {
-            r = get.get(uri);
-        } catch (IOException | RuntimeException e) {
-            throw new LookupException(org.fxt.freexmltoolkit.service.NetworkErrors.unreachable("ESMA FIRDS", e), e);
+        Response r = firdsGet(uri);
+        if (org.fxt.freexmltoolkit.service.NetworkErrors.isGatewayError(r.status())) {
+            // a proxy / ESMA's gateway that got no answer in time: usually passes on a second try
+            progress.sleep(GATEWAY_RETRY_MILLIS);
+            r = firdsGet(uri);
         }
         if (r.status() != 200) {
-            throw new LookupException("ESMA FIRDS answered with HTTP " + r.status() + ".", null);
+            throw new LookupException(org.fxt.freexmltoolkit.service.NetworkErrors.httpStatus("ESMA FIRDS", r.status()), null);
         }
         try {
             return parseFirds(new String(r.body(), StandardCharsets.UTF_8), clock.instant());

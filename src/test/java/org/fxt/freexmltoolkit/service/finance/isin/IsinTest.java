@@ -103,6 +103,25 @@ class IsinTest {
         }, null, Clock.systemUTC(), true, null);
         assertTrue(assertThrows(IsinLookup.LookupException.class, () -> offline.lookup(List.of(APPLE)))
                 .getMessage().contains("ESMA FIRDS could not be reached"));
+
+        // a gateway timeout of the proxy is tried once more; a second one explains itself
+        long pause = IsinLookup.GATEWAY_RETRY_MILLIS;
+        IsinLookup.GATEWAY_RETRY_MILLIS = 1;
+        try {
+            int[] calls = {0};
+            IsinLookup flaky = new IsinLookup(uri -> calls[0]++ == 0 ? new IsinLookup.Response(504, new byte[0])
+                    : new IsinLookup.Response(200, emptyFirds.getBytes(StandardCharsets.UTF_8)), null, Clock.systemUTC(),
+                    false, null);
+            flaky.lookup(List.of(APPLE));
+            assertEquals(2, calls[0], "one more try after HTTP 504");
+
+            IsinLookup down = new IsinLookup(uri -> new IsinLookup.Response(504, new byte[0]), null, Clock.systemUTC(),
+                    false, null);
+            String message = assertThrows(IsinLookup.LookupException.class, () -> down.lookup(List.of(APPLE))).getMessage();
+            assertTrue(message.contains("HTTP 504") && message.contains("no answer in time"), message);
+        } finally {
+            IsinLookup.GATEWAY_RETRY_MILLIS = pause;
+        }
     }
 
     @Test

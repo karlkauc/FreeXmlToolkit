@@ -480,7 +480,9 @@ public class ConnectionServiceImpl implements ConnectionService {
      * {@link Authenticator}. Called at startup and whenever the settings are saved.
      */
     public void applyGlobalSettings() {
-        applyGlobalSettings(ProxySettings.from(propertiesService.loadProperties()));
+        Properties properties = propertiesService.loadProperties();
+        applyGlobalSettings(ProxySettings.from(properties));
+        SystemTrust.install(SystemTrust.enabled(properties));
     }
 
     static void applyGlobalSettings(ProxySettings settings) {

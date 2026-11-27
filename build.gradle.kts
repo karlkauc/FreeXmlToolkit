@@ -1919,7 +1919,10 @@ fun createJlinkRuntimeTask(taskName: String, platform: String, arch: String) {
             "javafx.graphics",
             "javafx.web",
             "javafx.swing"
-        )
+        ) + if (currentOs == "windows") {
+            // Windows certificate store (Windows-ROOT): company roots of HTTPS-inspecting proxies (SystemTrust)
+            setOf("jdk.crypto.mscapi")
+        } else emptySet()
 
         commandLine(
             jlinkCmd,
