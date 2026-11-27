@@ -34,6 +34,7 @@ releases/latest); the package workflow skips media-* releases. Create it once as
 import datetime
 import html
 import json
+import os
 import pathlib
 import re
 import shutil
@@ -67,6 +68,9 @@ TEXT = {
                 "a series plays on by itself.",
         "note": "Narration voice, text and editing are AI-generated. The films show the real application.",
         "ai_badge": "AI",
+        "genre": "Tutorial",
+        "guide": "Guide",
+        "all_videos": "All videos",
         "ai_label": "AI-generated narration voice, text and editing · real application footage",
         "jump": "Series",
         "now": "Now playing",
@@ -87,6 +91,9 @@ TEXT = {
                 "eine Reihe läuft von selbst weiter.",
         "note": "Sprecherstimme, Text und Schnitt sind KI-generiert. Die Filme zeigen die echte Anwendung.",
         "ai_badge": "KI",
+        "genre": "Lernvideo",
+        "guide": "Anleitung",
+        "all_videos": "Alle Videos",
         "ai_label": "KI-generierte Sprecherstimme, Texte und Schnitt · Bilder aus der echten Anwendung",
         "jump": "Reihen",
         "now": "Läuft gerade",
@@ -178,23 +185,90 @@ def write_if_changed(path, text):
         path.write_text(text, encoding="utf-8")
 
 
-def prepare(video_id, lang):
+ISO_639_2 = {"de": "deu", "en": "eng"}
+
+
+def film_metadata(board, lang, series_title, number, total, made):
+    """The MP4 tags of a published film: what a player, a media library or a search engine reads from the file."""
+    title = pick(board.get("title", {}), lang)
+    description = pick(board.get("description", {}), lang) or title
+    docs = f"{BASE_URL}docs/{board['docs']}" if board.get("docs") else BASE_URL
+    t = TEXT[lang]
+    return {
+        "title": title,
+        "artist": "FreeXmlToolkit",
+        "album_artist": "FreeXmlToolkit",
+        "album": series_title,
+        "track": f"{number}/{total}",
+        "genre": t["genre"],
+        "date": made.strftime("%Y-%m-%d"),
+        "copyright": f"© {made.year} FreeXmlToolkit · freexmltoolkit.org",
+        "description": description,
+        "synopsis": f"{description} {t['guide']}: {docs} · {t['all_videos']}: {BASE_URL}{'de/' if lang == 'de' else ''}videos/",
+        "comment": ai_note(lang),   # the machine-readable AI disclosure (EU AI Act Art. 50)
+    }
+
+
+def chapter_count(path):
+    out = subprocess.run(["ffprobe", "-v", "error", "-show_chapters", "-of", "json", str(path)],
+                         capture_output=True, text=True, check=True).stdout
+    return len(json.loads(out).get("chapters", []))
+
+
+def media_duration(path):
+    return float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
+                                 str(path)], capture_output=True, text=True, check=True).stdout)
+
+
+def tags(path):
+    out = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format_tags", "-of", "json", str(path)],
+                         capture_output=True, text=True, check=True).stdout
+    return {k.lower(): v for k, v in json.loads(out).get("format", {}).get("tags", {}).items()}
+
+
+def prepare(video_id, lang, meta=None):
     """Copies one film and writes its side files; -> dict for the page, or None when it is not built."""
     src = BUILT / f"{video_id}-{lang}.mp4"
     if not src.exists():
         return None
     name = f"{video_id}-{lang}"
     mp4 = RELEASE / f"{name}.mp4"
-    if not mp4.exists() or mp4.stat().st_mtime < src.stat().st_mtime:
-        # always remuxed (a copy of the streams): index in front, and the AI note in the metadata
-        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(src), "-map", "0", "-c", "copy",
-                        "-metadata", f"comment={ai_note(lang)}", "-movflags", "+faststart", str(mp4)], check=True)
+    meta = meta or {"comment": ai_note(lang)}
+    txt = BUILT / f"{name}.txt"
+    marks = chapters(txt.read_text(encoding="utf-8")) if txt.exists() else []
+    stale = not mp4.exists() or mp4.stat().st_mtime < src.stat().st_mtime
+    if not stale:
+        have = tags(mp4)
+        stale = (any(have.get(k) != v for k, v in meta.items())
+                 or (bool(marks) and not chapter_count(mp4)))
+    if stale:
+        # remuxed (a copy of the streams): index in front, metadata for players and libraries, the AI note,
+        # and the chapters (players such as VLC list them)
+        code = ISO_639_2.get(lang, lang)
+        cmd = ["ffmpeg", "-v", "error", "-y", "-i", str(src)]
+        if marks:
+            total_ms = round(media_duration(src) * 1000)
+            lines = [";FFMETADATA1"]
+            for i, (start, title) in enumerate(marks):
+                end = round(marks[i + 1][0] * 1000) if i + 1 < len(marks) else total_ms
+                lines += ["[CHAPTER]", "TIMEBASE=1/1000", f"START={round(start * 1000)}", f"END={end}",
+                          "title=" + title.replace("\\", "\\\\").replace("=", "\\=").replace(";", "\\;").replace("#", "\\#")]
+            chapter_file = RELEASE / f"{name}.chapters.txt"
+            chapter_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            cmd += ["-i", str(chapter_file), "-map_chapters", "1"]
+        cmd += ["-map", "0", "-c", "copy"]   # (-map_metadata -1 would drop the QuickTime chapter track)
+        for key, value in meta.items():
+            cmd += ["-metadata", f"{key}={value}"]
+        cmd += ["-metadata:s:v:0", f"language={code}", "-metadata:s:a:0", f"language={code}",
+                "-metadata:s:s:0", f"language={code}", "-movflags", "+faststart", str(mp4)]
+        subprocess.run(cmd, check=True)
+        if marks:
+            chapter_file.unlink()
+        os.utime(mp4, (src.stat().st_atime, src.stat().st_mtime))   # the upload date stays the film's date
     total = duration(mp4)
     srt = BUILT / f"{name}.srt"
     if srt.exists():
         write_if_changed(OUT / f"{name}.vtt", srt_to_vtt(srt.read_text(encoding="utf-8")))
-    txt = BUILT / f"{name}.txt"
-    marks = chapters(txt.read_text(encoding="utf-8")) if txt.exists() else []
     if marks:
         write_if_changed(OUT / f"{name}-chapters.vtt", chapters_vtt(marks, total))
     poster = OUT / f"{name}.webp"
@@ -223,11 +297,14 @@ def collect():
     for path, folder in SERIES:
         data = json.loads(path.read_text(encoding="utf-8"))
         films = []
-        for video_id in data["videos"]:
+        for number, video_id in enumerate(data["videos"], start=1):
             board = storyboard(folder, video_id)
             files = {}
             for lang in ("en", "de"):
-                prepared = prepare(video_id, lang)
+                src = BUILT / f"{video_id}-{lang}.mp4"
+                made = datetime.date.fromtimestamp(src.stat().st_mtime) if src.exists() else datetime.date.today()
+                meta = film_metadata(board, lang, pick(data["title"], lang), number, len(data["videos"]), made)
+                prepared = prepare(video_id, lang, meta)
                 if prepared:
                     files[lang] = prepared
             if not files:
