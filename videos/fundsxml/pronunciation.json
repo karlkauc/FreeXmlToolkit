@@ -1,13 +1,13 @@
 {
-  "_comment": "Added to ../pronunciation.json for the FundsXML set (speech only, whole words, case-sensitive).",
+  "_comment": "Added to ../pronunciation.json for the FundsXML set (speech only, whole words, case-sensitive). Terms in [[ ]] are Piper phonemes: FundsXML and XML are spoken as one word, without pauses.",
   "en": {
-    "FundsXML": "Funds X M L",
-    "FundsXML4": "Funds X M L 4",
-    "FundsXML4.xsd": "Funds X M L 4 dot X S D",
-    "ISIN": "I S I N",
-    "ISINs": "I S I Ns",
-    "LEI": "L E I",
-    "LEIs": "L E Is",
+    "FundsXML": "[[ fˈʌndzˌɛksˌɛmˈɛl ]]",
+    "FundsXML4": "[[ fˈʌndzˌɛksˌɛmˈɛl ]] 4",
+    "FundsXML4.xsd": "[[ fˈʌndzˌɛksˌɛmˈɛl ]] 4 dot X S D",
+    "ISIN": "eye-sin",
+    "ISINs": "eye-sins",
+    "LEI": "lay",
+    "LEIs": "lays",
     "NAV": "N A V",
     "UCITS": "you-sits",
     "XQuery": "X query",
@@ -23,7 +23,7 @@
     "EMT": "E M T",
     "PRIIPs": "priips",
     "TPT": "T P T",
-    "fundsxml.org": "funds X M L dot org",
+    "fundsxml.org": "[[ fˈʌndzˌɛksˌɛmˈɛl ]] dot org",
     "ID": "I D",
     "ContentDate": "content date",
     "DataSupplier": "data supplier",
@@ -49,7 +49,7 @@
     "AMEND": "amend",
     "DELETE": "delete",
     "XSD": "X S D",
-    "XML": "X M L",
+    "XML": "[[ ˌɛksˌɛmˈɛl ]]",
     "RegulatoryReportings": "regulatory reportings",
     "CountrySpecificData": "country specific data",
     "RelatedDocumentIDs": "related document I Ds",
@@ -57,6 +57,7 @@
     "DocumentGenerated": "document generated",
     "Solvency II": "Solvency two",
     "MiFID II": "miffid two",
-    "F8": "F 8"
+    "F8": "F 8",
+    "FreeXmlToolkit": "Free [[ ˌɛksˌɛmˈɛl ]] Toolkit"
   }
 }

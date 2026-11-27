@@ -47,7 +47,7 @@
         }
       },
       "say": {
-        "en": "There are two basic ways. The first: store the whole document in an X M L column. PostgreSQL, Oracle and SQL Server all have one, and they can query it with X Path. The second: shred the document into tables, one per business object. Most setups do both: they keep the original file, and they load the data they need into tables."
+        "en": "There are two basic ways. The first: store the whole document in an XML column. PostgreSQL, Oracle and SQL Server all have one, and they can query it with X Path. The second: shred the document into tables, one per business object. Most setups do both: they keep the original file, and they load the data they need into tables."
       }
     },
     {
@@ -70,7 +70,7 @@
         }
       },
       "say": {
-        "en": "Storing the document is simple and keeps everything, also data you do not use today. In the example, the deliveries table keeps every file in an X M L column, and a query counts the funds, subfunds and prices of each file directly with X Path. That is good for archives and for occasional questions, but slow for reporting over thousands of files."
+        "en": "Storing the document is simple and keeps everything, also data you do not use today. In the example, the deliveries table keeps every file in an XML column, and a query counts the funds, subfunds and prices of each file directly with X Path. That is good for archives and for occasional questions, but slow for reporting over thousands of files."
       }
     },
     {
@@ -543,7 +543,7 @@
         }
       },
       "say": {
-        "en": "In the database, psql shows what became of it. The position table has a primary key of portfolio, look-through flag and position number, an index on the asset, and two foreign keys: to its portfolio and to its asset. The details column keeps the position's complete X M L. And a policy for row-level security, which you see later in this film, decides who may read it."
+        "en": "In the database, psql shows what became of it. The position table has a primary key of portfolio, look-through flag and position number, an index on the asset, and two foreign keys: to its portfolio and to its asset. The details column keeps the position's complete XML. And a policy for row-level security, which you see later in this film, decides who may read it."
       }
     },
     {
@@ -952,7 +952,7 @@
         }
       },
       "say": {
-        "en": "Transactions live in four places in FundsXML, and the model keeps them apart. Subscriptions, redemptions and distributions belong to a share class. The fund's own trades and its income belong to the portfolio of a date. The month-end file of the example brings sixty-seven flows, three distributions, two hundred nine trades and sixty-eight income records. Trades keep their complete X M L next to the columns. And the diagram shows where documents and templates attach: documents through a target table to funds and share classes, templates to the share class."
+        "en": "Transactions live in four places in FundsXML, and the model keeps them apart. Subscriptions, redemptions and distributions belong to a share class. The fund's own trades and its income belong to the portfolio of a date. The month-end file of the example brings sixty-seven flows, three distributions, two hundred nine trades and sixty-eight income records. Trades keep their complete XML next to the columns. And the diagram shows where documents and templates attach: documents through a target table to funds and share classes, templates to the share class."
       }
     },
     {
@@ -1056,7 +1056,7 @@
         }
       },
       "say": {
-        "en": "Regulatory templates are a world of their own: hundreds of fields each, and a new version every few years. The example keeps every template record in one table: the template, its version, the share class, the record as X M L, and the few fields it reports on as columns, such as the ongoing costs of the E M T or the S F D R product type of the E E T. Avoid one column per field and version; it ends in confusion."
+        "en": "Regulatory templates are a world of their own: hundreds of fields each, and a new version every few years. The example keeps every template record in one table: the template, its version, the share class, the record as XML, and the few fields it reports on as columns, such as the ongoing costs of the E M T or the S F D R product type of the E E T. Avoid one column per field and version; it ends in confusion."
       }
     },
     {

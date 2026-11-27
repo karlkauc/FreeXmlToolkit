@@ -377,7 +377,7 @@
         }
       },
       "say": {
-        "en": "Here is how such a request could look as an issue. A short title. The use case: receivers of embedded key information documents want to verify them. The proposal: an element Checksum after the size, with the value and an attribute for the algorithm. A small X M L example. And the note that the element is optional, so existing files stay valid."
+        "en": "Here is how such a request could look as an issue. A short title. The use case: receivers of embedded key information documents want to verify them. The proposal: an element Checksum after the size, with the value and an attribute for the algorithm. A small XML example. And the note that the element is optional, so existing files stay valid."
       }
     },
     {
@@ -415,7 +415,7 @@
         }
       },
       "say": {
-        "en": "What makes a good change request? Describe the business case: who needs the data, and why. Define the data point exactly: its meaning, its type and its codes. Add a short example in X M L. Say whether existing files stay valid. And name the partners who would use it. A clear request saves the working group a lot of time."
+        "en": "What makes a good change request? Describe the business case: who needs the data, and why. Define the data point exactly: its meaning, its type and its codes. Add a short example in XML. Say whether existing files stay valid. And name the partners who would use it. A clear request saves the working group a lot of time."
       }
     },
     {

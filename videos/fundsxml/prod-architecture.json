@@ -481,7 +481,7 @@
         }
       },
       "say": {
-        "en": "Fund data is often confidential, portfolios in particular. Transport is always encrypted. Where proof of origin matters, a FundsXML file can carry an X M L signature; the schema supports it. Every file sent and received goes into an archive. And access to the data is limited to the people and systems that need it."
+        "en": "Fund data is often confidential, portfolios in particular. Transport is always encrypted. Where proof of origin matters, a FundsXML file can carry an XML signature; the schema supports it. Every file sent and received goes into an archive. And access to the data is limited to the people and systems that need it."
       }
     },
     {

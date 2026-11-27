@@ -193,7 +193,7 @@
         }
       },
       "say": {
-        "en": "A word on signatures. The element Signature says whether the document is signed: not at all, digitally, which means the signature sits inside the P D F, or as a scan of a document signed on paper. This is information for the receiver, not a check. If the whole delivery has to be protected, the FundsXML file itself can carry an X M L signature."
+        "en": "A word on signatures. The element Signature says whether the document is signed: not at all, digitally, which means the signature sits inside the P D F, or as a scan of a document signed on paper. This is information for the receiver, not a check. If the whole delivery has to be protected, the FundsXML file itself can carry an XML signature."
       }
     },
     {

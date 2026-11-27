@@ -521,7 +521,7 @@
         }
       },
       "say": {
-        "en": "The other parts follow the same pattern. Trades and income also refer to assets, so they wait until the asset master data has been read; there are few of them, so they wait in memory. Embedded documents are decoded, their size is compared with the size the file declares, and they get a hash. And every template record is kept as X M L, with its key fields as columns."
+        "en": "The other parts follow the same pattern. Trades and income also refer to assets, so they wait until the asset master data has been read; there are few of them, so they wait in memory. Embedded documents are decoded, their size is compared with the size the file declares, and they get a hash. And every template record is kept as XML, with its key fields as columns."
       }
     },
     {

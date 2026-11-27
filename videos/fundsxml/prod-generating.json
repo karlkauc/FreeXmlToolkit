@@ -178,7 +178,7 @@
         }
       },
       "say": {
-        "en": "There are three common ways to write the file. Templates write the X M L directly from the query results; simple and easy to read. X S L T transforms an intermediate X M L, for example from the database, into FundsXML. And code generators create classes from the schema, with JAXB in Java or xsdata in Python; the code then fills objects and writes them out."
+        "en": "There are three common ways to write the file. Templates write the XML directly from the query results; simple and easy to read. X S L T transforms an intermediate XML, for example from the database, into FundsXML. And code generators create classes from the schema, with JAXB in Java or xsdata in Python; the code then fills objects and writes them out."
       }
     },
     {
@@ -209,7 +209,7 @@
         }
       },
       "say": {
-        "en": "Which one fits? Templates suit small and medium deliveries and teams that like to see the X M L. X S L T suits setups where the data is already X M L. Generated code gives type safety, but the FundsXML schema is large, so the generated code is too, and it must be regenerated for every new version."
+        "en": "Which one fits? Templates suit small and medium deliveries and teams that like to see the XML. X S L T suits setups where the data is already XML. Generated code gives type safety, but the FundsXML schema is large, so the generated code is too, and it must be regenerated for every new version."
       }
     },
     {
@@ -482,7 +482,7 @@
         }
       },
       "say": {
-        "en": "For large deliveries, write the file as a stream too: with the X M L stream writer in Java, or incremental writing in Python, as here. The example writes one fund at a time, and reads the positions through a server-side cursor, a few hundred rows at a time, so that memory stays small. Very large deliveries can be split, for example one file per fund. And compress the file for transport."
+        "en": "For large deliveries, write the file as a stream too: with the XML stream writer in Java, or incremental writing in Python, as here. The example writes one fund at a time, and reads the positions through a server-side cursor, a few hundred rows at a time, so that memory stays small. Very large deliveries can be split, for example one file per fund. And compress the file for transport."
       }
     },
     {
