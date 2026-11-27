@@ -306,6 +306,36 @@ class FundsXmlDataQualityChecksTest {
                         + "<TransactionKind>BUY</TransactionKind></Transaction>\n</Transactions>");
         assertEquals(Set.of("otc-counterparty-lei"), findings(fxForward).keySet(), findings(fxForward).toString());
 
+        // an asset that only a look-through position (PositionsDecomposed) refers to is in use
+        String lookThrough = withAsset(fixture(),
+                "<Asset><UniqueID>LT1</UniqueID><Identifiers><ISIN>DE0007164600</ISIN></Identifiers><Currency>EUR</Currency>"
+                        + "<Name>TARGET FUND HOLDING</Name><AssetType>EQ</AssetType></Asset>")
+                .replace(P1_EQUITY, P1_EQUITY + "<PositionsDecomposed><LookThroughLevels>1</LookThroughLevels><Positions>"
+                        + "<Position><UniqueID>LT1</UniqueID><Currency>EUR</Currency>"
+                        + "<TotalValue><Amount ccy=\"EUR\">600000.00</Amount></TotalValue></Position>"
+                        + "</Positions></PositionsDecomposed>");
+        assertFalse(findings(lookThrough).containsKey("unused-assets"), findings(lookThrough).toString());
+
+        // an ESTIMATED and an OFFICIAL value of the same day: each nature adds up on its own
+        UnaryOperator<String> plusEstimate = c -> c.replaceFirst("<TotalAssetValues>(<TotalAssetValue><NavDate>2025-10-01</NavDate>)"
+                + "<TotalAssetNature>OFFICIAL</TotalAssetNature>(\\s*<TotalNetAssetValue><Amount ccy=\"EUR\">)([0-9]+)000\\.00",
+                "<TotalAssetValues>$1<TotalAssetNature>ESTIMATED</TotalAssetNature>$2$3100.00</Amount></TotalNetAssetValue></TotalAssetValue>"
+                        + "$1<TotalAssetNature>OFFICIAL</TotalAssetNature>$2$3000.00");
+        String estimated = withShareClasses(
+                plusEstimate.apply(shareClass("AT0000A0K2G5", "7000000.00", "4200000.00", "60.00", "2800000.00", "40.00")),
+                plusEstimate.apply(shareClass("AT0000A0K2H3", "3000000.00", "1800000.00", "60.00", "1200000.00", "40.00")))
+                .replace("<TotalAssetValues>\n          <TotalAssetValue>", "<TotalAssetValues><TotalAssetValue><NavDate>2025-10-01</NavDate>"
+                        + "<TotalAssetNature>ESTIMATED</TotalAssetNature><TotalNetAssetValue><Amount ccy=\"EUR\">10000200.00</Amount>"
+                        + "</TotalNetAssetValue></TotalAssetValue>\n          <TotalAssetValue>");
+        assertEquals(3, estimated.split("ESTIMATED", -1).length - 1, "both share classes and the fund carry an estimate");
+        assertFalse(findings(estimated).containsKey("share-classes-sum"), findings(estimated).toString());
+
+        // matured after the portfolio date, before the content date: held on the portfolio date, no finding
+        String maturedLater = fixture().replace("<Name>DEUTSCHE BANK AG</Name><AssetType>EQ</AssetType></Asset>",
+                        "<Name>DEUTSCHE BANK AG</Name><AssetType>EQ</AssetType><AssetDetails><Bond><MaturityDate>2025-10-02</MaturityDate></Bond></AssetDetails></Asset>")
+                .replace("<ContentDate>2025-10-01</ContentDate>", "<ContentDate>2025-10-05</ContentDate>");
+        assertFalse(findings(maturedLater).containsKey("matured"), findings(maturedLater).toString());
+
         String ratios = withShareClasses(
                 shareClass("AT0000A0K2G5", "7000000.00", "4200000.00", "60.00", "2800000.00", "40.00")
                         .replace("</TotalNetAssetValue>", "</TotalNetAssetValue><Ratio>70</Ratio>")

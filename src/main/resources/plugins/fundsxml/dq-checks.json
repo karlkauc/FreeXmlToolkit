@@ -78,9 +78,9 @@
       "key": "unused-assets",
       "severity": "warning",
       "name": "DQ: Unused master data",
-      "description": "Assets in AssetMasterData that no position, transaction or earning refers to.",
-      "xpath": "/FundsXML4/AssetMasterData/Asset[not(UniqueID = (//Portfolios/Portfolio/Positions/Position/UniqueID, //Transaction/AssetUniqueID, //Earning/AssetUniqueID))]",
-      "query": "let $used := (//Portfolios/Portfolio/Positions/Position/UniqueID, //Transaction/AssetUniqueID, //Earning/AssetUniqueID)\nfor $a in /FundsXML4/AssetMasterData/Asset[not(UniqueID = $used)]\nreturn local:at($a, 'Asset ' || $a/UniqueID || ' (' || $a/Name || ') is not used by any position, transaction or earning')"
+      "description": "Assets in AssetMasterData that no position (including look-through positions in PositionsDecomposed), transaction or earning refers to.",
+      "xpath": "/FundsXML4/AssetMasterData/Asset[not(UniqueID = (//Portfolios/Portfolio/Positions/Position/UniqueID, //PositionsDecomposed/Positions/Position/UniqueID, //Transaction/AssetUniqueID, //Earning/AssetUniqueID))]",
+      "query": "let $used := (//Portfolios/Portfolio/Positions/Position/UniqueID, //PositionsDecomposed/Positions/Position/UniqueID, //Transaction/AssetUniqueID, //Earning/AssetUniqueID)\nfor $a in /FundsXML4/AssetMasterData/Asset[not(UniqueID = $used)]\nreturn local:at($a, 'Asset ' || $a/UniqueID || ' (' || $a/Name || ') is not used by any position, transaction or earning')"
     },
     {
       "key": "negative-values",
@@ -110,9 +110,9 @@
       "key": "share-classes-sum",
       "severity": "warning",
       "name": "DQ: Share classes add up to the fund",
-      "description": "The net asset values of the share classes (in fund currency) add up to the fund's (± 0.5 %) for each date.",
-      "xpath": "//Funds/Fund[SingleFund/ShareClasses/ShareClass/TotalAssetValues]/FundDynamicData/TotalAssetValues/TotalAssetValue[let $t := ., $f := ancestor::Fund[1], $ccy := string($f/Currency), $tna := ($t/TotalNetAssetValue/Amount[@ccy = $ccy][. castable as xs:decimal])[1] ! xs:decimal(.), $cl := $f/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue[NavDate = $t/NavDate]/TotalNetAssetValue/Amount[@ccy = $ccy][. castable as xs:decimal] return exists($tna) and exists($cl) and $tna ne 0 and abs(sum($cl ! xs:decimal(.)) - $tna) div abs($tna) gt 0.005]",
-      "query": "for $f in //Funds/Fund[SingleFund/ShareClasses/ShareClass/TotalAssetValues]\nlet $ccy := string($f/Currency)\nfor $tav in $f/FundDynamicData/TotalAssetValues/TotalAssetValue\nlet $d := $tav/NavDate\nlet $tna := local:dec(($tav/TotalNetAssetValue/Amount[@ccy = $ccy])[1])\nlet $classes := $f/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue[NavDate = $d]/TotalNetAssetValue/Amount[@ccy = $ccy]\nlet $sum := sum($classes ! local:dec(.))\nwhere exists($tna) and exists($classes) and $tna ne 0 and abs($sum - $tna) div abs($tna) gt 0.005\nreturn local:at($tav, local:fund($f) || ', ' || $d || ': share classes add up to ' || $sum || ' ' || $ccy || ', the fund has ' || $tna || ' ' || $ccy)"
+      "description": "The net asset values of the share classes (in fund currency) add up to the fund's (± 0.5 %) for each date and nature (an ESTIMATED and an OFFICIAL value of the same day are compared separately).",
+      "xpath": "//Funds/Fund[SingleFund/ShareClasses/ShareClass/TotalAssetValues]/FundDynamicData/TotalAssetValues/TotalAssetValue[let $t := ., $f := ancestor::Fund[1], $ccy := string($f/Currency), $tna := ($t/TotalNetAssetValue/Amount[@ccy = $ccy][. castable as xs:decimal])[1] ! xs:decimal(.), $cl := $f/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue[NavDate = $t/NavDate][string(TotalAssetNature) = string($t/TotalAssetNature)]/TotalNetAssetValue/Amount[@ccy = $ccy][. castable as xs:decimal] return exists($tna) and exists($cl) and $tna ne 0 and abs(sum($cl ! xs:decimal(.)) - $tna) div abs($tna) gt 0.005]",
+      "query": "for $f in //Funds/Fund[SingleFund/ShareClasses/ShareClass/TotalAssetValues]\nlet $ccy := string($f/Currency)\nfor $tav in $f/FundDynamicData/TotalAssetValues/TotalAssetValue\nlet $d := $tav/NavDate\nlet $tna := local:dec(($tav/TotalNetAssetValue/Amount[@ccy = $ccy])[1])\nlet $classes := $f/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue[NavDate = $d][string(TotalAssetNature) = string($tav/TotalAssetNature)]/TotalNetAssetValue/Amount[@ccy = $ccy]\nlet $sum := sum($classes ! local:dec(.))\nwhere exists($tna) and exists($classes) and $tna ne 0 and abs($sum - $tna) div abs($tna) gt 0.005\nreturn local:at($tav, local:fund($f) || ', ' || $d || ': share classes add up to ' || $sum || ' ' || $ccy || ', the fund has ' || $tna || ' ' || $ccy)"
     },
     {
       "key": "price-x-shares",
@@ -134,9 +134,9 @@
       "key": "matured",
       "severity": "warning",
       "name": "DQ: No matured instruments held",
-      "description": "Positions in bonds, futures, options, swaps, warrants … whose maturity date is before the content date.",
-      "xpath": "/FundsXML4/AssetMasterData/Asset[/FundsXML4/ControlData/ContentDate castable as xs:date][(AssetDetails/*/MaturityDate)[1] castable as xs:date][xs:date((AssetDetails/*/MaturityDate)[1]) lt xs:date(/FundsXML4/ControlData/ContentDate)][UniqueID = //Portfolios/Portfolio/Positions/Position/UniqueID]",
-      "query": "let $content := /FundsXML4/ControlData/ContentDate[. castable as xs:date] ! xs:date(.)\nwhere exists($content)\nreturn for $a in /FundsXML4/AssetMasterData/Asset[AssetDetails/*/MaturityDate castable as xs:date]\n       let $m := xs:date(($a/AssetDetails/*/MaturityDate)[1])\n       where $m lt $content and $a/UniqueID = //Portfolios/Portfolio/Positions/Position/UniqueID\n       return local:at($a, 'Asset ' || $a/UniqueID || ' (' || $a/Name || ') matured on ' || $m || ' but is still held')"
+      "description": "Positions in bonds, futures, options, swaps, warrants … whose maturity date is before the date of the portfolio that holds them.",
+      "xpath": "/FundsXML4/AssetMasterData/Asset[(AssetDetails/*/MaturityDate)[1] castable as xs:date][let $m := xs:date((AssetDetails/*/MaturityDate)[1]), $id := string(UniqueID) return some $p in //Portfolios/Portfolio[NavDate castable as xs:date][xs:date(NavDate) gt $m] satisfies $p/Positions/Position/UniqueID = $id]",
+      "query": "for $a in /FundsXML4/AssetMasterData/Asset[AssetDetails/*/MaturityDate castable as xs:date]\nlet $m := xs:date(($a/AssetDetails/*/MaturityDate)[1])\nwhere some $p in //Portfolios/Portfolio[NavDate castable as xs:date][xs:date(NavDate) gt $m] satisfies $p/Positions/Position/UniqueID = $a/UniqueID\nreturn local:at($a, 'Asset ' || $a/UniqueID || ' (' || $a/Name || ') matured on ' || $m || ' but is still held')"
     },
     {
       "key": "fund-ccy-value",
