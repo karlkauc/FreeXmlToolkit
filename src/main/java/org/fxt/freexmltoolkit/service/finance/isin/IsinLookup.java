@@ -213,7 +213,7 @@ public final class IsinLookup {
         try {
             r = get.get(uri);
         } catch (IOException | RuntimeException e) {
-            throw new LookupException("ESMA FIRDS could not be reached: " + message(e), e);
+            throw new LookupException(org.fxt.freexmltoolkit.service.NetworkErrors.unreachable("ESMA FIRDS", e), e);
         }
         if (r.status() != 200) {
             throw new LookupException("ESMA FIRDS answered with HTTP " + r.status() + ".", null);
@@ -283,7 +283,7 @@ public final class IsinLookup {
         try {
             r = post.post(URI.create(OPENFIGI), jobs.toString(), headers);
         } catch (IOException | RuntimeException e) {
-            throw new LookupException("OpenFIGI could not be reached: " + message(e), e);
+            throw new LookupException(org.fxt.freexmltoolkit.service.NetworkErrors.unreachable("OpenFIGI", e), e);
         }
         if (r.status() == 429) {
             throw new LookupException("OpenFIGI refused the request: too many requests - try again in a minute"
@@ -332,10 +332,6 @@ public final class IsinLookup {
 
     private static String enc(String s) {
         return URLEncoder.encode(s, StandardCharsets.UTF_8);
-    }
-
-    private static String message(Exception e) {
-        return e.getMessage() == null ? e.toString() : e.getMessage();
     }
 
     private static String string(JsonObject o, String name) {

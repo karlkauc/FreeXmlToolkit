@@ -1896,6 +1896,11 @@ fun createJlinkRuntimeTask(taskName: String, platform: String, arch: String) {
             "java.sql",
             "java.naming",
             "jdk.crypto.ec",
+            // Kerberos (Negotiate) sign-in at corporate proxies: without it the JDK offers only NTLM,
+            // which many proxies refuse ("Authentication failure"); jdk.security.auth for JAAS Kerberos
+            "java.security.jgss",
+            "jdk.security.jgss",
+            "jdk.security.auth",
             "jdk.httpserver",
             "jdk.jsobject",
             // XML Calabash 3 transitive needs: kotlinx-coroutines (Unsafe),

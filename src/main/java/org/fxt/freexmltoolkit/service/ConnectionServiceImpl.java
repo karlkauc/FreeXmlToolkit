@@ -151,7 +151,7 @@ public class ConnectionServiceImpl implements ConnectionService {
                     0,
                     System.currentTimeMillis() - start,
                     new String[0],
-                    e.getMessage()
+                    NetworkErrors.describe(e)
             );
         } finally {
             // Always disconnect to release resources immediately
@@ -488,6 +488,30 @@ public class ConnectionServiceImpl implements ConnectionService {
         Authenticator.setDefault(ProxyAuthenticator.forSettings(settings));
         // Read by the JDK when NTLM is first used (Windows only): a change needs a restart.
         System.setProperty("jdk.http.ntlm.transparentAuth", settings.windowsSignOn() ? "allHosts" : "disabled");
+        applyKerberosSignOn(settings.windowsSignOn(), isWindows());
+    }
+
+    /**
+     * Kerberos (Negotiate) at a proxy with the signed-in Windows user: Java's own Kerberos needs a krb5
+     * configuration and a ticket cache a Windows PC does not have, so the JDK's SSPI bridge is used
+     * ({@code sun.security.jgss.native}), with the tickets of the logon session
+     * ({@code javax.security.auth.useSubjectCredsOnly=false}). Without it the JDK falls back to NTLM, which
+     * many proxies refuse. Values given on the command line win; read on first use (a change needs a restart).
+     */
+    static void applyKerberosSignOn(boolean windowsSignOn, boolean windows) {
+        if (!windows || !windowsSignOn) {
+            return;
+        }
+        if (System.getProperty("sun.security.jgss.native") == null) {
+            System.setProperty("sun.security.jgss.native", "true");
+        }
+        if (System.getProperty("javax.security.auth.useSubjectCredsOnly") == null) {
+            System.setProperty("javax.security.auth.useSubjectCredsOnly", "false");
+        }
+    }
+
+    private static boolean isWindows() {
+        return System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).startsWith("windows");
     }
 
     @Override

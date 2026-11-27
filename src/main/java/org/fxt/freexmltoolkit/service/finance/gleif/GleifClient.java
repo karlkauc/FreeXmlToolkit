@@ -129,7 +129,7 @@ public final class GleifClient {
         try {
             response = fetcher.fetch(uri);
         } catch (IOException | RuntimeException e) {
-            throw new GleifException("GLEIF could not be reached: " + (e.getMessage() == null ? e.toString() : e.getMessage()), e);
+            throw new GleifException(org.fxt.freexmltoolkit.service.NetworkErrors.unreachable("GLEIF", e), e);
         }
         if (response.status() == 429) {
             throw new GleifException("GLEIF refused the request: too many requests - try again in a minute.", null);

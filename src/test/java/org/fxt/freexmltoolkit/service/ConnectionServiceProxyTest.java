@@ -149,4 +149,37 @@ class ConnectionServiceProxyTest {
         saved.setProperty("useSystemProxy", "false");
         assertTrue(service.xprocProxies().isEmpty());
     }
+
+    @Test
+    void kerberosSignOnUsesTheWindowsLogonOnlyOnWindowsWithSignOn() {
+        String nativeBefore = System.getProperty("sun.security.jgss.native");
+        String credsBefore = System.getProperty("javax.security.auth.useSubjectCredsOnly");
+        try {
+            System.clearProperty("sun.security.jgss.native");
+            System.clearProperty("javax.security.auth.useSubjectCredsOnly");
+            ConnectionServiceImpl.applyKerberosSignOn(true, false);
+            assertNull(System.getProperty("sun.security.jgss.native"), "not on Linux / macOS");
+            ConnectionServiceImpl.applyKerberosSignOn(false, true);
+            assertNull(System.getProperty("sun.security.jgss.native"), "not without Windows sign-on");
+
+            ConnectionServiceImpl.applyKerberosSignOn(true, true);
+            assertEquals("true", System.getProperty("sun.security.jgss.native"));
+            assertEquals("false", System.getProperty("javax.security.auth.useSubjectCredsOnly"));
+
+            System.setProperty("sun.security.jgss.native", "false"); // given on the command line: kept
+            ConnectionServiceImpl.applyKerberosSignOn(true, true);
+            assertEquals("false", System.getProperty("sun.security.jgss.native"));
+        } finally {
+            restore("sun.security.jgss.native", nativeBefore);
+            restore("javax.security.auth.useSubjectCredsOnly", credsBefore);
+        }
+    }
+
+    private static void restore(String key, String value) {
+        if (value == null) {
+            System.clearProperty(key);
+        } else {
+            System.setProperty(key, value);
+        }
+    }
 }

@@ -117,7 +117,9 @@ Under **Proxy authentication**:
   type `DOMAIN\user` or `user@domain` into **User** and leave the domain empty.
 - **Without a user, sign in with the Windows account (NTLM / Kerberos)** - on by default. On
   Windows, when no user is entered, the proxy gets the account you are signed in with, so no
-  password has to be stored. Changing this option takes effect after a restart.
+  password has to be stored. Kerberos (Negotiate) uses the tickets of your Windows logon (the
+  JDK's SSPI bridge, `sun.security.jgss.native=true`, set unless given on the command line); a
+  proxy that offers no Kerberos gets NTLM. Changing this option takes effect after a restart.
 
 ### Timeouts
 
@@ -133,6 +135,13 @@ The result appears next to the button.
 
 A failing download with **HTTP 407** means the proxy wants a sign-in: enter a user and password,
 or - on Windows - leave **User** empty and keep the Windows sign-in on.
+
+**"The proxy refused the sign-in (NTLM / Kerberos)"** means the proxy asked for a Windows sign-in
+and did not accept it. Proxies often let some sites through without a sign-in, so a test with
+`https://github.com` can succeed while `https://api.gleif.org` fails - test with the address that
+fails. Then try the other way of signing in: enter **User** (`DOMAIN\user`) and **Password**, or
+leave them empty and switch the Windows sign-in on; restart the application after changing the
+Windows sign-in.
 
 ### Certificates
 
