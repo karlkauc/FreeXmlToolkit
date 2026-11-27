@@ -52,6 +52,9 @@ public class FundsXmlPanel extends VBox {
                         I18n.t("FundsXmlPanel.download-failed-2", (result.error() == null ? I18n.t("FundsXmlPanel.unknown-error") : result.error())));
             }
             refreshVersions();
+            if (result.isSuccess()) {
+                editorHost.redetectSchemaForActiveDocument(); // the first schema: bind an open FundsXML document
+            }
         }
     };
 
@@ -86,6 +89,7 @@ public class FundsXmlPanel extends VBox {
         String v = versionCombo.getValue();
         if (v != null && FundsXmlRunner.setActiveVersion(v)) {
             PanelStatus.info(status, I18n.t("FundsXmlPanel.active-schema-version", v));
+            editorHost.redetectSchemaForActiveDocument(); // an unbound FundsXML document gets the version now
         }
     }
 
@@ -176,15 +180,39 @@ public class FundsXmlPanel extends VBox {
         }
         job.message(I18n.t("FundsXmlPanel.validating-schema"));
         PanelStatus.info(status, I18n.t("FundsXmlPanel.validating"));
+        EditorHost.ValidationTarget target = editorHost.validationTarget(); // the result belongs to this document
         FxtGui.executorService.submit(() -> {
-            String summary;
+            FundsXmlRunner.Validation result;
             try {
-                summary = FundsXmlRunner.validateSummary(xml);
+                result = FundsXmlRunner.validate(xml);
             } finally {
                 job.finish();
             }
-            Platform.runLater(() -> PanelStatus.info(status, summary));
+            Platform.runLater(() -> show(result, target));
         });
+    }
+
+    /**
+     * Shows a validation against the FundsXML schema: the summary in the panel, the problems in the PROBLEMS panel
+     * (kept with the validated document, like a validation from the Validation panel) - the document needs no schema
+     * binding for that.
+     */
+    private void show(FundsXmlRunner.Validation result, EditorHost.ValidationTarget target) {
+        if (!result.ran()) {
+            PanelStatus.info(status, result.summary());
+            return;
+        }
+        if (result.valid()) {
+            PanelStatus.success(status, result.summary());
+        } else {
+            PanelStatus.info(status, result.summary());
+        }
+        editorHost.publishValidation(target,
+                result.valid() ? EditorHost.ValidationState.VALID : EditorHost.ValidationState.INVALID,
+                result.problems().size(), result.summary(), result.problems());
+        if (!result.valid() && editorHost.isActive(target)) {
+            editorHost.revealProblems();
+        }
     }
 
     /** Runs the data-quality checks on the active document and opens the report. */

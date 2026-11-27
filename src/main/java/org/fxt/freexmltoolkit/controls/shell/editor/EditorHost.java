@@ -139,7 +139,11 @@ public class EditorHost extends BorderPane {
      *       {@link #setSchemaForActiveDocument})</li>
      * </ul>
      */
-    public enum SchemaSource { NONE, DECLARED, LIBRARY, CATALOG, PROJECT, MANUAL }
+    /**
+     * How a document's schema was found. {@link #FUNDSXML}: a FundsXML document without a usable schema
+     * reference, bound to the active FundsXML schema version (detail = that version).
+     */
+    public enum SchemaSource { NONE, DECLARED, LIBRARY, CATALOG, PROJECT, MANUAL, FUNDSXML }
 
     /** The most recently active editor tab — insertion target when a tool tab is in front. */
     private EditorTab lastEditorTab;

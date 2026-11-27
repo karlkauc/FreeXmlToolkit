@@ -141,6 +141,16 @@ class SchemaStatusIndicatorMappingTest {
     }
 
     @Test
+    void fundsXmlSourceNamesTheActiveVersion() {
+        assertEquals("XSD: FundsXML4.xsd (FundsXML)",
+                UnifiedShellView.schemaStatusText(SchemaStatus.READY, XSD, "XSD", SchemaSource.FUNDSXML));
+        String tooltip = UnifiedShellView.schemaStatusTooltip(SchemaStatus.READY, XSD, "XSD",
+                SchemaSource.FUNDSXML, "4.2.10");
+        assertTrue(tooltip.contains("active FundsXML schema 4.2.10"), tooltip);
+        assertTrue(tooltip.contains(XSD.getAbsolutePath()), tooltip);
+    }
+
+    @Test
     void nonReadyStatusesIgnoreTheSourceSuffix() {
         for (SchemaStatus status : new SchemaStatus[]{SchemaStatus.LOADING, SchemaStatus.ERROR, SchemaStatus.NONE}) {
             assertEquals(UnifiedShellView.schemaStatusText(status, null, "XSD"),

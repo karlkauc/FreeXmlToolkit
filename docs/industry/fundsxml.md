@@ -136,10 +136,19 @@ The fastest way to check an XML file against the FundsXML schema:
 
 1. Open your XML document in the editor.
 2. Click **Validate active document** in the **FundsXML** side panel (FundsXML validation lives only there).
-3. If the document is valid, you get a confirmation message.
-4. If there are errors, they are listed line-by-line in an alert dialog so you can locate and fix each one.
+3. If the document is valid, the panel confirms it.
+4. If there are errors, the panel shows their number and the **Problems** panel below the editor opens with
+   one row per error - click a row to jump to its line.
 
-The validation uses whichever FundsXML schema version is currently marked as active.
+The validation uses whichever FundsXML schema version is currently marked as active - the document does not
+need to be bound to a schema (no `xsi:schemaLocation`, no binding in the Validation panel).
+
+A FundsXML document whose schema the editor cannot find otherwise - no `xsi:noNamespaceSchemaLocation`, or one
+naming a `FundsXML4.xsd` that is not next to the file - is bound to the active FundsXML schema automatically. The
+status bar then shows **"XSD: FundsXML4.xsd (FundsXML)"**, and F8, the live validation and the auto-completion use
+that schema, so the schema errors stay in the **Problems** panel while you edit. A schema you bound yourself, a
+project binding, a Schema Library mapping or a reference that resolves always comes first. Choosing another
+version in the panel binds an unbound document at once; an already bound one follows at its next validation.
 
 !!! tip
     Use the Schematron Favorites under **FundsXML Schematron** to run additional business-rule checks. Open a Schematron file from Favorites, then validate your XML against it as you would with any other Schematron file.

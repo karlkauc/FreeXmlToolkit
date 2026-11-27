@@ -3150,6 +3150,7 @@ public class UnifiedShellView extends BorderPane {
             case LIBRARY -> " (" + org.fxt.freexmltoolkit.i18n.I18n.t("Shell.suffix.library") + ")";
             case PROJECT -> " (" + org.fxt.freexmltoolkit.i18n.I18n.t("Shell.suffix.project") + ")";
             case MANUAL -> " (" + org.fxt.freexmltoolkit.i18n.I18n.t("Shell.suffix.manual") + ")";
+            case FUNDSXML -> " (FundsXML)";
             case DECLARED, NONE -> "";
         };
     }
@@ -3256,6 +3257,7 @@ public class UnifiedShellView extends BorderPane {
                     + (detail != null && !detail.isBlank() ? " (" + detail + ")" : "");
             case PROJECT -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.source.project") + (detail != null && !detail.isBlank() ? " (" + detail + ")" : "");
             case MANUAL -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.source.manual");
+            case FUNDSXML -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.source.fundsxml", detail != null ? detail : "?");
             case DECLARED, NONE -> null;
         };
     }

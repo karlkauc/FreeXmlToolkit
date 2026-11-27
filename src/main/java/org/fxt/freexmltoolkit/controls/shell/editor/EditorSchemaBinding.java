@@ -59,7 +59,7 @@ final class EditorSchemaBinding {
     }
 
     /** A Schema Library / catalog resolution result, carrying provenance for the status bar. */
-    private record LibraryHit(File file, SchemaSource source, String detail) { }
+    record LibraryHit(File file, SchemaSource source, String detail) { }
 
     /**
      * Binds a schema to the active document — an XSD (schema-aware IntelliSense +
@@ -634,6 +634,9 @@ final class EditorSchemaBinding {
             // the library lookup here is deterministic for local entries (same path
             // every call), so it correctly short-circuits to KEEP once bound.
             LibraryHit fromLibrary = schemaFromLibrary(content);
+            if (fromLibrary == null) {
+                fromLibrary = fundsXmlSchema(content); // the same for the FundsXML fallback
+            }
             if (fromLibrary != null) {
                 declared = fromLibrary.file().getAbsolutePath();
             }
@@ -705,6 +708,9 @@ final class EditorSchemaBinding {
                 // Then ask the Schema Library by root namespace / root element.
                 LibraryHit fromLibrary = schemaFromLibrary(content);
                 if (fromLibrary == null) {
+                    fromLibrary = fundsXmlSchema(content);
+                }
+                if (fromLibrary == null) {
                     return SchemaDetection.NOT_FOUND; // the document references no schema
                 }
                 tab.lastDetectedSchemaLocation = fromLibrary.file().getAbsolutePath();
@@ -738,6 +744,10 @@ final class EditorSchemaBinding {
                     // Unreachable location: the Schema Library may still know the
                     // document's namespace (user mapping, catalog `uri`, bundled entry).
                     LibraryHit fallback = schemaFromLibrary(content);
+                    if (fallback == null) {
+                        // a FundsXML document often names a FundsXML4.xsd that is not next to it
+                        fallback = fundsXmlSchema(content);
+                    }
                     if (fallback == null) {
                         // referenced, but not resolvable
                         return SchemaDetection.failed(SchemaSource.DECLARED, SchemaDetection.UNRESOLVED,
@@ -797,6 +807,38 @@ final class EditorSchemaBinding {
         } catch (Exception e) {
             return java.util.Optional.empty(); // best-effort: the import then reads the cells untyped
         }
+    }
+
+    /**
+     * The active FundsXML schema for a FundsXML document (root element {@code FundsXML…}) that names no schema
+     * the Schema Library or its location can resolve: with the FundsXML extension switched on and a version
+     * downloaded, the document is validated and completed against it without being bound by hand. Returns
+     * null otherwise. Worker-thread safe.
+     */
+    static LibraryHit fundsXmlSchema(String content) {
+        try {
+            return fundsXmlSchema(content, FundsXmlRunner.isEnabled(),
+                    () -> org.fxt.freexmltoolkit.service.fundsxml.FundsXmlCache.getInstance().getActiveSchemaFile());
+        } catch (Exception e) {
+            return null;   // best-effort
+        }
+    }
+
+    /**
+     * @param enabled      whether the FundsXML extension is switched on
+     * @param activeSchema the active FundsXML schema file (asked only for a FundsXML document), may give null
+     */
+    static LibraryHit fundsXmlSchema(String content, boolean enabled, java.util.function.Supplier<Path> activeSchema) {
+        if (!enabled || content == null
+                || !org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.isFundsXml(content)) {
+            return null;
+        }
+        Path schema = activeSchema.get();
+        if (schema == null || !java.nio.file.Files.isRegularFile(schema)) {
+            return null;
+        }
+        Path versionDir = schema.getParent() == null ? null : schema.getParent().getFileName();
+        return new LibraryHit(schema.toFile(), SchemaSource.FUNDSXML, versionDir == null ? null : versionDir.toString());
     }
 
     /**
