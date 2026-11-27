@@ -4920,10 +4920,13 @@
      well-formedness check and the status bar shows <strong>"No XSD"</strong>. A schema you bound
      manually is never overridden by this automatic detection. If the document has no
      <code>xsi:schemaLocation</code>, the Schema Library is consulted by root namespace (or root
-     element) - see <a href="../../design-schemas/schema-library/">Schema Library</a>. A declared location is also
+     element) - see <a href="../../design-schemas/schema-library/">Schema Library</a>. A FundsXML document
+     whose schema cannot be found that way (no reference, or a <code>FundsXML4.xsd</code> that is not next to
+     it) is bound to the active FundsXML schema version when the FundsXML extension is on - see
+     <a href="../../../industry/fundsxml/#quick-validate-your-xml">FundsXML</a>. A declared location is also
      checked against your XML catalogs and library mappings before anything is downloaded,
      and the status bar indicator shows how the schema was found: <strong>"XSD: name"</strong> (declared),
-     <strong>"(catalog)"</strong>, <strong>"(library)"</strong> or <strong>"(manual)"</strong>.</li>
+     <strong>"(catalog)"</strong>, <strong>"(library)"</strong>, <strong>"(FundsXML)"</strong> or <strong>"(manual)"</strong>.</li>
 <li><strong>Manual</strong>: Bind an XSD yourself - click the <strong>"No XSD"</strong> chip in the status bar (or
      click the toolbar's <strong>Schema</strong> button - <strong>Set XSD Schema…</strong>), pick a schema in the Validation panel's
      <strong>SOURCES</strong> section, or simply <strong>drop</strong> an <code>.xsd</code> file from your file manager onto the

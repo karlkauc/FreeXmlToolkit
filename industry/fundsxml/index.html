@@ -5209,10 +5209,18 @@ back and forth freely.</p>
 <ol>
 <li>Open your XML document in the editor.</li>
 <li>Click <strong>Validate active document</strong> in the <strong>FundsXML</strong> side panel (FundsXML validation lives only there).</li>
-<li>If the document is valid, you get a confirmation message.</li>
-<li>If there are errors, they are listed line-by-line in an alert dialog so you can locate and fix each one.</li>
+<li>If the document is valid, the panel confirms it.</li>
+<li>If there are errors, the panel shows their number and the <strong>Problems</strong> panel below the editor opens with
+   one row per error - click a row to jump to its line.</li>
 </ol>
-<p>The validation uses whichever FundsXML schema version is currently marked as active.</p>
+<p>The validation uses whichever FundsXML schema version is currently marked as active - the document does not
+need to be bound to a schema (no <code>xsi:schemaLocation</code>, no binding in the Validation panel).</p>
+<p>A FundsXML document whose schema the editor cannot find otherwise - no <code>xsi:noNamespaceSchemaLocation</code>, or one
+naming a <code>FundsXML4.xsd</code> that is not next to the file - is bound to the active FundsXML schema automatically. The
+status bar then shows <strong>"XSD: FundsXML4.xsd (FundsXML)"</strong>, and F8, the live validation and the auto-completion use
+that schema, so the schema errors stay in the <strong>Problems</strong> panel while you edit. A schema you bound yourself, a
+project binding, a Schema Library mapping or a reference that resolves always comes first. Choosing another
+version in the panel binds an unbound document at once; an already bound one follows at its next validation.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>Use the Schematron Favorites under <strong>FundsXML Schematron</strong> to run additional business-rule checks. Open a Schematron file from Favorites, then validate your XML against it as you would with any other Schematron file.</p>
