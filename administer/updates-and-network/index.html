@@ -5057,7 +5057,9 @@ them with commas; <code>*</code> is a wildcard: <code>localhost, *.corp.example,
   type <code>DOMAIN\user</code> or <code>user@domain</code> into <strong>User</strong> and leave the domain empty.</li>
 <li><strong>Without a user, sign in with the Windows account (NTLM / Kerberos)</strong> - on by default. On
   Windows, when no user is entered, the proxy gets the account you are signed in with, so no
-  password has to be stored. Changing this option takes effect after a restart.</li>
+  password has to be stored. Kerberos (Negotiate) uses the tickets of your Windows logon (the
+  JDK's SSPI bridge, <code>sun.security.jgss.native=true</code>, set unless given on the command line); a
+  proxy that offers no Kerberos gets NTLM. Changing this option takes effect after a restart.</li>
 </ul>
 <h3 id="timeouts">Timeouts<a class="headerlink" href="#timeouts" title="Permanent link">¶</a></h3>
 <p><strong>Timeouts (s)</strong> sets how long a connection may take to be established (<strong>connect</strong>, default 30
@@ -5069,6 +5071,12 @@ test uses the values shown in the card, saved or not, so you can try a proxy bef
 The result appears next to the button.</p>
 <p>A failing download with <strong>HTTP 407</strong> means the proxy wants a sign-in: enter a user and password,
 or - on Windows - leave <strong>User</strong> empty and keep the Windows sign-in on.</p>
+<p><strong>"The proxy refused the sign-in (NTLM / Kerberos)"</strong> means the proxy asked for a Windows sign-in
+and did not accept it. Proxies often let some sites through without a sign-in, so a test with
+<code>https://github.com</code> can succeed while <code>https://api.gleif.org</code> fails - test with the address that
+fails. Then try the other way of signing in: enter <strong>User</strong> (<code>DOMAIN\user</code>) and <strong>Password</strong>, or
+leave them empty and switch the Windows sign-in on; restart the application after changing the
+Windows sign-in.</p>
 <h3 id="certificates">Certificates<a class="headerlink" href="#certificates" title="Permanent link">¶</a></h3>
 <p><strong>Settings → Network &amp; Security → SECURITY → Trust all certificates</strong> makes HTTPS downloads
 (for example of schemas) accept any TLS certificate. It helps behind a proxy that inspects HTTPS
