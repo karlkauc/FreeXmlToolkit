@@ -2861,6 +2861,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#documents-linked-and-embedded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documents (Linked and Embedded)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#the-fundsxml-side-panel" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4915,6 +4926,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#documents-linked-and-embedded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documents (Linked and Embedded)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#the-fundsxml-side-panel" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5383,7 +5405,7 @@ required elements and attributes) are not repeated.</p>
 <tr>
 <td>Unused master data</td>
 <td>warning</td>
-<td>Assets in AssetMasterData that no position, transaction or earning refers to.</td>
+<td>Assets in AssetMasterData that no position (including look-through positions in PositionsDecomposed), transaction or earning refers to.</td>
 </tr>
 <tr>
 <td>No duplicate assets</td>
@@ -5428,7 +5450,7 @@ required elements and attributes) are not repeated.</p>
 <tr>
 <td>No matured instruments held</td>
 <td>warning</td>
-<td>Positions in bonds, futures, options, swaps, warrants … whose maturity date is before the content date.</td>
+<td>Positions in bonds, futures, options, swaps, warrants … whose maturity date is before the date (NavDate) of the portfolio that holds them.</td>
 </tr>
 <tr>
 <td>Bonds mature after issue</td>
@@ -5460,7 +5482,7 @@ required elements and attributes) are not repeated.</p>
 <tr>
 <td>Share classes add up to the fund</td>
 <td>warning</td>
-<td>The net asset values of the share classes (in fund currency) add up to the fund's (± 0.5 %) for each date.</td>
+<td>The net asset values of the share classes (in fund currency) add up to the fund's (± 0.5 %) for each date and nature (an ESTIMATED and an OFFICIAL value of the same day are compared separately).</td>
 </tr>
 <tr>
 <td>Share class ratios add up to 100 %</td>
@@ -5649,7 +5671,7 @@ required elements and attributes) are not repeated.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>//Positions/Position[exists(/FundsXML4/AssetMasterData/Asset)][not(UniqueID = /FundsXML4/AssetMasterData/Asset/UniqueID)]
 </code></pre></div>
 <p><strong>Unused master data</strong> (<code>unused-assets</code>, warning)</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>/FundsXML4/AssetMasterData/Asset[not(UniqueID = (//Positions/Position/UniqueID, //Transaction/AssetUniqueID, //Earning/AssetUniqueID))]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>/FundsXML4/AssetMasterData/Asset[not(UniqueID = (//Portfolios/Portfolio/Positions/Position/UniqueID, //PositionsDecomposed/Positions/Position/UniqueID, //Transaction/AssetUniqueID, //Earning/AssetUniqueID))]
 </code></pre></div>
 <p><strong>No duplicate assets</strong> (<code>duplicate-assets</code>, error)</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>/FundsXML4/AssetMasterData/Asset[UniqueID = preceding-sibling::Asset/UniqueID]
@@ -5676,7 +5698,7 @@ required elements and attributes) are not repeated.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>/FundsXML4/AssetMasterData/Asset/AssetDetails/FXForward[let $b := (AmountBuy[. castable as xs:decimal])[1] ! xs:decimal(.), $s := (AmountSell[. castable as xs:decimal])[1] ! xs:decimal(.), $r := (AgreedFxRate[. castable as xs:decimal])[1] ! xs:decimal(.) return (exists(CurrencyBuy) and string(CurrencyBuy) eq string(CurrencySell)) or $b le 0 or $s le 0 or (exists($b) and exists($s) and exists($r) and $b gt 0 and $s gt 0 and $r gt 0 and abs($b div $s - $r) div $r gt 0.01 and abs($s div $b - $r) div $r gt 0.01)]
 </code></pre></div>
 <p><strong>No matured instruments held</strong> (<code>matured</code>, warning)</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>/FundsXML4/AssetMasterData/Asset[/FundsXML4/ControlData/ContentDate castable as xs:date][(AssetDetails/*/MaturityDate)[1] castable as xs:date][xs:date((AssetDetails/*/MaturityDate)[1]) lt xs:date(/FundsXML4/ControlData/ContentDate)][UniqueID = //Positions/Position/UniqueID]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>/FundsXML4/AssetMasterData/Asset[(AssetDetails/*/MaturityDate)[1] castable as xs:date][let $m := xs:date((AssetDetails/*/MaturityDate)[1]), $id := string(UniqueID) return some $p in //Portfolios/Portfolio[NavDate castable as xs:date][xs:date(NavDate) gt $m] satisfies $p/Positions/Position/UniqueID = $id]
 </code></pre></div>
 <p><strong>Bonds mature after issue</strong> (<code>bond-dates</code>, error)</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>/FundsXML4/AssetMasterData/Asset/AssetDetails/Bond[MaturityDate castable as xs:date and IssueDate castable as xs:date][xs:date(MaturityDate) lt xs:date(IssueDate)]
@@ -5688,7 +5710,7 @@ required elements and attributes) are not repeated.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>//TotalAssetValues/TotalAssetValue[TotalNetAssetValue/Amount][let $ccy := string((ancestor::*[self::ShareClass or self::Segment or self::Subfund or self::Fund][1]/Currency, ancestor::Fund[1]/Currency)[1]) return $ccy ne '' and not(TotalNetAssetValue/Amount/@ccy = $ccy)]
 </code></pre></div>
 <p><strong>Share classes add up to the fund</strong> (<code>share-classes-sum</code>, warning)</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a>//Fund[SingleFund/ShareClasses/ShareClass/TotalAssetValues]/FundDynamicData/TotalAssetValues/TotalAssetValue[let $t := ., $f := ancestor::Fund[1], $ccy := string($f/Currency), $tna := ($t/TotalNetAssetValue/Amount[@ccy = $ccy][. castable as xs:decimal])[1] ! xs:decimal(.), $cl := $f/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue[NavDate = $t/NavDate]/TotalNetAssetValue/Amount[@ccy = $ccy][. castable as xs:decimal] return exists($tna) and exists($cl) and $tna ne 0 and abs(sum($cl ! xs:decimal(.)) - $tna) div abs($tna) gt 0.005]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a>//Fund[SingleFund/ShareClasses/ShareClass/TotalAssetValues]/FundDynamicData/TotalAssetValues/TotalAssetValue[let $t := ., $f := ancestor::Fund[1], $ccy := string($f/Currency), $tna := ($t/TotalNetAssetValue/Amount[@ccy = $ccy][. castable as xs:decimal])[1] ! xs:decimal(.), $cl := $f/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue[NavDate = $t/NavDate][string(TotalAssetNature) = string($t/TotalAssetNature)]/TotalNetAssetValue/Amount[@ccy = $ccy][. castable as xs:decimal] return exists($tna) and exists($cl) and $tna ne 0 and abs(sum($cl ! xs:decimal(.)) - $tna) div abs($tna) gt 0.005]
 </code></pre></div>
 <p><strong>Share class ratios add up to 100 %</strong> (<code>share-class-ratio</code>, warning)</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a>//Fund[SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue/Ratio][let $tavs := SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue return some $d in distinct-values($tavs/NavDate) satisfies (let $day := $tavs[NavDate = $d] return (every $t in $day satisfies $t/Ratio castable as xs:decimal) and abs(sum($day/Ratio ! xs:decimal(.)) - 100) gt 0.5)]
@@ -5822,6 +5844,50 @@ the first positions (<code>ID_004 (Fund X, 2025-10-01): 3.5 → 3.10</code>, <co
 the open document as text edits - its formatting stays - and <strong>Edit → Undo</strong> takes all of them back at once. If the
 document changes while the values are computed, nothing is set. For a signed document you are asked first: new
 values no longer match the signature.</p>
+<h2 id="documents-linked-and-embedded">Documents (Linked and Embedded)<a class="headerlink" href="#documents-linked-and-embedded" title="Permanent link">¶</a></h2>
+<p><em>New in 3.6.0.</em> A FundsXML file can carry documents - a prospectus, a KID, an annual report - in its
+<code>Documents</code> element: each <code>Document</code> either <strong>links</strong> to the file (<code>DocumentURL</code>) or <strong>embeds</strong> it as base64
+text (<code>BinaryData</code>). <strong>Documents (Linked &amp; Embedded)</strong> in the side panel lists them for the active document:
+type, name, language, what the document is assigned to (the fund, subfunds or share classes), link or
+embedded, and size.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../img/fundsxml-documents.png" data-desc-position="bottom"><img alt="The Documents dialog: a prospectus linked, a PRIIPs KID and a factsheet embedded; the selected KID can be saved or replaced by a link" src="../../img/fundsxml-documents.png"></a></p>
+<p>Select an entry and choose what to do:</p>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Open Link</strong></td>
+<td>Opens a linked document in your browser. Only web addresses (<code>http</code>, <code>https</code>) are opened - a link in a delivered file never starts a program or opens a network share.</td>
+</tr>
+<tr>
+<td><strong>Save Embedded Document…</strong></td>
+<td>Decodes an embedded document and saves it as a file. The proposed name is the document's own file name without any folders. If <code>SizeInBytes</code> does not match the embedded content, you are asked first - the file may be incomplete.</td>
+</tr>
+<tr>
+<td><strong>Embed File…</strong></td>
+<td>Adds a file as a new embedded document. You pick its type (from the schema's list), language, the fund or share class it belongs to (one with an ISIN or LEI) and its name.</td>
+</tr>
+<tr>
+<td><strong>Embed Linked Document…</strong></td>
+<td>Embeds a file you choose (for example the linked document you downloaded) in place of the link; file name and format are updated to the new file.</td>
+</tr>
+<tr>
+<td><strong>Replace by Link…</strong></td>
+<td>Replaces an embedded document by a link; the address must be absolute and contain no spaces.</td>
+</tr>
+</tbody>
+</table>
+<p>Every change is one step that <strong>Edit → Undo</strong> takes back, and the rest of the document keeps its formatting.
+Files over 25 MB cannot be embedded (link them instead); above 5 MB you are asked first, because the base64
+text makes the document about a third larger than the file and the editor slower. For a signed document you
+are warned that the change breaks the signature.</p>
+<p>The list stays open beside the editor. When you switch to another tab, its actions do nothing until you switch
+back; when the document was edited meanwhile, the list is read again and you choose the entry again.</p>
 <h2 id="the-fundsxml-side-panel">The FundsXML Side Panel<a class="headerlink" href="#the-fundsxml-side-panel" title="Permanent link">¶</a></h2>
 <p>Select the <strong>FundsXML</strong> activity in the activity bar to open its side panel.</p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../img/unified-shell-fundsxml.png" data-desc-position="bottom"><img alt="FundsXML side panel with the version picker, validate action and docs &amp; resources buttons" src="../../img/unified-shell-fundsxml.png"></a></p>
@@ -5841,7 +5907,7 @@ sections:</p>
 </tr>
 <tr>
 <td><strong>VALIDATE</strong></td>
-<td><strong>Validate active document</strong> - check the open XML against the active FundsXML schema. <strong>Run Data Quality Checks</strong>, <strong>Check Identifiers Online</strong> (are the LEIs registered and valid, do the ISINs exist and are they still traded? Findings in the Problems panel - see <a href="../identifier-lookup/">Online Identifier Lookup</a>), <strong>Add Grid Formulas &amp; Filters</strong> and <strong>Set Position Weights (TotalPercentage)</strong> (see <a href="#position-weights-totalpercentage">Position Weights</a>).</td>
+<td><strong>Validate active document</strong> - check the open XML against the active FundsXML schema. <strong>Run Data Quality Checks</strong>, <strong>Check Identifiers Online</strong> (are the LEIs registered and valid, do the ISINs exist and are they still traded? Findings in the Problems panel - see <a href="../identifier-lookup/">Online Identifier Lookup</a>), <strong>Add Grid Formulas &amp; Filters</strong>, <strong>Set Position Weights (TotalPercentage)</strong> (see <a href="#position-weights-totalpercentage">Position Weights</a>) and <strong>Documents (Linked &amp; Embedded)</strong> (see <a href="#documents-linked-and-embedded">Documents</a>).</td>
 </tr>
 <tr>
 <td><strong>CHECK AN IDENTIFIER</strong></td>

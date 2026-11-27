@@ -4827,7 +4827,11 @@
 the data dictionary as a table with one row per element and attribute path (XPath, name, type,
 cardinality, documentation, restrictions, sample data). It has a <strong>Schema Info</strong> sheet and one
 sheet per documentation language; the <strong>Download Excel</strong> button on the HTML Data Dictionary page
-opens it. There is no separate Excel format to choose, and PDF and Word do not write the workbook.</p>
+opens it. There is no separate Excel format to choose, and PDF and Word do not write the workbook.
+A cell longer than Excel allows (32,767 characters - a very long documentation text or enumeration
+list) is cut and ends with an ellipsis.</p>
+<p>The HTML documentation needs no web server: opened from disk (double-click <code>index.html</code>), its search and
+language switch work as well.</p>
 <h2 id="how-to-generate-documentation">How to Generate Documentation<a class="headerlink" href="#how-to-generate-documentation" title="Permanent link">¶</a></h2>
 <ol>
 <li>Open your XSD file in the editor host</li>

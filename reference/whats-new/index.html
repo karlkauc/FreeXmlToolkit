@@ -4149,10 +4149,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#unreleased" class="md-nav__link">
+  <a href="#360-2026-11-27" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Unreleased
+        3.6.0 (2026-11-27)
       
     </span>
   </a>
@@ -4633,10 +4633,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#unreleased" class="md-nav__link">
+  <a href="#360-2026-11-27" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Unreleased
+        3.6.0 (2026-11-27)
       
     </span>
   </a>
@@ -4707,8 +4707,44 @@
 <p>The highlights of each release. The complete notes and all downloads are on the
 <a href="https://github.com/karlkauc/FreeXmlToolkit/releases">GitHub Releases page</a>; the version you are
 running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
-<h2 id="unreleased">Unreleased<a class="headerlink" href="#unreleased" title="Permanent link">¶</a></h2>
+<h2 id="360-2026-11-27">3.6.0 (2026-11-27)<a class="headerlink" href="#360-2026-11-27" title="Permanent link">¶</a></h2>
 <ul>
+<li><strong>FundsXML documents.</strong> <strong>Documents (Linked &amp; Embedded)</strong> in the FundsXML panel lists the prospectuses, KIDs and
+  reports a FundsXML file links to or embeds, opens links, saves embedded documents, embeds a file (as a new document
+  or in place of a link) and replaces an embedded one by a link - each change one undo step.
+  <a href="../../industry/fundsxml/#documents-linked-and-embedded">More</a></li>
+<li><strong>FundsXML schema errors in the Problems panel.</strong> <strong>Validate active document</strong> lists the schema errors in the
+  Problems panel instead of only counting them, and a FundsXML document without a schema reference that resolves is
+  bound to the active FundsXML schema, so F8, live validation and auto-completion use it too.
+  <a href="../../industry/fundsxml/#quick-validate-your-xml">More</a></li>
+<li><strong>Fewer false FundsXML data-quality warnings.</strong> Assets used only by look-through positions count as used, an
+  ESTIMATED and an OFFICIAL net asset value of the same day are no longer added together, and a matured instrument is
+  compared with the date of the portfolio that holds it, not with the file's content date.</li>
+<li><strong>Behind a company proxy.</strong> HTTPS works behind a proxy that inspects traffic with a company root certificate:
+  the certificates of the Windows certificate store or the macOS keychain are trusted (<strong>Settings → Network &amp;
+  Security → Trust the certificates of the operating system</strong>, on by default). The proxy sign-in with the Windows
+  account uses Kerberos where the proxy offers it, and a refused sign-in is explained in plain words. ESMA FIRDS
+  lookups are retried after a gateway error. <a href="../../administer/updates-and-network/#network">More</a></li>
+<li><strong>Large HTML results do not block the window.</strong> An HTML result over 1 MB opens as text; the Preview offers <strong>Show
+  anyway</strong> and <strong>Open in browser</strong>. Query Console results over one million characters are shown shortened - Copy
+  and Save still take the whole result. <a href="../../guides/transform-query/run-xslt/">More</a></li>
+<li><strong>Scenario checks with HTML results.</strong> HTML output that is not well-formed XML is compared line by line, so such a
+  check can pass, and <strong>Differences</strong> shows them. <a href="../../guides/projects/#regression-checks">More</a></li>
+<li><strong>Your file stays as you wrote it.</strong> A grid, Tree or Properties edit keeps the <code>&lt;!DOCTYPE …&gt;</code> declaration and
+  attributes on lines of their own; saving a schema no longer adds <code>elementFormDefault="qualified"</code> /
+  <code>attributeFormDefault="unqualified"</code> when it did not declare them.</li>
+<li><strong>Fixes in the editors.</strong> Step Over on a local <code>xsl:variable</code> in the XSLT debugger stays in the loop body;
+  Ctrl+Z / Ctrl+Y work in the complex type editor; previewing the same PDF again refreshes its tab instead of opening
+  another; the <strong>Change</strong> buttons of the input rows in the Transform, Validation and PDF/FOP panels and on the Sign &amp;
+  Encrypt page work again; when transform runs overlap, only the latest one shows its result; switching on <em>Display
+  as Table</em> for tens of thousands of records takes a second instead of minutes; the selected row of a table (for
+  example in the FundsXML Documents dialog) is highlighted again.</li>
+<li><strong>Schema documentation.</strong> The PDF shows the schema overview diagram again, the child table shows a child's own
+  example values, the HTML documentation's search and language switch work when it is opened from disk, and very long
+  texts no longer stop the Excel data dictionary. <a href="../../guides/design-schemas/documentation/">More</a></li>
+<li><strong>More German texts</strong> in the editor, panels, dialogs, diagram, grid, debugger, XSD quality checks and comparison.</li>
+<li><strong>Website and contact</strong> - <a href="https://freexmltoolkit.org">freexmltoolkit.org</a> and office@freexmltoolkit.org - in the
+  About dialog and the installation packages.</li>
 <li><strong>Generate XSD from XML gives a usable schema.</strong> All occurrences of an element are put together, so repeated
   elements keep their children, attributes and type. What is missing somewhere becomes optional, what repeats becomes
   <code>maxOccurs="unbounded"</code>, a type fits every value seen (<code>id="1"</code> is a number, no boolean), children stay in document

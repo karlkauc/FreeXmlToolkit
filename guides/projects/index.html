@@ -5043,7 +5043,8 @@ below OPTIONS &amp; TOOLS.</p>
 <p>A scenario with an <strong>expected result</strong> can be checked: it runs as usual, and its result is
 compared with the expected file ("golden file"). XML results are compared by structure, like
 <a href="../compare-merge/#comparing-as-xml">Comparing as XML</a> — formatting and attribute order do not
-count. Other results (text, JSON) are compared line by line.</p>
+count. Other results (text, JSON, and HTML that is not well-formed XML - such as <code>&lt;meta&gt;</code> without an end tag
+from output method <code>html</code>) are compared line by line; <strong>Differences</strong> opens them in the same mode.</p>
 <p><strong>Values that change from run to run</strong> — a creation date, an ID — go into the expected file as
 XMLUnit placeholders, or are left out with an ignore XPath:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">&lt;summary</span><span class="w"> </span><span class="na">created=</span><span class="s">"${xmlunit.isDateTime}"</span><span class="w"> </span><span class="na">run=</span><span class="s">"${xmlunit.ignore}"</span><span class="nt">&gt;</span>

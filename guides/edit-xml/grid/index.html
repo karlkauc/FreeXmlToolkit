@@ -6008,6 +6008,9 @@ such as <code>record &lt;1001..2000&gt;</code>; opening a group closes the other
 <p><strong>Large files</strong> (from 8 MB of text). Grid edits are not written into the text after every
 change: the text follows when you switch to the Text view, save, validate or transform. While
 it is written back, a loading indicator shows and the text is read-only for a moment.</p>
+<p>When an edit in the grid, the Tree view or the Properties panel is written into the text, the rest of
+the document keeps its form: the <code>&lt;!DOCTYPE …&gt;</code> declaration stays, and attributes written on lines of
+their own stay there.</p>
 <h2 id="next-steps">Next steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
 <ul>
 <li><a href="../../json-grid/">JSON grid</a></li>
