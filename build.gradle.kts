@@ -36,7 +36,7 @@ plugins {
     pmd
     checkstyle
     id("com.github.spotbugs") version "6.5.13"
-    id("com.diffplug.spotless") version "8.11.0"
+    id("com.diffplug.spotless") version "8.12.0"
     id("io.github.ben-manes.versions") version "0.67.0"
     // Software bill of materials (CycloneDX) for every release: ./gradlew cyclonedxBom
     id("org.cyclonedx.bom") version "3.6.1"
@@ -104,7 +104,7 @@ dependencies {
     implementation("net.sf.saxon:Saxon-HE:12.10")
 
     // XProc 3.0/3.1 pipeline engine (MIT)
-    implementation("com.xmlcalabash:xmlcalabash:3.1.0") {
+    implementation("com.xmlcalabash:xmlcalabash:3.1.1") {
         // project routes SLF4J -> Log4j2 (log4j-slf4j2-impl); Calabash's log4j-to-slf4j would recurse
         exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
         // CLI-only dead weight (interactive debugger terminal)
@@ -224,7 +224,7 @@ dependencies {
     // Anthropic provider of the AI assistant (decision D13): the official SDK, used only in
     // org.fxt.freexmltoolkit.service.ai.provider.anthropic (AiLayeringGuardTest), on a transport over
     // ConnectionService (no OkHttp: anthropic-java-core, not anthropic-java).
-    implementation("com.anthropic:anthropic-java-core:3.11.0")
+    implementation("com.anthropic:anthropic-java-core:3.14.0")
 
     // Note: Guice 7.0.0 doesn't support Java 25 (class file version 69)
     // Using manual DI pattern instead - see org.fxt.freexmltoolkit.di package
@@ -239,12 +239,12 @@ dependencies {
     testImplementation("org.testfx:openjfx-monocle:21.0.2")
     testImplementation("org.hamcrest:hamcrest:3.0")
 
-    implementation(platform("com.helger.schematron:ph-schematron-parent-pom:10.3.2"))
-    implementation("com.helger.schematron:ph-schematron-api:10.3.2")
+    implementation(platform("com.helger.schematron:ph-schematron-parent-pom:10.3.3"))
+    implementation("com.helger.schematron:ph-schematron-api:10.3.3")
     runtimeOnly("org.glassfish.jaxb:jaxb-runtime:4.0.9") // JAXB impl for ph-schematron's SVRL marshalling
-    implementation("com.helger.schematron:ph-schematron-xslt:10.3.2")
-    implementation("com.helger.schematron:ph-schematron-pure:10.3.2")
-    implementation("com.helger.schematron:ph-schematron-schxslt:10.3.2")
+    implementation("com.helger.schematron:ph-schematron-xslt:10.3.3")
+    implementation("com.helger.schematron:ph-schematron-pure:10.3.3")
+    implementation("com.helger.schematron:ph-schematron-schxslt:10.3.3")
 }
 
 // Java Toolchain Configuration - Use JDK with JavaFX included
