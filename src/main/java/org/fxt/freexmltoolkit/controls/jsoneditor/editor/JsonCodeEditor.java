@@ -77,6 +77,14 @@ public class JsonCodeEditor extends VBox {
     private long lastHoverUpdate = 0;
     private static final long HOVER_DELAY_MS = 300;
     /**
+     * No hover tooltip while a line is longer than this: finding the character under the pointer lays out the whole
+     * line, and on a minified JSON document of several MB on one line every mouse move froze the window for seconds
+     * (telemetry, 3.6.0).
+     */
+    static final int HOVER_MAX_LINE = 10_000;
+    /** Length of the longest line, {@code -1} = not known since the last edit. */
+    private int longestLine = -1;
+    /**
      * Path, type and schema hover only up to this document length: they copy and scan the whole text on every
      * mouse pause, which took 2.8 s on the FX thread for a 290 MB file (telemetry b3f7a4a635b1311d).
      */
@@ -527,6 +535,7 @@ public class JsonCodeEditor extends VBox {
         });
 
         // Text change listener with debounce for syntax highlighting
+        codeArea.plainTextChanges().subscribe(change -> longestLine = -1);
         codeArea.multiPlainChanges()
                 .successionEnds(Duration.ofMillis(100))
                 .subscribe(ignore -> {
@@ -592,6 +601,10 @@ public class JsonCodeEditor extends VBox {
                 return;
             }
             lastHoverUpdate = now;
+            if (longestLine() > HOVER_MAX_LINE) {
+                hoverPopup.hide();
+                return;
+            }
 
             try {
                 // Get character position under mouse
@@ -784,10 +797,28 @@ public class JsonCodeEditor extends VBox {
         }
     }
 
+    /** @return the length of the longest line (cached until the next edit) */
+    int longestLine() {
+        if (longestLine < 0) {
+            int longest = 0;
+            for (int i = 0, n = codeArea.getParagraphs().size(); i < n; i++) {
+                longest = Math.max(longest, codeArea.getParagraphLength(i));
+            }
+            longestLine = longest;
+        }
+        return longestLine;
+    }
+
+    /** @return whether the hover tooltip is offered for the current text (no line longer than {@link #HOVER_MAX_LINE}) */
+    boolean hoverOffered() {
+        return longestLine() <= HOVER_MAX_LINE;
+    }
+
     private StyleSpans<Collection<String>> computeHighlighting(String text) {
-        // Minified JSON: lines with thousands of spans freeze the editor's line layout.
-        return org.fxt.freexmltoolkit.controls.shared.DenseLineGuard
-                .flattenDenseLines(text, syntax.highlighter().apply(text));
+        // Minified JSON: very long lines are left unstyled without running the highlighter on them, lines with
+        // thousands of spans are flattened (both froze the editor).
+        return org.fxt.freexmltoolkit.controls.shared.DenseLineGuard.highlightSkippingLongLines(text,
+                syntax.highlighter(), org.fxt.freexmltoolkit.controls.shared.DenseLineGuard.MAX_HIGHLIGHTED_LINE);
     }
 
     /**

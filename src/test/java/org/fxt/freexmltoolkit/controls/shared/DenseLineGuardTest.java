@@ -92,4 +92,33 @@ class DenseLineGuardTest {
         assertEquals(1, flat.getSpanCount());
         assertEquals(text.length(), flat.length());
     }
+
+    @org.junit.jupiter.api.Test
+    void longLinesAreNotGivenToTheHighlighter() {
+        java.util.List<String> seen = new java.util.ArrayList<>();
+        java.util.function.Function<String, org.fxmisc.richtext.model.StyleSpans<java.util.Collection<String>>> highlighter =
+                t -> {
+                    seen.add(t);
+                    var b = new org.fxmisc.richtext.model.StyleSpansBuilder<java.util.Collection<String>>();
+                    b.add(java.util.Collections.singleton("x"), t.length());
+                    return b.create();
+                };
+        String text = "short\n" + "y".repeat(50) + "\nend";
+        var spans = DenseLineGuard.highlightSkippingLongLines(text, highlighter, 20);
+        org.junit.jupiter.api.Assertions.assertEquals(text.length(), spans.length(), "spans cover the whole text");
+        org.junit.jupiter.api.Assertions.assertEquals(java.util.List.of("short", "end"), seen, "the long line is skipped");
+        // styled - newline - plain long line - newline - styled
+        java.util.List<java.util.Collection<String>> styles = new java.util.ArrayList<>();
+        spans.forEach(s -> styles.add(s.getStyle()));
+        org.junit.jupiter.api.Assertions.assertEquals(java.util.Set.of("x"), java.util.Set.copyOf(styles.getFirst()));
+        org.junit.jupiter.api.Assertions.assertEquals(java.util.Set.of("x"), java.util.Set.copyOf(styles.getLast()));
+        org.junit.jupiter.api.Assertions.assertEquals(3, spans.getSpanCount(), "styled, plain run, styled");
+
+        // without a long line: one call on the whole text
+        seen.clear();
+        DenseLineGuard.highlightSkippingLongLines("a\nb", highlighter, 20);
+        org.junit.jupiter.api.Assertions.assertEquals(java.util.List.of("a\nb"), seen);
+        org.junit.jupiter.api.Assertions.assertTrue(DenseLineGuard.hasLineLongerThan("ab\n" + "c".repeat(21), 20));
+        org.junit.jupiter.api.Assertions.assertFalse(DenseLineGuard.hasLineLongerThan("ab\ncd", 20));
+    }
 }

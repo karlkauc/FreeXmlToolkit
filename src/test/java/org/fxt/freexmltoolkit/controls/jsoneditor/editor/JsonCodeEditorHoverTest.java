@@ -64,4 +64,19 @@ class JsonCodeEditorHoverTest {
         assertEquals("⚠ Something is wrong", hover);
         assertEquals(0, pathLookups.get(), "no path lookup over the whole text");
     }
+
+    @Test
+    void noHoverWhileALineIsVeryLong() {
+        JsonCodeEditor small = editor("{\n  \"a\": 1\n}");
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(10000, small::hoverOffered));
+
+        String minified = "[" + "{\"id\":1,\"name\":\"x\"},".repeat(JsonCodeEditor.HOVER_MAX_LINE / 10) + "{}]";
+        JsonCodeEditor editor = editor(minified);
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(10000, editor::longestLine) > JsonCodeEditor.HOVER_MAX_LINE);
+        org.junit.jupiter.api.Assertions.assertFalse(WaitForAsyncUtils.waitForAsyncFx(10000, editor::hoverOffered));
+
+        // formatted again: the hover comes back
+        WaitForAsyncUtils.waitForAsyncFx(10000, () -> editor.setText("{\n  \"a\": 1\n}"));
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(10000, editor::hoverOffered));
+    }
 }

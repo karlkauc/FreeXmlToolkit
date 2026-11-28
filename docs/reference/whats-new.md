@@ -8,6 +8,12 @@ The highlights of each release. The complete notes and all downloads are on the
 [GitHub Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases); the version you are
 running is shown under **Help → About FreeXmlToolkit**.
 
+## Unreleased
+
+- **Minified JSON stays responsive.** A JSON or YAML document with a very long line (minified, several MB) no
+  longer freezes the window: lines over 20,000 characters are shown without colours, and the hover tooltip is off
+  while a line is longer than 10,000 characters.
+
 ## 3.6.0 (2026-11-27)
 
 - **FundsXML documents.** **Documents (Linked & Embedded)** in the FundsXML panel lists the prospectuses, KIDs and
